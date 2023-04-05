@@ -7,7 +7,7 @@ import {
   BaseEntityServiceOptions,
   chainPromises,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
+  EntitiesStorage, EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils, fromDateISOString,
   isEmptyArray,
@@ -34,6 +34,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import moment from 'moment';
+import {SymbolBuilder} from '@angular/compiler-cli/src/ngtsc/typecheck/src/template_symbol_builder';
 
 export class DataSynchroImportFilter {
 
@@ -99,6 +100,15 @@ export interface IDataSynchroService<
 
 const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
+export interface ISynchronizeEvent {
+  localId: any,
+  remoteEntity: RootDataEntity<any, any>,
+}
+
+export interface RootDataEntitySaveOptions extends EntitySaveOptions {
+  emitEvent?: boolean;
+}
+
 export function isDataSynchroService(object: any): object is IDataSynchroService<any> {
   return object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
     .length === DataSynchroServiceFnName.length || false;
@@ -130,8 +140,9 @@ export abstract class RootDataSynchroService<
 
   protected importationProgress$: Observable<number>;
   protected loading = false;
-  readonly onSave:Subject<T[]> = new Subject<T[]>();
-  readonly onDelete:Subject<T[]> = new Subject<T[]>();
+  readonly onSave = new Subject<T[]>();
+  readonly onDelete = new Subject<T[]>();
+  readonly onSynchronize = new Subject<ISynchronizeEvent>();
 
   get featureName(): string {
     return this._featureName || DEFAULT_FEATURE_NAME;

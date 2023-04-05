@@ -34,7 +34,7 @@ import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.m
 import { SortDirection } from '@angular/material/sort';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from './landing.service';
-import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import {IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from './model/landing.model';
 import { ObservedLocationValidatorService } from './validator/observed-location.validator';
 import { environment } from '@environments/environment';
@@ -62,7 +62,7 @@ import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 
 
-export interface ObservedLocationSaveOptions extends EntitySaveOptions {
+export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
   enableOptimisticResponse?: boolean; // True by default
 }
@@ -262,7 +262,6 @@ export class ObservedLocationService
     IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions> {
 
   protected loading = false;
-  readonly onSave:Subject<ObservedLocation[]> = new Subject<ObservedLocation[]>();
 
   constructor(
     injector: Injector,
@@ -508,13 +507,19 @@ export class ObservedLocationService
       await this.updateChildrenDate(entity);
     }
 
-    this.onSave.next([entity]);
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
     return entity;
   }
 
   async saveAll(entities: ObservedLocation[], opts?: ObservedLocationSaveOptions): Promise<ObservedLocation[]> {
     const result = await super.saveAll(entities, opts);
-    this.onSave.next(result);
+
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next(result);
+    }
+
     return result;
   }
 
@@ -577,7 +582,10 @@ export class ObservedLocationService
       await this.updateChildrenDate(entity);
     }
 
-    this.onSave.next([entity]);
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
+
     return entity;
   }
 
@@ -819,11 +827,19 @@ export class ObservedLocationService
 
     try {
 
-      entity = await this.save(entity, opts);
+      entity = await this.save(entity, {...opts, emitEvent: false /*will emit a onSynchronize, instead of onSave */});
+
+      if (!opts || opts.emitEvent !== false) {
+        this.onSynchronize.next({localId, remoteEntity: entity});
+      }
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+      if (!opts || opts.emitEvent !== false) {
+        this.onSynchronize.next({localId, remoteEntity: entity});
       }
 
       // synchronize landings

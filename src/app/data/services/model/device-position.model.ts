@@ -63,8 +63,8 @@ export class DevicePosition extends RootDataEntity<DevicePosition> {
 export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFilter, DevicePosition> {
 
   static TYPENAME = 'DevicePositionVO';
-
   objectType:Referential;
+  objectId:number;
   startDate:Moment = null;
   endDate:Moment = null;
   recorderPerson:Person = null;
@@ -75,6 +75,7 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
     super.fromObject(source, opts);
     this.synchronizationStatus = source.synchronizationStatus || undefined;
     this.objectType = Referential.fromObject(source.objectType);
+    this.objectId = source.objectId;
     this.recorderPerson = Person.fromObject(source.recorderPerson)
   }
 
@@ -82,6 +83,7 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    target.objectId = this.objectId;
     if (opts && opts.minify) {
       target.objectTypeLabel = this.objectType?.label;
       delete target.objectType;
@@ -97,13 +99,17 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
 
   buildFilter(): FilterFn<DevicePosition>[] {
     const filterFns = super.buildFilter();
-    if (ReferentialUtils.isNotEmpty(this.recorderPerson)) {
-      const recorderPersonId = this.recorderPerson.id;
-      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === recorderPersonId));
+    if (this.objectId) {
+      const objectId = this.objectId;
+      filterFns.push(t => (t.objectId === objectId))
     }
     if (this.objectType) {
       const objectTypeLabel = this.objectType.label;
       filterFns.push(t => (t.objectType.label === objectTypeLabel))
+    }
+    if (ReferentialUtils.isNotEmpty(this.recorderPerson)) {
+      const recorderPersonId = this.recorderPerson.id;
+      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === recorderPersonId));
     }
     return filterFns;
   }

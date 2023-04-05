@@ -24,9 +24,9 @@ import { environment } from '@environments/environment';
 import { DevicePosition, DevicePositionFilter, IPositionWithDate } from '@app/data/services/model/device-position.model';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import {ISynchronizeEvent, RootDataEntitySaveOptions, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
-import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import {DataEntityAsObjectOptions, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
@@ -66,7 +66,6 @@ export const DevicePositionFragment = {
   }`,
 }
 
-// TODO
 const Queries: BaseEntityGraphqlQueries = {
   loadAll: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
     data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
@@ -98,6 +97,15 @@ const Queries: BaseEntityGraphqlQueries = {
 };
 const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   save: gql`mutation saveDevicePosition($devicePosition:DevicePositionVOInput!){
+    data: saveDevicePosition(devicePosition: $devicePosition){
+      ...DevicePositionFragment
+    }
+  }
+  ${DevicePositionFragment.devicePosition}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.referential}
+  `,
+  saveAll: gql`mutation saveDevicePositions($devicePosition:DevicePositionVOInput!){
     data: saveDevicePosition(devicePosition: $devicePosition){
       ...DevicePositionFragment
     }
@@ -142,8 +150,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     this._debug = !environment.production;
   }
 
-  async save(entity: DevicePosition, opts?:EntitySaveOptions): Promise<DevicePosition> {
-
+  async save(entity: DevicePosition, opts?:RootDataEntitySaveOptions): Promise<DevicePosition> {
     if (RootDataEntityUtils.isLocal(entity)) {
       return this.saveLocally(entity, opts);
     }
@@ -167,13 +174,13 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         const savedEntity = data && data.data;
         // Local entity (optimistic response): save it
         if (savedEntity.id < 0) {
-          if (this._debug) console.debug(`[${this._logPrefix}] [offline] Saving trip locally...`, savedEntity);
+          if (this._debug) console.debug(`[${this._logPrefix}] [offline] Saving device positon locally...`, savedEntity);
           await this.entities.save<DevicePosition>(savedEntity);
         } else {
           // Remove existing entity from the local storage
           // TODO Check this condition
           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
-            if (this._debug) console.debug(`[${this._logPrefix}] Deleting trip {${entity.id}} from local storage`);
+            if (this._debug) console.debug(`[${this._logPrefix}] Deleting device positition {${entity.id}} from local storage`);
             await this.entities.delete(entity);
           }
           // Copy id and update Date
@@ -192,7 +199,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         }
       },
     });
-    this.onSave.next([entity]);
+
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
+
     return entity;
   }
 
@@ -215,38 +226,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
 
   async synchronize(entity: DevicePosition, opts?: any): Promise<DevicePosition> {
-    const localId = entity.id;
-    if (isNil(localId) || localId >= 0) {
-      throw new Error('Entity must be a local entity');
-    }
-    if (this.network.offline) {
-      throw new Error('Cannot synchronize: app is offline');
-    }
-    entity = entity instanceof Entity ? entity.clone() : entity;
-    entity.synchronizationStatus = 'SYNC';
-    entity.id = undefined;
-    try {
-      entity = await this.save(entity, opts);
-      if (isNil(entity.id) || entity.id < 0) {
-        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
-      }
-    } catch (err) {
-      throw {
-        ...err,
-        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
-        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
-        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
-      };
-    }
-    // Clean local
-    try {
-      if (this._debug) console.debug(`${this._logPrefix}Deleting entity {${entity.id}} from local storage`);
-    } catch (err) {
-      console.error(`${this._logPrefix} Failed to locally delete entity {${entity.id}} and its operations`, err);
-      // Continue
-    }
-
-    return entity;
+    throw  new Error('Not implemented');
   }
 
   // TODO Need a control on this data ?
@@ -511,6 +491,10 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       subscription.add(
         service.onDelete.subscribe(entities => this.deleteFromEntities(entities))
       );
+
+      subscription.add(
+        service.onSynchronize.subscribe(onSynchronizeSubject => this.synchronizeFromEntity(onSynchronizeSubject))
+      );
     });
 
     return subscription;
@@ -546,6 +530,38 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     const remoteEntities = entities.filter(e => EntityUtils.isRemote(e));
     const localDevicePosition = "";
     const remoteDevicePosition = "";
+  }
+
+  protected async synchronizeFromEntity(event: ISynchronizeEvent) {
+    const localId = event.localId;
+    const remoteEntity = event.remoteEntity;
+    const entityName = ModelEnumUtils.getObjectTypeByEntityName(DataEntityUtils.getEntityName(remoteEntity));
+
+    // Load local data
+    let {data} = await this.entities.loadAll(DevicePosition.TYPENAME, {
+      filter: DevicePositionFilter.fromObject({
+        objectId: localId,
+        objectType: Referential.fromObject({label: entityName}),
+      }).asFilterFn()
+    });
+
+    // Nothing to do if the synchronized entity has no liked local device position
+    if (data.length === 0) return;
+
+    const localIds = data.map(d => d.id);
+    const entities = data.map(json => {
+      const entity = DevicePosition.fromObject({
+        ...json,
+        objectId: remoteEntity.id,
+      });
+      return entity;
+    });
+
+    // Save
+    await this.saveAll(entities);
+
+    // clean local
+    await this.entities.deleteMany(localIds, {entityName: DevicePosition.ENTITY_NAME});
   }
 
 //   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition> {

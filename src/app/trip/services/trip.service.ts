@@ -58,7 +58,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_NAME } from './config/trip.config';
-import { DataSynchroImportFilter, IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { DataSynchroImportFilter, IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
@@ -302,7 +302,7 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
   fullLoad?: boolean;
 }
 
-export interface TripSaveOptions extends EntitySaveOptions {
+export interface TripSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean; // False by default
   withOperation?: boolean; // False by default
   withOperationGroup?: boolean; // False by default
@@ -896,7 +896,10 @@ export class TripService
       }
     });
 
-    this.onSave.next([entity]);
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
+    console.debug('MYTEST 6');
     return entity;
   }
 
@@ -1060,6 +1063,10 @@ export class TripService
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+      if (!opts || opts.emitEvent !== false) {
+        this.onSynchronize.next({localId, remoteEntity: entity});
       }
     } catch (err) {
       throw {
