@@ -2645,6 +2645,34 @@
       "TITLE": "Titre"
     }
   },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Cartes des positions",
+      "FILTER": {
+        "RECORDER_PERSON": "Saisisseur",
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période"
+      },
+      "TABLE": {
+        "TITLE": "Liste des positions",
+        "LIMIT_TO": "Limité à {{visibleTotal}} résultats sur {{total}}",
+        "BTN_OPEN_DATA": "Ouvrir la donnée",
+        "RECORDER_PERSON": "Saisisseur",
+        "DATE_TIME": "Date/Heure",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Type de donnée"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "Capteur GPS > Intervalle de récupération en arrière plan (ms)",
+      "TRACKING_ENABLE": "Capteur GPS > Activer le suivi des positions",
+      "TRACKING_SAVE_PERIOD": "Capteur GPS > Suivi des positions : Intervalle de sauvegarde (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
@@ -2770,37 +2798,5 @@
   },
   "WARNING": {
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
-  },
-  "DEVICE_POSITION": {
-    "ASK_FOR_ENABLE_GEOLOCATION": {
-      "TITLE": "Activation de la géolocalisation requise",
-      "MESSAGE": "Pour pouvoir utiliser l'application il est nécessaire d'autoriser la géolocalisation."
-    },
-    "MAP": {
-      "TITLE": "Cartes des positions",
-      "FILTER": {
-        "RECORDER_PERSON": "Saisisseur",
-        "START_DATE": "Début de période",
-        "END_DATE": "Fin de période"
-      },
-      "TABLE": {
-        "TITLE": "Liste des positions",
-        "LIMIT_TO": "Limité à {{visibleTotal}} résultats sur {{total}}",
-        "BTN_OPEN_DATA": "Ouvrir la donnée",
-        "RECORDER_PERSON": "Saisisseur",
-        "DATE_TIME": "Date/Heure",
-        "LATITUDE": "Latitude",
-        "LONGITUDE": "Longitude",
-        "OBJECT_TYPE": "Type de donnée"
-      }
-    },
-    "OPTIONS": {
-      "TIMER_PERIOD": "Capteur GPS > Intervalle de récupération en arrière plan (ms)",
-      "TRACKING_ENABLE": "Capteur GPS > Activer le suivi des positions",
-      "TRACKING_SAVE_PERIOD": "Capteur GPS > Suivi des positions : Intervalle de sauvegarde (ms)"
-    },
-    "ERROR": {
-      "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
-    }
   }
 }

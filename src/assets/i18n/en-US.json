@@ -341,7 +341,8 @@
     "SERVER": "Server settings",
     "LOGOUT": "Logout",
     "ABOUT": "About",
-    "BTN_MY_ACCOUNT": "My account"
+    "BTN_MY_ACCOUNT": "My account",
+    "DEVICE_POSITION": "Positions"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -804,7 +805,7 @@
         "QUALITY": "State"
       },
       "SETTINGS": {
-        "GEOLOCATION_TIMEOUT": "GPS Shipset > Acquisition timeout (seconds)"
+        "GEOLOCATION_TIMEOUT": "GPS location > Acquisition timeout (seconds)"
       },
       "INFO": {
         "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Operation <b>successfully controlled</b>! No errors detected."
@@ -2545,6 +2546,34 @@
       "BTN_EDIT_TITLE": "Edit title",
       "BTN_ADD_TITLE": "Add a title",
       "TITLE": "Title"
+    }
+  },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Positions map",
+      "FILTER": {
+        "RECORDER_PERSON": "Recorder",
+        "START_DATE": "Start date",
+        "END_DATE": "End date"
+      },
+      "TABLE": {
+        "TITLE": "Positions list",
+        "LIMIT_TO": "Limited to {{visibleTotal}} out of {{total}}",
+        "BTN_OPEN_DATA": "Open data",
+        "RECORDER_PERSON": "Recorder",
+        "DATE_TIME": "Date/Time",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Data type"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "GPS location > Background Retrieval Interval (ms)",
+      "TRACKING_ENABLE": "GPS location > Enable location tracking",
+      "TRACKING_SAVE_PERIOD": "GPS location > Location tracking: Save interval (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation of geolocation required</b><br/><br/>To be able to use the application correctly, please authorize the geolocation of the device."
     }
   },
   "ERROR": {
