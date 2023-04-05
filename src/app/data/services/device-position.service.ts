@@ -96,8 +96,8 @@ const Queries: BaseEntityGraphqlQueries = {
   // `,
 };
 const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
-  save: gql`mutation saveDevicePosition($devicePosition:DevicePositionVOInput!){
-    data: saveDevicePosition(devicePosition: $devicePosition){
+  save: gql`mutation saveDevicePosition($data:DevicePositionVOInput!){
+    data: saveDevicePosition(devicePosition: $data){
       ...DevicePositionFragment
     }
   }
@@ -105,8 +105,8 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.referential}
   `,
-  saveAll: gql`mutation saveDevicePositions($devicePositions:[DevicePositionVOInput]){
-    data: saveDevicePositions(devicePositions: $devicePositions){
+  saveAll: gql`mutation saveDevicePositions($data:[DevicePositionVOInput]){
+    data: saveDevicePositions(devicePositions: $data){
       ...DevicePositionFragment
     }
   }
@@ -164,7 +164,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     if (this._debug) console.debug(`[${this._logPrefix}] Using minify object, to send:`, json);
 
     const variables = {
-      devicePosition: json,
+      data: json,
     };
     await this.graphql.mutate<{ data:any }>({
       mutation: this.mutations.save,
@@ -554,6 +554,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         ...json,
         objectId: remoteEntity.id,
       });
+      delete entity.id;
       return entity;
     });
 
