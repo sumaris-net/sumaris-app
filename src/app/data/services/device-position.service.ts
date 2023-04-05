@@ -33,7 +33,7 @@ import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { DataCommonFragments } from '@app/trip/services/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import {distinctUntilChanged, filter, map, mergeMap, throttleTime} from 'rxjs/operators';
 import { mergeLoadResult } from '@app/shared/functions';
 import { ModelEnumUtils } from '@app/referential/services/model/model.enum';
 import { AlertController } from '@ionic/angular';
@@ -501,7 +501,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       subscription.add(
         service.onSave
           .pipe(
-            debounceTime(this.trackingSavePeriodMs)
+            throttleTime(this.trackingSavePeriodMs)
           )
           .subscribe((entities) => {
             entities.forEach(e => this.createFromEntitySave(e));
