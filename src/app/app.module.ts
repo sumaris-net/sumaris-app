@@ -78,6 +78,7 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
 import {TripService} from '@app/trip/services/trip.service';
 import {ObservedLocationService} from '@app/trip/services/observed-location.service';
+import { DevicePositionService } from '@app/data/services/device-position.service';
 @NgModule({
   declarations: [
     AppComponent
@@ -139,7 +140,6 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
     Network,
     AudioManagement,
     Downloader,
-    //Geolocation,
 
     {provide: APP_BASE_HREF, useFactory: () => {
         try {
@@ -206,6 +206,9 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
     // Job
     {provide: JobProgressionService, useClass: JobProgressionService},
     {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
+
+    // Device position
+    {provide: DevicePositionService, useClass: DevicePositionService},
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
@@ -279,6 +282,7 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
+        {title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -287,9 +291,6 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
-
-        //{title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', ifProperty: 'sumaris.app.service.gps.enable', profile: 'ADMIN'},
-        {title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', profile: 'ADMIN'},
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},

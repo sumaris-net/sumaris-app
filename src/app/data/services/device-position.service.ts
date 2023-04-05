@@ -14,42 +14,39 @@ import {
   FormErrors,
   isNil,
   isNotNil,
-  LoadResult,
+  LoadResult, LocalSettings,
   QueryVariables,
-  Referential
+  Referential, toBoolean
 } from '@sumaris-net/ngx-components';
-import { IPosition } from '@app/trip/services/model/position.model';
-import { BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, from, Observable, Subscription, timer } from 'rxjs';
 import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
 import { environment } from '@environments/environment';
-import { DevicePosition, DevicePositionFilter, ITrackPosition } from '@app/data/services/model/device-position.model';
+import { DevicePosition, DevicePositionFilter, IPositionWithDate } from '@app/data/services/model/device-position.model';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
-import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { DataCommonFragments } from '@app/trip/services/trip.queries';
-import { Trip } from '@app/trip/services/model/trip.model';
 import { SortDirection } from '@angular/material/sort';
 import { Moment } from 'moment';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { filter, map, mergeMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
 import { mergeLoadResult } from '@app/shared/functions';
-import { ModelEnumUtils, ObjectTypeEnum } from '@app/referential/services/model/model.enum';
-
+import { ModelEnumUtils } from '@app/referential/services/model/model.enum';
+import { AlertController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import {v4 as uuid} from 'uuid';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
   fetchPolicy?: WatchQueryFetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
   mutable?: boolean; // should be a mutable query ? true by default
   withOffline?: boolean;
-
-  // TODO Need this ?
-  // mapFn?: (operations: Operation[]) => Operation[] | Promise<Operation[]>;
-  computeRankOrder?: boolean;
 }
 
 export const DevicePositionFragment = {
@@ -112,31 +109,27 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   `,
 };
 
-// TODO Check class type
-@Injectable({providedIn: 'root'})
-export class DevicePositionService extends RootDataSynchroService<DevicePosition<any>, DevicePositionFilter, number>  {
+@Injectable()
+export class DevicePositionService extends RootDataSynchroService<DevicePosition, DevicePositionFilter, number>  {
 
-  static ENTITY_NAME = 'DevicePosition';
+  protected loading = false;
+  protected timerPeriodMs: number;
+  protected settingsPositionTimeoutMs: number;
+  protected lastPosition = new BehaviorSubject<IPositionWithDate>(null);
 
-  protected config: ConfigService;
+  protected enableTracking = false;
+  protected trackingSubscription = new Subscription();
+  protected trackingSavePeriodMs: number;
+  protected trackingUpdatePositionFailed = new BehaviorSubject<boolean>(false);
 
-  protected saveInterval = 0;
-  protected lastPosition:ITrackPosition;
-  protected $checkLoop: Subscription;
-  protected entities: EntitiesStorage;
-  protected lastSavedPositionDate:Moment;
-  protected loading:boolean = false;
-
-  protected _watching:boolean = false;
-  // get watching(): boolean {
-  //   return this._watching;
-  // };
-
-  mustAskForEnableGeolocation:BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     protected injector: Injector,
-    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[],
+    protected config: ConfigService,
+    protected entities: EntitiesStorage,
+    protected translate: TranslateService,
+    protected alterController: AlertController,
+    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[]
   ) {
     super(
       injector,
@@ -147,51 +140,37 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         mutations: Mutations,
       }
     )
-    this._logPrefix = '[device-position-service]';
-    this.config = injector.get(ConfigService);
+    this._logPrefix = '[device-position] ';
     this._debug = !environment.production;
   }
 
+  async save(entity: DevicePosition, opts?:EntitySaveOptions): Promise<DevicePosition> {
 
-  async save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
-    console.log(`${this._logPrefix} save current device position`, {position: this.lastPosition})
+    if (RootDataEntityUtils.isLocal(entity)) {
+      return this.saveLocally(entity, opts);
+    }
+
     const now = Date.now();
+    console.info(`${this._logPrefix} Saving current device position`, entity);
+
     this.fillDefaultProperties(entity);
-    // Provide an optimistic response, if connection lost
-    // TODO
-    // const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
-    const offlineResponse = (false)
-      ? async (context) => {
-        // Make sure to fill id, with local ids
-        await this.fillOfflineDefaultProperties(entity);
-        // For the query to be tracked (see tracked query link) with a unique serialization key
-        context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
-        if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
-        return {
-          data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]
-        };
-      }
-      : undefined;
-    //  TODO ? Provide an optimistic response, if connection lost
+
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug(`[${this._logPrefix}] Using minify object, to send:`, json);
+
     const variables = {
       devicePosition: json,
     };
-    const mutation = this.mutations.save;
     await this.graphql.mutate<{ data:any }>({
-      mutation,
+      mutation: this.mutations.save,
       variables,
-      offlineResponse,
-      refetchQueries: this.getRefetchQueriesForMutation({}), // TODO option
-      awaitRefetchQueries: false, // TODO option
       error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
       update: async (cache, {data}) => {
         const savedEntity = data && data.data;
         // Local entity (optimistic response): save it
         if (savedEntity.id < 0) {
           if (this._debug) console.debug(`[${this._logPrefix}] [offline] Saving trip locally...`, savedEntity);
-          await this.entities.save<DevicePosition<any, any>>(savedEntity);
+          await this.entities.save<DevicePosition>(savedEntity);
         } else {
           // Remove existing entity from the local storage
           // TODO Check this condition
@@ -219,19 +198,25 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     return entity;
   }
 
-  async saveLocally(entity:DevicePosition<any>, opts?:EntitySaveOptions) {
-    console.log(`${this._logPrefix} save locally current device position`, {position: this.lastPosition})
+  protected async saveLocally(entity: DevicePosition, opts?:EntitySaveOptions): Promise<DevicePosition> {
 
     if (isNotNil(entity.id) && entity.id >= 0) throw new Error('Must be a local entity');
+
+    console.info(`${this._logPrefix} Saving current device position locally`, entity)
+
     this.fillDefaultProperties(entity);
-    this.fillOfflineDefaultProperties(entity);
+    await this.fillOfflineDefaultProperties(entity);
+
     entity.synchronizationStatus = SynchronizationStatusEnum.DIRTY;
     const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE});
     if (this._debug) console.debug(`${this._logPrefix} [offline] Saving device position locally...`, jsonLocal);
     await this.entities.save(jsonLocal, {entityName: DevicePosition.TYPENAME});
+
+    return entity;
   }
 
-  async synchronize(entity: DevicePosition<any>, opts?: any): Promise<DevicePosition<any>> {
+
+  async synchronize(entity: DevicePosition, opts?: any): Promise<DevicePosition> {
     const localId = entity.id;
     if (isNil(localId) || localId >= 0) {
       throw new Error('Entity must be a local entity');
@@ -257,32 +242,18 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     }
     // Clean local
     try {
-      if (this._debug) console.debug(`${this._logPrefix} Deleting trip {${entity.id}} from local storage`);
+      if (this._debug) console.debug(`${this._logPrefix}Deleting entity {${entity.id}} from local storage`);
     } catch (err) {
-      console.error(`${this._logPrefix} Failed to locally delete trip {${entity.id}} and its operations`, err);
+      console.error(`${this._logPrefix} Failed to locally delete entity {${entity.id}} and its operations`, err);
       // Continue
     }
-
-    // TODO : See Importing historical data in trip service
-
-    // Clear page history
-    try {
-      // FIXME: find a way o clean only synchronized data ?
-      await this.settings.clearPageHistory();
-    }
-    catch(err) { /* Continue */}
 
     return entity;
   }
 
   // TODO Need a control on this data ?
-  control(entity: DevicePosition<any>, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
+  control(entity: DevicePosition, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
     return Promise.resolve(undefined);
-  }
-
-  forceUpdatePosition() {
-    this.mustAskForEnableGeolocation.next(false);
-    this.watchGeolocation();
   }
 
   watchAll(offset: number,
@@ -291,7 +262,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
            sortDirection?: SortDirection,
            dataFilter?: DevicePositionFilter | any,
            opts?: DevicePositionServiceWatchOptions,
-  ):Observable<LoadResult<DevicePosition<any, any>>> {
+  ): Observable<LoadResult<DevicePosition>> {
     const forceOffline = this.network.offline;
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
@@ -325,10 +296,10 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
                   sortBy?: string,
                   sortDirection?: SortDirection,
                   filter?: Partial<DevicePositionFilter>,
-                  opts?: DevicePositionServiceWatchOptions): Observable<LoadResult<DevicePosition<any, any>>> {
+                  opts?: DevicePositionServiceWatchOptions): Observable<LoadResult<DevicePosition>> {
 
     if (!filter) {
-      console.warn(`${this._logPrefix} : Trying to load without filter. Skipping.`);
+      console.warn(`${this._logPrefix}Trying to load without filter. Skipping.`);
       return EMPTY;
     }
 
@@ -343,8 +314,8 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       filter: filter.asFilterFn()
     };
 
-    if (this._debug) console.debug(`${this._logPrefix} : Loading locally... using options:`, variables);
-    return this.entities.watchAll<DevicePosition<any, any>>(DevicePosition.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
+    if (this._debug) console.debug(`${this._logPrefix}Loading locally... using options:`, variables);
+    return this.entities.watchAll<DevicePosition>(DevicePosition.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
       .pipe(mergeMap(async ({ data, total }) => {
         return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts);
       }));
@@ -354,12 +325,12 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
                    size: number,
                    sortBy?: string,
                    sortDirection?: SortDirection,
-                   dataFilter?: DevicePosition<any, any> | any,
+                   dataFilter?: DevicePosition | any,
                    opts?: DevicePositionServiceWatchOptions,
-  ): Observable<LoadResult<DevicePosition<any, any>>> {
+  ): Observable<LoadResult<DevicePosition>> {
 
     if (!dataFilter) {
-      console.warn(`${this._logPrefix} : Trying to load without filter. Skipping.`);
+      console.warn(`${this._logPrefix}Trying to load without filter. Skipping.`);
       return EMPTY;
     }
     if (opts && opts.fullLoad) {
@@ -378,7 +349,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug(`${this._logPrefix} : Loading operations... using options:`, variables);
+    if (this._debug) console.debug(`${this._logPrefix}Loading operations... using options:`, variables);
 
     const withTotal = !opts || opts.withTotal !== false;
     const query = opts?.query || (withTotal ? Queries.loadAllWithTotal : Queries.loadAll);
@@ -409,7 +380,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
         mergeMap(async ({ data, total }) => {
           if (now) {
-            console.debug(`${this._logPrefix} : Loaded ${data.length} operations in ${Date.now() - now}ms`);
+            console.debug(`${this._logPrefix}Loaded ${data.length} operations in ${Date.now() - now}ms`);
             now = undefined;
           }
           return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
@@ -422,7 +393,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
                 sortDirection?:SortDirection,
                 filter?: Partial<DevicePositionFilter>,
                 opts?: EntityServiceLoadOptions
-  ):Promise<LoadResult<DevicePosition<any, any>>> {
+  ):Promise<LoadResult<DevicePosition>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
       // TODO
@@ -435,58 +406,135 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   }
 
   protected async ngOnStart(): Promise<void> {
-    console.log(`${this._logPrefix} starting...`)
 
-    this.listenDataServices();
+    // Wait settings (e.g. mobile)
+    await this.settings.ready();
+    await this.platform.ready();
+
+    console.info(`${this._logPrefix}Starting service...`)
+
     this.registerSubscription(
-      this.config.config
-        .pipe(filter(isNotNil))
-        .subscribe((config) => this.onConfigChanged(config))
+      this.settings.onChange.subscribe(_ => this.onSettingsChanged())
+    );
+
+    this.registerSubscription(
+      this.config.config.subscribe((config) => this.onConfigChanged(config))
     );
   }
 
-  protected ngOnStop(): Promise<void> | void {
-    this.$checkLoop.unsubscribe();
-    return super.ngOnStop();
+  protected startTracking(): Subscription {
+
+    // Stop if already started
+    this.trackingSubscription?.unsubscribe();
+
+
+    const enableOnSaveListeners = this.trackingSavePeriodMs > 0;
+    console.info(`${this._logPrefix}Starting tracking position...`)
+    const subscription = new Subscription();
+
+    // Start the timer
+    subscription.add(
+      timer(0, this.timerPeriodMs).subscribe((_) => this.updateLastPosition())
+    );
+
+    if (enableOnSaveListeners) {
+      // Start to listen data services events
+      subscription.add(this.listenDataServices());
+
+      // Force user to enable geolocation, if failed
+      const alertId = uuid();
+      subscription.add(
+        this.trackingUpdatePositionFailed
+          .pipe(distinctUntilChanged())
+          .subscribe(async (failed) => {
+            if (failed) {
+              do {
+                console.warn(this._logPrefix + 'Geolocation not allowed. Opening alter modal');
+                const alert = await this.alterController.create({
+                  id: alertId,
+                  message: this.translate.instant('DEVICE_POSITION.ERROR.NEED_GEOLOCATION'),
+                  buttons: [
+                    {role: 'OK', text: this.translate.instant('COMMON.BTN_REFRESH')}
+                  ]
+                })
+                await alert.present();
+                await alert.onDidDismiss();
+                try {
+                  failed = !(await this.updateLastPosition());
+                } catch(err) {
+                  console.error(err);
+                }
+              } while(failed)
+            }
+            // Success: hide the alert (if any)
+            else {
+              await this.alterController.dismiss(null, null, alertId);
+            }
+          })
+      );
+    }
+
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this.trackingSubscription = null;
+    });
+    this.registerSubscription(subscription);
+    this.trackingSubscription = subscription;
+
+    return this.trackingSubscription;
   }
 
-  protected listenDataServices() {
+
+  protected stopTracking() {
+    this.trackingSubscription?.unsubscribe();
+  }
+
+  protected listenDataServices(): Subscription {
+    const subscription = new Subscription();
     this.listenedDataServices.forEach(bean => {
       const service = this.injector.get(bean);
 
-      this.registerSubscription(
-        service.onSave.subscribe((entities) => {
-          entities.forEach(e => this.createFromEntitySave(e));
-        })
+      subscription.add(
+        service.onSave
+          .pipe(
+            debounceTime(this.trackingSavePeriodMs)
+          )
+          .subscribe((entities) => {
+            entities.forEach(e => this.createFromEntitySave(e));
+          })
       );
 
-      this.registerSubscription(
+      subscription.add(
         service.onDelete.subscribe(entities => this.deleteFromEntities(entities))
       );
     });
+
+    return subscription;
   }
 
   protected async createFromEntitySave(entity:RootDataEntity<any, any>) {
+    const lastPosition = this.lastPosition.value;
+
     // If we're not watching position or if the delay between two device position
     // saving is not reach we not save the position.
-    if (!this._watching || this.checkIfSkipSaveDevicePosition()) return;
+    if (!this.enableTracking || !lastPosition) return;
 
     if (this._debug) console.log(`${this._logPrefix} saveNewDevicePositionFromEntity`, entity);
 
-    const devicePosition:DevicePosition<any> = new DevicePosition<any>();
+    const devicePosition = new DevicePosition();
     devicePosition.objectId = entity.id;
+    devicePosition.longitude = lastPosition.longitude;
+    devicePosition.latitude = lastPosition.latitude;
+    devicePosition.dateTime = lastPosition.dateTime;
     const entityName = DataEntityUtils.getEntityName(entity);
     devicePosition.objectType = Referential.fromObject({
       label: ModelEnumUtils.getObjectTypeByEntityName(entityName),
     });
-    devicePosition.longitude = this.lastPosition.longitude;
-    devicePosition.latitude = this.lastPosition.latitude;
-    devicePosition.dateTime = this.lastPosition.date;
+    if (RootDataEntityUtils.isLocal(entity)) {
+      devicePosition.synchronizationStatus = 'DIRTY';
+    }
 
-    if (RootDataEntityUtils.isLocal(entity)) this.saveLocally(devicePosition);
-    else this.save(devicePosition, {}); // TODO Options
-
-    this.lastSavedPositionDate = DateUtils.moment();
+    await this.save(devicePosition);
   }
 
   protected async deleteFromEntities(entities:RootDataEntity<any, any>[]) {
@@ -496,11 +544,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     const remoteDevicePosition = "";
   }
 
-//   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition<any, any>> {
+//   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition> {
 //     if (isNil(id)) throw new Error('Missing argument \'id\'');
 //
 //     const now = Date.now();
-//     if (this._debug) console.debug(`${this._logPrefix} : Loading {${id}}...`);
+//     if (this._debug) console.debug(`${this._logPrefix}Loading {${id}}...`);
 //     this.loading = false;
 //
 //     try {
@@ -509,75 +557,86 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 //     }
 //   }
 
-  // TODO
-  protected async fillOfflineDefaultProperties(entity:DevicePosition<any>) {
+  protected async fillOfflineDefaultProperties(entity: DevicePosition) {
+    // Make sure to fill id, with local ids
+    await super.fillOfflineDefaultProperties(entity);
+  }
+
+  protected async onSettingsChanged() {
+    this.settingsPositionTimeoutMs = this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
   }
 
   protected async onConfigChanged(config:Configuration) {
-    const enabled = config.getPropertyAsBoolean(DEVICE_POSITION_CONFIG_OPTION.ENABLE);
-    const checkInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.CHECK_INTERVAL)[0];
-    this.saveInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.SAVE_INTERVAL)[0];
+    this.timerPeriodMs = config.getPropertyAsInt(DEVICE_POSITION_CONFIG_OPTION.TIMER_PERIOD);
 
-    if (isNotNil(this.$checkLoop)) this.$checkLoop.unsubscribe();
-    this._watching = (this.platform.mobile && enabled);
-    if (!this._watching) {
-      console.log(`${this._logPrefix} postion is not watched`, {mobile: this.platform.mobile, enabled: enabled});
-      this.mustAskForEnableGeolocation.next(false);
-      return;
+    // Tracking position
+    {
+      const enableTracking = config.getPropertyAsBoolean(DEVICE_POSITION_CONFIG_OPTION.TRACKING_ENABLE);
+      this.trackingSavePeriodMs = config.getPropertyAsInt(DEVICE_POSITION_CONFIG_OPTION.TRACKING_SAVE_PERIOD);
+
+      if (enableTracking !== this.enableTracking) {
+        this.enableTracking = enableTracking;
+        if (this.enableTracking) this.startTracking();
+        else this.stopTracking();
+      }
     }
-
-    await this.watchGeolocation();
-    this.$checkLoop = interval(checkInterval).subscribe(async (_) => {
-      console.debug(`${this._logPrefix} : begins to check device position each ${checkInterval}ms...`)
-      this.watchGeolocation();
-    });
   }
 
-  protected async watchGeolocation() {
-    if (this._debug) console.log(`${this._logPrefix} watching devices postion...`);
-    let position:IPosition;
+  protected async updateLastPosition(): Promise<boolean> {
+
     try {
-      position = await PositionUtils.getCurrentPosition(this.platform);
-    } catch (e) {
-      // User refuse to share its geolocation
-      if (e.code == 1) this.mustAskForEnableGeolocation.next(true);
+      if (this._debug) console.log(`${this._logPrefix}Watching device position...`);
+
+      const timeout = this.settingsPositionTimeoutMs ? Math.min(this.settingsPositionTimeoutMs, this.timerPeriodMs) : this.timerPeriodMs;
+      const position = await PositionUtils.getCurrentPosition(this.platform, {
+        timeout,
+        maximumAge: timeout * 2
+      });
+
+      this.lastPosition.next({
+        latitude: position.latitude,
+        longitude: position.longitude,
+        dateTime: DateUtils.moment(),
+      });
+
+      if (this._debug) console.debug(`${this._logPrefix}Last position updated`, this.lastPosition);
+
+      // Mark as position ok
+      if (this.enableTracking) {
+        this.trackingUpdatePositionFailed.next(false);
+      }
+
+      return true;
+    }
+
+    catch (e) {
+      // If required bu failed (e.g. due to leak of geolocation permission)
+      if (this.enableTracking && e.code == 1) {
+        this.trackingUpdatePositionFailed.next(true);
+      }
       // Other errors case
       else throw e;
-      return;
+      return false;
     }
-    this.lastPosition = {
-      latitude: position.latitude,
-      longitude: position.longitude,
-      date: DateUtils.moment(),
-    }
-    console.log(`${this._logPrefix} : update last postison`, position);
-    if (this.mustAskForEnableGeolocation.value === true) this.mustAskForEnableGeolocation.next(false);
-    if (this._debug) console.debug(`${this._logPrefix} : ask for geolocation`, this.mustAskForEnableGeolocation.value);
   }
 
-  protected async applyWatchOptions({data, total}: LoadResult<DevicePosition<any, any>>,
+  protected async applyWatchOptions({data, total}: LoadResult<DevicePosition>,
                                     offset: number,
                                     size: number,
                                     sortBy?: string,
                                     sortDirection?: SortDirection,
                                     filter?: Partial<DevicePositionFilter>,
-                                    opts?: DevicePositionServiceWatchOptions): Promise<LoadResult<DevicePosition<any, any>>> {
-    let entities = (!opts || opts.toEntity !== false) ?
-      (data || []).map(source => DevicePosition.fromObject(source, opts))
-      : (data || []) as DevicePosition<any, any>[];
+                                    opts?: DevicePositionServiceWatchOptions): Promise<LoadResult<DevicePosition>> {
 
-    // TODO
-    // if (opts?.mapFn) {
-    //   entities = await opts.mapFn(entities);
-    // }
+    // Sort entities
+    data = EntityUtils.sort(data, sortBy, sortDirection);
+
+    // Transform to entities (if need)
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(source => DevicePosition.fromObject(source, opts))
+      : (data || []) as DevicePosition[];
 
     return {data: entities, total};
-  }
-
-  protected checkIfSkipSaveDevicePosition():boolean {
-    if (isNil(this.lastSavedPositionDate)) return false;
-    const diffTime = DateUtils.moment().diff(this.lastSavedPositionDate);
-    return diffTime < this.saveInterval;
   }
 
 }

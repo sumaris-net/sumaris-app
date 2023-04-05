@@ -2793,6 +2793,14 @@
         "LONGITUDE": "Longitude",
         "OBJECT_TYPE": "Type de donnée"
       }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "Capteur GPS > Intervalle de récupération en arrière plan (ms)",
+      "TRACKING_ENABLE": "Capteur GPS > Activer le suivi des positions",
+      "TRACKING_SAVE_PERIOD": "Capteur GPS > Suivi des positions : Intervalle de sauvegarde (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
     }
   }
 }

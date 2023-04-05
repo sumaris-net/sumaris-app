@@ -197,7 +197,7 @@ type DevicePositionVO {
     latitude: Float
     longitude: Float
     objectId: Int
-    objectType: ObjectType
+    objectType: ReferentialVO
     qualificationComments: String
     qualificationDate: Date
     qualityFlagId: Int
@@ -347,14 +347,6 @@ type IExtractionType_PersonVO_DepartmentVO {
     version: String
 }
 
-type IProgressionModel {
-    completed: Boolean!
-    current: Int!
-    jobId: Int
-    message: String
-    total: Int!
-}
-
 type ImageAttachmentVO {
     comments: String
     content: String
@@ -393,7 +385,6 @@ type JobVO {
     issuer: String
     log: String
     name: String
-    progressionModel: IProgressionModel
     report: String
     startDate: Date
     status: JobStatusEnum
@@ -543,10 +534,10 @@ type Mutation {
     controlTrip(trip: TripVOInput!): TripVO
     "Create an account"
     createAccount(account: AccountVOInput): AccountVO
-    "Delete a DevicePosition by id"
-    delete(id: Int): Boolean!
     "Delete many aggregated landings"
     deleteAggregatedLandings(filter: AggregatedLandingFilterVOInput, vesselSnapshotIds: [Int]): Boolean!
+    "Delete a device position by id"
+    deleteDevicePosition(id: Int): Boolean!
     "Delete an observed location"
     deleteLanding(id: Int!): Boolean!
     "Delete many observed locations"
@@ -605,8 +596,10 @@ type Mutation {
     saveConfiguration(config: ConfigurationVOInput): ConfigurationVO
     "Create or update a department"
     saveDepartment(department: DepartmentVOInput): DepartmentVO
-    "Save a DevicePosition"
+    "Save a device position"
     saveDevicePosition(devicePosition: DevicePositionVOInput): DevicePositionVO
+    "Save many device positions"
+    saveDevicePositions(devicePositions: [DevicePositionVOInput]): [DevicePositionVO]
     "Create or update a extraction product"
     saveExtractionProduct(product: ExtractionProductVOInput!): ExtractionProductVO
     "Create or update an landing"
@@ -683,21 +676,6 @@ type Mutation {
     validateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Validate a trip"
     validateTrip(trip: TripVOInput!): TripVO
-}
-
-type ObjectType {
-    LENGTH_COMMENTS: Int!
-    LENGTH_LABEL: Int!
-    LENGTH_NAME: Int!
-    SEQUENCE_ALLOCATION_SIZE: Int!
-    comments: String
-    creationDate: Date
-    description: String
-    id: Int
-    label: String
-    name: String
-    status: Status
-    updateDate: Date
 }
 
 type ObservedLocationVO {
@@ -1124,6 +1102,12 @@ type Query {
     department(id: Int!): DepartmentVO
     "Search in departments"
     departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
+    "Find device position by id"
+    devicePosition(fetchOptions: DataFetchOptionsInput, id: Int): DevicePositionVO
+    "Find device positions by filter"
+    devicePositions(fetchOptions: DataFetchOptionsInput, filter: DevicePositionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [DevicePositionVO]
+    "Get device position count"
+    devicePositionsCount(filter: DevicePositionFilterVOInput): Long!
     "Read extraction data"
     extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): [JsonObject]
     "Read columns from an extraction"
@@ -1138,10 +1122,6 @@ type Query {
     extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
     "Get all available extraction types"
     extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
-    "Find DevicePositions by filter"
-    findByFilter(fetchOptions: DevicePositionFetchOptionsInput, filter: DevicePositionFilterVOInput, page: PageInput): [DevicePositionVO]
-    "Find DevicePosition by id"
-    findById(fetchOptions: DevicePositionFetchOptionsInput, id: Int): DevicePositionVO
     "Search filter"
     images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
     "Import vessels from a SIOP file"
@@ -1430,15 +1410,6 @@ type SoftwareVO {
     name: String
     properties: Map_String_StringScalar
     statusId: Int
-    updateDate: Date
-}
-
-type Status {
-    SEQUENCE_ALLOCATION_SIZE: Int!
-    creationDate: Date
-    id: Int
-    label: String
-    name: String
     updateDate: Date
 }
 
@@ -2072,6 +2043,14 @@ input ConfigurationVOInput {
     updateDate: Date
 }
 
+input DataFetchOptionsInput {
+    withChildrenEntities: Boolean!
+    withMeasurementValues: Boolean!
+    withObservers: Boolean!
+    withRecorderDepartment: Boolean!
+    withRecorderPerson: Boolean!
+}
+
 input DenormalizedPmfmStrategyVOInput {
     acquisitionLevel: String
     acquisitionNumber: Int
@@ -2145,17 +2124,12 @@ input DepartmentVOInput {
     validityStatusId: Int
 }
 
-input DevicePositionFetchOptionsInput {
-    withChildrenEntities: Boolean!
-    withMeasurementValues: Boolean!
-    withObservers: Boolean!
-    withRecorderDepartment: Boolean!
-    withRecorderPerson: Boolean!
-}
-
 input DevicePositionFilterVOInput {
     dataQualityStatus: [DataQualityStatusEnum]
     endDate: Date
+    objectId: Int
+    objectTypeId: Int
+    objectTypeLabel: String
     qualityFlagIds: [Int]
     recorderDepartmentId: Int
     recorderPersonId: Int
@@ -2170,7 +2144,7 @@ input DevicePositionVOInput {
     latitude: Float
     longitude: Float
     objectId: Int
-    objectType: ObjectTypeInput
+    objectType: ReferentialVOInput
     qualificationComments: String
     qualificationDate: Date
     qualityFlagId: Int
@@ -2529,17 +2503,6 @@ input MetierVOInput {
     taxonGroup: TaxonGroupVOInput
     updateDate: Date
     validityStatusId: Int
-}
-
-input ObjectTypeInput {
-    comments: String
-    creationDate: Date
-    description: String
-    id: Int
-    label: String
-    name: String
-    status: StatusInput
-    updateDate: Date
 }
 
 input ObservedLocationFilterVOInput {
@@ -3161,14 +3124,6 @@ input SoftwareVOInput {
     name: String
     properties: Map_String_StringScalar
     statusId: Int
-    updateDate: Date
-}
-
-input StatusInput {
-    creationDate: Date
-    id: Int
-    label: String
-    name: String
     updateDate: Date
 }
 

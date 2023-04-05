@@ -42,7 +42,7 @@ export interface DevicePositionMapState extends BaseMapState {
   styleUrls: ['./device-position-map-page.component.scss'],
   providers: [RxState]
 })
-export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePosition<any>>
+export class DevicePositionMapPage
   extends BaseMap<DevicePositionMapState>
   implements OnInit {
 
@@ -146,7 +146,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
             return of(undefined); // Continue
           })
         )
-        .subscribe((res) => this.updateView(res as LoadResult<T>))
+        .subscribe((res) => this.updateView(res))
     );
   }
 
@@ -244,9 +244,8 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     this.applyFilter(filterInstance, opts);
   }
 
-  async updateView(res: LoadResult<T> | undefined, opts?: {emitEvent?: boolean;}): Promise<void> {
+  async updateView(res: LoadResult<DevicePosition> | undefined, opts?: {emitEvent?: boolean;}): Promise<void> {
     let {data, total} = res;
-
 
     data = data || [];
     total = toNumber(total, data?.length || 0);
@@ -299,7 +298,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     return this._autocompleteConfigHolder.add(fieldName, options);
   }
 
-  async loadLayers(data: T[]): Promise<Feature[]> {
+  async loadLayers(data: DevicePosition[]): Promise<Feature[]> {
     // Should never call load() without leaflet map
     if (!this.map) return; // Skip
 
@@ -345,7 +344,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     }
   }
 
-  protected toFeature(position: DevicePosition<any>, index: number): Feature {
+  protected toFeature(position: DevicePosition, index: number): Feature {
 
     // Create feature
     const features = <Feature>{
@@ -369,7 +368,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     };
   }
 
-  protected getObjectTypeName(position: DevicePosition<any>): string {
+  protected getObjectTypeName(position: DevicePosition): string {
     if (!position) return '';
     const objectType = position.objectType?.label;
     if (objectType) {
@@ -383,7 +382,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     }
   }
 
-  protected async openEditor(position: DevicePosition<any>|any) {
+  protected async openEditor(position: DevicePosition|any) {
     const objectId = +position.objectId;
     const objectType = position.objectType?.label;
     if (isNilOrNaN(objectId) && objectType) {

@@ -24,6 +24,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {DevicePositionService} from '@app/data/services/device-position.service';
 import {IonModal} from '@ionic/angular';
+import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/services/config/device-position.config';
 
 @Component({
   selector: 'app-root',
@@ -36,7 +37,6 @@ export class AppComponent {
   protected logo: string;
   protected appName: string;
   protected enabledNotificationIcons = false;
-  @ViewChild('askForGeolocationModal') askForGeolocationModal: IonModal;
 
   constructor(
     @Inject(DOCUMENT) private _document: Document,
@@ -45,10 +45,10 @@ export class AppComponent {
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
     private settings: LocalSettingsService,
+    private devicePositionService: DevicePositionService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
-    private cd: ChangeDetectorRef,
-    private devicePositionService: DevicePositionService,
+    private cd: ChangeDetectorRef
   ) {
 
     this.start();
@@ -58,17 +58,6 @@ export class AppComponent {
     console.info('[app] Starting...');
 
     await this.platform.start();
-    this.devicePositionService.ready();
-    await this.devicePositionService.start();
-    this.devicePositionService.mustAskForEnableGeolocation.subscribe(sub => {
-      if (sub) {
-        this.askForGeolocationModal.present();
-        this.askForGeolocationModal.canDismiss = false;
-      } else {
-        this.askForGeolocationModal.canDismiss = true;
-        this.askForGeolocationModal.dismiss();
-      }
-    });
 
     // Listen for config changed
     this.configService.config.subscribe(config => this.onConfigChanged(config));
@@ -77,6 +66,8 @@ export class AppComponent {
     this.addAccountFields();
 
     this.addCustomSVGIcons();
+
+    await this.startServiceWorkers();
 
     console.info('[app] Starting [OK]');
   }
@@ -94,9 +85,6 @@ export class AppComponent {
     }, 16);
   }
 
-  recheckIfPositionIsEnabled() {
-    this.devicePositionService.forceUpdatePosition();
-  }
 
   protected onConfigChanged(config: Configuration) {
 
@@ -236,6 +224,10 @@ export class AppComponent {
         this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
       )
     );
+  }
+
+  protected async startServiceWorkers() {
+    await this.devicePositionService.start();
   }
 }
 

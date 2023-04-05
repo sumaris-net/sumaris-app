@@ -5,21 +5,21 @@ import {RootDataSynchroService} from '@app/data/services/root-data-synchro-servi
 export const DEVICE_POSITION_ENTITY_SERVICES = new InjectionToken<RootDataSynchroService<any, any>>('devicePositionEntityServices');
 
 export const DEVICE_POSITION_CONFIG_OPTION = Object.freeze({
-  ENABLE: <FormFieldDefinition> {
-    key: 'sumaris.app.service.gps.enable',
-    label: 'CONFIGURATION.OPTIONS.DEVICE_POSITION_ENABLE',
-    type: 'boolean',
-    defaultValue: true,
-  },
-  CHECK_INTERVAL: <FormFieldDefinition> {
-    key: 'sumaris.app.service.gps.periodMs',
-    label: 'CONFIGURATION.OPTIONS.CHECK_INTERVAL',
+  TIMER_PERIOD: <FormFieldDefinition> {
+    key: 'sumaris.device.position.timerPeriodMs',
+    label: 'DEVICE_POSITION.OPTIONS.TIMER_PERIOD',
     type: 'integer',
-    defaultValue: 30000,
+    defaultValue: 30_000, // 30 s
   },
-  SAVE_INTERVAL: <FormFieldDefinition> {
-    key: 'sumaris.app.service.gps.savePeriodMs',
-    label: 'CONFIGURATION.OPTIONS.SAVE_INTERVAL',
+  TRACKING_ENABLE: <FormFieldDefinition> {
+    key: 'sumaris.device.position.tracking.enable',
+    label: 'DEVICE_POSITION.OPTIONS.TRACKING_ENABLE',
+    type: 'boolean',
+    defaultValue: false
+  },
+  TRACKING_SAVE_PERIOD: <FormFieldDefinition> {
+    key: 'sumaris.device.position.tracking.savePeriodMs',
+    label: 'CONFIGURATION.OPTIONS.TRACKING_SAVE_PERIOD',
     type: 'integer',
     //defaultValue: 600000,
     defaultValue: 30000,

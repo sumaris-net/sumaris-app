@@ -4,11 +4,12 @@ import { DateUtils, Department, EntityAsObjectOptions, EntityClass, FilterFn, fr
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 
-export interface ITrackPosition extends IPosition {
-  date: Moment;
+export interface IPositionWithDate extends IPosition {
+  dateTime: Moment;
 }
+
 @EntityClass({ typename: 'DevicePositionVO' })
-export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO = EntityAsObjectOptions, FO = any> extends RootDataEntity<T, ID> {
+export class DevicePosition extends RootDataEntity<DevicePosition> {
 
   static ENTITY_NAME = 'DevicePosition';
   dateTime: Moment;
@@ -21,7 +22,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
   creationDate: Moment;
 
   // TODO Type DevicePostion
-  static fromObject(source: any, options?: any): DevicePosition<any, any> {
+  static fromObject(source: any, options?: any): DevicePosition {
     const devicePosition = new DevicePosition();
     devicePosition.fromObject(source, options);
     return devicePosition;
@@ -31,7 +32,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     super();
   }
 
-  asObject(opts?: AO): any {
+  asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.dateTime = toDateISOString(this.dateTime);
     target.latitude = this.latitude;
@@ -42,11 +43,10 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
     delete target.comments;
-    delete target.detail; // TODO to remove ?
     return target;
   }
 
-  fromObject(source: any, opts?: FO) {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.dateTime = fromDateISOString(source.dateTime);
     this.latitude = source.latitude;
@@ -60,7 +60,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
 }
 
 @EntityClass({typename: 'DevicePositionFilterVO'})
-export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFilter, DevicePosition<any>, number> {
+export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFilter, DevicePosition> {
 
   static TYPENAME = 'DevicePositionVO';
 
@@ -95,7 +95,7 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
     return target;
   }
 
-  buildFilter(): FilterFn<DevicePosition<any, any>>[] {
+  buildFilter(): FilterFn<DevicePosition>[] {
     const filterFns = super.buildFilter();
     if (ReferentialUtils.isNotEmpty(this.recorderPerson)) {
       const recorderPersonId = this.recorderPerson.id;
