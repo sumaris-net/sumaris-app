@@ -166,14 +166,18 @@ export class DevicePositionMapPage
     console.info(this._logPrefix + 'Click on feature', feature);
 
     // Highlight the row
-    this.selection.toggle(feature);
-    this.markForCheck();
+    this.selection.setSelection(feature);
+
+    // Highlight marker
+    this.highlightMarker(feature);
 
     // Scroll to row
     const index = this._state.get('features')?.findIndex(f => f === feature);
     if (index !== -1) {
       this.scrollToRow(index);
     }
+
+    this.markForCheck();
   }
 
   protected scrollToRow(index: number) {
@@ -282,16 +286,16 @@ export class DevicePositionMapPage
     total = toNumber(total, data?.length || 0);
 
     // Add fake data
-    if (!environment.production && data && data.length < 10) {
+    /*if (!environment.production && data && data.length < 10) {
       const fakeData = new Array(100).fill({});
       data = fakeData.map((item, index) =>  {
-        const newPosition = Object.assign({}, data[index % data.length]);
+        const newPosition = DevicePosition.fromObject({...data[index % data.length].asObject()});
         newPosition.latitude += Math.random() * 0.01;
         newPosition.longitude += Math.random() * 0.01;
         return newPosition;
       });
       total = data.length;
-    }
+    }*/
 
     if (this._debug) console.debug(`${this._logPrefix} : ${total} items loaded`);
 
@@ -395,20 +399,12 @@ export class DevicePositionMapPage
       type: 'Feature',
       geometry: <Point>{ type: "Point", coordinates: [position.longitude, position.latitude]},
       properties: {
-        ...position,
+        ...position.asObject(),
         objectTypeName: this.getObjectTypeName(position)
       }
     };
 
     return features;
-  }
-
-  protected getFeatureStyle(_feature?: Feature): PathOptions {
-    return {
-      weight: 10,
-      opacity: 0.8,
-      color: 'blue'
-    };
   }
 
   protected getObjectTypeName(position: DevicePosition): string {
@@ -425,7 +421,56 @@ export class DevicePositionMapPage
     }
   }
 
-  protected async openEditor(position: DevicePosition|any) {
+  protected async onRowClick(event: Event, feature: Feature) {
+    if (event?.defaultPrevented) return;
+    event?.preventDefault();
+
+    // Highlight the row
+    this.selection.setSelection(feature);
+
+    // Highlight the marker
+    this.highlightMarker(feature);
+
+    this.markForCheck();
+  }
+
+  protected highlightMarker(feature: Feature, sizeFactor = 1.1) {
+    // Select the marker
+    this.layers.forEach(layer => {
+      const geoJsonLayer = (layer as L.GeoJSON);
+      geoJsonLayer.eachLayer(m => {
+        const marker = (m as L.Marker);
+        if (marker.feature.id === feature.id) {
+          marker['_selected'] = true;
+          marker.setIcon(L.icon({
+            iconUrl: 'assets/icons/marker-selected.svg',
+            shadowUrl: 'marker-shadow.png',
+            iconSize: [25 * sizeFactor, 41 * sizeFactor],
+            iconAnchor: [12 * sizeFactor, 41 * sizeFactor],
+            popupAnchor: [1, -34],
+            shadowSize: [41 * sizeFactor, 41 * sizeFactor],
+          }));
+        }
+        else if (marker['_selected']){
+          marker.setIcon(L.icon({
+            iconUrl: 'marker-icon.png',
+            shadowUrl: 'marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41],
+          }));
+          delete marker['_selected'];
+        }
+      })
+
+    })
+  }
+
+  protected async onOpenDataClick(event: Event, position: DevicePosition|any) {
+    if (event?.defaultPrevented) return;
+    event?.preventDefault();
+
     const objectId = +position.objectId;
     const objectType = position.objectType?.label;
     if (isNilOrNaN(objectId) && objectType) {

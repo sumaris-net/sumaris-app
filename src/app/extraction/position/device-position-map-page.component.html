@@ -143,16 +143,17 @@
       <ng-container *rxFor="let feature of features$" >
         <ion-row #tableRows
                  class="mat-row"
-                 [class.mat-row-selected]="selection.isSelected(feature)">
+                 [class.mat-row-selected]="selection.isSelected(feature)"
+                 (click)="onRowClick($event, feature)">
           <ion-col class="mat-cell mat-column-dateTime">
             {{feature.properties.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{feature.properties.dateTime|dateFromNow }}</ion-text>
           </ion-col>
           <ion-col class="mat-cell" size="2">{{feature.properties.latitude|numberFormat }}</ion-col>
           <ion-col class="mat-cell" size="2">{{feature.properties.longitude|numberFormat }}</ion-col>
           <ion-col class="mat-cell">{{feature.properties.recorderPerson|personToString }}</ion-col>
-          <ion-col class="mat-cell">
+          <ion-col class="mat-cell ion-no-padding ion-padding-horizontal">
             <ion-button class="text-button" size="small" fill="clear" color="primary"
-                        (click)="openEditor(feature.properties)"
+                        (click)="onOpenDataClick($event, feature.properties)"
                         [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA'|translate">
               {{feature.properties.objectTypeName}} #{{feature.properties.objectId}}
             </ion-button>
