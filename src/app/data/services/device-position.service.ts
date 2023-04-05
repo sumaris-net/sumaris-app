@@ -105,8 +105,8 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.referential}
   `,
-  saveAll: gql`mutation saveDevicePositions($devicePosition:DevicePositionVOInput!){
-    data: saveDevicePosition(devicePosition: $devicePosition){
+  saveAll: gql`mutation saveDevicePositions($devicePositions:[DevicePositionVOInput]){
+    data: saveDevicePositions(devicePositions: $devicePositions){
       ...DevicePositionFragment
     }
   }
@@ -558,10 +558,12 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     });
 
     // Save
+    console.debug('MYTEST ENTITITEST', entities);
     await this.saveAll(entities);
 
     // clean local
-    await this.entities.deleteMany(localIds, {entityName: DevicePosition.ENTITY_NAME});
+    console.debug('MYTEST DELETET MANY', localIds);
+    await this.entities.deleteMany(localIds, {entityName: DevicePosition.TYPENAME});
   }
 
 //   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition> {
