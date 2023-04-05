@@ -42,7 +42,7 @@ export class DevicePosition extends RootDataEntity<DevicePosition> {
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
-    delete target.comments;
+    delete target.comments; // not exists on Pod
     return target;
   }
 

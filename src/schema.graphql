@@ -33,30 +33,6 @@ type AggregatedLandingVO {
     vesselSnapshot: VesselSnapshotVO
 }
 
-type AggregationStrataVO {
-    aggColumnName: String
-    aggFunction: String
-    comments: String
-    creationDate: Date
-    description: String
-    id: Int
-    isDefault: Boolean
-    label: String
-    name: String
-    product: ExtractionProductVO
-    productId: Int
-    sheetName: String
-    spatialColumnName: String
-    statusId: Int
-    techColumnName: String
-    timeColumnName: String
-    updateDate: Date
-}
-
-type AggregationTechResultVO {
-    data: Map_String_ObjectScalar
-}
-
 type AppliedPeriodVO {
     acquisitionNumber: Int
     appliedStrategyId: Int
@@ -226,100 +202,6 @@ type ExpectedSaleVO {
     tripId: Int
 }
 
-type ExtractionProductVO {
-    LABEL_SEPARATOR: String
-    category: ExtractionCategoryEnum
-    comments: String
-    creationDate: Date
-    description: String
-    docUrl: String
-    documentation: String
-    filterContent: String
-    format: String
-    hiddenColumnNames: Map_String_Set_StringScalar
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    parent: IExtractionType_PersonVO_DepartmentVO
-    parentId: Int
-    processingFrequencyId: Int
-    recorderDepartment: DepartmentVO
-    recorderPerson: PersonVO
-    sheetNames: [String]
-    statusId: Int
-    stratum: [AggregationStrataVO]
-    tableNameBySheetNameMap: Map_String_StringScalar
-    tableNames: [String]
-    tables: [ExtractionTableVO]
-    updateDate: Date
-    version: String
-}
-
-type ExtractionResultVO {
-    columns: [ExtractionTableColumnVO]
-    rows: [[String]]
-    total: BigDecimal
-    type: ExtractionTypeVO
-}
-
-type ExtractionTableColumnVO {
-    columnName: String
-    description: String
-    id: Int
-    label: String
-    name: String
-    rankOrder: Int
-    tableId: Int
-    type: String
-    values: [String]
-}
-
-type ExtractionTableVO {
-    columnValues: Map_String_List_ObjectScalar
-    columns: [ExtractionTableColumnVO]
-    comments: String
-    creationDate: Date
-    defaultAggColumn: String
-    defaultSpaceColumn: String
-    defaultTechColumn: String
-    description: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    product: ExtractionProductVO
-    productId: Int
-    rankOrder: Int
-    sheetName: String
-    statusId: Int
-    tableName: String
-    updateDate: Date
-}
-
-type ExtractionTypeVO {
-    LABEL_SEPARATOR: String
-    comments: String
-    creationDate: Date
-    description: String
-    "Get extraction documentation URL"
-    docUrl: String
-    format: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    parent: IExtractionType_PersonVO_DepartmentVO
-    parentId: Int
-    processingFrequencyId: Int
-    recorderDepartment: DepartmentVO
-    recorderPerson: PersonVO
-    sheetNames: [String]
-    statusId: Int
-    updateDate: Date
-    version: String
-}
-
 type FishingAreaVO {
     depthGradient: ReferentialVO
     distanceToCoastGradient: ReferentialVO
@@ -331,20 +213,6 @@ type FishingAreaVO {
     qualificationComments: String
     qualificationDate: Date
     qualityFlagId: Int
-}
-
-type IExtractionType_PersonVO_DepartmentVO {
-    LABEL_SEPARATOR: String
-    format: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    parent: IExtractionType_PersonVO_DepartmentVO
-    parentId: Int
-    sheetNames: [String]
-    statusId: Int
-    version: String
 }
 
 type ImageAttachmentVO {
@@ -517,11 +385,6 @@ type MetierVO {
     validityStatusId: Int
 }
 
-type MinMaxVO {
-    max: Float
-    min: Float
-}
-
 "Mutation root"
 type Mutation {
     "Confirm an account email"
@@ -538,6 +401,8 @@ type Mutation {
     deleteAggregatedLandings(filter: AggregatedLandingFilterVOInput, vesselSnapshotIds: [Int]): Boolean!
     "Delete a device position by id"
     deleteDevicePosition(id: Int): Boolean!
+    "Delete many device positions by id"
+    deleteDevicePositions(ids: [Int]): Boolean!
     "Delete an observed location"
     deleteLanding(id: Int!): Boolean!
     "Delete many observed locations"
@@ -552,8 +417,6 @@ type Mutation {
     deleteOperations(ids: [Int]): Boolean!
     "Delete many person (by ids)"
     deletePersons(ids: [Int]): Boolean!
-    "Delete many products"
-    deleteProducts(ids: [Int]): Boolean!
     "Delete a program"
     deleteProgram(id: Int!): Boolean!
     "Delete a referential (by id)"
@@ -600,8 +463,6 @@ type Mutation {
     saveDevicePosition(devicePosition: DevicePositionVOInput): DevicePositionVO
     "Save many device positions"
     saveDevicePositions(devicePositions: [DevicePositionVOInput]): [DevicePositionVO]
-    "Create or update a extraction product"
-    saveExtractionProduct(product: ExtractionProductVOInput!): ExtractionProductVO
     "Create or update an landing"
     saveLanding(landing: LandingVOInput): LandingVO
     "Create or update many landings"
@@ -670,8 +531,6 @@ type Mutation {
     unvalidateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Unvalidate a trip"
     unvalidateTrip(trip: TripVOInput!): TripVO
-    "Update an extraction product"
-    updateExtractionProduct(id: Int!): ExtractionProductVO
     "Validate an observed location"
     validateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Validate a trip"
@@ -1078,12 +937,6 @@ type Query {
     account(pubkey: String): AccountVO
     "Find aggregated landings by filter"
     aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
-    "Execute an aggregation and return as GeoJson"
-    aggregationGeoJson(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ObjectScalar
-    "Execute an aggregation and return as GeoJson"
-    aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): AggregationTechResultVO
-    "Execute an aggregation and return as GeoJson"
-    aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): MinMaxVO
     "Search in analytic references"
     analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
     "Get analytic references count"
@@ -1108,20 +961,6 @@ type Query {
     devicePositions(fetchOptions: DataFetchOptionsInput, filter: DevicePositionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [DevicePositionVO]
     "Get device position count"
     devicePositionsCount(filter: DevicePositionFilterVOInput): Long!
-    "Read extraction data"
-    extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): [JsonObject]
-    "Read columns from an extraction"
-    extractionColumns(sheet: String, type: ExtractionTypeVOInput!): [ExtractionTableColumnVO]
-    "Extract data into a file"
-    extractionFile(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): String
-    "Get one extraction product"
-    extractionProduct(id: Int!): ExtractionProductVO
-    "Get all available extraction products"
-    extractionProducts(filter: ExtractionTypeFilterVOInput): [ExtractionProductVO]
-    "Preview some extraction rows"
-    extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
-    "Get all available extraction types"
-    extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
     "Search filter"
     images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
     "Import vessels from a SIOP file"
@@ -1853,11 +1692,6 @@ enum EventTypeEnum {
     JOB
 }
 
-enum ExtractionCategoryEnum {
-    LIVE
-    PRODUCT
-}
-
 enum JobStatusEnum {
     CANCELLED
     ERROR
@@ -1885,14 +1719,8 @@ enum SortDirection {
     DESC
 }
 
-"An arbitrary precision signed decimal"
-scalar BigDecimal
-
 "Built-in scalar representing an instant in time"
 scalar Date
-
-"JSON object"
-scalar JsonObject
 
 "A 64-bit signed integer"
 scalar Long
@@ -1901,22 +1729,13 @@ scalar Long
 scalar Map_Integer_StringScalar
 
 "Built-in scalar for map-like structures"
-scalar Map_String_List_ObjectScalar
-
-"Built-in scalar for map-like structures"
 scalar Map_String_Map_String_LongScalar
 
 "Built-in scalar for map-like structures"
 scalar Map_String_ObjectScalar
 
 "Built-in scalar for map-like structures"
-scalar Map_String_Set_StringScalar
-
-"Built-in scalar for map-like structures"
 scalar Map_String_StringScalar
-
-"Built-in scalar for dynamic values"
-scalar ObjectScalar
 
 "A 16-bit signed integer"
 scalar Short
@@ -1958,26 +1777,6 @@ input AggregatedLandingVOInput {
     observedLocationId: Int
     vesselActivities: [VesselActivityVOInput]
     vesselSnapshot: VesselSnapshotVOInput
-}
-
-input AggregationStrataVOInput {
-    aggColumnName: String
-    aggFunction: String
-    comments: String
-    creationDate: Date
-    description: String
-    id: Int
-    isDefault: Boolean
-    label: String
-    name: String
-    product: ExtractionProductVOInput
-    productId: Int
-    sheetName: String
-    spatialColumnName: String
-    statusId: Int
-    techColumnName: String
-    timeColumnName: String
-    updateDate: Date
 }
 
 input AppliedPeriodVOInput {
@@ -2168,124 +1967,6 @@ input ExpectedSaleVOInput {
     saleType: ReferentialVOInput
     trip: TripVOInput
     tripId: Int
-}
-
-input ExtractionFilterCriterionVOInput {
-    name: String
-    operator: String
-    sheetName: String
-    value: String
-    values: [String]
-}
-
-input ExtractionFilterVOInput {
-    criteria: [ExtractionFilterCriterionVOInput]
-    excludeColumnNames: [String]
-    includeColumnNames: [String]
-    meta: Map_String_ObjectScalar
-    operator: String
-    sheetName: String
-}
-
-input ExtractionProductVOInput {
-    category: ExtractionCategoryEnum
-    comments: String
-    creationDate: Date
-    description: String
-    docUrl: String
-    documentation: String
-    filterContent: String
-    format: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    parentId: Int
-    processingFrequencyId: Int
-    recorderDepartment: DepartmentVOInput
-    recorderPerson: PersonVOInput
-    statusId: Int
-    stratum: [AggregationStrataVOInput]
-    tables: [ExtractionTableVOInput]
-    updateDate: Date
-    version: String
-}
-
-input ExtractionTableColumnVOInput {
-    columnName: String
-    description: String
-    id: Int
-    label: String
-    name: String
-    rankOrder: Int
-    tableId: Int
-    type: String
-    values: [String]
-}
-
-input ExtractionTableVOInput {
-    columnValues: Map_String_List_ObjectScalar
-    columns: [ExtractionTableColumnVOInput]
-    comments: String
-    creationDate: Date
-    defaultAggColumn: String
-    defaultSpaceColumn: String
-    defaultTechColumn: String
-    description: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    product: ExtractionProductVOInput
-    productId: Int
-    rankOrder: Int
-    statusId: Int
-    tableName: String
-    updateDate: Date
-}
-
-input ExtractionTypeFilterVOInput {
-    category: String
-    excludedIds: [Int]
-    format: String
-    id: Int
-    includedIds: [Int]
-    isSpatial: Boolean
-    label: String
-    levelId: Int
-    levelIds: [Int]
-    levelLabel: String
-    levelLabels: [String]
-    name: String
-    parentId: Int
-    recorderDepartmentId: Int
-    recorderPersonId: Int
-    searchAttribute: String
-    searchJoin: String
-    searchJoinLevelIds: [Int]
-    searchText: String
-    statusIds: [Int]
-    version: String
-}
-
-input ExtractionTypeVOInput {
-    comments: String
-    creationDate: Date
-    description: String
-    docUrl: String
-    format: String
-    id: Int
-    isSpatial: Boolean
-    label: String
-    name: String
-    parentId: Int
-    processingFrequencyId: Int
-    recorderDepartment: DepartmentVOInput
-    recorderPerson: PersonVOInput
-    sheetNames: [String]
-    statusId: Int
-    updateDate: Date
-    version: String
 }
 
 input FishingAreaVOInput {
