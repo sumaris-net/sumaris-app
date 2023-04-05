@@ -127,7 +127,6 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     protected config: ConfigService,
     protected entities: EntitiesStorage,
     protected translate: TranslateService,
-    protected alterController: AlertController,
     @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[]
   ) {
     super(
@@ -433,7 +432,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
     // Start the timer
     subscription.add(
-      timer(0, this.timerPeriodMs).subscribe((_) => this.updateLastPosition())
+      timer(650, this.timerPeriodMs).subscribe((_) => this.updateLastPosition())
     );
 
     if (enableOnSaveListeners) {
@@ -441,33 +440,39 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       subscription.add(this.listenDataServices());
 
       // Force user to enable geolocation, if failed
+      const alertCtrl = this.injector.get(AlertController);
       const alertId = uuid();
       subscription.add(
         this.trackingUpdatePositionFailed
           .pipe(distinctUntilChanged())
           .subscribe(async (failed) => {
+            await this.platform.ready();
             if (failed) {
               do {
                 console.warn(this._logPrefix + 'Geolocation not allowed. Opening alter modal');
-                const alert = await this.alterController.create({
+                const alert = await alertCtrl.create({
                   id: alertId,
                   message: this.translate.instant('DEVICE_POSITION.ERROR.NEED_GEOLOCATION'),
                   buttons: [
-                    {role: 'OK', text: this.translate.instant('COMMON.BTN_REFRESH')}
+                    {role: 'refresh', text: this.translate.instant('COMMON.BTN_REFRESH')}
                   ]
                 })
                 await alert.present();
-                await alert.onDidDismiss();
-                try {
+                const {role} = await alert.onDidDismiss();
+                if (role === 'retry') {
                   failed = !(await this.updateLastPosition());
-                } catch(err) {
-                  console.error(err);
                 }
-              } while(failed)
+                else if (role === 'success') {
+                  failed = false;
+                }
+              } while(failed);
             }
             // Success: hide the alert (if any)
             else {
-              await this.alterController.dismiss(null, null, alertId);
+              const alert = await alertCtrl.getTop();
+              if (alert?.id === alertId) {
+                await alert.dismiss(null,  'success');
+              }
             }
           })
       );
