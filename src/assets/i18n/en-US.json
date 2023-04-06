@@ -2436,7 +2436,7 @@
         "NAME": "Pocheteaux"
       },
       "PMFM_TRIP": {
-        "TITLE": "Raw trips (dynamic format)",
+        "TITLE": "Raw trips > Generic",
         "TITLE_PROGRAM": "Raw trips {{label}}",
         "NAME": "Generic"
       },
