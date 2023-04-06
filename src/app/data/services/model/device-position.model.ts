@@ -71,12 +71,12 @@ export class DevicePosition extends DataEntity<DevicePosition> {
 export class DevicePositionFilter extends EntityFilter<DevicePositionFilter, DevicePosition> {
 
   static TYPENAME = 'DevicePositionVO';
-  objectType:Referential;
-  objectId:number;
-  startDate:Moment;
-  endDate:Moment;
-  recorderPerson:Person;
-  recorderDepartment: Department;
+  objectType:Referential = null;
+  objectId:number = null;
+  startDate:Moment = null;
+  endDate:Moment = null;
+  recorderPerson:Person = null;
+  recorderDepartment: Department = null;
 
   static fromObject: (source: any, opts?: any) => DevicePositionFilter;
 

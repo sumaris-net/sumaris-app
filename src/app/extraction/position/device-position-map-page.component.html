@@ -11,6 +11,13 @@
       <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
     </button>
 
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
     <!-- show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
       <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"

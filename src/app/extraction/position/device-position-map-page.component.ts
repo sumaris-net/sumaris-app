@@ -7,7 +7,7 @@ import { DevicePosition, DevicePositionFilter } from '@app/data/services/model/d
 import { DevicePositionService } from '@app/data/services/device-position.service';
 import {
   AccountService, arrayDistinct,
-  capitalizeFirstLetter, Color, ColorScale, isNil,
+  capitalizeFirstLetter, isNil,
   isNilOrNaN, isNotNil,
   LoadResult,
   MatAutocompleteConfigHolder,
@@ -19,14 +19,12 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { catchError, debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { L } from '@app/shared/map/leaflet';
-import { PathOptions } from 'leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
 import { Feature, Point } from 'geojson';
 import { ObjectTypeEnum } from '@app/referential/services/model/model.enum';
-import { IonGrid, NavController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
   FILTER_KEY: 'filter',
@@ -133,7 +131,7 @@ export class DevicePositionMapPage
           debounceTime(500),
           tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, DEVICE_POSITION_MAP_SETTINGS.FILTER_KEY))
         )
-        .subscribe((sub) => this.onRefresh.emit())
+      .subscribe()
     );
 
     this.registerSubscription(
