@@ -36,7 +36,7 @@ import { Operation, Trip } from '../services/model/trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
-import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -457,7 +457,9 @@ export class TripPage
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+    const reportType = this.program?.getProperty(ProgramProperties.TRIP_REPORT_TYPE) || ProgramProperties.TRIP_REPORT_TYPE.defaultValue;
+    const typePath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
   }
 
   protected async setValue(data: Trip) {
@@ -554,8 +556,8 @@ export class TripPage
 
     // Open the operation editor
     setTimeout(async () => {
-      const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-      await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
+      const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+      await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, 'new'], {
         queryParams: operationQueryParams || {}
       });
       this.markAsLoaded();

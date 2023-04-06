@@ -98,7 +98,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   @Input() flyToBoundsDelay = 450;
   @Input() flyToBoundsDuration = 1; // seconds
   @Input() showGraticule = false;
-  @Input() showTripTarget = true;
+  @Input() showTripLayer = true;
 
   @Input()
   set programLabel(value: string) {
@@ -278,7 +278,7 @@ export class OperationsMap implements OnInit, OnDestroy {
             operationLayer.addData(feature);
 
             // Add to all position array
-            if (this.showTripTarget && Geometries.isLineString(feature.geometry))  {
+            if (this.showTripLayer && Geometries.isLineString(feature.geometry))  {
               tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
             }
           });

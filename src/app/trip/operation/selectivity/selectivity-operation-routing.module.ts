@@ -18,10 +18,10 @@ const routes: Routes = [
         component: SelectivityOperationPage,
         canDeactivate: [ComponentDirtyGuard],
       },
-      {
-        path: 'report',
-        loadChildren: () => import('@app/trip/trip/report/selectivity/selectivity-report-routing.module').then(m => m.SelectivityReportRoutingModule),
-      }
+      // {
+      //   path: 'report',
+      //   loadChildren: () => import('@app/trip/trip/report/selectivity/selectivity-report-routing.module').then(m => m.SelectivityReportRoutingModule),
+      // }
     ],
   }
 ];

@@ -298,7 +298,7 @@ export class UserEventService extends
   sendDataForDebug(data: any): Promise<UserEvent> {
     const userEvent = new UserEvent();
     userEvent.type = UserEventTypeEnum.DEBUG_DATA;
-    userEvent.content = this.convertObjectToString(data);
+    userEvent.content = data;
     return this.save(userEvent);
   }
 

@@ -102,6 +102,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this._enabled = this.accountService.isAdmin();
 
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
+      // Add default configuration for entity/entities
       if (def.type === 'entity' || def.type === 'entities') {
         def = Object.assign({}, def); // Copy
         def.autocomplete = {
@@ -288,7 +289,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     }
 
     const filter = Object.assign({}, def.autocomplete.filter); // Copy filter
-    const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
+    const joinAttribute = def.autocomplete.filter?.joinAttribute || 'id';
     if (joinAttribute === 'id') {
       filter.id = parseInt(value);
       value = '*';

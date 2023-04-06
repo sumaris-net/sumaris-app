@@ -34,6 +34,9 @@ export class FullReferential<T extends FullReferential<T, ID> = FullReferential<
   fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
     this.parent = source.parent && ReferentialRef.fromObject(source.parent) || isNotNil(source.parentId) && ReferentialRef.fromObject({ id: source.parentId });
+    if (isNotNil(this.levelId) && ReferentialUtils.isNotEmpty(source.level)) {
+      this.levelId = source.level.id;
+    }
   }
 
   asObject(opts?: AO): any {

@@ -92,7 +92,7 @@
 
   <!-- JSON -->
   <button mat-menu-item
-          (click)="downloadSelectionAsJson($event)">
+          (click)="exportToJson($event)">
     <mat-icon>download</mat-icon>
     <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
   </button>
@@ -101,13 +101,56 @@
 
 <!-- Toolbar option menu -->
 <mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
+  <!-- export button -->
+  <button mat-menu-item
+          [disabled]="!canDownload"
+          (click)="exportToCsv($event)">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>FILE.CSV.BTN_DOWNLOAD_HELP</ion-label>
+  </button>
+
   <!-- upload button -->
   <button mat-menu-item
           [disabled]="!canUpload"
-          (click)="importFromJson($event)">
+          [matMenuTriggerFor]="importFileMenu">
     <mat-icon>upload</mat-icon>
     <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
   </button>
+</mat-menu>
+
+<!-- Import menu -->
+<mat-menu #importFileMenu="matMenu" xPosition="after">
+  <!-- CSV import -->
+  <button mat-menu-item
+          (click)="importFromCsv($event)">
+    <ion-label translate>FILE.CSV.FORMAT</ion-label>
+  </button>
+
+  <!-- JSON import -->
+  <button mat-menu-item
+          (click)="importFromJson($event)">
+    <ion-label translate>FILE.JSON.FORMAT</ion-label>
+  </button>
+
+
+  <!-- Import options button -->
+  <button mat-menu-item
+          [matMenuTriggerFor]="importPolicyMenu">
+    <ion-label translate>COMMON.BTN_OPTIONS</ion-label>
+  </button>
+
+</mat-menu>
+
+<!-- Import policy menu -->
+<mat-menu #importPolicyMenu="matMenu">
+  <ng-template matMenuContent>
+    <button *ngFor="let policy of importPolicies"
+            mat-menu-item
+            (click)="importPolicy=policy">
+      <mat-icon>{{importPolicy === policy ? 'check_box': 'check_box_outline_blank'}}</mat-icon>
+      <ion-label>{{'REFERENTIAL.LIST.IMPORT_POLICY.' + policy |uppercase|translate}}</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- Table options menu -->

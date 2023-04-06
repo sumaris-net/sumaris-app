@@ -16,7 +16,6 @@ import {
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
-  propertyComparator,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
@@ -32,20 +31,18 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
-import { filter, map, tap } from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionType, ExtractionTypeUtils } from '@app/extraction/type/extraction-type.model';
-import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
-import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -91,13 +88,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
     protected tripContext: TripContextService,
     protected formBuilder: UntypedFormBuilder,
-    protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -380,21 +375,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return this.downloadAsJson(ids);
   }
 
-  get extractionTypes$(): Observable<ExtractionType[]> {
-    return this.extractionTypeService.watchAll(0, 100, 'label', 'asc', <ExtractionTypeFilter>{
-      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      isSpatial: false,
-      category: 'LIVE'
-    }).pipe(
-      map(({ data}) => {
-        // Compute i18n name
-        return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-          // Then sort by name
-          .sort(propertyComparator('name'));
-      })
-    );
-  }
-
   async openDownloadPage(event?: Event, type?: ExtractionType) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
@@ -470,8 +450,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       this.selection.clear();
       this.markForCheck();
 
-      // Open the operation
-      await this.router.navigate(['trips', data.tripId, 'operation', data.id]);
+      //Full load the program
+      const program = await this.programRefService.loadByLabel(programLabel);
+
+      // Build the final path
+      const operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+      const editorPath = operationEditor !== 'legacy' ? [operationEditor]: [];
+      await this.router.navigate(['trips', data.tripId, 'operation', ...editorPath, data.id]);
+
       return;
     }
   }

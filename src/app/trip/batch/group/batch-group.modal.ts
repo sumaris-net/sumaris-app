@@ -82,6 +82,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
   @Input() showSamplingBatch: boolean;
+  @Input() showComment: boolean;
   @Input() allowSubBatches = true;
   @Input() showHasSubBatchesButton: boolean;
   @Input() defaultHasSubBatches: boolean;
@@ -160,6 +161,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
     this.disabled = toBoolean(this.disabled, false);
     this.enableBulkMode = this.enableBulkMode && !this.disabled && (typeof this.onSaveAndNew === 'function') ;
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
 
     if (this.disabled) this.disable();
 

@@ -1,61 +1,29 @@
 import { Injectable } from '@angular/core';
-import { BaseGraphqlService, DateUtils, EntityUtils, GraphqlService, isEmptyArray, isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { BaseGraphqlService, GraphqlService, IEntity } from '@sumaris-net/ngx-components';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
-import { ExtractionCacheDurationType } from '@app/extraction/type/extraction-type.model';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
+import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { RdbExtractionData, RdbPmfmSpeciesLength, RdbPmfmSpeciesList, RdbPmfmStation, RdbPmfmTrip, RdbSpeciesList, RdbStation } from '@app/trip/trip/report/trip-report.model';
 
 const Queries = {
-  speciesLength: gql`query SpeciesLength($ids: [String!]!,
-    $programLabel: String!,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
-    $cacheDuration: String) {
+  extraction: gql`query Extraction($formatLabel: String!, $filter: ExtractionFilterVOInput!, $offset: Int, $size: Int, $cacheDuration: String) {
     data: extraction(
-      type: {format: "apase"},
+      type: {format: $formatLabel},
       offset: $offset,
       size: $size,
-      sortBy: $sortBy,
-      sortDirection: $sortDirection,
       cacheDuration: $cacheDuration,
-      filter: {
-        sheetName: "HL",
-        criteria: [
-          {sheetName: "TR", name: "project", operator: "=", value: $programLabel},
-          {sheetName: "TR", name: "trip_code", operator: "IN", values: $ids}
-        ]
-      }
+      filter: $filter
     )
   }`
 };
 
-export class SpeciesLength {
-  species: string;
-  catchCategory: 'LAN'|'DIS';
-  lengthClass: number;
-  numberAtLength: number;
-  subGearPosition: 'B'|'T';
-  taxonGroupId: number;
-  referenceTaxonId: number;
-
-  static fromObject(source: any): SpeciesLength {
-    const target = new SpeciesLength();
-    target.fromObject(source);
-    return target;
-  }
-
-  fromObject(source: any){
-    this.species = source.species;
-    this.catchCategory = source.catchCategory;
-    this.lengthClass = toNumber(source.lengthClass);
-    this.numberAtLength = toNumber(source.numberAtLength);
-    this.subGearPosition = source.subGearPosition;
-    this.taxonGroupId = toNumber(source.taxonGroupId);
-    this.referenceTaxonId = toNumber(source.referenceTaxonId);
-  }
-}
-
-@Injectable({providedIn: 'root'})
-export class TripReportService extends BaseGraphqlService {
+@Injectable()
+export class TripReportService<
+  R extends RdbExtractionData<TR, HH, SL, HL> = RdbExtractionData<any, any, any, any>,
+  TR extends RdbPmfmTrip = RdbPmfmTrip,
+  HH extends RdbPmfmStation = RdbPmfmStation,
+  SL extends RdbPmfmSpeciesList = RdbPmfmSpeciesList,
+  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength,
+> extends BaseGraphqlService {
 
   constructor(
     protected graphql: GraphqlService
@@ -63,52 +31,85 @@ export class TripReportService extends BaseGraphqlService {
     super(graphql);
   }
 
-  async loadSpeciesLength(filter: Partial<TripFilter>,
-                          opts?: {
-                            fetchPolicy?: FetchPolicy;
-                            cache?: boolean; // enable by default
-                            cacheDuration?: ExtractionCacheDurationType;
-                          }): Promise<SpeciesLength[]> {
+  async loadAll(filter: Partial<ExtractionFilter>,
+                opts?: {
+                   formatLabel?: string;
+                   sheetNames?: string[];
+                   query?: any;
+                   dataTypes?: {
+                     TR: new () => TR,
+                     HH: new () => HH,
+                     SL: new () => SL,
+                     HL: new () => HL,
+                     [key: string]: new () => IEntity<any>
+                   };
+                   fetchPolicy?: FetchPolicy;
+                   cache?: boolean; // enable by default
+                   cacheDuration?: ExtractionCacheDurationType;
+                 }): Promise<R> {
 
+    opts = {
+      formatLabel: 'pmfm_trip',
+      sheetNames: ['TR', 'HH', 'SL', 'HL'],
+      dataTypes: {
+        TR: RdbPmfmTrip as unknown as new () => TR,
+        HH: RdbStation as unknown as new () => HH,
+        SL: RdbSpeciesList as unknown as new () => SL,
+        HL: RdbPmfmSpeciesLength as unknown as new () => HL
+      },
+      ...opts
+    };
     const withCache = (!opts || opts.cache !== false);
     const cacheDuration = withCache ? (opts && opts.cacheDuration || 'default') : undefined;
-    filter = TripFilter.fromObject(filter);
-    const programLabel = filter.program?.label;
 
-    if (!programLabel) throw new Error('Missing filter program');
+    filter = ExtractionFilter.fromObject(filter);
+    if (filter.isEmpty()) throw new Error('Cannot load trip data: filter is empty!');
 
-    // TODO: load locally
-    const ids = filter.includedIds
-      .filter(EntityUtils.isRemoteId)
-      .map(id => id.toString());
-    if (isEmptyArray(ids)) {
-      console.debug(`[trip-report-service] No trip ids to load: Skip`);
-      return; // Skip is empty
-    }
+    const podFilter = filter.asPodObject()
+    podFilter.sheetNames = opts?.sheetNames;
+    delete podFilter.sheetName;
 
     const variables = {
-      ids,
-      programLabel,
+      filter: podFilter,
+      formatLabel: opts.formatLabel,
       offset: 0,
-      size: 1000, // All rows
-      sortBy: 'length_class',
+      size: 10000, // All rows
       sortDirection: 'asc',
       cacheDuration
     };
 
     const now = Date.now();
-    console.debug(`[trip-report-service] Loading species length... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`, variables);
+    console.debug(`[trip-report-service] Loading extraction data... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`, variables);
 
-    const {data} = await this.graphql.query<{data: { species: string; catchCategory: string; lengthClass: string; }[]}>({
-      query: Queries.speciesLength,
+    const query = opts?.query || Queries.extraction;
+    const {data} = await this.graphql.query<{data: RdbExtractionData<TR, HH, SL, HL>}>({
+      query,
       variables,
       fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
     });
 
-    const entities = (data || []).map(SpeciesLength.fromObject)
-    console.debug(`[trip-report-service] Species length loaded in ${Date.now() - now}ms`,entities);
+    const result = Object.keys(data).reduce((map, sheetName) => {
+      const jsonArray = data[sheetName];
+      const dataType = opts?.dataTypes[sheetName];
+      if (dataType) {
+        const entities = (jsonArray || []).map(json => {
+          const entity =  new dataType();
+          entity.fromObject(json);
+          return entity;
+        });
+        map[sheetName] = entities;
+      }
+      else {
+        console.warn('Unknown dataType for sheetName: ' + sheetName);
+        map[sheetName] = jsonArray; // Unknown data type
+      }
+      return map;
+    }, <R>{});
 
-    return entities;
+    console.debug(`[trip-report-service] Extraction data loaded in ${Date.now() - now}ms`,result);
+
+    return result;
   }
+
 
 }

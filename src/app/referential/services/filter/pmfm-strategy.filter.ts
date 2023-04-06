@@ -52,6 +52,7 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategyFilter;
 
   strategyId?: number;
+  acquisitionLevels?: string[];
   acquisitionLevel?: string;
   gearIds?: number[];
   taxonGroupIds?: number[];
@@ -62,6 +63,7 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
     super.fromObject(source);
     this.strategyId = source.strategyId;
     this.acquisitionLevel = source.acquisitionLevel;
+    this.acquisitionLevels = source.acquisitionLevels;
     this.gearIds = source.gearId ? [source.gearId] : source.gearIds;
     this.taxonGroupIds = source.taxonGroupId ? [source.taxonGroupId] : source.taxonGroupIds;
     this.referenceTaxonIds = source.referenceTaxonId ? [source.referenceTaxonId] : source.referenceTaxonIds;
@@ -75,6 +77,10 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
       filterFns.push(t => t.acquisitionLevel === acquisitionLevel);
+    }
+    else if (isNotEmptyArray(this.acquisitionLevels)) {
+      const acquisitionLevels = this.acquisitionLevels;
+      filterFns.push(t => acquisitionLevels.includes(t.acquisitionLevel));
     }
 
     // Gears

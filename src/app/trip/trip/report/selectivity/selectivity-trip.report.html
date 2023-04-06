@@ -1,0 +1,179 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar"
+    [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+
+    <ion-title [innerHTML]="$title|async"></ion-title>
+
+    <!-- Refresh -->
+    <ion-button slot="end" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+      <mat-icon slot="icon-only">refresh</mat-icon>
+    </ion-button>
+
+    <!-- Help button -->
+    <ion-button slot="end" (click)="reveal.toggleHelp()">
+      <mat-icon slot="icon-only">help_outline</mat-icon>
+    </ion-button>
+
+    <!-- Print button -->
+    <ion-button slot="end" (click)="reveal.print($event)">
+      <ion-icon slot="icon-only" name="print"></ion-icon>
+    </ion-button>
+
+  </app-toolbar>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar"
+                                 [modalName]="modalName"
+                                 [color]="'secondary'"
+                                 (cancel)="cancel()"
+                                 [canValidate]="false">
+
+      <ion-title [innerHTML]="$title|async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile
+                  slot="end"
+                  (click)="cancel()"
+                  (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    <section>
+      <!-- summary -->
+      <section class="summary">
+        <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
+        <ul *ngVar="{
+        startDate: stats.startDate|dateFormat:{time: false},
+        endDate: stats.endDate|dateFormat:{time: false}
+      } as vars">
+          <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
+          <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString:['exteriorMarking'] }}</li>
+          <li><ion-icon name="settings"></ion-icon> {{ 'TRIP.REPORT.SELECTIVITY_DEVICES'|translateContext: i18nContext.suffix }} <b>{{ stats.selectivityDevices|arrayJoin:', ' }}</b></li>
+          <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
+          <li><mat-icon>straighten</mat-icon> {{ 'TRIP.REPORT.VESSEL_LENGTH'|translateContext: i18nContext.suffix }}
+            <span *ngIf="stats.vesselLength.min !== stats.vesselLength.max; else avgLengthOnly"
+                  [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_STATS'|translateContext: i18nContext.suffix: stats.vesselLength">
+            </span>
+            <ng-template #avgLengthOnly>
+              <span [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_AVG'|translateContext: i18nContext.suffix: stats.vesselLength"></span>
+            </ng-template>
+          </li>
+          <li *ngIf="stats.seabedFeatures"><mat-icon>terrain</mat-icon> {{ 'TRIP.REPORT.SEABED_FEATURES'|translateContext: i18nContext.suffix }} {{ stats.seabedFeatures | arrayJoin: ', '  }}</li>
+          <li *ngIf="stats.seaStates"><mat-icon>waves</mat-icon> {{ 'TRIP.REPORT.SEA_STATE'|translateContext: i18nContext.suffix }} {{ stats.seaStates | arrayJoin: ', '  }}</li>
+          <li *ngIf="stats.gearSpeed"><mat-icon>speed</mat-icon> {{ 'TRIP.REPORT.GEAR_SPEED'|translateContext: i18nContext.suffix }}
+            <span *ngIf="stats.gearSpeed.min !== stats.gearSpeed.max; else avgSpeedOnly"
+                  [innerHTML]="'TRIP.REPORT.GEAR_SPEED_STATS'|translateContext: i18nContext.suffix: stats.gearSpeed">
+            </span>
+            <ng-template #avgSpeedOnly>
+              <span [innerHTML]="'TRIP.REPORT.GEAR_SPEED_AVG'|translateContext: i18nContext.suffix: stats.gearSpeed"></span>
+            </ng-template>
+          </li>
+          <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ stats.operations?.length || 0 }}</li>
+        </ul>
+      </section>
+
+      <ng-container *ngFor="let catchCategory of stats.weights?.catchCategories|mapValues">
+        <section *ngVar="catchCategory.key === 'LAN' ? 'LANDING' : 'DISCARD' as catchCategoryI18nSuffix">
+          <h4>{{ 'TRIP.REPORT.TABLE.SPECIES_LIST'|translateContext: i18nContext.suffix }} - {{catchCategory.label |translateContext: i18nContext.suffix}}</h4>
+          <table [style.--col-count]="4">
+            <thead>
+              <tr>
+                <th >{{'TRIP.REPORT.SPECIES'|translateContext: i18nContext.suffix}}</th>
+                <th *ngFor="let subCategory of stats.subCategories"
+                    class="ion-text-center"
+                    [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_WEIGHT'|translate:{selectionDevice: subCategory}"></th>
+                <th class="ion-text-center" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
+                <th class="ion-text-center" *ngIf="catchCategory.enableAvgVariation" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.AVG_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let species of catchCategory.species">
+              <td>{{species.label}}</td>
+              <td *ngFor="let subCategory of stats.subCategories" class="numeric">
+                {{species.subCategories[subCategory].total|numberFormat: {fixedDecimals: 1} }}
+              </td>
+              <td class="numeric">
+                <span *ngIf="species.totalVariation|isNotNil">
+                  {{species.totalVariation|numberFormat: {fixedDecimals: 1} }} %
+                </span>
+              </td>
+              <td class="numeric" *ngIf="catchCategory.enableAvgVariation">
+                <ion-grid class="ion-no-padding">
+                  <ion-row>
+                    <ion-col *ngIf="species.avgVariation?.avg|isNotNil; let value">
+                      {{species.avgVariation.avg|numberFormat: {fixedDecimals: 1} }} %
+                    </ion-col>
+                    <ion-col *ngIf="species.avgVariation?.stdDevPct|isNotNil" class="standard-derivation">
+                      <span [innerHTML]="'TRIP.REPORT.TABLE.STANDARD_DERIVATION'|translate"></span> {{species.avgVariation.stdDevPct|numberFormat: {fixedDecimals: 1} }}%
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </section>
+      </ng-container>
+
+      <!-- Operations map -->
+      <section *ngIf="stats.operations|isNotEmptyArray"
+               (entered)="!reveal.printing && showMap()">
+        <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
+        <div style="height: 550px;">
+          <ng-container #mapContainer></ng-container>
+        </div>
+      </section>
+    </section>
+
+    <section *ngFor="let s of stats.species | arrayFilter: isNotEmptySpecies">
+      <section *ngFor="let chart of s.charts | mapValues">
+        <div class="chart-container">
+          <canvas baseChart
+                  [chartType]="chart.type"
+                  [labels]="chart.data.labels"
+                  [colors]="chart.colors"
+                  [options]="chart.options"
+                  [datasets]="chart.data.datasets">
+          </canvas>
+        </div>
+      </section>
+    </section>
+
+  </app-reveal>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+
+</ion-content>
+
+<ng-template #mapTemplate>
+  <app-operations-map (ready)="onMapReady()"
+                      [showTooltip]="false"
+                      [programLabel]="stats.programLabel"
+                      [data]="[stats.operations]"
+                      [flyToBoundsDelay]="0"
+                      [flyToBoundsDuration]="0"
+                      [showGraticule]="true"
+                      [showTripLayer]="false"
+                      [latLongPattern]="latLongFormat">
+  </app-operations-map>
+</ng-template>

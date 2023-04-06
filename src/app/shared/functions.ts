@@ -1,8 +1,10 @@
 
 // TODO: remove after then updating to last version of ngx-components
 
-import { isNil, isNotNil, LoadResult, } from '@sumaris-net/ngx-components';
+import { isEmptyArray, isNil, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
 
+export declare type Function<P, R> = (value: P) => R;
+export declare type BiFunction<P1, P2, R> = (v1: P1, v2: P2) => R;
 
 export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null || (typeof obj === 'number' && isNaN(obj));
@@ -99,4 +101,29 @@ export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[ty
  */
 export function countSubString(value: string, searchString: string) {
   return value.split(searchString).length -1;
+}
+
+/**
+ * Split an array, into a map of array, group by property
+ */
+export function collectByFunction<T>(values: T[], getKey: Function<T, string|number>): KeyValueType<T[]> {
+  return (values || []).reduce((res, item) => {
+    const key = getKey(item);
+    if (typeof key === 'number' || typeof key === 'string') {
+      res[key] = res[key] || [];
+      res[key].push(item);
+    }
+    return res;
+  }, <KeyValueType<T[]>>{});
+}
+
+export type ArrayElementType<T> = T extends (infer E)[] ? E : never;
+
+export function intersectArrays<T = any>(values: T[][]): T[] {
+  if (isEmptyArray(values)) return [];
+
+  // Utilise la méthode reduce pour obtenir l'intersection des tableaux
+  return values.reduce((acc, curr) => {
+    return acc.filter(x => curr.includes(x));
+  }, values[0].slice());
 }

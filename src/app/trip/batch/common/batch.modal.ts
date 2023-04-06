@@ -18,6 +18,7 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showIndividualCount: boolean;
+  showComment: boolean;
 
   // Other options
   availableTaxonGroups?: IReferentialRef[] | Observable<IReferentialRef[]>;
@@ -52,6 +53,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showIndividualCount = false;
   @Input() showTotalIndividualCount = false;
   @Input() showSamplingBatch = false;
+  @Input() showComment: boolean;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() usageMode: UsageMode;
@@ -95,6 +97,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
     // Default values
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.disabled = toBoolean(this.disabled, false);
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
 
     if (this.disabled) {
       this.form.disable();

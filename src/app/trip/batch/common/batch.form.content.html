@@ -11,7 +11,7 @@
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
   </ng-container>
 
-  <ion-grid class="ion-no-padding" >
+  <ion-grid class="ion-no-padding">
     <!-- Taxon group and/or taxon name and/or exhaustive inventory -->
     <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName || delegate.showExhaustiveInventory">
 
@@ -23,7 +23,7 @@
                                 [tabindex]="delegate.tabindex"
                                 [required]="true"
                                 [config]="delegate.autocompleteFields.taxonGroup"
-                                [showSearchBar]="!delegate.autocompleteFields.taxonGroup.items">
+                                [showSearchBar]="delegate.showTaxonGroupSearchBar">
           <ion-icon matPrefix *ngIf="delegate.mobile" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>

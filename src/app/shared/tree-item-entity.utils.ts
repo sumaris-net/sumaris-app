@@ -149,4 +149,43 @@ export class TreeItemEntityUtils {
       return res.concat(...this.deleteRecursively(c, filterFn))
     }, deletedBatches);
   }
+
+  /**
+   * Visit each node, from root to leaf
+   * @param node
+   * @param action
+   */
+  static visit<T extends ITreeItemEntity<any>>(node: T, action: (T) => void) {
+    if (node == null) {
+      return;
+    }
+
+    // Appliquer l'action sur le nœud actuel
+    action(node);
+
+    // Parcourir les enfants
+    if (node.children) {
+      node.children.forEach(child => this.visit(child, action))
+    }
+  }
+
+  /**
+   * Visit each node, from leaf to root
+   * @param node
+   * @param action
+   */
+  static visitInverse<T extends ITreeItemEntity<any>>(node: T, action: (T) => void) {
+    if (node == null) {
+      return;
+    }
+
+    // Parcourir les enfants
+    if (node.children) {
+      node.children.forEach(child => this.visitInverse(child, action))
+    }
+
+    // Appliquer l'action sur le nœud actuel
+    action(node);
+  }
+
 }

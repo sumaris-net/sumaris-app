@@ -8,7 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: TripReport,
-  }
+  },
+  {
+    path: 'selectivity',
+    loadChildren: () => import('./selectivity/selectivity-trip-report-routing.module').then(m => m.SelectivityTripReportRoutingModule)
+  },
 ];
 
 @NgModule({

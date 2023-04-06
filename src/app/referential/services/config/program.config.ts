@@ -1,11 +1,12 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, PmfmIds, UnitLabel } from '../model/model.enum';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+export type TripReportType = 'legacy' | 'selectivity';
 export type OperationEditor = 'legacy' | 'selectivity';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
@@ -337,7 +338,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+  TRIP_SAMPLE_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.dateTime.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
     defaultValue: 'true',
@@ -353,6 +354,18 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.sample.taxonGroup.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE',
     defaultValue: 'true',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.label.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_LABEL_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.images.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_IMAGES_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
@@ -420,6 +433,22 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
     defaultValue: 'false',
     type: 'boolean'
+  },
+  TRIP_REPORT_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.type',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
+    type: 'enum',
+    values: [
+      {
+        key: <TripReportType>'legacy',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_LEGACY'
+      },
+      {
+        key: <TripReportType>'selectivity',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY'
+      }
+    ],
+    defaultValue: <TripReportType>'legacy'
   },
 
   // Operation
@@ -732,6 +761,31 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false'
   },
 
+
+  /* -- Extraction options -- */
+
+  EXTRACTION_FORMATS: <FormFieldDefinition>{
+    key: 'sumaris.extraction.formats',
+    label: 'PROGRAM.OPTIONS.EXTRACTION_FORMATS',
+    type: 'enums',
+    values: [
+      <Property>{key: 'NA', value: 'COMMON.EMPTY_OPTION'}, // Used to disabled extraction
+      <Property>{key: 'RDB', value: 'EXTRACTION.FORMAT.RDB.NAME'},
+      <Property>{key: 'COST', value: 'EXTRACTION.FORMAT.COST.NAME'},
+      <Property>{key: 'FREE1', value: 'EXTRACTION.FORMAT.FREE1.NAME'},
+      <Property>{key: 'FREE2', value: 'EXTRACTION.FORMAT.FREE2.NAME'},
+      <Property>{key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME'},
+      <Property>{key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME'},
+      <Property>{key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME'},
+    ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p.key
+    },
+    defaultValue: null // =  All
+  },
+
   /* -- Program / Strategy options -- */
 
   STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
@@ -816,7 +870,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'legacy'
   },
 
-  /* -- QUalitative value options -- */
+  /* -- Qualitative value options -- */
 
   MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
     key: 'sumaris.measurements.maxVisibleButtons',

@@ -33,6 +33,7 @@ import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.val
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { environment } from '@environments/environment';
 
 
 export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
@@ -479,6 +480,14 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
   private async controlSelectivity(entity: Batch, program: Program, opts?: BatchControlOptions): Promise<FormErrors> {
     let physicalGear = opts?.physicalGear;
     if (!physicalGear) throw new Error('Missing required \'opts.physicalGear\'')
+
+    // Recompute rank order
+    BatchUtils.computeRankOrder(entity);
+
+    if (!environment.production) {
+      // SKip validation
+      return undefined;
+    }
 
     const allowSamplingBatches = (opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0);
     const allowDiscard = allowSamplingBatches;

@@ -79,6 +79,7 @@ import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@a
 import {TripService} from '@app/trip/services/trip.service';
 import {ObservedLocationService} from '@app/trip/services/observed-location.service';
 import { DevicePositionService } from '@app/data/services/device-position.service';
+import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.module';
 @NgModule({
   declarations: [
     AppComponent
@@ -140,6 +141,7 @@ import { DevicePositionService } from '@app/data/services/device-position.servic
     Network,
     AudioManagement,
     Downloader,
+    //Geolocation,
 
     {provide: APP_BASE_HREF, useFactory: () => {
         try {
@@ -290,6 +292,8 @@ import { DevicePositionService } from '@app/data/services/device-position.servic
         {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+
+        {title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
         // Settings
@@ -394,7 +398,8 @@ import { DevicePositionService } from '@app/data/services/device-position.servic
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
-        ...TRIP_TESTING_PAGES
+        ...TRIP_TESTING_PAGES,
+        ...ENTITIES_STORAGE_EXPLORER,
       ]},
 
     // Custom identicon style
