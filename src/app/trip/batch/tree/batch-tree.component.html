@@ -130,7 +130,7 @@
                             [mobile]="mobile"
                             [allowSubBatches]="allowSubBatches"
                             [showSamplingBatchColumns]="showSamplingBatchColumns$|async"
-                            [showCommentsColumn]="false"
+                            [showCommentsColumn]="!mobile"
                             (onSubBatchesChanges)="onSubBatchesChanges($event)">
     </app-batch-groups-table>
   </mat-tab>

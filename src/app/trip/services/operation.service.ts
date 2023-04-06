@@ -1649,7 +1649,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Compute rankOrder (and label)
     if (opts.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
 
-    // Compute individual count
+    // Compute individual count (e.g. refresh individual count of BatchGroups)
     if (opts.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
 
     // Compute weight

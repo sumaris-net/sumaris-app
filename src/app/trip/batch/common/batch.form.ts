@@ -12,7 +12,7 @@ import {
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   ReferentialUtils,
   splitByProperty,
   toBoolean,
@@ -111,6 +111,8 @@ export class BatchForm<
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() i18nSuffix: string;
+  @Input() showComment = false;
+
   @Input() set samplingRatioFormat(value: SamplingRatioFormat) {
     this._state.set('samplingRatioFormat', _ => value);
   }
@@ -653,9 +655,11 @@ export class BatchForm<
     const weightPmfms = this.weightPmfms;
     const weightPmfmsByMethod = this.weightPmfmsByMethod;
 
+    // Reset comment, when hidden
+    if (!this.showComment) json.comments = undefined;
+
     // Get existing measurements
     const measurementValues = data.measurementValues || {};
-
 
     // Clean previous all weights
     weightPmfms?.forEach(p => measurementValues[p.id.toString()] = undefined);
@@ -786,6 +790,15 @@ export class BatchForm<
         weight: target
       });
     }
+  }
+
+  toggleComment() {
+    this.showComment = !this.showComment;
+
+    // Mark form as dirty, if need to reset comment (see getValue())
+    if (!this.showComment && isNotNilOrBlank(this.form.get('comments').value)) this.form.markAsDirty();
+
+    this.markForCheck();
   }
 
   /* -- protected methods -- */

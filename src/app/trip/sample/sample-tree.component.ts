@@ -47,9 +47,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
+  @Input() showImagesColumn = false;
   @Input() requiredStrategy = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
-
 
   @Input() set defaultSampleDate(value: Moment) {
     this.samplesTable.defaultSampleDate = value;
@@ -431,7 +431,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
     this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
     this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
-    this.samplesTable.showSampleDateColumn  = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_ENABLE);
+    this.samplesTable.showSampleDateColumn  = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE);
+    this.samplesTable.showLabelColumn  = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE);
+    this.samplesTable.showImagesColumn  = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE);
     this.samplesTable.programLabel = program.label;
     this.samplesTable.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.samplesTable.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);

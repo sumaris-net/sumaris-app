@@ -338,7 +338,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+  TRIP_SAMPLE_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.dateTime.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
     defaultValue: 'true',
@@ -354,6 +354,18 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.sample.taxonGroup.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE',
     defaultValue: 'true',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.label.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_LABEL_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.images.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_IMAGES_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppFormUtils, InputElement, isNil, isNotNil, isNotNilOrBlank, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
 import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
@@ -299,6 +299,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
   protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
 
     if (this.debug) console.debug(this._logPrefix + ' updateView() with value:', data);
+
+    // Show comments if any
+    this.showComment = this.showComment || isNotNilOrBlank(data?.comments);
 
     // Compute has sub batches (will be updated later in this function)
     let hasSubBatches = data.observedIndividualCount > 0 || this.defaultHasSubBatches || false;

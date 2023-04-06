@@ -85,14 +85,9 @@
 
     <!-- Group header: end -->
     <ng-container matColumnDef="top-end">
-      <th mat-header-cell *matHeaderCellDef>
-        <!-- Options menu -->
-        <button mat-icon-button
-                hidden-xs hidden-sm hidden-mobile
-                [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
-                (click)="openSelectColumnsModal($event)">
-          <mat-icon>more_vert</mat-icon>
-        </button>
+      <th mat-header-cell *matHeaderCellDef
+          [attr.colspan]="showCommentsColumn ? 2 : 1">
+
       </th>
     </ng-container>
 
@@ -186,53 +181,42 @@
             [class]="col.classList"
             [class.mat-cell-computed]="computed"
             class="mat-cell-content-start-padding"
-            (click)="focusColumn=col.key"
-            [ngSwitch]="col.type">
+            (click)="focusColumn=col.key">
+          <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl" [ngSwitch]="col.type">
+            <app-pmfm-field *ngSwitchCase="'pmfm'"
+                            floatLabel="never"
+                            [pmfm]="col.pmfm"
+                            [control]="control"
+                            [autofocus]="row.editing && focusColumn === col.key"
+                            [readonly]="!row.editing || computed"
+                            [tabindex]="computed && -1"
+                            [compact]="true">
+            </app-pmfm-field>
 
-          <ng-container *ngSwitchCase="'pmfm'">
-            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
-              <app-pmfm-field
-                              floatLabel="never"
-                              [pmfm]="col.pmfm"
-                              [control]="control"
-                              [autofocus]="row.editing && focusColumn === col.key"
-                              [readonly]="!row.editing || computed"
-                              [tabindex]="computed && -1"
-                              [compact]="true">
-              </app-pmfm-field>
-            </ng-container>
-            <ng-template #missingControl>
-              Missing control {{col.path}}
-            </ng-template>
+            <mat-sampling-ratio-field *ngSwitchCase="'samplingRatio'"
+                                      floatLabel="never"
+                                      [formControl]="control"
+                                      [format]="samplingRatioFormat"
+                                      [readonly]="!row.editing || computed"
+                                      [autofocus]="row.editing && focusColumn === col.key"
+                                      [tabindex]="computed && -1">
+            </mat-sampling-ratio-field>
 
+            <app-form-field *ngSwitchDefault
+                            floatLabel="never"
+                            [definition]="col"
+                            [readonly]="!row.editing || computed"
+                            [formControl]="row.validator|formGetControl: col.path"
+                            [autofocus]="row.editing && focusColumn === col.key"
+                            [tabindex]="computed && -1"
+                            [compact]="true">
+            </app-form-field>
           </ng-container>
 
-          <ng-container *ngSwitchCase="'samplingRatio'">
-            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
-              <mat-sampling-ratio-field
-                                        floatLabel="never"
-                                        [formControl]="control"
-                                        [format]="samplingRatioFormat"
-                                        [readonly]="!row.editing || computed"
-                                        [autofocus]="row.editing && focusColumn === col.key"
-                                        [tabindex]="computed && -1">
-              </mat-sampling-ratio-field>
-            </ng-container>
+          <ng-template #missingControl>
+            {{row.currentData|propertyGet: col.path}}
+          </ng-template>
 
-            <ng-template #missingControl>
-              Missing control {{col.path}}
-            </ng-template>
-          </ng-container>
-
-          <app-form-field *ngSwitchDefault
-                          floatLabel="never"
-                          [definition]="col"
-                          [readonly]="!row.editing || computed"
-                          [formControl]="row.validator|formGetControl: col.path"
-                          [autofocus]="row.editing && focusColumn === col.key"
-                          [tabindex]="computed && -1"
-                          [compact]="true">
-          </app-form-field>
         </td>
       </ng-container>
     </ng-container>
@@ -240,14 +224,19 @@
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef>
-        <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls.comments"
-                 [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-                 [readonly]="!row.editing">
-        </mat-form-field>
+        <button *ngIf="row.validator|formGetControl: 'comments'; let control"
+          mat-icon-button
+          [class.visible-hover]="!row.editing && !control.value"
+          (click)="openCommentPopover($event, row)"
+          [disabled]="disabled"
+          [title]="control.value || ''">
+        <ion-icon
+          [color]="control.value ? 'tertiary' : 'medium'"
+          name="chatbox"
+          slot="icon-only"></ion-icon>
+        </button>
       </td>
     </ng-container>
 
@@ -258,6 +247,23 @@
                         (backward)="confirmAndBackward($event.event, $event.row)"
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
+      <!-- Options menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <!-- Table options menu -->
+      <mat-menu #optionsMenu="matMenu" xPosition="after">
+        <ng-template matMenuContent>
+          <!-- display columns option -->
+          <button mat-menu-item
+                  (click)="openSelectColumnsModal($event)">
+            <mat-icon>view_column</mat-icon>
+            <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+          </button>
+        </ng-template>
+      </mat-menu>
     </app-actions-column>
 
     <!-- first header -->
@@ -404,7 +410,9 @@
               <ng-container *ngSwitchCase="'pmfm'">
                 {{row.currentData|propertyGet: col.path|pmfmValue: {pmfm: col.pmfm} }}
               </ng-container>
-              <ng-container *ngSwitchDefault>{{row.currentData|propertyGet: col.path}}</ng-container>
+              <ng-container *ngSwitchDefault>
+                {{row.currentData|propertyGet: col.path}}
+              </ng-container>
             </ion-label>
 
             <ng-template #mobileCellContent>

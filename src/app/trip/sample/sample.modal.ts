@@ -144,7 +144,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    this.showComment = !this.mobile || isNotNil(this.data.comments);
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
     this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
     this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
     this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
@@ -363,7 +363,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       if (this.invalid) {
         if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-        let message = 'COMMON.FORM.HAS_ERROR';
 
         // If not many fields/pmfms: display a simple message,
         // Otherwise (many fields/pmfms) show a detailed message
