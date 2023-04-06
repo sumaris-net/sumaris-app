@@ -42,20 +42,6 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'map',
-    canActivate: [AuthGuardService],
-    children: [
-      {
-        path: '',
-        component: ExtractionMapPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
-      }
-    ]
-  },
-  {
     path: 'report',
     canActivate: [AuthGuardService],
     children: [
@@ -64,7 +50,15 @@ const routes: Routes = [
         loadChildren: () => import('../trip/trip/report/trip-report-routing.module').then(m => m.TripReportRoutingModule)
       }
     ]
-  }
+  },
+  {
+    path: 'device-position',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'ADMIN'
+    },
+    loadChildren: () => import('./position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
+  },
 ];
 
 @NgModule({

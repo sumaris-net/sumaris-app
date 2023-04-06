@@ -344,7 +344,8 @@
     "SERVER": "Paramètres système",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos",
-    "BTN_MY_ACCOUNT": "Mon compte"
+    "BTN_MY_ACCOUNT": "Mon compte",
+    "DEVICE_POSITION": "Positions"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -1225,6 +1226,7 @@
     }
   },
   "OBSERVED_LOCATION": {
+    "TITLE": "Sortie",
     "NEW": {
       "TITLE": "Nouvelle sortie"
     },
@@ -2700,6 +2702,34 @@
       "BTN_EDIT_TITLE": "Éditer le titre",
       "BTN_ADD_TITLE": "Ajouter un titre",
       "TITLE": "Titre"
+    }
+  },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Cartes des positions",
+      "FILTER": {
+        "RECORDER_PERSON": "Saisisseur",
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période"
+      },
+      "TABLE": {
+        "TITLE": "Liste des positions",
+        "LIMIT_TO": "Limité à {{visibleTotal}} résultats sur {{total}}",
+        "BTN_OPEN_DATA": "Ouvrir la donnée",
+        "RECORDER_PERSON": "Saisisseur",
+        "DATE_TIME": "Date/Heure",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Type de donnée"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "Capteur GPS > Intervalle de récupération en arrière plan (ms)",
+      "TRACKING_ENABLE": "Capteur GPS > Activer le suivi des positions",
+      "TRACKING_SAVE_PERIOD": "Capteur GPS > Suivi des positions : Intervalle de sauvegarde (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
     }
   },
   "ERROR": {

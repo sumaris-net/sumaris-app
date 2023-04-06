@@ -1,10 +1,10 @@
-import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entity.model";
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from "moment";
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import {Landing} from "./landing.model";
 import { isNotNil, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
-import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
-import {IWithObserversEntity} from "../../../data/services/model/model.utils";
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 import {Person}  from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
@@ -16,6 +16,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
 
   static fromObject: (source, opts?: any) => ObservedLocation;
 
+  static ENTITY_NAME:string = "ObservedLocation";
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;
