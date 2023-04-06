@@ -771,6 +771,7 @@ export const ProgramProperties = Object.freeze({
     values: [
       <Property>{key: 'NA', value: 'COMMON.EMPTY_OPTION'}, // Used to disabled extraction
       <Property>{key: 'RDB', value: 'EXTRACTION.FORMAT.RDB.NAME'},
+      <Property>{key: 'SURVIVAL_TEST', value: 'EXTRACTION.FORMAT.SURVIVAL_TEST.NAME'},
       <Property>{key: 'COST', value: 'EXTRACTION.FORMAT.COST.NAME'},
       <Property>{key: 'FREE1', value: 'EXTRACTION.FORMAT.FREE1.NAME'},
       <Property>{key: 'FREE2', value: 'EXTRACTION.FORMAT.FREE2.NAME'},
@@ -781,7 +782,7 @@ export const ProgramProperties = Object.freeze({
     autocomplete: {
       columnNames: ['key', 'value'],
       columnSizes: [4, 8],
-      displayWith: (p) => p.key
+      displayWith: (p) => p?.key
     },
     defaultValue: null // =  All
   },

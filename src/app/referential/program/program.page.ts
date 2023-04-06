@@ -20,7 +20,7 @@ import {
   FormFieldDefinitionMap,
   HistoryPageReference, IEntity,
   isNil, isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil, isNotNilOrBlank, Property,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
@@ -254,29 +254,41 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   protected async loadEntityProperties(data: Program | null) {
 
     await Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitions.find(def => def.key === key && (def.type === 'entity' || def.type === 'entities')))
+      .map(key => this.propertyDefinitions.find(def => def.key === key
+        && (def.type === 'entity' || def.type === 'entities' || def.type === 'enums')))
       .filter(isNotNil)
       .map(async (def) => {
-        if (def.type === 'entities') {
-          const values = (data.properties[def.key] || '').trim().split(/[|,]+/);
-          if (isNotEmptyArray(values)) {
-            const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
-            data.properties[def.key] = entities;
+        let value = data.properties[def.key];
+        switch (def.type) {
+          case 'entity': {
+            value = typeof value === 'string' ? value.trim() : value;
+            if (isNotNilOrBlank(value)) {
+              const entity = await this.resolveEntity(def, value)
+              data.properties[def.key] = entity;
+            } else {
+              data.properties[def.key] = null;
+            }
+            break;
           }
-          else {
-            data.properties[def.key] = null;
+          case 'entities': {
+            const values = (value || '').trim().split(/[|,]+/);
+            if (isNotEmptyArray(values)) {
+              const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
+              data.properties[def.key] = entities;
+            } else {
+              data.properties[def.key] = null;
+            }
+            break;
           }
-        }
-        // If type = 'entity'
-        else {
-          let value = data.properties[def.key];
-          value = typeof value === 'string' ?  value.trim() : value;
-          if (isNotNilOrBlank(value)) {
-            const entity = await this.resolveEntity(def, value)
-            data.properties[def.key] = entity;
-          }
-          else {
-            data.properties[def.key] = null;
+          case 'enums': {
+            const keys = (value || '').trim().split(/[|,]+/);
+            if (isNotEmptyArray(keys)) {
+              const enumValues = keys.map(value => (def.values as (string|Property)[])?.find(v => value === (v['key'] || v)));
+              data.properties[def.key] = enumValues;
+            } else {
+              data.properties[def.key] = null;
+            }
+            break;
           }
         }
       }));
@@ -326,6 +338,16 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
         }
         else {
           property.value = (property.value as any)?.id
+        }
+      });
+    data.properties
+      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'enums')))
+      .forEach(property => {
+        if (Array.isArray(property.value)) {
+          property.value = property.value.map(v => v?.key).filter(isNotNil).join(',');
+        }
+        else {
+          property.value = (property.value as any)?.key
         }
       });
 
