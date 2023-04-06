@@ -218,29 +218,32 @@ export class BatchUtils {
 
     if (!source?.label || !source.children) return; // skip
 
-    // Sort by id, then rankOrder. New batch at the end
-    source.children = source.children
-      .sort((b1, b2) => (Math.abs(b1.id || 0) * 10000 + (b1.rankOrder || 0)) - (Math.abs(b2.id || 0) * 10000 + (b2.rankOrder || 0)));
+    source.children
+      // Sort by id, then rankOrder. New batch at the end
+      .sort(Batch.idOrRankOrderComparator('asc'))
 
-    source.children.forEach((b: Batch, index) => {
+      // For each child
+      .forEach((b: Batch, index) => {
 
-      // Individual measure batch
-      if (this.isIndividualBatch(b)) {
-        b.rankOrder = sortingBatchIndividualRankOrder++;
-        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
-      }
-      // Sampling batch
-      else if (this.isSamplingBatch(b)) {
-        b.rankOrder = index + 1;
-        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
-      }
-      // Sorting batch
-      else {
-        b.rankOrder = index + 1;
-      }
+        // Individual measure batch
+        if (this.isIndividualBatch(b)) {
+          b.rankOrder = sortingBatchIndividualRankOrder++;
+          b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
+        }
+        // Sampling batch
+        else if (this.isSamplingBatch(b)) {
+          b.rankOrder = index + 1;
+          b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+        }
+        // Sorting batch
+        else {
+          b.rankOrder = index + 1;
+          // Do NOT compute label on SORTING BATCH, because it need sorting QV values
+          //b.label = ...
+        }
 
-      this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Recursive call
-    });
+        this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Loop
+      });
   }
 
   /**
