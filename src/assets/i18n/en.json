@@ -1061,9 +1061,9 @@
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },
         "SURVIVAL_TEST": {
-          "TAB_SAMPLES": "Mesures individuelles",
-          "TAB_SUB_SAMPLES": "Suivi individuel",
-          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
+          "TAB_SAMPLES": "Individual measures",
+          "TAB_SUB_SAMPLES": "Individual monitoring",
+          "BTN_INDIVIDUAL_MONITORING": "Fill individual monitoring",
           "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
         },
         "SAMPLING": {
@@ -1929,9 +1929,11 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Catch > Country (ID) for alive weight equivalences",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable ?",
-      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample: Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
+      "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
+      "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
@@ -2004,6 +2006,7 @@
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Strategy > Editor: Nb. items for filtered fields",
       "STRATEGY_DEPARTMENT_ENABLE": "Strategy > Enable access right by department (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
+      "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
     "STRATEGY": {
@@ -2398,18 +2401,22 @@
         "TITLE": "Raw trips (APASE v{{version}})"
       },
       "RDB": {
-        "TITLE": "Raw trips (RDB v1.3)"
+        "TITLE": "Raw trips (RDB v1.3)",
+        "NAME": "Regional DataBase (ICES)"
       },
       "COST": {
-        "TITLE": "Raw trips (COST v1.4)"
+        "TITLE": "Raw trips (COST v1.4)",
+        "NAME": "COST"
       },
       "FREE": {
         "TITLE": "Raw trips (FREE v{{version}})",
+        "NAME": "FREE1",
         "FISHING_TIME": "Time",
         "FISHING_DURATION": "Fishing duration (min)"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
+        "NAME": "FREE2",
         "SHEET": {
           "MAREE": "Trips",
           "OPERATION_PECHE": "Fishing stations",
@@ -2421,17 +2428,21 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw trips (SUMARiS v1.0)"
+        "TITLE": "Raw trips (SUMARiS v1.0)",
+        "NAME": "Survival tests"
       },
       "RJB_TRIP": {
-        "TITLE": "Raw RJB trips (RJB v{{version}})"
+        "TITLE": "Raw RJB trips (RJB v{{version}})",
+        "NAME": "Pocheteaux"
       },
       "PMFM_TRIP": {
         "TITLE": "Raw trips (dynamic format)",
-        "TITLE_PROGRAM": "Raw trips {{label}}"
+        "TITLE_PROGRAM": "Raw trips {{label}}",
+        "NAME": "Generic"
       },
       "STRAT": {
         "TITLE": "Data collection strategies",
+        "NAME": "Data collection strategies",
         "SHEET": {
           "ST": "Strategies",
           "SM": "Strategy monitoring"

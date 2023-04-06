@@ -64,6 +64,7 @@ export abstract class AppRootDataTable<
   >
   extends AppBaseTable<T, F, S, V, ID> {
 
+  private _selectionExtractionTypes$: Observable<ExtractionType[]>;
 
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
@@ -108,8 +109,11 @@ export abstract class AppRootDataTable<
     return this.accountService.isLogin();
   }
 
-  get extractionTypes$() {
-    return this.watchExtractionTypes();
+  get selectionExtractionTypes$() {
+    if (this._selectionExtractionTypes$ == null) {
+      this._selectionExtractionTypes$ = this.watchSelectionExtractionTypes();
+    }
+    return this._selectionExtractionTypes$;
   }
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
@@ -761,7 +765,7 @@ export abstract class AppRootDataTable<
    * Watch extraction types from programs found in the selected rows
    * @protected
    */
-  protected watchExtractionTypes(): Observable<ExtractionType[]> {
+  protected watchSelectionExtractionTypes(): Observable<ExtractionType[]> {
     // @ts-ignore
     return this.watchSelectedDataProgramLabels(450)
       .pipe(

@@ -193,13 +193,18 @@ export class ExtractionTypeService
       .pipe(
         filter(isNonEmptyArray),
         // Get extraction formats of selected programs (apply an intersection)
-        map(programs => intersectArrays(programs.map(program => {
+        map(programs => {
+          const formatArrays = programs.map(program => {
             const programFormats = program.getPropertyAsStrings(ProgramProperties.EXTRACTION_FORMATS);
             if (isNotEmptyArray(programFormats)) return programFormats;
-            // Return all by default
-            return (ProgramProperties.EXTRACTION_FORMATS.values as Property[]).map(item => item.key);
-          })
-        )),
+            // Not configured in program options: return all formats
+            return (ProgramProperties.EXTRACTION_FORMATS.values as Property[])
+              .map(item => item.key?.toUpperCase()) // Extract the format (from option's key)
+              .filter(format => format !== 'NA'); // Skip the 'NA' format
+          });
+          if (formatArrays.length === 1) return formatArrays[0]
+          return intersectArrays(formatArrays);
+        }),
 
         // DEBUG
         tap(formats => console.debug(`[extraction-type-service] Watching types, filtered by formats [${formats.join(', ')}] ...`)),

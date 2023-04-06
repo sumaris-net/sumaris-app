@@ -2462,22 +2462,25 @@
     "FORMAT": {
       "APASE": {
         "TITLE": "Marées brutes (APASE v{{version}})",
-        "NAME": "Sélectivity châlut (APASE)"
+        "NAME": "Sélectivity châlut"
       },
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})",
-        "NAME": "Regional Database (RDB)"
+        "NAME": "Regional DataBase (CIEM)"
       },
       "COST": {
-        "TITLE": "Marées brutes (COST v{{version}})"
+        "TITLE": "Marées brutes (COST v{{version}})",
+        "NAME": "COST"
       },
       "FREE": {
         "TITLE": "Marées brutes (FREE v{{version}})",
+        "NAME": "FREE1",
         "FISHING_TIME": "Heure",
         "FISHING_DURATION": "Temps de pêche (min)"
       },
       "FREE2": {
         "TITLE": "Marées brutes (FREE2 v{{version}})",
+        "NAME": "FREE2",
         "SHEET": {
           "MAREE": "Marées",
           "OPERATION_PECHE": "Opérations",
@@ -2489,17 +2492,21 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Marées brutes (SUMARiS v{{version}})"
+        "TITLE": "Marées brutes (SUMARiS v{{version}})",
+        "NAME": "Tests de survie"
       },
       "RJB_TRIP": {
-        "TITLE": "Marées Pocheteaux (RJB v{{version}})"
+        "TITLE": "Marées Pocheteaux (RJB v{{version}})",
+        "NAME": "Pocheteaux"
       },
       "PMFM_TRIP": {
         "TITLE": "Marées brutes > Générique",
-        "TITLE_PROGRAM": "Marées brutes {{label}}"
+        "TITLE_PROGRAM": "Marées brutes {{label}}",
+        "NAME": "Générique"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",
+        "NAME": "Stratégies de collecte",
         "SHEET": {
           "ST": "Stratégies",
           "SM": "Suivi de stratégies"
