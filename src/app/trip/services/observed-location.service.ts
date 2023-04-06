@@ -7,7 +7,6 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
-  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
@@ -23,7 +22,7 @@ import {
   NetworkService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {Observable, Subject} from 'rxjs';
+import {Observable} from 'rxjs';
 
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
@@ -630,8 +629,7 @@ export class ObservedLocationService
     // Load existing data
     const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
     // Copy remote trip to local storage
-    const target = await this.copyLocally(source, opts);
-    return target;
+    return await this.copyLocally(source, opts);
   }
 
   /**
@@ -706,6 +704,7 @@ export class ObservedLocationService
       const landings = res && res.data;
 
       await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
+      this.onDelete.next([entity]);
 
       if (isNotNil(landings)) {
         await this.landingService.deleteAll(landings, {trash: false});
@@ -828,10 +827,6 @@ export class ObservedLocationService
     try {
 
       entity = await this.save(entity, {...opts, emitEvent: false /*will emit a onSynchronize, instead of onSave */});
-
-      if (!opts || opts.emitEvent !== false) {
-        this.onSynchronize.next({localId, remoteEntity: entity});
-      }
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {

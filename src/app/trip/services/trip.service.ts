@@ -12,7 +12,6 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
-  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrorTranslator,
@@ -899,7 +898,6 @@ export class TripService
     if (!opts || opts.emitEvent !== false) {
       this.onSave.next([entity]);
     }
-    console.debug('MYTEST 6');
     return entity;
   }
 
@@ -1400,6 +1398,7 @@ export class TripService
       const operations = res && res.data;
 
       await this.entities.delete(entity, {entityName: Trip.TYPENAME});
+      this.onDelete.next([entity]);
 
       if (isNotNil(operations)) {
         await this.operationService.deleteAll(operations, {trash: false});

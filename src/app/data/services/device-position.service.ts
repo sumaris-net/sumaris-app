@@ -1,18 +1,17 @@
 import { Inject, Injectable, Injector } from '@angular/core';
 import {
-  AppErrorWithDetails,
+  AccountService,
   BaseEntityGraphqlQueries,
   BaseEntityService,
   ConfigService,
   Configuration,
   DateUtils,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
+  EntitiesStorage, EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
-  FormErrors,
   GraphqlService,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   LoadResult,
   LocalSettingsService,
@@ -24,9 +23,8 @@ import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '
 import { environment } from '@environments/environment';
 import { DevicePosition, DevicePositionFilter, IPositionWithDate } from '@app/data/services/model/device-position.model';
 import { PositionUtils } from '@app/trip/services/position.utils';
-import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { ISynchronizeEvent, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
-import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
@@ -38,6 +36,7 @@ import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { v4 as uuid } from 'uuid';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
@@ -112,9 +111,6 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.referential}
   `,
-  delete: gql`mutation deleteDevicePosition($id:Int!){
-    deleteDevicePosition(id: $id)
-  }`,
   deleteAll: gql`mutation deleteDevicePositions($ids:[Int!]!){
     deleteDevicePositions(ids: $ids)
   }`,
@@ -139,6 +135,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     graphql: GraphqlService,
     platform: PlatformService,
     protected injector: Injector,
+    protected accountService: AccountService,
     protected config: ConfigService,
     protected settings: LocalSettingsService,
     protected entities: EntitiesStorage,
@@ -163,16 +160,34 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
   async save(entity: DevicePosition, opts?:RootDataEntitySaveOptions): Promise<DevicePosition> {
 
     // Save locally if need
-    if (RootDataEntityUtils.isLocal(entity)) {
+    if (this.isLocal(entity)) {
       return this.saveLocally(entity, opts);
     }
 
     return super.save(entity, opts);
   }
 
+  async deleteAll(entities: DevicePosition[], opts?: any): Promise<any> {
+
+    const localEntities = entities.filter(e => this.isLocal(e));
+    const remoteEntities = entities.filter(e => !this.isLocal(e));
+
+    // Delete locally
+    if (isNotEmptyArray(localEntities)) {
+      const localIds = localEntities.map(d => d.id);
+
+      // Delete all by ids
+      await this.entities.deleteMany(localIds, {entityName: DevicePosition.TYPENAME});
+    }
+
+    if (isNotEmptyArray(remoteEntities)) {
+      return super.deleteAll(remoteEntities, opts);
+    }
+  }
+
   protected async saveLocally(entity: DevicePosition, opts?:EntitySaveOptions): Promise<DevicePosition> {
 
-    if (isNotNil(entity.id) && entity.id >= 0) throw new Error('Must be a local entity');
+    if (!this.isLocal(entity)) throw new Error('Must be a local entity');
 
     console.info(`${this._logPrefix} Saving current device position locally`, entity)
 
@@ -186,14 +201,9 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     return entity;
   }
 
-
-  async synchronize(entity: DevicePosition, opts?: any): Promise<DevicePosition> {
-    throw  new Error('Not implemented');
-  }
-
-  // TODO Need a control on this data ?
-  control(entity: DevicePosition, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
-    return Promise.resolve(undefined);
+  protected asObject(entity: DevicePosition, opts?: EntityAsObjectOptions): any {
+    opts = {...MINIFY_OPTIONS, ...opts};
+    return super.asObject(entity, opts);
   }
 
   asFilter(source: Partial<DevicePositionFilter>): DevicePositionFilter {
@@ -311,14 +321,16 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
       );
 
       subscription.add(
-        service.onSynchronize.subscribe(event => this.onEntitySynchronized(event))
+        service.onSynchronize.subscribe(event => {
+          this.onEntitySynchronized(event);
+        })
       );
     });
 
     return subscription;
   }
 
-  protected async onEntitySaved(entity:RootDataEntity<any, any>) {
+  protected async onEntitySaved(entity: RootDataEntity<any, any>) {
     const lastPosition = this.lastPosition.value;
 
     // If we're not watching position or if the delay between two device position
@@ -336,51 +348,40 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     devicePosition.objectType = Referential.fromObject({
       label: ModelEnumUtils.getObjectTypeByEntityName(entityName),
     });
-    if (RootDataEntityUtils.isLocal(entity)) {
-      await this.saveLocally(devicePosition);
-    }
-    else {
-      await this.save(devicePosition);
-    }
+    await this.save(devicePosition);
   }
 
-  protected async onEntityDeleted(entity: RootDataEntity<any, any>) {
+  protected async onEntityDeleted(source: RootDataEntity<any, any>) {
 
-    const entityName = ModelEnumUtils.getObjectTypeByEntityName(DataEntityUtils.getEntityName(entity));
+    const entityName = ModelEnumUtils.getObjectTypeByEntityName(DataEntityUtils.getEntityName(source));
     const filter = DevicePositionFilter.fromObject({
-      objectId: entity.id,
+      objectId: source.id,
       objectType: {label: entityName},
     })
 
-    if (EntityUtils.isLocal(entity)) {
-
-      // Load local data
-      const {data} = await this.entities.loadAll(DevicePosition.TYPENAME, {
+    let entitiesToRemove: DevicePosition[];
+    if (EntityUtils.isLocal(source)) {
+      // Load positions locally
+      const {data} = (await this.entities.loadAll(DevicePosition.TYPENAME, {
         filter: filter.asFilterFn()
-      });
-
-      // Nothing to do if the synchronized entity has no liked local device position
-      if (data.length === 0) return;
-
-      const localIds = data.map(d => d.id);
-
-      // Delete all by ids
-      await this.entities.deleteMany(localIds, {entityName: DevicePosition.TYPENAME});
+      }))
+      entitiesToRemove = (data || []).map(DevicePosition.fromObject);
     }
     else {
-      // Load local data
-      let {data} = await this.loadAll(0, 1000, null, null, filter, {
-        withTotal: false});
-
-      // Nothing to do if the synchronized entity has no liked local device position
-      if (data.length === 0) return;
-
-      // Delete
-      await super.deleteAll(data);
+      // Load positions remotely
+      entitiesToRemove = (await this.loadAll(0, 1000, null, null, filter, {
+        withTotal: false}))?.data;
     }
+
+    // Nothing to do if the synchronized entity has no liked local device position
+    if (entitiesToRemove.length === 0) return;
+
+    // Delete
+    await this.deleteAll(entitiesToRemove);
   }
 
   protected async onEntitySynchronized(event: ISynchronizeEvent) {
+    if (this._debug) console.debug(`${this._logPrefix} onEntitySynchronized`, event);
     const localId = event.localId;
     const remoteEntity = event.remoteEntity;
     const entityName = ModelEnumUtils.getObjectTypeByEntityName(DataEntityUtils.getEntityName(remoteEntity));
@@ -413,18 +414,23 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     await this.entities.deleteMany(localIds, {entityName: DevicePosition.TYPENAME});
   }
 
-//   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition> {
-//     if (isNil(id)) throw new Error('Missing argument \'id\'');
-//
-//     const now = Date.now();
-//     if (this._debug) console.debug(`${this._logPrefix}Loading {${id}}...`);
-//     this.loading = false;
-//
-//     try {
-// h
-//     } catch (e) {
-//     }
-//   }
+  protected fillDefaultProperties(entity: DevicePosition) {
+    const isNew = isNil(entity.id);
+    if (isNew) {
+
+      const person = this.accountService.person;
+
+      // Recorder department
+      if (person && person.department && !entity.recorderDepartment) {
+        entity.recorderDepartment = person.department;
+      }
+
+      // Recorder person
+      if (person && person.id && !entity.recorderPerson) {
+        entity.recorderPerson = person;
+      }
+    }
+  }
 
   protected async fillOfflineDefaultProperties(entity: DevicePosition) {
     const isNew = isNil(entity.id);
@@ -433,10 +439,6 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     if (isNew) {
       entity.id = (await this.entities.nextValue(entity));
     }
-
-    // Fill default synchronization status
-    entity.synchronizationStatus = entity.synchronizationStatus || SynchronizationStatusEnum.DIRTY;
-
   }
 
   protected async onSettingsChanged() {
@@ -516,4 +518,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     return {data: entities, total};
   }
 
+  protected isLocal(entity: DevicePosition) {
+    return isNotNil(entity.id) ? EntityUtils.isLocalId(entity.id) : EntityUtils.isLocalId(entity.objectId);
+  }
 }
