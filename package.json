@@ -63,7 +63,7 @@
     "@capacitor/share": "~4.1.0",
     "@capacitor/splash-screen": "~4.1.2",
     "@capacitor/status-bar": "~4.1.1",
-    "@e-is/ngx-material-table": "0.14.10",
+    "@e-is/ngx-material-table": "0.14.11",
     "@ionic-native/audio-management": "^5.36.0",
     "@ionic-native/core": "^5.36.0",
     "@ionic-native/downloader": "^5.36.0",
