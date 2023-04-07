@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Input, ViewChild } from '@angular/core';
+import { Directive, EventEmitter, Injector, Input, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AccountService,
@@ -29,7 +29,7 @@ import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExtractionService } from './extraction.service';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { AlertController, ModalController, NavController, ToastController } from '@ionic/angular';
 import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
@@ -57,6 +57,16 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   protected readonly type$ = this._state.select('type');
   protected readonly types$ = this._state.select('types');
+
+  protected location: Location;
+  protected toastController: ToastController;
+  protected translateContext: TranslateContextService;
+  protected accountService: AccountService;
+  protected service: ExtractionService;
+  protected settings: LocalSettingsService;
+  protected formBuilder: UntypedFormBuilder;
+  protected platform: PlatformService;
+  protected modalCtrl: ModalController;
 
   form: UntypedFormGroup;
   mobile: boolean;
@@ -108,25 +118,27 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
 
   protected constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected location: Location,
-    protected alertCtrl: AlertController,
-    protected toastController: ToastController,
-    protected translate: TranslateService,
-    protected translateContext: TranslateContextService,
-    protected accountService: AccountService,
-    protected service: ExtractionService,
-    protected settings: LocalSettingsService,
-    protected formBuilder: UntypedFormBuilder,
-    protected platform: PlatformService,
-    protected modalCtrl: ModalController,
+    protected injector: Injector,
     protected _state: RxState<S>
   ) {
-    super(route, router, alertCtrl, translate);
-    this.mobile = settings.mobile;
+    super(injector.get(ActivatedRoute),
+      injector.get(Router),
+      injector.get(NavController),
+      injector.get(AlertController),
+      injector.get(TranslateService)
+    );
+    this.location = injector.get(Location);
+    this.toastController = injector.get(ToastController);
+    this.translateContext = injector.get(TranslateContextService);
+    this.accountService = injector.get(AccountService);
+    this.service = injector.get(ExtractionService);
+    this.settings = injector.get(LocalSettingsService);
+    this.formBuilder = injector.get(UntypedFormBuilder);
+    this.platform = injector.get(PlatformService);
+    this.modalCtrl = injector.get(ModalController);
+    this.mobile = this.settings.mobile;
     // Create the filter form
-    this.form = formBuilder.group({
+    this.form = this.formBuilder.group({
       sheetName: [null, Validators.required],
       meta: [null]
     });

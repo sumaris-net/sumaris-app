@@ -22,7 +22,7 @@ import {
   WaitForOptions,
   waitForTrue
 } from '@sumaris-net/ngx-components';
-import { AlertController, IonModal } from '@ionic/angular';
+import { AlertController, IonModal, NavController } from '@ionic/angular';
 import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
@@ -316,7 +316,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected context: TripContextService,
               protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef) {
-    super(route, router, alertCtrl, translate);
+    super(route, router, injector.get(NavController), alertCtrl, translate);
 
     // Defaults
     this.mobile = injector.get(LocalSettingsService).mobile;

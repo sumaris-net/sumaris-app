@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import {
   AccountService,
@@ -137,27 +137,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    location: Location,
-    alertCtrl: AlertController,
-    toastController: ToastController,
-    translate: TranslateService,
-    translateContext: TranslateContextService,
-    accountService: AccountService,
-    service: ExtractionService,
-    settings: LocalSettingsService,
-    formBuilder: UntypedFormBuilder,
-    platform: PlatformService,
-    modalCtrl: ModalController,
+    injector: Injector,
     state: RxState<ExtractionTableState>,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, location, alertCtrl, toastController, translate, translateContext,
-      accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(injector, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
