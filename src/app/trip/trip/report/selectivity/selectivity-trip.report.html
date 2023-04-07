@@ -78,7 +78,7 @@
           <li *ngIf="stats.seaStates"><mat-icon>waves</mat-icon> {{ 'TRIP.REPORT.SEA_STATE'|translateContext: i18nContext.suffix }} {{ stats.seaStates | arrayJoin: ', '  }}</li>
           <li *ngIf="stats.gearSpeed"><mat-icon>speed</mat-icon> {{ 'TRIP.REPORT.GEAR_SPEED'|translateContext: i18nContext.suffix }}
             <span *ngIf="stats.gearSpeed.min !== stats.gearSpeed.max; else avgSpeedOnly"
-                  [innerHTML]="'TRIP.REPORT.GEAR_SPEED_STATS'|translateContext: i18nContext.suffix: stats.gearSpeed">
+                  [innerHTML]="'TRIP.REPORT.GEAR_SPEED_STATS'|translateContext: i18nContext.suffix: {min: stats.gearSpeed.min, max: stats.gearSpeed.max, avg: (stats.gearSpeed.avg|numberFormat: {fixedDecimals: 1}) }">
             </span>
             <ng-template #avgSpeedOnly>
               <span [innerHTML]="'TRIP.REPORT.GEAR_SPEED_AVG'|translateContext: i18nContext.suffix: stats.gearSpeed"></span>

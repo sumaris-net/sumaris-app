@@ -474,8 +474,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     if (!entities) return entities;
 
     const localEntities = entities.filter(entity => entity
-      && (entity.id < 0 || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC'))
+      && (
+        (entity.id < 0)
+        || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC')
+        || (opts?.observedLocationId && opts.observedLocationId < 0)
+      )
     );
+
     if (isNotEmptyArray(localEntities)) {
       return this.saveAllLocally(localEntities, opts);
     }

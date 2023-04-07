@@ -11,7 +11,7 @@ import { SubSampleValidatorService } from '@app/trip/services/validator/sub-samp
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
+import { filter, mergeMap } from 'rxjs/operators';
 
 
 @Component({
@@ -113,6 +113,11 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     if (!this.showParent) {
       this.form.parent?.disable();
     }
+  }
+
+  toggleComment() {
+    this.showComment = !this.showComment;
+    this.markForCheck();
   }
 
   /* -- protected methods -- */

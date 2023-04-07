@@ -50,7 +50,7 @@ export abstract class PositionUtils {
   /**
    * Get the position by geo loc sensor
    */
-  static async getCurrentPosition(platform?: PlatformService, options?: PositionOptions): Promise<IPosition> {
+  static async getCurrentPosition(platform: PlatformService, options?: PositionOptions): Promise<IPosition> {
 
     // Use Capacitor plugin
     try {
@@ -61,9 +61,11 @@ export abstract class PositionUtils {
         longitude: pos.coords.longitude
       };
     } catch (err) {
-      console.error('[position-utils] Cannot get current geo position, using Capacitor:', err);
-      // Stop if capacitor (cannot use browser geolocation, because of browser security limitation)
-      if (platform.is('capacitor')) throw err;
+      if (platform.is('capacitor')) {
+        console.error('[position-utils] Cannot get current geo position, using Capacitor:', err);
+        // Stop if capacitor (cannot use browser geolocation, because of browser security limitation)
+        if (platform.is('capacitor')) throw err;
+      }
     }
 
     // Or fallback to navigator

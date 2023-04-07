@@ -1,11 +1,12 @@
 import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds} from '../../../referential/services/model/model.enum';
 import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
 import {IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {EntityClass, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils} from '@sumaris-net/ngx-components';
+import { EntityClass, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
 import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import { SortDirection } from '@angular/material/sort';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -101,6 +102,27 @@ export class Batch<
         && ((!b1.label && !b2.label) || b1.label === b2.label)
         // Warn: compare using the parent ID is too complicated
       ));
+  }
+
+  /**
+   * Sort batch, by id (if exists) or by rankOrder (if no id)
+   * @param sortDirection
+   */
+  static idOrRankOrderComparator(sortDirection: SortDirection = 'asc'): (b1: Batch, b2: Batch) => number {
+    const sign = !sortDirection || sortDirection !== 'desc' ? 1 : -1;
+
+    return (b1: Batch, b2: Batch) => {
+      const id1 = toNumber(b1.id, Number.MAX_SAFE_INTEGER);
+      const id2 = toNumber(b2.id, Number.MAX_SAFE_INTEGER);
+      const rankOrder1 = toNumber(b1.rankOrder, Number.MAX_SAFE_INTEGER);
+      const rankOrder2 = toNumber(b2.rankOrder, Number.MAX_SAFE_INTEGER);
+
+      if (id1 !== id2) {
+        return sign * (Math.abs(id1) - Math.abs(id2)); // Need ABS to make localId be positive
+      } else {
+        return sign * (rankOrder1 - rankOrder2);
+      }
+    }
   }
 
   label: string = null;

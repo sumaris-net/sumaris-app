@@ -223,7 +223,7 @@ export abstract class AbstractSoftwarePage<
     }
 
     const filter = Object.assign({}, def.autocomplete.filter); // Copy filter
-    const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
+    const joinAttribute = def.autocomplete.filter?.joinAttribute || 'id';
     if (joinAttribute === 'id') {
       filter.id = parseInt(value);
       value = '*';

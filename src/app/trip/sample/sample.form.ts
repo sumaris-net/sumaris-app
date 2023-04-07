@@ -4,13 +4,13 @@ import { MeasurementsValidatorService } from '../services/validator/measurement.
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
-  changeCaseToUnderscore,
   FormArrayHelper,
   IFormControlPathTranslator,
   IReferentialRef,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
+  isNotNilOrBlank,
   LoadResult,
   toNumber,
   UsageMode
@@ -23,7 +23,6 @@ import { ProgramRefService } from '../../referential/services/program-ref.servic
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 @Component({
   selector: 'app-sample-form',
@@ -121,6 +120,10 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   toggleComment() {
     this.showComment = !this.showComment;
+
+    // Mark form as dirty, if need to reset comment (see getValue())
+    if (!this.showComment && isNotNilOrBlank(this.form.get('comments').value)) this.form.markAsDirty();
+
     this.markForCheck();
   }
 
@@ -129,10 +132,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
     super.onApplyingEntity(data, opts);
 
+    this.showComment = this.showComment || isNotNilOrBlank(data.comments);
+
     const childrenCount = data.children?.length || 0;
     if (this.childrenArrayHelper.size() !== childrenCount) {
       this.childrenArrayHelper.resize(childrenCount);
     }
+
   }
 
   protected getValue(): Sample {

@@ -158,6 +158,7 @@
     "TAB_CACHE": "Cached data",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Application Name",
+    "TAB_JOBS": "Jobs",
     "DESCRIPTION": "Description (home page)",
     "STATUS": "State",
     "PREVIEW_DIVIDER": "Preview",
@@ -276,6 +277,7 @@
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids",
         "UNIT_NONE_ID": "Referential > Unit > None (hide by default)",
         "QUALITATIVE_VALUE_LANDING_ID": "Referential > Qualitative value > Landing (LAN)",
+        "QUALITATIVE_VALUE_DISCARD_ID": "Referential > Qualitative value > Discard (DIS)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Referential > Qualitative value > Dressing / Whole",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referential > Qualitative value > Preservation / Fresh",
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Referential > Qualitative value > Sorting category / None",
@@ -338,10 +340,12 @@
     "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
-    "SERVER": "Server settings",
+    "SYSTEM_DIVIDER": "System",
+    "SERVER": "System settings",
     "LOGOUT": "Logout",
     "ABOUT": "About",
-    "BTN_MY_ACCOUNT": "My account"
+    "BTN_MY_ACCOUNT": "My account",
+    "DEVICE_POSITION": "Positions"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -541,7 +545,8 @@
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:",
-      "BTN_DELETE": "Delete the full trip"
+      "BTN_DELETE": "Delete the full trip",
+      "BTN_REPORT_DOTS": "Edit report..."
     },
     "OPTIONS": {
       "ENABLE": "Trips > Enable?",
@@ -804,7 +809,7 @@
         "QUALITY": "State"
       },
       "SETTINGS": {
-        "GEOLOCATION_TIMEOUT": "GPS Shipset > Acquisition timeout (seconds)"
+        "GEOLOCATION_TIMEOUT": "GPS location > Acquisition timeout (seconds)"
       },
       "INFO": {
         "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Operation <b>successfully controlled</b>! No errors detected."
@@ -1057,9 +1062,9 @@
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },
         "SURVIVAL_TEST": {
-          "TAB_SAMPLES": "Mesures individuelles",
-          "TAB_SUB_SAMPLES": "Suivi individuel",
-          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
+          "TAB_SAMPLES": "Individual measures",
+          "TAB_SUB_SAMPLES": "Individual monitoring",
+          "BTN_INDIVIDUAL_MONITORING": "Fill individual monitoring",
           "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
         },
         "SAMPLING": {
@@ -1131,7 +1136,50 @@
     },
     "REPORT": {
       "TITLE": "<small>{{ vessel }}</small> Trip report of {{ departureDate }}",
-      "TITLE_SLIDE": "Trip report"
+      "TITLE_SLIDE": "Trip report",
+      "VESSEL_NAME": "Vessel name(s):",
+      "VESSEL_EXTERIOR_MARKING": "Registration code(s):",
+      "SELECTIVITY_DEVICES": "Slection device(s):",
+      "DATES": "Period: from {{startDate}} to {{endDate}}",
+      "SEA_STATE": "Sea state:",
+      "GEAR_SPEED": "Gear speed:",
+      "GEAR_SPEED_STATS": "{{min}} to {{max}} Nds (average {{avg}} Nds)",
+      "GEAR_SPEED_AVG": "{{avg}} Nds",
+      "VESSEL_LENGTH": "Vessel length(s) :",
+      "VESSEL_LENGTH_STATS": "{{min}} to {{max}} m",
+      "VESSEL_LENGTH_AVG": "{{avg}} m",
+      "SEABED_FEATURES": "Seabed features :",
+      "OPERATION_COUNT": "Nb selected OP:",
+      "SPECIES": "Species",
+      "LANDING": "Landing",
+      "DISCARD": "Discard",
+      "CHART": {
+        "INDIVIDUAL_COUNT": "Nb individual",
+        "LENGTH": "Length",
+        "GEAR_POSITION_T": "Starboard",
+        "GEAR_POSITION_B": "Port side",
+        "SPECIES_LENGTH": "Length distribution",
+        "TOTAL_CATCH": "Total catch",
+        "LANDING_AND_DISCARD_COMPARISON": "Comparison of landings and discards",
+        "TRAWL_SELECTIVITY": {
+          "STANDARD": "Standard",
+          "SELECTIVE": "{{label}}",
+          "QUANTITY_IN_STANDARD": "Quantity in standard trawl (kg)",
+          "QUANTITY_IN_SELECTIVE": "Quantity in {{selectionDevice}} trawl (kg)"
+        }
+      },
+      "TABLE": {
+        "SPECIES_LIST": "Catch by species",
+        "STANDARD_DERIVATION": "&sigma;",
+        "TRAWL_SELECTIVITY": {
+          "SPECIES_LIST": "Comparison by species",
+          "TOTAL_WEIGHT": "Total trawl weight<br/>{{selectionDevice}}<br/><small>(kg)</small>",
+          "TOTAL_VARIATION_LANDING": "Total rate of change<br/>Landing<br/><small>(%)</small>",
+          "TOTAL_VARIATION_DISCARD": "Total rate of change<br/>Discard<br/><small>(%)</small>",
+          "AVG_VARIATION_LANDING": "Average rate of change<br/>Landing<br/><small>(%)</small>",
+          "AVG_VARIATION_DISCARD": "Average rate of change<br/>Discard<br/><small>(%)</small>"
+        }
+      }
     }
   },
   "EXPECTED_SALE": {
@@ -1573,6 +1621,7 @@
     "LABEL": "Code",
     "NAME": "Name",
     "LEVEL": "Level",
+    "TYPE": "Type",
     "PARENT": "Parent",
     "DESCRIPTION": "Description",
     "COMMENTS": "Comments",
@@ -1685,6 +1734,7 @@
       "DEFAULT_VALUE": "Default value",
       "MAXIMUM_NUMBER_DECIMALS": "Maximal number of decimals",
       "SIGNIF_FIGURES_NUMBER": "Significant number of digits",
+      "PRECISION": "Precision",
       "PARAMETER": "Parameter",
       "MATRIX": "Matrix",
       "FRACTION": "Fraction",
@@ -1714,20 +1764,25 @@
       "IS_ESTIMATED": "Estimated?",
       "EDIT": {
         "TITLE": "Method {{label}} - {{name}}"
-      },
-      "TRANSCRIBING_ITEM": {
-        "OBJECT": "Reference",
-        "LABEL": "Transcribing code",
-        "NAME": "Transcribing name",
-        "STATUS_ID": "tatus",
-        "TYPE": "Transcribing type"
       }
+    },
+    "TRANSCRIBING_ITEM": {
+      "OBJECT": "Reference",
+      "LABEL": "Transcribing code",
+      "NAME": "Transcribing name",
+      "STATUS_ID": "tatus",
+      "TYPE": "Transcribing type"
     },
     "LIST": {
       "TITLE": "Referential",
       "FILTER": {
         "ENTITY": "Kind",
         "SEARCH_TEXT": "Search: code, name"
+      },
+      "IMPORT_POLICY": {
+        "INSERT-ONLY": "Inserts only",
+        "UPDATE-ONLY": "Updates only",
+        "INSERT-UPDATE": "Insertions or updates"
       }
     },
     "STATUS_ENUM": {
@@ -1754,7 +1809,10 @@
       "MATRIX": "Matrices",
       "METHOD": "Method",
       "FRACTION": "Fractions of the matrix",
+      "ORIGIN_ITEM_TYPE": "Types of origin",
+      "OBJECT_TYPE": "Object types",
       "QUALITATIVE_VALUE": "Qualitative values",
+      "QUALITY_FLAG": "Quality flags",
       "TAXON_GROUP_TYPE": "Species group types",
       "TAXON_GROUP": "Species group",
       "TAXON_NAME": "Scientific species",
@@ -1875,11 +1933,16 @@
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
+      "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
+      "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
+      "TRIP_REPORT_TYPE": "Trip > Report type",
+      "TRIP_REPORT_TYPE_LEGACY": "Default",
+      "TRIP_REPORT_TYPE_SELECTIVITY": "Trawl selectivity",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
       "TRIP_OPERATION_EDITOR_SELECTIVITY": "Trawl selectivity",
@@ -1944,6 +2007,7 @@
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Strategy > Editor: Nb. items for filtered fields",
       "STRATEGY_DEPARTMENT_ENABLE": "Strategy > Enable access right by department (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
+      "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
     "STRATEGY": {
@@ -2194,7 +2258,8 @@
     "TABLE": {
       "TITLE": "Data extraction",
       "BTN_SELECT_TYPE": "Data sources",
-      "SELECT_TYPE_HELP": "Please <b>choose a data source</b>, to start an extraction:"
+      "SELECT_TYPE_HELP": "Please <b>choose a data source</b>, to start an extraction:",
+      "BTN_REPORT": "Edit report"
     },
     "MAP": {
       "BTN_MAP_LIST": "List of maps",
@@ -2287,7 +2352,8 @@
       "INDIVIDUAL_SEX": "Individual sex",
       "SEX": "Sex",
       "WEIGHT": "Weight (kg)",
-      "SUBSAMPLING_WEIGHT": "Subsampling Weight (kg)",
+      "SUBSAMPLE_WEIGHT": "Subsample weight (g)",
+      "SUBSAMPLING_WEIGHT": "Subsample weight (kg)",
       "SUBSAMPLING_CATEGORY": "Subsampling category",
       "STATION_COUNT": "Number of station",
       "TRIP_COUNT_BY_STATION": "Nb of trips, by station",
@@ -2303,13 +2369,15 @@
     "SHEET": {
       "TR": "Trips",
       "HH": "Fishing stations",
+      "CT": "Catch",
       "SL": "Species list",
       "HL": "Individual length",
       "CA": "Sex-Age",
       "CL": "Commercial landings",
       "CE": "Efforts",
       "ST": "Survival tests",
-      "RL": "Releases"
+      "RL": "Releases",
+      "FG": "Fishing gears"
     },
     "OPTIONS": {
       "ENABLE": "Extraction > Enable?",
@@ -2330,19 +2398,26 @@
       }
     },
     "FORMAT": {
+      "APASE": {
+        "TITLE": "Raw trips (APASE v{{version}})"
+      },
       "RDB": {
-        "TITLE": "Raw trips (RDB v1.3)"
+        "TITLE": "Raw trips (RDB v1.3)",
+        "NAME": "Regional DataBase (ICES)"
       },
       "COST": {
-        "TITLE": "Raw trips (COST v1.4)"
+        "TITLE": "Raw trips (COST v1.4)",
+        "NAME": "COST"
       },
       "FREE": {
         "TITLE": "Raw trips (FREE v{{version}})",
+        "NAME": "FREE1",
         "FISHING_TIME": "Time",
         "FISHING_DURATION": "Fishing duration (min)"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
+        "NAME": "FREE2",
         "SHEET": {
           "MAREE": "Trips",
           "OPERATION_PECHE": "Fishing stations",
@@ -2354,17 +2429,21 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw trips (SUMARiS v1.0)"
+        "TITLE": "Raw trips (SUMARiS v1.0)",
+        "NAME": "Survival tests"
       },
       "RJB_TRIP": {
-        "TITLE": "Raw RJB trips (RJB v{{version}})"
+        "TITLE": "Raw RJB trips (RJB v{{version}})",
+        "NAME": "Pocheteaux"
       },
       "PMFM_TRIP": {
-        "TITLE": "Raw trips (dynamic format)",
-        "TITLE_PROGRAM": "Raw trips {{label}}"
+        "TITLE": "Raw trips > Generic",
+        "TITLE_PROGRAM": "Raw trips {{label}}",
+        "NAME": "Generic"
       },
       "STRAT": {
         "TITLE": "Data collection strategies",
+        "NAME": "Data collection strategies",
         "SHEET": {
           "ST": "Strategies",
           "SM": "Strategy monitoring"
@@ -2516,14 +2595,27 @@
       "MESSAGE_SENT": "Message <b>sent</b>"
     }
   },
+  "JOB": {
+    "LIST": {
+      "TITLE": "Job list",
+      "STOP_JOB": "Stop the job",
+      "JOB_NAME": "Job name",
+      "JOB_DESCRIPTION": "Job description",
+      "JOB_TYPE": "Job type",
+      "JOB_RECIPIENT": "Recipient",
+      "JOB_PROGRESS": "Progress"
+    }
+  },
   "FILE": {
     "JSON": {
       "ENCODING": "UTF-8",
+      "FORMAT": "JSON",
       "BTN_DOWNLOAD_HELP": "Download data (JSON)"
     },
     "CSV": {
       "SEPARATOR": ",",
       "ENCODING": "UTF-8",
+      "FORMAT": "CSV",
       "BTN_DOWNLOAD_HELP": "Download data (CSV)",
       "ERROR": {
         "EMPTY_FILE": "Empty file, or no header row",
@@ -2545,6 +2637,34 @@
       "BTN_EDIT_TITLE": "Edit title",
       "BTN_ADD_TITLE": "Add a title",
       "TITLE": "Title"
+    }
+  },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Positions map",
+      "FILTER": {
+        "RECORDER_PERSON": "Recorder",
+        "START_DATE": "Start date",
+        "END_DATE": "End date"
+      },
+      "TABLE": {
+        "TITLE": "Positions list",
+        "LIMIT_TO": "Limited to {{visibleTotal}} out of {{total}}",
+        "BTN_OPEN_DATA": "Open data",
+        "RECORDER_PERSON": "Recorder",
+        "DATE_TIME": "Date/Time",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Data type"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "GPS location > Background Retrieval Interval (ms)",
+      "TRACKING_ENABLE": "GPS location > Enable location tracking",
+      "TRACKING_SAVE_PERIOD": "GPS location > Location tracking: Save interval (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation of geolocation required</b><br/><br/>To be able to use the application correctly, please authorize the geolocation of the device."
     }
   },
   "ERROR": {

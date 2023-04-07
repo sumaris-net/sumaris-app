@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppBaseReport } from '@app/data/report/base-report.class';
 
 export interface ExtractionData {
@@ -14,6 +14,7 @@ export abstract class AppExtractionReport<
   implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() filter: ExtractionFilter;
+  @Input() type: ExtractionType;
 
   protected constructor(
     injector: Injector

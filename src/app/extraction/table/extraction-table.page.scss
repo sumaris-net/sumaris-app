@@ -90,6 +90,12 @@ ion-content.embedded.has-paginator {
     min-width: 180px;
   }
 
+  /* -- Manage some well known dates columns -- */
+  .mat-column-departure_date_time,
+  .mat-column-return_date_time {
+    min-width: 180px;
+  }
+
   /* -- Manage some well known large columns -- */
   .mat-column-trip_comments,
   .mat-column-gear_label,

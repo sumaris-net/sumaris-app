@@ -92,10 +92,10 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   ) {
     // Default value
     this.mobile = settings.mobile;
+    this.showComment = !this.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
-    this.showComment = !this.mobile;
   }
 
   ngOnInit() {
@@ -212,11 +212,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     if (canDelete) {
       await this.modalCtrl.dismiss(this.data, 'DELETE');
     }
-  }
-
-  toggleComment() {
-    this.showComment = !this.showComment;
-    this.markForCheck();
   }
 
   /* -- protected methods -- */

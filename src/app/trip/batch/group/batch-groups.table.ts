@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import {FormGroup, UntypedFormGroup, Validators} from '@angular/forms';
+import {UntypedFormGroup, Validators} from '@angular/forms';
 import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -11,7 +11,6 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -24,14 +23,14 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds, QualitativeValueIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import {Batch, BatchWeight} from '../common/batch.model';
+import {Batch} from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import {noop, Observable, Subject, Subscription} from 'rxjs';
-import {debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, first, map, skip, startWith, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {Observable, Subject, Subscription} from 'rxjs';
+import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
@@ -47,11 +46,8 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
-import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
-import {Sample} from '@app/trip/services/model/sample.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
-import { countSubString } from '@app/shared/functions';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -343,7 +339,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.saveBeforeFilter = true;
     this.saveBeforeSort = true;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
-    // this.showCommentsColumn = false; // Already set in batches-table
+    this.showCommentsColumn = !this.mobile; // Was set to 'false' in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
     // -- For DEV only
@@ -1218,20 +1214,24 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         openSubBatchesModal: (data) => this.openSubBatchesModalFromParentModal(data),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {
-          // fix #403
-          isNew = isNew && !await this.findRowByEntity(dataToSave);
-          if (isNew) {
-            await this.addEntityToTable(dataToSave, {editing: false});
-          } else {
-            await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
-            row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
+          // Always try to retrieve the row (fix #403)
+          row = await this.findRowByEntity(dataToSave);
+
+          // Insert or update
+          let savedRow: TableElement<BatchGroup>;
+          if (isNew && !row) {
+            savedRow = await this.addEntityToTable(dataToSave, {editing: false});
+          } else if (row) {
+            savedRow = await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
           }
+          if (!savedRow) return undefined; // Failed
 
           // Prepare new entity
           dataToOpen = new BatchGroup();
           await this.onNewEntity(dataToOpen);
-          isNew = true; // Next row should be new
 
+          isNew = true; // Next row should be new
+          row = null; // Forget the row to update
           originalData = null; // forget the orignal data
 
           return dataToOpen;

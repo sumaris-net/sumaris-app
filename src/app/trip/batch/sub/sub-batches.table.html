@@ -31,14 +31,14 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-
-  <!-- display columns option -->
-  <button mat-menu-item
-          (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-
+  <ng-template matMenuContent>
+    <!-- display columns option -->
+    <button mat-menu-item
+            (click)="openSelectColumnsModal($event)">
+      <mat-icon>view_column</mat-icon>
+      <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- error -->

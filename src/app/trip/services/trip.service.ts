@@ -12,7 +12,6 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
-  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrorTranslator,
@@ -51,14 +50,14 @@ import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, Trip } from './model/trip.model';
-import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_NAME } from './config/trip.config';
-import { DataSynchroImportFilter, IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { DataSynchroImportFilter, IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
@@ -302,7 +301,7 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
   fullLoad?: boolean;
 }
 
-export interface TripSaveOptions extends EntitySaveOptions {
+export interface TripSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean; // False by default
   withOperation?: boolean; // False by default
   withOperationGroup?: boolean; // False by default
@@ -763,7 +762,9 @@ export class TripService
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return chainPromises<Trip>(jobsFactories);
+    const result = await chainPromises<Trip>(jobsFactories);
+    this.onSave.next(result);
+    return result;
   }
 
   /**
@@ -787,11 +788,8 @@ export class TripService
    * @param opts
    */
   async save(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
-    const isNew = isNil(entity.id);
-
     // If is a local entity: force a local save
-    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' || false) : EntityUtils.isLocalId(entity.id);
-    if (isLocal) {
+    if (RootDataEntityUtils.isLocal(entity)) {
       entity.updateDate = DateUtils.moment(); // Set a local time (need be EntityEditor.listenChanges())
       return this.saveLocally(entity, opts);
     }
@@ -880,7 +878,7 @@ export class TripService
           this.copyIdAndUpdateDate(savedEntity, entity, opts);
 
           // Insert into the cache
-          if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
+          if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
             this.insertIntoMutableCachedQueries(cache, {
               queries: this.getLoadQueries(),
               data: savedEntity
@@ -897,6 +895,9 @@ export class TripService
       }
     });
 
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
     return entity;
   }
 
@@ -962,7 +963,7 @@ export class TripService
       entity.landing.observedLocationId = entity.observedLocationId;
     }
 
-
+    this.onSave.next([entity]);
     return entity;
   }
 
@@ -1060,6 +1061,10 @@ export class TripService
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+      if (!opts || opts.emitEvent !== false) {
+        this.onSynchronize.next({localId, remoteEntity: entity});
       }
     } catch (err) {
       throw {
@@ -1328,8 +1333,8 @@ export class TripService
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+    const remoteEntities = entities && entities.filter(t => t.id >= 0);
+    const ids = remoteEntities && remoteEntities.map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -1346,6 +1351,7 @@ export class TripService
         });
 
         if (this._debug) console.debug(`[trip-service] Trips deleted remotely in ${Date.now() - now}ms`);
+        this.onDelete.next(remoteEntities);
       }
     });
   }
@@ -1392,6 +1398,7 @@ export class TripService
       const operations = res && res.data;
 
       await this.entities.delete(entity, {entityName: Trip.TYPENAME});
+      this.onDelete.next([entity]);
 
       if (isNotNil(operations)) {
         await this.operationService.deleteAll(operations, {trash: false});
@@ -1413,6 +1420,7 @@ export class TripService
       console.error('Error during trip deletion: ', err);
       throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
+    this.onDelete.next([entity]);
   }
 
   /**

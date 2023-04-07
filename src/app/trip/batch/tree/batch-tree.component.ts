@@ -17,7 +17,7 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AlertController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -326,6 +326,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
+    protected navController: NavController,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
@@ -334,7 +335,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     protected _state: RxState<BatchTreeState>,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, translate,
+    super(route, router, navController, alertCtrl, translate,
       {
         tabCount: settings.mobile ? 1 : 2
       });

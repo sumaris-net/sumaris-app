@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -22,6 +22,9 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import {DevicePositionService} from '@app/data/services/device-position.service';
+import {IonModal} from '@ionic/angular';
+import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/services/config/device-position.config';
 
 @Component({
   selector: 'app-root',
@@ -42,6 +45,7 @@ export class AppComponent {
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
     private settings: LocalSettingsService,
+    private devicePositionService: DevicePositionService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private cd: ChangeDetectorRef
@@ -63,6 +67,8 @@ export class AppComponent {
 
     this.addCustomSVGIcons();
 
+    await this.startServiceWorkers();
+
     console.info('[app] Starting [OK]');
   }
 
@@ -78,6 +84,7 @@ export class AppComponent {
       }
     }, 16);
   }
+
 
   protected onConfigChanged(config: Configuration) {
 
@@ -217,6 +224,10 @@ export class AppComponent {
         this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
       )
     );
+  }
+
+  protected async startServiceWorkers() {
+    await this.devicePositionService.start();
   }
 }
 

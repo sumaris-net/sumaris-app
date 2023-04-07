@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -75,6 +75,10 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
+import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
+import {TripService} from '@app/trip/services/trip.service';
+import {ObservedLocationService} from '@app/trip/services/observed-location.service';
+import { DevicePositionService } from '@app/data/services/device-position.service';
 import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.module';
 @NgModule({
   declarations: [
@@ -137,7 +141,6 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
     Network,
     AudioManagement,
     Downloader,
-    //Geolocation,
 
     {provide: APP_BASE_HREF, useFactory: () => {
         try {
@@ -205,6 +208,9 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
     {provide: JobProgressionService, useClass: JobProgressionService},
     {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
 
+    // Device position
+    {provide: DevicePositionService, useClass: DevicePositionService},
+
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
       ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
@@ -243,7 +249,8 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,
       ...EXTRACTION_CONFIG_OPTIONS,
-      ...TRIP_CONFIG_OPTIONS
+      ...TRIP_CONFIG_OPTIONS,
+      ...DEVICE_POSITION_CONFIG_OPTION,
     }},
 
     // Menu config
@@ -276,6 +283,7 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
+        {title: 'MENU.DEVICE_POSITION', path: '/extraction/device-position', icon: 'location-outline', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -283,6 +291,8 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
         {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+
+        {title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
         // Settings
@@ -406,6 +416,10 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
         },
         backColor: '#0000'
       }
+    },
+    {
+      provide: DEVICE_POSITION_ENTITY_SERVICES,
+      useValue: [TripService, ObservedLocationService],
     }
   ],
   bootstrap: [AppComponent],

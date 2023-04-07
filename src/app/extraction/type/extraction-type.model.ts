@@ -266,13 +266,14 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
 
     // Pod serialization
     if (opts?.minify) {
-      const isMulti = typeof target.value === 'string' && target.value.indexOf(',') !== -1;
+      const isMulti = (typeof target.value === 'string' && target.value.indexOf(',') !== -1)
+        || isNotEmptyArray(target.values);
       switch (target.operator) {
         case '=':
+        case 'IN':
           if (isMulti) {
             target.operator = 'IN';
-            target.values = (target.value as string)
-              .split(',')
+            target.values = (target.values || (target.value as string).split(','))
               .map(trimEmptyToNull)
               .filter(isNotNil);
             delete target.value;
@@ -281,8 +282,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
         case '!=':
           if (isMulti) {
             target.operator = 'NOT IN';
-            target.values = (target.value as string)
-              .split(',')
+            target.values = (target.values || (target.value as string).split(','))
               .map(trimEmptyToNull)
               .filter(isNotNil);
             delete target.value;
