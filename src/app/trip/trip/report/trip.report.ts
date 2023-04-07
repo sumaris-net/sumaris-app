@@ -213,7 +213,7 @@ export class TripReport<
   }
 
   protected async computeVesselSnapshots(data: R['TR']): Promise<VesselSnapshot[]> {
-    const vesselIds = (data || []).map(tr => tr.vesselIdentifier);
+    const vesselIds = removeDuplicatesFromArray((data || []).map(tr => tr.vesselIdentifier));
     const vessels = await Promise.all(vesselIds.map(id => this.vesselSnapshotService.load(id, {toEntity: false, fetchPolicy: 'cache-first'})));
     return vessels;
   }

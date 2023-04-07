@@ -1,5 +1,5 @@
 import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
-import { arrayDistinct, collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
@@ -110,7 +110,6 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
 
-
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
     stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState')
       .map(seaState => {
@@ -125,7 +124,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       acquisitionLevels: [AcquisitionLevelCodes.PHYSICAL_GEAR, AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR]
     });
     stats.selectivityDeviceMap = this.computeSelectivityDevices(data, gearPmfms);
-    stats.selectivityDevices = arrayDistinct(Object.values(stats.selectivityDeviceMap).filter(r => r.label !== 'NA').map(r => r.name));
+    stats.selectivityDevices = removeDuplicatesFromArray(Object.values(stats.selectivityDeviceMap).filter(r => r.label !== 'NA').map(r => r.name));
     // Translate
     Object.values(stats.selectivityDeviceMap)
       .filter(isNotNil)
@@ -154,7 +153,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     // Compute sub categories (and store result in meta)
     stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, firstSubCategory: standardSubCategory});
-    stats.weights = this.computeWeightStats(data.SL, { getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
+    stats.weights = this.computeWeightStats(data.SL, {getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
 
     return super.computeStats(data, {...opts, stats, getSubCategory});
   }
@@ -390,14 +389,14 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     const dataByCatchCategory = collectByProperty(data, 'catchCategory');
     const catchCategories = opts.catchCategories
-      ? arrayDistinct([...opts.catchCategories, ...Object.keys(dataByCatchCategory)])
+      ? removeDuplicatesFromArray([...opts.catchCategories, ...Object.keys(dataByCatchCategory)])
       : Object.keys(dataByCatchCategory);
 
     // Compute sub categories (and store result in meta)
     let subCategories = this.computeSubCategories(data, opts);
     if (subCategories.length !== 2) return []; // Skip
 
-    subCategories = arrayDistinct([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
+    subCategories = removeDuplicatesFromArray([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
 
     translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE'] = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE', {selectionDevice: subCategories[1]});
 

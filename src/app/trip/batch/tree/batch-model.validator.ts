@@ -291,7 +291,7 @@ export class BatchModelValidatorService<
       withMeasurementTypename: true,
       withWeight,
       weightRequired: opts.isOnFieldMode === false && withWeight,
-      withChildren: model.isLeaf,
+      withChildren: model.isLeaf, // if NOT a leaf, children control will be created using model (see bellow)
       childrenPmfms: model.isLeaf && model.childrenPmfms,
       allowSpeciesSampling: opts.allowSpeciesSampling,
       isOnFieldMode: opts.isOnFieldMode,
@@ -368,18 +368,35 @@ export class BatchModelValidatorService<
     // Children array:
     if (opts?.withChildren) {
 
-      // DEBUG
-      console.debug(`[batch-model-validator] Creating children form array, with pmfms: `, opts.childrenPmfms);
-      config['children'] = this.getChildrenFormArray(data?.children, {
-        withWeight: true,
-        withMeasurements: true,
-        ...opts,
-        allowSamplingBatch: undefined,
-        withChildren: opts.allowSpeciesSampling,
-        withChildrenWeight: true,
-        pmfms: opts.childrenPmfms || null,
-        childrenPmfms: null
-      });
+      if (isNotEmptyArray(opts.childrenPmfms)) {
+        // DEBUG
+        console.debug(`[batch-model-validator] ${data?.label} Creating children form array, with pmfms: `, opts.childrenPmfms);
+
+        config['children'] = this.getChildrenFormArray(data?.children, {
+          withWeight: true,
+          withMeasurements: true,
+          ...opts,
+          allowSamplingBatch: undefined,
+          withChildren: opts.allowSpeciesSampling,
+          withChildrenWeight: true,
+          pmfms: opts.childrenPmfms || null,
+          childrenPmfms: null
+        });
+      }
+      // E.g. individual measures
+      else {
+        config['children'] = this.formBuilder.array([]);
+
+        // TODO add individual measures pmfms
+        /*config['children'] = this.getChildrenFormArray(data?.children, {
+          withWeight: false,
+          withMeasurements: true,
+          ...opts,
+          allowSamplingBatch: undefined,
+          withChildren: false,
+          pmfms: opts.individualPmfms || null,
+        });*/
+      }
     }
 
     // Add measurement values
