@@ -1216,8 +1216,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         onSaveAndNew: async (dataToSave) => {
           // fix #403
           row = await this.findRowByEntity(dataToSave);
-          isNew = isNew && !row;
-          if (isNew) {
+          if (isNew && !row) {
             await this.addEntityToTable(dataToSave, {editing: false});
           } else {
             await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
