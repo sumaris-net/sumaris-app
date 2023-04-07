@@ -30,8 +30,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { from, merge, Observable, of, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { merge, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -39,7 +39,6 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
-import { MatExpansionPanel } from '@angular/material/expansion';
 import { UntypedFormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
@@ -50,10 +49,9 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { RxState } from '@rx-angular/state';
 import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
-import { MatDrawerMode, MatSidenav } from '@angular/material/sidenav';
+import { MatSidenav } from '@angular/material/sidenav';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ContextService } from '@app/shared/context.service';
-import { BatchFormState } from '@app/trip/batch/common/batch.form';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 
@@ -328,7 +326,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
-      treePanelFloating: true,
+      treePanelFloating: this.mobile, // On desktop, panel is pinned by default
     });
 
     // Watch program, to configure tables from program properties
