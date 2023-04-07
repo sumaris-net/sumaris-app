@@ -409,6 +409,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     try {
       const newData = await this.onSaveAndNew(data);
+      if (!newData) return; // Failed to save row
+
       await this.reset(newData);
       this.isNew = true;
       if (this.playSound) {

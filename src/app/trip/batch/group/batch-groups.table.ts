@@ -1214,20 +1214,24 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         openSubBatchesModal: (data) => this.openSubBatchesModalFromParentModal(data),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {
-          // fix #403
+          // Always try to retrieve the row (fix #403)
           row = await this.findRowByEntity(dataToSave);
+
+          // Insert or update
+          let savedRow: TableElement<BatchGroup>;
           if (isNew && !row) {
-            await this.addEntityToTable(dataToSave, {editing: false});
-          } else {
-            await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
-            row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
+            savedRow = await this.addEntityToTable(dataToSave, {editing: false});
+          } else if (row) {
+            savedRow = await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
           }
+          if (!savedRow) return undefined; // Failed
 
           // Prepare new entity
           dataToOpen = new BatchGroup();
           await this.onNewEntity(dataToOpen);
-          isNew = true; // Next row should be new
 
+          isNew = true; // Next row should be new
+          row = null; // Forget the row to update
           originalData = null; // forget the orignal data
 
           return dataToOpen;
