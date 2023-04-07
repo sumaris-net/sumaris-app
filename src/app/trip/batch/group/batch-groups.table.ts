@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import {FormGroup, UntypedFormGroup, Validators} from '@angular/forms';
+import {UntypedFormGroup, Validators} from '@angular/forms';
 import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -11,7 +11,6 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -24,14 +23,14 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds, QualitativeValueIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import {Batch, BatchWeight} from '../common/batch.model';
+import {Batch} from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import {noop, Observable, Subject, Subscription} from 'rxjs';
-import {debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, first, map, skip, startWith, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {Observable, Subject, Subscription} from 'rxjs';
+import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
@@ -47,11 +46,8 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
-import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
-import {Sample} from '@app/trip/services/model/sample.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
-import { countSubString } from '@app/shared/functions';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1219,7 +1215,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {
           // fix #403
-          isNew = isNew && !await this.findRowByEntity(dataToSave);
+          row = await this.findRowByEntity(dataToSave);
+          isNew = isNew && !row;
           if (isNew) {
             await this.addEntityToTable(dataToSave, {editing: false});
           } else {
