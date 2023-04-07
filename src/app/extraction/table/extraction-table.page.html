@@ -87,7 +87,7 @@
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-categories>
     <!-- only one category (e.g. for all public users) -->
-    <ng-container *ngIf="!(categories | isArrayLength: {equals: 1}); else manyCategories">
+    <ng-container *ngIf="(categories | isArrayLength: {equals: 1}); else manyCategories">
       <ng-container *ngFor="let type of categories[0].types">
         <!-- programs -->
         <ng-container *ngIf="type.category === 'LIVE'; else types">
