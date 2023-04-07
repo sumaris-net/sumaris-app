@@ -462,21 +462,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.animationSelection.select(row);
     this.cd.detectChanges();
 
-    const rowElement = document.querySelector('.mat-row-animated');
-    const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-cell'));
-
-    if (cellElements?.length) {
-      this.createRowAnimation(rowElement, cellElements)
-        .duration(500)
-        .play()
-        .then(() => {
-          // If row is still selected: unselect it
-          if (this.animationSelection.isSelected(row)) {
-            this.animationSelection.deselect(row);
-            this.markForCheck();
-          }
-        });
-    }
+    this.createRowAnimation(document.querySelector('.mat-row-animated'))
+      .duration(500)
+      .play()
+      .then(() => {
+        // If row is still selected: unselect it
+        if (this.animationSelection.isSelected(row)) {
+          this.animationSelection.deselect(row);
+          this.markForCheck();
+        }
+      });
   }
 
   trackByFn(index: number, row: TableElement<SubBatch>): any {
@@ -487,26 +482,29 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this.content.scrollToTop();
   }
 
-  private createRowAnimation(rowElement: Element, cellElements: Element[]): Animation {
+  private createRowAnimation(rowElement: Element): Animation {
+    const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-cell'));
+    if (!rowElement || isEmptyArray(cellElements)) {
+      return createAnimation();
+    }
+
     const rowAnimation = createAnimation()
       .addElement(rowElement)
-      .beforeStyles({ 'transition-timing-function': 'ease-out' })
+      .beforeStyles({ 'transition-timing-function': 'ease-in-out' })
       .keyframes([
-        { offset: 0, opacity: '0.5', transform: 'scale(1.5)', background: 'var(--ion-color-accent)' },
-        { offset: 0.5, opacity: '1', transform: 'scale(0.9)' },
-        { offset: 0.7, transform: 'scale(1.1)' },
-        { offset: 0.9, transform: 'scale(1)' },
-        { offset: 1, background: 'var(--ion-color-base)' },
+        { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)'},
+        { offset: 0.5, opacity: '0.9', transform: 'translateX(2%)'},
+        { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)'}
       ]);
 
-    const cellAnimation = createAnimation()
+    const cellAnimation =  createAnimation()
       .addElement(cellElements)
       .beforeStyles({
-        color: 'var(--ion-color-accent-contrast)',
+        color: 'var(--ion-color-accent-contrast)'
       })
       .keyframes([
-        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)' },
-        { offset: 1, color: 'var(--ion-color-base)' },
+        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
+        { offset: 1, color: 'var(--ion-color-base)'}
       ]);
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
