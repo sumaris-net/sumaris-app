@@ -228,7 +228,11 @@ export class DenormalizedPmfmStrategy
       methodId: source.methodId,
       unitLabel: source.unitLabel,
       isComputed: PmfmUtils.isComputed(source),
-      qualitativeValues: isNotEmptyArray(source.parameter.qualitativeValues) ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject) : undefined,
+      qualitativeValues: isNotEmptyArray(source.qualitativeValues)
+        ? source.qualitativeValues.map(ReferentialRef.fromObject)
+        : isNotEmptyArray(source.parameter.qualitativeValues)
+          ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject)
+          : undefined,
       displayConversion: source.displayConversion
     });
     return target;

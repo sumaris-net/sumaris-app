@@ -294,6 +294,9 @@ export const ReferentialFragments = {
     unit {
       ...LightReferentialFragment
     }
+    qualitativeValues {
+      ...ReferentialFragment
+    }
     __typename
   }`,
   parameter: gql`fragment ParameterFragment on ParameterVO {
