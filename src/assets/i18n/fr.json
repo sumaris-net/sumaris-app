@@ -1734,6 +1734,7 @@
     },
     "PMFM": {
       "TAB_GENERAL": "Détails",
+      "USE_DEFAULT_QUALITATIVES_VALUES": "Toutes les valeurs qualitatives du paramètre",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type",
       "MIN_VALUE": "Valeur min",

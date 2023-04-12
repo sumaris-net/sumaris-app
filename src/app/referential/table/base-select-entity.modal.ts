@@ -88,7 +88,7 @@ export abstract class BaseSelectEntityModal<
         await this.close();
       }
       else {
-        table.selection.select(row);
+        table.selection.toggle(row);
       }
     }
   }

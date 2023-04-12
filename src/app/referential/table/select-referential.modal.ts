@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { changeCaseToUnderscore, ReferentialRef } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
@@ -16,6 +16,8 @@ export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntit
 })
 export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
   implements OnInit, ISelectReferentialModalOptions {
+
+  @Input() showLevelFilter: boolean = true;
 
   constructor(
     protected viewCtrl: ModalController,

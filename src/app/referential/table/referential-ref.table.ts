@@ -4,7 +4,7 @@ import {
   changeCaseToUnderscore,
   Entity,
   EntityUtils,
-  isNotEmptyArray, isNotNil,
+  isNotEmptyArray,
   ReferentialRef, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -38,6 +38,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   @Input() showFilter = true;
   @Input() showLevelFilter = true;
   @Input() showToolbar = false;
+  @Input() showPaginator = true;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({

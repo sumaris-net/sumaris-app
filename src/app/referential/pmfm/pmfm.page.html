@@ -5,7 +5,7 @@
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
@@ -155,6 +155,39 @@
         </ion-grid>
 
       </div>
+    </mat-tab>
+
+    <!-- TAB: Qualitative value -->
+    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="list"></ion-icon>
+        </mat-icon>
+        <ion-label translate>REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE</ion-label>
+<!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>-->
+      </ng-template>
+
+      <mat-toolbar>
+        <ion-item lines="none">
+          <ion-label>{{'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES'|translate}}</ion-label>
+          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
+        </ion-item>
+      </mat-toolbar>
+
+      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
+                                    [canEdit]="!useDefaultQualitativesValues"
+                                    [canDelete]="!useDefaultQualitativesValues"
+                                    [showToolbar]="!useDefaultQualitativesValues"
+                                    [showSelectColumn]="!useDefaultQualitativesValues"
+                                    [hasRankOrder]="false"
+                                    [showUpdateDateColumn]="false"
+                                    [inlineEdition]="false"
+                                    (onOpenRow)="onSelectQualitativeValueRow($event)"
+                                    (onAfterDeletedRows)="onDeleteQualitativeValueRow($event)"
+                                    (onNewRow)="openSelectReferentialModal()">
+      </app-simple-referential-table>
+      <!-- final space-->
+      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
     </mat-tab>
 
   </mat-tab-group>

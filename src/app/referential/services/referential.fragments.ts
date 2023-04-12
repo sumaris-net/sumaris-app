@@ -256,6 +256,9 @@ export const ReferentialFragments = {
     unit {
       ...LightReferentialFragment
     }
+    qualitativeValues {
+      ...ReferentialFragment
+    }
     __typename
   }`,
   pmfmFull: gql`fragment PmfmFullFragment on PmfmVO {

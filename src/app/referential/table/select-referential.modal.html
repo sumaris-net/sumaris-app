@@ -6,11 +6,12 @@
                    [canValidate]="!loading && allowMultiple && hasSelection()">
 </app-modal-toolbar>
 
-<ion-content class="ion-no-padding">
+<ion-content class="ion-no-padding" [scrollY]="false">
   <!-- main table -->
   <app-referential-ref-table #table
                              [showFilter]="showFilter"
-                             (onOpenRow)="selectRow($event)"
+                             [showLevelFilter]="showLevelFilter"
+                             [clearSelectionBeforeOpen]="false"
                              (onNewRow)="close($event)">
   </app-referential-ref-table>
 </ion-content>

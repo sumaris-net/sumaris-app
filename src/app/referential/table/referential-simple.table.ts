@@ -53,8 +53,25 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+  @Input() showToolbar = true;
   @Input() hasRankOrder: boolean;
   @Input() useSticky = false;
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
+  @Input()
+  set showSelectColumn(value: boolean) {
+    this.setShowColumn('select', value);
+  }
+  get showSelectColumn(): boolean {
+    return this.getShowColumn('select');
+  }
 
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);

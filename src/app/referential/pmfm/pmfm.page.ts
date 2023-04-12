@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {AbstractControl, UntypedFormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEntityEditor,
   EntityServiceLoadOptions,
-  fadeInOutAnimation, firstNotNil, firstNotNilPromise,
+  fadeInOutAnimation,
   FormFieldDefinitionMap,
   HistoryPageReference,
-  isNil, joinProperties,
+  isNil, isNilOrBlank, isNotNilOrBlank, joinProperties,
   joinPropertiesPath,
-  MatAutocompleteFieldConfig,
+  MatAutocompleteFieldConfig, Referential, ReferentialFilter, ReferentialRef,
   referentialToString,
-  ReferentialUtils, toNumber,
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import {ReferentialForm} from '../form/referential.form';
 import {PmfmValidatorService} from '../services/validator/pmfm.validator';
@@ -22,8 +22,11 @@ import {PmfmService} from '../services/pmfm.service';
 import {ReferentialRefService} from '../services/referential-ref.service';
 import {ParameterService} from '../services/parameter.service';
 import {filter, mergeMap} from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import {environment} from '@environments/environment';
+import {ISelectReferentialModalOptions, SelectReferentialModal} from '@app/referential/table/select-referential.modal';
+import {IonCheckbox, ModalController} from '@ionic/angular';
+import {SimpleReferentialTable} from '@app/referential/table/referential-simple.table';
 
 @Component({
   selector: 'app-pmfm',
@@ -48,7 +51,11 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     return ReferentialUtils.isNotEmpty(this.matrix);
   }
 
+  useDefaultQualitativesValues = true;
+
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('qualitativeValuesTable', { static: true }) qualitativeValuesTable: SimpleReferentialTable;
+  @ViewChild('btnUseDefaultQualitativeValues', { static: true }) btnUseDefaultQualitativeValues: IonCheckbox;
 
   constructor(
     protected injector: Injector,
@@ -56,11 +63,13 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected modalCtrl: ModalController,
   ) {
     super(injector,
       Pmfm,
-      pmfmService);
+      pmfmService,
+      {tabCount: 2});
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -227,7 +236,15 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     this.form.patchValue(json, {emitEvent: false});
 
     // qualitativeValues
-    //this.qualitativeValuesTable.value = data.qualitativeValues.slice(); // force update
+    if (isNilOrBlank(this.data.qualitativeValues)) {
+      this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
+      this.btnUseDefaultQualitativeValues.checked = true;
+      this.useDefaultQualitativesValues = true;
+    } else {
+      this.qualitativeValuesTable.value = this.data.qualitativeValues.map(d => Referential.fromObject(d.asObject()));
+      this.btnUseDefaultQualitativeValues.checked = false;
+      this.useDefaultQualitativesValues = false;
+    }
 
     this.markAsPristine();
   }
@@ -239,8 +256,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     data.label = this.form.get('label').value;
     data.label = data.label && data.label.toUpperCase();
 
-    //await this.qualitativeValuesTable.save();
-    //data.qualitativeValues = this.qualitativeValuesTable.value;
+    data.qualitativeValues = this.useDefaultQualitativesValues ? null : this.qualitativeValuesTable.value;
 
     return data;
   }
@@ -291,6 +307,71 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async toggleUseDefaultQualitativeValues(event) {
+    // NOTE : the status of the check btn is not already updated at this moment this is why is it inverted
+    if (!this.btnUseDefaultQualitativeValues.checked) {
+      this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
+      this.useDefaultQualitativesValues = true;
+      this.markAsDirty()
+    } else {
+      this.qualitativeValuesTable.value = null;
+      const data = await this.openSelectReferentialModal();
+      if (isNilOrBlank(data)) {
+        this.btnUseDefaultQualitativeValues.checked = true;
+        this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
+      } else {
+        this.useDefaultQualitativesValues = false;
+      }
+    }
+  }
+
+  protected async openSelectReferentialModal(opts?: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
+
+    const hasTopModal = !!(await this.modalCtrl.getTop());
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
+      componentProps:{...opts,
+        allowMultiple: true,
+        showLevelFilter: false,
+        filter: <Partial<ReferentialFilter>>{
+          entityName: 'QualitativeValue',
+          levelId: this.form.get('parameter').value.id,
+          excludedIds: isNotNilOrBlank(this.data.qualitativeValues)
+            ? this.data.qualitativeValues.map(q => q.id)
+            : undefined,
+        }
+      },
+      keyboardClose: true,
+      backdropDismiss: false,
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
+    });
+
+    await modal.present();
+
+    const {data} = await modal.onDidDismiss();
+
+    if (isNotNilOrBlank(data)) {
+      this.qualitativeValuesTable.value = isNilOrBlank(this.qualitativeValuesTable.value)
+        ? data
+        : this.qualitativeValuesTable.value.concat(data);
+      this.markAsDirty();
+    }
+
+    return data;
+  }
+
+  protected onDeleteQualitativeValueRow(detetedRows: TableElement<Referential>[]) {
+    this.data.qualitativeValues = this.qualitativeValuesTable.value;
+    if (!this.dirty) {
+      this.markAsDirty();
+      this.save();
+    }
+  }
+
+  protected onSelectQualitativeValueRow(event) {
+    //DO NOTHING
   }
 
 }
