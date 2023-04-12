@@ -1,3 +1,5 @@
+import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
+
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -362,11 +364,24 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
+export enum ObjectTypeEnum {
+  TRIP = 'FISHING_TRIP',
+  OBSERVED_LOCATION = 'OBSERVED_LOCATION',
+}
+
 export class ModelEnumUtils {
   static refreshDefaultValues() {
     MethodIdGroups.CALCULATED = Methods.getCalculatedIds();
     LocationLevelGroups.FISHING_AREA = LocationLevels.getFishingAreaLevelIds();
     LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = LocationLevels.getWeightLengthConversionAreaLevelIds();
     LocationLevelGroups.STATISTICAL_RECTANGLE = LocationLevels.getStatisticalRectangleLevelIds();
+  }
+
+  static getObjectTypeByEntityName(entityName: string): ObjectTypeEnum {
+    if (!entityName) throw new Error('Missing argument \'entityName\'');
+    const label = changeCaseToUnderscore(entityName).toUpperCase();
+    const value = ObjectTypeEnum[label];
+    if (value) return value;
+    throw new Error('Missing an ObjectType for entityName: ' + entityName);
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import {
   AccountService,
@@ -53,12 +53,15 @@ import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
+import { ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 
 export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programs: Program[];
   programLabel: string;
   program: Program;
   categories: ExtractionTypeCategory[];
+  enableReport: boolean;
 }
 
 @Component({
@@ -76,6 +79,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected readonly $programs = this._state.select('programs');
   protected readonly $program = this._state.select('program');
   protected readonly $categories = this._state.select('categories');
+  protected readonly $enableReport = this._state.select('enableReport');
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
@@ -118,7 +122,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected get program(): Program {
     return this._state.get('program');
   }
-
+  protected set enableReport(value: boolean) {
+    this._state.set('enableReport', (_) => value);
+  }
+  protected get enableReport(): boolean {
+    return this._state.get('enableReport');
+  }
   get filterChanges(): Observable<any> {
     return this.criteriaForm.form.valueChanges
       .pipe(
@@ -128,27 +137,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    location: Location,
-    alertCtrl: AlertController,
-    toastController: ToastController,
-    translate: TranslateService,
-    translateContext: TranslateContextService,
-    accountService: AccountService,
-    service: ExtractionService,
-    settings: LocalSettingsService,
-    formBuilder: UntypedFormBuilder,
-    platform: PlatformService,
-    modalCtrl: ModalController,
+    injector: Injector,
     state: RxState<ExtractionTableState>,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, location, alertCtrl, toastController, translate, translateContext,
-      accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(injector, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -222,6 +218,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       .pipe(
         filter(isNotNil),
         map(ExtractionTypeCategory.fromTypes)
+      ));
+
+    this._state.connect('enableReport', this._state.select('program')
+      .pipe(
+        map(program => program?.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE) || false)
       ));
 
     if (this.autoload && !this.embedded) {
@@ -614,6 +615,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // open the map
       return this.router.navigate(['extraction', 'map'],
         {
+          // TODO replace by ExtractinUtils.asQueryParams(this.type, this.getFilterValue())
           queryParams: {
             category: this.type.category,
             label: this.type.label,
@@ -854,4 +856,27 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.cd.markForCheck();
   }
 
+  protected async openReport() {
+    const program = this.program;
+    if (!program || !this.enableReport) return; // Skip
+
+    const reportType = program.getProperty<TripReportType>(ProgramProperties.TRIP_REPORT_TYPE);
+    const reportPath = reportType !== 'legacy' ? [reportType] : [];
+    const filter = this.getFilterValue();
+    await this.router.navigate(['extraction', 'report', 'trips', ...reportPath], {
+      queryParams: ExtractionUtils.asQueryParams(this.type, filter)
+    });
+  }
+
+  private _extractionTypesProgramLabel: string;
+  private _extractionTypesByPrograms$: Observable<ExtractionType[]>;
+
+  protected watchExtractionTypesByProgram(programLabel: string) {
+    if (this._extractionTypesProgramLabel !== programLabel) {
+      this._extractionTypesProgramLabel = programLabel;
+      this._extractionTypesByPrograms$ = this.extractionTypeService.watchAllByProgramLabels([programLabel]);
+    }
+
+    return this._extractionTypesByPrograms$;
+  }
 }

@@ -7,6 +7,13 @@
 
   <ion-buttons slot="end" *ngIf="type; let type">
 
+    <!-- report -->
+    <button mat-icon-button *rxIf="($enableReport|push) && !(loadingSubject|push)"
+            [title]="'EXTRACTION.TABLE.BTN_REPORT'|translate"
+            (click)="openReport()">
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart"></ion-icon></mat-icon>&nbsp;
+    </button>
+
     <!-- edit product -->
     <button mat-icon-button
             *ngIf="!mobile && canEdit && type?.category === 'PRODUCT'"
@@ -79,24 +86,26 @@
 <!-- Types menu -->
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-categories>
-    <!-- only one category -->
-    <ng-container *ngIf="categories | isArrayLength: {equals: 1}; else manyCategories">
+    <!-- only one category (e.g. for all public users) -->
+    <ng-container *ngIf="(categories | isArrayLength: {equals: 1}); else manyCategories">
       <ng-container *ngFor="let type of categories[0].types">
-        <button mat-menu-item
-                *ngIf="type.category === 'PRODUCT'; else typeWithProgram"
-                (click)="setType(type)">
-          <ion-label class="ion-text-wrap">
-            <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
-            <span>{{type.name}}</span>
-          </ion-label>
-        </button>
-        <ng-template #typeWithProgram>
+        <!-- programs -->
+        <ng-container *ngIf="type.category === 'LIVE'; else types">
           <button mat-menu-item
-                  [matMenuTriggerFor]="programMenu"
-                  [matMenuTriggerData]="{type: type}">
+                  *rxFor="let program of $programs"
+                  [matMenuTriggerFor]="programTypesMenu"
+                  [matMenuTriggerData]="{programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER'}">
+            <ion-label class="ion-text-wrap">
+              <span>{{program|referentialToString}}</span>
+            </ion-label>
+          </button>
+        </ng-container>
+
+        <ng-template #types>
+          <button mat-menu-item (click)="setType(type)">
             <ion-label class="ion-text-wrap">
               <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
-              <span>{{type.name}} ...</span>
+              <span>{{type.name}}</span>
             </ion-label>
           </button>
         </ng-template>
@@ -105,17 +114,25 @@
 
     <!-- More than 1 categories -->
     <ng-template #manyCategories>
-      <button mat-menu-item
-              *ngFor="let item of categories"
-              [matMenuTriggerFor]="typesMenu"
-              [matMenuTriggerData]="{$implicit: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.label + '_DIVIDER'}"
-      >{{ ('EXTRACTION.CATEGORY.' + item.label) | uppercase | translate }}</button>
+      <ng-container *ngFor="let item of categories">
+        <button mat-menu-item
+                *ngIf="item.label === 'LIVE'; else typesMenuButton"
+                [matMenuTriggerFor]="programsMenu"
+        >{{ ('EXTRACTION.CATEGORY.' + item.label) | uppercase | translate }}</button>
+        <ng-template #typesMenuButton>
+          <button mat-menu-item
+                  *ngIf="item.label === 'PRODUCT'"
+                  [matMenuTriggerFor]="typesMenu"
+                  [matMenuTriggerData]="{types: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.label + '_DIVIDER'}"
+          >{{ ('EXTRACTION.CATEGORY.' + item.label) | uppercase | translate }}</button>
+        </ng-template>
+      </ng-container>
     </ng-template>
   </ng-template>
 </mat-menu>
 
 <mat-menu #typesMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
-  <ng-template matMenuContent let-types let-title="title">
+  <ng-template matMenuContent let-program="program" let-types="types" let-title="title">
     <!-- header-->
     <ion-row class="mat-menu-header ion-no-padding column" *ngIf="title">
       <ion-col>
@@ -124,31 +141,19 @@
     </ion-row>
 
     <ng-container *ngFor="let type of types">
-      <button mat-menu-item
-              *ngIf="type.category === 'PRODUCT'; else typeWithProgram"
-              (click)="setType(type)">
+      <button mat-menu-item (click)="setType(type)">
         <ion-label class="ion-text-wrap">
           <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
           <span>{{type.name}}</span>
         </ion-label>
       </button>
-      <ng-template #typeWithProgram>
-        <button mat-menu-item
-                [matMenuTriggerFor]="programMenu"
-                [matMenuTriggerData]="{type: type}">
-          <ion-label class="ion-text-wrap">
-            <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
-            <span>{{type.name}} ...</span>
-          </ion-label>
-        </button>
-      </ng-template>
     </ng-container>
   </ng-template>
 </mat-menu>
 
-<!-- Type's programs -->
-<mat-menu #programMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
-  <ng-template matMenuContent let-type="type">
+<!-- Programs menu -->
+<mat-menu #programsMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
+  <ng-template matMenuContent>
     <!-- header-->
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
@@ -159,9 +164,29 @@
     <!-- programs -->
     <button mat-menu-item
             *rxFor="let program of $programs"
-            (click)="setTypeAndProgram(type, program?.label)">
+            [matMenuTriggerFor]="programTypesMenu"
+            [matMenuTriggerData]="{programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER'}">
       <ion-label class="ion-text-wrap">
         <span>{{program|referentialToString}}</span>
+      </ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+
+<mat-menu #programTypesMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
+  <ng-template matMenuContent let-programLabel="programLabel" let-title="title">
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column" *ngIf="title">
+      <ion-col>
+        <ion-label>{{ title | uppercase | translate }}</ion-label>
+      </ion-col>
+    </ion-row>
+
+    <button mat-menu-item
+            *rxFor="let type of watchExtractionTypesByProgram(programLabel); "
+            (click)="setTypeAndProgram(type, programLabel)">
+      <ion-label class="ion-text-wrap">
+        <span>{{type.name}}</span>
       </ion-label>
     </button>
   </ng-template>

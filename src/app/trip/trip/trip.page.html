@@ -33,8 +33,8 @@
     </ng-container>
 
     <!-- option menu -->
-    <ion-button *ngIf="!isNewData || debug"
-            [disabled]="disabled || vars.loading || vars.saving"
+    <ion-button *ngIf="!isNewData || canCopyLocally || debug"
+            [disabled]="vars.loading || vars.saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
@@ -57,7 +57,7 @@
 
   <!-- reset -->
   <button mat-menu-item
-          [disabled]="!dirty"
+          [disabled]="disabled || !dirty"
           (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
@@ -65,7 +65,8 @@
     </ion-label>
   </button>
 
-  <button mat-menu-item *ngIf="canCopyLocally"
+  <button mat-menu-item
+          *ngIf="canCopyLocally"
           (click)="copyLocally()">
     <mat-icon>file_copy</mat-icon>
     <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
@@ -100,7 +101,6 @@
   </button>
 </mat-menu>
 
-<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
 <ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"

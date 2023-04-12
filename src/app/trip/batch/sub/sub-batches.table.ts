@@ -327,19 +327,25 @@ export class SubBatchesTable
     }
   }
 
-  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
+
     // Skip if loading,
     // or if previous edited row not confirmed
-    if (this.loading) return;
-    if (row !== this.editedRow && !this.confirmEditCreate()) return;
+
+    //await this.waitIdle();
+    if (this.loading) {
+      console.warn('Table is busy: cannot submit form');
+      return false;
+    }
+
+    if (row !== this.editedRow && !this.confirmEditCreate()) return false;
 
     await AppFormUtils.waitWhilePending(this.form);
 
     if (this.form.invalid) {
       await this.onInvalidForm();
-      return;
+      return false;
     }
-
     const subBatch = this.form.form.value;
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
 
@@ -362,6 +368,8 @@ export class SubBatchesTable
     else {
       await this.updateEntityToTable(subBatch, row);
     }
+
+    return true;
   }
 
   async add(batches: SubBatch[], opts?: {linkDataToParentGroup?: boolean}) {

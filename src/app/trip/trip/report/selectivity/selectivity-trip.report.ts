@@ -1,5 +1,5 @@
 import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
-import { arrayDistinct, collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
@@ -19,7 +19,7 @@ import {
   SelectivityStation,
   SelectivityTrip
 } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
-import { MathUtils } from '@app/shared/math.utils';
+import { AverageDetails, MathUtils } from '@app/shared/math.utils';
 import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { environment } from '@environments/environment';
@@ -34,8 +34,7 @@ export interface SpeciesWeightStats {
   label: string;
   total: number;
   totalVariation: number;
-  avgVariation: number;
-  avgStandardDerivation?: number;
+  avgVariation?: AverageDetails;
   subCategories?: {
     [subCategory: string]: SubCategoryWeightStats;
   }
@@ -110,15 +109,22 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     const programLabel = (data.TR || []).map(t => t.project).find(isNotNil);
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
+
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
-    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState');
+    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState')
+      .map(seaState => {
+        // Clean value (e.g.  remove ", vagues de X à Xm")
+        const separatorIndex = seaState.indexOf(',');
+        if (separatorIndex !== -1) return seaState.substring(0, separatorIndex);
+        return seaState;
+      });
     stats.seabedFeatures = this.collectDistinctQualitativeValue(data.HH, 'seabedFeatures');
 
     const gearPmfms = await this.programRefService.loadProgramPmfms(programLabel, {
       acquisitionLevels: [AcquisitionLevelCodes.PHYSICAL_GEAR, AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR]
     });
     stats.selectivityDeviceMap = this.computeSelectivityDevices(data, gearPmfms);
-    stats.selectivityDevices = arrayDistinct(Object.values(stats.selectivityDeviceMap).filter(r => r.label !== 'NA').map(r => r.name));
+    stats.selectivityDevices = removeDuplicatesFromArray(Object.values(stats.selectivityDeviceMap).filter(r => r.label !== 'NA').map(r => r.name));
     // Translate
     Object.values(stats.selectivityDeviceMap)
       .filter(isNotNil)
@@ -147,7 +153,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     // Compute sub categories (and store result in meta)
     stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, firstSubCategory: standardSubCategory});
-    stats.weights = this.computeWeightStats(data.SL, { getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
+    stats.weights = this.computeWeightStats(data.SL, {getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
 
     return super.computeStats(data, {...opts, stats, getSubCategory});
   }
@@ -205,7 +211,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
           subCategoryStats.total += weight;
           // Increment by station
           const stationKey = `${sl.tripCode}|${sl.stationNumber}`;
-          subCategoryStats.stations[stationKey] = subCategoryStats.stations[sl.stationNumber] || 0;
+          subCategoryStats.stations[stationKey] = subCategoryStats.stations[stationKey] || 0;
           subCategoryStats.stations[stationKey] += weight;
         }
       })
@@ -226,11 +232,11 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
         // Compute weight total variation, between sub categories
         if (speciesStats.LAN.total > 0) {
           result.catchCategories.LAN.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.LAN, opts.standardSubCategory);
+          this.computeWeightAvgVariation('LAN', speciesStats.LAN, opts.standardSubCategory);
         }
         if (speciesStats.DIS.total > 0) {
           result.catchCategories.DIS.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.DIS, opts.standardSubCategory);
+          this.computeWeightAvgVariation('DIS', speciesStats.DIS, opts.standardSubCategory);
         }
       }
     })
@@ -243,9 +249,10 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     weights.totalVariation = this.computeWeightVariation(weights,standardSubCategory, stats => stats.total);
   }
 
-  protected computeWeightAvgVariation(weights: SpeciesWeightStats,
+  protected computeWeightAvgVariation(catchCategory: CatchCategoryType,
+                                      weights: SpeciesWeightStats,
                                       standardSubCategory: string) {
-    // Collect all station keys
+    // Collect all station keys, found on every sub category
     const stationKeys = Object.keys(weights.subCategories).reduce((res, subCategory) => {
       return Object.keys(weights.subCategories[subCategory].stations).reduce((res, stationKey) => {
         return res.includes(stationKey) ? res : res.concat(stationKey);
@@ -256,11 +263,18 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       .filter(isNotNil); // Exclude when standard = 0
 
     if (isNotEmptyArray(stationVariations)) {
-      weights.avgVariation = MathUtils.average(stationVariations);
-      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations);
+      console.debug(`[selectivity-trip-report] Weight variations by station for {${catchCategory} - ${weights.label}}: `, stationVariations);
+      weights.avgVariation = MathUtils.averageWithDetails(stationVariations);
     }
   }
 
+  /**
+   * Calcul le taux de variation, suivant la formule : (<poids_espèce_chalut_selectif> - <poids_espèce_chalut_standard>) / <poids_espèce_chalut_standard>
+   * @param weights
+   * @param standardSubCategory libellé de correspond au chalut standard.
+   * @param weightGetter function pour lire le poids.
+   * @protected
+   */
   protected computeWeightVariation(weights: SpeciesWeightStats,
                                    standardSubCategory: string,
                                    weightGetter: Function<SubCategoryWeightStats, number>): number | undefined {
@@ -328,12 +342,12 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       if (opts.stats.weights) {
         // TODO finish this feature, then enable
         if (!environment.production) {
-          const boxPlotChart = this.createSpeciesBoxPlot(species, {
-            stats: opts.stats,
-            subCategories: this.stats.subCategories,
-            catchCategories: ['LAN', 'DIS']
-          });
-          if (boxPlotChart) charts.push(boxPlotChart);
+          // const boxPlotChart = this.createSpeciesBoxPlot(species, {
+          //   stats: opts.stats,
+          //   subCategories: this.stats.subCategories,
+          //   catchCategories: ['LAN', 'DIS']
+          // });
+          // if (boxPlotChart) charts.push(boxPlotChart);
         }
       }
     }
@@ -375,20 +389,22 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     const dataByCatchCategory = collectByProperty(data, 'catchCategory');
     const catchCategories = opts.catchCategories
-      ? arrayDistinct([...opts.catchCategories, ...Object.keys(dataByCatchCategory)])
+      ? removeDuplicatesFromArray([...opts.catchCategories, ...Object.keys(dataByCatchCategory)])
       : Object.keys(dataByCatchCategory);
 
     // Compute sub categories (and store result in meta)
     let subCategories = this.computeSubCategories(data, opts);
     if (subCategories.length !== 2) return []; // Skip
 
-    subCategories = arrayDistinct([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
+    subCategories = removeDuplicatesFromArray([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
 
     translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE'] = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE', {selectionDevice: subCategories[1]});
 
     const chart: SpeciesChart = {
       type: 'bubble',
       options: {
+        // FIXME
+        //aspectRatio: 1,
         title: {
           ...this.defaultTitleOptions,
           text: [
@@ -428,6 +444,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       }
     };
 
+    let max = 0;
     // For each LAN, DIS
     catchCategories.forEach(catchCategory => {
       const label = [species, translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING']].join(' - ')
@@ -436,16 +453,27 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       const values = Object.keys(dataByStation).map(station => {
         return dataByStation[station].reduce((res, sl) => {
           const index = subCategories.indexOf(sl.meta.subCategory);
-          if (index != -1) res[index] += sl.weight / 1000; // Convert to kg
+          const weight = sl.weight / 1000; // Convert to kg
+          if (index != -1) {
+            res[index] += weight;
+            max = Math.max(max, weight);
+          }
           return res;
         }, new Array(subCategories.length).fill(0));
       });
+
       ChartJsUtils.pushDataSetOnChart(chart, {
         label,
         backgroundColor: color.rgba(this.defaultOpacity),
         data: ChartJsUtils.computeChartPoints(values)
       });
+
     });
+
+    // Set max scale
+    const scaleMax = Math.ceil(max / 10 + 0.5) * 10;
+    chart.options.scales.xAxes[0].ticks = {min: 0, max: scaleMax};
+    chart.options.scales.yAxes[0].ticks = {min: 0, max: scaleMax};
 
     return [chart];
   }

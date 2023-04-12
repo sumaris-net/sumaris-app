@@ -1,7 +1,7 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
-import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
 
 const routes: Routes = [
   // Core path

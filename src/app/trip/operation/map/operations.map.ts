@@ -8,7 +8,8 @@ import {
   DateFormatService,
   EntityUtils,
   fadeInOutAnimation,
-  firstNotNilPromise, isEmptyArray,
+  firstNotNilPromise,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -16,7 +17,8 @@ import {
   joinPropertiesPath,
   LatLongPattern,
   LocalSettingsService,
-  PlatformService, sleep
+  PlatformService,
+  sleep
 } from '@sumaris-net/ngx-components';
 import { Feature, LineString, MultiPolygon, Position } from 'geojson';
 import { ModalController } from '@ionic/angular';
@@ -33,10 +35,10 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 import { MapGraticule } from '@app/shared/map/map.graticule';
-import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
+import { MapUtils } from '@app/shared/map/map.utils';
 
-const maxZoom = 10;
+const maxZoom = MapUtils.MAX_ZOOM;
 
 @Component({
   selector: 'app-operations-map',
@@ -147,15 +149,7 @@ export class OperationsMap implements OnInit, OnDestroy {
         .subscribe());
 
     this.subscription.add(
-      this.configService.config.subscribe(config => {
-        let centerCoords = config.getPropertyAsNumbers(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_LAT_LNG);
-        centerCoords = (centerCoords?.length === 2) ? centerCoords : [0, 0];
-        const zoom = config.getPropertyAsInt(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_ZOOM);
-        this.$center.next({
-          center: L.latLng(centerCoords as [number, number]),
-          zoom: zoom || maxZoom
-        });
-      })
+      this.configService.config.subscribe(config => this.$center.next(MapUtils.getMapCenter(config)))
     );
 
     if (this.showTooltip) {

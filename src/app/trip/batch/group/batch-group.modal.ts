@@ -17,7 +17,7 @@ import {
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BatchGroupForm } from './batch-group.form';
 import { debounceTime, filter, map, startWith } from 'rxjs/operators';
 import { BatchGroup } from './batch-group.model';
@@ -82,6 +82,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
   @Input() showSamplingBatch: boolean;
+  @Input() showComment: boolean;
   @Input() allowSubBatches = true;
   @Input() showHasSubBatchesButton: boolean;
   @Input() defaultHasSubBatches: boolean;
@@ -160,6 +161,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
     this.disabled = toBoolean(this.disabled, false);
     this.enableBulkMode = this.enableBulkMode && !this.disabled && (typeof this.onSaveAndNew === 'function') ;
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
 
     if (this.disabled) this.disable();
 
@@ -390,7 +392,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     // DEBUG
     //console.debug('[batch-group-modal] Calling onSubmitAndNext()');
 
-    // If new AND pristine BUT valud (e.g. all PMFMs are optional): avoid to validate
+    // If new AND pristine BUT valid (e.g. all PMFMs are optional): avoid to validate
     if (this.isNew && !this.dirty && this.valid) {
       return; // skip
     }
@@ -407,6 +409,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     try {
       const newData = await this.onSaveAndNew(data);
+      if (!newData) return; // Failed to save row
+
       await this.reset(newData);
       this.isNew = true;
       if (this.playSound) {

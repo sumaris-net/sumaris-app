@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -20,7 +20,6 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
-import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
@@ -34,7 +33,7 @@ import { ArrayElementType, collectByFunction, Function } from '@app/shared/funct
 import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
 import { filter } from 'rxjs/operators';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -49,6 +48,7 @@ export declare class TripReportStats {
   trips: Trip[];
   operations: Operation[];
   vesselSnapshots: VesselSnapshot[];
+  vesselLength: BaseNumericStats;
   species: {
     label: string;
     charts: SpeciesChart[];
@@ -82,7 +82,7 @@ export class TripReport<
     fontSize: 18
   };
   legendDefaultOption: ChartLegendOptions = {
-    position: 'right'
+    position: 'right' // or 'right'
   };
   defaultOpacity = 0.8;
   landingColor = Color.get('tertiary');
@@ -126,16 +126,25 @@ export class TripReport<
       this.filter = ExtractionUtils.createTripFilter(trip.program.label, [trip.id]);
     }
     else {
-      // TODO parse query params
+      const {label, category, q} = this.route.snapshot.queryParams;
+      this.type = ExtractionType.fromObject({label, category});
+      const criteria = q && ExtractionUtils.parseCriteriaFromString(q);
+      if (isNotEmptyArray(criteria)) {
+        this.filter = ExtractionFilter.fromObject({criteria});
+      }
     }
 
     if (!this.filter || this.filter.isEmpty())  throw { message:  'ERROR.LOAD_DATA_ERROR' };
 
-    return this.load(this.filter, opts);
+    return this.load(this.filter, {
+      ...opts,
+      type: this.type
+    });
   }
 
   protected async load(filter: ExtractionFilter, opts?: {
-    cache?: boolean
+    type?: ExtractionType;
+    cache?: boolean;
   }): Promise<R> {
     console.debug(`[${this.constructor.name}.load]`, arguments);
 
@@ -151,10 +160,12 @@ export class TripReport<
 
   protected loadData(filter: ExtractionFilter,
                      opts?: {
-                                cache?: boolean
-                              }): Promise<R> {
+                       type?: ExtractionType;
+                       cache?: boolean;
+                     }): Promise<R> {
     return this.tripReportService.loadAll(filter, {
       ...opts,
+      formatLabel: this.type?.label,
       fetchPolicy: 'no-cache'
     });
   }
@@ -175,6 +186,7 @@ export class TripReport<
 
     stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime), DateUtils.moment());
     stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.departureDateTime), DateUtils.moment(0));
+    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
 
     // Split SL and HL by species
     const slMap = collectByProperty(data.SL, 'species');
@@ -201,7 +213,7 @@ export class TripReport<
   }
 
   protected async computeVesselSnapshots(data: R['TR']): Promise<VesselSnapshot[]> {
-    const vesselIds = (data || []).map(tr => tr.vesselIdentifier);
+    const vesselIds = removeDuplicatesFromArray((data || []).map(tr => tr.vesselIdentifier));
     const vessels = await Promise.all(vesselIds.map(id => this.vesselSnapshotService.load(id, {toEntity: false, fetchPolicy: 'cache-first'})));
     return vessels;
   }
@@ -278,7 +290,7 @@ export class TripReport<
     {
       const discardFilter: (SpeciesLength) => boolean = (sl: RdbSpeciesLength) => sl.catchCategory === 'DIS';
       const discardChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
-        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
+        subtitle: this.translate.instant('TRIP.REPORT.DISCARD'),
         filter: discardFilter,
         catchCategoryColors: [discardColors],
         subCategories,
@@ -396,6 +408,9 @@ export class TripReport<
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
+    if (!hasElevateNumberAtLength) {
+      console.warn(`[${this.constructor.name}] Cannot used elevateNumberAtLength, for species '${species}'`);
+    }
     const getNumberAtLength = opts?.getNumberAtLength
       || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
       || ((hl) => hl.numberAtLength);

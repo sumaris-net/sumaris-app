@@ -478,7 +478,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return focusPreviousInput(event, this.inputFields, opts);
   }
 
-  focusNextInputOrSubmit(event: Event, isLastPmfm: boolean) {
+  async focusNextInputOrSubmit(event: Event, isLastPmfm: boolean) {
+    if (event.defaultPrevented) return; // Skip
+    event.preventDefault();
 
     if (isLastPmfm) {
       if (this.enableIndividualCount) {
@@ -487,7 +489,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         return true;
       }
 
-      this.doSubmit(event);
+      await this.doSubmit(null);
       return true;
     }
 

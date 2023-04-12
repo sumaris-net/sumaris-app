@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, ViewChild, ViewEncapsulation } from '@angular/core';
 import moment from 'moment';
 import { L } from '@app/shared/map/leaflet';
 import {
@@ -342,19 +342,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    location: Location,
-    alertCtrl: AlertController,
-    toastController: ToastController,
-    translate: TranslateService,
-    translateContext: TranslateContextService,
-    accountService: AccountService,
-    service: ExtractionService,
-    settings: LocalSettingsService,
-    formBuilder: UntypedFormBuilder,
-    platform: PlatformService,
-    modalCtrl: ModalController,
+    injector: Injector,
     state: RxState<ExtractionMapState>,
     protected productService: ProductService,
     protected durationPipe: DurationPipe,
@@ -362,8 +350,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, location, alertCtrl, toastController, translate, translateContext,
-      accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(injector, state);
 
     // Add controls to form
     this.form.addControl('strata', this.strataValidatorService.getFormGroup());
@@ -381,7 +368,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     const legendStartColor = new Color([255, 255, 190], 1);
     const legendEndColor = new Color([150, 30, 30], 1);
-    this.legendForm = formBuilder.group({
+    this.legendForm = this.formBuilder.group({
       count: [10, Validators.required],
       min: [0, Validators.required],
       max: [1000, Validators.required],

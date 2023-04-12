@@ -46,11 +46,11 @@ export class BatchUtils {
     return source?.label?.startsWith(AcquisitionLevelCodes.CATCH_BATCH) || false;
   }
 
-  static isSortingBatch(source: Batch | any): source is Batch {
+  static isSortingBatch(source: Batch | any): boolean {
     return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#') || false;
   }
 
-  static isIndividualBatch(source: Batch | any): source is Batch {
+  static isIndividualBatch(source: Batch | any): boolean {
     return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#') || false;
   }
 
@@ -206,28 +206,44 @@ export class BatchUtils {
   }
 
 
-  static computeRankOrder(source: Batch) {
+  /**
+   * Méthode servant à corriger les rankOrder (et les label) des lots, à utiliser :
+   * - quand les lots ont été importés (copier/coller)
+   * - ou quand la saisie a été faite par plusieurs éditeurs de lots déconnecté les uns des autres (e.g. Batch Tree container)
+   * - ou pour corriger des problèmes dans les données (e.g. introduit par un bug, comme cela est arrivé sur la BDD SUMARiS historique)
+   * @param source
+   * @param sortingBatchIndividualRankOrder
+   */
+  static computeRankOrder(source: Batch, sortingBatchIndividualRankOrder = 1) {
 
-    if (!source.label || !source.children) return; // skip
+    if (!source?.label || !source.children) return; // skip
 
-    // Sort by id and rankOrder (new batch at the end)
-    source.children = source.children
-      .sort((b1, b2) => ((b1.id || 0) * 10000 + (b1.rankOrder || 0)) - ((b2.id || 0) * 10000 + (b2.rankOrder || 0)));
+    source.children
+      // Sort by id, then rankOrder. New batch at the end
+      .sort(Batch.idOrRankOrderComparator('asc'))
 
-    source.children.forEach((b, index) => {
-      b.rankOrder = index + 1;
+      // For each child
+      .forEach((b: Batch, index) => {
 
-      // Sampling batch
-      if (b.label?.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
-        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
-      }
-      // Individual measure batch
-      else if (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
-        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
-      }
+        // Individual measure batch
+        if (this.isIndividualBatch(b)) {
+          b.rankOrder = sortingBatchIndividualRankOrder++;
+          b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
+        }
+        // Sampling batch
+        else if (this.isSamplingBatch(b)) {
+          b.rankOrder = index + 1;
+          b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+        }
+        // Sorting batch
+        else {
+          b.rankOrder = index + 1;
+          // Do NOT compute label on SORTING BATCH, because it need sorting QV values
+          //b.label = ...
+        }
 
-      this.computeRankOrder(b); // Recursive call
-    });
+        this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Loop
+      });
   }
 
   /**

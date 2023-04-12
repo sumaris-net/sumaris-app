@@ -65,6 +65,14 @@
           <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
           <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString: ['exteriorMarking'] }}</li>
           <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
+          <li><mat-icon>straighten</mat-icon> {{ 'TRIP.REPORT.VESSEL_LENGTH'|translateContext: i18nContext.suffix }}
+            <span *ngIf="stats.vesselLength.min !== stats.vesselLength.max; else avgLengthOnly"
+                  [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_STATS'|translateContext: i18nContext.suffix: stats.vesselLength">
+            </span>
+            <ng-template #avgLengthOnly>
+              <span [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_AVG'|translateContext: i18nContext.suffix: stats.vesselLength"></span>
+            </ng-template>
+          </li>
           <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ stats.operations?.length || 0 }}</li>
         </ul>
       </section>

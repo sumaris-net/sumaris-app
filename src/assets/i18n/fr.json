@@ -340,10 +340,12 @@
     "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
-    "SERVER": "Configuration serveur",
+    "SYSTEM_DIVIDER": "Système",
+    "SERVER": "Paramètres système",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos",
-    "BTN_MY_ACCOUNT": "Mon compte"
+    "BTN_MY_ACCOUNT": "Mon compte",
+    "DEVICE_POSITION": "Positions"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -1147,8 +1149,11 @@
       "DATES": "Dates : du {{startDate}} au {{endDate}}",
       "SEA_STATE": "État de la mer :",
       "GEAR_SPEED": "Vitesse de traine :",
-      "GEAR_SPEED_STATS": "{{min}} à {{max}} Nds (<b>{{avg}} Nds</b> en moyenne)",
-      "GEAR_SPEED_AVG": "<b>{{avg}} Nds</b>",
+      "GEAR_SPEED_STATS": "{{min}} à {{max}} Nds ({{avg}} Nds en moyenne)",
+      "GEAR_SPEED_AVG": "{{avg}} Nds",
+      "VESSEL_LENGTH": "Longueur navire(s) :",
+      "VESSEL_LENGTH_STATS": "{{min}} à {{max}} m",
+      "VESSEL_LENGTH_AVG": "{{avg}} m",
       "SEABED_FEATURES": "Types de fond :",
       "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
       "SPECIES": "Espèce",
@@ -1221,6 +1226,7 @@
     }
   },
   "OBSERVED_LOCATION": {
+    "TITLE": "Sortie",
     "NEW": {
       "TITLE": "Nouvelle sortie"
     },
@@ -1810,8 +1816,8 @@
       "MATRIX": "Supports de mesure",
       "METHOD": "Méthodes de mesure",
       "FRACTION": "Fractions du support",
-      "ORIGIN_ITEM_TYPE": "Type d'origine d'une entrée",
-      "OBJECT_TYPE": "Types d'entité",
+      "ORIGIN_ITEM_TYPE": "Type d'origine",
+      "OBJECT_TYPE": "Types d'objet",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
       "QUALITY_FLAG": "Niveau de qualité",
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
@@ -1888,6 +1894,7 @@
       "PRIVILEGE": "Privilège"
     },
     "OPTIONS": {
+      "EXTRACTION_FORMATS": "Extraction > Formats actifs:",
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
@@ -1930,10 +1937,12 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité du poids",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Capture > Pays (ID) pour les équivalents poids vifs",
-      "TRIP_SAMPLE_ENABLE": "Échantillon : Activer ?",
-      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
-      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
-      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Échantillon : Espèces scientifiques ?",
+      "TRIP_SAMPLE_ENABLE": "Marée > Échantillon : Activer ?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Marée > Échantillon : Date et heure ?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Marée > Échantillon : Espèces commerciales ?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Marée > Échantillon : Espèces scientifiques ?",
+      "TRIP_SAMPLE_LABEL_ENABLE": "Marée > Échantillon : Libellé ?",
+      "TRIP_SAMPLE_IMAGES_ENABLE": "Marée > Échantillon : Images ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_POSITION_BOUNDING_BOX": "Marée > Position : Boite limite ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
@@ -1941,10 +1950,10 @@
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_REPORT_TYPE": "Marée > Type de rapport",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
-      "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité chalut",
+      "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité châlut",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
-      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité chalut",
+      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité châlut",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",
@@ -2006,6 +2015,7 @@
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb éléments affichés pour le pré-filtrage des champs",
       "STRATEGY_DEPARTMENT_ENABLE": "Stratégie > Activer les droits d'accès par département (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
+      "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
     "STRATEGY": {
@@ -2284,7 +2294,8 @@
     "TABLE": {
       "TITLE": "Extraction de données",
       "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
-      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
+      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :",
+      "BTN_REPORT": "Éditer le rapport"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",
@@ -2452,21 +2463,26 @@
     },
     "FORMAT": {
       "APASE": {
-        "TITLE": "Marées brutes (APASE v{{version}})"
+        "TITLE": "Marées brutes (APASE v{{version}})",
+        "NAME": "Sélectivity châlut"
       },
       "RDB": {
-        "TITLE": "Marées brutes (RDB v{{version}})"
+        "TITLE": "Marées brutes (RDB v{{version}})",
+        "NAME": "Regional DataBase (CIEM)"
       },
       "COST": {
-        "TITLE": "Marées brutes (COST v{{version}})"
+        "TITLE": "Marées brutes (COST v{{version}})",
+        "NAME": "COST"
       },
       "FREE": {
         "TITLE": "Marées brutes (FREE v{{version}})",
+        "NAME": "FREE1",
         "FISHING_TIME": "Heure",
         "FISHING_DURATION": "Temps de pêche (min)"
       },
       "FREE2": {
         "TITLE": "Marées brutes (FREE2 v{{version}})",
+        "NAME": "FREE2",
         "SHEET": {
           "MAREE": "Marées",
           "OPERATION_PECHE": "Opérations",
@@ -2478,17 +2494,21 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Marées brutes (SUMARiS v{{version}})"
+        "TITLE": "Marées brutes (SUMARiS v{{version}})",
+        "NAME": "Tests de survie"
       },
       "RJB_TRIP": {
-        "TITLE": "Marées Pocheteaux (RJB v{{version}})"
+        "TITLE": "Marées Pocheteaux (RJB v{{version}})",
+        "NAME": "Pocheteaux"
       },
       "PMFM_TRIP": {
         "TITLE": "Marées brutes > Générique",
-        "TITLE_PROGRAM": "Marées brutes {{label}}"
+        "TITLE_PROGRAM": "Marées brutes {{label}}",
+        "NAME": "Générique"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",
+        "NAME": "Stratégies de collecte",
         "SHEET": {
           "ST": "Stratégies",
           "SM": "Suivi de stratégies"
@@ -2684,6 +2704,34 @@
       "TITLE": "Titre"
     }
   },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Cartes des positions",
+      "FILTER": {
+        "RECORDER_PERSON": "Saisisseur",
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période"
+      },
+      "TABLE": {
+        "TITLE": "Liste des positions",
+        "LIMIT_TO": "Limité à {{visibleTotal}} résultats sur {{total}}",
+        "BTN_OPEN_DATA": "Ouvrir la donnée",
+        "RECORDER_PERSON": "Saisisseur",
+        "DATE_TIME": "Date/Heure",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Type de donnée"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "Capteur GPS > Intervalle de récupération en arrière plan (ms)",
+      "TRACKING_ENABLE": "Capteur GPS > Activer le suivi des positions",
+      "TRACKING_SAVE_PERIOD": "Capteur GPS > Suivi des positions : Intervalle de sauvegarde (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
@@ -2794,7 +2842,7 @@
   },
   "INFO": {
     "ALERT_HEADER": "Information",
-    "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
+    "SYNCHRONIZATION_SUCCEED": "Synchronisation <b>terminée avec succès</b> !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
     "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !",

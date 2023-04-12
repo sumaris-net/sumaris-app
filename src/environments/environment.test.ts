@@ -28,7 +28,7 @@ export const environment = Object.freeze(<Environment>{
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '1.36.0',
+  peerMinVersion: '2.3.0',
 
   checkAppVersionIntervalInSeconds: 0, // Not need for DEV
 

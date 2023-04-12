@@ -140,35 +140,45 @@
 
 <!-- Download menu -->
 <mat-menu #downloadMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <!-- Select extraction types -->
+    <button mat-menu-item
+            [disabled]="offline"
+            [matMenuTriggerFor]="extractionTypesMenu"
+            [matMenuTriggerData]="{$implicit: selectionExtractionTypes$}">
+      <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
+      <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
+    </button>
 
-  <!-- Select extraction types -->
-  <button mat-menu-item
-          [disabled]="offline"
-          [matMenuTriggerFor]="downloadTypesMenu"
-          [matMenuTriggerData]="{$implicit: extractionTypes$}">
-    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
-  </button>
-
-  <!-- JSON -->
-  <button mat-menu-item
-          [disabled]="offline"
-          (click)="downloadSelectionAsJson($event)">
-    <mat-icon>download</mat-icon>
-    <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
-  </button>
-
+    <!-- JSON -->
+    <button mat-menu-item
+            [disabled]="offline"
+            (click)="downloadSelectionAsJson($event)">
+      <mat-icon>download</mat-icon>
+      <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 
 <!-- Extraction types menu -->
-<mat-menu #downloadTypesMenu="matMenu" xPosition="after">
+<mat-menu #extractionTypesMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-types>
-    <button mat-menu-item
-            *ngFor="let type of types|async"
-            (click)="openDownloadPage($event, type)">
-      <ion-label>{{type.name}}</ion-label>
-    </button>
+    <ng-container *rxIf="types; let items; suspense: loadingItem">
+      <button mat-menu-item *ngIf="items|isEmptyArray" [disabled]="true">
+        <mat-label translate>COMMON.NO_RESULT</mat-label>
+      </button>
+      <button mat-menu-item
+              *ngFor="let type of items"
+              (click)="openDownloadPage($event, type)">
+        <ion-label>{{type.name}}</ion-label>
+      </button>
+    </ng-container>
+    <ng-template #loadingItem>
+      <button mat-menu-item [disabled]="true">
+        <mat-label><ion-skeleton-text animated style="width: 80%; min-width: 150px"></ion-skeleton-text></mat-label>
+      </button>
+    </ng-template>
   </ng-template>
 </mat-menu>
 

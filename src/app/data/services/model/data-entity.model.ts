@@ -1,5 +1,5 @@
 import { Moment } from 'moment';
-import { DateUtils, Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, Department, Entity, removeEnd, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
 import { IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Batch } from '@app/trip/batch/common/batch.model';
@@ -179,5 +179,13 @@ export abstract class DataEntityUtils {
    */
   static hasNoQualityFlag(entity: DataEntity<any, any>|undefined): boolean {
     return isNil(entity.qualityFlagId) || entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  /**
+   * Get entity name from the __typename of an entity
+   * @param entity
+   */
+  static getEntityName(entity: DataEntity<any, any>|undefined): string|undefined {
+    return entity && removeEnd(entity.__typename || 'UnknownVO', 'VO');
   }
 }
