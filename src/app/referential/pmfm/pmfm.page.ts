@@ -7,8 +7,8 @@ import {
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   FormFieldDefinitionMap,
-  HistoryPageReference,
-  isNil, isNilOrBlank, isNotNilOrBlank, joinProperties,
+  HistoryPageReference, isEmptyArray,
+  isNil, isNilOrBlank, isNotEmptyArray, joinProperties,
   joinPropertiesPath,
   MatAutocompleteFieldConfig, Referential, ReferentialFilter, ReferentialRef,
   referentialToString,
@@ -338,7 +338,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         filter: <Partial<ReferentialFilter>>{
           entityName: 'QualitativeValue',
           levelId: this.form.get('parameter').value.id,
-          excludedIds: isNotNilOrBlank(this.data.qualitativeValues)
+          excludedIds: isNotEmptyArray(this.data.qualitativeValues)
             ? this.data.qualitativeValues.map(q => q.id)
             : undefined,
         }
@@ -352,8 +352,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
     const {data} = await modal.onDidDismiss();
 
-    if (isNotNilOrBlank(data)) {
-      this.qualitativeValuesTable.value = isNilOrBlank(this.qualitativeValuesTable.value)
+    if (isNotEmptyArray(data)) {
+      this.qualitativeValuesTable.value = isEmptyArray(this.qualitativeValuesTable.value)
         ? data
         : this.qualitativeValuesTable.value.concat(data);
       this.markAsDirty();
@@ -367,6 +367,11 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     if (!this.dirty) {
       this.markAsDirty();
       this.save();
+    }
+    if (isEmptyArray(this.data.qualitativeValues)) {
+      this.useDefaultQualitativesValues = true;
+      this.btnUseDefaultQualitativeValues.checked = true;
+      this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
     }
   }
 
