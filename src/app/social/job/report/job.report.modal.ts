@@ -33,7 +33,7 @@ export class JobReportModal implements OnInit{
   ngOnInit() {
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
 
-    this.items = Object.entries(this.job.report)
+    this.items = Object.entries(this.job?.report || {})
       .filter(([key, value]) => isNotNilOrBlank(value) && key !== 'message')
       .map(([key, value]) => {
         const i18nKey = 'SOCIAL.JOB.REPORT.STATS.' + changeCaseToUnderscore(key).toUpperCase();

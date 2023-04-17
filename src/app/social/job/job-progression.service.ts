@@ -54,6 +54,8 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
 
     // Clean data on logout
     this.accountService.onLogout.subscribe(() => this.dataSubject.next([]))
+
+    this.jobService.onCancel.subscribe(job => this.removeJob(job?.id))
   }
 
   addJob(id: number, job?: JobProgression) {
@@ -82,7 +84,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
         mergeMap((account) => this.jobService.watchAll({
           issuer: account.pubkey,
           status: ['PENDING', 'RUNNING']
-        }, {toEntity: false})),
+        }, null, {toEntity: false})),
         takeUntil(this.accountService.onLogout)
       )
     ).pipe(
