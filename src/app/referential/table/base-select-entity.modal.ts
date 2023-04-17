@@ -1,9 +1,9 @@
 import { Directive, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
 import { Subject } from 'rxjs';
 import { environment } from '@environments/environment';
-import {TableElement} from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   entityName: string;
@@ -95,11 +95,10 @@ export abstract class BaseSelectEntityModal<
 
   async close(event?: any): Promise<boolean> {
     try {
-      if (this.hasSelection()) {
-        const items = (this.table.selection.selected || [])
-            .map(row => row.currentData)
-            .map(ReferentialRef.fromObject)
-            .filter(isNotNil);
+      const items = this.table.selectedEntities;
+
+      // Leave, only if there is content
+      if (isNotEmptyArray(items)) {
         this.viewCtrl.dismiss(items);
       }
       return true;

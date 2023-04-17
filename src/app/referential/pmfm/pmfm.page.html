@@ -177,12 +177,15 @@
       <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
                                     [canEdit]="!useDefaultQualitativesValues"
                                     [canDelete]="!useDefaultQualitativesValues"
+                                    [confirmBeforeDelete]="false"
+                                    [saveBeforeDelete]="false"
                                     [showToolbar]="!useDefaultQualitativesValues"
                                     [showSelectColumn]="!useDefaultQualitativesValues"
                                     [hasRankOrder]="false"
                                     [showUpdateDateColumn]="false"
+                                    [showCommentsColumn]="false"
                                     [inlineEdition]="false"
-                                    (onOpenRow)="onSelectQualitativeValueRow($event)"
+                                    (onOpenRow)="onQualitativeValueRowClick($event)"
                                     (onAfterDeletedRows)="onDeleteQualitativeValueRow($event)"
                                     (onNewRow)="openSelectReferentialModal()">
       </app-simple-referential-table>

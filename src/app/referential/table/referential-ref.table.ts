@@ -19,6 +19,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
+export declare type AppTableMode = 'select' | 'edit'; // TODO more
 
 @Component({
   selector: 'app-referential-ref-table',
@@ -27,6 +28,8 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
+
+  private _mode: AppTableMode = 'edit';
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -49,6 +52,13 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
 
   get entityName(): string {
     return this.filter?.entityName;
+  }
+
+  get mode(): AppTableMode {
+    return this._mode;
+  }
+  @Input() set mode(value: AppTableMode) {
+    this.setTableMode(value);
   }
 
   constructor(
@@ -161,6 +171,22 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected setTableMode(value: AppTableMode) {
+    this._mode = value;
+    switch (value) {
+      case 'select':
+        this.inlineEdition = false;
+        this.initPermanentSelection();
+        break;
+      case 'edit':
+      default:
+        this.inlineEdition = true;
+        this.permanentSelection = null;
+        break;
+    }
+    this.markForCheck();
   }
 }
 

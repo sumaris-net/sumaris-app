@@ -224,7 +224,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForm(this.referentialForm);
+    this.addChildForms([
+      this.referentialForm,
+      this.qualitativeValuesTable
+    ]);
   }
 
   protected setValue(data: Pmfm) {
@@ -329,18 +332,25 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   protected async openSelectReferentialModal(opts?: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
 
+    const excludedIds = (this.qualitativeValuesTable.value || []).map(q => q.id);
+    const filter = <Partial<ReferentialFilter>>{
+      entityName: 'QualitativeValue',
+      levelId: this.form.get('parameter').value.id,
+      excludedIds
+    };
+    console.debug(`[pmfm-page] Opening select PMFM modal, with filter:`, filter);
+
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectReferentialModal,
-      componentProps:{...opts,
+      componentProps: {
+        ...opts,
         allowMultiple: true,
         showLevelFilter: false,
         filter: <Partial<ReferentialFilter>>{
           entityName: 'QualitativeValue',
           levelId: this.form.get('parameter').value.id,
-          excludedIds: isNotEmptyArray(this.data.qualitativeValues)
-            ? this.data.qualitativeValues.map(q => q.id)
-            : undefined,
+          excludedIds
         }
       },
       keyboardClose: true,
@@ -375,8 +385,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     }
   }
 
-  protected onSelectQualitativeValueRow(event) {
-    //DO NOTHING
+  protected onQualitativeValueRowClick(row: TableElement<any>) {
+    this.qualitativeValuesTable.selection.toggle(row);
   }
 
 }

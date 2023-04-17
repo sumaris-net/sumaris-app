@@ -76,7 +76,16 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);
   }
+  get showUpdateDateColumn(): boolean {
+    return this.getShowColumn('updateDate');
+  }
 
+  @Input() set showCommentsColumn(value: boolean) {
+    this.setShowColumn('comments', value);
+  }
+  get showCommentsColumn(): boolean {
+    return this.getShowColumn('comments');
+  }
   protected popoverController: PopoverController;
 
   constructor(
