@@ -1,15 +1,16 @@
-import { Directive, Input, OnInit, Optional, ViewChild } from '@angular/core';
+import { Directive, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotEmptyArray, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { Subject } from 'rxjs';
 import { environment } from '@environments/environment';
-import {TableElement} from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   entityName: string;
   filter: Partial<F>;
   showFilter: boolean;
-  allowMultiple: boolean;
+  allowMultipleSelection: boolean;
+  mobile?: boolean;
 }
 
 @Directive()
@@ -23,23 +24,27 @@ export abstract class BaseSelectEntityModal<
   $title = new Subject<string>();
   datasource: EntitiesTableDataSource<T, F, ID>;
 
+  protected readonly modalCtrl: ModalController;
+
   @ViewChild('table', { static: true }) table: AppTable<T, F, ID>;
 
+  @Input() mobile: boolean;
   @Input() showFilter = true;
   @Input() filter: F;
   @Input() entityName: string;
-  @Input() allowMultiple: boolean;
+  @Input() allowMultipleSelection: boolean;
 
   get loading(): boolean {
     return this.table && this.table.loading;
   }
 
   protected constructor(
-    protected viewCtrl: ModalController,
+    protected injector: Injector,
     protected dataType: new() => T,
     protected dataService: IEntitiesService<T, F>,
     @Optional() protected options?: Partial<EntitiesTableDataSourceConfig<T, ID>>
   ) {
+    this.modalCtrl = injector.get(ModalController);
   }
 
   ngOnInit() {
@@ -49,7 +54,8 @@ export abstract class BaseSelectEntityModal<
     if (!this.filter) throw new Error('Missing argument \'filter\'');
 
     // Set defaults
-    this.allowMultiple = toBoolean(this.allowMultiple, false);
+    this.allowMultipleSelection = toBoolean(this.allowMultipleSelection, false);
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.injector.get(LocalSettingsService).mobile;
 
     this.datasource = new EntitiesTableDataSource<T, F, ID>(this.dataType,
       this.dataService,
@@ -82,25 +88,24 @@ export abstract class BaseSelectEntityModal<
   async selectRow(row: TableElement<T>) {
     const table = this.table;
     if (row && table) {
-      if (!this.allowMultiple) {
+      if (!this.allowMultipleSelection) {
         table.selection.clear();
         table.selection.select(row);
         await this.close();
       }
       else {
-        table.selection.select(row);
+        table.selection.toggle(row);
       }
     }
   }
 
   async close(event?: any): Promise<boolean> {
     try {
-      if (this.hasSelection()) {
-        const items = (this.table.selection.selected || [])
-            .map(row => row.currentData)
-            .map(ReferentialRef.fromObject)
-            .filter(isNotNil);
-        this.viewCtrl.dismiss(items);
+      const items = this.table.selectedEntities;
+
+      // Leave, only if there is content
+      if (isNotEmptyArray(items)) {
+        this.modalCtrl.dismiss(items);
       }
       return true;
     } catch (err) {
@@ -110,12 +115,12 @@ export abstract class BaseSelectEntityModal<
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   hasSelection(): boolean {
-    const table = this.table;
-    return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
+    const selectionCount = this.table.selectedEntities?.length || 0;
+    return selectionCount > 0 && (this.allowMultipleSelection || selectionCount === 1);
   }
 
   private async updateTitle(){

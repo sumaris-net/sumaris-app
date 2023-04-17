@@ -12,17 +12,16 @@ export interface IProgressionState {
 
 export class ProgressionModel extends RxState<IProgressionState> {
 
-  private readonly _initialData: Partial<IProgressionState>;
   readonly message$ = this.select('message');
   readonly total$ = this.select('total');
   readonly current$ = this.select('current');
   readonly cancelled$ = this.select('cancelled');
 
-  constructor(private readonly initState?: Partial<IProgressionState>) {
+  constructor(private initState?: Partial<IProgressionState>) {
     super();
     this.set({
       message: '',
-      total: 100,
+      total: 0,
       current: 0,
       cancelled: false,
       ...initState
@@ -72,7 +71,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   reset() {
-    this.set({current: 0, message: '', total: 100, cancelled: false, ...this.initState});
+    this.set({current: 0, message: '', total: 0, cancelled: false, ...this.initState});
   }
 
   cancel() {

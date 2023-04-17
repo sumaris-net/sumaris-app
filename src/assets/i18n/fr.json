@@ -11,6 +11,7 @@
     "BTN_BACKWARD": "Reculer",
     "BTN_BURST_INPUT": "Mode rafale",
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
+    "BTN_COPY": "Copier",
     "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
     "BTN_COMPACT_ROWS": "Compacter les lignes",
@@ -440,7 +441,7 @@
     "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
-    "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
+    "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
@@ -1734,6 +1735,7 @@
     },
     "PMFM": {
       "TAB_GENERAL": "Détails",
+      "USE_DEFAULT_QUALITATIVES_VALUES": "Toutes les valeurs issues du paramètre",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type",
       "MIN_VALUE": "Valeur min",
@@ -1894,7 +1896,7 @@
       "PRIVILEGE": "Privilège"
     },
     "OPTIONS": {
-      "EXTRACTION_FORMATS": "Extraction > Formats actifs:",
+      "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
@@ -2843,6 +2845,7 @@
   "INFO": {
     "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronisation <b>terminée avec succès</b> !<br/>Les données ont bien été recues par le serveur.",
+    "COPY_SUCCEED": "Copier avec succès !",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
     "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !",

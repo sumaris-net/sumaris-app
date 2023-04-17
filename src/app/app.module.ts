@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -10,7 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
-  APP_CONFIG_OPTIONS,
+  APP_CONFIG_OPTIONS, APP_DEBUG_DATA_SERVICE,
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
@@ -18,9 +18,11 @@ import {
   APP_LOCAL_SETTINGS,
   APP_LOCAL_SETTINGS_OPTIONS,
   APP_LOCAL_STORAGE_TYPE_POLICIES,
-  APP_LOCALES,
+  APP_LOCALES, APP_LOGGING_SERVICE,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
+  APP_PROGRESS_BAR_SERVICE,
+  APP_SETTINGS_MENU_ITEMS,
   APP_STORAGE,
   APP_TESTING_PAGES,
   APP_USER_EVENT_SERVICE,
@@ -32,16 +34,19 @@ import {
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   JobModule,
-  LocalSettings, LocalSettingsOptions,
-  MenuItem, APP_SETTINGS_MENU_ITEMS,
+  LocalSettings,
+  LocalSettingsOptions, LoggingService,
+  MenuItem,
   MenuOptions,
+  ProgressBarService,
+  ProgressInterceptor,
   SOCIAL_TESTING_PAGES,
   StorageService,
   TestingPage,
   UserEventModule
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import {HTTP_INTERCEPTORS, HttpClient, HttpClientModule} from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -72,14 +77,12 @@ import { ApolloModule } from 'apollo-angular';
 import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
-import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
-import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
-import {TripService} from '@app/trip/services/trip.service';
-import {ObservedLocationService} from '@app/trip/services/observed-location.service';
+import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
+import { TripService } from '@app/trip/services/trip.service';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { DevicePositionService } from '@app/data/services/device-position.service';
-import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.module';
+
 @NgModule({
   declarations: [
     AppComponent
@@ -200,9 +203,13 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 
+    // Logging
+    {provide: APP_LOGGING_SERVICE, useClass: LoggingService},
+
     // User event
     {provide: UserEventService, useClass: UserEventService},
     {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
+    {provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService},
 
     // Job
     {provide: JobProgressionService, useClass: JobProgressionService},
@@ -397,8 +404,7 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
-        ...TRIP_TESTING_PAGES,
-        ...ENTITIES_STORAGE_EXPLORER,
+        ...TRIP_TESTING_PAGES
       ]},
 
     // Custom identicon style

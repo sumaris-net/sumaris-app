@@ -11,6 +11,7 @@
     "BTN_BACKWARD": "Backward",
     "BTN_BURST_INPUT": "Burst mode",
     "BTN_BURST_INPUT_HELP": "Enable burst mode",
+    "BTN_COPY": "Copy",
     "BTN_CLEAR": "Clear",
     "BTN_CLOSE": "Close",
     "BTN_COMPACT_ROWS": "Compact rows",
@@ -1220,6 +1221,7 @@
     }
   },
   "OBSERVED_LOCATION": {
+    "TITLE": "Occasion",
     "NEW": {
       "TITLE": "New occasion"
     },
@@ -1727,6 +1729,7 @@
     },
     "PMFM": {
       "TAB_GENERAL": "Details",
+      "USE_DEFAULT_QUALITATIVES_VALUES": "All values from the parameter",
       "TAB_QUALITATIVE_VALUE": "Qualitative values",
       "TYPE": "Type",
       "MIN_VALUE": "Min value",
@@ -1887,6 +1890,7 @@
       "PRIVILEGE": "Privilege"
     },
     "OPTIONS": {
+      "EXTRACTION_FORMATS": "Extraction > Available formats:",
       "I18N_SUFFIX" : "Thematic dictionary",
       "I18N_SUFFIX_LEGACY" : "By default",
       "I18N_SUFFIX_SAMPLING" : "Biological parameter",
@@ -2399,14 +2403,15 @@
     },
     "FORMAT": {
       "APASE": {
-        "TITLE": "Raw trips (APASE v{{version}})"
+        "TITLE": "Raw trips (APASE v{{version}})",
+        "NAME": "Trawl selectivity"
       },
       "RDB": {
-        "TITLE": "Raw trips (RDB v1.3)",
+        "TITLE": "Raw trips (RDB v{{version}})",
         "NAME": "Regional DataBase (ICES)"
       },
       "COST": {
-        "TITLE": "Raw trips (COST v1.4)",
+        "TITLE": "Raw trips (COST v{{version}})",
         "NAME": "COST"
       },
       "FREE": {
@@ -2429,7 +2434,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Raw trips (SUMARiS v1.0)",
+        "TITLE": "Raw trips (SUMARiS v{{version}})",
         "NAME": "Survival tests"
       },
       "RJB_TRIP": {
@@ -2777,7 +2782,8 @@
   },
   "INFO": {
     "ALERT_HEADER": "Information",
-    "SYNCHRONIZATION_SUCCEED": "Synchronization completed!<br/> The data has been received by the server.",
+    "SYNCHRONIZATION_SUCCEED": "Synchronization <b>completed successfully</b>!<br/>The data has been received by the server.",
+    "COPY_SUCCEED": "Copy successfully!",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
     "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",

@@ -53,13 +53,40 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
 
   @Input() canEdit = false;
   @Input() canDelete = false;
+  @Input() showToolbar = true;
+  @Input() showPaginator = false;
   @Input() hasRankOrder: boolean;
   @Input() useSticky = false;
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
+  @Input()
+  set showSelectColumn(value: boolean) {
+    this.setShowColumn('select', value);
+  }
+  get showSelectColumn(): boolean {
+    return this.getShowColumn('select');
+  }
 
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);
   }
+  get showUpdateDateColumn(): boolean {
+    return this.getShowColumn('updateDate');
+  }
 
+  @Input() set showCommentsColumn(value: boolean) {
+    this.setShowColumn('comments', value);
+  }
+  get showCommentsColumn(): boolean {
+    return this.getShowColumn('comments');
+  }
   protected popoverController: PopoverController;
 
   constructor(

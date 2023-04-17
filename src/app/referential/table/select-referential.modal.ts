@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { changeCaseToUnderscore, ReferentialRef } from '@sumaris-net/ngx-components';
+import { TableElement } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { BaseSelectEntityModal, IBaseSelectEntityModalOptions } from './base-select-entity.modal';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntityModalOptions<ReferentialRef, ReferentialRefFilter>> {
   filter: Partial<ReferentialRefFilter>;
+  showLevelFilter?: boolean;
 }
 
 @Component({
@@ -17,12 +18,14 @@ export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntit
 export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
   implements OnInit, ISelectReferentialModalOptions {
 
+  @Input() showLevelFilter: boolean = true;
+
   constructor(
-    protected viewCtrl: ModalController,
+    protected injector: Injector,
     protected dataService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(viewCtrl, ReferentialRef, dataService);
+    super(injector, ReferentialRef, dataService);
   }
 
   ngOnInit() {
@@ -34,9 +37,7 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
     if (this.entityName) {
       this.filter.entityName = this.entityName;
     }
-    if (!this.filter.entityName) {
-      throw new Error('Missing entityName');
-    }
+    if (!this.filter.entityName) throw new Error('Missing entityName');
   }
 
   protected async computeTitle(): Promise<string> {
@@ -45,5 +46,9 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected onRowClick(row: TableElement<ReferentialRef>) {
+    this.table.selection.toggle(row);
   }
 }

@@ -15,10 +15,10 @@ cd ${PROJECT_DIR}
 echo "Updating Ionic..."
 npm install -g ionic@latest
 
-echo "Updating Cordova..."
-npm update -g cordova@latest
+echo "Updating Capacitor..."
+npm update -g capacitor@latest
 [[ $? -ne 0 ]] && exit 1
 
-echo "Updating Cordova plugins..."
-ionic cordova platform update android --save
+echo "Updating Capacitor plugins..."
+ionic capacitor platform update android --save
 [[ $? -ne 0 ]] && exit 1

@@ -81,106 +81,116 @@
   </ion-grid>
 </form>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
 
-  <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </mat-cell>
-  </ng-container>
+<div class="table-container"
+     [class.has-filter]="showFilter"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator">
 
-  <!-- Id column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
-  </ng-container>
+  <table mat-table
+         [dataSource]="dataSource"
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
+         [trackBy]="trackByFn"
+         matSort matSortDisableClear>
 
-  <!-- Label column -->
-  <ng-container matColumnDef="label">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.LABEL</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.label}}</ion-label>
-    </mat-cell>
-  </ng-container>
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>
 
-  <!-- Name column -->
-  <ng-container matColumnDef="name">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.NAME</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.name}}</ion-label>
-    </mat-cell>
-  </ng-container>
+    <!-- Id column -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.currentData?.id }}</td>
+    </ng-container>
+
+    <!-- Label column -->
+    <ng-container matColumnDef="label">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.LABEL</span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{row.currentData.label}}</ion-label>
+      </td>
+    </ng-container>
+
+    <!-- Name column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>
+        <span translate>REFERENTIAL.NAME</span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{row.currentData.name}}</ion-label>
+      </td>
+    </ng-container>
 
 
-  <!-- Description column -->
-  <ng-container matColumnDef="description">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.DESCRIPTION</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.description}}</ion-label>
-    </mat-cell>
-  </ng-container>
+    <!-- Description column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>
+        <span translate>REFERENTIAL.DESCRIPTION</span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{row.currentData.description}}</ion-label>
+      </td>
+    </ng-container>
 
-  <!-- Status column  -->
-  <ng-container matColumnDef="status">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.STATUS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text>
-        <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId]?.icon"></ion-icon>
-        <span>{{ statusById[row.currentData.statusId]?.label | translate }}</span>
-      </ion-text>
-    </mat-cell>
-  </ng-container>
+    <!-- Status column  -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.STATUS</span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-text>
+          <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId]?.icon"></ion-icon>
+          <span>{{ statusById[row.currentData.statusId]?.label | translate }}</span>
+        </ion-text>
+      </td>
+    </ng-container>
 
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-      <mat-icon color="primary" class="comment"
-                *ngIf="row.currentData.comments"
-                [title]="row.currentData.comments"></mat-icon>
-    </mat-cell>
-  </ng-container>
+    <!-- Comment column -->
+    <ng-container matColumnDef="comments">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+        <span translate>REFERENTIAL.COMMENTS</span>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        <mat-icon color="primary" class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"></mat-icon>
+      </td>
+    </ng-container>
 
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="cdk-visually-hidden">
-    </mat-cell>
-  </ng-container>
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
+      </th>
+      <td mat-cell *matCellDef="let row" class="cdk-visually-hidden">
+      </td>
+    </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           class="mat-row-disabled"
-           (click)="clickRow($event, row)"></mat-row>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+             class="mat-row-disabled"
+             (click)="clickRow($event, row)"></tr>
 
-</mat-table>
+  </table>
+</div>
 
 <!-- Paginator  -->
-<ion-row class="ion-no-padding">
-  <ion-col></ion-col>
-  <ion-col class="ion-no-padding" size="auto">
-    <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-    </mat-paginator>
-  </ion-col>
-</ion-row>
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="pageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 

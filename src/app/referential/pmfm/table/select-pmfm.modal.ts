@@ -1,9 +1,8 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {PmfmService} from "../../services/pmfm.service";
-import {Pmfm} from "../../services/model/pmfm.model";
-import {BaseSelectEntityModal} from "../../table/base-select-entity.modal";
-import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { PmfmService } from '../../services/pmfm.service';
+import { Pmfm } from '../../services/model/pmfm.model';
+import { BaseSelectEntityModal } from '../../table/base-select-entity.modal';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 export interface ISelectPmfmModalOptions {
   filter?: Partial<PmfmFilter>;
@@ -20,11 +19,11 @@ export interface ISelectPmfmModalOptions {
 export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> implements OnInit, ISelectPmfmModalOptions {
 
   constructor(
-      protected viewCtrl: ModalController,
+      protected injector: Injector,
       protected pmfmService: PmfmService,
       protected cd: ChangeDetectorRef,
   ) {
-    super(viewCtrl, Pmfm, pmfmService, {
+    super(injector, Pmfm, pmfmService, {
       watchAllOptions: {
         withDetails: true // Force to use PmfmFragment
       }

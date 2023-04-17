@@ -5,10 +5,14 @@
           class="ion-no-padding">
   <ion-label class="ion-text-wrap" *rxLet="progression.total$ as total">
     <h4 class="computed" *rxIf="progression.message$; let message">
-      {{message|translate}}&nbsp;{{current.toFixed(0)}}{{total === 100 ? '%' : total}}
+      {{message|translate}}&nbsp;
+      <span *ngIf="total > 0">
+        ({{(100 * current / total).toFixed(0)}}%)
+      </span>
     </h4>
     <p>
-      <ion-progress-bar [value]="current / total"></ion-progress-bar>
+      <ion-progress-bar [type]="total && 'determinate' || 'indeterminate'"
+                        [value]="current / total"></ion-progress-bar>
     </p>
   </ion-label>
 
@@ -16,7 +20,7 @@
               *ngIf="cancellable"
               [disabled]="progression.cancelled$|async"
               [title]="'COMMON.BTN_CANCEL'|translate"
-              (click)="progression.cancel()">
+              (click)="cancel($event)">
     <ion-icon slot="icon-only" name="close"></ion-icon>
   </ion-button>
 </ion-item>

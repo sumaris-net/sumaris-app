@@ -1,6 +1,6 @@
 import { Inject, Injectable, Injector } from '@angular/core';
 import {
-  AccountService,
+  AccountService, APP_LOGGING_SERVICE,
   BaseEntityGraphqlQueries,
   BaseEntityService,
   ConfigService,
@@ -10,7 +10,7 @@ import {
   EntitiesStorage, EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
-  GraphqlService,
+  GraphqlService, ILogger, ILoggingService,
   isNil, isNotEmptyArray,
   isNotNil,
   LoadResult,
@@ -60,7 +60,7 @@ export const DevicePositionFragment = {
     recorderPerson {
       ...LightPersonFragment
     }
-  }`,
+  }`
 }
 
 const Queries: BaseEntityGraphqlQueries = {
@@ -71,8 +71,8 @@ const Queries: BaseEntityGraphqlQueries = {
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.referential}
-  `,
+  ${DataCommonFragments.referential}`,
+
   loadAllWithTotal: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
     data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
       ...DevicePositionFragment
@@ -81,16 +81,7 @@ const Queries: BaseEntityGraphqlQueries = {
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.referential}
-  `,
-  // load: gql`query DevicePosition($id: Int!) {
-  //   data: devicePosition(id: $id) {
-  //     ...DevicePositionFragment
-  //   }
-  // }
-  // ${DevicePositionFragment}
-  // ${DataCommonFragments.lightPerson}
-  // `,
+  ${DataCommonFragments.referential}`,
 };
 const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   save: gql`mutation saveDevicePosition($data:DevicePositionVOInput!){
@@ -119,7 +110,8 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
 @Injectable()
 export class DevicePositionService extends BaseEntityService<DevicePosition, DevicePositionFilter, number>  {
 
-  protected loading = false;
+  protected readonly _logger: ILogger;
+  protected updatingPosition: boolean;
   protected timerPeriodMs: number;
   protected settingsPositionTimeoutMs: number;
   protected mobile: boolean;
@@ -141,7 +133,8 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     protected entities: EntitiesStorage,
     protected alertController: AlertController,
     protected translate: TranslateService,
-    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[]
+    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[],
+    @Inject(APP_LOGGING_SERVICE) private loggingService: ILoggingService
   ) {
     super(
       graphql,
@@ -154,6 +147,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
       }
     )
     this._logPrefix = '[device-position] ';
+    this._logger = loggingService.getLogger('device-position');
     this._debug = !environment.production;
   }
 
@@ -255,7 +249,8 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
             await this.platform.ready();
             if (failed) {
               do {
-                console.warn(this._logPrefix + 'Geolocation not allowed. Opening alter modal');
+                console.warn(this._logPrefix + 'Geolocation not allowed. Opening a blocking modal');
+                this._logger?.warn('startTracking', 'Geolocation not allowed. Opening a blocking modal');
                 const alert = await this.alertController.create({
                   id: alertId,
                   message: this.translate.instant('DEVICE_POSITION.ERROR.NEED_GEOLOCATION'),
@@ -461,12 +456,24 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     }
   }
 
-  protected async updateLastPosition(): Promise<boolean> {
+  protected async updateLastPosition(timeout?: number): Promise<boolean> {
+
+    // Skip if already updating
+    if (this.updatingPosition) {
+      if (this._debug) console.debug(`${this._logPrefix}Skip device position update (already running)`);
+      // DEBUG
+      //this._logger?.debug('updateLastPosition', 'Skip device position update (already running)');
+      return true;
+    }
+
+    if (this._debug) console.debug(`${this._logPrefix}Updating device position...`);
+    // DEBUG
+    //this._logger?.debug('updateLastPosition', 'Updating device location...');
 
     try {
-      if (this._debug) console.log(`${this._logPrefix}Watching device position...`);
+      this.updatingPosition = true;
 
-      const timeout = this.settingsPositionTimeoutMs ? Math.min(this.settingsPositionTimeoutMs, this.timerPeriodMs) : this.timerPeriodMs;
+      timeout = timeout || (this.settingsPositionTimeoutMs ? Math.min(this.settingsPositionTimeoutMs, this.timerPeriodMs) : this.timerPeriodMs);
       const position = await PositionUtils.getCurrentPosition(this.platform, {
         timeout,
         maximumAge: timeout * 2
@@ -489,13 +496,23 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     }
 
     catch (e) {
-      // If required bu failed (e.g. due to leak of geolocation permission)
-      if (this.enableTracking && e.code == 1) {
-        this.trackingUpdatePositionFailed.next(true);
+      // If required but failed (e.g. due to leak of geolocation permission)
+      if (this.enableTracking && isNotNil(e.code)) {
+        switch (+e.code) {
+          case GeolocationPositionError.PERMISSION_DENIED:
+            // DEBUG
+            //this._logger?.error('updateLastPosition', `Cannot get current position: PERMISSION_DENIED`);
+            this.trackingUpdatePositionFailed.next(true);
+            return false;
+        }
       }
+
       // Other errors case
-      else throw e;
-      return false;
+      this._logger?.error('updateLastPosition', `Cannot get current position: ${e?.message || e}`);
+      throw e;
+    }
+    finally {
+      this.updatingPosition = false;
     }
   }
 

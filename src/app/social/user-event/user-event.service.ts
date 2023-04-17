@@ -4,7 +4,7 @@ import {
   AccountService,
   Entity,
   EntityServiceLoadOptions, ErrorCodes, fromDateISOString,
-  GraphqlService,
+  GraphqlService, IDebugDataService,
   IEntityService,
   isEmptyArray,
   isNotNil,
@@ -106,7 +106,7 @@ const CacheKeys = {
 @Injectable()
 export class UserEventService extends
   AbstractUserEventService<UserEvent, UserEventFilter>
-  implements IEntityService<UserEvent, number> {
+  implements IEntityService<UserEvent, number>, IDebugDataService {
 
   constructor(
     protected graphql: GraphqlService,
@@ -278,7 +278,7 @@ export class UserEventService extends
       }
 
       // Send the message
-      const userEvent = await this.sendDataForDebug({
+      const userEvent = await this.sendDataAsEvent({
         message,
         error: opts.error || undefined,
         context: this.convertObjectToString(context)
@@ -295,11 +295,8 @@ export class UserEventService extends
     }
   }
 
-  sendDataForDebug(data: any): Promise<UserEvent> {
-    const userEvent = new UserEvent();
-    userEvent.type = UserEventTypeEnum.DEBUG_DATA;
-    userEvent.content = data;
-    return this.save(userEvent);
+  async sendDebugData(data: any){
+    await this.sendDataAsEvent(data);
   }
 
   async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
@@ -318,7 +315,6 @@ export class UserEventService extends
 
 
   /* -- protected methods -- */
-
   protected defaultFilter(): UserEventFilter {
     const target = super.defaultFilter();
 
@@ -455,6 +451,13 @@ export class UserEventService extends
         return JSON.stringify(data);
       }
     }
+  }
+
+  protected sendDataAsEvent(data: any): Promise<UserEvent> {
+    const userEvent = new UserEvent();
+    userEvent.type = UserEventTypeEnum.DEBUG_DATA;
+    userEvent.content = data;
+    return this.save(userEvent);
   }
 
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
