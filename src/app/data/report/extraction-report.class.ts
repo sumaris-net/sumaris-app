@@ -33,6 +33,4 @@ export abstract class AppExtractionReport<
 
   protected abstract load(filter: ExtractionFilter, opts?: any): Promise<T>;
 
-  protected abstract loadFromRoute(opts?: any): Promise<T>;
-
 }

@@ -7,16 +7,17 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AppErrorWithDetails,
   DateFormatService,
-  firstFalsePromise, isNil,
+  firstFalsePromise,
   isNotNil,
   isNotNilOrBlank, isNumber,
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
-  WaitForOptions
+  WaitForOptions, waitForTrue
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { ModalController } from '@ionic/angular';
+import {APP_BASE_HREF} from '@angular/common';
 
 export interface BaseReportOptions {
   pathIdAttribute?: string;
@@ -36,6 +37,7 @@ export abstract class AppBaseReport<
   protected readonly settings: LocalSettingsService;
   protected readonly modalCtrl: ModalController;
 
+  protected readonly injector: Injector;
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
   protected readonly programRefService: ProgramRefService;
@@ -57,9 +59,10 @@ export abstract class AppBaseReport<
     suffix: '',
   }
 
-  $defaultBackHref = new Subject<string>();
-  $title = new Subject<string>();
+  $defaultBackHref = new BehaviorSubject<string>('');
+  $title = new BehaviorSubject<string>('');
 
+  @Input() mobile: boolean;
   @Input() modal: boolean;
   @Input() showError = true;
   @Input() showToolbar = true;
@@ -67,10 +70,12 @@ export abstract class AppBaseReport<
 
   @Input() data: T;
   @Input() stats: S = <S>{};
+  @Input() embedded = false;
 
   @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
+  get loading(): boolean { return this.loadingSubject.value; }
 
   get modalName(): string {
     return this.constructor.name;
@@ -84,7 +89,12 @@ export abstract class AppBaseReport<
     injector: Injector,
     @Optional() options?: BaseReportOptions,
   ) {
-    console.debug(`[${this.constructor.name}.constructor]`, arguments);
+    if (!environment.production) {
+      this.debug = true;
+    }
+    if (this.debug) console.debug(`[${this.constructor.name}.constructor]`, arguments);
+
+    this.injector = injector;
 
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
@@ -95,6 +105,8 @@ export abstract class AppBaseReport<
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
     this.programRefService = injector.get(ProgramRefService);
+
+    this.mobile = this.settings.mobile;
 
     this._pathParentIdAttribute = options?.pathParentIdAttribute;
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
@@ -120,12 +132,14 @@ export abstract class AppBaseReport<
   async start(opts?: any) {
     console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
+    this.markAsReady();
     try {
       // Load data
       this.data = await this.ngOnStart(opts);
 
       this.$defaultBackHref.next(this.computeDefaultBackHref(this.data, this.stats));
       this.$title.next(await this.computeTitle(this.data, this.stats));
+
       this.revealOptions = this.computeSlidesOptions(this.data, this.stats);
 
       this.markAsLoaded();
@@ -136,6 +150,7 @@ export abstract class AppBaseReport<
     } catch (err) {
       console.error(err);
       this.setError(err);
+      this.markAsLoaded();
     }
   };
 
@@ -154,6 +169,8 @@ export abstract class AppBaseReport<
   }
 
   protected abstract ngOnStart(opts: any): Promise<T>;
+
+  protected abstract loadFromRoute(opts?: any): Promise<T>;
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeTitle(data: T, stats: S): Promise<string>;
@@ -194,7 +211,7 @@ export abstract class AppBaseReport<
     console.debug(`[${this.constructor.name}.updateView]`);
 
     this.cd.detectChanges();
-    await this.reveal.initialize();
+    if (!this.embedded) await this.reveal.initialize();
   }
 
   markAsReady() {
@@ -223,10 +240,15 @@ export abstract class AppBaseReport<
     }
   }
 
-  protected async waitIdle(opts: WaitForOptions) {
+  async waitIdle(opts: WaitForOptions) {
     console.debug(`[${this.constructor.name}.waitIdle]`);
     if (this.loaded) return;
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
+  }
+
+  async ready(opts?: WaitForOptions): Promise<void> {
+    if (this.readySubject.value) return;
+    await waitForTrue(this.readySubject, opts);
   }
 
   setError(err: string | AppErrorWithDetails, opts?: {
@@ -257,4 +279,5 @@ export abstract class AppBaseReport<
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
   }
+
 }

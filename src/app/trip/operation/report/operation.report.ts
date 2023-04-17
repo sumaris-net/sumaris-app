@@ -6,6 +6,19 @@ import { OperationService } from '@app/trip/services/operation.service';
 import { TripService } from '@app/trip/services/trip.service';
 
 import moment from 'moment';
+import {Function} from '@app/shared/functions';
+import {Program} from '@app/referential/services/model/program.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+
+export interface OperationStats {
+  // sampleCount: number;
+  // images?: Image[];
+  // pmfms: IPmfm[];
+  program: Program;
+  // weightDisplayedUnit: WeightUnitSymbol;
+  i18nSuffix: string;
+  taxonGroup: TaxonGroupRef;
+}
 
 @Component({
   selector: 'app-operation-report',
@@ -16,8 +29,10 @@ export class OperationReport extends AppDataEntityReport<Operation> {
   private tipService: TripService;
   private operationService: OperationService;
 
-  constructor(injector: Injector) {
-    super(injector);
+  constructor(
+    injector: Injector,
+  ) {
+    super(injector, Operation, {});
     this.tipService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
   }
@@ -64,4 +79,31 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return titlePrefix + title;
   }
 
+  protected async computeStats(data: Operation, opts?: {
+    getSubCategory?: Function<any, string>;
+    stats?: OperationStats;
+    cache?: boolean;
+  }): Promise<OperationStats> {
+    const stats = opts?.stats || <OperationStats>{};
+    // stats.program = await this.programRefService.loadByLabel(this.parent.program.label);
+
+    // Compute agg data
+    stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
+    // stats.weightDisplayedUnit = stats.program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+
+    // let pmfm = await this.programRefService.loadProgramPmfms(stats.program.label, {
+    //   acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+    //   taxonGroupId: stats.taxonGroup?.id
+    // });
+    // stats.pmfms = (stats.weightDisplayedUnit)
+    //   ? PmfmUtils.setWeightUnitConversions(pmfm, this.weightDisplayedUnit)
+    //   : pmfm;
+
+    stats.i18nSuffix = stats.program.getProperty(ProgramProperties.I18N_SUFFIX);
+
+    // TODO This is not the place for this
+    this.i18nContext.suffix = stats.i18nSuffix === 'legacy' ? '' : stats.i18nSuffix;
+
+    return stats;
+  }
 }

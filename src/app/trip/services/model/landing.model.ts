@@ -36,9 +36,10 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
   tripId: number = null;
+  observedLocationId: number = null;
 
   trip: IEntity<any> = null;
-  observedLocationId: number = null;
+  observedLocation: IEntity<any> = null;
   observers: Person[] = null;
   samples: Sample[] = null;
   samplesCount?: number = null;

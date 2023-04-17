@@ -29,7 +29,7 @@
     <button mat-menu-item
             (click)="showSharePopover($event)"
             [disabled]="(loadingSubject|async) || network.offline">
-      <ion-label translate>COMMON.SHARE.BTN_SHARE_DOTS</ion-label>
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
     </button>
 
     <!-- Download button -->
@@ -38,7 +38,7 @@
             download="true"
             [disabled]="loadingSubject|async">
       <mat-icon slot="start">download</mat-icon>
-      <ion-label translate>FILE.JSON.BTN_DOWNLOAD_HELP</ion-label>
+      <ion-label>{{ 'FILE.JSON.BTN_DOWNLOAD_HELP'|translate }}</ion-label>
     </button>
   </mat-menu>
 
@@ -63,7 +63,7 @@
             - {{'AUCTION_CONTROL.REPORT.CONTROLLED_SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
 
             <div *ngIf="data.samples|isArrayLength: {lessThan: 6}">              &nbsp;
-              <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: data.samples, pmfms: pmfms}">
+              <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: data.samples, pmfms: stats.pmfms}">
               </ng-container>
             </div>
           </section>
@@ -72,7 +72,7 @@
           <section *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
             <h3>{{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}</h3>
 
-            <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+            <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
           </section>
         </section>
 
@@ -102,7 +102,7 @@
              markdown ngPreserveWhitespaces>
       ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name || ''}} {{index|paginationToString:count:true}}
       {{'LANDING.REPORT.DATE_TIME'|translate}} {{data.dateTime|dateFormat: {time: true} }}
-      <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+      <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
     </section>
     <section *ngFor="let images of (stats.images | splitArrayInChunks: 6); index as index; count as count">
       <ng-container *ngTemplateOutlet="imagesTable; context: {$implicit: images, count: 3}"></ng-container>

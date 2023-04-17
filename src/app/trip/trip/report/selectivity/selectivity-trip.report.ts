@@ -39,7 +39,6 @@ export interface SpeciesWeightStats {
     [subCategory: string]: SubCategoryWeightStats;
   }
 }
-
 export interface WeightStats {
   catchCategories: {
     [catchCategory: string]: {

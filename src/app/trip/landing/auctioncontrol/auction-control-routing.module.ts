@@ -25,7 +25,7 @@ const routes: Routes = [
       },
       {
         path: 'report',
-        loadChildren: () => import('./report/auction-control-report-routing.module').then(m => m.AutionControlReportRoutingModule)
+        loadChildren: () => import('./report/auction-control-report-routing.module').then(m => m.AuctionControlReportRoutingModule)
       }
     ]
   }
