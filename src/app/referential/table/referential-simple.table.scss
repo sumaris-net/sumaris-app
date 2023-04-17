@@ -1,13 +1,9 @@
 
 .table-container {
-  --table-filter-height: 0;
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-filter-height) - var(--table-paginator-height, 0));
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-paginator-height, 0px));
 
-  &.has-filter {
-    --table-filter-height: 81.5px;
-  }
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
