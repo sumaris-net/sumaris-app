@@ -1,4 +1,4 @@
-import { Inject, Injectable, Injector } from '@angular/core';
+import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import {
   AccountService, APP_LOGGING_SERVICE,
   BaseEntityGraphqlQueries,
@@ -134,7 +134,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     protected alertController: AlertController,
     protected translate: TranslateService,
     @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[],
-    @Inject(APP_LOGGING_SERVICE) private loggingService: ILoggingService
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(
       graphql,
