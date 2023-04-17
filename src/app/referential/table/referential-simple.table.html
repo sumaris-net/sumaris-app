@@ -44,7 +44,10 @@
 
 </mat-menu>
 
-<div #tableContainer class="table-container">
+<div #tableContainer class="table-container"
+     [class.has-filter]="showFilter"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator">
 
   <table mat-table matSort matSortDisableClear
          [dataSource]="dataSource"
@@ -251,6 +254,14 @@
     </ion-item>
   </ng-template>
 </div>
+
+<!-- Paginator  -->
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="pageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
 
 <!-- Add Button
 <ion-fab vertical="bottom" horizontal="end"

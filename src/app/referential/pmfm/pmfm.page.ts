@@ -1,32 +1,41 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, UntypedFormGroup} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEntityEditor,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   FormFieldDefinitionMap,
-  HistoryPageReference, isEmptyArray,
-  isNil, isNilOrBlank, isNotEmptyArray, joinProperties,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  joinProperties,
   joinPropertiesPath,
-  MatAutocompleteFieldConfig, Referential, ReferentialFilter, ReferentialRef,
+  MatAutocompleteFieldConfig,
+  Referential,
+  ReferentialFilter,
+  ReferentialRef,
   referentialToString,
-  ReferentialUtils,
+  ReferentialUtils
 } from '@sumaris-net/ngx-components';
-import {ReferentialForm} from '../form/referential.form';
-import {PmfmValidatorService} from '../services/validator/pmfm.validator';
-import {Pmfm} from '../services/model/pmfm.model';
-import {Parameter} from '../services/model/parameter.model';
-import {PmfmService} from '../services/pmfm.service';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {ParameterService} from '../services/parameter.service';
-import {filter, mergeMap} from 'rxjs/operators';
+import { ReferentialForm } from '../form/referential.form';
+import { PmfmValidatorService } from '../services/validator/pmfm.validator';
+import { Pmfm } from '../services/model/pmfm.model';
+import { Parameter } from '../services/model/parameter.model';
+import { PmfmService } from '../services/pmfm.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ParameterService } from '../services/parameter.service';
+import { filter, mergeMap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
-import {environment} from '@environments/environment';
-import {ISelectReferentialModalOptions, SelectReferentialModal} from '@app/referential/table/select-referential.modal';
-import {IonCheckbox, ModalController} from '@ionic/angular';
-import {SimpleReferentialTable} from '@app/referential/table/referential-simple.table';
+import { environment } from '@environments/environment';
+import { ISelectReferentialModalOptions, SelectReferentialModal } from '@app/referential/table/select-referential.modal';
+import { IonCheckbox, ModalController } from '@ionic/angular';
+import { SimpleReferentialTable } from '@app/referential/table/referential-simple.table';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { UnitIds, UnitLabel } from '@app/referential/services/model/model.enum';
 
 @Component({
   selector: 'app-pmfm',
@@ -195,7 +204,20 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
           filter(ReferentialUtils.isNotEmpty),
           mergeMap(p => this.parameterService.load(p.id))
         )
-      .subscribe(p => this.$parameter.next(p))
+      .subscribe(p => {
+        // If qualitative value: use 'None' unit
+        if (p.isQualitative) {
+            this.form.get('unit').setValue({id: UnitIds.NONE})
+        }
+        else {
+          // Remove default unit (added just before)
+          const unit = this.form.get('unit').value;
+          if (unit && (unit.id === UnitIds.NONE && !unit.label)) {
+            this.form.get('unit').setValue(null, {emitEvent: false});
+          }
+        }
+        this.$parameter.next(p);
+      })
     );
   }
 
@@ -239,8 +261,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     this.form.patchValue(json, {emitEvent: false});
 
     // qualitativeValues
-    if (isNilOrBlank(this.data.qualitativeValues)) {
-      this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
+    if (isNilOrBlank(data.qualitativeValues)) {
+      this.qualitativeValuesTable.value = data.parameter?.qualitativeValues || [];
       this.btnUseDefaultQualitativeValues.checked = true;
       this.useDefaultQualitativesValues = true;
     } else {
@@ -333,7 +355,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   protected async openSelectReferentialModal(opts?: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
 
     const excludedIds = (this.qualitativeValuesTable.value || []).map(q => q.id);
-    const filter = <Partial<ReferentialFilter>>{
+    const filter = <Partial<ReferentialRefFilter>>{
       entityName: 'QualitativeValue',
       levelId: this.form.get('parameter').value.id,
       excludedIds
@@ -343,9 +365,9 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectReferentialModal,
-      componentProps: {
+      componentProps: <ISelectReferentialModalOptions>{
         ...opts,
-        allowMultiple: true,
+        allowMultipleSelection: true,
         showLevelFilter: false,
         filter
       },
@@ -368,13 +390,13 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     return data;
   }
 
-  protected onDeleteQualitativeValueRow(deletedRows: TableElement<Referential>[]) {
+  protected onAfterDeleteQualitativeValueRows(deletedRows: TableElement<Referential>[]) {
 
     this.markAsDirty();
     if (isEmptyArray(this.qualitativeValuesTable.value)) {
       this.useDefaultQualitativesValues = true;
       this.btnUseDefaultQualitativeValues.checked = true;
-      this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
+      this.qualitativeValuesTable.value = this.data?.parameter?.qualitativeValues || [];
     }
   }
 

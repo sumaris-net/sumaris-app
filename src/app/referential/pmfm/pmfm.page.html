@@ -59,10 +59,10 @@
                           <mat-icon>open_in_new</mat-icon>
                         </button>
                       </ion-col>
-                      <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative">
+                      <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative; let notQualitative">
                         <app-form-field [definition]="fieldDefinitions.unit"
                                         formControlName="unit"
-                                        required>
+                                        [required]="notQualitative">
                         </app-form-field>
                       </ion-col>
                     </ion-row>
@@ -164,7 +164,7 @@
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
         </mat-icon>
         <ion-label translate>REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE</ion-label>
-<!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>-->
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
       </ng-template>
 
       <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
@@ -172,13 +172,14 @@
                                     [canDelete]="!useDefaultQualitativesValues"
                                     [confirmBeforeDelete]="false"
                                     [saveBeforeDelete]="false"
+                                    [showPaginator]="false"
                                     [showSelectColumn]="!useDefaultQualitativesValues"
                                     [hasRankOrder]="false"
                                     [showUpdateDateColumn]="false"
                                     [showCommentsColumn]="false"
                                     [inlineEdition]="false"
                                     (onOpenRow)="onQualitativeValueRowClick($event)"
-                                    (onAfterDeletedRows)="onDeleteQualitativeValueRow($event)"
+                                    (onAfterDeletedRows)="onAfterDeleteQualitativeValueRows($event)"
                                     (onNewRow)="openSelectReferentialModal()">
 
         <ion-item lines="none" matToolbarEnd>

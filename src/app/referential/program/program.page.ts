@@ -392,7 +392,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     if (this.disabled) return; // Skip
 
     const items = await this.openSelectReferentialModal({
-      allowMultiple: true,
+      allowMultipleSelection: true,
       filter: {
         entityName: 'LocationClassification'
       }

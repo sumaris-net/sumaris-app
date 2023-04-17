@@ -3,14 +3,14 @@
                    (cancel)="cancel()"
                    (validate)="close($event)"
                    [showSpinner]="loading"
-                   [canValidate]="!loading && allowMultiple && hasSelection()">
+                   [canValidate]="!loading && allowMultipleSelection && hasSelection()">
 </app-modal-toolbar>
 
 <ion-content class="ion-no-padding" [scrollY]="false">
 
   <!-- main table -->
   <app-pmfms-table #table
-                   [allowMultipleSelection]="allowMultiple"
+                   [allowMultipleSelection]="allowMultipleSelection"
                    (onOpenRow)="selectRow($event)"
                    (onNewRow)="close($event)">
   </app-pmfms-table>
@@ -30,7 +30,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button *ngIf="allowMultiple"
+        <ion-button *ngIf="allowMultipleSelection"
                     [fill]="hasSelection() && 'solid' || 'clear'"
                     [disabled]="!hasSelection()"
                     (click)="close($event)"

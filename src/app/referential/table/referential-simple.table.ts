@@ -54,6 +54,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() showToolbar = true;
+  @Input() showPaginator = false;
   @Input() hasRankOrder: boolean;
   @Input() useSticky = false;
 
