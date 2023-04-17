@@ -461,12 +461,14 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     // Skip if already updating
     if (this.updatingPosition) {
       if (this._debug) console.debug(`${this._logPrefix}Skip device position update (already running)`);
-      this._logger?.debug('updateLastPosition', 'Skip device position update (already running)');
+      // DEBUG
+      //this._logger?.debug('updateLastPosition', 'Skip device position update (already running)');
       return true;
     }
 
     if (this._debug) console.debug(`${this._logPrefix}Updating device position...`);
-    this._logger?.debug('updateLastPosition', 'Updating device location...');
+    // DEBUG
+    //this._logger?.debug('updateLastPosition', 'Updating device location...');
 
     try {
       this.updatingPosition = true;
@@ -498,7 +500,8 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
       if (this.enableTracking && isNotNil(e.code)) {
         switch (+e.code) {
           case GeolocationPositionError.PERMISSION_DENIED:
-            this._logger?.error('updateLastPosition', `Cannot get current position: PERMISSION_DENIED`);
+            // DEBUG
+            //this._logger?.error('updateLastPosition', `Cannot get current position: PERMISSION_DENIED`);
             this.trackingUpdatePositionFailed.next(true);
             return false;
         }
