@@ -347,11 +347,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         ...opts,
         allowMultiple: true,
         showLevelFilter: false,
-        filter: <Partial<ReferentialFilter>>{
-          entityName: 'QualitativeValue',
-          levelId: this.form.get('parameter').value.id,
-          excludedIds
-        }
+        filter
       },
       keyboardClose: true,
       backdropDismiss: false,
@@ -372,13 +368,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     return data;
   }
 
-  protected onDeleteQualitativeValueRow(detetedRows: TableElement<Referential>[]) {
-    this.data.qualitativeValues = this.qualitativeValuesTable.value;
-    if (!this.dirty) {
-      this.markAsDirty();
-      this.save();
-    }
-    if (isEmptyArray(this.data.qualitativeValues)) {
+  protected onDeleteQualitativeValueRow(deletedRows: TableElement<Referential>[]) {
+
+    this.markAsDirty();
+    if (isEmptyArray(this.qualitativeValuesTable.value)) {
       this.useDefaultQualitativesValues = true;
       this.btnUseDefaultQualitativeValues.checked = true;
       this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;

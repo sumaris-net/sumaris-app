@@ -167,19 +167,11 @@
 <!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>-->
       </ng-template>
 
-      <mat-toolbar>
-        <ion-item lines="none">
-          <ion-label>{{'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES'|translate}}</ion-label>
-          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
-        </ion-item>
-      </mat-toolbar>
-
       <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
                                     [canEdit]="!useDefaultQualitativesValues"
                                     [canDelete]="!useDefaultQualitativesValues"
                                     [confirmBeforeDelete]="false"
                                     [saveBeforeDelete]="false"
-                                    [showToolbar]="!useDefaultQualitativesValues"
                                     [showSelectColumn]="!useDefaultQualitativesValues"
                                     [hasRankOrder]="false"
                                     [showUpdateDateColumn]="false"
@@ -188,9 +180,13 @@
                                     (onOpenRow)="onQualitativeValueRowClick($event)"
                                     (onAfterDeletedRows)="onDeleteQualitativeValueRow($event)"
                                     (onNewRow)="openSelectReferentialModal()">
+
+        <ion-item lines="none" matToolbarEnd>
+          <ion-label>{{'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES'|translate}}</ion-label>
+          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
+        </ion-item>
+
       </app-simple-referential-table>
-      <!-- final space-->
-      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
     </mat-tab>
 
   </mat-tab-group>
