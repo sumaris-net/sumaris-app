@@ -17,25 +17,21 @@ import {APP_BASE_HREF} from '@angular/common';
 import {SharedElement} from '@app/social/share/shared-page.model';
 import {Clipboard, ContextService} from '@app/shared/context.service';
 import {hasFlag} from '@app/shared/flags.utils';
-import {ExtractionFilter, ExtractionType} from '@app/extraction/type/extraction-type.model';
-
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
   DATA: 1,
   STATS: 2,
+  I18N_CONTEXT: 4,
 
   // ALL FLAGS
-  ALL: (1+2)
+  ALL: (1+2+4),
 });
-
 
 export interface DataEntityReportOptions extends BaseReportOptions{
   pathIdAttribute?: string,
   pathParentIdAttribute?: string,
 }
-
-
 
 @Directive()
 export abstract class AppDataEntityReport<
@@ -44,6 +40,8 @@ export abstract class AppDataEntityReport<
   S extends IReportStats = IReportStats>
   extends AppBaseReport<T, ID, S>
   implements OnInit, AfterViewInit, OnDestroy {
+
+  protected logPrefix = 'data-entity-report';
 
   protected readonly accountService: AccountService;
   protected readonly router: Router;
@@ -58,7 +56,6 @@ export abstract class AppDataEntityReport<
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    protected statsType: new() => S,
     @Optional() options?: DataEntityReportOptions,
   ) {
     super(injector, options);
@@ -98,14 +95,13 @@ export abstract class AppDataEntityReport<
     const clipboard = this.context.clipboard;
     if (clipboard?.data && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA)) {
       return this.loadFromClipboard(clipboard);
-    }
-    else {
+    } else {
       return this.load(this.id, opts);
     }
   }
 
   protected async load(id: ID, opts?: any): Promise<T> {
-    console.debug(`[${this.constructor.name}.load]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.load]`, arguments);
 
     // Load data
     const data = await this.loadData(id, opts);
@@ -125,13 +121,16 @@ export abstract class AppDataEntityReport<
   }): Promise<S>;
 
   protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<T> {
-    console.debug(`[data-entity-report] Loading data from clipboard:`, clipboard);
+    if (this.debug) console.debug(`[data-entity-report] Loading data from clipboard:`, clipboard);
 
     const source = clipboard.data.data;
     const target = new this.dataType();
     target.fromObject(source);
     if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS)) {
       this.stats = clipboard.data.stats as S;
+    }
+    if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT)) {
+      this.i18nContext = clipboard.data.i18nContext;
     }
     return target;
   }
@@ -194,7 +193,8 @@ export abstract class AppDataEntityReport<
       content: {
         data: {
           data: this.asObject(this.data),
-          stats: this.asStatsObject(this.stats),
+          // TODO
+          // stats: this.asStatsObject(this.stats),
         },
         pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS
       }
@@ -242,14 +242,14 @@ export abstract class AppDataEntityReport<
     return data.asObject(opts);
   }
 
-  protected asStatsObject(source: S, opts?: EntityAsObjectOptions): any {
-    if (typeof source?.asObject === 'function') {
-      return source.asObject(opts);
-    }
-    const stats = new this.statsType();
-    stats.fromObject(source);
-    return stats.asObject(opts);
-  }
+  // protected asStatsObject(source: S, opts?: EntityAsObjectOptions): any {
+  //   if (typeof source?.asObject === 'function') {
+  //     return source.asObject(opts);
+  //   }
+  //   const stats = new this.statsType();
+  //   stats.fromObject(source);
+  //   return stats.asObject(opts);
+  // }
 
   // protected async getReportFileContent(): Promise<ReportFileContent> {
   //   // Wait data loaded

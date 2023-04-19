@@ -17,14 +17,13 @@ export interface SamplingLandingStats extends LandingStats {
   templateUrl: './sampling-landing.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingLandingReport extends LandingReport {
+export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
 
   constructor(
     injector: Injector,
   ) {
     super(
       injector,
-      Landing,
       {
         pathParentIdAttribute: 'observedLocationId',
         pathIdAttribute: 'samplingId',
@@ -54,12 +53,12 @@ export class SamplingLandingReport extends LandingReport {
     stats?: SamplingLandingStats;
     cache?: boolean;
   }): Promise<SamplingLandingStats> {
-    const stats = super.stats(data, opts);
+    const stats = await super.computeStats(data, opts);
     stats.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL];
     return stats;
   }
 
-  protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
+  protected async computeTitle(data: Landing, stats: SamplingLandingStats): Promise<string> {
     const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
       location: data.location?.name || '',
       date: this.dateFormat.transform(data.dateTime, {time: false})
@@ -74,7 +73,7 @@ export class SamplingLandingReport extends LandingReport {
 
 
 
-  protected computeDefaultBackHref(data: Landing, stats?: LandingStats): string {
+  protected computeDefaultBackHref(data: Landing, stats?: SamplingLandingStats): string {
     return `/observations/${this.parent.id}/sampling/${data.id}?tab=1`;
   }
 

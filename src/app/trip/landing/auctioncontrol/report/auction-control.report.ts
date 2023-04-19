@@ -16,14 +16,13 @@ export interface AuctionControlStats extends LandingStats {
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuctionControlReport extends LandingReport<Landing, AuctionControlStats> {
+export class AuctionControlReport extends LandingReport<AuctionControlStats> {
 
   constructor(
     injector: Injector,
   ) {
     super(
       injector,
-      AuctionControlStats,
       {pathIdAttribute: 'controlId'},
     );
   }
@@ -40,7 +39,7 @@ export class AuctionControlReport extends LandingReport<Landing, AuctionControlS
     return stats;
   }
 
-  protected computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
+  protected computeTitle(data: Landing, stats: LandingStats): Promise<string> {
     return this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
       vessel: data.vesselSnapshot.name,
       date: this.dateFormat.transform(data.dateTime),

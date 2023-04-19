@@ -54,10 +54,9 @@ export class LandingStats implements IReportStats {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingReport<
-  T extends Landing = Landing,
   S extends LandingStats = LandingStats
 >
-  extends AppDataEntityReport<any, number, S>
+  extends AppDataEntityReport<Landing, number, S>
   implements AfterViewInit, OnDestroy {
 
 
@@ -84,15 +83,13 @@ export class LandingReport<
 
   constructor(
     protected injector: Injector,
-    statsType?: new() => S,
     @Optional() options?: DataEntityReportOptions,
   ) {
-    super(injector, Landing, statsType || LandingStats, options);
+    super(injector, Landing, options);
     this.network = injector.get(NetworkService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
 
-    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
@@ -110,7 +107,7 @@ export class LandingReport<
     this.destroySubject.next();
   }
 
-  async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<T> {
+  async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
 
     const data = await this.landingService.load(id);
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
@@ -123,7 +120,7 @@ export class LandingReport<
 
     data.observedLocation = await this.computeParent(data);
 
-    return data as T;
+    return data as Landing;
   }
 
   /* -- protected function -- */
@@ -134,7 +131,7 @@ export class LandingReport<
     return target;
   }
 
-  protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
+  protected async computeTitle(data: Landing, stats: S): Promise<string> {
     const titlePrefix = await this.translateContext.get('LANDING.TITLE_PREFIX',
       this.i18nContext.suffix,
       {
@@ -145,11 +142,11 @@ export class LandingReport<
     return titlePrefix + title;
   }
 
-  protected computeDefaultBackHref(data: T, stats: S): string {
+  protected computeDefaultBackHref(data: Landing, stats: S): string {
     return `/observations/${this.parent.id}/landing/${data.id}?tab=1`;
   }
 
-  protected computePrintHref(data: T, stats: S): string {
+  protected computePrintHref(data: Landing, stats: S): string {
     return `/observations/${this.parent.id}/landing/${data.id}/report`;
   }
 

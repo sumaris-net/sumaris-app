@@ -25,10 +25,6 @@ export interface BaseReportOptions {
 
 export interface IReportStats {
   i18nPmfmPrefix?: string;
-  i18nContext?: {
-    prefix: string,
-    suffix: string
-  };
   asObject?: (opts?: any) => any;
   fromObject?: (opts?: any) => void;
 }
@@ -39,6 +35,8 @@ export abstract class AppBaseReport<
   ID = number,
   S extends IReportStats = IReportStats>
   implements OnInit, AfterViewInit, OnDestroy {
+
+  protected logPrefix = 'base-report';
 
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
@@ -63,12 +61,7 @@ export abstract class AppBaseReport<
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
 
-  @Input() set i18nContext(value: {prefix: string, suffix: string}) {
-    this.stats.i18nContext = value
-  }
-  get i18nContext(): {prefix: string, suffix: string} {
-    return this.stats?.i18nContext;
-  }
+
   get i18nPmfmPrefix(): string {
     return this.stats?.i18nPmfmPrefix;
   }
@@ -84,6 +77,10 @@ export abstract class AppBaseReport<
 
   @Input() data: T;
   @Input() stats: S;
+  @Input() i18nContext: {prefix:string, suffix:string} = {
+    prefix: '',
+    suffix: '',
+  };
   @Input() embedded = false;
 
   @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;
@@ -106,7 +103,6 @@ export abstract class AppBaseReport<
     if (!environment.production) {
       this.debug = true;
     }
-    if (this.debug) console.debug(`[${this.constructor.name}.constructor]`, arguments);
 
     this.injector = injector;
 
@@ -153,8 +149,7 @@ export abstract class AppBaseReport<
 
       this.$defaultBackHref.next(this.computeDefaultBackHref(this.data, this.stats));
       this.$title.next(await this.computeTitle(this.data, this.stats));
-
-      this.revealOptions = this.computeSlidesOptions(this.data, this.stats);
+      this.revealOptions = this.computeSlidesOptions();
 
       this.markAsLoaded();
 
@@ -206,8 +201,8 @@ export abstract class AppBaseReport<
     return undefined;
   }
 
-  protected computeSlidesOptions(data: T, stats: S): Partial<IRevealExtendedOptions> {
-    console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
+  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
+    if (this.debug) console.debug(`[${this.logPrefix}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
       // Custom reveal options
@@ -222,45 +217,46 @@ export abstract class AppBaseReport<
   }
 
   async updateView() {
-    console.debug(`[${this.constructor.name}.updateView]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.updateView]`);
 
     this.cd.detectChanges();
     if (!this.embedded) await this.reveal.initialize();
   }
 
   markAsReady() {
-    console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.markAsReady]`, arguments);
     if (!this.readySubject.value) {
       this.readySubject.next(true);
     }
   }
 
   protected markForCheck() {
-    console.debug(`[${this.constructor.name}.markForCheck]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.markForCheck]`);
     this.cd.markForCheck();
   }
 
   protected markAsLoading() {
-    console.debug(`[${this.constructor.name}.markAsLoading]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.markAsLoading]`);
     if (!this.loadingSubject.value) {
       this.loadingSubject.next(true);
     }
   }
 
   protected markAsLoaded() {
-    console.debug(`[${this.constructor.name}.markAsLoaded]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.markAsLoaded]`);
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
     }
   }
 
   async waitIdle(opts: WaitForOptions) {
-    console.debug(`[${this.constructor.name}.waitIdle]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.waitIdle]`);
     if (this.loaded) return;
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
+    if (this.debug) console.debug(`[${this.logPrefix}.ready]`);
     if (this.readySubject.value) return;
     await waitForTrue(this.readySubject, opts);
   }

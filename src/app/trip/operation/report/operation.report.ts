@@ -9,8 +9,9 @@ import moment from 'moment';
 import {Function} from '@app/shared/functions';
 import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {IReportStats} from '@app/data/report/base-report.class';
 
-export interface OperationStats {
+export interface OperationStats extends IReportStats {
   // sampleCount: number;
   // images?: Image[];
   // pmfms: IPmfm[];
@@ -37,7 +38,7 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     this.operationService = injector.get(OperationService);
   }
 
-  protected async load(id: number): Promise<Operation> {
+  protected async loadData(id: number, opts?: any): Promise<Operation> {
     console.debug(`[${this.constructor.name}.loadData]`, arguments);
     const data = await this.operationService.load(id);
     data.trip = await this.tipService.load(data.tripId);
@@ -59,12 +60,13 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return `/trips/${data.trip.id}/operation/${data.id}/report`;
   }
 
-  protected async computeTitle(data: Operation, opts?: { withPrefix?: boolean }): Promise<string> {
-    console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
-    const titlePrefix = (!opts || opts.withPrefix) && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
-      vessel: data.trip && data.trip.vesselSnapshot && (data.trip.vesselSnapshot.exteriorMarking || data.trip.vesselSnapshot.name),
-      departureDateTime: data.trip && data.trip.departureDateTime && this.dateFormat.transform(data.trip.departureDateTime),
-    }).toPromise());
+  protected async computeTitle(data: Operation, stats: OperationStats): Promise<string> {
+    // TODO
+    // console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
+    // const titlePrefix = (!opts || opts.withPrefix) && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
+    //   vessel: data.trip && data.trip.vesselSnapshot && (data.trip.vesselSnapshot.exteriorMarking || data.trip.vesselSnapshot.name),
+    //   departureDateTime: data.trip && data.trip.departureDateTime && this.dateFormat.transform(data.trip.departureDateTime),
+    // }).toPromise());
     let title: string;
     if (this.settings.mobile) {
       const startDateTime = moment().isSame(data.startDateTime, 'day')
@@ -76,7 +78,9 @@ export class OperationReport extends AppDataEntityReport<Operation> {
       const startDateTime = this.dateFormat.transform(data.startDateTime, { time: true });
       title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE', { startDateTime, rankOrder }).toPromise();
     }
-    return titlePrefix + title;
+    // TODO
+    // return titlePrefix + title;
+    return title;
   }
 
   protected async computeStats(data: Operation, opts?: {

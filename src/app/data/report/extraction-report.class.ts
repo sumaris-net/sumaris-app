@@ -5,7 +5,7 @@ import {AppBaseReport, IReportStats} from '@app/data/report/base-report.class';
 export abstract class AppExtractionReport<
   T = any,
   S extends IReportStats = IReportStats>
-  extends AppBaseReport<T, S>
+  extends AppBaseReport<T, number, S>
   implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() filter: ExtractionFilter;

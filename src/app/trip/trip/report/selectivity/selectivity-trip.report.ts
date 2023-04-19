@@ -49,7 +49,7 @@ export interface WeightStats {
     };
   }
 }
-export declare interface SelectivityTripReportStats extends TripReportStats {
+export interface SelectivityTripReportStats extends TripReportStats {
   gearIdentifierByOperationId: {[key: string]: PhysicalGear};
   selectivityDeviceMap: {[key: string]: IReferentialRef};
   selectivityDevices: string[];
