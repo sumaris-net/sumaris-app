@@ -6,9 +6,10 @@ import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export abstract class DataRootVesselEntity<
-  T extends DataRootVesselEntity<any, ID>,
+  T extends DataRootVesselEntity<T, ID>,
   ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  F = any>
   extends RootDataEntity<T, ID, O, F>
   implements IWithVesselSnapshotEntity<T, ID> {
 

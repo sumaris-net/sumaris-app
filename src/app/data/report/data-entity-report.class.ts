@@ -1,7 +1,7 @@
-import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import {AccountService, DateUtils, Department, Entity, EntityAsObjectOptions, FilesUtils, isNil, isNotNil, Person, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
-import { DataEntity } from '../services/model/data-entity.model';
-import { AppBaseReport, BaseReportOptions } from '@app/data/report/base-report.class';
+import {AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
+import {AccountService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
+import {DataEntity} from '../services/model/data-entity.model';
+import {AppBaseReport, BaseReportOptions, IReportStats} from '@app/data/report/base-report.class';
 import {Function} from '@app/shared/functions';
 import {Router} from '@angular/router';
 import {decodeUTF8} from 'tweetnacl-util';
@@ -13,50 +13,36 @@ import {Popovers} from '@app/shared/popover/popover.utils';
 import {PopoverController} from '@ionic/angular';
 import {FileTransferService} from '@app/shared/service/file-transfer.service';
 import {TranslateService} from '@ngx-translate/core';
-import {Moment} from 'moment/moment';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
 import {APP_BASE_HREF} from '@angular/common';
+import {SharedElement} from '@app/social/share/shared-page.model';
+import {Clipboard, ContextService} from '@app/shared/context.service';
+import {hasFlag} from '@app/shared/flags.utils';
+import {ExtractionFilter, ExtractionType} from '@app/extraction/type/extraction-type.model';
+
+
+export const ReportDataPasteFlags = Object.freeze({
+  NONE: 0,
+  DATA: 1,
+  STATS: 2,
+
+  // ALL FLAGS
+  ALL: (1+2)
+});
+
 
 export interface DataEntityReportOptions extends BaseReportOptions{
   pathIdAttribute?: string,
   pathParentIdAttribute?: string,
 }
 
-export class ReportFileContent<T extends Entity<T> = Entity<any>, S = any> {
-  // File metadata
-  reportUrl: string;
-  recorderPerson: Person;
-  recorderDepartment: Department;
-  creationDate: Moment;
 
-  data: T;
-  stats: Partial<S>;
-
-  asObject(opts?: EntityAsObjectOptions) {
-    const target: any = Object.assign({}, this);
-    target.creationDate = toDateISOString(this.creationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || null;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || null;
-    target.data = this.data.asObject(opts);
-
-    // Clean unused properties
-    if (opts?.minify) {
-      if (target.recorderDepartment) {
-        delete target.recorderDepartment.creationDate;
-        delete target.recorderDepartment.comments;
-      }
-    }
-
-    return target;
-  }
-}
 
 @Directive()
 export abstract class AppDataEntityReport<
   T extends DataEntity<T, ID>,
   ID = number,
-  S = any>
-  extends AppBaseReport<T, S>
+  S extends IReportStats = IReportStats>
+  extends AppBaseReport<T, ID, S>
   implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly accountService: AccountService;
@@ -65,13 +51,14 @@ export abstract class AppDataEntityReport<
   protected readonly translate: TranslateService;
   protected readonly translateContext: TranslateContextService;
   protected readonly baseHref: string;
+  protected readonly context: ContextService;
 
-  @Input() i18nPmfmPrefix = '';
   @Input() id: ID;
 
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
+    protected statsType: new() => S,
     @Optional() options?: DataEntityReportOptions,
   ) {
     super(injector, options);
@@ -81,6 +68,7 @@ export abstract class AppDataEntityReport<
     this.translate = injector.get(TranslateService);
     this.translateContext = injector.get(TranslateContextService);
     this.accountService = injector.get(AccountService);
+    this.context = injector.get(ContextService);
 
     this.baseHref = injector.get(APP_BASE_HREF);
 
@@ -97,33 +85,38 @@ export abstract class AppDataEntityReport<
       : isNotNil(this.id)
         ? await this.load(this.id, opts)
         : await this.loadFromRoute(opts);
-    // TODO Ask if there is not better to handle this on AppBaseReport::start
-    this.stats = this.stats
-      ? this.stats
-      : await this.computeStats(data);
+
     return data;
   };
-
-  protected abstract load(id: ID, opts?: any): Promise<T>;
 
   protected async loadFromRoute(opts?: any): Promise<T> {
     console.debug(`[${this.constructor.name}.loadFromRoute]`);
     this.id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
 
-    if (isNil(this.id)) throw new Error(`[loadFromRoute] Cannot load the entity: No id found in the route!`);
+    if (isNil(this.id)) throw new Error(`Cannot load the entity: No id found in the route!`);
 
-    const state = this.router.getCurrentNavigation()?.extras?.state;
-    if (state?.data) {
-      const source = state?.data;
-      const target = new this.dataType();
-      target.fromObject(source);
-      this.stats = state?.stats as S;
-      return target;
+    const clipboard = this.context.clipboard;
+    if (clipboard?.data && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA)) {
+      return this.loadFromClipboard(clipboard);
     }
     else {
       return this.load(this.id, opts);
     }
   }
+
+  protected async load(id: ID, opts?: any): Promise<T> {
+    console.debug(`[${this.constructor.name}.load]`, arguments);
+
+    // Load data
+    const data = await this.loadData(id, opts);
+
+    // Compute stats
+    this.stats = await this.computeStats(data, opts);
+
+    return data;
+  }
+
+  protected abstract loadData(id: ID, opts?: any): Promise<T>;
 
   protected abstract computeStats(data: T, opts?: {
     getSubCategory?: Function<any, string>;
@@ -131,23 +124,34 @@ export abstract class AppDataEntityReport<
     cache?: boolean;
   }): Promise<S>;
 
+  protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<T> {
+    console.debug(`[data-entity-report] Loading data from clipboard:`, clipboard);
 
-  protected async exportToJson(event?: Event) {
-
-    const filename = this.getExportFileName('json');
-    const encoding = this.getExportEncoding('json');
-    const content  = await this.getReportFileContent();
-    const jsonContent = content.asObject({minify: true});
-
-    // Write to file
-    FilesUtils.writeTextToFile(
-      JSON.stringify(jsonContent), {
-        type: 'application/json',
-        filename,
-        encoding
-      }
-    );
+    const source = clipboard.data.data;
+    const target = new this.dataType();
+    target.fromObject(source);
+    if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS)) {
+      this.stats = clipboard.data.stats as S;
+    }
+    return target;
   }
+
+  // protected async exportToJson(event?: Event) {
+  //
+  //   const filename = this.getExportFileName('json');
+  //   const encoding = this.getExportEncoding('json');
+  //   const content  = await this.getReportFileContent();
+  //   const jsonContent = content.asObject({minify: true});
+  //
+  //   // Write to file
+  //   FilesUtils.writeTextToFile(
+  //     JSON.stringify(jsonContent), {
+  //       type: 'application/json',
+  //       filename,
+  //       encoding
+  //     }
+  //   );
+  // }
 
   protected async showSharePopover(event?: UIEvent) {
 
@@ -177,12 +181,26 @@ export abstract class AppDataEntityReport<
   }
 
   protected async uploadReportFile(): Promise<{url: string}> {
-    const filename = this.getExportFileName('json');
-    const content  = await this.getReportFileContent();
-    const json = content.asObject({ minify: true });
-    const arrayUt8 = decodeUTF8(JSON.stringify(json));
-    //const base64 = encodeBase64(arrayUt8);
+    // Wait data loaded
+    await this.waitIdle({timeout: 5000});
 
+    const filename = this.getExportFileName('json');
+    const sharedElement:SharedElement = {
+      uuid: '',
+      shareLink: '',
+      path: this.router.url,
+      queryParams: {},
+      creationDate: toDateISOString(DateUtils.moment()),
+      content: {
+        data: {
+          data: this.asObject(this.data),
+          stats: this.asStatsObject(this.stats),
+        },
+        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS
+      }
+    }
+
+    const arrayUt8 = decodeUTF8(JSON.stringify(sharedElement));
     const blob = new Blob([arrayUt8], {type: "application/json"});
     blob['lastModifiedDate'] = (new Date()).toISOString();
     blob['name'] = filename;
@@ -208,26 +226,47 @@ export abstract class AppDataEntityReport<
       return;
     }
 
+    // TODO handle errors
+    const shareResult = this.fileTransferService.shareAsPublic(fileName)
+
     const shareUrl = `${this.baseHref.replace(/\/$/, '')}/share/${fileName.replace(/\.json$/, '')}`;
     return { url: shareUrl};
   }
 
-  protected async getReportFileContent(): Promise<ReportFileContent> {
-    // Wait data loaded
-    await this.waitIdle({timeout: 5000});
-
-    const content  = new ReportFileContent();
-    // content.data = this.data;
-    content.stats = this.stats;
-    content.reportUrl = this.router.url;
-    content.creationDate = DateUtils.moment();
-    if (this.accountService.isLogin()) {
-      content.recorderPerson = this.accountService.person;
-      content.recorderDepartment = this.accountService.department;
+  protected asObject(source: T, opts?: EntityAsObjectOptions): any {
+    if (typeof source?.asObject === 'function') {
+      return source.asObject(opts);
     }
-
-    return content;
+    const data = new this.dataType();
+    data.fromObject(source);
+    return data.asObject(opts);
   }
+
+  protected asStatsObject(source: S, opts?: EntityAsObjectOptions): any {
+    if (typeof source?.asObject === 'function') {
+      return source.asObject(opts);
+    }
+    const stats = new this.statsType();
+    stats.fromObject(source);
+    return stats.asObject(opts);
+  }
+
+  // protected async getReportFileContent(): Promise<ReportFileContent> {
+  //   // Wait data loaded
+  //   await this.waitIdle({timeout: 5000});
+  //
+  //   const content  = new ReportFileContent();
+  //   // content.data = this.data;
+  //   content.stats = this.stats;
+  //   content.reportUrl = this.router.url;
+  //   content.creationDate = DateUtils.moment();
+  //   if (this.accountService.isLogin()) {
+  //     content.recorderPerson = this.accountService.person;
+  //     content.recorderDepartment = this.accountService.department;
+  //   }
+  //
+  //   return content;
+  // }
 
   protected getExportEncoding(format = 'json'): string {
     const key = `FILE.${format.toUpperCase()}.ENCODING`;

@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AccountService, isNilOrBlank, isNotNil, isNotNilOrBlank, NetworkService, StartableService, toBoolean } from '@sumaris-net/ngx-components';
+import {AccountService, GraphqlService, isNilOrBlank, isNotNil, isNotNilOrBlank, NetworkService, StartableService, toBoolean} from '@sumaris-net/ngx-components';
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { switchMap } from 'rxjs/operators';
+import {gql} from '@apollo/client/core';
+import {ErrorCodes} from '@app/data/services/errors';
 
 export interface UploadOptions {
   resourceType?: string;
@@ -18,6 +20,12 @@ export interface UploadResponseBody {
   fileUri: string;
   message: string;
   size: number;
+}
+
+const ShareFileMutation = {
+  shareAsPublic: gql`mutation shareFile($fileName:String) {
+    data: shareFile(fileName: $fileName)
+  }`,
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +50,8 @@ export class FileTransferService extends StartableService<void> {
 
   constructor(private network: NetworkService,
               private accountService: AccountService,
-              private http: HttpClient) {
+              private http: HttpClient,
+              protected graphql: GraphqlService) {
     super(network);
     this.start();
   }
@@ -90,6 +99,15 @@ export class FileTransferService extends StartableService<void> {
     return this.http.request(req);
   }
 
+  async shareAsPublic(fileName: string) {
+    console.info(`[file-transfer-service] share file ${fileName} as public`);
+    const sharedFilePath = await this.graphql.mutate<{ data: string }>({
+      mutation: ShareFileMutation.shareAsPublic,
+      variables: {fileName: fileName},
+      error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
+    });
+    return sharedFilePath;
+  }
 
   async deleteResource(resourceType: string, filename: string): Promise<boolean> {
     if (isNilOrBlank(resourceType) || isNilOrBlank(filename)) {

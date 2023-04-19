@@ -17,18 +17,27 @@ import {
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { ModalController } from '@ionic/angular';
-import {APP_BASE_HREF} from '@angular/common';
 
 export interface BaseReportOptions {
   pathIdAttribute?: string;
   pathParentIdAttribute?: string;
 }
 
+export interface IReportStats {
+  i18nPmfmPrefix?: string;
+  i18nContext?: {
+    prefix: string,
+    suffix: string
+  };
+  asObject?: (opts?: any) => any;
+  fromObject?: (opts?: any) => void;
+}
+
 @Directive()
 export abstract class AppBaseReport<
   T = any,
   ID = number,
-  S = any>
+  S extends IReportStats = IReportStats>
   implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly route: ActivatedRoute;
@@ -53,10 +62,15 @@ export abstract class AppBaseReport<
 
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
-  // NOTE: Interface for this ?
-  i18nContext = {
-    prefix: '',
-    suffix: '',
+
+  @Input() set i18nContext(value: {prefix: string, suffix: string}) {
+    this.stats.i18nContext = value
+  }
+  get i18nContext(): {prefix: string, suffix: string} {
+    return this.stats?.i18nContext;
+  }
+  get i18nPmfmPrefix(): string {
+    return this.stats?.i18nPmfmPrefix;
   }
 
   $defaultBackHref = new BehaviorSubject<string>('');
@@ -69,7 +83,7 @@ export abstract class AppBaseReport<
   @Input() debug = !environment.production;
 
   @Input() data: T;
-  @Input() stats: S = <S>{};
+  @Input() stats: S;
   @Input() embedded = false;
 
   @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;

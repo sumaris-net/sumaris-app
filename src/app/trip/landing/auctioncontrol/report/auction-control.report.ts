@@ -23,7 +23,7 @@ export class AuctionControlReport extends LandingReport<Landing, AuctionControlS
   ) {
     super(
       injector,
-      Landing,
+      AuctionControlStats,
       {pathIdAttribute: 'controlId'},
     );
   }

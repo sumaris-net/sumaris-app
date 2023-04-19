@@ -1,15 +1,10 @@
 import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { AppBaseReport } from '@app/data/report/base-report.class';
-
-export interface ExtractionData {
-  [sheetName: string]: any[];
-}
-
+import {AppBaseReport, IReportStats} from '@app/data/report/base-report.class';
 @Directive()
 export abstract class AppExtractionReport<
   T = any,
-  S = any>
+  S extends IReportStats = IReportStats>
   extends AppBaseReport<T, S>
   implements OnInit, AfterViewInit, OnDestroy {
 

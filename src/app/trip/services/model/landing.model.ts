@@ -25,7 +25,9 @@ import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
  * Landing entity
  */
 @EntityClass({typename: 'LandingVO'})
-export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
+export class Landing
+  extends DataRootVesselEntity<Landing>
+  implements IWithObserversEntity<Landing> {
 
   static fromObject: (source: any, opts?: any) => Landing;
 

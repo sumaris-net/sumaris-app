@@ -31,15 +31,6 @@
             [disabled]="(loadingSubject|async) || network.offline">
       <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
     </button>
-
-    <!-- Download button -->
-    <button mat-menu-item *ngIf="!mobile"
-            (click)="exportToJson($event)"
-            download="true"
-            [disabled]="loadingSubject|async">
-      <mat-icon slot="start">download</mat-icon>
-      <ion-label>{{ 'FILE.JSON.BTN_DOWNLOAD_HELP'|translate }}</ion-label>
-    </button>
   </mat-menu>
 
   <ion-content>

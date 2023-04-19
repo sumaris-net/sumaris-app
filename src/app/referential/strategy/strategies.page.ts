@@ -13,6 +13,7 @@ import { StrategiesTable } from './strategies.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ContextService } from '@app/shared/context.service';
+import {DataContextService} from '@app/data/services/model/data-context.model';
 
 
 // app-strategies-page
@@ -62,7 +63,7 @@ export class StrategiesPage implements OnInit {
     protected programRefService: ProgramRefService,
     protected accountService: AccountService,
     protected platformService: PlatformService,
-    @Inject(ContextService) protected context: ContextService,
+    @Inject(ContextService) protected dataContext: DataContextService,
     protected cd: ChangeDetectorRef,
   ) {
     this.mobile = platformService.mobile;
@@ -153,11 +154,11 @@ export class StrategiesPage implements OnInit {
   }
 
   protected setContext<S extends Strategy<S>>(strategy: S) {
-    this.context.setValue('program', this.data?.clone());
-    this.context.setValue('strategy', Strategy.fromObject(strategy));
+    this.dataContext.setValue('program', this.data?.clone());
+    this.dataContext.setValue('strategy', Strategy.fromObject(strategy));
   }
 
   protected resetContext() {
-    this.context.reset();
+    this.dataContext.reset();
   }
 }

@@ -524,6 +524,8 @@ type MinMaxVO {
 
 "Mutation root"
 type Mutation {
+  "Cancel a running Job"
+  cancelJob(id: Int!): JobVO
   "Confirm an account email"
   confirmAccountEmail(code: String, email: String): Boolean!
   "Control an observed location"
@@ -670,6 +672,8 @@ type Mutation {
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
   "Sent a message"
   sendMessage(message: MessageVOInput): Boolean!
+  "Share an existing file"
+  shareFile(fileName: String): String
   "Unvalidate an observed location"
   unvalidateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Unvalidate a trip"
@@ -1135,7 +1139,7 @@ type Query {
   "Get a job"
   job(id: Int!): JobVO
   "Search in jobs"
-  jobs(filter: JobFilterVOInput): [JobVO]
+  jobs(filter: JobFilterVOInput, page: PageInput): [JobVO]
   "Get a landing, by id"
   landing(id: Int!): LandingVO
   "Search in landings"
@@ -2339,7 +2343,9 @@ input ImageAttachmentVOInput {
 }
 
 input JobFilterVOInput {
+  excludedIds: [Int]
   id: Int
+  includedIds: [Int]
   issuer: String
   issuerEmail: String
   lastUpdateDate: Date

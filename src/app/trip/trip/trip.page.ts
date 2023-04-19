@@ -54,6 +54,7 @@ import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physica
 
 import moment from 'moment';
 import { PredefinedColors } from '@ionic/core';
+import {DataContextService} from '@app/data/services/model/data-context.model';
 
 export const TripPageTabs = {
   GENERAL: 0,
@@ -125,7 +126,7 @@ export class TripPage
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected operationService: OperationService,
-    protected context: ContextService,
+    protected context: DataContextService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
     public network: NetworkService,

@@ -38,10 +38,11 @@ import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
+import {IReportStats} from '@app/data/report/base-report.class';
 
 export declare type BaseNumericStats = {min: number; max: number; avg: number};
 export declare type SpeciesChart = ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions;
-export declare class TripReportStats {
+export interface TripReportStats extends IReportStats {
   programLabel: string;
   startDate: Moment;
   endDate: Moment;

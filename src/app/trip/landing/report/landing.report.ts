@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional } from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, Optional} from '@angular/core';
 import { LandingService } from '@app/trip/services/landing.service';
 import {
   DateFormatService,
@@ -8,7 +8,6 @@ import {
   isNotEmptyArray,
   isNotNilOrNaN,
   NetworkService,
-  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
@@ -22,8 +21,11 @@ import {AppDataEntityReport, DataEntityReportOptions} from '@app/data/report/dat
 import {Function} from '@app/shared/functions';
 import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {Clipboard} from '@app/shared/context.service';
+import {IReportStats} from '@app/data/report/base-report.class';
 
-export interface LandingStats {
+export class LandingStats implements IReportStats {
+
   sampleCount: number;
   images?: Image[];
   pmfms: IPmfm[];
@@ -31,8 +33,19 @@ export interface LandingStats {
   weightDisplayedUnit: WeightUnitSymbol;
   i18nSuffix: string;
   taxonGroup: TaxonGroupRef;
-}
 
+  asObject(opts?: any): any {
+    return {
+      sampleCount: this.sampleCount,
+      images: this.images,
+      pmfms: this.pmfms.map(item => item.asObject()),
+      program: this.program.asObject(),
+      weightDisplayedUnit: this.weightDisplayedUnit,
+      i18nSuffix: this.i18nSuffix,
+      taxonGroup: this.taxonGroup.asObject(),
+    }
+  }
+}
 
 @Component({
   selector: 'app-landing-report',
@@ -40,8 +53,11 @@ export interface LandingStats {
   templateUrl: './landing.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingReport<T extends Landing = Landing, S extends LandingStats = LandingStats>
-  extends AppDataEntityReport<any>
+export class LandingReport<
+  T extends Landing = Landing,
+  S extends LandingStats = LandingStats
+>
+  extends AppDataEntityReport<any, number, S>
   implements AfterViewInit, OnDestroy {
 
 
@@ -53,14 +69,25 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
 
   weightDisplayedUnit: WeightUnitSymbol;
 
-  get parent(): ObservedLocation {return this.data ? this.data.observedLocation : null};
+  @Input() set parent(value: ObservedLocation){
+    this.data.observedLocation = value;
+  }
+  get parent(): ObservedLocation {return this.data ? this.data.observedLocation as ObservedLocation : null};
+
+  @Input() set pmfms(value: IPmfm[]){
+    this.stats.pmfms = value;
+  }
+
+  get pmfms(): IPmfm[]{
+    return this.stats.pmfms;
+  }
 
   constructor(
     protected injector: Injector,
-    protected dataType: new() => T,
+    statsType?: new() => S,
     @Optional() options?: DataEntityReportOptions,
   ) {
-    super(injector, dataType, options);
+    super(injector, Landing, statsType || LandingStats, options);
     this.network = injector.get(NetworkService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
@@ -83,21 +110,8 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     this.destroySubject.next();
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
+  async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<T> {
 
-    const data = await this.loadData(id, opts);
-    await this.computeParent(data, opts);
-    this.stats = await this.computeStats(data);
-
-    // TODO This is not the place for this
-    this.i18nContext.suffix = this.stats.i18nSuffix === 'legacy' ? '' : this.stats.i18nSuffix;
-
-    return data;
-  }
-
-  /* -- protected function -- */
-
-  protected async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
     const data = await this.landingService.load(id);
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
@@ -107,31 +121,17 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
       if (sample.label?.startsWith('#')) sample.label = null;
     });
 
-    return data;
+    data.observedLocation = await this.computeParent(data);
+
+    return data as T;
   }
 
-  protected async computeParent(data: Landing, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<void> {
-    const parentId = toNumber(opts?.[this._pathParentIdAttribute], undefined);
-    if (isNotNilOrNaN(parentId)) {
-      data.observedLocation = await this.observedLocationService.load(parentId);
-    }
-    // TODO Ask for why _pathParentIdAttribute is useful
-    if (!data.observedLocation || (data && data.observedLocation.id !== data.observedLocationId)) {
-      data.observedLocation = await this.observedLocationService.load(data.observedLocationId);
-    }
-    if (!data.observedLocation) throw new Error('ERROR.LOAD_ENTITY_ERROR');
-    // TODO Check this
-    //   const parentId = toNumber(opts?.[this._pathParentIdAttribute], undefined);
-    //   let [data, parent] = await Promise.all([
-    //     this.landingService.load(id),
-    //     Promise.resolve(null),
-    //     isNotNilOrNaN(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
-    //   ]);
-    //
-    //   // Make sure to load the parent
-    //   if (!parent || (data && parent.id !== data.observedLocationId)) {
-    //     parent = await this.observedLocationService.load(data.observedLocationId);
-    //   }
+  /* -- protected function -- */
+
+  protected async loadFromClipboard(clipboard: Clipboard, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
+    const target = await super.loadFromClipboard(clipboard, opts);
+    target.observedLocation = ObservedLocation.fromObject(clipboard.data.data?.observedLocation);
+    return target;
   }
 
   protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
@@ -158,10 +158,11 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     stats?: S;
     cache?: boolean;
   }): Promise<S> {
-    const stats = opts?.stats || <S>{};
+    console.debug('[landing-report] Computing stats...');
+    const stats = opts?.stats || new LandingStats() as S;
+
+    data.observedLocation = data.observedLocation || await this.computeParent(data);
     const parent = data.observedLocation as ObservedLocation;
-    // TODO Explicit error message
-    if (!parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
     stats.program = await this.programRefService.loadByLabel(parent.program.label);
 
@@ -169,15 +170,16 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     stats.weightDisplayedUnit = stats.program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
 
-    let pmfm = await this.programRefService.loadProgramPmfms(stats.program.label, {
+    const pmfms = stats.pmfms || await this.programRefService.loadProgramPmfms(stats.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
       taxonGroupId: stats.taxonGroup?.id
     });
     stats.pmfms = (stats.weightDisplayedUnit)
-      ? PmfmUtils.setWeightUnitConversions(pmfm, this.weightDisplayedUnit)
-      : pmfm;
+      ? PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit)
+      : pmfms;
 
-    stats.i18nSuffix = stats.program.getProperty(ProgramProperties.I18N_SUFFIX);
+    const i18nSuffix = stats.program.getProperty(ProgramProperties.I18N_SUFFIX);
+    stats.i18nSuffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
 
     // Compute sample count
     stats.sampleCount = data.samples?.length || 0;
@@ -194,6 +196,15 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
       });
 
     return stats;
+  }
+
+  protected async computeParent(data: Landing): Promise<ObservedLocation> {
+    let parent: ObservedLocation;
+    if (isNotNilOrNaN(data.observedLocationId)) {
+      parent = await this.observedLocationService.load(data.observedLocationId);
+    }
+    if (!parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
+    return parent;
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 20) {
