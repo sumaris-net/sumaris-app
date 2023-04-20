@@ -30,12 +30,12 @@ export class SharedPage implements OnInit {
   ngOnInit() {
     this.downloadData();
   }
-
   async downloadData() {
     await this.settings.ready();
     const peerUrl = this.settings.settings.peerUrl;
     const uuid = this.route.snapshot.paramMap.get('uuid');
     const fileName = `${uuid}.json`;
+
     console.debug(`[shared-page] Downloading {${uuid}}...`)
     this.http.get<any>(
       `${peerUrl}/download/public/${fileName}`,
@@ -57,7 +57,6 @@ export class SharedPage implements OnInit {
       // Redirect only if need to pass some queryParams
       const skipLocationChange = Object.keys(queryParams).length === 0;
 
-      console.debug('[shared-page] TODO redirect to path ' + path, content);
       this.context.clipboard = content;
       this.navCtrl.navigateRoot(
         path,

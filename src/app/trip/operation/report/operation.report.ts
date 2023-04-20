@@ -8,7 +8,7 @@ import { TripService } from '@app/trip/services/trip.service';
 import moment from 'moment';
 import {Function} from '@app/shared/functions';
 import {AcquisitionLevelCodes, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { isNotNilOrNaN } from '@sumaris-net/ngx-components';
 import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
@@ -132,7 +132,7 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return  {
       i18nSuffix: source.i18nSuffix,
       sampleCount: source.sampleCount,
-      pmfms: source.pmfms, // TODO deserialize pmfms
+      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
       program: Program.fromObject(source.program),
       weightDisplayedUnit: source.weightDisplayedUnit,
       taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
@@ -143,7 +143,7 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return {
       i18nSuffix: source.i18nSuffix,
       sampleCount: source.sampleCount,
-      pmfms: source.pmfms,
+      pmfms: source.pmfms.map(item => item.asObject()),
       program: source.program.asObject(),
       weightDisplayedUnit: source.weightDisplayedUnit,
       taxonGroup: source.taxonGroup.asObject(),

@@ -3,7 +3,7 @@ import { LandingService } from '@app/trip/services/landing.service';
 import {
   DateFormatService,
   EntityServiceLoadOptions,
-  Image,
+  ImageAttachment,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNilOrNaN,
@@ -13,7 +13,7 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
@@ -25,7 +25,7 @@ import {IReportStats} from '@app/data/report/base-report.class';
 
 export interface LandingStats extends IReportStats {
   sampleCount: number;
-  images?: Image[];
+  images?: ImageAttachment[];
   pmfms: IPmfm[];
   i18nPmfmPrefix?: string;
   program: Program;
@@ -191,8 +191,8 @@ export class LandingReport<
     const stats:LandingStats = {
       i18nSuffix: source.i18nSuffix,
       sampleCount: source.sampleCount,
-      images: source.images,
-      pmfms: source.pmfms,
+      images: source.images.map(item => ImageAttachment.fromObject(item)),
+      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
       program: Program.fromObject(source.program),
       weightDisplayedUnit: source.weightDisplayedUnit,
       taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
@@ -204,8 +204,8 @@ export class LandingReport<
     return  {
       i18nSuffix: source.i18nSuffix,
       sampleCount: source.sampleCount,
-      images: source.images,
-      pmfms: source.pmfms,
+      images: source.images.map(item => item.asObject()),
+      pmfms: source.pmfms.map(item => item.asObject()),
       program: source.program.asObject(),
       weightDisplayedUnit: source.weightDisplayedUnit,
       taxonGroup: source.taxonGroup.asObject(),

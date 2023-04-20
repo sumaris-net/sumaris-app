@@ -122,16 +122,20 @@ export abstract class AppDataEntityReport<
   protected abstract fillParent(data:T);
 
   protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<void> {
-    if (this.debug) console.debug(`[data-entity-report] Loading data from clipboard:`, clipboard);
+    if (this.debug) console.debug(`[${this.logPrefix}] Loading data from clipboard:`, clipboard);
 
     if (isNil(this.data) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA) && isNotNil(clipboard.data.data))
-      this.data = await this.dataFromObject(clipboard.data.data);
+      this.data = this.dataFromObject(clipboard.data.data);
 
     if (isNil(this.stats) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS) && isNotNil(clipboard.data.stats))
-        this.statsFromObject(clipboard.data.stats);
+        this.stats = this.statsFromObject(clipboard.data.stats);
 
     if (isNil(this.i18nContext) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT) && isNotNil(clipboard.data.i18nContext))
       this.i18nContext = clipboard.data.i18nContext;
+
+    // Clean the clipboard
+    // TODO How to handle case when when the clip boaard is filled from another source than SharePage
+    this.context.clipboard = undefined;
   }
 
   protected abstract dataFromObject(source:object): T;
@@ -177,11 +181,13 @@ export abstract class AppDataEntityReport<
       queryParams: {},
       creationDate: toDateISOString(DateUtils.moment()),
       content: {
+        // TODO Type data ?
         data: {
           data: this.dataAsObject(this.data),
           stats: this.statsAsObject(this.stats),
+          i18nContext: this.i18nContext,
         },
-        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS
+        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT
       }
     }
 
@@ -212,7 +218,7 @@ export abstract class AppDataEntityReport<
     }
 
     // TODO handle errors
-    const shareResult = this.fileTransferService.shareAsPublic(fileName)
+    const shareRes = await this.fileTransferService.shareAsPublic(fileName).then();
 
     const shareUrl = `${this.baseHref.replace(/\/$/, '')}/share/${fileName.replace(/\.json$/, '')}`;
     return { url: shareUrl};

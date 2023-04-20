@@ -52,6 +52,7 @@ export class Landing
 
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
+
     target.dateTime = toDateISOString(this.dateTime);
     target.location = this.location && this.location.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject(opts)) || undefined;
@@ -63,9 +64,14 @@ export class Landing
     target.tripId = this.tripId;
     target.trip = this.trip && this.trip.asObject(opts) || undefined;
 
+    // Observed location
+    target.observedLocationId = this.observedLocationId;
+    target.observedLocation = this.observedLocation && this.observedLocation.asObject(opts) || undefined;
+
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
     target.samplesCount = this.samples && this.samples.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length || undefined;
+
 
     if (opts && opts.minify) {
       delete target.rankOrderOnVessel;
@@ -83,10 +89,13 @@ export class Landing
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.measurementValues = {...source.measurementValues}; // Copy values
 
-    // Parent
-    this.observedLocationId = source.observedLocationId;
+    // Trip
     this.tripId = source.tripId;
     this.trip = source.trip && EntityClasses.fromObject(source.trip, {entityName: 'Trip'}) || undefined;
+
+    // Observed location
+    this.observedLocationId = source.observedLocationId;
+    this.observedLocation = source.observedLocation && EntityClasses.fromObject(source.observedLocation,{entityName: 'ObservedLocation'}) || undefined;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
