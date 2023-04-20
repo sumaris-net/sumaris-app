@@ -1,5 +1,5 @@
 import {AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {AccountService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
+import {AccountService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, TextPopover, Toasts, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
 import {DataEntity} from '../services/model/data-entity.model';
 import {AppBaseReport, BaseReportOptions, IReportStats} from '@app/data/report/base-report.class';
 import {Function} from '@app/shared/functions';
@@ -10,13 +10,14 @@ import {filter, first, map, takeUntil} from 'rxjs/operators';
 import {HttpEventType} from '@angular/common/http';
 import {Share} from '@capacitor/share';
 import {Popovers} from '@app/shared/popover/popover.utils';
-import {PopoverController} from '@ionic/angular';
+import {PopoverController, ToastController} from '@ionic/angular';
 import {FileTransferService} from '@app/shared/service/file-transfer.service';
 import {TranslateService} from '@ngx-translate/core';
 import {APP_BASE_HREF} from '@angular/common';
 import {SharedElement} from '@app/social/share/shared-page.model';
 import {Clipboard, ContextService} from '@app/shared/context.service';
 import {hasFlag} from '@app/shared/flags.utils';
+import {returnDownBack} from 'ionicons/icons';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -51,6 +52,7 @@ export abstract class AppDataEntityReport<
   protected readonly translateContext: TranslateContextService;
   protected readonly baseHref: string;
   protected readonly context: ContextService;
+  protected readonly toastController: ToastController;
 
   @Input() id: ID;
 
@@ -67,6 +69,7 @@ export abstract class AppDataEntityReport<
     this.translateContext = injector.get(TranslateContextService);
     this.accountService = injector.get(AccountService);
     this.context = injector.get(ContextService);
+    this.toastController = injector.get(ToastController);
 
     this.baseHref = injector.get(APP_BASE_HREF);
 
@@ -144,7 +147,16 @@ export abstract class AppDataEntityReport<
 
   protected async showSharePopover(event?: UIEvent) {
 
-    const {url} = await this.uploadReportFile();
+    let url;
+    try {
+      url = await this.uploadReportFile();
+    } catch (err) {
+      Toasts.show(this.toastController, this.translate, {
+        message: err.message,
+        type: 'error',
+      });
+      return;
+    }
 
     // Use Capacitor plugin
     if (this.mobile && this.platform.isCapacitor()) {
@@ -169,7 +181,7 @@ export abstract class AppDataEntityReport<
     }
   }
 
-  protected async uploadReportFile(): Promise<{url: string}> {
+  protected async uploadReportFile(): Promise<string> {
     // Wait data loaded
     await this.waitIdle({timeout: 5000});
 
@@ -212,16 +224,13 @@ export abstract class AppDataEntityReport<
     ).toPromise();
 
     if (message !== "OK" || !fileName) {
-      console.error('Failed to upload report data!');
-      // TODO throw error ?
-      return;
+      throw new Error('Failed to upload report data!');
     }
 
     // TODO handle errors
-    const shareRes = await this.fileTransferService.shareAsPublic(fileName).then();
+    await this.fileTransferService.shareAsPublic(fileName).then();
 
-    const shareUrl = `${this.baseHref.replace(/\/$/, '')}/share/${fileName.replace(/\.json$/, '')}`;
-    return { url: shareUrl};
+    return `${this.baseHref.replace(/\/$/, '')}/share/${fileName.replace(/\.json$/, '')}`;
   }
 
   protected dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
