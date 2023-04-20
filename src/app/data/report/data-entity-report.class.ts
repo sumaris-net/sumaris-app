@@ -28,6 +28,7 @@ export const ReportDataPasteFlags = Object.freeze({
   ALL: (1+2+4),
 });
 
+
 export interface DataEntityReportOptions extends BaseReportOptions{
   pathIdAttribute?: string,
   pathParentIdAttribute?: string,
@@ -77,63 +78,65 @@ export abstract class AppDataEntityReport<
   }
 
   async ngOnStart(opts?: any): Promise<T> {
-    const data = isNotNil(this.data)
-      ? this.data
-      : isNotNil(this.id)
-        ? await this.load(this.id, opts)
-        : await this.loadFromRoute(opts);
+    // If data is not filled by input, fill it with the clipboard
+    if (isNotNil(this.context.clipboard))
+      this.loadFromClipboard(this.context.clipboard);
 
-    return data;
+    // If data is not filled by the input or by the clipboad , fill it by loading and computing
+
+    if (isNil(this.data))
+      if (isNotNil(this.id)) this.data = await this.load(this.id, opts)
+      else this.data = await this.loadFromRoute(opts);
+
+    if (isNil(this.stats))
+      this.stats = await this.computeStats(this.data, opts);
+
+    // TODO How to setup this
+    if (isNotNil(this.i18nContext))
+      this.i18nContext.suffix = this.stats.i18nSuffix === 'legacy' ? '' : this.stats.i18nSuffix;
+
+    return this.data;
   };
 
   protected async loadFromRoute(opts?: any): Promise<T> {
-    console.debug(`[${this.constructor.name}.loadFromRoute]`);
+    if (this.debug) console.debug(`[${this.logPrefix}.loadFromRoute]`);
     this.id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
-
     if (isNil(this.id)) throw new Error(`Cannot load the entity: No id found in the route!`);
-
-    const clipboard = this.context.clipboard;
-    if (clipboard?.data && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA)) {
-      return this.loadFromClipboard(clipboard);
-    } else {
-      return this.load(this.id, opts);
-    }
+    return this.load(this.id, opts);
   }
 
   protected async load(id: ID, opts?: any): Promise<T> {
     if (this.debug) console.debug(`[${this.logPrefix}.load]`, arguments);
-
-    // Load data
-    const data = await this.loadData(id, opts);
-
-    // Compute stats
-    this.stats = await this.computeStats(data, opts);
-
-    return data;
+    return  await this.loadData(id, opts);;
   }
 
+  // TODO This method sill useful ?
   protected abstract loadData(id: ID, opts?: any): Promise<T>;
 
   protected abstract computeStats(data: T, opts?: {
     getSubCategory?: Function<any, string>;
-    stats?: S;
+    stats?: S; // TODO : Check in which case this may be used
     cache?: boolean;
   }): Promise<S>;
 
-  protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<T> {
+  protected abstract fillParent(data:T);
+
+  protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<void> {
     if (this.debug) console.debug(`[data-entity-report] Loading data from clipboard:`, clipboard);
 
-    const source = clipboard.data.data;
-    const target = new this.dataType();
-    target.fromObject(source);
-    if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS)) {
-      this.stats = clipboard.data.stats as S;
-    }
-    if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT)) {
+    if (isNil(this.data) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA) && isNotNil(clipboard.data.data))
+      this.data = await this.dataFromObject(clipboard.data.data);
+
+    if (isNil(this.stats) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS) && isNotNil(clipboard.data.stats))
+        this.statsFromObject(clipboard.data.stats);
+
+    if (isNil(this.i18nContext) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT) && isNotNil(clipboard.data.i18nContext))
       this.i18nContext = clipboard.data.i18nContext;
-    }
-    return target;
   }
+
+  protected abstract dataFromObject(source:object): T;
+
+  protected abstract statsFromObject(source:any): S;
 
   // protected async exportToJson(event?: Event) {
   //

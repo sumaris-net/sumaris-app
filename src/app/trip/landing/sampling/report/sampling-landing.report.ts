@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { environment } from '@environments/environment';
 import { LandingReport, LandingStats } from '../../report/landing.report';
-import { EntityServiceLoadOptions } from '@sumaris-net/ngx-components';
 import { Function } from '@app/shared/functions';
+import {AuctionControlStats} from '@app/trip/landing/auctioncontrol/report/auction-control.report';
 
 export interface SamplingLandingStats extends LandingStats {
   strategyLabel: string;
@@ -31,21 +30,6 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
     );
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
-    const data = await super.load(id, opts);
-
-    // Remove TAG_ID prefix
-    const samplePrefix = `${this.stats.strategyLabel}-`;
-    (data.samples || []).forEach(sample => {
-      const tagId = sample.measurementValues[PmfmIds.TAG_ID];
-      if (tagId && tagId.startsWith(samplePrefix)) {
-        sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
-      }
-    });
-
-    return data;
-  }
-
   /* -- protected function -- */
 
   protected async computeStats(data: Landing, opts?: {
@@ -54,7 +38,17 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
     cache?: boolean;
   }): Promise<SamplingLandingStats> {
     const stats = await super.computeStats(data, opts);
+
     stats.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL];
+
+    const samplePrefix = `${stats.strategyLabel}-`;
+    (data.samples || []).forEach(sample => {
+      const tagId = sample.measurementValues[PmfmIds.TAG_ID];
+      if (tagId && tagId.startsWith(samplePrefix)) {
+        sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
+      }
+    });
+
     return stats;
   }
 
@@ -71,10 +65,12 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
     return titlePrefix + title;
   }
 
-
-
   protected computeDefaultBackHref(data: Landing, stats?: SamplingLandingStats): string {
-    return `/observations/${this.parent.id}/sampling/${data.id}?tab=1`;
+    return `/observations/${data.observedLocationId}/sampling/${data.id}?tab=1`;
+  }
+
+  protected computePrintHref(data: Landing, stats: AuctionControlStats): string {
+    return `/observations/${this.data.observedLocationId}/sampling/${data.id}/report`;
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 25) {

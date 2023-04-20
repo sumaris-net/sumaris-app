@@ -24,9 +24,7 @@ export interface BaseReportOptions {
 }
 
 export interface IReportStats {
-  i18nPmfmPrefix?: string;
-  asObject?: (opts?: any) => any;
-  fromObject?: (opts?: any) => void;
+  i18nSuffix: string;
 }
 
 @Directive()
@@ -60,11 +58,6 @@ export abstract class AppBaseReport<
 
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
-
-
-  get i18nPmfmPrefix(): string {
-    return this.stats?.i18nPmfmPrefix;
-  }
 
   $defaultBackHref = new BehaviorSubject<string>('');
   $title = new BehaviorSubject<string>('');

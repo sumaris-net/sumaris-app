@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, Optional} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional} from '@angular/core';
 import { LandingService } from '@app/trip/services/landing.service';
 import {
   DateFormatService,
@@ -13,7 +13,7 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
@@ -21,30 +21,16 @@ import {AppDataEntityReport, DataEntityReportOptions} from '@app/data/report/dat
 import {Function} from '@app/shared/functions';
 import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Clipboard} from '@app/shared/context.service';
 import {IReportStats} from '@app/data/report/base-report.class';
 
-export class LandingStats implements IReportStats {
-
+export interface LandingStats extends IReportStats {
   sampleCount: number;
   images?: Image[];
   pmfms: IPmfm[];
+  i18nPmfmPrefix?: string;
   program: Program;
   weightDisplayedUnit: WeightUnitSymbol;
-  i18nSuffix: string;
   taxonGroup: TaxonGroupRef;
-
-  asObject(opts?: any): any {
-    return {
-      sampleCount: this.sampleCount,
-      images: this.images,
-      pmfms: this.pmfms.map(item => item.asObject()),
-      program: this.program.asObject(),
-      weightDisplayedUnit: this.weightDisplayedUnit,
-      i18nSuffix: this.i18nSuffix,
-      taxonGroup: this.taxonGroup.asObject(),
-    }
-  }
 }
 
 @Component({
@@ -59,27 +45,13 @@ export class LandingReport<
   extends AppDataEntityReport<Landing, number, S>
   implements AfterViewInit, OnDestroy {
 
+  protected logPrefix = 'landing-report';
 
   protected readonly network: NetworkService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly dateFormat: DateFormatService;
   protected readonly programRefService: ProgramRefService;
-
-  weightDisplayedUnit: WeightUnitSymbol;
-
-  @Input() set parent(value: ObservedLocation){
-    this.data.observedLocation = value;
-  }
-  get parent(): ObservedLocation {return this.data ? this.data.observedLocation as ObservedLocation : null};
-
-  @Input() set pmfms(value: IPmfm[]){
-    this.stats.pmfms = value;
-  }
-
-  get pmfms(): IPmfm[]{
-    return this.stats.pmfms;
-  }
 
   constructor(
     protected injector: Injector,
@@ -108,7 +80,6 @@ export class LandingReport<
   }
 
   async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
-
     const data = await this.landingService.load(id);
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
@@ -118,18 +89,18 @@ export class LandingReport<
       if (sample.label?.startsWith('#')) sample.label = null;
     });
 
-    data.observedLocation = await this.computeParent(data);
+    await this.fillParent(data);
 
     return data as Landing;
   }
 
   /* -- protected function -- */
 
-  protected async loadFromClipboard(clipboard: Clipboard, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
-    const target = await super.loadFromClipboard(clipboard, opts);
-    target.observedLocation = ObservedLocation.fromObject(clipboard.data.data?.observedLocation);
-    return target;
-  }
+  // protected async loadFromClipboard(clipboard: Clipboard, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
+  //   const target = await super.loadFromClipboard(clipboard, opts);
+  //   target.observedLocation = ObservedLocation.fromObject(clipboard.data.data?.observedLocation);
+  //   return target;
+  // }
 
   protected async computeTitle(data: Landing, stats: S): Promise<string> {
     const titlePrefix = await this.translateContext.get('LANDING.TITLE_PREFIX',
@@ -143,11 +114,11 @@ export class LandingReport<
   }
 
   protected computeDefaultBackHref(data: Landing, stats: S): string {
-    return `/observations/${this.parent.id}/landing/${data.id}?tab=1`;
+    return `/observations/${this.data.observedLocationId}/landing/${data.id}?tab=1`;
   }
 
   protected computePrintHref(data: Landing, stats: S): string {
-    return `/observations/${this.parent.id}/landing/${data.id}/report`;
+    return `/observations/${this.data.observedLocation.id}/landing/${data.id}/report`;
   }
 
   protected async computeStats(data: Landing, opts?: {
@@ -155,13 +126,14 @@ export class LandingReport<
     stats?: S;
     cache?: boolean;
   }): Promise<S> {
-    console.debug('[landing-report] Computing stats...');
-    const stats = opts?.stats || new LandingStats() as S;
+    if (this.debug) console.log(`[${this.logPrefix}] Computing stats...`);
+    // TODO When we need to get stats from opts ?
+    const stats:S = opts?.stats || <S>{};
 
-    data.observedLocation = data.observedLocation || await this.computeParent(data);
+    // TODO Check and send error if data.observedLocation is empty (must be filled `computeParent` in `loadData`)
     const parent = data.observedLocation as ObservedLocation;
-
     stats.program = await this.programRefService.loadByLabel(parent.program.label);
+    console.debug('MYTEST', stats.program);
 
     // Compute agg data
     stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
@@ -172,7 +144,7 @@ export class LandingReport<
       taxonGroupId: stats.taxonGroup?.id
     });
     stats.pmfms = (stats.weightDisplayedUnit)
-      ? PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit)
+      ? PmfmUtils.setWeightUnitConversions(pmfms, stats.weightDisplayedUnit)
       : pmfms;
 
     const i18nSuffix = stats.program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -191,17 +163,16 @@ export class LandingReport<
         })
         return s.images;
       });
-
     return stats;
   }
 
-  protected async computeParent(data: Landing): Promise<ObservedLocation> {
+  protected async fillParent(data: Landing) {
     let parent: ObservedLocation;
     if (isNotNilOrNaN(data.observedLocationId)) {
       parent = await this.observedLocationService.load(data.observedLocationId);
     }
     if (!parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
-    return parent;
+    data.observedLocation = parent;
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 20) {
@@ -212,4 +183,22 @@ export class LandingReport<
     }
     data.samples = samples;
   }
+
+  protected dataFromObject(source:object): Landing {
+    return Landing.fromObject(source);
+  }
+
+  protected statsFromObject(source:any): S {
+    const stats:LandingStats = {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      images: source.images, // TODO deserialize images
+      pmfms: source.pmfms, // TODO deserialize pmfms
+      program: Program.fromObject(source.program),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
+    };
+    return stats as S;
+  }
+
 }

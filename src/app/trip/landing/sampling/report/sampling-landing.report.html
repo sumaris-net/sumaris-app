@@ -2,10 +2,29 @@
   <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
     <ion-title [innerHTML]="$title|async"></ion-title>
     <ion-buttons slot="end">
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
       <ion-button (click)="reveal.print($event)" >
         <ion-icon name="print"></ion-icon>
       </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.SHARE.BTN_SHARE'|translate"
+              [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
     </ion-buttons>
+
+    <mat-menu #shareMenu="matMenu" xPosition="after">
+
+      <!-- Share popover -->
+      <button mat-menu-item
+              (click)="showSharePopover($event)"
+              [disabled]="(loadingSubject|async) || network.offline">
+        <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
+      </button>
+    </mat-menu>
   </app-toolbar>
 
   <ion-content>
@@ -22,9 +41,9 @@
         <section markdown ngPreserveWhitespaces>
           ## {{'LANDING.REPORT.SAMPLING.TITLE_SHORT'|translate}}
           - {{'LANDING.EDIT.SAMPLING.LANDING'|translate}} {{data.location?.name}}
-          - {{'LANDING.EDIT.SAMPLING.STRATEGY'|translate}} {{strategyLabel}}
+          - {{'LANDING.EDIT.SAMPLING.STRATEGY'|translate}} {{stats.strategyLabel}}
           - {{'LANDING.EDIT.SAMPLING.DATE'|translate}} : {{data.dateTime|dateFormat: {time: false} }}
-          - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{parent.observers|personToString}}
+          - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{data.observedLocation['observers']|personToString}}
           - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.name}}**
 
         </section>
@@ -33,7 +52,7 @@
         <section markdown ngPreserveWhitespaces
                  *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
           ### {{'LANDING.REPORT.SAMPLING.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
-          <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+          <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
         </section>
       </section>
     </app-reveal>
@@ -49,8 +68,8 @@
 <ng-container *ngIf="embedded && loaded">
   <section markdown ngPreserveWhitespaces
    *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
-    ### {{data.vesselSnapshot?.name}} {{data.dateTime|dateFormat: {time: false} }} - {{strategyLabel}}  {{index|paginationToString:count}}
-    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+    ### {{data.vesselSnapshot?.name}} {{data.dateTime|dateFormat: {time: false} }} - {{stats.strategyLabel}}  {{index|paginationToString:count}}
+    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
   </section>
 </ng-container>
 
@@ -59,7 +78,7 @@
     <thead>
       <tr>
         <th *ngFor="let pmfm of pmfms"
-            [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true}"></th>
+            [innerHTML]="pmfm|pmfmName: {i18nPrefix: stats.i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true}"></th>
       </tr>
     </thead>
     <tbody>
