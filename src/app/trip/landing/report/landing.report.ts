@@ -133,7 +133,6 @@ export class LandingReport<
     // TODO Check and send error if data.observedLocation is empty (must be filled `computeParent` in `loadData`)
     const parent = data.observedLocation as ObservedLocation;
     stats.program = await this.programRefService.loadByLabel(parent.program.label);
-    console.debug('MYTEST', stats.program);
 
     // Compute agg data
     stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
@@ -184,7 +183,7 @@ export class LandingReport<
     data.samples = samples;
   }
 
-  protected dataFromObject(source:object): Landing {
+  protected dataFromObject(source:any): Landing {
     return Landing.fromObject(source);
   }
 
@@ -192,13 +191,26 @@ export class LandingReport<
     const stats:LandingStats = {
       i18nSuffix: source.i18nSuffix,
       sampleCount: source.sampleCount,
-      images: source.images, // TODO deserialize images
-      pmfms: source.pmfms, // TODO deserialize pmfms
+      images: source.images,
+      pmfms: source.pmfms,
       program: Program.fromObject(source.program),
       weightDisplayedUnit: source.weightDisplayedUnit,
       taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
     };
     return stats as S;
   }
+
+  protected statsAsObject(source:S): any {
+    return  {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      images: source.images,
+      pmfms: source.pmfms,
+      program: source.program.asObject(),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: source.taxonGroup.asObject(),
+    };
+  }
+
 
 }

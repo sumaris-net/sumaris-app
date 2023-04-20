@@ -2,11 +2,6 @@ import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { environment } from '@environments/environment';
 import { LandingReport, LandingStats } from '../../report/landing.report';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-
-export interface AuctionControlStats extends LandingStats {
-  taxonGroup: TaxonGroupRef;
-}
 
 @Component({
   selector: 'app-auction-control-report',
@@ -14,7 +9,7 @@ export interface AuctionControlStats extends LandingStats {
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuctionControlReport extends LandingReport<AuctionControlStats> {
+export class AuctionControlReport extends LandingReport {
 
   constructor(
     injector: Injector,
@@ -38,7 +33,7 @@ export class AuctionControlReport extends LandingReport<AuctionControlStats> {
     return `/observations/${this.data.observedLocationId}/control/${data.id}?tab=1`;
   }
 
-  protected computePrintHref(data: Landing, stats: AuctionControlStats): string {
+  protected computePrintHref(data: Landing, stats: LandingStats): string {
     return `/observations/${this.data.observedLocationId}/control/${data.id}/report`;
   }
 

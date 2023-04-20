@@ -4,7 +4,6 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { LandingReport, LandingStats } from '../../report/landing.report';
 import { Function } from '@app/shared/functions';
-import {AuctionControlStats} from '@app/trip/landing/auctioncontrol/report/auction-control.report';
 
 export interface SamplingLandingStats extends LandingStats {
   strategyLabel: string;
@@ -69,15 +68,27 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
     return `/observations/${data.observedLocationId}/sampling/${data.id}?tab=1`;
   }
 
-  protected computePrintHref(data: Landing, stats: AuctionControlStats): string {
+  protected computePrintHref(data: Landing, stats: SamplingLandingStats): string {
     return `/observations/${this.data.observedLocationId}/sampling/${data.id}/report`;
+  }
+
+  protected statsFromObject(source:any): SamplingLandingStats {
+    return {
+      ...super.statsFromObject(source),
+      strategyLabel: source.strategyLabel,
+    };
+  }
+
+  protected statsAsObject(source:SamplingLandingStats): any {
+    return {
+      ...super.statsAsObject(source),
+      strategyLabel: source.strategyLabel,
+    }
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 25) {
     if (environment.production) return; // Skip
-
     super.addFakeSamplesForDev(data, count);
-
     data.samples.forEach((s, index) => s.measurementValues[PmfmIds.TAG_ID] = `${index+1}`);
   }
 

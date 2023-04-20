@@ -107,7 +107,7 @@ export abstract class AppDataEntityReport<
 
   protected async load(id: ID, opts?: any): Promise<T> {
     if (this.debug) console.debug(`[${this.logPrefix}.load]`, arguments);
-    return  await this.loadData(id, opts);;
+    return  await this.loadData(id, opts);
   }
 
   // TODO This method sill useful ?
@@ -137,23 +137,6 @@ export abstract class AppDataEntityReport<
   protected abstract dataFromObject(source:object): T;
 
   protected abstract statsFromObject(source:any): S;
-
-  // protected async exportToJson(event?: Event) {
-  //
-  //   const filename = this.getExportFileName('json');
-  //   const encoding = this.getExportEncoding('json');
-  //   const content  = await this.getReportFileContent();
-  //   const jsonContent = content.asObject({minify: true});
-  //
-  //   // Write to file
-  //   FilesUtils.writeTextToFile(
-  //     JSON.stringify(jsonContent), {
-  //       type: 'application/json',
-  //       filename,
-  //       encoding
-  //     }
-  //   );
-  // }
 
   protected async showSharePopover(event?: UIEvent) {
 
@@ -195,9 +178,8 @@ export abstract class AppDataEntityReport<
       creationDate: toDateISOString(DateUtils.moment()),
       content: {
         data: {
-          data: this.asObject(this.data),
-          // TODO
-          // stats: this.asStatsObject(this.stats),
+          data: this.dataAsObject(this.data),
+          stats: this.statsAsObject(this.stats),
         },
         pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS
       }
@@ -236,40 +218,14 @@ export abstract class AppDataEntityReport<
     return { url: shareUrl};
   }
 
-  protected asObject(source: T, opts?: EntityAsObjectOptions): any {
-    if (typeof source?.asObject === 'function') {
-      return source.asObject(opts);
-    }
+  protected dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
+    if (typeof source?.asObject === 'function') return source.asObject(opts);
     const data = new this.dataType();
     data.fromObject(source);
     return data.asObject(opts);
   }
 
-  // protected asStatsObject(source: S, opts?: EntityAsObjectOptions): any {
-  //   if (typeof source?.asObject === 'function') {
-  //     return source.asObject(opts);
-  //   }
-  //   const stats = new this.statsType();
-  //   stats.fromObject(source);
-  //   return stats.asObject(opts);
-  // }
-
-  // protected async getReportFileContent(): Promise<ReportFileContent> {
-  //   // Wait data loaded
-  //   await this.waitIdle({timeout: 5000});
-  //
-  //   const content  = new ReportFileContent();
-  //   // content.data = this.data;
-  //   content.stats = this.stats;
-  //   content.reportUrl = this.router.url;
-  //   content.creationDate = DateUtils.moment();
-  //   if (this.accountService.isLogin()) {
-  //     content.recorderPerson = this.accountService.person;
-  //     content.recorderDepartment = this.accountService.department;
-  //   }
-  //
-  //   return content;
-  // }
+  protected abstract statsAsObject(source: S, opts?: EntityAsObjectOptions): any;
 
   protected getExportEncoding(format = 'json'): string {
     const key = `FILE.${format.toUpperCase()}.ENCODING`;
@@ -288,4 +244,37 @@ export abstract class AppDataEntityReport<
     return `export.${format}`; // Default filename
   }
 
+  // protected async exportToJson(event?: Event) {
+  //
+  //   const filename = this.getExportFileName('json');
+  //   const encoding = this.getExportEncoding('json');
+  //   const content  = await this.getReportFileContent();
+  //   const jsonContent = content.asObject({minify: true});
+  //
+  //   // Write to file
+  //   FilesUtils.writeTextToFile(
+  //     JSON.stringify(jsonContent), {
+  //       type: 'application/json',
+  //       filename,
+  //       encoding
+  //     }
+  //   );
+  // }
+
+  // protected async getReportFileContent(): Promise<ReportFileContent> {
+  //   // Wait data loaded
+  //   await this.waitIdle({timeout: 5000});
+  //
+  //   const content  = new ReportFileContent();
+  //   // content.data = this.data;
+  //   content.stats = this.stats;
+  //   content.reportUrl = this.router.url;
+  //   content.creationDate = DateUtils.moment();
+  //   if (this.accountService.isLogin()) {
+  //     content.recorderPerson = this.accountService.person;
+  //     content.recorderDepartment = this.accountService.department;
+  //   }
+  //
+  //   return content;
+  // }
 }

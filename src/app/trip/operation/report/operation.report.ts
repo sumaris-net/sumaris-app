@@ -139,4 +139,14 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     };
   }
 
+  protected statsAsObject(source:OperationStats): any {
+    return {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      pmfms: source.pmfms,
+      program: source.program.asObject(),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: source.taxonGroup.asObject(),
+    };
+  }
 }
