@@ -169,7 +169,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() selectedTabIndex: number;
   @Input() usageMode: UsageMode;
-  @Input() i18nPmfmPrefix: string;
+  @Input() i18nPmfmPrefix: string = 'TRIP.BATCH.PMFM.';
   @Input() useSticky = true;
   @Input() mobile: boolean;
   @Input() debug: boolean;

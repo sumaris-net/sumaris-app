@@ -86,7 +86,7 @@
     "apollo-link-queue": "~3.1.0",
     "apollo-link-serialize": "~4.0.0",
     "apollo3-cache-persist": "~0.14.1",
-    "@e-is/capacitor-bluetooth-serial": "0.0.5-rc18",
+    "@e-is/capacitor-bluetooth-serial": "0.4.2",
     "chart.js": "~2.9.4",
     "chartjs-plugin-trendline": "~0.2.2",
     "clone": "^2.1.2",

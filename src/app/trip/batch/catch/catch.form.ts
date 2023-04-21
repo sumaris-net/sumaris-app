@@ -13,6 +13,8 @@ import { environment } from '@environments/environment';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+export declare type CatchBatchFormLayout = 'CATCH' | 'SORTING_BATCH';
+
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
   onDeckPmfms: IPmfm[];
@@ -20,6 +22,7 @@ export interface CatchBatchFormState extends BatchFormState {
   catchPmfms: IPmfm[];
   otherPmfms: IPmfm[];
   gridColCount: number;
+  layout: CatchBatchFormLayout;
 }
 
 @Component({
@@ -44,6 +47,13 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   readonly catchPmfmsRendered = new Subject<IPmfm[]>();
 
   @Input() labelColSize = 1;
+
+  @Input() set layout(value: CatchBatchFormLayout) {
+    this._state.set('layout', () => value);
+  }
+  get layout(): CatchBatchFormLayout {
+    return this._state.get('layout');
+  }
 
   constructor(
     injector: Injector,
@@ -77,8 +87,9 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
 
     if (!pmfms) return; // Skip
 
-    // If a catch batch
-    if (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
+    // If a catch batch layout
+    const layout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'catch' : 'default');
+    if (layout === 'CATCH') {
 
       const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
 

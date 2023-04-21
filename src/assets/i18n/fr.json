@@ -670,7 +670,7 @@
         "MESH_GAUGE_ASS_MM": "Maillage - Cul de châlut (mm)",
         "GROUNDROPE_TYPE": "Type de bourrelet",
         "VERTICAL_OPENING_ESTIMATED": "Ouverture verticale - Estimée (m)",
-        "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
+        "VERTICAL_OPENING_MEASURED": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
         }
@@ -978,6 +978,8 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
+        "SORTING_START_DATE_TIME": "Début de tri",
+        "SORTING_END_DATE_TIME": "Fin de tri",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",
