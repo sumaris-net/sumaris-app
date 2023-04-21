@@ -1,14 +1,21 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '@sumaris-net/ngx-components';
-import { BluetoothSerialModule } from '@app/shared/bluetooth/bluetooth-serial.module';
+import { IchthyometerIcon } from '@app/shared/ichthyometer/ichthyometer.icon';
+import { AppBluetoothModule } from '@app/shared/bluetooth/bluetooth.module';
+import { PushModule } from '@rx-angular/template/push';
+import { RxStateModule } from '@app/shared/rx-state.module';
 
 @NgModule({
   imports: [
     SharedModule,
-    BluetoothSerialModule
+    RxStateModule,
+    AppBluetoothModule
+  ],
+  declarations: [
+    IchthyometerIcon
   ],
   exports: [
-    BluetoothSerialModule
+    IchthyometerIcon
   ]
 })
 export class AppIchthyometerModule {

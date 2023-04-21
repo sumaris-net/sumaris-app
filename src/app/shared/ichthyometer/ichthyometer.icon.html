@@ -1,0 +1,9 @@
+
+<button mat-icon-button
+        *rxLet="connectedIchthyometer$ as device"
+        [color]="device ? 'tertiary' : undefined"
+        [title]="titleI18n | translate"
+        [disabled]="disabled"
+        (click)="openPopover($event)">
+  <mat-icon>{{matIcon$|push}}</mat-icon>
+</button>

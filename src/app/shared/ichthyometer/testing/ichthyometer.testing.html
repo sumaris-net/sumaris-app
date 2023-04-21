@@ -1,0 +1,59 @@
+<ion-toolbar color="primary">
+  <ion-title>Ichthyometer demo</ion-title>
+</ion-toolbar>
+
+<ion-content class="ion-padding">
+
+  <h4>Gwaleen</h4>
+
+  <app-ichthyometer-icon type="gwaleen" autoConnect="true"></app-ichthyometer-icon>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        Bluetooth: {{($enabled|push) ? 'ON' : 'OFF'}}
+      </ion-col>
+      <ion-col>
+        <ion-button *rxIf="$enabled; else disableButton" (click)="disable()">Disable</ion-button>
+        <ng-template #disableButton>
+          <ion-button (click)="enable()">Enable</ion-button>
+        </ng-template>
+      </ion-col>
+      <ion-col>
+        <ion-spinner *rxIf="$loading; else scanButton"></ion-spinner>
+        <ng-template #scanButton>
+          <ion-button (click)="scan()">Scan devices</ion-button>
+        </ng-template>
+      </ion-col>
+    </ion-row>
+
+    <ion-row *rxFor="let device of $devices">
+      <ion-col>
+        <ion-text>{{device.name}}</ion-text><br/>
+        <ion-text color="medium"><small>{{device.address}}</small></ion-text>
+      </ion-col>
+      <ion-col>{{device.address}}</ion-col>
+      <ion-col>
+        <ion-button *ngIf="!connectedDevice; else connected" (click)="connect(device)">Connect</ion-button>
+        <ng-template #connected>
+          <ion-button *ngIf="connectedDevice === device" (click)="disconnect()">Disconnect</ion-button>
+        </ng-template>
+      </ion-col>
+    </ion-row>
+
+    <!-- output -->
+    <ion-row>
+      <ion-col size="12">
+        <ion-text color="medium">
+          <span *rxFor="let item of $items">{{item}}<br/></span>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+</ion-content>

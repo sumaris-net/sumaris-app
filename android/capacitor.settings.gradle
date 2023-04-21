@@ -34,3 +34,6 @@ project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capa
 
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/@capacitor/status-bar/android')
+
+include ':e-is-capacitor-bluetooth-serial'
+project(':e-is-capacitor-bluetooth-serial').projectDir = new File('../node_modules/@e-is/capacitor-bluetooth-serial/android')

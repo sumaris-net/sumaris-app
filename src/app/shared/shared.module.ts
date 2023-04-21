@@ -1,20 +1,18 @@
-import { Injectable, ModuleWithProviders, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy, RouterModule } from '@angular/router';
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { Environment, isNil, isNotNil, SharedModule } from '@sumaris-net/ngx-components';
+import { Environment, SharedDebugModule, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
-import { SharedDebugModule } from '@sumaris-net/ngx-components';
-import {UnpatchModule} from '@rx-angular/template/unpatch';
-import {IfModule} from '@rx-angular/template/if';
-import {ForModule} from '@rx-angular/template/for';
-import {LetModule} from '@rx-angular/template/let';
-import {PushModule} from '@rx-angular/template/push';
-import { IonicRouteStrategy } from '@ionic/angular';
+import { UnpatchModule } from '@rx-angular/template/unpatch';
+import { IfModule } from '@rx-angular/template/if';
+import { ForModule } from '@rx-angular/template/for';
+import { LetModule } from '@rx-angular/template/let';
+import { PushModule } from '@rx-angular/template/push';
 
 @NgModule({
   imports: [

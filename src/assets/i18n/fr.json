@@ -2734,6 +2734,23 @@
       "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
     }
   },
+  "SHARED": {
+    "BLUETOOTH": {
+      "TITLE": "Paramètres Bluetooth",
+      "ENABLED": "Activé",
+      "DISABLED": "Désactivé",
+      "AVAILABLE_DEVICES": "Périphériques disponibles :",
+      "NO_DEVICE": "Aucun périphérique trouvé",
+      "BTN_SCAN": "Analyser",
+      "BTN_DISCONNECT": "Déconnecter",
+      "ERROR": {
+        "DISABLED": "Le bluetooth est désactivé"
+      }
+    },
+    "ICHTHYOMETER": {
+      "TITLE": "Ichtyomètre bluetooth"
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
