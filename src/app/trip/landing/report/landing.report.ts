@@ -1,7 +1,6 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional} from '@angular/core';
 import { LandingService } from '@app/trip/services/landing.service';
 import {
-  DateFormatService,
   EntityServiceLoadOptions,
   ImageAttachment,
   isNilOrBlank,
@@ -43,14 +42,13 @@ export class LandingReport<
   S extends LandingStats = LandingStats
 >
   extends AppDataEntityReport<Landing, number, S>
-  implements AfterViewInit, OnDestroy {
+  implements OnDestroy {
 
   protected logPrefix = 'landing-report';
 
   protected readonly network: NetworkService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
-  protected readonly dateFormat: DateFormatService;
   protected readonly programRefService: ProgramRefService;
 
   constructor(
@@ -65,18 +63,6 @@ export class LandingReport<
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
-  }
-
-  ngAfterViewInit() {
-    // Load data
-    //if (this._autoLoad && !this.embedded) { // If !this.embeded start is never called
-    if (this._autoLoad) {
-      setTimeout(() => this.start(), this._autoLoadDelay);
-    }
-  }
-
-  ngOnDestroy() {
-    this.destroySubject.next();
   }
 
   async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
@@ -95,12 +81,6 @@ export class LandingReport<
   }
 
   /* -- protected function -- */
-
-  // protected async loadFromClipboard(clipboard: Clipboard, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
-  //   const target = await super.loadFromClipboard(clipboard, opts);
-  //   target.observedLocation = ObservedLocation.fromObject(clipboard.data.data?.observedLocation);
-  //   return target;
-  // }
 
   protected async computeTitle(data: Landing, stats: S): Promise<string> {
     const titlePrefix = await this.translateContext.get('LANDING.TITLE_PREFIX',

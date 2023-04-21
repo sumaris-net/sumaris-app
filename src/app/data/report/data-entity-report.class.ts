@@ -1,5 +1,5 @@
 import {AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {AccountService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, TextPopover, Toasts, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
+import {AccountService, DateFormatService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, Toasts, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
 import {DataEntity} from '../services/model/data-entity.model';
 import {AppBaseReport, BaseReportOptions, IReportStats} from '@app/data/report/base-report.class';
 import {Function} from '@app/shared/functions';
@@ -17,7 +17,6 @@ import {APP_BASE_HREF} from '@angular/common';
 import {SharedElement} from '@app/social/share/shared-page.model';
 import {Clipboard, ContextService} from '@app/shared/context.service';
 import {hasFlag} from '@app/shared/flags.utils';
-import {returnDownBack} from 'ionicons/icons';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -53,6 +52,7 @@ export abstract class AppDataEntityReport<
   protected readonly baseHref: string;
   protected readonly context: ContextService;
   protected readonly toastController: ToastController;
+  protected readonly dateFormat: DateFormatService;
 
   @Input() id: ID;
 
@@ -70,6 +70,7 @@ export abstract class AppDataEntityReport<
     this.accountService = injector.get(AccountService);
     this.context = injector.get(ContextService);
     this.toastController = injector.get(ToastController);
+    this.dateFormat = injector.get(DateFormatService);
 
     this.baseHref = injector.get(APP_BASE_HREF);
 
@@ -96,6 +97,8 @@ export abstract class AppDataEntityReport<
 
     // TODO How to setup this
     if (isNotNil(this.i18nContext))
+      //   this.i18nContext.prefix = 'OBSERVED_LOCATION.PMFM.';
+      //   this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nContext.suffix = this.stats.i18nSuffix === 'legacy' ? '' : this.stats.i18nSuffix;
 
     return this.data;
@@ -121,8 +124,6 @@ export abstract class AppDataEntityReport<
     stats?: S; // TODO : Check in which case this may be used
     cache?: boolean;
   }): Promise<S>;
-
-  protected abstract fillParent(data:T);
 
   protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<void> {
     if (this.debug) console.debug(`[${this.logPrefix}] Loading data from clipboard:`, clipboard);
@@ -259,37 +260,4 @@ export abstract class AppDataEntityReport<
     return `export.${format}`; // Default filename
   }
 
-  // protected async exportToJson(event?: Event) {
-  //
-  //   const filename = this.getExportFileName('json');
-  //   const encoding = this.getExportEncoding('json');
-  //   const content  = await this.getReportFileContent();
-  //   const jsonContent = content.asObject({minify: true});
-  //
-  //   // Write to file
-  //   FilesUtils.writeTextToFile(
-  //     JSON.stringify(jsonContent), {
-  //       type: 'application/json',
-  //       filename,
-  //       encoding
-  //     }
-  //   );
-  // }
-
-  // protected async getReportFileContent(): Promise<ReportFileContent> {
-  //   // Wait data loaded
-  //   await this.waitIdle({timeout: 5000});
-  //
-  //   const content  = new ReportFileContent();
-  //   // content.data = this.data;
-  //   content.stats = this.stats;
-  //   content.reportUrl = this.router.url;
-  //   content.creationDate = DateUtils.moment();
-  //   if (this.accountService.isLogin()) {
-  //     content.recorderPerson = this.accountService.person;
-  //     content.recorderDepartment = this.accountService.department;
-  //   }
-  //
-  //   return content;
-  // }
 }

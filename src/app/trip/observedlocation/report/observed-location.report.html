@@ -23,7 +23,7 @@
               <li>{{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} <b>{{ data.location?.name }}</b></li>
               <li>{{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} <b>{{ data.startDateTime|dateFormat:{time: true} }}</b></li>
               <li>{{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}</li>
-              <li *ngFor="let pmfm of pmfms">
+              <li *ngFor="let pmfm of stats.pmfms">
               {{ pmfm|pmfmName:{
                 i18nPrefix: i18nContext.prefix,
                 i18nContext: i18nContext.suffix,
@@ -35,21 +35,21 @@
           <section>
             <h3>{{'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE'|translateContext: i18nContext.suffix }}</h3>
 
-            <table [style.--col-count]="(landingPmfms|arrayPluck:{property:'qualitativeValues'}).flat().length + (landingShowSampleCount ? 2 : 1)">
+            <table [style.--col-count]="(stats.landingPmfms|arrayPluck:{property:'qualitativeValues'}).flat().length + (stats.landingShowSampleCount ? 2 : 1)">
               <thead>
                 <tr>
-                  <th [rowSpan]="2" translate>LANDING.TABLE.VESSEL</th>
-                  <th [rowSpan]="2" *ngIf="landingShowSampleCount">{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nContext.suffix}}</th>
-                  <th *ngFor="let pmfm of landingPmfms"
+                  <th [rowSpan]="2">{{ 'LANDING.TABLE.VESSEL'|translate }}</th>
+                  <th [rowSpan]="2" *ngIf="stats.landingShowSampleCount">{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nContext.suffix}}</th>
+                  <th *ngFor="let pmfm of stats.landingPmfms"
                       [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
                       [colSpan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
                     >{{pmfm|pmfmName: {
-                    i18nPrefix: landingI18nPmfmPrefix,
+                    i18nPrefix: stats.landingI18nPmfmPrefix,
                     i18nContext: i18nContext.suffix,
                     html: true } }}</th>
                 </tr>
                 <tr>
-                  <ng-container *ngFor="let pmfm of landingPmfms | arrayFilter:isQualitativePmfm">
+                  <ng-container *ngFor="let pmfm of stats.landingPmfms | arrayFilter:isQualitativePmfm">
                     <th *ngFor="let qv of pmfm.qualitativeValues">
                       {{qv|pmfmValue:{pmfm: pmfm, html: true} }}
                     </th>
@@ -60,8 +60,8 @@
               <tbody>
                 <tr *ngFor="let landing of data.landings">
                   <td>{{landing.vesselSnapshot?.name}}</td>
-                  <td *ngIf="landingShowSampleCount">{{landing.samplesCount}}</td>
-                  <ng-container *ngFor="let pmfm of landingPmfms">
+                  <td *ngIf="stats.landingShowSampleCount">{{landing.samplesCount}}</td>
+                  <ng-container *ngFor="let pmfm of stats.landingPmfms">
                     <td *ngIf="isNotQualitativePmfm(pmfm); else qualitative">
                       {{landing|measurementValueGet:{pmfm: pmfm, html: true} }}
                     </td>
@@ -82,24 +82,20 @@
       </section>
 
       <!-- landing reports -->
-      <section *ngFor="let landing of data?.landings|arrayFilter: hasSamples; index as index" [ngSwitch]="landingEditor">
+      <section *ngFor="let landing of data?.landings|arrayFilter: hasSamples; index as index" [ngSwitch]="stats.landingEditor">
         <!-- auction control -->
         <app-auction-control-report #landingReport
                                     *ngSwitchCase="'control'"
                                     [embedded]="true"
                                     [data]="landing"
-                                    [parent]="data"
                                     [i18nContext]="i18nContext"
-                                    [pmfms]="landingSamplesPmfms[index]"
                                     ></app-auction-control-report>
         <!-- sampling landing -->
         <app-sampling-landing-report #landingReport
                                     *ngSwitchCase="'sampling'"
                                     [embedded]="true"
                                     [data]="landing"
-                                    [parent]="data"
                                     [i18nContext]="i18nContext"
-                                    [pmfms]="landingSamplesPmfms[index]"
         ></app-sampling-landing-report>
 
         <!-- landing report by default -->
@@ -107,9 +103,7 @@
                             *ngSwitchCase="'landing'"
                             [embedded]="true"
                             [data]="landing"
-                            [parent]="data"
                             [i18nContext]="i18nContext"
-                            [pmfms]="landingSamplesPmfms[index]"
         ></app-landing-report>
 
 

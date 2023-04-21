@@ -235,10 +235,11 @@ export abstract class AppBaseReport<
     }
   }
 
-  protected markAsLoaded() {
+  protected markAsLoaded(opts = {emitEvent: true}) {
     if (this.debug) console.debug(`[${this.logPrefix}.markAsLoaded]`);
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
+      if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
