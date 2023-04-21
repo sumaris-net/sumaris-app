@@ -51,6 +51,31 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return data;
   }
 
+  dataFromObject(source:object): Operation {
+    return Operation.fromObject(source)
+  }
+
+  statsFromObject(source:any): OperationStats {
+    return  {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
+      program: Program.fromObject(source.program),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
+    };
+  }
+
+  statsAsObject(source:OperationStats): any {
+    return {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      pmfms: source.pmfms.map(item => item.asObject()),
+      program: source.program.asObject(),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: source.taxonGroup.asObject(),
+    };
+  }
 
   protected async fillParent(data: Operation){
     let parent: Trip;
@@ -124,29 +149,4 @@ export class OperationReport extends AppDataEntityReport<Operation> {
     return stats;
   }
 
-  protected dataFromObject(source:object): Operation {
-    return Operation.fromObject(source)
-  }
-
-  protected statsFromObject(source:any): OperationStats {
-    return  {
-      i18nSuffix: source.i18nSuffix,
-      sampleCount: source.sampleCount,
-      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
-      program: Program.fromObject(source.program),
-      weightDisplayedUnit: source.weightDisplayedUnit,
-      taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
-    };
-  }
-
-  protected statsAsObject(source:OperationStats): any {
-    return {
-      i18nSuffix: source.i18nSuffix,
-      sampleCount: source.sampleCount,
-      pmfms: source.pmfms.map(item => item.asObject()),
-      program: source.program.asObject(),
-      weightDisplayedUnit: source.weightDisplayedUnit,
-      taxonGroup: source.taxonGroup.asObject(),
-    };
-  }
 }

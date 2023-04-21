@@ -6,13 +6,13 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import {
-  arrayDistinct,
+  arrayDistinct, EntityAsObjectOptions,
   EntityServiceLoadOptions,
   firstFalsePromise,
-  isNotEmptyArray,
+  isNotEmptyArray, isNotNil,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {LandingReport,} from '@app/trip/landing/report/landing.report';
+import {LandingReport, LandingStats,} from '@app/trip/landing/report/landing.report';
 import { LandingService } from '@app/trip/services/landing.service';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
@@ -20,6 +20,8 @@ import { ObservedLocationService } from '@app/trip/services/observed-location.se
 import {IReportStats} from '@app/data/report/base-report.class';
 import {AppDataEntityReport} from '@app/data/report/data-entity-report.class';
 import {LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX} from '@app/trip/landing/landings.table';
+import {AuctionControlReport} from '@app/trip/landing/auctioncontrol/report/auction-control.report';
+import {SamplingLandingReport} from '../../landing/sampling/report/sampling-landing.report';
 
 export interface ObservedLocationStats extends IReportStats {
   vesselCount: number,
@@ -30,6 +32,7 @@ export interface ObservedLocationStats extends IReportStats {
   landingI18nColumnPrefix: string,
   landingShowSampleCount: boolean,
   landingSamplesPmfms: IPmfm[][],
+  landingsStats?: LandingStats[],
 }
 
 @Component({
@@ -39,6 +42,12 @@ export interface ObservedLocationStats extends IReportStats {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation, number, ObservedLocationStats> implements AfterViewInit, OnDestroy {
+
+  protected readonly isNotEmptyArray = isNotEmptyArray;
+  protected readonly isNotNil = isNotNil;
+  protected readonly AuctionControlReport = AuctionControlReport;
+  protected readonly SamplingLandingReport = SamplingLandingReport;
+  protected readonly LandingReport = LandingReport;
 
   private readonly observedLocationService: ObservedLocationService;
   private readonly landingService: LandingService;
@@ -82,6 +91,50 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     data.landings.forEach(landing => landing.observedLocation = data);
 
     return data;
+  }
+
+  dataFromObject(source:any): ObservedLocation {
+    const result = ObservedLocation.fromObject(source);
+    result.landings.forEach(l => l.observedLocation = result);
+    return result;
+  }
+
+  dataAsObject(source: ObservedLocation, opts?: EntityAsObjectOptions): any {
+    const copySource = source.clone();
+    // Clean observed location from exported data
+    // (this is redundant because observed location is the root of data itself)
+    copySource.landings.forEach(l => delete l.observedLocation);
+    return copySource.asObject();
+  }
+
+  statsFromObject(source:any): ObservedLocationStats {
+    return {
+      i18nSuffix: source.i18nSuffix,
+      vesselCount: source.vesselCount,
+      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
+      landingPmfms: source.landingPmfms.map(item => Pmfm.fromObject(item)),
+      landingEditor: source.landingEditor, // TODO : make it from object
+      landingI18nPmfmPrefix: source.landingI18nPmfmPrefix,
+      landingI18nColumnPrefix: source.landingI18nColumnPrefix,
+      landingShowSampleCount: source.landingShowSampleCount,
+      landingSamplesPmfms: source.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => Pmfm.fromObject(lv2))),
+      landingsStats: source.landingsStats,
+    };
+  }
+
+  statsAsObject(source: ObservedLocationStats): any {
+    return {
+      i18nSuffix: source.i18nSuffix,
+      vesselCount: source.vesselCount,
+      pmfms: source.pmfms.map(item => item.asObject()),
+      landingPmfms: source.landingPmfms.map(item => item.asObject()),
+      landingEditor: source.landingEditor, // TODO : make it as object
+      landingI18nPmfmPrefix: source.landingI18nPmfmPrefix,
+      landingI18nColumnPrefix: source.landingI18nColumnPrefix,
+      landingShowSampleCount: source.landingShowSampleCount,
+      landingSamplesPmfms: source.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => lv2.asObject())),
+      landingsStats: this.children.map(c => c.statsAsObject(c.stats)),
+    };
   }
 
   markAsReady() {
@@ -138,34 +191,6 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     return stats;
   }
 
-  protected statsFromObject(source:any): ObservedLocationStats {
-    return {
-      i18nSuffix: source.i18nSuffix,
-      vesselCount: source.vesselCount,
-      pmfms: source.pmfms.map(item => item.asObject()),
-      landingPmfms: source.landingPmfms.map(item => Pmfm.fromObject(item)),
-      landingEditor: source.landingEditor, // TODO : make it from object
-      landingI18nPmfmPrefix: source.landingI18nPmfmPrefix,
-      landingI18nColumnPrefix: source.landingI18nColumnPrefix,
-      landingShowSampleCount: source.landingShowSampleCount,
-      landingSamplesPmfms: source.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => Pmfm.fromObject(lv2))),
-    };
-  }
-
-  protected statsAsObject(source: ObservedLocationStats): any {
-    return {
-      i18nSuffix: source.i18nSuffix,
-      vesselCount: source.vesselCount,
-      pmfms: source.pmfms.map(item => item.asObject()),
-      landingPmfms: source.landingPmfms.map(item => item.asObject()),
-      landingEditor: source.landingEditor, // TODO : make it as object
-      landingI18nPmfmPrefix: source.landingI18nPmfmPrefix,
-      landingI18nColumnPrefix: source.landingI18nColumnPrefix,
-      landingShowSampleCount: source.landingShowSampleCount,
-      landingSamplesPmfms: source.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => lv2.asObject())),
-    };
-  }
-
   protected async loadLandingsPmfms(landings: Landing[], program: Program): Promise<IPmfm[][]> {
     const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
     return Promise.all(
@@ -189,10 +214,6 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     if (this.loaded) return;
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
     this.children.map(c => c.waitIdle(opts));
-  }
-
-  protected dataFromObject(source:any): ObservedLocation {
-    return ObservedLocation.fromObject(source);
   }
 
   isQualitativePmfm(pmfm: IPmfm) {

@@ -1,10 +1,31 @@
 <app-toolbar  *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
   <ion-title [innerHTML]="$title|async"></ion-title>
   <ion-buttons slot="end">
-    <ion-button (click)="reveal.print($event)" >
+
+    <!-- Print -->
+    <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+    <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
       <ion-icon name="print"></ion-icon>
     </ion-button>
+
+    <!-- share menu -->
+    <button mat-icon-button matHeader
+            [title]="'COMMON.SHARE.BTN_SHARE'|translate"
+            [matMenuTriggerFor]="shareMenu">
+      <mat-icon>share</mat-icon>
+    </button>
   </ion-buttons>
+
+  <!-- Share menu -->
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+
+    <!-- Share popover -->
+    <button mat-menu-item
+            (click)="showSharePopover($event)"
+            [disabled]="(loadingSubject|async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
+    </button>
+  </mat-menu>
 </app-toolbar>
 
 <ion-content>
@@ -88,6 +109,7 @@
                                     *ngSwitchCase="'control'"
                                     [embedded]="true"
                                     [data]="landing"
+                                    [stats]="isNotNil(stats?.landingsStats) ? LandingReport.statsFromObject(stats.landingsStats[index]) : null"
                                     [i18nContext]="i18nContext"
                                     ></app-auction-control-report>
         <!-- sampling landing -->
@@ -95,6 +117,7 @@
                                     *ngSwitchCase="'sampling'"
                                     [embedded]="true"
                                     [data]="landing"
+                                    [stats]="isNotNil(stats?.landingsStats) ? SamplingLandingReport.statsFromObject(stats.landingsStats[index]) : null"
                                     [i18nContext]="i18nContext"
         ></app-sampling-landing-report>
 
@@ -103,6 +126,7 @@
                             *ngSwitchCase="'landing'"
                             [embedded]="true"
                             [data]="landing"
+                            [stats]="isNotNil(stats?.landingsStats) ?  LandingReport.statsFromObject(stats.landingsStats[index]) : null"
                             [i18nContext]="i18nContext"
         ></app-landing-report>
 

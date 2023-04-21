@@ -6,7 +6,6 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNilOrNaN,
-  NetworkService,
 } from '@sumaris-net/ngx-components';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
@@ -46,7 +45,6 @@ export class LandingReport<
 
   protected logPrefix = 'landing-report';
 
-  protected readonly network: NetworkService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly programRefService: ProgramRefService;
@@ -56,7 +54,6 @@ export class LandingReport<
     @Optional() options?: DataEntityReportOptions,
   ) {
     super(injector, Landing, options);
-    this.network = injector.get(NetworkService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
 
@@ -78,6 +75,38 @@ export class LandingReport<
     await this.fillParent(data);
 
     return data as Landing;
+  }
+
+  dataFromObject(source:any): Landing {
+    return Landing.fromObject(source);
+  }
+
+  statsAsObject(source:S): any {
+    return  {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      images: source.images.map(item => item.asObject()),
+      pmfms: source.pmfms.map(item => item.asObject()),
+      program: source.program.asObject(),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: source.taxonGroup.asObject(),
+    };
+  }
+
+  static statsFromObject(source:any): LandingStats {
+    return  {
+      i18nSuffix: source.i18nSuffix,
+      sampleCount: source.sampleCount,
+      images: source.images.map(item => ImageAttachment.fromObject(item)),
+      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
+      program: Program.fromObject(source.program),
+      weightDisplayedUnit: source.weightDisplayedUnit,
+      taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
+    };
+  }
+
+  statsFromObject(source:any): S {
+    return LandingReport.statsFromObject(source) as S;
   }
 
   /* -- protected function -- */
@@ -162,35 +191,5 @@ export class LandingReport<
     }
     data.samples = samples;
   }
-
-  protected dataFromObject(source:any): Landing {
-    return Landing.fromObject(source);
-  }
-
-  protected statsFromObject(source:any): S {
-    const stats:LandingStats = {
-      i18nSuffix: source.i18nSuffix,
-      sampleCount: source.sampleCount,
-      images: source.images.map(item => ImageAttachment.fromObject(item)),
-      pmfms: source.pmfms.map(item => Pmfm.fromObject(item)),
-      program: Program.fromObject(source.program),
-      weightDisplayedUnit: source.weightDisplayedUnit,
-      taxonGroup: TaxonGroupRef.fromObject(source.taxonGroup),
-    };
-    return stats as S;
-  }
-
-  protected statsAsObject(source:S): any {
-    return  {
-      i18nSuffix: source.i18nSuffix,
-      sampleCount: source.sampleCount,
-      images: source.images.map(item => item.asObject()),
-      pmfms: source.pmfms.map(item => item.asObject()),
-      program: source.program.asObject(),
-      weightDisplayedUnit: source.weightDisplayedUnit,
-      taxonGroup: source.taxonGroup.asObject(),
-    };
-  }
-
 
 }

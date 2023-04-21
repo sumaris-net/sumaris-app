@@ -29,6 +29,24 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
     );
   }
 
+  static statsFromObject(source:any): SamplingLandingStats {
+    return {
+      ...LandingReport.statsFromObject(source),
+      strategyLabel: source.strategyLabel,
+    };
+  }
+
+  statsFromObject(source:any): SamplingLandingStats {
+    return SamplingLandingReport.statsFromObject(source);
+  }
+
+  statsAsObject(source:SamplingLandingStats): any {
+    return {
+      ...super.statsAsObject(source),
+      strategyLabel: source.strategyLabel,
+    }
+  }
+
   /* -- protected function -- */
 
   protected async computeStats(data: Landing, opts?: {
@@ -70,20 +88,6 @@ export class SamplingLandingReport extends LandingReport<SamplingLandingStats> {
 
   protected computePrintHref(data: Landing, stats: SamplingLandingStats): string {
     return `/observations/${this.data.observedLocationId}/sampling/${data.id}/report`;
-  }
-
-  protected statsFromObject(source:any): SamplingLandingStats {
-    return {
-      ...super.statsFromObject(source),
-      strategyLabel: source.strategyLabel,
-    };
-  }
-
-  protected statsAsObject(source:SamplingLandingStats): any {
-    return {
-      ...super.statsAsObject(source),
-      strategyLabel: source.strategyLabel,
-    }
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 25) {

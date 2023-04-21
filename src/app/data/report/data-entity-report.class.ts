@@ -1,5 +1,5 @@
 import {AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {AccountService, DateFormatService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, Toasts, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
+import {AccountService, DateFormatService, DateUtils, EntityAsObjectOptions, isNil, isNotNil, NetworkService, Toasts, toDateISOString, TranslateContextService} from '@sumaris-net/ngx-components';
 import {DataEntity} from '../services/model/data-entity.model';
 import {AppBaseReport, BaseReportOptions, IReportStats} from '@app/data/report/base-report.class';
 import {Function} from '@app/shared/functions';
@@ -44,6 +44,7 @@ export abstract class AppDataEntityReport<
 
   protected logPrefix = 'data-entity-report';
 
+  protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly router: Router;
   protected readonly fileTransferService: FileTransferService;
@@ -64,6 +65,7 @@ export abstract class AppDataEntityReport<
     super(injector, options);
 
     this.router = injector.get(Router);
+    this.network = injector.get(NetworkService);
     this.fileTransferService = injector.get(FileTransferService);
     this.translate = injector.get(TranslateService);
     this.translateContext = injector.get(TranslateContextService);
@@ -104,6 +106,19 @@ export abstract class AppDataEntityReport<
     return this.data;
   };
 
+  dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
+    if (typeof source?.asObject === 'function') return source.asObject(opts);
+    const data = new this.dataType();
+    data.fromObject(source);
+    return data.asObject(opts);
+  }
+
+  abstract dataFromObject(source:object): T;
+
+  abstract statsAsObject(source: S, opts?: EntityAsObjectOptions): any;
+
+  abstract statsFromObject(source:any): S;
+
   protected async loadFromRoute(opts?: any): Promise<T> {
     if (this.debug) console.debug(`[${this.logPrefix}.loadFromRoute]`);
     this.id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
@@ -138,13 +153,10 @@ export abstract class AppDataEntityReport<
       this.i18nContext = clipboard.data.i18nContext;
 
     // Clean the clipboard
-    // TODO How to handle case when when the clip boaard is filled from another source than SharePage
+    // TODO How to handle case when when the clip board is filled from another source than SharePage
     this.context.clipboard = undefined;
   }
 
-  protected abstract dataFromObject(source:object): T;
-
-  protected abstract statsFromObject(source:any): S;
 
   protected async showSharePopover(event?: UIEvent) {
 
@@ -234,14 +246,6 @@ export abstract class AppDataEntityReport<
     return `${this.baseHref.replace(/\/$/, '')}/share/${fileName.replace(/\.json$/, '')}`;
   }
 
-  protected dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
-    if (typeof source?.asObject === 'function') return source.asObject(opts);
-    const data = new this.dataType();
-    data.fromObject(source);
-    return data.asObject(opts);
-  }
-
-  protected abstract statsAsObject(source: S, opts?: EntityAsObjectOptions): any;
 
   protected getExportEncoding(format = 'json'): string {
     const key = `FILE.${format.toUpperCase()}.ENCODING`;
