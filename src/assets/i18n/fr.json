@@ -2742,6 +2742,8 @@
       "ENABLED": "Activé",
       "DISABLED": "Désactivé",
       "AVAILABLE_DEVICES": "Périphériques disponibles :",
+      "ADDRESS": "Adresse (MAC)",
+      "NAME": "Nom",
       "NO_DEVICE": "Aucun périphérique trouvé",
       "BTN_SCAN": "Analyser",
       "BTN_DISCONNECT": "Déconnecter",
@@ -2750,7 +2752,10 @@
       }
     },
     "ICHTHYOMETER": {
-      "TITLE": "Ichtyomètre bluetooth"
+      "TITLE": "Ichtyomètre bluetooth",
+      "SETTINGS": {
+        "DEVICES": "Ichthyomètre: Périphérique(s)"
+      }
     }
   },
   "ERROR": {

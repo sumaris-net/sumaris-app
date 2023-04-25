@@ -13,12 +13,16 @@
       <ion-toggle [checked]="enabled" (ionChange)="toggleBluetooth()"></ion-toggle>
     </ion-item>
 
-    <!-- Selected device -->
-    <ion-item *rxIf="selectedDevice$ as device; else showDevices">
-      <app-icon [ref]="selectedDeviceIcon" slot="start"></app-icon>
+    <!-- Selected devices -->
+    <ion-item *rxFor="let device of selectedDevices$">
+      <app-icon [ref]="selectedDevicesIcon" slot="start"></app-icon>
       <ion-label>
         <h2>{{ device.name }}</h2>
         <p>{{ device.address }}</p>
+        <p *ngIf="device.meta?.model as model">
+          {{ model }}
+          <span *ngIf="device.meta.version"> - {{ device.meta.version|lowercase }}</span>
+        </p>
       </ion-label>
       <ion-spinner *rxIf="connecting$; else disconnectButton" slot="end" color="secondary"></ion-spinner>
       <ng-template #disconnectButton>
@@ -29,20 +33,19 @@
       </ng-template>
     </ion-item>
 
-    <ng-template #showDevices>
+    <ng-container *rxLet="loading$ as loading">
       <ion-item-divider>
         <ion-label translate>SHARED.BLUETOOTH.AVAILABLE_DEVICES</ion-label>
         <ion-button slot="end"
-                    *rxLet="loading$ as loading"
+                    *ngIf="!loading"
                     color="tertiary"
                     [fill]="loading ? 'clear' : 'solid'"
                     [disabled]="loading"
-                    (click)="scan()"
-                    >{{'SHARED.BLUETOOTH.BTN_SCAN'|translate}}</ion-button>
+                    (click)="scan()">{{'SHARED.BLUETOOTH.BTN_SCAN'|translate}}</ion-button>
       </ion-item-divider>
 
       <!-- loading -->
-      <ion-item *ngIf="loading$|async; else notLoading"
+      <ion-item *ngIf="loading; else notLoading"
                 lines="none" disabled>
         <ion-skeleton-text [animated]="true" style="width: 100%"></ion-skeleton-text>
       </ion-item>
@@ -73,12 +76,19 @@
       <!-- footer -->
       <ion-row class="ion-list-footer column">
         <ion-col>
-          <ion-text *ngIf="deviceCount$|async; let count"
-                    class="ion-float-end ion-padding-end"><i>{{'COMMON.RESULT_COUNT'|translate: {count: count} }}</i></ion-text>
+          <ion-text class="ion-float-end ion-padding-end">
+            <i>
+              <span *rxIf="loading$; else resultCount" translate>COMMON.LOADING_DOTS</span>
+              <ng-template #resultCount>
+                <span *rxIf="deviceCount$; let count">
+                {{'COMMON.RESULT_COUNT'|translate: {count: count} }}
+                </span>
+              </ng-template>
+            </i>
+          </ion-text>
         </ion-col>
       </ion-row>
-    </ng-template>
-
+    </ng-container>
 
   </ion-list>
 </ion-content>

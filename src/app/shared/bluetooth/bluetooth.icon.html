@@ -1,2 +1,9 @@
 
-<mat-icon>{{matIcon$}}</mat-icon>
+<button mat-icon-button
+        *rxLet="icon$ as icon"
+        [title]="titleI18n | translate"
+        [color]="icon.color"
+        [disabled]="disabled"
+        (click)="openPopover($event)">
+  <mat-icon>{{icon.matIcon}}</mat-icon>
+</button>

@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { AppIconModule, CoreModule, SharedModule } from '@sumaris-net/ngx-components';
-import { BluetoothIcon } from './bluetooth.icon';
+import { AppBluetoothIcon } from './bluetooth.icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { BluetoothPopover } from '@app/shared/bluetooth/bluetooth.popover';
 import { RxStateModule } from '@app/shared/rx-state.module';
@@ -13,12 +13,12 @@ import { RxStateModule } from '@app/shared/rx-state.module';
     AppIconModule
   ],
   declarations: [
-    BluetoothIcon,
+    AppBluetoothIcon,
     BluetoothPopover
   ],
   exports: [
     TranslateModule,
-    BluetoothIcon,
+    AppBluetoothIcon,
     BluetoothPopover
   ]
 })

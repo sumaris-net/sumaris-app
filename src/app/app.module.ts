@@ -82,6 +82,7 @@ import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '
 import { TripService } from '@app/trip/services/trip.service';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { DevicePositionService } from '@app/data/services/device-position.service';
+import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 
 @NgModule({
   declarations: [
@@ -240,6 +241,7 @@ import { DevicePositionService } from '@app/data/services/device-position.servic
       provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <LocalSettingsOptions>{
         serializeAsString: true,
         options: {
+          ...SHARED_LOCAL_SETTINGS_OPTIONS,
           ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
           ...VESSEL_LOCAL_SETTINGS_OPTIONS,
           ...TRIP_LOCAL_SETTINGS_OPTIONS
