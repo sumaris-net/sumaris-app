@@ -579,7 +579,7 @@ export class SamplesTable
     }, {
       allowMultiple: false
     });
-    if (!pmfmIds) return; // User cancelled
+    if (isEmptyArray(pmfmIds)) return; // User cancelled
 
     console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
     await this.addPmfmColumns(pmfmIds);
@@ -794,16 +794,18 @@ export class SamplesTable
 
     // Load each pmfms, by id
     const fullPmfms = await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-    const denormalizedPmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+    let pmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     // Add weight conversion
     if (this.weightDisplayedUnit) {
-      PmfmUtils.setWeightUnitConversions(denormalizedPmfms, this.weightDisplayedUnit, {clone: false});
+      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit, {clone: false});
+
+      console.debug('[samples-table] Add new pmfms: ', pmfms);
     }
 
     this.pmfms = [
       ...this.pmfms,
-      ...denormalizedPmfms
+      ...pmfms
     ];
   }
 
@@ -828,11 +830,11 @@ export class SamplesTable
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res || isEmptyArray(res.data)) return; // CANCELLED
+    const { data } = await modal.onDidDismiss();
+    if (isEmptyArray(data)) return; // CANCELLED
 
     // Return pmfm ids
-    return res.data.map(p => p.id);
+    return data.map(p => p.id);
   }
 
   /**
@@ -941,6 +943,12 @@ export class SamplesTable
       if (this.weightDisplayedUnit) {
         pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
       }
+    }
+
+    // DEBUG
+    const hasEmptyPmfm = pmfms.some(p => isNil(p?.id));
+    if (hasEmptyPmfm) {
+      console.error('[samples-table] Invalid PMFMS: ', pmfms);
     }
 
     // Add replacement map, for sort by

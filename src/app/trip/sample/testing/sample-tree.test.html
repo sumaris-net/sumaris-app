@@ -5,13 +5,13 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
 
-    <ion-title>Autocomplete field test page</ion-title>
+    <ion-title>Sample tree test page</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content>
 
-  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <form class="ion-padding form-container" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
    <ion-grid class="ion-no-padding">
 
      <!-- Filter -->
@@ -35,18 +35,19 @@
                                  [config]="autocomplete.fields.example">
          </mat-autocomplete-field>
        </ion-col>
-     </ion-row>
 
-     <!-- examples data -->
-     <ion-row><ion-col><ion-text><h4>Input data</h4></ion-text></ion-col></ion-row>
-     <ion-row>
-
-       <!-- buttons -->
-       <ion-col size="2">
-         <!-- log tree -->
-         <ion-button (click)="dumpExample()"
-                     fill="outline">
-           <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
+       <!-- Action  buttons -->
+       <ion-col size="4" size-md="2">
+         <!-- show tree -->
+         <ion-button *ngIf="!outputs.example" fill="outline"
+                     (click)="dumpExample()">
+           <ion-icon name="eye" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- hide tree -->
+         <ion-button *ngIf="outputs.example"
+                     fill="outline"
+                     (click)="outputs.example=undefined">
+           <ion-icon name="eye-off" slot="icon-only"></ion-icon>
          </ion-button>
          <!-- copy to -->
          <ion-button (click)="applyExample()"
@@ -54,32 +55,36 @@
            <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
          </ion-button>
        </ion-col>
-       <ion-col size="10">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="outputs.example">
-           </p>
-         </ion-text>
-       </ion-col>
      </ion-row>
+   </ion-grid>
+  </form>
 
-      <!-- mobile -->
-      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
-      <ion-row>
-        <ion-col size="12">
+  <div class="ion-padding" *ngIf="outputs.example">
+    <ion-text color="medium">
+      <h4>Output: </h4>
+      <p [innerHTML]="outputs.example">
+      </p>
+    </ion-text>
+  </div>
 
-          <app-sample-tree #mobileTree
-                           [programLabel]="$programLabel|async"
-                           [defaultSampleDate]="defaultSampleDate"
-                           queryTabIndexParamName="mobileTab"
-                           [usageMode]="'FIELD'"
-                           [mobile]="true"
-                           [debug]="true">
-          </app-sample-tree>
-        </ion-col>
 
-        <!-- buttons -->
-        <ion-col size="2">
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [(selectedIndex)]="selectedTabIndex"
+                 [dynamicHeight]="false">
+    <mat-tab label="Mobile">
+      <ng-template matTabContent>
+
+        <app-sample-tree #mobileTree
+                         [programLabel]="$programLabel|async"
+                         [defaultSampleDate]="defaultSampleDate"
+                         queryTabIndexParamName="mobileTab"
+                         [usageMode]="'FIELD'"
+                         [mobile]="true"
+                         [debug]="true">
+        </app-sample-tree>
+          <!-- buttons -->
+        <ion-item [lines]="'none'">
           <!-- log tree -->
           <ion-button (click)="dumpSampleTree(mobileTree, 'mobile')"
                       matTooltip="Output data to log"
@@ -100,32 +105,33 @@
                       fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
-        </ion-col>
-        <ion-col size="10">
+        </ion-item>
+
+        <div class="ion-padding"
+             *ngIf="outputs.mobile">
           <ion-text color="medium">
             <h4>Output: </h4>
             <p [innerHTML]="outputs.mobile">
             </p>
           </ion-text>
-        </ion-col>
-      </ion-row>
+        </div>
+      </ng-template>
+    </mat-tab>
 
-     <!-- desktop -->
-     <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
-     <ion-row>
-       <ion-col size="12">
+
+    <mat-tab label="Desktop">
+      <ng-template matTabContent>
 
          <app-sample-tree #desktopTree
                           [programLabel]="$programLabel|async"
                           queryTabIndexParamName="desktopTab"
                           [defaultSampleDate]="defaultSampleDate"
-                          [usageMode]="'FIELD'"
+                          [usageMode]="'DESK'"
                           [debug]="true">
          </app-sample-tree>
-       </ion-col>
 
-       <!-- buttons -->
-       <ion-col size="2">
+        <!-- buttons -->
+        <ion-item>
          <!-- log tree -->
          <ion-button (click)="dumpSampleTree(desktopTree, 'desktop')"
                      matTooltip="Output data to log"
@@ -147,18 +153,30 @@
            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
          </ion-button>
 
-       </ion-col>
-       <ion-col size="10">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="outputs.desktop">
-           </p>
-         </ion-text>
-       </ion-col>
+        </ion-item>
 
-     </ion-row>
-    </ion-grid>
+        <div class="ion-padding"
+             *ngIf="outputs.desktop">
+          <ion-text color="medium">
+            <h4>Output: </h4>
+            <p [innerHTML]="outputs.desktop">
+            </p>
+          </ion-text>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
 
-  </form>
 
 </ion-content>
+
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         [class.cdk-visually-hidden]="selectedTabIndex">
+
+  <ion-fab-button color="tertiary" (click)="mobileTree.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>

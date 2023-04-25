@@ -24,7 +24,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-data.test';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
@@ -193,7 +193,7 @@ export class BatchTreeTestPage implements OnInit {
     const program = await firstNotNilPromise(this.$program);
     const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program .label);
 
-    await waitFor(() => !!this.batchTree);
+    await waitFor(() => !!this.batchTree, {timeout: 2000});
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;

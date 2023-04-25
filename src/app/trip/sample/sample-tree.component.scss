@@ -1,13 +1,12 @@
 :host {
   //--mat-tab-body-content-height-root: var(--mat-tab-body-content-height);
+  --mat-tab-body-content-base: var(--mat-tab-body-content-height);
 
   .mat-tab-group-samples {
-    --mat-tab-body-content-height: calc(var(--mat-tab-body-content-height-root) - var(--mat-tab-link-height, 0px) - 2px);
+    --mat-tab-body-content-height: calc(var(--mat-tab-body-content-base) - var(--mat-tab-link-height, 0px) - 2px);
 
     &.mat-tab-group-header-hidden {
       --mat-tab-link-height: 0px;
     }
   }
-
-
 }
