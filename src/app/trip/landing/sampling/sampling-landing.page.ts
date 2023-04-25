@@ -68,7 +68,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       .then(pmfmGroups => {
         // Configure sample table
         this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
-        this.samplesTable.computedPmfmGroups = ParameterLabelGroups.AGE;
+        this.samplesTable.computedPmfmGroups = ['AGE']; // FIXME: use ParameterLabelGroups.AGE instead ?
         this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
       });
