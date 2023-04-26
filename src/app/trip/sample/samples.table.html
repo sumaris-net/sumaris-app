@@ -336,8 +336,7 @@
                 [class.visible-hover]="!row.editing && !imageCount"
                 [class.cdk-visually-hidden]="disabled"
                 [title]="'TRIP.SAMPLE.TABLE.BTN_IMAGES'|translateContext: i18nColumnSuffix"
-                (click)="openImagesModal($event, row)"
-                >
+                (click)="openImagesModal($event, row)">
           <mat-icon
                   [matBadge]="imageCount"
                   [matBadgeHidden]="!imageCount"
