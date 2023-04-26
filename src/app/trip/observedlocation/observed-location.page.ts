@@ -310,6 +310,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
         showBasePortLocationColumn: this.showVesselBasePortLocation,
+        showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
         defaultVesselSynchronizationStatus,
         maxDateVesselRegistration: endDate,
       },
