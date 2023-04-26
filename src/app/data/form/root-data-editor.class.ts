@@ -280,7 +280,9 @@ export abstract class AppRootDataEditor<
     const subscription = this.programRefService.listenChanges(program.id)
       .pipe(
         filter(isNotNil),
-        filter(() => !this.dirty), // Avoid reloading while editing the page
+        // Avoid reloading while editing the page
+        filter(() => !this.dirty),
+        // Filter or newer program only
         filter(data => previousUpdateDate.isBefore(data.updateDate)),
         // Reload program & strategies
         mergeMap(_ => this.reloadProgram())
@@ -301,10 +303,14 @@ export abstract class AppRootDataEditor<
     // Remove previous listener (e.g. on a previous program id)
     this.remoteStrategySubscription?.unsubscribe();
 
+    const previousUpdateDate = fromDateISOString(program.updateDate) || DateUtils.moment();
     const subscription = this.strategyRefService.listenChangesByProgram(program.id)
         .pipe(
           filter(isNotNil),
-          filter(() => !this.dirty), // Avoid reloading while editing the page
+          // Avoid reloading while editing the page
+          filter(() => !this.dirty),
+          // Filter or newer strategy only
+          filter(updateDate => previousUpdateDate.isBefore(updateDate)),
           // Reload strategies
           mergeMap((_) => this.reloadStrategy())
         )
