@@ -415,7 +415,7 @@ export abstract class PmfmUtils {
     return name;
   }
 
-  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean;}): string {
+  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean;}): string {
 
     // Compact mode
     if (!opts || opts.compact !== false) {
@@ -429,8 +429,13 @@ export abstract class PmfmUtils {
 
     // Append unit
     if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel && pmfm.unitLabel !== '°') {
-      if (opts && opts.html) {
-        name += `<small><br/>(${pmfm.unitLabel})</small>`;
+      if (opts?.html) {
+        if (opts?.withDetails) {
+          name += ` (${pmfm.unitLabel})`;
+        }
+        else {
+          name += `<small><br/>(${pmfm.unitLabel})</small>`;
+        }
       } else {
         name += ` (${pmfm.unitLabel})`;
       }

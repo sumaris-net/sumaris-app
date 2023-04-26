@@ -30,6 +30,25 @@ mat-tab-group.mat-tab-disabled-visible .mat-tab-disabled {
   display: inherit;
 }
 
+/*ion-content.ion-flex-direction-column::part(scroll) {
+  height: calc(100% - 2px);
+}*/
+ion-content.ion-flex-direction-column::part(scroll),
+.ion-flex-direction-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+ion-content.ion-flex-direction-column::part(scroll) {
+  height: calc(100% - 2px);
+}
+
+.ion-flex-fill,
+.table-container {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
 .mat-table {
   .mat-row {
     overflow: hidden;
@@ -72,11 +91,15 @@ mat-tab-group.mat-tab-disabled-visible .mat-tab-disabled {
     }
 
     /* Pour les navigateurs supportant la propriété line-clamp (WebKit, Blink et Firefox récent) */
-    @supports (-webkit-line-clamp: 3) {
+    @supports (-webkit-line-clamp: 5) {
       .pmfm-details {
         display: -webkit-box;
-        -webkit-line-clamp: 3; /* Affiche 3 lignes puis coupe si besoin avec '...' */
+        -webkit-line-clamp: 5; /* Affiche 3 lignes puis coupe si besoin avec '...' */
         -webkit-box-orient: vertical;
+
+        &:hover {
+          -webkit-line-clamp: 10;
+        }
       }
     }
   }

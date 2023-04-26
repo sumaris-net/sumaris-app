@@ -160,9 +160,6 @@
         max-height: 100%;
         background-color: var(--mat-cell-background-color);
 
-        &:hover {
-          --mat-cell-overflow: visible;
-        }
 
         mat-label,
         ion-label  {

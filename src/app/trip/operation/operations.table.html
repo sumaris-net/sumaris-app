@@ -103,6 +103,22 @@
   </button>
 </mat-menu>
 
+<!-- debug -->
+<app-debug *ngIf="debug" [title]="'Operations'">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        ready: {{readySubject|async}}<br/>
+        loading: {{loading}}<br/>
+        enabled: {{enabled}}<br/>
+        dirty: {{dirtySubject|async}}<br/>
+      </ion-col>
+      <ion-col>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
+
 <!-- error -->
 <ion-item *ngIf="mobile && error" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -410,11 +426,11 @@
 </ion-footer>
 
 <ng-template #addRowButton>
-  <span *ngIf="!mobile && enabled">&nbsp;
-    <ion-button color="medium"
-                (click)="addRow()">
-      <ion-icon name="add" slot="start"></ion-icon>
-      <span translate>COMMON.BTN_ADD</span>
-    </ion-button>
-  </span>
+<span *ngIf="!mobile && enabled">&nbsp;
+  <ion-button color="medium"
+              (click)="addRow()">
+    <ion-icon name="add" slot="start"></ion-icon>
+    <span translate>COMMON.BTN_ADD</span>
+  </ion-button>
+</span>
 </ng-template>

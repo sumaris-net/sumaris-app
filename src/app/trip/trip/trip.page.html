@@ -265,21 +265,6 @@
       </ng-template>
 
       <div class="ion-no-padding">
-        <!-- debug -->
-        <app-debug *ngIf="debug" [title]="'Operations table'">
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                ready: {{operationsTable.readySubject|async}}<br/>
-                loading: {{operationsTable.loading}}<br/>
-                enabled: {{operationsTable.enabled}}<br/>
-                dirty: {{operationsTable.dirtySubject|async}}<br/>
-              </ion-col>
-              <ion-col>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
 
         <app-operations-table #operationsTable
                               (onOpenRow)="onOpenOperation($event)"
