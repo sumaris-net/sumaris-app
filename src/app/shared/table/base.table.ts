@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, toBoolean
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -67,7 +67,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
-  @Input() showPaginator = true;
+  @Input() showPaginator: boolean;
   @Input() showFooter = true;
   @Input() showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -144,6 +144,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   ngOnInit() {
     super.ngOnInit();
+    this.showPaginator = toBoolean(this.showPaginator, !!this.paginator);
 
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
@@ -176,24 +177,28 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       );
     }
 
+    // Enable permanent selection (to keep selected rows after reloading)
+    // (only on desktop, if not already done)
+    if (!this.mobile && !this.permanentSelection) {
+      this.initPermanentSelection();
+    }
+
     this.restoreCompactMode();
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    if (this.tableContainerRef) this.initTableContainer(this.tableContainerRef.nativeElement);
+    this.initTableContainer(this.tableContainerRef?.nativeElement);
   }
 
   initTableContainer(element: any) {
-    if (!element) return null; // Skip if already done
-
-    console.debug(this.logPrefix + 'initTableContainer()', element);
+    if (!element) return; // Skip if already done
 
     if (!this.mobile) {
 
       // Add shortcuts
-      console.debug(this.logPrefix + 'Add table shortcuts (\'control.a\' and \'control.shift.+\')');
+      console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'control.a', element })
