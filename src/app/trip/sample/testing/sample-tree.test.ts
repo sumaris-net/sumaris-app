@@ -161,7 +161,7 @@ export class SampleTreeTestPage implements OnInit {
       const samplesTable = sampleTree.samplesTable;
 
       samplesTable.tagIdPmfm = <IPmfm>{id: PmfmIds.TAG_ID};
-      samplesTable.showPmfmDetails = false;
+      samplesTable.showPmfmDetails = true;
       samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
       samplesTable.computedPmfmGroups = ['AGE'];
       samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
@@ -169,8 +169,8 @@ export class SampleTreeTestPage implements OnInit {
       samplesTable.showTaxonNameColumn = false;
       samplesTable.showSampleDateColumn = false;
       samplesTable.defaultSampleDate = DateUtils.moment();
-      //samplesTable.pmfmGroups = pmfmGroups;
       samplesTable.canAddPmfm = true;
+      samplesTable.pmfmGroups = pmfmGroups;
     }
     else {
       sampleTree.program = program;

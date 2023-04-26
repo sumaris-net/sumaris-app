@@ -2689,6 +2689,8 @@
     "FIELD_INVALID": "Invalid value",
     "FIELD_NOT_VALID_DECIMAL": "Expected decimal value",
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
+    "FIELD_NOT_VALID_PRECISION": "Minimal precision: {{precision}}",
+    "FIELD_NOT_VALID_PRECISION_COMPACT": "Min precision {{precision}}",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
     "FIELD_NOT_VALID_DATE_AFTER": "Must be after {{minDate}}",

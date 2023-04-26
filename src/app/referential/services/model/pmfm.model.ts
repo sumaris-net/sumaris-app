@@ -457,7 +457,7 @@ export abstract class PmfmUtils {
   static setWeightUnitConversion<P extends IPmfm>(source: P,
                                                   expectedWeightSymbol: WeightUnitSymbol,
                                                   opts = { clone: true }): P {
-    if (!this.isWeight(source)) return source;
+    if (!this.isWeight(source)) return source; // SKip if not a weight pmfm
 
     const actualWeightUnit = source.unitLabel?.toLowerCase() || UnitLabel.KG;
     if (actualWeightUnit === expectedWeightSymbol) {
@@ -505,15 +505,12 @@ export abstract class PmfmUtils {
     //else console.debug(`[pmfm-utils] PMFM '${target.label}' without maximumNumberDecimals`, target);
 
     // Convert precision
-    /*if (isNotNil(target.precision)) {
-      target.precision = target.precision * conversionCoefficient;
+    const precision = PmfmUtils.getOrComputePrecision(source);
+    if (precision > 0) {
+      target.precision = precision * conversionCoefficient;
       // DEBUG
-      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing precision to ${target.precision}`);
+      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing precision from ${precision} to ${target.precision}`);
     }
-    else {
-      // DEBUG
-      //console.debug(`[pmfm-utils] PMFM '${target.label}' without precision`, target);
-    }*/
 
     // Convert type
     if (target.type === 'double' && target.maximumNumberDecimals === 0) {
@@ -524,6 +521,19 @@ export abstract class PmfmUtils {
     return target;
   }
 
+  /**
+   * Get or compute the precision, for a numerical pmfm (double or integer). Will use the defined precision, or compute it from maximumNumberDecimals.
+   * Example:
+   * - if maximumNumberDecimals=null and precision=null, then precision = defaultPrecision
+   * - if maximumNumberDecimals=1 and precision=0.5, then precision=0.5
+   * - if maximumNumberDecimals=1 and precision=null, then precision=0.1
+   * @param pmfm
+   */
+  static getOrComputePrecision(pmfm: IPmfm, defaultPrecision?: number): number {
+    if (pmfm.precision > 0) return pmfm.precision;
+    if (isNil(pmfm.maximumNumberDecimals)) return defaultPrecision;
+    return Math.pow(10, -1 * pmfm.maximumNumberDecimals);
+  }
 }
 
 

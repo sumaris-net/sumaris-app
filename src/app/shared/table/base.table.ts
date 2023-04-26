@@ -182,11 +182,21 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Add shortcut
-    if (!this.mobile && this.tableContainerRef) {
+    if (this.tableContainerRef) this.initTableContainer(this.tableContainerRef.nativeElement);
+  }
+
+  initTableContainer(element: any) {
+    if (!element) return null; // Skip if already done
+
+    console.debug(this.logPrefix + 'initTableContainer()', element);
+
+    if (!this.mobile) {
+
+      // Add shortcuts
+      console.debug(this.logPrefix + 'Add table shortcuts (\'control.a\' and \'control.shift.+\')');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element: this.tableContainerRef.nativeElement })
+          .addShortcut({ keys: 'control.a', element })
           .pipe(
             filter(() => this.canEdit),
             map(() => this.dataSource?.getRows()),
@@ -198,7 +208,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
           })
       );
       this.registerSubscription(
-        this.hotkeys.addShortcut({keys: 'control.shift.+', element: this.tableContainerRef.nativeElement, description: 'COMMON.BTN_ADD'})
+        this.hotkeys.addShortcut({keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element})
           .pipe(filter(e => !this.disabled && this.canEdit))
           .subscribe((event) => this.addRow(event))
       );

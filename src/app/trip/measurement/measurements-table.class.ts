@@ -238,6 +238,7 @@ export abstract class BaseMeasurementsTable<
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
+    this.canEdit = true;
 
     // For DEV only
     //this.debug = !environment.production;

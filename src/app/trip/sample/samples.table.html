@@ -1,5 +1,18 @@
-<mat-toolbar *ngIf="showToolbar">
+<mat-toolbar *ngIf="showToolbar && !showGroupHeader">
 
+  <ng-container *ngTemplateOutlet="toolbarButtons"></ng-container>
+
+  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <span class="toolbar-spacer"></span>
+
+  <ng-content select="ion-buttons[slot=end]"></ng-content>
+</mat-toolbar>
+
+<ng-template #toolbarButtons>
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add button -->
     <button mat-icon-button
@@ -27,23 +40,13 @@
     </button>
 
     <!-- Duplicate (debug only) -->
-    <button mat-icon-button color="light" *ngIf="debug && selection.selected | isArrayLength: {equals: 1}"
+    <button mat-icon-button color="light" *ngIf="debug && enabled && selection.selected | isArrayLength: {equals: 1}"
             [title]="'COMMON.BTN_DUPLICATE'|translate"
             (click)="duplicateRow($event, selection.selected[0])">
       <mat-icon>file_copy</mat-icon>
     </button>
   </ng-template>
-
-  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
-
-  <span class="toolbar-spacer"></span>
-
-  <ng-content select="ion-buttons[slot=end]"></ng-content>
-</mat-toolbar>
-
+</ng-template>
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -86,11 +89,12 @@
 </ion-item>
 
 <div #tableContainer class="table-container"
+     *rxIf="$pmfms; let pmfms"
+     (ngInit)="initTableContainer(tableContainer)"
      [class.mobile]="mobile"
-     [class.has-toolbar]="showToolbar"
+     [class.has-toolbar]="showToolbar && !showGroupHeader"
      [class.has-group-header]="showGroupHeader"
      [class.has-pmfm-header-details]="showPmfmDetails"
-     *ngIf="$pmfms|async; let pmfms"
      [style.--pmfm-count]="pmfms?.length">
 
   <!-- ********************************************************** -->
@@ -109,19 +113,9 @@
     <!-- Group header: start -->
     <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
-        <button mat-icon-button class="ion-float-start"
-                *ngIf="!mobile && !selection.hasValue()"
-                [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD_ROW'|translate"
-                (click)="addRow()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button mat-icon-button class="ion-float-start"
-                color="light" *ngIf="selection.hasValue() && enabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="deleteSelection($event)">
-          <mat-icon>delete</mat-icon>
-        </button>
+        <ng-container *ngIf="showToolbar">
+          <ng-container *ngTemplateOutlet="toolbarButtons"></ng-container>
+        </ng-container>
       </th>
     </ng-container>
 
@@ -146,13 +140,13 @@
 
     <!-- Select checkbox -->
     <ng-container matColumnDef="select" [sticky]="useSticky">
-      <th mat-header-cell *matHeaderCellDef >
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
                       [checked]="selection.isSelected(row)">
         </mat-checkbox>
@@ -196,16 +190,19 @@
         <ion-label>{{'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix}}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='label'">
-        <mat-form-field floatLabel="never" *ngIf="row.editing; else readonlyCell">
+        <mat-form-field floatLabel="never"
+                        *ngIf="row.editing; else readonlyCell">
           <input matInput autocomplete="off"
                  [appAutofocus]="row.editing && focusColumn === 'label'"
-                 [formControl]="row.validator.controls.label"
+                 [formControl]="row.validator|formGetControl:'label'"
                  [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'| translateContext: i18nColumnSuffix"
                  (click)="selectInputContent($event)">
-          <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
-          </mat-error>
-          <!-- Need by auction control (label as an additional validator) -->
-          <mat-error *ngIf="row.validator.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
+          <mat-error *rxIf="(row.validator|formGetControl:'label').errors|mapKeys|arrayFirst; let errorKey">
+            <ng-container [ngSwitch]="errorKey">
+              <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+              <!-- Need by auction control (label as an additional validator) -->
+              <span *ngSwitchCase="'pattern'" translate>ERROR.FIELD_NOT_VALID_PATTERN</span>
+            </ng-container>
           </mat-error>
         </mat-form-field>
         <!-- readonly -->
@@ -337,6 +334,7 @@
         <button mat-icon-button
                 *ngVar="(row.validator|formGetArray: 'images')?.length as imageCount"
                 [class.visible-hover]="!row.editing && !imageCount"
+                [class.cdk-visually-hidden]="disabled"
                 [title]="'TRIP.SAMPLE.TABLE.BTN_IMAGES'|translateContext: i18nColumnSuffix"
                 (click)="openImagesModal($event, row)"
                 >
@@ -412,7 +410,7 @@
     </tr>
     <!-- footer -->
     <ng-container *ngIf="showFooter">
-      <tr mat-footer-row *matFooterRowDef="footerColumns;"
+      <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky"
           [class.cdk-visually-hidden]="!totalRowCount"></tr>
     </ng-container>
   </table>

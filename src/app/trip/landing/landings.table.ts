@@ -203,7 +203,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-    this.canEdit = true;
 
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 

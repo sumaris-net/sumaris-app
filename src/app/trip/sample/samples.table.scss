@@ -9,6 +9,10 @@
     --table-toolbar-height: var(--mat-toolbar-height, 0px);
   }
   &.has-group-header .mat-header-row.second-header-row {
+    position: sticky;
+    top: var(--mat-toolbar-height, 0px);
+    z-index: 10;
+
     .mat-header-cell {
       top: 0 !important;
     }
@@ -144,30 +148,30 @@
 
     /* Second header row : increase row height */
     .mat-header-row.second-header-row {
-      position: sticky;
-      top: 43px;
-      z-index: 10;
+
 
       height: 90px;
       max-height: 90px;
 
-      &.mat-sort-header-content {
-        display: unset;
-      }
-
       .mat-column-pmfm {
+        --mat-cell-overflow: hidden;
+        --mat-cell-background-color: unset;
+
         max-height: 100%;
-        overflow: hidden;
+        background-color: var(--mat-cell-background-color);
+
+        &:hover {
+          --mat-cell-overflow: visible;
+        }
 
         mat-label,
-        ion-label {
-          height: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        ion-label  {
+          max-height: 100%;
+          max-width: 100%;
         }
 
         &.even {
-          background-color: var(--ion-color-light) !important;
+          --mat-cell-background-color: var(--ion-color-light);
         }
 
       }
@@ -175,7 +179,7 @@
       mat-label,
       ion-label {
         max-height: 90px;
-        text-overflow: ellipsis;
+        max-width: 100%;
       }
     }
   }

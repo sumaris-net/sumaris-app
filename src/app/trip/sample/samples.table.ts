@@ -110,6 +110,7 @@ export class SamplesTable
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
+  @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
   @Input() showError = true;
   @Input() showToolbar: boolean;
@@ -141,8 +142,12 @@ export class SamplesTable
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
-      this.showGroupHeader = true;
-      this.showToolbar = false;
+      if (value && Object.keys(value).length) {
+        this.showGroupHeader = true;
+      }
+      else {
+        this.showGroupHeader = false;
+      }
       this.$pmfmGroups.next(value);
     }
   }
@@ -258,6 +263,7 @@ export class SamplesTable
 
   ngOnInit() {
     this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
+    this.canEdit
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
@@ -603,12 +609,18 @@ export class SamplesTable
   }
 
   async openImagesModal(event: Event, row: TableElement<Sample>){
+    const images = row.currentData.images;
+
+    // Skip if no images to display
+    if (this.disabled && isEmptyArray(images)) return;
+
     event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: AppImageAttachmentsModal,
       componentProps: <IImageModalOptions>{
-        data: row.currentData.images
+        data: images,
+        disabled: this.disabled
       },
       keyboardClose: true,
       cssClass: 'modal-large'

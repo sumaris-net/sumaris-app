@@ -57,9 +57,28 @@ mat-tab-group.mat-tab-disabled-visible .mat-tab-disabled {
     }
   }
 
-  .mat-header-row  .mat-header-cell .pmfm-details {
-    margin-top: 4px;
-    font-size: 90% !important;
+  .mat-header-row  .mat-header-cell {
+    --mat-cell-overflow: hidden;
+
+    &.mat-column-pmfm .mat-sort-header-content {
+      max-width: 90%;
+    }
+
+    .pmfm-details {
+      margin-top: 4px;
+      font-size: 90% !important;
+      max-width: 100%;
+      overflow: var(--mat-cell-overflow);
+    }
+
+    /* Pour les navigateurs supportant la propriété line-clamp (WebKit, Blink et Firefox récent) */
+    @supports (-webkit-line-clamp: 3) {
+      .pmfm-details {
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Affiche 3 lignes puis coupe si besoin avec '...' */
+        -webkit-box-orient: vertical;
+      }
+    }
   }
 }
 
