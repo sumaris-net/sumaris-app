@@ -101,9 +101,7 @@
     <mat-icon>sort</mat-icon>
     <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
   </button>
-
 </mat-menu>
-
 
 <!-- error -->
 <ion-item *ngIf="mobile && error" lines="none">
@@ -111,7 +109,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
+<div #tableContainer class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="paginator && true">
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
