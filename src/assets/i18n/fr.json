@@ -1303,8 +1303,8 @@
       "START_DATE_INVALID": "Doit commencer un {{day}}"
     },
     "CONFIRM": {
-      "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
-      "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+      "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
       "TITLE": "Rapport de sortie - {{ location }} - {{ dateTime }}",
@@ -1400,6 +1400,10 @@
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
+    },
+    "CONFIRM": {
+      "DELETE_ONE_HAS_SAMPLE": "La donnée sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les données sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "WARNING": {
       "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"

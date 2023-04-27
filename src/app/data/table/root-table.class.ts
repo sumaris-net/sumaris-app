@@ -51,6 +51,7 @@ export interface IRootDataEntitiesService<
   ID = number
   > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID> {
 
+  featureName: string;
 }
 
 @Directive()
@@ -88,7 +89,7 @@ export abstract class AppRootDataTable<
   progressionMessage: string = null;
   $progression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
-  featureId: string;
+  featureName: string;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -157,7 +158,7 @@ export abstract class AppRootDataTable<
     if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
-    if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
+    if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
 
     // Listen synchronizationStatus
     this.synchronizationStatus$ = this.onRefresh
@@ -269,7 +270,7 @@ export abstract class AppRootDataTable<
 
       await new Promise<void>((resolve, reject) => {
         // Run the import
-        this._dataService.executeImport(null, {maxProgression})
+        this._dataService.runImport(null, {maxProgression})
           .pipe(
             filter(value => value > 0),
             map((progress) => {
@@ -672,7 +673,7 @@ export abstract class AppRootDataTable<
     if (this.network.online) {
 
       // Get last synchro date
-      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureId);
+      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureName);
 
       // Check only if last synchro older than 10 min
       if (lastSynchronizationDate && lastSynchronizationDate.isBefore(moment().add(-10, 'minute'))) {

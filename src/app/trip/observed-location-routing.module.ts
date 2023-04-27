@@ -57,7 +57,13 @@ const routes: Routes = [
         loadChildren: () => import('./observedlocation/report/observed-location-report-routing.module').then(m => m.AppObservedLocationReportRoutingModule)
       }
     ]
-  }
+  },
+
+  {
+    path: 'landings',
+    pathMatch: 'full',
+    component: LandingsPage
+  },
 ];
 
 
