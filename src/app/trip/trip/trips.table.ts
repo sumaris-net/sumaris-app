@@ -138,7 +138,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.canOpenMap = showAdvancedFeatures;
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureId = TripsPageSettingsEnum.FEATURE_ID;
+    this.featureName = TripsPageSettingsEnum.FEATURE_ID;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

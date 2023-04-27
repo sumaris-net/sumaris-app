@@ -10,6 +10,8 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
+import { LandingsPage } from '@app/trip/landing/landings.page';
+import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 
 
 @NgModule({
@@ -22,13 +24,15 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
 
     // Functional modules
     AppMeasurementModule,
-    AppSampleModule
+    AppSampleModule,
+    AppObservedLocationOfflineModule
   ],
   declarations: [
     LandingsTable,
     LandingForm,
     LandingPage,
     SelectLandingsModal,
+    LandingsPage
   ],
   exports: [
     // Components
@@ -36,6 +40,7 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingForm,
     LandingPage,
     SelectLandingsModal,
+    LandingsPage
   ]
 })
 export class AppLandingModule {

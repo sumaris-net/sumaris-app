@@ -1295,8 +1295,8 @@
       "START_DATE_INVALID": "Must start a {{day}}"
     },
     "CONFIRM": {
-      "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
-      "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
+      "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
+      "DELETE_MANY_HAS_SAMPLE": "The selected occasions are linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete them?"
     },
     "REPORT": {
       "TITLE": "Occasion report - {{ location }} - {{ dateTime }}",

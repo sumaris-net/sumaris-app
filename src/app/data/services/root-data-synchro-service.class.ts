@@ -81,7 +81,7 @@ export interface IDataSynchroService<
 
   load(id: ID, opts?: LO): Promise<T>;
 
-  executeImport(filter?: Partial<F>, opts?: {
+  runImport(filter?: Partial<F>, opts?: {
     maxProgression?: number;
   }): Observable<number>;
 
@@ -98,7 +98,7 @@ export interface IDataSynchroService<
   lastUpdateDate(): Promise<Moment>;
 }
 
-const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
+const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'runImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
 export interface ISynchronizeEvent {
   localId: any,
@@ -165,7 +165,7 @@ export abstract class RootDataSynchroService<
     this.settings = injector.get(LocalSettingsService);
   }
 
-  executeImport(filter?: Partial<F>,
+  runImport(filter?: Partial<F>,
                 opts?: { maxProgression?: number; }
   ): Observable<number>{
     if (this.importationProgress$) return this.importationProgress$; // Avoid many call

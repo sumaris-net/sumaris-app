@@ -142,7 +142,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     // Use a fixed value, to be able to restore settings.
     // Keep a special case when filter's status field is disable (to avoid a restoration the status column - e.g. in select vessel modal)
     this.settingsId = VesselsTableSettingsEnum.TABLE_ID + (this.disableStatusFilter ? '_statusFilterDisabled' : '');
-    this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
+    this.featureName = VesselsTableSettingsEnum.FEATURE_ID;
 
     super.ngOnInit();
 

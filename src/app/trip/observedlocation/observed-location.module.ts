@@ -13,6 +13,7 @@ import { AppLandedTripModule } from '@app/trip/landedtrip/landed-trip.module';
 import { AppAggregatedLandingModule } from '@app/trip/aggregated-landing/aggregated-landing.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { VesselModule } from '@app/vessel/vessel.module';
+import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 
 
 @NgModule({
@@ -30,13 +31,15 @@ import { VesselModule } from '@app/vessel/vessel.module';
     AppMeasurementModule,
     AppLandingModule,
     AppLandedTripModule,
-    AppAggregatedLandingModule
+    AppAggregatedLandingModule,
+
+    // Sub modules
+    AppObservedLocationOfflineModule
   ],
   declarations: [
     ObservedLocationForm,
     ObservedLocationPage,
     ObservedLocationsPage,
-    ObservedLocationOfflineModal,
     SelectVesselsForDataModal
   ],
   exports: [

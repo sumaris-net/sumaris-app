@@ -2,37 +2,39 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
-import { ObservedLocationService } from '../services/observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../services/config/trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
-import { ObservedLocationOfflineModal } from './offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../services/filter/observed-location.filter';
+import { ObservedLocationOfflineFilter } from '../services/filter/observed-location.filter';
 import { filter, tap } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Landing } from '@app/trip/services/model/landing.model';
+import { LandingFilter } from '@app/trip/services/filter/landing.filter';
+import { LandingService } from '@app/trip/services/landing.service';
 
 
-export const ObservedLocationsPageSettingsEnum = {
-  PAGE_ID: "observedLocations",
+export const LandingsPageSettingsEnum = {
+  PAGE_ID: "landings",
   FILTER_KEY: "filter",
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
 };
 
 @Component({
-  selector: 'app-observed-locations-page',
-  templateUrl: 'observed-locations.page.html',
-  styleUrls: ['observed-locations.page.scss'],
+  selector: 'app-landings-page',
+  templateUrl: 'landings.page.html',
+  styleUrls: ['landings.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends
-  AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class LandingsPage extends
+  AppRootDataTable<Landing, LandingFilter> implements OnInit {
 
   $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
@@ -55,7 +57,7 @@ export class ObservedLocationsPage extends
 
   constructor(
     injector: Injector,
-    protected _dataService: ObservedLocationService,
+    protected _dataService: LandingService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -65,7 +67,7 @@ export class ObservedLocationsPage extends
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
-      ObservedLocation, ObservedLocationFilter,
+      Landing, LandingFilter,
       ['quality',
       'program',
       'location',
@@ -77,7 +79,7 @@ export class ObservedLocationsPage extends
       null
     );
     this.inlineEdition = false;
-    this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
+    this.i18nColumnPrefix = 'OBSERVED_LOCATION.LANDING.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
@@ -89,11 +91,11 @@ export class ObservedLocationsPage extends
       observers: formBuilder.array([[null, SharedValidators.entity]])
     });
     this.autoLoad = false;
-    this.defaultSortBy = 'startDateTime';
+    this.defaultSortBy = 'dateTime';
     this.defaultSortDirection = 'desc';
 
-    this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
+    this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -239,8 +241,8 @@ export class ObservedLocationsPage extends
     if (this.importing) return; // Skip
 
     if (event) {
-      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
-        name: this._dataService.featureName
+      const feature = this.settings.getOfflineFeature(this.featureName) || {
+        name: this.featureName
       };
       const value = <ObservedLocationOfflineFilter>{
         ...this.filter,
@@ -275,18 +277,18 @@ export class ObservedLocationsPage extends
   async deleteSelection(event: Event, opts?: {interactive?: boolean}): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    const observedLocationIds = (rowsToDelete || [])
-      .map(row => row.currentData as ObservedLocation)
+    const landingIds = (rowsToDelete || [])
+      .map(row => row.currentData as Landing)
       .map(ObservedLocation.fromObject)
       .map(o => o.id);
 
-    // ask confirmation if one observation has samples (with tagId)
-    if (isNotEmptyArray(observedLocationIds) && (!opts || opts.interactive !== false)) {
-      const hasSample = await this._dataService.hasSampleWithTagId(observedLocationIds);
+    // ask confirmation if one landing has samples (with tagId)
+    if (isNotEmptyArray(landingIds) && (!opts || opts.interactive !== false)) {
+      const hasSample = await this._dataService.hasSampleWithTagId(landingIds);
       if (hasSample) {
-        const messageKey = observedLocationIds.length === 1
-          ? 'OBSERVED_LOCATION.CONFIRM.DELETE_ONE_HAS_SAMPLE'
-          : 'OBSERVED_LOCATION.CONFIRM.DELETE_MANY_HAS_SAMPLE';
+        const messageKey = landingIds.length === 1
+          ? 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_ONE_HAS_SAMPLE'
+          : 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_MANY_HAS_SAMPLE';
         const confirmed = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
         if (!confirmed) return; // skip
       }

@@ -66,9 +66,8 @@ export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
 }
 
-export interface ObservedLocationLoadOptions extends EntityServiceLoadOptions {
+export interface ObservedLocationServiceLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
-  toEntity?: boolean;
 }
 
 export const ObservedLocationFragments = {
@@ -254,11 +253,11 @@ const CountSamples: any = gql`
 
 @Injectable({providedIn: 'root'})
 export class ObservedLocationService
-  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions>
+  extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions>
   implements IEntitiesService<ObservedLocation, ObservedLocationFilter>,
-    IEntityService<ObservedLocation, number, ObservedLocationLoadOptions>,
+    IEntityService<ObservedLocation, number, ObservedLocationServiceLoadOptions>,
     IDataEntityQualityService<ObservedLocation, number>,
-    IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions> {
+    IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions> {
 
   protected loading = false;
 
@@ -362,7 +361,7 @@ export class ObservedLocationService
         }));
   }
 
-  async load(id: number, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
+  async load(id: number, opts?: ObservedLocationServiceLoadOptions): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error('Missing argument \'id\'');
 
     const now = Date.now();
@@ -588,7 +587,7 @@ export class ObservedLocationService
     return entity;
   }
 
-  async copyLocally(source: ObservedLocation, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
+  async copyLocally(source: ObservedLocation, opts?: ObservedLocationServiceLoadOptions): Promise<ObservedLocation> {
     console.debug('[observed-location-service] Copy trip locally...', source);
 
     opts = {
@@ -625,7 +624,7 @@ export class ObservedLocationService
     return target;
   }
 
-  async copyLocallyById(id: number, opts?: ObservedLocationLoadOptions & {displaySuccessToast?: boolean}): Promise<ObservedLocation> {
+  async copyLocallyById(id: number, opts?: ObservedLocationServiceLoadOptions & {displaySuccessToast?: boolean}): Promise<ObservedLocation> {
     // Load existing data
     const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
     // Copy remote trip to local storage

@@ -52,6 +52,10 @@ import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { ObservedLocationFilter } from '@app/trip/services/filter/observed-location.filter';
+import { ObservedLocationServiceLoadOptions } from '@app/trip/services/observed-location.service';
+import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -59,6 +63,10 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
   tripId?: number;
 
   enableOptimisticResponse?: boolean;
+}
+
+export interface LandingLoadOptions extends EntityServiceLoadOptions {
+  withObservedLocation?: boolean;
 }
 
 export declare interface LandingServiceWatchOptions
@@ -269,7 +277,9 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
 };
 
 @Injectable({providedIn: 'root'})
-export class LandingService extends BaseRootDataService<Landing, LandingFilter>
+export class LandingService
+  //extends BaseRootDataService<Landing, LandingFilter>
+  extends RootDataSynchroService<Landing, LandingFilter, number, LandingLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
 
@@ -292,6 +302,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     );
 
     this._logPrefix = '[landing-service] ';
+  }
+
+  hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
+    // TODO
+    console.log('TODO: implement this part');
+    return Promise.resolve(false);
   }
 
   async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
@@ -968,6 +984,42 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   }
 
   /* -- protected methods -- */
+
+  /**
+   * List of importation jobs.
+   * @protected
+   * @param opts
+   */
+  protected getImportJobs(filter: Partial<LandingFilter>, opts: {
+    maxProgression: undefined;
+    program?: Program;
+    acquisitionLevels?: string[];
+  }): Observable<number>[] {
+
+    const filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    filter = this.asFilter(filter);
+
+    const programLabel = filter && filter.program?.label;
+    const landingFilter = LandingFilter.toObservedLocationFilter(filter);
+
+    if (programLabel) {
+      return [
+        // Store program to opts, for other services (e.g. used by OperationService)
+        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+          .then(program => {
+            opts.program = program;
+            opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+          })),
+
+        ...super.getImportJobs(filter, opts),
+
+        // Landing (historical data)
+        JobUtils.defer(o => this.landingService.executeImport(landingFilter, o), opts)
+      ];
+    } else {
+      return super.getImportJobs(null, opts);
+    }
+  }
 
   /**
    * Save into the local storage
