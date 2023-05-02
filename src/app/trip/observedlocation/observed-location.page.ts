@@ -81,7 +81,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   addLandingUsingHistoryModal: boolean;
   showRecorder = true;
   showObservers = true;
-  landingEditor: LandingEditor = undefined;
+  landingEditor: LandingEditor;
   enableReport: boolean;
   canCopyLocally = false;
 

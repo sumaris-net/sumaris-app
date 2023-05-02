@@ -8,7 +8,7 @@ import {
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityServiceWatchOptions,
   EntityUtils,
   firstNotNilPromise,
   FormErrors,
@@ -56,6 +56,7 @@ import { RootDataSynchroService } from '@app/data/services/root-data-synchro-ser
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { ObservedLocationServiceLoadOptions } from '@app/trip/observedlocation/observed-location.service';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -65,7 +66,7 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
   enableOptimisticResponse?: boolean;
 }
 
-export interface LandingLoadOptions extends EntityServiceLoadOptions {
+export interface LandingServiceLoadOptions extends EntityServiceLoadOptions {
   withObservedLocation?: boolean;
 }
 
@@ -76,6 +77,7 @@ export declare interface LandingServiceWatchOptions
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
+  withObservedLocation?: boolean;
 }
 
 export const LandingFragments = {
@@ -279,7 +281,7 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
 @Injectable({providedIn: 'root'})
 export class LandingService
   //extends BaseRootDataService<Landing, LandingFilter>
-  extends RootDataSynchroService<Landing, LandingFilter, number, LandingLoadOptions>
+  extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
 
@@ -300,6 +302,9 @@ export class LandingService
         subscriptions: LandingSubscriptions
       }
     );
+
+    // /!\ should be same as observed location service
+    this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     this._logPrefix = '[landing-service] ';
   }

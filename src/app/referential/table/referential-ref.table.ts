@@ -41,6 +41,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
 
   @Input() showFilter = true;
   @Input() showLevelFilter = true;
+  @Input() showStatusFilter = true;
   @Input() showToolbar = false;
   @Input() showPaginator = true;
   @Input() mobile: boolean;

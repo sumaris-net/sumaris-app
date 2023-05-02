@@ -61,9 +61,10 @@ export abstract class AppRootDataTable<
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
   V extends BaseValidatorService<T, ID> = any,
-  ID = number
+  ID = number,
+  O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
   >
-  extends AppBaseTable<T, F, S, V, ID> {
+  extends AppBaseTable<T, F, S, V, ID, O> {
 
   private _selectionExtractionTypes$: Observable<ExtractionType[]>;
 
@@ -126,7 +127,7 @@ export abstract class AppRootDataTable<
     columnNames: string[],
     dataService: S,
     validatorService: V,
-    options?: BaseTableConfig<T, ID>
+    options?: O
   ) {
     super(injector,
       dataType, filterType,

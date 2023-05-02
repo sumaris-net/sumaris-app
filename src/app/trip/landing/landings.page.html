@@ -1,7 +1,17 @@
-<app-toolbar [title]="$title|async|translate"
-             color="primary"
+<app-toolbar color="primary"
              [canGoBack]="false"
              [canShowMenu]="true">
+
+
+  <ion-segment value="" slot="start"
+               (ionChange)="onSegmentChanged($event)">
+    <ion-segment-button value="observations" class="ion-title">
+      <ion-label>{{$observedLocationTitle|async|translate}}</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value=""  class="ion-title">
+      <ion-label>{{$title|async|translate}}</ion-label>
+    </ion-segment-button>
+  </ion-segment>
 
   <ion-buttons slot="end">
 
@@ -15,7 +25,8 @@
       </button>
 
       <!-- Refresh -->
-      <button mat-icon-button *ngIf="!mobile"
+      <button mat-icon-button
+              *ngIf="!mobile"
               [title]="'COMMON.BTN_REFRESH'|translate"
               (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
@@ -49,7 +60,7 @@
     <!-- if row selection -->
     <ng-template #hasSelection>
 
-      <!-- terminate and synchronize -->
+      <!-- Terminate and synchronize -->
       <ion-button *ngIf="hasDirtySelection; else synchronizeButton"
                   expand="block"
                   [color]="offline ? 'danger100' : 'danger'"
@@ -57,7 +68,7 @@
         <ion-text translate>QUALITY.BTN_TERMINATE_AND_SYNCHRONIZE</ion-text>
       </ion-button>
 
-      <!-- synchronize -->
+      <!-- Synchronize -->
       <ng-template #synchronizeButton>
         <ion-button *ngIf="hasReadyToSyncSelection"
                     expand="block"
@@ -329,7 +340,8 @@
            [trackBy]="trackByFn">
 
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+        <th mat-header-cell *matHeaderCellDef
+            [class.cdk-visually-hidden]="!canEdit">
           <mat-checkbox (change)="$event ? masterToggle() : null"
                         [checked]="selection.hasValue() && isAllSelected()"
                         [indeterminate]="selection.hasValue() && !isAllSelected()">
@@ -370,10 +382,41 @@
         </td>
       </ng-container>
 
+
+      <!-- Vessel Column -->
+      <ng-container matColumnDef="vessel">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>LANDING.TABLE.VESSEL</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData?.vesselSnapshot | referentialToString: vesselSnapshotAttributes }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel type Column -->
+      <ng-container matColumnDef="vesselType">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>LANDING.TABLE.VESSEL_TYPE</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData?.vesselSnapshot?.vesselType | referentialToString: ['name'] }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel base port Column -->
+      <ng-container matColumnDef="vesselBasePortLocation">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: locationAttributes }}</ion-text>
+        </td>
+      </ng-container>
+
       <!-- location -->
       <ng-container matColumnDef="location">
         <th mat-header-cell *matHeaderCellDef>
-          <ion-label translate>OBSERVED_LOCATION.TABLE.LOCATION</ion-label>
+          <ion-label translate>LANDING.TABLE.LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label>{{row.currentData.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
@@ -381,22 +424,34 @@
       </ng-container>
 
       <!-- date time  -->
-      <ng-container matColumnDef="startDateTime" >
+      <ng-container matColumnDef="dateTime" >
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-          <ion-label translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</ion-label>
+          <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
         </th>
         <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ row.currentData.startDateTime|dateFormat:{time: true} }}</ion-text>
+          <ion-text *ngIf="row.currentData.dateTime; let landingDateTime">{{ landingDateTime | dateFormat: {time: true} }}
+            <ion-text *ngIf="mobile" class="computed"><br/><small>{{ landingDateTime | dateFromNow }}</small></ion-text>
+          </ion-text>
         </td>
       </ng-container>
 
       <!-- Observers -->
       <ng-container matColumnDef="observers">
-        <th mat-header-cell *matHeaderCellDef>
-          <ion-label translate>OBSERVED_LOCATION.TABLE.OBSERVERS</ion-label>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
+          <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- creation date -->
+      <ng-container matColumnDef="creationDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+          <span translate>LANDING.TABLE.CREATION_DATE</span>
+        </th>
+        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+          {{  row.currentData.creationDate | dateFormat: {time: false} }}
         </td>
       </ng-container>
 
@@ -414,6 +469,36 @@
               {{ row.currentData.recorderDepartment?.label }}
             </ng-template>
           </ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Pmfm columns -->
+      <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+          <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row"
+            [class.mat-cell-date-time]="pmfm|isDatePmfm"
+            [class.mat-cell-computed]="pmfm|isComputedPmfm">
+          <app-pmfm-field
+            *ngIf="row.editing; else readOnly"
+            [pmfm]="pmfm"
+            [formControl]="row.validator|formGetControl:['measurementValues', pmfm.id]"
+            floatLabel="never">
+          </app-pmfm-field>
+          <ng-template #readOnly>
+            <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Sample count column -->
+      <ng-container matColumnDef="samplesCount">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label>{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nColumnSuffix}}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.samplesCount }}</ion-text>
         </td>
       </ng-container>
 

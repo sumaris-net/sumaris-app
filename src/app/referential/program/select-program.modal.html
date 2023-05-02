@@ -10,7 +10,8 @@
   <!-- main table -->
   <app-referential-ref-table #table
                              [showFilter]="showFilter"
-                             [showLevelFilter]="showLevelFilter"
+                             [showLevelFilter]="false"
+                             [showStatusFilter]="false"
                              [mode]="'select'"
                              (onOpenRow)="selectRow($event)"
                              (onNewRow)="close($event)">

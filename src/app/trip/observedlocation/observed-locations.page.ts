@@ -1,7 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  ConfigService, Configuration,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PersonService,
+  PersonUtils,
+  ReferentialRef,
+  SharedValidators,
+  StatusIds, TranslateContextService
+} from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from './observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from './observed-location.model';
@@ -17,6 +29,10 @@ import { filter, tap } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { TranslateService } from '@ngx-translate/core';
+import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -35,6 +51,7 @@ export class ObservedLocationsPage extends
   AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   $title = new BehaviorSubject<string>('');
+  $landingTitle = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
 
@@ -44,6 +61,15 @@ export class ObservedLocationsPage extends
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
+
+  @Input()
+  set showProgramColumn(value: boolean) {
+    this.setShowColumn('program', value);
+  }
+
+  get showProgramColumn(): boolean {
+    return this.getShowColumn('program');
+  }
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -61,6 +87,7 @@ export class ObservedLocationsPage extends
     protected programRefService: ProgramRefService,
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
+    protected translateContext: TranslateContextService,
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
@@ -157,58 +184,39 @@ export class ObservedLocationsPage extends
     this.registerSubscription(
       this.configService.config
         .pipe(
-          filter(isNotNil),
-          tap(config => {
-            console.info('[observed-locations] Init from config', config);
-            const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-            this.$title.next(title);
-
-            // Quality
-            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-            this.setShowColumn('quality', this.showQuality, {emitEvent: false});
-
-            // Recorder
-            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-            this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
-
-            // Observer
-            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-            this.setShowColumn('observers', this.showObservers, {emitEvent: false});
-
-            // Manage filters display according to config settings.
-            this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
-            this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
-            this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
-
-            this.updateColumns();
-
-            // Restore filter from settings, or load all
-            this.restoreFilterOrLoad();
-          })
+          filter(isNotNil)
         )
-        .subscribe());
+        .subscribe(config => this.onConfigLoaded(config)));
 
     // Clear the context
     this.resetContext();
   }
 
-  /**
-   * Action triggered when user swipes
-   */
-  onSwipeTab(event: HammerSwipeEvent): boolean {
-    // DEBUG
-    // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
 
-    // Skip, if not a valid swipe event
-    if (!event
-      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
-      || event.pointerType !== 'touch'
-    ) {
-      return false;
+  async setFilter(filter: Partial<ObservedLocationFilter>, opts?: { emitEvent: boolean }) {
+    console.log('TODO');
+    // Program
+    const programLabel = filter?.program?.label;
+    if (isNotNilOrBlank(programLabel)) {
+      const program = await this.programRefService.loadByLabel(programLabel);
+      this.showProgramColumn = false;
+      await this.setProgram(program);
+    }
+    else {
+      // Check if user can access more than one program
+      const {data, total} = await this.programRefService.loadAll(0, 1, null, null, null, {withTotal: true});
+      if (isNotEmptyArray(data) && total === 1) {
+        const program = data[0];
+        this.showProgramColumn = false;
+        await this.setProgram(program);
+      }
+      else {
+        this.showProgramColumn = true;
+        this.$title.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+      }
     }
 
-    this.toggleSynchronizationStatus();
-    return true;
+    super.setFilter(filter, opts);
   }
 
   async openTrashModal(event?: Event) {
@@ -330,7 +338,76 @@ export class ObservedLocationsPage extends
   }
 
 
-  /* -- protected methods -- */
+  /* -- protected functions -- */
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info('[observed-locations] Init using config', config);
+    const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
+    this.$title.next(title);
+
+    // Quality
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, {emitEvent: false});
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
+
+    // Observer
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+    this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+
+    // Manage filters display according to config settings.
+    this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+    this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
+    this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
+
+    // Restore filter from settings, or load all
+    await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
+  protected onSegmentChanged(event: CustomEvent) {
+    const path = event.detail.value;
+    if (isNotNilOrBlank(path)) {
+      // TODO: save filter in context ?
+
+      this.navController.navigateRoot(path, {animated: false});
+    }
+  }
+
+  /**
+   * Action triggered when user swipes
+   */
+  protected onSwipeTab(event: HammerSwipeEvent): boolean {
+    // DEBUG
+    // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
+
+    // Skip, if not a valid swipe event
+    if (!event
+      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
+      || event.pointerType !== 'touch'
+    ) {
+      return false;
+    }
+
+    this.toggleSynchronizationStatus();
+    return true;
+  }
+
+  protected async setProgram(program: Program) {
+    console.debug('[observed-location] Init using program', program);
+
+    // I18n suffix
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nColumnSuffix = i18nSuffix;
+
+    // Title
+    const landingTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
+    this.$landingTitle.next(landingTitle);
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

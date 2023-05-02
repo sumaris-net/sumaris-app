@@ -75,12 +75,7 @@ else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
 fi
 
-  echo
-
 cd "${PROJECT_DIR}"
-#echo "--- Synchronizing..."
-#npx jetifier && npx cap sync android
-#[[ $? -ne 0 ]] && exit 1
 
 echo "--- Android environment is ready!"
 

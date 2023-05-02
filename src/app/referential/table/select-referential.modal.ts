@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { changeCaseToUnderscore, ReferentialRef } from '@sumaris-net/ngx-components';
+import { BaseReferential, changeCaseToUnderscore, isNilOrBlank, ReferentialRef } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { BaseSelectEntityModal, IBaseSelectEntityModalOptions } from './base-select-entity.modal';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { IReferentialRef } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntityModalOptions<ReferentialRef, ReferentialRefFilter>> {
   filter: Partial<ReferentialRefFilter>;
@@ -15,29 +16,26 @@ export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntit
   templateUrl: './select-referential.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
+export class SelectReferentialModal
+  extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
   implements OnInit, ISelectReferentialModalOptions {
 
   @Input() showLevelFilter: boolean = true;
 
   constructor(
-    protected injector: Injector,
-    protected dataService: ReferentialRefService,
+    injector: Injector,
+    dataService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, ReferentialRef, dataService);
+    super(injector, ReferentialRef, ReferentialRefFilter, dataService);
   }
 
   ngOnInit() {
-    this.filter = ReferentialRefFilter.fromObject(this.filter);
+    this.filter = ReferentialRefFilter.fromObject({entityName: this.entityName, ...this.filter});
+    if (isNilOrBlank(this.filter?.entityName)) throw new Error('Missing \'entityName\' or \'filter.entityName\'');
 
     super.ngOnInit();
 
-    // Copy the entityName to filter
-    if (this.entityName) {
-      this.filter.entityName = this.entityName;
-    }
-    if (!this.filter.entityName) throw new Error('Missing entityName');
   }
 
   protected async computeTitle(): Promise<string> {
@@ -48,7 +46,4 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
     this.cd.markForCheck();
   }
 
-  protected onRowClick(row: TableElement<ReferentialRef>) {
-    this.table.selection.toggle(row);
-  }
 }
