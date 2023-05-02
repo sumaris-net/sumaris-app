@@ -4,7 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { OperationGroupModal } from './operation-group.modal';
 import { OperationGroupForm } from './operation-group.form';
 import { AppCoreModule } from '@app/core/core.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
 

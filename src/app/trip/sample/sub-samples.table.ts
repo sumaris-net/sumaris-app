@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { SubSampleValidatorService } from '../services/validator/sub-sample.validator';
+import { SubSampleValidatorService } from './sub-sample.validator';
 import {
   EntityUtils,
   firstNotNilPromise,
@@ -16,13 +16,13 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
-import { Sample } from '../services/model/sample.model';
+import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { Sample } from './sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { environment } from '@environments/environment';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
+import { SampleFilter } from './sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';

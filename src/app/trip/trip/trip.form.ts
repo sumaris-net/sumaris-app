@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { TripValidatorOptions, TripValidatorService } from '../services/validator/trip.validator';
+import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 
@@ -35,7 +35,7 @@ import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
-import { Trip } from '../services/model/trip.model';
+import { Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime, filter } from 'rxjs/operators';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';

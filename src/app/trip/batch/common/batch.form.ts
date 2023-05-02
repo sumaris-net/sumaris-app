@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
-import { MeasurementValuesForm, MeasurementValuesState } from '../../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '../../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
@@ -24,7 +24,7 @@ import {
 import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';

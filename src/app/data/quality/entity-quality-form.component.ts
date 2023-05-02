@@ -32,7 +32,7 @@ import { qualityFlagToColor, translateQualityFlag } from '../services/model/mode
 import { OverlayEventDetail } from '@ionic/core';
 import { isDataSynchroService, RootDataSynchroService } from '../services/root-data-synchro-service.class';
 import { debounceTime } from 'rxjs/operators';
-import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 

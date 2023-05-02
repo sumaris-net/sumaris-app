@@ -8,7 +8,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { VesselModule } from '../../vessel/vessel.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { LandingsPage } from '@app/trip/landing/landings.page';
 import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';

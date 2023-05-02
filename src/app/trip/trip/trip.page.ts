@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
 
-import { TripService } from '../services/trip.service';
+import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
 import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -32,7 +32,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
-import { Operation, Trip } from '../services/model/trip.model';
+import { Operation, Trip } from './trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
@@ -42,13 +42,13 @@ import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith,
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
-import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
+import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
 import { Subscription } from 'rxjs';
-import { OperationService } from '@app/trip/services/operation.service';
+import { OperationService } from '@app/trip/operation/operation.service';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { Sale } from '@app/trip/services/model/sale.model';
+import { Sale } from '@app/trip/sale/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 

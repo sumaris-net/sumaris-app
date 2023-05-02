@@ -40,11 +40,11 @@ import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
-import { ErrorCodes } from '@app/data/services/errors';
+import { DataErrorCodes } from '@app/data/services/errors';
 import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
-import { LandingService } from '@app/trip/services/landing.service';
-import { TripService } from '@app/trip/services/trip.service';
-import { OperationService } from '@app/trip/services/operation.service';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { TripService } from '@app/trip/trip/trip.service';
+import { OperationService } from '@app/trip/operation/operation.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselErrorCodes } from '@app/vessel/services/errors';
 import { JobFragments } from '@app/social/job/job.service';
@@ -239,7 +239,7 @@ export class VesselService
     // Load using vessel snapshot, if offline and has offline feature
     if (this.network.offline && EntityUtils.isRemoteId(id) && (await this.hasOfflineData())) {
       const data: VesselSnapshot = await this.entities.load(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+      if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
       return VesselSnapshot.toVessel(data);
     }
 
@@ -574,13 +574,13 @@ export class VesselService
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
-        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+        throw {code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
       }
 
     } catch (err) {
       throw {
         ...err,
-        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
         message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
         context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
       };

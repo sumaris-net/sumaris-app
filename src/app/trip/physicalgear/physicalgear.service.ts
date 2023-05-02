@@ -23,18 +23,18 @@ import {
   NetworkService, removeDuplicatesFromArray,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {Trip} from '../services/model/trip.model';
+import {Trip} from '../trip/trip.model';
 import {environment} from '@environments/environment';
 import {BehaviorSubject, combineLatest, EMPTY, Observable} from 'rxjs';
 import {filter, first, map, throttleTime} from 'rxjs/operators';
 import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {PhysicalGearFragments} from '../services/trip.queries';
+import {PhysicalGearFragments} from '../trip/trip.queries';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {SortDirection} from '@angular/material/sort';
 import {PhysicalGearFilter} from './physical-gear.filter';
 import moment from 'moment';
-import {TripFilter} from '@app/trip/services/filter/trip.filter';
-import {ErrorCodes} from '@app/data/services/errors';
+import {TripFilter} from '@app/trip/trip/trip.filter';
+import {DataErrorCodes} from '@app/data/services/errors';
 import {mergeLoadResult} from '@app/shared/functions';
 import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
 import {ProgramFragments} from '@app/referential/services/program.fragments';
@@ -44,7 +44,7 @@ import {PhysicalGearValidatorOptions, PhysicalGearValidatorService} from '@app/t
 import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
 import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {DataEntityUtils} from '@app/data/services/model/data-entity.model';
@@ -219,7 +219,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return this.graphql.watchQuery<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
+      error: {code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
@@ -416,7 +416,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
             json = trip.gears.find(g => g.id === id);
           }
         }
-        if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
+        if (!json) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       }
 
       // Load from pod
@@ -424,7 +424,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
         const res = await this.graphql.query<{ data: PhysicalGear }>({
           query: Queries.load,
           variables: {id},
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'}
+          error: {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'}
         });
         json = res && res.data;
       }

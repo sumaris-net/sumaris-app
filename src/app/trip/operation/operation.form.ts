@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
+import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
 import {
   AccountService,
@@ -34,27 +34,27 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Operation, Trip } from '../services/model/trip.model';
+import { Operation, Trip } from '../trip/trip.model';
 import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { OperationService } from '@app/trip/services/operation.service';
+import { OperationService } from '@app/trip/operation/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
 import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { PositionUtils } from '@app/data/position/position.utils';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { LocationLevelGroups, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
-import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { BBox } from 'geojson';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { isSameOrBefore } from 'ngx-material-timepicker/src/app/material-timepicker/utils/timepicker.utils';
 

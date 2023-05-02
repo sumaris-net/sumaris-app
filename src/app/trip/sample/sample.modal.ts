@@ -21,7 +21,7 @@ import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
 import {SampleForm} from './sample.form';
-import {Sample} from '../services/model/sample.model';
+import {Sample} from './sample.model';
 import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';

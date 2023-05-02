@@ -250,7 +250,7 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-icon *ngIf="statusById[row.currentData.statusId]; let status"
-                  [color]="status.id|statusToColor"
+                  [color]="status.id|vesselStatusToColorPipe"
                   [name]="status.icon"
                   [title]="status.label | translate"
         ></ion-icon>

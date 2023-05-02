@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';

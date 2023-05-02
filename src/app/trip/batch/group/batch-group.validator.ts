@@ -5,7 +5,7 @@ import { BatchGroup } from './batch-group.model';
 import { AppFormUtils, FormErrors, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { debounceTime } from 'rxjs/operators';

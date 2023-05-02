@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { TripService } from '../trip/trip.service';
+import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,
@@ -35,25 +35,25 @@ import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, s
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
+import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { from, merge, of, Subscription, timer } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
-import { PositionUtils } from '@app/trip/services/position.utils';
+import { PositionUtils } from '@app/data/position/position.utils';
 import { RxState } from '@rx-angular/state';
 import { TripPageTabs } from '@app/trip/trip/trip.page';
 import { PredefinedColors } from '@ionic/core';

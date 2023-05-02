@@ -50,7 +50,7 @@ import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/services/config/trip.config';
+import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/trip.config';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
@@ -60,7 +60,7 @@ import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
 import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
 import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
-import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/services/config/data.config';
+import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
 import { JDENTICON_CONFIG } from 'ngx-jdenticon';
 import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
@@ -68,9 +68,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
-import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
+import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/sample/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
-import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
+import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/operation/operation.validator';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ApolloModule } from 'apollo-angular';
@@ -78,10 +78,10 @@ import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
-import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
-import { TripService } from '@app/trip/services/trip.service';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
-import { DevicePositionService } from '@app/data/services/device-position.service';
+import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/position/device/device-position.config';
+import { TripService } from '@app/trip/trip/trip.service';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 
 @NgModule({
@@ -286,6 +286,13 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name'
+        },
+        {
+          title: 'MENU.LANDINGS', path: '/observations/landings',
+          icon: 'location',
+          profile: 'USER',
+          ifProperty: 'sumaris.observedLocation.landing.enable',
+          titleProperty: 'sumaris.observedLocation.landing.name'
         },
 
         // Data extraction

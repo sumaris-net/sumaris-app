@@ -2,7 +2,7 @@ import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angul
 import { AlertController, ModalController } from '@ionic/angular';
 import { AppEntityEditorModal, IEntityEditorModalOptions, referentialToString } from '@sumaris-net/ngx-components';
 import { ProductSaleForm } from './product-sale.form';
-import { Product } from '../services/model/product.model';
+import { Product } from '../product/product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';

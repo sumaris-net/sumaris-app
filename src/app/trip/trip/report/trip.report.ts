@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { Operation, Trip } from '@app/trip/services/model/trip.model';
-import { TripService } from '@app/trip/services/trip.service';
+import { Operation, Trip } from '@app/trip/trip/trip.model';
+import { TripService } from '@app/trip/trip/trip.service';
 import {
   arrayDistinct,
   collectByProperty,

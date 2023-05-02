@@ -28,7 +28,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { Program } from '@app/referential/services/model/program.model';
-import { Operation, Trip, VesselPositionUtils } from '../../services/model/trip.model';
+import { Operation, Trip, VesselPositionUtils } from '../../trip/trip.model';
 import { environment } from '@environments/environment';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { Geometries } from '@app/shared/geometries.utils';

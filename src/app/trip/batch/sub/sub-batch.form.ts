@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
-import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementValuesForm } from '../../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
@@ -28,7 +28,7 @@ import {
 import {debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, tap} from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
 import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';

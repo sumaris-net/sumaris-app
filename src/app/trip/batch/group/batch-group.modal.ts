@@ -24,7 +24,7 @@ import { BatchGroup } from './batch-group.model';
 import { environment } from '@environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';

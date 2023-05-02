@@ -13,7 +13,7 @@ import { SelectOperationModal } from '@app/trip/operation/select-operation.modal
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';

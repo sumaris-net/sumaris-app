@@ -24,17 +24,17 @@ import {
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
-import { LandingService } from '../services/landing.service';
+import { LandingService } from './landing.service';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
-import { ObservedLocationService } from '../services/observed-location.service';
-import { TripService } from '../services/trip.service';
+import { ObservedLocationService } from '../observedlocation/observed-location.service';
+import { TripService } from '../trip/trip.service';
 import { debounceTime, filter, tap, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Landing } from '../services/model/landing.model';
-import { Trip } from '../services/model/trip.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
+import { Landing } from './landing.model';
+import { Trip } from '../trip/trip.model';
+import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
@@ -48,10 +48,10 @@ import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 import moment from 'moment';
-import { BaseMeasurementsTable } from '@app/trip/measurement/measurements-table.class';
-import { SampleFilter } from '@app/trip/services/filter/sample.filter';
-import { Sample } from '@app/trip/services/model/sample.model';
-import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
+import { SampleFilter } from '@app/trip/sample/sample.filter';
+import { Sample } from '@app/trip/sample/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 
 export class LandingEditorOptions extends AppEditorOptions {
 }

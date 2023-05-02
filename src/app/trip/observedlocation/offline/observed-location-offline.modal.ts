@@ -8,8 +8,8 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
 import { map, mergeMap, tap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
-import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
+import { ObservedLocationOfflineFilter } from '../observed-location.filter';
+import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { BehaviorSubject } from 'rxjs';

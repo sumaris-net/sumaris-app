@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { Sample } from '../services/model/sample.model';
+import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
+import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';

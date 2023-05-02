@@ -25,10 +25,10 @@ import {
 import { BehaviorSubject, Subject } from 'rxjs';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { LandingReport } from '@app/trip/landing/report/landing.report';
-import { LandingService } from '@app/trip/services/landing.service';
-import { Landing } from '@app/trip/services/model/landing.model';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 
 
 @Component({

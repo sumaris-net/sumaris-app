@@ -1,6 +1,6 @@
 import { BaseReferential, EntityClass, FilterFn, isNotNil, isNotNilOrBlank, ReferentialAsObjectOptions, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 @EntityClass({typename: 'TranscribingItemTypeVO'})
 export class TranscribingItemType extends BaseReferential<TranscribingItemType> {

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
-import { LandingValidatorService } from '../services/validator/landing.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { LandingValidatorService } from './landing.validator';
+import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
@@ -30,7 +30,7 @@ import {
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Landing } from '../services/model/landing.model';
+import { Landing } from './landing.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
@@ -38,10 +38,10 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { Trip } from '@app/trip/services/model/trip.model';
-import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
+import { Trip } from '@app/trip/trip/trip.model';
+import { TripValidatorService } from '@app/trip/trip/trip.validator';
 import { Metier } from '@app/referential/services/model/metier.model';
 
 

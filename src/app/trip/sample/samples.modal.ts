@@ -5,7 +5,7 @@ import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '../../referential/services/model/model.enum';
-import { Sample } from '../services/model/sample.model';
+import { Sample } from './sample.model';
 import { SamplesTable } from './samples.table';
 import { Moment } from 'moment';
 import { IPmfm } from '../../referential/services/model/pmfm.model';

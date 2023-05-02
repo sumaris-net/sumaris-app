@@ -19,12 +19,12 @@ import { Batch, BatchWeight } from './batch.model';
 import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { ControlUpdateOnType, DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { debounceTime } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 

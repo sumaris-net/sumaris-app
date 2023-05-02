@@ -2,7 +2,7 @@ import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angul
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { AppFormUtils, LocalSettingsService } from '@sumaris-net/ngx-components';
-import { Packet } from '../services/model/packet.model';
+import { Packet } from '../packet/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';

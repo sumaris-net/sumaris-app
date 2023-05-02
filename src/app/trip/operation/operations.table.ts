@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import {TableElement, TableElementReactiveForms, ValidatorService} from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { OperationValidatorService } from './operation.validator';
+import { OperationService, OperationServiceWatchOptions } from './operation.service';
 import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { OperationsMapModal, OperationsMapModalOptions } from './map/operations-map.modal';
 import { environment } from '@environments/environment';
-import { Operation } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { Operation } from '../trip/trip.model';
+import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { from, merge } from 'rxjs';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';

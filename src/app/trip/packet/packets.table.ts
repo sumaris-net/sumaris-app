@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
-import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from '../services/model/packet.model';
-import { PacketValidatorService } from '../services/validator/packet.validator';
+import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from './packet.model';
+import { PacketValidatorService } from './packet.validator';
 import { BehaviorSubject } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { IPacketModalOptions, PacketModal } from './packet.modal';
 import { IPacketSaleModalOptions, PacketSaleModal } from '../sale/packet-sale.modal';
-import { SaleProductUtils } from '../services/model/sale-product.model';
+import { SaleProductUtils } from '../sale/sale-product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';

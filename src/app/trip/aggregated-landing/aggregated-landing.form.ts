@@ -18,10 +18,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
-import { AggregatedLandingService } from '../services/aggregated-landing.service';
+import { AggregatedLandingService } from './aggregated-landing.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
-import { VesselActivityValidatorService } from '../services/validator/vessel-activity.validator';
+import { AggregatedLanding, VesselActivity } from './aggregated-landing.model';
+import { VesselActivityValidatorService } from './vessel-activity.validator';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { environment } from '@environments/environment';
 

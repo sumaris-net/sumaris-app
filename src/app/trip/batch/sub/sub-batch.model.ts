@@ -4,7 +4,7 @@ import { AcquisitionLevelCodes } from '../../../referential/services/model/model
 import { EntityClass, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 @EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})

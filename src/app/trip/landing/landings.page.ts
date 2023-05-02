@@ -1,24 +1,36 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  ConfigService,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrNaN,
+  PersonService,
+  PersonUtils,
+  ReferentialRef,
+  SharedValidators,
+  StatusIds
+} from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { ObservedLocation } from '../services/model/observed-location.model';
+import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable } from '@app/data/table/root-table.class';
-import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../services/config/trip.config';
+import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
-import { ObservedLocationOfflineFilter } from '../services/filter/observed-location.filter';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
+import { ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
 import { filter, tap } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { Landing } from '@app/trip/services/model/landing.model';
-import { LandingFilter } from '@app/trip/services/filter/landing.filter';
-import { LandingService } from '@app/trip/services/landing.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { LandingService } from '@app/trip/landing/landing.service';
 
 
 export const LandingsPageSettingsEnum = {
@@ -192,6 +204,22 @@ export class LandingsPage extends
 
     // Clear the context
     this.resetContext();
+  }
+
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean }): Promise<void> {
+    // Load by observed location
+    const observedLocationId = this.route.snapshot.paramMap.get('observedLocationId');
+    if (isNotNilOrNaN(observedLocationId)) {
+      this.setFilter(<Partial<LandingFilter>>{observedLocationId: +observedLocationId}, {emitEvent: true, ...opts});
+      return
+    }
+    // Load by trip
+    const tripId = this.route.snapshot.paramMap.get('tripId');
+    if (isNotNilOrNaN(tripId)) {
+      this.setFilter(<Partial<LandingFilter>>{tripId: +tripId}, {emitEvent: true, ...opts});
+      return
+    }
+    return super.restoreFilterOrLoad(opts);
   }
 
   /**

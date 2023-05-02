@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { ObservedLocationForm } from './observed-location.form';
-import { ObservedLocationService } from '../services/observed-location.service';
+import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
@@ -27,8 +27,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { Landing } from '../services/model/landing.model';
+import { ObservedLocation } from './observed-location.model';
+import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { BehaviorSubject } from 'rxjs';
@@ -37,8 +37,8 @@ import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landin
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
 import { environment } from '@environments/environment';
-import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
-import { LandingFilter } from '../services/filter/landing.filter';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
+import { LandingFilter } from '../landing/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';

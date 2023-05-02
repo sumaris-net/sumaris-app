@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
-import { OperationGroup } from '@app/trip/services/model/trip.model';
+import { OperationGroup } from '@app/trip/trip/trip.model';
 import { OperationGroupForm } from '@app/trip/operationgroup/operation-group.form';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';

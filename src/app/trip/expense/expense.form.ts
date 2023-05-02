@@ -1,11 +1,11 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
-import { Measurement, MeasurementUtils } from '../services/model/measurement.model';
-import { ExpenseValidatorService } from '../services/validator/expense.validator';
+import { Measurement, MeasurementUtils } from '../../data/measurement/measurement.model';
+import { ExpenseValidatorService } from './expense.validator';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';

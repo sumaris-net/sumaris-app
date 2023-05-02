@@ -13,7 +13,7 @@ import { SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { SamplesModal } from '@app/trip/sample/samples.modal';
 import { ImageGalleryModule } from '@sumaris-net/ngx-components';
 import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmfm.module';
