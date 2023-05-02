@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AppForm, AppFormUtils, FormArrayHelper, ReferentialUtils, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
-import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
-import { PacketValidatorService } from '../services/validator/packet.validator';
+import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from './packet.model';
+import { PacketValidatorService } from './packet.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject } from 'rxjs';

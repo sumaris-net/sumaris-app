@@ -3,8 +3,8 @@ import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../refer
 import { LandingPage } from '../landing.page';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { Landing } from '../../services/model/landing.model';
-import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
+import { Landing } from '../landing.model';
+import { AuctionControlValidators } from './auction-control.validators';
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
@@ -24,7 +24,7 @@ import {
   SharedValidators, toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { ObservedLocation } from '../../services/model/observed-location.model';
+import { ObservedLocation } from '../../observedlocation/observed-location.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';

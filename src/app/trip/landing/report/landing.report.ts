@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
-import { LandingService } from '@app/trip/services/landing.service';
+import { LandingService } from '@app/trip/landing/landing.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AccountService,
@@ -33,10 +33,10 @@ import {
   waitForTrue
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Landing } from '@app/trip/services/model/landing.model';
+import { Landing } from '@app/trip/landing/landing.model';
 import { TranslateService } from '@ngx-translate/core';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';

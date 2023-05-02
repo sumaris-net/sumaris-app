@@ -1,4 +1,4 @@
-import { MeasurementModelValues } from '@app/trip/services/model/measurement.model';
+import { MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';

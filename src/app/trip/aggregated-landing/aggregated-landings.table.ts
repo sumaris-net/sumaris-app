@@ -18,10 +18,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { BehaviorSubject } from 'rxjs';
-import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
-import { AggregatedLandingService } from '../services/aggregated-landing.service';
+import { AggregatedLanding, VesselActivity } from './aggregated-landing.model';
+import { AggregatedLandingService } from './aggregated-landing.service';
 import { Moment } from 'moment';
-import { ObservedLocation } from '../services/model/observed-location.model';
+import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { TableElement } from '@e-is/ngx-material-table';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -31,7 +31,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
-import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
+import { AggregatedLandingFilter } from '@app/trip/aggregated-landing/aggregated-landing.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
 

@@ -1,9 +1,9 @@
 import { Component, Injector } from '@angular/core';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Operation } from '@app/trip/services/model/trip.model';
-import { OperationService } from '@app/trip/services/operation.service';
-import { TripService } from '@app/trip/services/trip.service';
+import { Operation } from '@app/trip/trip/trip.model';
+import { OperationService } from '@app/trip/operation/operation.service';
+import { TripService } from '@app/trip/trip/trip.service';
 
 import moment from 'moment';
 

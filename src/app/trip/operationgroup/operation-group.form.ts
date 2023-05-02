@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { AccountService, isNotNil, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import { UntypedFormBuilder } from '@angular/forms';
-import { OperationGroup } from '../services/model/trip.model';
+import { OperationGroup } from '../trip/trip.model';
 import { Observable } from 'rxjs';
 import { MetierService } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { MeasurementValuesForm } from '@app/trip/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { OperationGroupValidatorService } from '@app/trip/services/validator/operation-group.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { OperationGroupValidatorService } from '@app/trip/operationgroup/operation-group.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { Metier } from '@app/referential/services/model/metier.model';

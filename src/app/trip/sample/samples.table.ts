@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorOptions, SampleValidatorService } from '../services/validator/sample.validator';
+import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
@@ -27,16 +27,16 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../data/measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample, SampleUtils } from '../services/model/sample.model';
+import { Sample, SampleUtils } from './sample.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
+import { SampleFilter } from './sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
@@ -47,11 +47,11 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { OverlayEventDetail } from '@ionic/core';
-import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
+import { IPmfmForm } from '@app/trip/operation/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
-import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 declare interface GroupColumnDefinition {
@@ -217,8 +217,6 @@ export class SamplesTable
   }
 
   @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
-
-  @ViewChild('optionsMenu') optionMenu: MatMenu;
 
   constructor(
     injector: Injector,

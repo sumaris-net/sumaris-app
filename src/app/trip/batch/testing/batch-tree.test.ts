@@ -20,15 +20,15 @@ import {
 } from '@sumaris-net/ngx-components';
 import { LocationLevels } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-data.test';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
-import { TripService } from '@app/trip/services/trip.service';
+import { TripService } from '@app/trip/trip/trip.service';
 
 
 @Component({

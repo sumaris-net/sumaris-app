@@ -14,7 +14,7 @@ import { debounceTime } from 'rxjs/operators';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 
 
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {

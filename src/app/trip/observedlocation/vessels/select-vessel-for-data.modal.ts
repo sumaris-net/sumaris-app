@@ -3,7 +3,7 @@ import { LandingsTable } from '../../landing/landings.table';
 
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ModalController } from '@ionic/angular';
-import { Landing } from '../../services/model/landing.model';
+import { Landing } from '../../landing/landing.model';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselsTable } from '@app/vessel/list/vessels.table';
@@ -13,7 +13,7 @@ import { VesselForm } from '@app/vessel/form/form-vessel';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { Subscription } from 'rxjs';
 import { MatTabGroup } from '@angular/material/tabs';
-import { LandingFilter } from '../../services/filter/landing.filter';
+import { LandingFilter } from '../../landing/landing.filter';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { Moment } from 'moment';

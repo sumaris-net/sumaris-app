@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { SubSampleValidatorService } from '../../services/validator/sub-sample.validator';
+import { SubSampleValidatorService } from '../sub-sample.validator';
 import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
 import { SubSamplesTable } from '../sub-samples.table';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';

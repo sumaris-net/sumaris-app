@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { Landing } from '@app/trip/services/model/landing.model';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { Landing } from '@app/trip/landing/landing.model';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { environment } from '@environments/environment';
 import { LandingReport, LandingStats } from '../../report/landing.report';

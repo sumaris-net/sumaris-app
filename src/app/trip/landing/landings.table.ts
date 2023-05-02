@@ -2,20 +2,20 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { LandingService } from '../services/landing.service';
-import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
+import { LandingService } from './landing.service';
+import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
-import { Trip } from '../services/model/trip.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { Landing } from '../services/model/landing.model';
+import { Trip } from '../trip/trip.model';
+import { ObservedLocation } from '../observedlocation/observed-location.model';
+import { Landing } from './landing.model';
 import { LandingEditor } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
-import { LandingFilter } from '../services/filter/landing.filter';
-import { LandingValidatorService } from '@app/trip/services/validator/landing.validator';
+import { LandingFilter } from './landing.filter';
+import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];

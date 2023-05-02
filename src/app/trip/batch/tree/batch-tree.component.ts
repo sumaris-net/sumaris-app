@@ -35,7 +35,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';

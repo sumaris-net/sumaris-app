@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
@@ -16,12 +16,12 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
-import { SampleValidatorService } from '../services/validator/sample.validator';
-import { Sample } from '../services/model/sample.model';
+import { SampleValidatorService } from './sample.validator';
+import { Sample } from './sample.model';
 import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
+import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 @Component({

@@ -22,9 +22,9 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {DevicePositionService} from '@app/data/services/device-position.service';
+import {DevicePositionService} from '@app/data/position/device/device-position.service';
 import {IonModal} from '@ionic/angular';
-import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/services/config/device-position.config';
+import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/position/device/device-position.config';
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';

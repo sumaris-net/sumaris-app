@@ -16,7 +16,7 @@ import {
 import { Batch } from './batch.model';
 import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { IDataEntityQualityService, IProgressionOptions } from '@app/data/services/data-quality-service.class';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
@@ -26,7 +26,7 @@ import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.m
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { TranslateService } from '@ngx-translate/core';
-import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { countSubString } from '@app/shared/functions';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';

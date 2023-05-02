@@ -1,6 +1,6 @@
 import {EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, isNotNil, toNumber} from '@sumaris-net/ngx-components';
 import {Batch} from '@app/trip/batch/common/batch.model';
-import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 

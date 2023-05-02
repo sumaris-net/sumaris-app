@@ -8,11 +8,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { Program } from '@app/referential/services/model/program.model';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { OperationValidators } from '@app/trip/services/validator/operation.validator';
+import { OperationValidators } from '@app/trip/operation/operation.validator';
 
 
 export interface PhysicalGearValidatorOptions {

@@ -20,11 +20,11 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { ISubBatchModalOptions, SubBatchModal } from './sub-batch.modal';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -34,7 +34,7 @@ import { PmfmValidators } from '@app/referential/services/validator/pmfm.validat
 import { environment } from '@environments/environment';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];

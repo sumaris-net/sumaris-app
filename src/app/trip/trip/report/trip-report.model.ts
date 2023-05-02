@@ -1,6 +1,6 @@
 import { DateUtils, Entity, fromDateISOString, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
-import { Operation, Trip } from '@app/trip/services/model/trip.model';
-import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { Operation, Trip } from '@app/trip/trip/trip.model';
+import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Moment } from 'moment';
 

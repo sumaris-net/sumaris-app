@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { FormBuilder } from '@angular/forms';
 import { AppForm, AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
 import { ProductsTable } from '../product/products.table';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
-import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
-import { Product } from '@app/trip/services/model/product.model';
-import { SaleProductUtils } from '@app/trip/services/model/sale-product.model';
+import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
+import { Product } from '@app/trip/product/product.model';
+import { SaleProductUtils } from '@app/trip/sale/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 

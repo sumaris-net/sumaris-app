@@ -3,13 +3,13 @@ import { Moment } from 'moment';
 import { Injector } from '@angular/core';
 import { IReferentialRef, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { UntypedFormBuilder } from '@angular/forms';
-import { MeasurementValuesForm } from '@app/trip/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
-import { IWithProductsEntity, Product } from '@app/trip/services/model/product.model';
-import { ProductValidatorService } from '@app/trip/services/validator/product.validator';
+import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
+import { ProductValidatorService } from '@app/trip/product/product.validator';
 
 
 @Component({

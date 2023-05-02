@@ -22,12 +22,12 @@ import {
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { DataCommonFragments } from '../../trip/services/trip.queries';
+import { DataCommonFragments } from '../../trip/trip/trip.queries';
 import { SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
 import { ExtractionProduct } from './product.model';
 import { ExtractionFragments } from '../common/extraction.service';
 import { environment } from '@environments/environment';
-import { ErrorCodes } from '@app/data/services/errors';
+import { DataErrorCodes } from '@app/data/services/errors';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ExtractionTypeFragments, ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
@@ -297,7 +297,7 @@ export class ProductService
       variables: {
         product: json
       },
-      error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
+      error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);

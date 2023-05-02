@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { SaleValidatorService } from '../services/validator/sale.validator';
+import { SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
 import { AppForm, OnReady, referentialToString, toNumber } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Sale } from '../services/model/sale.model';
+import { Sale } from './sale.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 

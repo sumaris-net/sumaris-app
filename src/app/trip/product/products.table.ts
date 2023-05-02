@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
-import { ProductValidatorService } from '../services/validator/product.validator';
-import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { ProductValidatorService } from './product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from './product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { IProductSaleModalOptions, ProductSaleModal } from '../sale/product-sale.modal';
-import { SaleProductUtils } from '../services/model/sale-product.model';
+import { SaleProductUtils } from '../sale/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { environment } from '@environments/environment';
 import { ISamplesModalOptions, SamplesModal } from '../sample/samples.modal';

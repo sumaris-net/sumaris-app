@@ -60,7 +60,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/trip-routing.module').then(m => m.AppTripRoutingModule)
+    loadChildren: () => import('./trip/trip/trip-routing.module').then(m => m.AppTripRoutingModule)
   },
 
   // Observations
@@ -70,7 +70,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
+    loadChildren: () => import('./trip/observedlocation/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
   },
 
   // Extraction path

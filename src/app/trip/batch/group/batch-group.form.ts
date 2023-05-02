@@ -6,13 +6,13 @@ import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-
 import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { merge } from 'rxjs';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export interface BatchGroupFormState extends BatchFormState {
   childrenPmfmsByQvId: {[key: number]: IPmfm[]};

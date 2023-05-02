@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 import { SelectivityOperationPage } from '@app/trip/operation/selectivity/selectivity-operation.page';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
