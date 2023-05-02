@@ -736,6 +736,21 @@ export const ProgramProperties = Object.freeze({
     //defaultValue: UnitLabel.KG
   },
 
+  LANDING_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landing.columns.pmfmIds',
+    label: 'PROGRAM.OPTIONS.LANDING_COLUMNS_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6]
+    },
+  },
+
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{

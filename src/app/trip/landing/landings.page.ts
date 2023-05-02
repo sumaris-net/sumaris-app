@@ -3,16 +3,22 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   Alerts,
-  ConfigService,
+  ConfigService, Configuration,
   HammerSwipeEvent,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   PersonService,
   PersonUtils,
   ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
   SharedValidators,
-  StatusIds
+  StatusIds,
+  toBoolean,
+  toNumber, TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
@@ -30,14 +36,35 @@ import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
-import { LandingService } from '@app/trip/landing/landing.service';
+import { LandingService, LandingServiceLoadOptions, LandingServiceWatchOptions } from '@app/trip/landing/landing.service';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { TableElement } from '@e-is/ngx-material-table';
+import { Program } from '@app/referential/services/model/program.model';
+import { ISelectProgramModalOptions, SelectProgramModal } from '@app/referential/program/select-program.modal';
+import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_RESERVED_START_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { TripService } from '@app/trip/trip/trip.service';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { BaseTableConfig } from '@app/shared/table/base.table';
+import { LandingValidatorService } from '@app/trip/landing/landing.validator';
+import { TranslateService } from '@ngx-translate/core';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 
 export const LandingsPageSettingsEnum = {
-  PAGE_ID: "landings",
-  FILTER_KEY: "filter",
+  PAGE_ID: 'landings',
+  FILTER_KEY: 'filter',
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
 };
+
+export const LANDING_PAGE_RESERVED_START_COLUMNS = ['quality', 'program', ...LANDING_RESERVED_START_COLUMNS];
+export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
+
+export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingServiceWatchOptions> {
+  reservedStartColumns?: string[];
+  reservedEndColumns?: string[];
+  i18nPmfmPrefix?: string;
+}
 
 @Component({
   selector: 'app-landings-page',
@@ -45,12 +72,23 @@ export const LandingsPageSettingsEnum = {
   styleUrls: ['landings.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingsPage extends
-  AppRootDataTable<Landing, LandingFilter> implements OnInit {
+export class LandingsPage extends AppRootDataTable<
+  Landing,
+  LandingFilter,
+  LandingService,
+  LandingValidatorService,
+  number,
+  LandingPageConfig
+> implements OnInit {
 
-  $title = new BehaviorSubject<string>('');
-  statusList = DataQualityStatusList;
-  statusById = DataQualityStatusEnum;
+  protected $title = new BehaviorSubject<string>(undefined);
+  protected $observedLocationTitle = new BehaviorSubject<string>(undefined);
+  protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
+  protected locationAttributes: string[];
+  protected vesselSnapshotAttributes: string[];
+  protected i18nPmfmPrefix: string;
+  protected statusList = DataQualityStatusList;
+  protected statusById = DataQualityStatusEnum;
 
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
@@ -67,54 +105,106 @@ export class LandingsPage extends
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
-  constructor(
-    injector: Injector,
-    protected _dataService: LandingService,
-    protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
-    protected formBuilder: UntypedFormBuilder,
-    protected configService: ConfigService,
-    protected context: ContextService,
-    protected cd: ChangeDetectorRef
-  ) {
-    super(injector,
-      Landing, LandingFilter,
-      ['quality',
-      'program',
-      'location',
-      'startDateTime',
-      'observers',
-      'recorderPerson',
-      'comments'],
-      _dataService,
-      null
-    );
-    this.inlineEdition = false;
-    this.i18nColumnPrefix = 'OBSERVED_LOCATION.LANDING.TABLE.';
-    this.filterForm = formBuilder.group({
-      program: [null, SharedValidators.entity],
-      location: [null, SharedValidators.entity],
-      startDate: [null, SharedValidators.validDate],
-      endDate: [null, SharedValidators.validDate],
-      synchronizationStatus: [null],
-      recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity],
-      observers: formBuilder.array([[null, SharedValidators.entity]])
-    });
-    this.autoLoad = false;
-    this.defaultSortBy = 'dateTime';
-    this.defaultSortDirection = 'desc';
+  @Input()
+  set showProgramColumn(value: boolean) {
+    this.setShowColumn('program', value);
+  }
 
-    this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
+  get showProgramColumn(): boolean {
+    return this.getShowColumn('program');
+  }
 
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showVesselBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselBasePortLocation', value);
+  }
+
+  get showVesselBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselBasePortLocation');
+  }
+
+
+  @Input()
+  set showObserversColumn(value: boolean) {
+    this.setShowColumn('observers', value);
+  }
+
+  get showObserversColumn(): boolean {
+    return this.getShowColumn('observers');
+  }
+
+
+  @Input()
+  set showCreationDateColumn(value: boolean) {
+    this.setShowColumn('creationDate', value);
+  }
+
+  get showCreationDateColumn(): boolean {
+    return this.getShowColumn('creationDate');
+  }
+
+  @Input()
+  set showRecorderPersonColumn(value: boolean) {
+    this.setShowColumn('recorderPerson', value);
+  }
+
+  get showRecorderPersonColumn(): boolean {
+    return this.getShowColumn('recorderPerson');
+  }
+
+  @Input()
+  set showDateTimeColumn(value: boolean) {
+    this.setShowColumn('dateTime', value);
+  }
+
+  get showDateTimeColumn(): boolean {
+    return this.getShowColumn('dateTime');
+  }
+
+  @Input()
+  set showSamplesCountColumn(value: boolean) {
+    this.setShowColumn('samplesCount', value);
+  }
+
+  get showSamplesCountColumn(): boolean {
+    return this.getShowColumn('samplesCount');
+  }
+
+  @Input()
+  set showLocationColumn(value: boolean) {
+    this.setShowColumn('location', value);
+  }
+
+  get showLocationColumn(): boolean {
+    return this.getShowColumn('location');
+  }
+
+  get pmfms(): IPmfm[] {
+    return this.$pmfms.value;
+  }
+
+  @Input() set pmfms(pmfms: IPmfm[]) {
+    this.$pmfms.next(pmfms);
   }
 
   ngOnInit() {
+
     super.ngOnInit();
+
+    // Vessels display attributes
+    this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
+
+    // Location display attributes
+    this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -171,61 +261,220 @@ export class LandingsPage extends
     this.registerSubscription(
       this.configService.config
         .pipe(
-          filter(isNotNil),
-          tap(config => {
-            console.info('[observed-locations] Init from config', config);
-            const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-            this.$title.next(title);
-
-            // Quality
-            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-            this.setShowColumn('quality', this.showQuality, {emitEvent: false});
-
-            // Recorder
-            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-            this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
-
-            // Observer
-            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-            this.setShowColumn('observers', this.showObservers, {emitEvent: false});
-
-            // Manage filters display according to config settings.
-            this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
-            this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
-            this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
-
-            this.updateColumns();
-
-            // Restore filter from settings, or load all
-            this.restoreFilterOrLoad();
-          })
+          filter(isNotNil)
         )
-        .subscribe());
+        .subscribe(config => this.onConfigLoaded(config)));
 
     // Clear the context
     this.resetContext();
+  }
+
+  constructor(
+    injector: Injector,
+    protected _dataService: LandingService,
+    protected personService: PersonService,
+    protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
+    protected observedLocationService: ObservedLocationService,
+    protected tripService: TripService,
+    protected translateContext: TranslateContextService,
+    protected formBuilder: UntypedFormBuilder,
+    protected configService: ConfigService,
+    protected context: ContextService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(injector,
+      Landing, LandingFilter,
+      [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS],
+      _dataService,
+      null,
+      {
+        reservedStartColumns:  LANDING_PAGE_RESERVED_START_COLUMNS,
+        reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
+        i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
+        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
+        watchAllOptions: <LandingServiceWatchOptions>{
+          computeRankOrder: false, // Not need, if id is used
+          // TODO: check this
+          withObservedLocation: true,
+        }
+      }
+    );
+    this.inlineEdition = false;
+    this.i18nPmfmPrefix = this.options.i18nPmfmPrefix;
+    this.filterForm = formBuilder.group({
+      program: [null, SharedValidators.entity],
+      location: [null, SharedValidators.entity],
+      startDate: [null, SharedValidators.validDate],
+      endDate: [null, SharedValidators.validDate],
+      synchronizationStatus: [null],
+      recorderDepartment: [null, SharedValidators.entity],
+      recorderPerson: [null, SharedValidators.entity],
+      observers: formBuilder.array([[null, SharedValidators.entity]])
+    });
+    this.autoLoad = false;
+    this.defaultSortBy = 'dateTime';
+    this.defaultSortDirection = 'desc';
+
+    this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
+  }
+
+  async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
+
+    // Program
+    const programLabel = filter?.program?.label;
+    if (isNotNilOrBlank(programLabel)) {
+      this.showProgramColumn = false;
+      const program = await this.programRefService.loadByLabel(programLabel);
+      await this.setProgram(program);
+    }
+    else {
+      // Check if user can access more than one program
+      const {data, total} = await this.programRefService.loadAll(0, 1, null, null, {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }, {withTotal: true});
+      if (isNotEmptyArray(data) && total === 1) {
+        const program = data[0];
+        this.showProgramColumn = false;
+        await this.setProgram(program);
+      }
+      else {
+        this.showProgramColumn = true;
+        this.$title.next(this.i18nColumnPrefix + 'TITLE');
+      }
+    }
+
+    super.setFilter(filter, opts);
+  }
+
+  /* -- protected function -- */
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info('[landings] Init using config', config);
+
+    // title
+    const observedLocationTitle = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME)
+    this.$observedLocationTitle.next(observedLocationTitle);
+
+    // Quality
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, {emitEvent: false});
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
+
+    // Observer
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+    this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+
+    // Manage filters display according to config settings.
+    this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+    this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
+    this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
+
+    // Restore filter from settings, or load all
+    await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
+
+  protected async setProgram(program: Program) {
+    console.debug('[landings] Init using program', program);
+
+    // I18n suffix
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nColumnSuffix = i18nSuffix;
+
+    // Title
+    const title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
+    this.$title.next(title);
+
+    this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+    this.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
+    this.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+    this.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
+    this.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
+    this.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+    this.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+
+    const includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
+    const pmfms = await this.programRefService.loadProgramPmfms(program?.label, {
+      acquisitionLevel: AcquisitionLevelCodes.LANDING
+      // TODO add filter date ?
+    });
+    const columnPmfms = pmfms.filter(p => p.required || includedPmfmIds?.includes(p.id))
+
+    this.$pmfms.next(columnPmfms);
   }
 
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean }): Promise<void> {
     // Load by observed location
     const observedLocationId = this.route.snapshot.paramMap.get('observedLocationId');
     if (isNotNilOrNaN(observedLocationId)) {
-      this.setFilter(<Partial<LandingFilter>>{observedLocationId: +observedLocationId}, {emitEvent: true, ...opts});
-      return
+      const observedLocation = await this.observedLocationService.load(+observedLocationId);
+      await this.setFilter(<Partial<LandingFilter>>{observedLocationId: +observedLocationId, program: observedLocation.program}, {emitEvent: true, ...opts});
+      return;
     }
+
     // Load by trip
     const tripId = this.route.snapshot.paramMap.get('tripId');
     if (isNotNilOrNaN(tripId)) {
-      this.setFilter(<Partial<LandingFilter>>{tripId: +tripId}, {emitEvent: true, ...opts});
-      return
+      const trip = await this.tripService.load(+tripId);
+      await this.setFilter(<Partial<LandingFilter>>{tripId: +tripId, program: trip.program}, {emitEvent: true, ...opts});
+      return;
     }
+
+    // Reload last filter
     return super.restoreFilterOrLoad(opts);
+  }
+
+  protected getDisplayColumns(): string[] {
+    const pmfms = this.pmfms;
+    if (!pmfms) return this.columns;
+
+    const userColumns = this.getUserColumns();
+
+    const pmfmColumnNames = pmfms
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .filter(p => !p.hidden)
+      .map(p => p.id.toString());
+
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+
+    return RESERVED_START_COLUMNS
+      .concat(startColumns)
+      .concat(pmfmColumnNames)
+      .concat(endColumns)
+      .concat(RESERVED_END_COLUMNS)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
+
+    // DEBUG
+    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    //if (!this.loading) this.markForCheck();
+  }
+
+  protected onSegmentChanged(event: CustomEvent) {
+    const path = event.detail.value;
+    if (isNotNilOrBlank(path)) {
+      // TODO: save filter in context ?
+
+      this.navController.navigateRoot(path, {animated: false});
+    }
   }
 
   /**
    * Action triggered when user swipes
    */
-  onSwipeTab(event: HammerSwipeEvent): boolean {
+  protected onSwipeTab(event: HammerSwipeEvent): boolean {
     // DEBUG
     // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
 
@@ -239,6 +488,47 @@ export class LandingsPage extends
 
     this.toggleSynchronizationStatus();
     return true;
+  }
+
+
+  protected async openRow(id: number, row: TableElement<Landing>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit(row);
+      return true;
+    }
+
+    const data = Landing.fromObject(row.currentData);
+
+    // Get the detail editor
+    const detailEditor = await this.getDetailEditor(data);
+
+    if (!detailEditor) return false; // User cancelled
+
+    return await this.router.navigate([detailEditor, id], {
+      relativeTo: this.route,
+      queryParams: {}
+    });
+  }
+
+
+  protected async openNewRowDetail(event?: any): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observers.length) {
+      this.onNewRow.emit(event);
+      return true;
+    }
+
+    // Get the detail editor
+    const detailEditor = await this.getDetailEditor();
+
+    if (!detailEditor) return false; // User cancelled
+
+    return await this.router.navigate([detailEditor, 'new'], {
+      relativeTo: this.route
+    });
   }
 
   async openTrashModal(event?: Event) {
@@ -359,8 +649,46 @@ export class LandingsPage extends
     return !invalidRow;
   }
 
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param pmfm
+   */
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return toNumber(pmfm?.id, index);
+  }
 
   /* -- protected methods -- */
+
+  protected async getDetailEditor(source?: Landing): Promise<LandingEditor> {
+    // Find data program
+    let programLabel = source?.program?.label || this.filter?.program?.label;
+    let program: Program = programLabel && (await this.programRefService.loadByLabel(programLabel));
+
+    // If no data (e.g. new landing): ask user a program
+    if (!program) {
+      const modal = await this.modalCtrl.create({
+        component: SelectProgramModal,
+        componentProps: <ISelectProgramModalOptions>{
+          filter: {
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+            acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
+          }
+        },
+        keyboardClose: true,
+        cssClass: 'modal-large'
+      });
+      await modal.present();
+      const {data} = await modal.onDidDismiss();
+      if (!(data instanceof Program)) return; // User cancelled
+
+      program = data;
+    }
+
+    const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+
+    return editor;
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

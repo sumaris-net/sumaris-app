@@ -1362,10 +1362,13 @@
       }
     },
     "TABLE": {
+      "TITLE": "Débarquements",
       "VESSEL": "Navire",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
+      "QUALITY": "État",
+      "PROGRAM": "Programme",
       "LOCATION": "Port de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
@@ -1374,7 +1377,8 @@
       "RECORDER_PERSON" : "Saisisseur",
       "SAMPLES_COUNT": "Nb mesures",
       "SAMPLING": {
-        "SAMPLES_COUNT": "Nb. prélèvements"
+        "SAMPLES_COUNT": "Nb. prélèvements",
+        "TITLE": "Échantillonnages"
       }
     },
     "PMFM": {

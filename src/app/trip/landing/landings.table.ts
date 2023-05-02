@@ -17,6 +17,8 @@ import { environment } from '@environments/environment';
 import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { BehaviorSubject } from 'rxjs';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];

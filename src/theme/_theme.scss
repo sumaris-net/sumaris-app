@@ -296,3 +296,15 @@ mat-sampling-ratio-field {
 .mat-drawer-backdrop.mat-drawer-shown {
   background-color: rgba(0,0,0,0.2);
 }
+
+/* -- toolbar > segment as title (see observedLocations or landings page) -- */
+app-toolbar ion-segment-button {
+  &.ion-title {
+    ion-label {
+      text-transform: none;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.0125em;
+    }
+  }
+}

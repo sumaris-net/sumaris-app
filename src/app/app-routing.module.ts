@@ -73,6 +73,17 @@ const routes: Routes = [
     loadChildren: () => import('./trip/observedlocation/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
   },
 
+  // Landings
+  {
+    path: 'landings',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'USER'
+    },
+    loadChildren: () => import('./trip/landing/landings-routing.module').then(m => m.AppLandingsRoutingModule)
+  },
+
+
   // Extraction path
   {
     path: 'extraction',

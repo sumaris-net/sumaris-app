@@ -11,6 +11,7 @@ import { AppReferentialFormModule } from '@app/referential/form/referential-form
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
+import { SelectProgramModal } from '@app/referential/program/select-program.modal';
 
 @NgModule({
   imports: [
@@ -31,7 +32,8 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     // Components
     ProgramsPage,
     ProgramPage,
-    PersonPrivilegesTable
+    PersonPrivilegesTable,
+    SelectProgramModal
   ],
   exports: [
     TranslateModule,
@@ -40,6 +42,7 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
+    SelectProgramModal
   ],
 })
 export class AppProgramModule {

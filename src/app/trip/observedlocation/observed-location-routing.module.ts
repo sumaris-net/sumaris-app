@@ -12,6 +12,13 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ObservedLocationsPage
   },
+
+  // Landings
+  {
+    path: 'landings',
+    loadChildren: () => import('../landing/landings-routing.module').then(m => m.AppLandingsRoutingModule)
+  },
+
   {
     path: ':observedLocationId',
     runGuardsAndResolvers: 'pathParamsChange',
@@ -35,7 +42,7 @@ const routes: Routes = [
       },
       {
         path: 'control',
-        loadChildren: () => import('../landing/auctioncontrol/auction-control-routing.module').then(m => m.AppAuctionControlRoutingModule)
+        loadChildren: () => import('../landing/auction-control/auction-control-routing.module').then(m => m.AppAuctionControlRoutingModule)
       },
       {
         path: 'sampling',

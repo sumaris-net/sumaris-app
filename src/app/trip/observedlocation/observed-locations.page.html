@@ -1,7 +1,16 @@
-<app-toolbar [title]="$title|async|translate"
-             color="primary"
+<app-toolbar color="primary"
              [canGoBack]="false"
              [canShowMenu]="true">
+
+  <ion-segment value="" slot="start"
+               (ionChange)="onSegmentChanged($event)">
+    <ion-segment-button value="" class="ion-title">
+      <ion-label>{{$title|async|translate}}</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="observations/landings" class="ion-title">
+      <ion-label>{{$landingTitle|async|translate}}</ion-label>
+    </ion-segment-button>
+  </ion-segment>
 
   <ion-buttons slot="end">
 

@@ -83,7 +83,8 @@
          [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select" [sticky]="useSticky && !mobile" >
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
+      <th mat-header-cell *matHeaderCellDef
+          [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
@@ -166,7 +167,7 @@
       </td>
     </ng-container>
 
-    <!-- CREATION_DATE -->
+    <!-- creation date -->
     <ng-container matColumnDef="creationDate">
       <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
         <span translate>LANDING.TABLE.CREATION_DATE</span>
