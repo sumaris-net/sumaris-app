@@ -120,7 +120,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   protected readonly dateFormat: DateFormatService;
   protected readonly programRefService: ProgramRefService;
   protected readonly settings: LocalSettingsService;
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
 
   readonly readySubject = new BehaviorSubject<boolean>(false);
   readonly loadingSubject = new BehaviorSubject<boolean>(true);

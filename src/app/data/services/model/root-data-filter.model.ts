@@ -26,6 +26,8 @@ export abstract class RootDataEntityFilter<
   extends DataEntityFilter<T, E, EID, AS, FO> {
 
   program: ReferentialRef;
+  strategy: ReferentialRef;
+  strategyIds: number[];
   synchronizationStatus: SynchronizationStatus;
   recorderPerson: Person;
   startDate?: Moment;
@@ -36,6 +38,7 @@ export abstract class RootDataEntityFilter<
     this.synchronizationStatus = source.synchronizationStatus || undefined;
     this.program = ReferentialRef.fromObject(source.program) ||
       isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
+    this.strategy = ReferentialRef.fromObject(source.strategy);
     this.recorderPerson = Person.fromObject(source.recorderPerson)
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
     this.startDate = fromDateISOString(source.startDate);
@@ -49,6 +52,8 @@ export abstract class RootDataEntityFilter<
     if (opts && opts.minify) {
       target.programLabel = this.program && this.program.label || undefined;
       delete target.program;
+
+      //target.strategyIds = [...this.strategyIds, ...(this.strategy ? [strategyIds])
 
       target.recorderPersonId = this.recorderPerson && this.recorderPerson.id || undefined;
       delete target.recorderPerson;

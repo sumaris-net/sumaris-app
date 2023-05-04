@@ -47,7 +47,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
 
-  onParentChanges = new Subject();
+  onParentChanges = new Subject<void>();
   displayParentPmfm: IPmfm;
 
   @Input() showError = true;

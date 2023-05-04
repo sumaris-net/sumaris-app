@@ -49,7 +49,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly programRefService: ProgramRefService;
   private readonly landingService: LandingService;
 
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
@@ -58,7 +58,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly _autoLoadDelay = 0;
 
   error: string;
-  $title = new Subject();
+  $title = new Subject<void>();
   $defaultBackHref = new Subject<string>();
   revealOptions: Partial<IRevealOptions>;
   i18nContext = {

@@ -3,7 +3,7 @@ import {distinctUntilChanged, filter, map, mergeMap, switchMap, takeUntil, tap} 
 import {IEntityWithMeasurement, MeasurementValuesUtils} from './measurement.model';
 import {
   EntityUtils,
-  firstNotNil,
+  firstNotNil, firstNotNilPromise,
   IEntitiesService,
   IEntityFilter,
   InMemoryEntitiesService,
@@ -343,9 +343,9 @@ export class MeasurementsTableEntitiesService<
 
     try {
       // Wait loaded
-      if (isObservable<IPmfm[]>(pmfms)) {
+      if (isObservable(pmfms)) {
         if (this._debug) console.debug(`[meas-service] setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNil(pmfms).toPromise();
+        pmfms = await firstNotNilPromise(pmfms, {stop: this.stopSubject});
         if (this._debug) console.debug(`[meas-service] setPmfms(): waiting pmfms observable [OK]`);
       }
 

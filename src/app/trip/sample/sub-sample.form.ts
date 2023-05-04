@@ -27,7 +27,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   private _availableSortedParents: Sample[] = [];
   focusFieldName: string;
   displayAttributes: string[];
-  onParentChanges = new Subject();
+  onParentChanges = new Subject<void>();
   i18nFullSuffix: string;
 
   @Input() i18nPmfmSuffix: string;

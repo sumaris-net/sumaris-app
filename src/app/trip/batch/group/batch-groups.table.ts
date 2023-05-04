@@ -1115,7 +1115,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // FIXME: opts.showParent=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    const $dismiss = new Subject<any>();
+    const stopSubject = new Subject<void>();
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -1136,7 +1136,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Define available parent, as an observable (if new parent can added)
         availableParents: this.dataSource.rowsSubject
           .pipe(
-            takeUntil($dismiss),
+            takeUntil(stopSubject),
             map((rows) => rows.map(r => r.currentData)),
             tap((data) => console.warn('[batch-groups-table] Modal -> New available parents:', data))
           ),
@@ -1165,7 +1165,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
 
-    $dismiss.next(); // disconnect datasource observables
+    stopSubject.next(); // disconnect datasource observables
 
     // User cancelled
     if (isNil(data) || role === 'cancel') {

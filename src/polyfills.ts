@@ -68,3 +68,8 @@ import 'hammerjs';
 // Import moment-timezone - should be loaded here, otherwise moment().tz() will failed
 import 'moment';
 import 'moment-timezone';
+
+// Import swiper
+// Register Swiper lib - see
+import {register} from 'swiper/element/bundle';
+register();

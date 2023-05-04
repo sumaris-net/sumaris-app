@@ -41,8 +41,8 @@ export abstract class AppRootDataEditor<
   >
   extends AppEntityEditor<T, S, ID> {
 
-  private _reloadProgram$ = new Subject();
-  private _reloadStrategy$ = new Subject();
+  private _reloadProgram$ = new Subject<void>();
+  private _reloadStrategy$ = new Subject<void>();
 
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
