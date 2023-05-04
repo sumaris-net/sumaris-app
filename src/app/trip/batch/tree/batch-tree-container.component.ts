@@ -108,6 +108,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected readonly editingBatch$ = this._state.select('editingBatch');
   protected readonly currentBadge$ = this._state.select('currentBadge');
   protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
+  protected readonly model$ = this._state.select('model');
 
   protected get model(): BatchModel {
     return this._state.get('model');
@@ -1101,11 +1102,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   protected watchBatchTreeState(): Observable<{ valid: boolean; visibleRowCount: number|undefined}> {
-    const stop$ = new Subject();
+    const stopSubject = new Subject<void>();
     return new Observable<{ valid: boolean; visibleRowCount: number|undefined}>((subscriber) => {
       const subscription = new Subscription();
-      subscription.add(() => stop$.next());
-      waitFor(() => !!this.batchTree, {stop: stop$})
+      subscription.add(() => stopSubject.next());
+      waitFor(() => !!this.batchTree, {stop: stopSubject})
         .then(() => {
           subscription.add(
             merge(
