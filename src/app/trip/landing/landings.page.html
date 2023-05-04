@@ -3,13 +3,15 @@
              [canShowMenu]="true">
 
 
-  <ion-segment value="" slot="start"
+  <ion-segment [value]="selectedSegment"
+               mode="md" slot="start"
+               *rxIf="$title; let title"
                (ionChange)="onSegmentChanged($event)">
     <ion-segment-button value="observations" class="ion-title">
       <ion-label>{{$observedLocationTitle|async|translate}}</ion-label>
     </ion-segment-button>
-    <ion-segment-button value=""  class="ion-title">
-      <ion-label>{{$title|async|translate}}</ion-label>
+    <ion-segment-button value="" class="ion-title">
+      <ion-label>{{title|translate}}</ion-label>
     </ion-segment-button>
   </ion-segment>
 
@@ -143,22 +145,49 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
-        <ion-row *ngIf="showFilterProgram">
-          <ion-col>
-            <!-- Program -->
+        <ion-row *rxIf="showFilterProgram || showFilterStrategy">
+
+          <!-- Program -->
+          <ion-col *rxIf="showFilterProgram">
             <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM'|translate"
+              [placeholder]="'LANDING.TABLE.PROGRAM'|translate"
               formControlName="program"
               [config]="autocompleteFields.program"
               [clearable]="true">
               <ion-icon matPrefix name="contract"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
+
+          <!-- Strategy -->
+          <ion-col *rxIf="showFilterStrategy">
+            <mat-autocomplete-field
+              [placeholder]="'LANDING.TABLE.STRATEGY'|translateContext: i18nColumnSuffix"
+              formControlName="strategy"
+              [config]="autocompleteFields.strategy"
+              [clearable]="true">
+              <mat-icon matPrefix>date_range</mat-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="showFilterLocation">
-          <ion-col>
-            <!-- Location -->
+        <ion-row *rxIf="showFilterVessel || showFilterLocation">
+
+          <!-- Vessel -->
+          <ion-col *rxIf="showFilterVessel"
+                   size="12" size-lg="6">
+            <mat-autocomplete-field
+              *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+              [placeholder]="'LANDING.TABLE.VESSEL'|translate"
+              formControlName="vesselSnapshot"
+              [config]="autocompleteFields.vesselSnapshot"
+              [clearable]="true">
+              <ion-icon matPrefix name="boat"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Location -->
+          <ion-col *rxIf="showFilterLocation"
+                   size="12" size-lg="6">
             <mat-autocomplete-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
               formControlName="location"
@@ -215,7 +244,7 @@
           </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="showObservers || showQuality">
+        <ion-row *ngIf="showObservers || showQuality || showFilterTagId">
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
             <mat-autocomplete-field
@@ -244,6 +273,16 @@
                   {{ item.label |translate }}
                 </mat-option>
               </mat-select>
+            </mat-form-field>
+          </ion-col>
+
+          <!-- Tag ID -->
+          <ion-col *ngIf="showFilterTagId">
+            <mat-form-field>
+              <ion-icon matPrefix name="pricetag"></ion-icon>
+              <input matInput formControlName="tagId"
+                     autocomplete="off"
+                     [placeholder]="'TRIP.SAMPLE.PMFM.TAG_ID'|translateContext: i18nColumnSuffix">
             </mat-form-field>
           </ion-col>
         </ion-row>
@@ -589,4 +628,12 @@
   </ion-fab-list>
 
 </ion-fab>
+
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>
 
