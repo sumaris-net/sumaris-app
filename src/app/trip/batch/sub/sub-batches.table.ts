@@ -126,7 +126,7 @@ export class SubBatchesTable
   @Input()
   set availableParents(parents: Observable<BatchGroup[]> | BatchGroup[]) {
     if (!parents) return; // Skip
-    if (isObservable<Batch[]>(parents)) {
+    if (isObservable(parents)) {
       this._parentSubscription?.unsubscribe();
       const subscription = parents.subscribe((values) => this.setAvailableParents(values));
       this._parentSubscription = subscription

@@ -40,7 +40,7 @@ export abstract class AppBaseReport<
   protected readonly translate: TranslateService;
   protected readonly programRefService: ProgramRefService;
 
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
 

@@ -27,7 +27,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected readonly _debug: boolean;
   protected readonly _maxZoom: number;
   protected readonly subscription = new Subscription();
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
   protected readonly mobile: boolean;
   protected settingsId:string;
   protected error: string;
@@ -72,7 +72,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected $onOverFeature = new Subject<Feature>();
   protected $onOutFeature = new Subject<Feature>();
   protected $selectedFeature = new BehaviorSubject<Feature>(null);
-  protected $fitToBounds = new Subject<L.LatLngBounds>();
+  protected $fitToBounds = new Subject<void>();
 
   protected map: L.Map;
   protected mapId: string;

@@ -300,6 +300,7 @@ mat-sampling-ratio-field {
 /* -- toolbar > segment as title (see observedLocations or landings page) -- */
 app-toolbar ion-segment-button {
   &.ion-title {
+    min-width: 150px;
     ion-label {
       text-transform: none;
       font-size: 20px;

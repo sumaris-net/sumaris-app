@@ -249,7 +249,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   columnNames = {}; // cache for i18n column name
   productFilter: Partial<ExtractionTypeFilter>;
-  $fitToBounds = new Subject<L.LatLngBounds>();
+  $fitToBounds = new Subject<void>();
   $center = new BehaviorSubject<{center: L.LatLng, zoom: number}>(undefined);
   $title = new BehaviorSubject<string>(undefined);
   $sheetNames = new BehaviorSubject<string[]>(undefined);

@@ -76,7 +76,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   };
 
   protected readonly subscription = new Subscription();
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
   protected layers: L.Layer[];
   protected graticule: MapGraticule;
@@ -89,7 +89,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   $onOverFeature = new Subject<Feature>();
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
-  $fitToBounds = new Subject<L.LatLngBounds>();
+  $fitToBounds = new Subject<void>();
   vesselSnapshotAttributes: string[];
 
   @Input() showTooltip: boolean;
@@ -111,7 +111,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     return this.$programLabel.value;
   }
 
-  @Output('ready') onReady = new EventEmitter();
+  @Output('ready') onReady = new EventEmitter<void>();
   @Output('operationClick') onOperationClick = new EventEmitter<Operation>();
 
   constructor(

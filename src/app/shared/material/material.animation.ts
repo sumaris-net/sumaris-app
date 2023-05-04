@@ -1,5 +1,6 @@
 // import the required animation functions from the angular animations module
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { Animation, createAnimation } from '@ionic/core';
 
 // TODO move this to ngx component ?
 export const slideDownAnimation =
@@ -37,3 +38,28 @@ export const slideDownAnimation =
       })
     ])
   ]);
+
+export const ionFadeInTransition = (
+  _: HTMLElement,
+  opts: {
+    enteringEl: HTMLElement;
+    leavingEl: HTMLElement | undefined;
+  }
+): Animation => {
+  const baseAnimation = createAnimation();
+
+  const enteringAnimation = createAnimation()
+    .addElement(opts.enteringEl)
+    .duration(500)
+    .fromTo('opacity', 0, 1);
+
+  if (opts.leavingEl) {
+    const leavingAnimation = createAnimation()
+      .addElement(opts.leavingEl)
+      .duration(500)
+      .fromTo('opacity', 1, 0);
+    return baseAnimation.addAnimation([enteringAnimation, leavingAnimation]);
+  }
+
+  return baseAnimation.addAnimation(enteringAnimation);
+};

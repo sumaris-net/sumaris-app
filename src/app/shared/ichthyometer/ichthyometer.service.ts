@@ -1,6 +1,6 @@
 import { Inject, Injectable, Injector, OnDestroy, Optional } from '@angular/core';
 import { RxState } from '@rx-angular/state';
-import { BluetoothDevice, BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
+import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.icon';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/ichthyometer.gwaleen';
 import { EMPTY, from, merge, Observable, of, Subject, Subscription } from 'rxjs';
@@ -113,7 +113,7 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   watch(): Observable<string> {
     if (!this.started) this.start();
 
-    const stopSubject = new Subject();
+    const stopSubject = new Subject<void>();
     console.info('[ichthyometer] Start watching values...');
 
     return this.connectedDevices$

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -22,12 +22,11 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {DevicePositionService} from '@app/data/position/device/device-position.service';
-import {IonModal} from '@ionic/angular';
-import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/position/device/device-position.config';
-import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
+import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
+
+
 
 @Component({
   selector: 'app-root',
@@ -54,14 +53,12 @@ export class AppComponent {
     private domSanitizer: DomSanitizer,
     private cd: ChangeDetectorRef
   ) {
-
-    this.start();
+    console.info('[app] Starting...');
+    this.platform.start();
   }
 
-  async start() {
-    console.info('[app] Starting...');
-
-    await this.platform.start();
+  async ngOnInit() {
+    await this.platform.ready();
 
     // Listen for config changed
     this.configService.config.subscribe(config => this.onConfigChanged(config));
@@ -72,6 +69,7 @@ export class AppComponent {
     // Add additional settings fields
     this.addLocalSettingFields();
 
+    // Add custom icons
     this.addCustomSVGIcons();
 
     await this.startServiceWorkers();
@@ -91,7 +89,6 @@ export class AppComponent {
       }
     }, 16);
   }
-
 
   protected onConfigChanged(config: Configuration) {
 

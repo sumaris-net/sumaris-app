@@ -176,7 +176,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       await this.initForm(pmfms);
 
       // Read data
-      const data = isObservable<SubBatch[]>(this.data) ? await this.data.toPromise() : this.data;
+      const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
       // Apply data to table
       this.setValue(data);

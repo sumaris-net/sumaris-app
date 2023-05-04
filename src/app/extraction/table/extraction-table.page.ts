@@ -73,7 +73,7 @@ export interface ExtractionTableState extends ExtractionState<ExtractionType>{
 })
 export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, ExtractionTableState> implements OnInit, OnDestroy {
 
-  private $cancel = new Subject<boolean>();
+  private stopSubject = new Subject<void>();
 
   protected readonly $programLabel = this._state.select('programLabel');
   protected readonly $programs = this._state.select('programs');
@@ -165,10 +165,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     }
 
     this.registerSubscription(
-      merge(
+      merge<any>(
+        this.onRefresh,
         this.sort?.sortChange || EMPTY,
-        this.paginator?.page || EMPTY,
-        this.onRefresh
+        this.paginator?.page || EMPTY
       )
       .pipe(
         debounceTime(100),
@@ -236,7 +236,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.$cancel.next(true);
+    this.stopSubject.next();
   }
 
   protected async loadFromRouteOrSettings(): Promise<boolean> {
@@ -297,7 +297,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const changed = await super.setType(type, {...opts, emitEvent: false, skipLocationChange: true});
 
     if (changed) {
-      this.$cancel.next(); // Cancelled existing load process
+      this.stopSubject.next(); // Cancelled existing load process
 
       this.canCreateProduct = this.type && this.accountService.isSupervisor();
 
@@ -714,14 +714,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (!this.type?.label) return; // skip
 
     // To many call
-    if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
+    if (this.stopSubject.observers.length >= 1) throw new Error("Too many call of loadData()");
 
     const typeLabel = this.type.label;
     this.markAsLoading();
     this.resetError();
 
     let cancelled = false;
-    const cancelSubscription = this.$cancel
+    const cancelSubscription = this.stopSubject
       .subscribe(() => {
         if (this.type?.label !== typeLabel) {
           console.debug(`[extraction-table] Loading ${typeLabel} [CANCELLED]`);

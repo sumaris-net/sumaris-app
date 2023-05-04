@@ -494,7 +494,7 @@ export abstract class MeasurementValuesForm<
     try {
 
       // Wait loaded, if observable
-      if (isObservable<IPmfm[]>(pmfms)) {
+      if (isObservable(pmfms)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
         pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);

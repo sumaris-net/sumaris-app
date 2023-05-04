@@ -47,8 +47,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     });
   }
 
-  vesselSnapshot: VesselSnapshot = null;
   vesselId: number = null;
+  vesselSnapshot: VesselSnapshot = null;
   location: ReferentialRef = null;
   startDate: Moment = null;
   endDate: Moment = null;
@@ -79,12 +79,10 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
 
     if (opts && opts.minify) {
       // Vessel
-      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : (this.vesselSnapshot && isNotNil(this.vesselSnapshot.id) ? this.vesselSnapshot.id : undefined);
+      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
       delete target.vesselSnapshot;
 
       // Location
@@ -117,8 +115,9 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     }
 
     // Vessel
-    if (this.vesselId) {
-      filterFns.push(t => (t.vesselSnapshot && t.vesselSnapshot.id === this.vesselId));
+    const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+    if (isNotNil(vesselId)) {
+      filterFns.push(t => t.vesselSnapshot?.id === vesselId);
     }
 
     // Location
@@ -138,6 +137,12 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     if (this.endDate) {
       const endDate = this.endDate.clone().add(1, 'day').startOf('day');
       filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
+    }
+
+    // Observers
+    const observerIds = this.observers?.map(o => o.id).filter(isNotNil);
+    if (isNotEmptyArray(observerIds)) {
+      filterFns.push(t => t.observers?.some(o => o && observerIds.includes(o.id)));
     }
 
     return filterFns;
