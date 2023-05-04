@@ -15,7 +15,7 @@ import {
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  SharedValidators,
+  SharedValidators, slideUpDownAnimation,
   StatusIds,
   toBoolean,
   toNumber, TranslateContextService
@@ -49,6 +49,8 @@ import { BaseTableConfig } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
 
 
 export const LandingsPageSettingsEnum = {
@@ -70,6 +72,7 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Land
   selector: 'app-landings-page',
   templateUrl: 'landings.page.html',
   styleUrls: ['landings.page.scss'],
+  animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandingsPage extends AppRootDataTable<
@@ -89,10 +92,14 @@ export class LandingsPage extends AppRootDataTable<
   protected i18nPmfmPrefix: string;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
+  protected selectedSegment = '';
 
   @Input() showFilterProgram = true;
+  @Input() showFilterStrategy = true;
+  @Input() showFilterVessel = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
+  @Input() showFilterTagId = true;
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -196,12 +203,70 @@ export class LandingsPage extends AppRootDataTable<
     this.$pmfms.next(pmfms);
   }
 
+  constructor(
+    injector: Injector,
+    protected _dataService: LandingService,
+    protected personService: PersonService,
+    protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
+    protected observedLocationService: ObservedLocationService,
+    protected tripService: TripService,
+    protected translateContext: TranslateContextService,
+    protected formBuilder: UntypedFormBuilder,
+    protected configService: ConfigService,
+    protected context: ContextService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(injector,
+      Landing, LandingFilter,
+      [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS],
+      _dataService,
+      null,
+      {
+        reservedStartColumns:  LANDING_PAGE_RESERVED_START_COLUMNS,
+        reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
+        i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
+        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
+        watchAllOptions: <LandingServiceWatchOptions>{
+          computeRankOrder: false, // Not need, if id is used
+          // TODO: check this
+          withObservedLocation: true,
+        }
+      }
+    );
+    this.inlineEdition = false;
+    this.i18nPmfmPrefix = this.options.i18nPmfmPrefix;
+    this.filterForm = formBuilder.group({
+      program: [null, SharedValidators.entity],
+      strategy: [null, SharedValidators.entity],
+      vesselSnapshot: [null, SharedValidators.entity],
+      location: [null, SharedValidators.entity],
+      startDate: [null, SharedValidators.validDate],
+      endDate: [null, SharedValidators.validDate],
+      synchronizationStatus: [null],
+      recorderDepartment: [null, SharedValidators.entity],
+      recorderPerson: [null, SharedValidators.entity],
+      observers: formBuilder.array([[null, SharedValidators.entity]]),
+      tagId: [null]
+    });
+    this.autoLoad = false;
+    this.defaultSortBy = 'dateTime';
+    this.defaultSortDirection = 'desc';
+
+    this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
+  }
+
+
+
   ngOnInit() {
 
     super.ngOnInit();
-
-    // Vessels display attributes
-    this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
 
     // Location display attributes
     this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
@@ -214,6 +279,30 @@ export class LandingsPage extends AppRootDataTable<
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile
+    });
+
+
+    // Strategy combo (filter)
+    this.registerAutocompleteField('strategy', {
+      suggestFn: (value, filter) => {
+        const program = this.filterForm.get('program').value;
+        return this.strategyRefService.suggest(value, <StrategyRefFilter>{
+          ...filter,
+          levelId: program?.id
+        });
+      },
+      attributes: ['label'],
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      },
+      mobile: this.mobile
+    });
+
+    // Combo: vessels
+    this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts => {
+        this.registerAutocompleteField('vesselSnapshot', opts);
+        this.vesselSnapshotAttributes = opts.attributes;
     });
 
     // Locations combo (filter)
@@ -267,60 +356,6 @@ export class LandingsPage extends AppRootDataTable<
 
     // Clear the context
     this.resetContext();
-  }
-
-  constructor(
-    injector: Injector,
-    protected _dataService: LandingService,
-    protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
-    protected observedLocationService: ObservedLocationService,
-    protected tripService: TripService,
-    protected translateContext: TranslateContextService,
-    protected formBuilder: UntypedFormBuilder,
-    protected configService: ConfigService,
-    protected context: ContextService,
-    protected cd: ChangeDetectorRef
-  ) {
-    super(injector,
-      Landing, LandingFilter,
-      [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS],
-      _dataService,
-      null,
-      {
-        reservedStartColumns:  LANDING_PAGE_RESERVED_START_COLUMNS,
-        reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
-        i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
-        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
-        watchAllOptions: <LandingServiceWatchOptions>{
-          computeRankOrder: false, // Not need, if id is used
-          // TODO: check this
-          withObservedLocation: true,
-        }
-      }
-    );
-    this.inlineEdition = false;
-    this.i18nPmfmPrefix = this.options.i18nPmfmPrefix;
-    this.filterForm = formBuilder.group({
-      program: [null, SharedValidators.entity],
-      location: [null, SharedValidators.entity],
-      startDate: [null, SharedValidators.validDate],
-      endDate: [null, SharedValidators.validDate],
-      synchronizationStatus: [null],
-      recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity],
-      observers: formBuilder.array([[null, SharedValidators.entity]])
-    });
-    this.autoLoad = false;
-    this.defaultSortBy = 'dateTime';
-    this.defaultSortDirection = 'desc';
-
-    this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
-
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
@@ -464,11 +499,17 @@ export class LandingsPage extends AppRootDataTable<
 
   protected onSegmentChanged(event: CustomEvent) {
     const path = event.detail.value;
-    if (isNotNilOrBlank(path)) {
-      // TODO: save filter in context ?
+    if (isNilOrBlank(path)) return; // Skip if no path
 
-      this.navController.navigateRoot(path, {animated: false});
-    }
+    // TODO: save filter in context ?
+
+    setTimeout(async () => {
+      await this.navController.navigateRoot(path);
+
+      // Reset the selected segment
+      this.selectedSegment = '';
+      this.markAsLoaded();
+    }, 200);
   }
 
   /**

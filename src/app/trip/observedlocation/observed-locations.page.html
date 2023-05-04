@@ -2,10 +2,12 @@
              [canGoBack]="false"
              [canShowMenu]="true">
 
-  <ion-segment value="" slot="start"
+  <ion-segment *rxIf="$title; let title"
+               [value]="selectedSegment"
+               mode="md" slot="start"
                (ionChange)="onSegmentChanged($event)">
-    <ion-segment-button value="" class="ion-title">
-      <ion-label>{{$title|async|translate}}</ion-label>
+    <ion-segment-button value="observations" class="ion-title">
+      <ion-label>{{title|translate}}</ion-label>
     </ion-segment-button>
     <ion-segment-button value="observations/landings" class="ion-title">
       <ion-label>{{$landingTitle|async|translate}}</ion-label>

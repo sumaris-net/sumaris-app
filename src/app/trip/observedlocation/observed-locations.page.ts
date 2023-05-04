@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   Alerts,
   ConfigService, Configuration,
-  HammerSwipeEvent,
+  HammerSwipeEvent, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -33,6 +33,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { TranslateService } from '@ngx-translate/core';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { AnimationController, IonSegment } from '@ionic/angular';
+import { AnimationBuilder } from '@ionic/core';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -50,10 +52,11 @@ export const ObservedLocationsPageSettingsEnum = {
 export class ObservedLocationsPage extends
   AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  $title = new BehaviorSubject<string>('');
-  $landingTitle = new BehaviorSubject<string>('');
-  statusList = DataQualityStatusList;
-  statusById = DataQualityStatusEnum;
+  protected $title = new BehaviorSubject<string>('');
+  protected $landingTitle = new BehaviorSubject<string>('');
+  protected statusList = DataQualityStatusList;
+  protected statusById = DataQualityStatusEnum;
+  protected selectedSegment = 'observations';
 
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
@@ -79,6 +82,8 @@ export class ObservedLocationsPage extends
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
+  @ViewChild('ion-segment', {static: true}) ionSegment: IonSegment;
+
   constructor(
     injector: Injector,
     protected _dataService: ObservedLocationService,
@@ -88,6 +93,7 @@ export class ObservedLocationsPage extends
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected translateContext: TranslateContextService,
+    protected animationCtrl: AnimationController,
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
@@ -194,7 +200,6 @@ export class ObservedLocationsPage extends
 
 
   async setFilter(filter: Partial<ObservedLocationFilter>, opts?: { emitEvent: boolean }) {
-    console.log('TODO');
     // Program
     const programLabel = filter?.program?.label;
     if (isNotNilOrBlank(programLabel)) {
@@ -204,7 +209,9 @@ export class ObservedLocationsPage extends
     }
     else {
       // Check if user can access more than one program
-      const {data, total} = await this.programRefService.loadAll(0, 1, null, null, null, {withTotal: true});
+      const {data, total} = await this.programRefService.loadAll(0, 1, null, null, {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }, {withTotal: true});
       if (isNotEmptyArray(data) && total === 1) {
         const program = data[0];
         this.showProgramColumn = false;
@@ -212,7 +219,7 @@ export class ObservedLocationsPage extends
       }
       else {
         this.showProgramColumn = true;
-        this.$title.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+        this.$landingTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
       }
     }
 
@@ -370,11 +377,19 @@ export class ObservedLocationsPage extends
 
   protected onSegmentChanged(event: CustomEvent) {
     const path = event.detail.value;
-    if (isNotNilOrBlank(path)) {
-      // TODO: save filter in context ?
+    if (isNilOrBlank(path)) return;
 
-      this.navController.navigateRoot(path, {animated: false});
-    }
+    // TODO: save filter in context ?
+
+    this.markAsLoading();
+
+    setTimeout(async () => {
+      await this.navController.navigateRoot(path, {animated: false});
+
+      // Reset the selected segment
+      this.selectedSegment = '';
+      this.markAsLoaded();
+    }, 200)
   }
 
   /**
