@@ -1,6 +1,6 @@
 import { RootDataEntityFilter } from '../../data/services/model/root-data-filter.model';
 import { Landing } from './landing.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, isNilOrBlank, isNotEmptyArray, isNotNil, Person, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 @EntityClass({typename: 'LandingFilterVO'})
@@ -16,9 +16,12 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   locationId?: number;
   locationIds?: number[];
   location: ReferentialRef = null;
+  locations?: ReferentialRef[];
 
   observers?: Person[];
-  tagId?: string;
+
+  sampleLabel?: string;
+  sampleTagId?: string;
 
   // Linked entities
   observedLocationId?: number;
@@ -36,7 +39,9 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     this.location = ReferentialRef.fromObject(source.location);
 
     this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
-    this.tagId = source.tagId;
+
+    this.sampleLabel = source.sampleLabel;
+    this.sampleTagId = source.sampleTagId;
 
     this.observedLocationId = toNumber(source.observedLocationId);
     this.tripId = toNumber(source.tripId);
@@ -60,7 +65,11 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
       // Not exists in pod
       delete target.groupByVessel;
 
-      if (isNilOrBlank(this.tagId)) delete target.tagId;
+      // Sample
+      target.sampleLabels = isNotNilOrBlank(this.sampleLabel) ? this.sampleLabel.split(/[,\s]+/) : undefined;
+      delete target.sampleLabel;
+      target.sampleTagIds = isNotNilOrBlank(this.sampleTagId) ? this.sampleTagId.split(/[,\s]+/) : undefined;
+      delete target.sampleTagId;
     }
     else {
       target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;

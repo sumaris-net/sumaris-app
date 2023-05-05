@@ -14,7 +14,18 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       program: source.program,
       startDate: source.startDate,
       endDate: source.endDate,
-      locationIds: isNotNil(source.location?.id) ? [source.location.id] : (source.locations || []).map(l => l.id).filter(isNotNil)
+      location: source.location,
+      locations: source.locations
+    });
+  }
+  static fromLandingFilter(source: Partial<LandingFilter>): ObservedLocationFilter {
+    if (!source) return undefined;
+    return ObservedLocationFilter.fromObject({
+      program: source.program,
+      startDate: source.startDate,
+      endDate: source.endDate,
+      location: source.location,
+      locations: source.locations
     });
   }
 

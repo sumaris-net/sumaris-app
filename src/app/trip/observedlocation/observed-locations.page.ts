@@ -17,7 +17,7 @@ import {
 import { ObservedLocationService } from './observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from './observed-location.model';
-import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
@@ -35,6 +35,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { AnimationController, IonSegment } from '@ionic/angular';
 import { AnimationBuilder } from '@ionic/core';
+import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -204,7 +206,6 @@ export class ObservedLocationsPage extends
     const programLabel = filter?.program?.label;
     if (isNotNilOrBlank(programLabel)) {
       const program = await this.programRefService.loadByLabel(programLabel);
-      this.showProgramColumn = false;
       await this.setProgram(program);
     }
     else {
@@ -214,12 +215,10 @@ export class ObservedLocationsPage extends
       }, {withTotal: true});
       if (isNotEmptyArray(data) && total === 1) {
         const program = data[0];
-        this.showProgramColumn = false;
         await this.setProgram(program);
       }
       else {
-        this.showProgramColumn = true;
-        this.$landingTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+        await this.resetProgram();
       }
     }
 
@@ -375,13 +374,16 @@ export class ObservedLocationsPage extends
     this.updateColumns();
   }
 
-  protected onSegmentChanged(event: CustomEvent) {
+  protected async onSegmentChanged(event: CustomEvent) {
     const path = event.detail.value;
     if (isNilOrBlank(path)) return;
 
-    // TODO: save filter in context ?
-
     this.markAsLoading();
+
+    // Prepare filter for next page
+    const nextFilter = ObservedLocationFilter.toLandingFilter(this.asFilter());
+    const json = nextFilter?.asObject({keepTypename: true}) || {};
+    await this.settings.savePageSetting(LandingsPageSettingsEnum.PAGE_ID, json, LandingsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
       await this.navController.navigateRoot(path, {animated: false});
@@ -422,6 +424,23 @@ export class ObservedLocationsPage extends
     // Title
     const landingTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
     this.$landingTitle.next(landingTitle);
+
+    // Hide program column
+    this.showProgramColumn = false;
+    //this.showObservers
+  }
+
+  protected async resetProgram() {
+    console.debug('[observed-location] Reset program');
+
+    // I18n suffix
+    this.i18nColumnSuffix = '';
+
+    // Title
+    this.$landingTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+
+    // Show program column
+    this.showProgramColumn = true;
   }
 
   protected markForCheck() {

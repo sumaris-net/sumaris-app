@@ -248,7 +248,8 @@ export const PmfmLabelPatterns = {
   LENGTH: /LENGTH/i,
   WEIGHT: /WEIGHT$/i,
   DRESSING: /^DRESSING/i,
-  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i
+  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i,
+  TAG_ID: /^TAG_ID/i
 };
 
 export const UnitIds = {

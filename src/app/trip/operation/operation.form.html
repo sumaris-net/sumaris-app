@@ -229,8 +229,8 @@
                      *ngIf="form.controls.fishingStartDateTime as control">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
                                    [formControl]="control"
-                                   [required]="usageMode|isOnDesk"
-                                   [clearable]="usageMode|isOnField"
+                                   [required]="_usageMode|isOnDesk"
+                                   [clearable]="_usageMode|isOnField"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.valueChanges|async">
                 <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
@@ -252,7 +252,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+11"
-                                 [required]="usageMode|isOnDesk"
+                                 [required]="_usageMode|isOnDesk"
                                  [defaultSign]="defaultLatitudeSign">
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
@@ -264,7 +264,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+13"
-                                 [required]="usageMode|isOnDesk"
+                                 [required]="_usageMode|isOnDesk"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'fishingStartPosition')"
@@ -363,8 +363,8 @@
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
                                    [startDate]="previousEndDateTimeControl.value"
-                                   [required]="usageMode|isOnDesk"
-                                   [clearable]="usageMode|isOnField">
+                                   [required]="_usageMode|isOnDesk"
+                                   [clearable]="_usageMode|isOnField">
 
                 <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
                 <mat-hint align="end" *ngIf="control.valid && control.value as value">
@@ -382,7 +382,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+12"
-                                 [required]="usageMode|isOnDesk"
+                                 [required]="_usageMode|isOnDesk"
                                  [defaultSign]="defaultLatitudeSign">
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
@@ -393,7 +393,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+15"
-                                 [required]="usageMode|isOnDesk"
+                                 [required]="_usageMode|isOnDesk"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"

@@ -131,7 +131,7 @@
         <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: locationAttributes }}</ion-text>
+        <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: autocompleteFields.location.attributes }}</ion-text>
       </td>
     </ng-container>
 
@@ -141,7 +141,7 @@
         <span translate>LANDING.TABLE.LOCATION</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData?.location | referentialToString: locationAttributes }}</ion-label>
+        <ion-label>{{row.currentData?.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
       </td>
     </ng-container>
 

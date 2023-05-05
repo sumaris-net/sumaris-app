@@ -42,7 +42,7 @@ import { ExtractionTypeService } from '@app/extraction/type/extraction-type.serv
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
-  FILTER_KEY: "filter"
+  FILTER_KEY: 'filter'
 };
 
 export interface IRootDataEntitiesService<

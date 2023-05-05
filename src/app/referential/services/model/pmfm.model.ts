@@ -338,6 +338,19 @@ export abstract class PmfmUtils {
     );
   }
 
+  /**
+   * Check if pmfm is a tag id
+   * @param pmfm
+   */
+  static isTagId(pmfm: IPmfm): boolean {
+    return pmfm && (
+      pmfm.id === PmfmIds.TAG_ID
+      //|| PmfmLabelPatterns.TAG_ID.test(pmfm.label)
+      //|| (pmfm instanceof Pmfm && PmfmLabelPatterns.TAG_ID.test(pmfm.parameter?.label))
+    );
+  }
+
+
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
     return pmfm && labels.includes(pmfm.parameter.label);
   }

@@ -2,7 +2,6 @@ import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
 import { collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
-import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
 import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -20,7 +19,6 @@ import {
   SelectivityTrip
 } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
 import { AverageDetails, MathUtils } from '@app/shared/math.utils';
-import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { environment } from '@environments/environment';
 
@@ -367,7 +365,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
   }): SpeciesChart {
     return super.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
       ...opts,
-      getNumberAtLength: (hl => hl.elevateNumberAtLength)
+      getNumberAtLength: (hl => hl.elevatedNumberAtLength)
     });
   }
 
@@ -402,43 +400,42 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     const chart: SpeciesChart = {
       type: 'bubble',
+      data: {
+        datasets: [],
+        labels: []
+      },
       options: {
         // FIXME
         //aspectRatio: 1,
-        title: {
-          ...this.defaultTitleOptions,
-          text: [
-            species,
-            this.translate.instant('TRIP.REPORT.CHART.LANDING_AND_DISCARD_COMPARISON')
-          ]
-        },
-        legend: {
-          ...this.legendDefaultOption
-        },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE']
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_STANDARD']
-              }
-            }
-          ]
-        },
+        ...this.defaultOptions,
         plugins: {
+          ...this.defaultOptions.plugins,
+          title: {
+            ...this.defaultOptions.plugins.title,
+            text: [
+              species,
+              this.translate.instant('TRIP.REPORT.CHART.LANDING_AND_DISCARD_COMPARISON')
+            ]
+          },
           medianLine: {
             color: Color.get('medium').rgba(this.defaultOpacity),
             orientation: 'b',
             style: 'dashed',
             width: 2
+          }
+        },
+        scales: {
+          x: {
+            scaleLabel: {
+              ...this.scaleLabelDefaultOption,
+              labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE']
+            }
+          },
+          y: {
+            scaleLabel: {
+              ...this.scaleLabelDefaultOption,
+              labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_STANDARD']
+            }
           }
         }
       }
@@ -462,7 +459,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
         }, new Array(subCategories.length).fill(0));
       });
 
-      ChartJsUtils.pushDataSetOnChart(chart, {
+      ChartJsUtils.pushDataSet(chart, {
         label,
         backgroundColor: color.rgba(this.defaultOpacity),
         data: ChartJsUtils.computeChartPoints(values)
@@ -503,40 +500,37 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     const colors = []; // TODO
 
     // Box plot
-    const chart: SpeciesChart = <ChartConfiguration>{
+    const chart: SpeciesChart = {
       type: 'boxplot',
-      colors: [
-        // Color should be specified, in order to works well
-        discardColors[0].rgba(this.defaultOpacity),
-        discardColors[1].rgba(this.defaultOpacity),
-        landingColors[0].rgba(this.defaultOpacity),
-        landingColors[1].rgba(this.defaultOpacity),
-      ],
+      // colors: [
+      //   // Color should be specified, in order to works well
+      //   discardColors[0].rgba(this.defaultOpacity),
+      //   discardColors[1].rgba(this.defaultOpacity),
+      //   landingColors[0].rgba(this.defaultOpacity),
+      //   landingColors[1].rgba(this.defaultOpacity),
+      // ],
       options: {
-        title: {
-          ...this.defaultTitleOptions,
-          text: ['Comparaison des débarquements et rejets', '(sous trait)']
-        },
-        legend: {
-          ...this.legendDefaultOption
+        ...this.defaultOptions,
+        plugins: {
+          ...this.defaultOptions.plugins,
+          title: {
+            ...this.defaultOptions.plugins.title,
+            text: ['Comparaison des débarquements et rejets', '(sous trait)']
+          }
         },
         scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: 'Fraction'
-              }
+          x: {
+            scaleLabel: {
+              ...this.scaleLabelDefaultOption,
+              labelString: 'Fraction'
             }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: 'Poids capturés par OP (kg)'
-              }
+          },
+          y:{
+            scaleLabel: {
+              ...this.scaleLabelDefaultOption,
+              labelString: 'Poids capturés par OP (kg)'
             }
-          ]
+          }
         }
       },
       data: {

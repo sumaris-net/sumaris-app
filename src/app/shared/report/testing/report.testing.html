@@ -89,9 +89,9 @@
 
         <div style="height:450px">
           <canvas baseChart
-                  [datasets]="chart.datasets"
-                  [labels]="chart.labels"
-                  [chartType]="'bar'">
+                  [type]="'bar'"
+                  [data]="chart.data"
+                  [options]="chart.options">
           </canvas>
         </div>
 

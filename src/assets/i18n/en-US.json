@@ -1295,8 +1295,8 @@
       "START_DATE_INVALID": "Must start a {{day}}"
     },
     "CONFIRM": {
-      "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
-      "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
+      "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
+      "DELETE_MANY_HAS_SAMPLE": "The selected occasions are linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete them?"
     },
     "REPORT": {
       "TITLE": "Occasion report - {{ location }} - {{ dateTime }}",
@@ -1996,9 +1996,10 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
-      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Landings : Fishing area: Location level(s)",
+      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Landing > Fishing area: Location level(s)",
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
-      "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Observation > Landing > Individual measures: Weight unit",
+      "LANDING_SAMPLE_LABEL_ENABLE": "Observation > Landing > Individual measures: Enter label?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "REPORT_ENABLE": "Report > Enable report?",
       "STRATEGY_EDITOR" : "Strategy > editor",

@@ -269,7 +269,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   }
 
   protected async loadLandingsPmfms(landings: Landing[], program: Program): Promise<IPmfm[][]> {
-    const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT) as WeightUnitSymbol;
     return Promise.all(
       landings.map(async (landing) => {
         const taxonGroup = (landing.samples || [])

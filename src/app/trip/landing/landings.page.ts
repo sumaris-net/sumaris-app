@@ -3,7 +3,8 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   Alerts,
-  ConfigService, Configuration,
+  ConfigService,
+  Configuration,
   HammerSwipeEvent,
   isNilOrBlank,
   isNotEmptyArray,
@@ -15,47 +16,49 @@ import {
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  SharedValidators, slideUpDownAnimation,
+  SharedValidators,
+  slideUpDownAnimation,
   StatusIds,
   toBoolean,
-  toNumber, TranslateContextService
+  toNumber,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
-import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
-import { filter, tap } from 'rxjs/operators';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
+import { filter } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
-import { LandingService, LandingServiceLoadOptions, LandingServiceWatchOptions } from '@app/trip/landing/landing.service';
+import { LandingService, LandingServiceWatchOptions } from '@app/trip/landing/landing.service';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ISelectProgramModalOptions, SelectProgramModal } from '@app/referential/program/select-program.modal';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_RESERVED_START_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { BaseTableConfig } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/observed-locations.page';
 
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
-  FILTER_KEY: 'filter',
+  FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
 };
 
@@ -87,19 +90,20 @@ export class LandingsPage extends AppRootDataTable<
   protected $title = new BehaviorSubject<string>(undefined);
   protected $observedLocationTitle = new BehaviorSubject<string>(undefined);
   protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
-  protected locationAttributes: string[];
-  protected vesselSnapshotAttributes: string[];
   protected i18nPmfmPrefix: string;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected selectedSegment = '';
+  protected qualitativeValueAttributes: string[];
+  protected vesselSnapshotAttributes: string[];
 
   @Input() showFilterProgram = true;
-  @Input() showFilterStrategy = true;
+  @Input() showFilterStrategy = false; // Can be override by setProgram() or resetProgram()
   @Input() showFilterVessel = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
-  @Input() showFilterTagId = true;
+  @Input() showFilterSampleLabel = false; // Can be override by setProgram() or resetProgram()
+  @Input() showFilterSampleTagId = false; // Can be override by setProgram() or resetProgram()
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -230,9 +234,8 @@ export class LandingsPage extends AppRootDataTable<
         i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
         i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
         watchAllOptions: <LandingServiceWatchOptions>{
-          computeRankOrder: false, // Not need, if id is used
-          // TODO: check this
-          withObservedLocation: true,
+          computeRankOrder: false, // Not need, because we use id instead
+          //withObservedLocation: true, // Need to get observers
         }
       }
     );
@@ -249,7 +252,8 @@ export class LandingsPage extends AppRootDataTable<
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
-      tagId: [null]
+      sampleLabel: [null],
+      sampleTagId: [null]
     });
     this.autoLoad = false;
     this.defaultSortBy = 'dateTime';
@@ -268,8 +272,8 @@ export class LandingsPage extends AppRootDataTable<
 
     super.ngOnInit();
 
-    // Location display attributes
-    this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
+    // Qualitative values display attributes
+    this.qualitativeValueAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -363,7 +367,6 @@ export class LandingsPage extends AppRootDataTable<
     // Program
     const programLabel = filter?.program?.label;
     if (isNotNilOrBlank(programLabel)) {
-      this.showProgramColumn = false;
       const program = await this.programRefService.loadByLabel(programLabel);
       await this.setProgram(program);
     }
@@ -374,12 +377,10 @@ export class LandingsPage extends AppRootDataTable<
       }, {withTotal: true});
       if (isNotEmptyArray(data) && total === 1) {
         const program = data[0];
-        this.showProgramColumn = false;
         await this.setProgram(program);
       }
       else {
-        this.showProgramColumn = true;
-        this.$title.next(this.i18nColumnPrefix + 'TITLE');
+        await this.resetProgram();
       }
     }
 
@@ -420,6 +421,7 @@ export class LandingsPage extends AppRootDataTable<
 
 
   protected async setProgram(program: Program) {
+    if (!program?.label) throw new Error('Invalid program');
     console.debug('[landings] Init using program', program);
 
     // I18n suffix
@@ -431,22 +433,61 @@ export class LandingsPage extends AppRootDataTable<
     const title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
     this.$title.next(title);
 
+    this.showProgramColumn = false;
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
-    this.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
-    this.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-    this.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-    this.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+    this.showLocationColumn = this.showFilterLocation || program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+    this.showObserversColumn = this.showObservers || program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+    this.showRecorderPersonColumn = this.showRecorder || program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
 
+    this.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+    this.showFilterStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.showFilterSampleLabel = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
+
+    // Location filter
+    const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+    this.autocompleteFields.location.filter.levelIds = isNotEmptyArray(locationLevelIds) ? locationLevelIds : undefined;
+
+    // Landing pmfms
     const includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
-    const pmfms = await this.programRefService.loadProgramPmfms(program?.label, {
+    const landingPmfms = await this.programRefService.loadProgramPmfms(program?.label, {
       acquisitionLevel: AcquisitionLevelCodes.LANDING
-      // TODO add filter date ?
     });
-    const columnPmfms = pmfms.filter(p => p.required || includedPmfmIds?.includes(p.id))
+    const columnPmfms = landingPmfms.filter(p => p.required || includedPmfmIds?.includes(p.id))
 
     this.$pmfms.next(columnPmfms);
+
+    const samplePmfms = await this.programRefService.loadProgramPmfms(program?.label, {
+      acquisitionLevels: [AcquisitionLevelCodes.SAMPLE, AcquisitionLevelCodes.INDIVIDUAL_MONITORING, AcquisitionLevelCodes.INDIVIDUAL_RELEASE]
+    });
+    this.showFilterSampleTagId = samplePmfms?.some(PmfmUtils.isTagId) || false;
+
+    if (this.loaded) this.updateColumns();
+  }
+
+  protected async resetProgram() {
+    console.debug('[landings] Reset filter program');
+
+    this.showProgramColumn = true;
+    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
+    this.showVesselBasePortLocationColumn = toBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE.defaultValue, false);
+    this.showCreationDateColumn = toBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE.defaultValue, false);
+    this.showLocationColumn = this.showFilterLocation || toBoolean(ProgramProperties.LANDING_LOCATION_ENABLE.defaultValue, false);
+    this.showObserversColumn = this.showObservers || toBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE.defaultValue, false);
+    this.showRecorderPersonColumn = this.showRecorder || toBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE.defaultValue, false);
+
+    this.showSamplesCountColumn = toBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE.defaultValue, false);
+    this.showFilterStrategy = toBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE.defaultValue, false);
+    this.showFilterSampleLabel = toBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE.defaultValue, false);
+    this.showFilterSampleTagId = false;
+
+    // Reset location filter
+    delete this.autocompleteFields.location.filter.levelIds;
+
+    this.$title.next(this.i18nColumnPrefix + 'TITLE');
+    this.$pmfms.next([]);
+    if (this.loaded) this.updateColumns();
   }
 
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean }): Promise<void> {
@@ -497,14 +538,19 @@ export class LandingsPage extends AppRootDataTable<
     //if (!this.loading) this.markForCheck();
   }
 
-  protected onSegmentChanged(event: CustomEvent) {
+  protected async onSegmentChanged(event: CustomEvent) {
     const path = event.detail.value;
     if (isNilOrBlank(path)) return; // Skip if no path
 
-    // TODO: save filter in context ?
+    this.markAsLoading();
+
+    // Prepare filter for next page
+    const nextFilter = ObservedLocationFilter.fromLandingFilter(this.asFilter());
+    const json = nextFilter?.asObject({keepTypename: true}) || {};
+    await this.settings.savePageSetting(ObservedLocationsPageSettingsEnum.PAGE_ID, json, ObservedLocationsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
-      await this.navController.navigateRoot(path);
+      await this.navController.navigateRoot(path, {animated: false});
 
       // Reset the selected segment
       this.selectedSegment = '';

@@ -45,10 +45,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
-
-  qualitativeValueAttributes: string[];
-  locationAttributes: string[];
-  vesselSnapshotAttributes: string[];
+  protected qualitativeValueAttributes: string[];
+  protected locationAttributes: string[];
+  protected vesselSnapshotAttributes: string[];
 
   @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();
   @Output() onNewTrip = new EventEmitter<TableElement<Landing>>();
@@ -231,8 +230,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     // Vessels display attributes
     this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
-    // Location display attributes
-    this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
+
+    // Qualitative values display attributes
+    this.qualitativeValueAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
 
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
@@ -243,8 +243,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       mobile: this.mobile
     });
 
-    // Get attributes for qualitative values from settings
-    this.qualitativeValueAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
 
   }
 

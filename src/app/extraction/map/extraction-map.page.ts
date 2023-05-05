@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Inje
 import moment from 'moment';
 import { L } from '@app/shared/map/leaflet';
 import {
-  AccountService,
   AppFormUtils,
   arraySize,
   Color,
@@ -22,28 +21,33 @@ import {
   isNumber,
   isNumberRange,
   LoadResult,
-  LocalSettingsService,
-  PlatformService,
   StatusIds,
-  TranslateContextService,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
-import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
 import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { Label, SingleOrMultiDataSet } from 'ng2-charts';
-import { ChartLegendOptions, ChartOptions, ChartType } from 'chart.js';
+import {
+  BarElement,
+  Chart,
+  ChartConfiguration,
+  ChartData,
+  ChartDataset,
+  ChartOptions,
+  ChartType,
+  ChartTypeRegistry,
+  DefaultDataPoint, Element,
+  LegendOptions,
+  PluginOptionsByType,
+  ScaleType,
+  TitleOptions
+} from 'chart.js';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
 import { MapGraticule } from '@app/shared/map/map.graticule';
@@ -57,26 +61,40 @@ import { AggregationStrataValidatorService } from '@app/extraction/strata/strata
 import { AggregationStrata, IAggregationStrata } from '@app/extraction/strata/strata.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
+import { DeepPartial } from 'chart.js/types/utils';
+import { ChartJsUtils } from '@app/shared/chartsjs.utils';
 
-declare interface LegendOptions {
-  min: number;
-  max: number;
-  startColor: string;
-  endColor: string;
+declare interface CustomLegendOptions {
+  min?: number;
+  max?: number;
+  startColor?: string;
+  endColor?: string;
 }
-declare interface TechChartOptions extends ChartOptions {
-  legend: ChartLegendOptions;
-  type: ChartType;
-  sortByLabel: boolean;
+declare type TechChartType = 'pie' | 'bar' | 'doughnut';
+
+declare type TechChartOptions<TType extends TechChartType = TechChartType> = ChartOptions<TType> & {
+  // Legend
+  plugins?: Partial<PluginOptionsByType<TType>> & {
+    title?: Partial<TitleOptions>;
+    legend?: Partial<LegendOptions<TType>> & CustomLegendOptions;
+  }
+
+  // Custom properties
+  sortByLabel?: boolean;
   fixAxis?: boolean;
-  aggMin: number;
-  aggMax: number;
+  aggMin?: number;
+  aggMax?: number;
+}
+declare type TechChartConfiguration<
+  TType extends TechChartType = TechChartType,
+  TData = DefaultDataPoint<TType>,
+  TLabel = string
+> = ChartConfiguration<TType, TData, TLabel> & {
+  options?: TechChartOptions<TType>;
 }
 
 const maxZoom = 18;
-
 const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/;
-
 const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">' +
   '   <sld:NamedLayer>' +
   '      <sld:Name>ESPACES_TERRESTRES_P</sld:Name>' +
@@ -112,7 +130,7 @@ export interface ExtractionMapState extends ExtractionState<ExtractionProduct>{
   overFeature: Feature;
   details: FeatureDetails;
   legendItems: ColorScaleLegendItem[] | undefined;
-  customLegendOptions: Partial<LegendOptions>;
+  customLegendOptions: Partial<CustomLegendOptions>;
 }
 
 @Component({
@@ -190,10 +208,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   legendStyle = {};
   legendItems$ = this._state.select('legendItems');
 
-  set customLegendOptions(value: Partial<LegendOptions>) {
+  set customLegendOptions(value: Partial<CustomLegendOptions>) {
     this._state.set('customLegendOptions', _ => value);
   }
-  get customLegendOptions(): Partial<LegendOptions> {
+  get customLegendOptions(): Partial<CustomLegendOptions> {
     return this._state.get('customLegendOptions');
   }
 
@@ -218,26 +236,43 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   // -- Tech chart card
-  techChartOptions: TechChartOptions = {
+  techChartDefaults: TechChartConfiguration<any> = {
     type: 'bar',
-    responsive: true,
-    legend: {
-      display: false
+    data: {
+      datasets: [],
+      labels: []
     },
-    scales: {
-      yAxes: [{
-        type: "linear",
-        ticks: {
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: false
+        },
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        x: {
+          display: true,
+          type: 'linear',
+        },
+        y: {
+          display: true,
+          type: 'linear',
           suggestedMin: 0
         }
-      }]
-    },
-    sortByLabel: true,
-    fixAxis: false,
-    aggMin: 0,
-    aggMax: undefined
+      },
+
+      // Custom properties
+      sortByLabel: true,
+      fixAxis: false,
+      aggMin: 0,
+      aggMax: undefined
+    }
   };
-  chartTypes: ChartType[] = ['pie', 'bar', 'doughnut'];
+  chartTypes: TechChartType[] = ['pie', 'bar', 'doughnut'];
   showTechChart = true;
 
   // -- Data --
@@ -258,12 +293,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $tech = new BehaviorSubject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>(null);
+  $techChart = new BehaviorSubject<TechChartConfiguration<any>>(undefined);
   $years = new BehaviorSubject<number[]>(undefined);
   formatNumberLocale: string;
   animation: Subscription;
   animationOverrides: {
-    techChartOptions?: TechChartOptions
+    techChartOptions?: Partial<TechChartOptions>
   } = {};
 
   private layers: L.Layer[];
@@ -319,12 +354,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     return this.form.controls.strata as UntypedFormGroup;
   }
 
-  get techChartAxisType(): string {
-    return this.techChartOptions.scales.yAxes[0].type;
+  get techChartAxisType(): ScaleType {
+    return this.techChartDefaults.options.scales.y.type;
   }
 
-  set techChartAxisType(type: string) {
-    this.setTechChartOption({ scales: { yAxes: [{type}] } });
+  set techChartAxisType(type: ScaleType) {
+    this.updateTechChart({ options: {scales: { y: {type: type as any} } }});
   }
 
   get isAnimated(): boolean {
@@ -434,8 +469,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   protected async loadFromRouteOrSettings(): Promise<boolean> {
+    console.debug('[extraction-map] Looking for type, from route or settings...')
     const found = await super.loadFromRouteOrSettings();
     if (found) return found;
+    console.debug('[extraction-map] No type found: opening type modal...')
 
     // No map loaded, open the modal
     setTimeout(() => this.openSelectTypeModal(), 450);
@@ -456,7 +493,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     this.$aggColumns.unsubscribe();
     this.$techColumns.unsubscribe();
     this.$criteriaColumns.unsubscribe();
-    this.$tech.unsubscribe();
+    this.$techChart.unsubscribe();
     this.$years.unsubscribe();
   }
 
@@ -668,7 +705,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   hideTechChart() {
-    this.$tech.next(null);
+    this.$techChart.next(null);
     this.showTechChart = false;
     delete this.animationOverrides.techChartOptions;
     this.markForCheck();
@@ -710,7 +747,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     // Hide details
     this.details = null;
     // Hide chart
-    this.$tech.next(null);
+    this.$techChart.next(null);
     // Hide legend
     this.showLegend = false;
 
@@ -1002,7 +1039,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     type = type || this.type;
     strata = type && (strata || this.getStrataValue());
     filter = strata && (filter || this.getFilterValue(strata));
-    let opts = this.techChartOptions;
+    let techChart: TechChartConfiguration = this.techChartDefaults;
 
     if (!type || !strata || !strata.techColumnName || !strata.aggColumnName) return false; // skip;
 
@@ -1024,15 +1061,31 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       if (isAnimated) {
         // Prepare overrides, if need
         const overrides = await this.loadAnimationOverrides(type, strata, filter);
-        opts = {
-          ...opts,
-          ...overrides.techChartOptions
+        techChart = {
+          ...techChart,
+          options: {
+            ...techChart?.options,
+            ...overrides.techChartOptions
+          }
         };
       }
 
+      // Set title
+      techChart.options.plugins.title = {
+        ...techChart.options.plugins.title,
+        text: this.translate.instant('EXTRACTION.MAP.TECH_CHART_TITLE', {
+          aggColumnName: aggColumn.name,
+          techColumnName: techColumn.name
+        })
+      }
+
+      // Show/Hide scales
+      const showScales = techChart.type !== 'pie' && techChart.type !== 'doughnut';
+      techChart.options.scales.x.display = showScales;
+      techChart.options.scales.y.display = showScales;
 
       // Keep data without values for this year
-      if (opts.fixAxis) {
+      if (techChart.options.fixAxis) {
 
         // Copy, because object if immutable
         map = { ...map };
@@ -1067,7 +1120,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       }
 
       // Sort by label (ASC)
-      else if (opts.sortByLabel) {
+      else if (techChart.options.sortByLabel) {
         entries = entries.sort((a, b) => a[0] < b[0] ? -1 : 1);
       }
 
@@ -1077,24 +1130,20 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       }
 
       // Round values
-      const data = entries.map(item => item[1])
+      const data: any[] = entries.map(item => item[1])
         .map(value => isNil(value) ? 0 : Math.round(value * 100) / 100);
-      const labels = entries.map(item => item[0]);
+      ChartJsUtils.setSingleDataSet(techChart, {data});
 
-      this.$tech.next({
-        title: this.translate.instant('EXTRACTION.MAP.TECH_CHART_TITLE', {
-          aggColumnName: aggColumn.name,
-          techColumnName: techColumn.name
-        }),
-        labels: labels,
-        data: data
-      });
+      const labels: any[] = entries.map(item => item[0]);
+      ChartJsUtils.setLabels(techChart, labels);
+
+      this.$techChart.next(techChart);
       return true;
     }
     catch (error) {
       console.error("Cannot load tech values:", error);
       // Reset tech, then continue
-      this.$tech.next(undefined);
+      this.$techChart.next(undefined);
       return false;
     }
     finally {
@@ -1157,7 +1206,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     // Tech chart overrides
     if (!this.animationOverrides.techChartOptions) {
-      const opts = this.techChartOptions;
+      const techChart = this.techChartDefaults;
 
       // Create new filter, without criterion on time (.e.g on year)
       const filterNoTimes = ExtractionFilter.fromObject({ ...filter,
@@ -1167,13 +1216,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
         { fetchPolicy: 'cache-first' });
       console.debug(`[extraction-map] Changing tech chart options: {min: ${min}, max: ${max}}`);
       this.animationOverrides.techChartOptions = {
-        ...opts,
+        ...techChart?.options,
         fixAxis: true,
         scales: {
-          yAxes: [{
-            ...opts.scales.yAxes[0],
-            ticks: {min, max}
-          }]
+          ...techChart.options.scales,
+          y: {
+            ...techChart.options?.scales.y,
+            min,
+            max
+          }
         }
       };
     }
@@ -1388,10 +1439,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
   }
 
-  setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
-    this.techChartOptions = {
-      ...this.techChartOptions,
-      ...value
+  updateTechChart(value: Partial<TechChartConfiguration<any>>, opts?: { emitEvent?: boolean; }) {
+    this.techChartDefaults = {
+      ...this.techChartDefaults,
+      ...value,
+      options: {
+        ...this.techChartDefaults?.options,
+        ...value?.options,
+        scales: {
+          ...this.techChartDefaults?.options?.scales,
+          ...value?.options?.scales,
+        }
+      }
     };
 
     // Reset animation data
@@ -1403,16 +1462,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
   }
 
-  onChartClick({event, active}) {
-    if (!active) return; // Skip
+  onTechChartClick({event, active}) {
 
     // Retrieve clicked values
-    const values = active
-      .map(element => element && element._model && element._model.label)
-      .filter(isNotNil);
-    if (isEmptyArray(values)) return; // Skip if empty
+    const elements = active?.filter(element => isNotNil(element.index));
+    if (isEmptyArray(elements)) return; // Skip if empty
 
-    const value = values[0];
+    // Take first
+    const { datasetIndex, index } = elements[0];
+    const value = this.$techChart.value.data.labels[index];
 
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: this.techColumnName,
@@ -1532,7 +1590,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     };
   }
 
-  protected createLegendScale(opts?: Partial<LegendOptions>): ColorScale {
+  protected createLegendScale(opts?: Partial<CustomLegendOptions>): ColorScale {
     opts = opts || this.legendForm.value;
     const min = (opts.min || 0);
     const max = (opts.max || 1000);

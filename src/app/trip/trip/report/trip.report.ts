@@ -20,11 +20,9 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
-import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils';
-import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
+import { ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMedianLineOptions, ChartJsUtilsThresholdLineOptions } from '@app/shared/chartsjs.utils';
+import { ChartConfiguration, ChartOptions, ChartTypeRegistry, TitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
-import pluginTrendlineLinear from 'chartjs-plugin-trendline';
-import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
 import { IDenormalizedPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -40,7 +38,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { Moment } from 'moment';
 
 export declare type BaseNumericStats = {min: number; max: number; avg: number};
-export declare type SpeciesChart = ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions;
+export declare type SpeciesChart<TType extends keyof ChartTypeRegistry = any> = ChartConfiguration<TType> & ChartJsUtilsThresholdLineOptions<TType> & ChartJsUtilsMedianLineOptions<TType>;
 export declare class TripReportStats {
   programLabel: string;
   startDate: Moment;
@@ -51,7 +49,7 @@ export declare class TripReportStats {
   vesselLength: BaseNumericStats;
   species: {
     label: string;
-    charts: SpeciesChart[];
+    charts: SpeciesChart<any>[];
   }[];
 }
 
@@ -71,18 +69,28 @@ export class TripReport<
   >
   extends AppExtractionReport<R, S> {
 
-  defaultTitleOptions: ChartTitleOptions = {
-    fontColor: Color.get('secondary').rgba(1),
-    fontSize: 26,
-    display: true
+  defaultOptions: Partial<ChartOptions> = {
+    responsive: true,
+    animation: false,
+    plugins: {
+      title: {
+        display: true,
+        font: {
+          size: 26
+        },
+        color: Color.get('secondary').rgba(1)
+      },
+      legend: {
+        position: 'right' // or 'right'
+      }
+    }
   };
-  scaleLabelDefaultOption: ScaleTitleOptions = {
+  scaleLabelDefaultOption  = {
     display: true,
-    fontStyle: 'bold',
-    fontSize: 18
-  };
-  legendDefaultOption: ChartLegendOptions = {
-    position: 'right' // or 'right'
+    font: {
+      size: 18,
+      weight: 'bold'
+    }
   };
   defaultOpacity = 0.8;
   landingColor = Color.get('tertiary');
@@ -107,9 +115,7 @@ export class TripReport<
     this.tripService = injector.get(TripService);
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
-    Chart.plugins.register(pluginTrendlineLinear);
-    Chart.plugins.register(ChartJsPluginTresholdLine);
-    Chart.plugins.register(ChartJsPluginMedianLine);
+    ChartJsUtils.register();
 
     this.onRefresh
       .pipe(filter(_ => this.loaded))
@@ -247,6 +253,7 @@ export class TripReport<
 
     // Get data
     const taxonGroupId = (data || []).map(hl => hl.taxonGroupId).find(isNotNil);
+    const referenceTaxonId = (data || []).map(hl => hl.referenceTaxonId).find(isNotNil);
 
     // Get sub categories
     const subCategories = opts.getSubCategory && this.computeSubCategories(data, opts);
@@ -332,40 +339,24 @@ export class TripReport<
       'TRIP.REPORT.DISCARD',
       'TRIP.REPORT.LANDING',
     ]);
-    const chart: SpeciesChart = {
+    const chart: SpeciesChart<any> = {
       type: 'bar',
+      data: {
+        datasets: [],
+        labels: []
+      },
       options: {
-        title: {
-          ...this.defaultTitleOptions,
-          text: [species,
-            [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')
-          ]
-        },
-        scales: {
-          xAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: pmfmName
-              }
-            }
-          ],
-          yAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...this.scaleLabelDefaultOption,
-                labelString: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT')
-              }
-            }
-          ]
-        },
-        legend: {
-          ...this.legendDefaultOption
-        },
-        plugins: (opts?.threshold > 0) && {
-          tresholdLine: { // NOTE : custom plugin
+        ...this.defaultOptions,
+        plugins: {
+          ...this.defaultOptions.plugins,
+          title: {
+            ...this.defaultOptions.plugins.title,
+            text: [
+              species,
+              [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')
+            ]
+          },
+          thresholdLine: (opts?.threshold > 0) && {
             color: Color.get('red').rgba(this.defaultOpacity),
             style: 'dashed',
             width: opts.threshold,
@@ -386,6 +377,22 @@ export class TripReport<
                 .join('');
             }
           }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            title: {
+              ...this.scaleLabelDefaultOption,
+              text: pmfmName
+            }
+          },
+          y: {
+            stacked: true,
+            title: {
+              ...this.scaleLabelDefaultOption,
+              text: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT')
+            }
+          }
         }
       }
     };
@@ -393,12 +400,12 @@ export class TripReport<
     // FInd min/max (and check if can used elevatedNumberAtLength)
     let min = 99999;
     let max = 0;
-    let hasElevateNumberAtLength = true;
+    let hasElevatedNumberAtLength = true;
     data.forEach(sl => {
       const length = sl.lengthClass * unitConversion;
       min = Math.min(min, length);
       max = Math.max(max, length);
-      if (isNil(sl.elevateNumberAtLength) && hasElevateNumberAtLength) hasElevateNumberAtLength = false;
+      if (hasElevatedNumberAtLength && isNil(sl.elevatedNumberAtLength)) hasElevatedNumberAtLength = false;
     }) ;
 
     // Add labels
@@ -408,11 +415,11 @@ export class TripReport<
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
-    if (!hasElevateNumberAtLength) {
-      console.warn(`[${this.constructor.name}] Cannot used elevateNumberAtLength, for species '${species}'`);
+    if (!hasElevatedNumberAtLength) {
+      console.warn(`[${this.constructor.name}] Cannot used elevatedNumberAtLength, for species '${species}'`);
     }
     const getNumberAtLength = opts?.getNumberAtLength
-      || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
+      || (hasElevatedNumberAtLength &&  ((hl) => hl.elevatedNumberAtLength))
       || ((hl) => hl.numberAtLength);
 
     const createCatchCategorySeries = (data: HL[], seriesIndex = 0, subCategory?: string) => {
@@ -432,7 +439,7 @@ export class TripReport<
           const label = (!opts.filter || isNil(subCategory))
             ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], subCategory].filter(isNotNil).join(' - ')
             : subCategory;
-          ChartJsUtils.pushDataSetOnChart(chart, {
+          ChartJsUtils.pushDataSet(chart, {
             label,
             backgroundColor: color.rgba(this.defaultOpacity),
             stack: `${seriesIndex}`,
