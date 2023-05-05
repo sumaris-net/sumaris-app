@@ -91,8 +91,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
-  private _usageMode: UsageMode;
   private _showGeolocationSpinner = true;
+  protected _usageMode: UsageMode;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;

@@ -1089,6 +1089,7 @@
         "OTHER": "Autre"
       },
       "PMFM": {
+        "TAG_ID": "Code prélèvement",
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
@@ -1923,7 +1924,7 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s) (PSFM)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
       "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Marée > Engin: Nombre minimum de sous-engins ?",
@@ -2001,7 +2002,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
-      "LANDING_EDITOR": "Sortie > Débarquement: éditeur",
+      "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
@@ -2014,8 +2015,10 @@
       "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
-      "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité du poids",
+      "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
+      "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "REPORT_ENABLE": "Rapport > Activer les rapports ?",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",

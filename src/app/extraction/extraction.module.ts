@@ -12,9 +12,10 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { MarkdownModule } from 'ngx-markdown';
 import { ExtractionHelpModal } from './help/help.modal';
 import { TranslateModule } from '@ngx-translate/core';
-import { ChartsModule } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedModule } from '@app/shared/shared.module';
+import { ColorPickerModule } from 'ngx-color-picker';
 
 @NgModule({
   imports: [
@@ -22,7 +23,8 @@ import { AppSharedModule } from '@app/shared/shared.module';
     LeafletModule,
     TranslateModule.forChild(),
     MarkdownModule.forChild(),
-    ChartsModule,
+    ColorPickerModule,
+    NgChartsModule,
 
     AppCoreModule,
     AppSharedModule,

@@ -710,9 +710,15 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelGroups.FISHING_AREA.toString()
   },
-  LANDING_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+  LANDING_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.sample.label.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_LABEL_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  LANDING_SAMPLE_WEIGHT_UNIT: <FormFieldDefinition>{
     key: 'sumaris.landing.samples.weightUnit',
-    label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_WEIGHT_UNIT',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_WEIGHT_UNIT',
     type: 'enum',
     values: [
       {

@@ -142,7 +142,9 @@
   <mat-expansion-panel #filterExpansionPanel
                        class="filter-panel"
                        [class.filter-panel-floating]="filterPanelFloating">
-    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm"
+          (ngSubmit)="onRefresh.emit()"
+          (keyup.enter)="applyFilterAndClosePanel($event)">
 
       <ion-grid>
         <ion-row *rxIf="showFilterProgram || showFilterStrategy">
@@ -170,7 +172,19 @@
           </ion-col>
         </ion-row>
 
-        <ion-row *rxIf="showFilterVessel || showFilterLocation">
+        <ion-row *rxIf="showFilterLocation || showFilterVessel">
+
+          <!-- Location -->
+          <ion-col *rxIf="showFilterLocation"
+                   size="12" size-lg="6">
+            <mat-autocomplete-field
+              [placeholder]="'LANDING.TABLE.LOCATION'|translate"
+              formControlName="location"
+              [config]="autocompleteFields.location"
+              [clearable]="true">
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-autocomplete-field>
+          </ion-col>
 
           <!-- Vessel -->
           <ion-col *rxIf="showFilterVessel"
@@ -182,18 +196,6 @@
               [config]="autocompleteFields.vesselSnapshot"
               [clearable]="true">
               <ion-icon matPrefix name="boat"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-
-          <!-- Location -->
-          <ion-col *rxIf="showFilterLocation"
-                   size="12" size-lg="6">
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
-              [clearable]="true">
-              <mat-icon matPrefix>room</mat-icon>
             </mat-autocomplete-field>
           </ion-col>
         </ion-row>
@@ -244,7 +246,7 @@
           </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="showObservers || showQuality || showFilterTagId">
+        <ion-row *ngIf="showObservers || showQuality || showFilterSampleLabel || showFilterSampleTagId">
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
             <mat-autocomplete-field
@@ -276,13 +278,33 @@
             </mat-form-field>
           </ion-col>
 
-          <!-- Tag ID -->
-          <ion-col *ngIf="showFilterTagId">
+          <!-- Sample label -->
+          <ion-col *ngIf="showFilterSampleLabel">
             <mat-form-field>
               <ion-icon matPrefix name="pricetag"></ion-icon>
-              <input matInput formControlName="tagId"
+              <input matInput formControlName="sampleLabel"
+                     autocomplete="off"
+                     [placeholder]="'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nColumnSuffix">
+              <button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="filterForm.get('sampleLabel').reset()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+
+          <!-- Sample Tag ID -->
+          <ion-col *ngIf="showFilterSampleTagId">
+            <mat-form-field>
+              <ion-icon matPrefix name="pricetag"></ion-icon>
+              <input matInput formControlName="sampleTagId"
                      autocomplete="off"
                      [placeholder]="'TRIP.SAMPLE.PMFM.TAG_ID'|translateContext: i18nColumnSuffix">
+              <button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="filterForm.get('sampleTagId').reset()">
+                <mat-icon>close</mat-icon>
+              </button>
             </mat-form-field>
           </ion-col>
         </ion-row>
@@ -448,7 +470,7 @@
           <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: locationAttributes }}</ion-text>
+          <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: autocompleteFields.location.attributes }}</ion-text>
         </td>
       </ng-container>
 
@@ -480,7 +502,7 @@
           <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+          <ion-text>{{ (row.currentData?.observers || row.currentData.observedLocation?.observers ) | personToString }}</ion-text>
         </td>
       </ng-container>
 

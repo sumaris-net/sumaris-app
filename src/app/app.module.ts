@@ -32,7 +32,7 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
-  FormFieldDefinitionMap,
+  FormFieldDefinitionMap, isAndroid,
   JobModule,
   LocalSettings,
   LocalSettingsOptions, LoggingService,
@@ -83,6 +83,8 @@ import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
+import { NgChartsModule } from 'ng2-charts';
+import { isCapacitor, isIOS, isMobile } from '../../ngx-sumaris-components/src/app/shared/platforms';
 
 @NgModule({
   declarations: [
@@ -93,7 +95,16 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
     BrowserAnimationsModule,
     HttpClientModule,
     ApolloModule,
-    IonicModule.forRoot(), // FIXME: After Ionic v6 upgrade, override platform detection (see issue #323)
+    IonicModule.forRoot({
+      innerHTMLTemplatesEnabled: true,
+      // Override platform detection (see issue #323)
+      platform: {
+        mobile: isMobile,
+        ios: isIOS,
+        android: isAndroid,
+        capacitor: isCapacitor
+      }
+    }),
     CacheModule.forRoot({
       keyPrefix: '', // For compatibility
       ...environment.cache
@@ -128,6 +139,9 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
           smartypants: false,
         },
       }
+    }),
+    NgChartsModule.forRoot({
+      plugins: []
     }),
 
     // Need for tap event, in app-toolbar

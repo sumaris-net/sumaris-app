@@ -27,7 +27,6 @@ export abstract class RootDataEntityFilter<
 
   program: ReferentialRef;
   strategy: ReferentialRef;
-  strategyIds: number[];
   synchronizationStatus: SynchronizationStatus;
   recorderPerson: Person;
   startDate?: Moment;
@@ -50,10 +49,11 @@ export abstract class RootDataEntityFilter<
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
-      target.programLabel = this.program && this.program.label || undefined;
+      target.programLabel = this.program?.label || undefined;
       delete target.program;
 
-      //target.strategyIds = [...this.strategyIds, ...(this.strategy ? [strategyIds])
+      target.strategyLabels = this.strategy?.label ? [this.strategy.label] : undefined;
+      delete target.strategy;
 
       target.recorderPersonId = this.recorderPerson && this.recorderPerson.id || undefined;
       delete target.recorderPerson;
@@ -62,8 +62,9 @@ export abstract class RootDataEntityFilter<
       delete target.synchronizationStatus;
     }
     else {
-      target.program = this.program && this.program.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-      target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.program = this.program?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.strategy = this.strategy?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.recorderPerson = this.recorderPerson?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.synchronizationStatus = this.synchronizationStatus;
     }
 

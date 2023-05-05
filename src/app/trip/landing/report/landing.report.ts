@@ -243,7 +243,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
       if (!data || !parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
       const program = await this.programRefService.loadByLabel(parent.program.label);
-      this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+      this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT) as WeightUnitSymbol;
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
 

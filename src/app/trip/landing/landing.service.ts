@@ -67,7 +67,8 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
 }
 
 export interface LandingServiceLoadOptions extends EntityServiceLoadOptions {
-  withObservedLocation?: boolean;
+  // FIXME not used
+  //withObservedLocation?: boolean;
 }
 
 export declare interface LandingServiceWatchOptions
@@ -77,7 +78,9 @@ export declare interface LandingServiceWatchOptions
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
-  withObservedLocation?: boolean;
+
+  // FIXME not used
+  //withObservedLocation?: boolean;
 }
 
 export const LandingFragments = {

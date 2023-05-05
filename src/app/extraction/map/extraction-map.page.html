@@ -102,8 +102,8 @@
   <button mat-menu-item [matMenuTriggerFor]="chartTypeMenu" translate>EXTRACTION.MAP.CHART_TYPE.TITLE</button>
   <mat-menu #chartTypeMenu="matMenu">
     <button mat-menu-item *ngFor="let value of chartTypes"
-            (click)="setTechChartOption({type: value})">
-      <ion-icon *ngIf="techChartOptions.type===value" name="checkmark"></ion-icon>
+            (click)="updateTechChart({type: value})">
+      <ion-icon *ngIf="techChartDefaults.type===value" name="checkmark"></ion-icon>
       <ion-label>{{'EXTRACTION.MAP.CHART_TYPE.' + value | uppercase |translate}}</ion-label>
     </button>
   </mat-menu>
@@ -111,12 +111,12 @@
   <!-- Sort by sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartSortByMenu" translate>EXTRACTION.MAP.CHART_SORT_BY.TITLE</button>
   <mat-menu #chartSortByMenu="matMenu">
-    <button mat-menu-item (click)="setTechChartOption({sortByLabel: true})">
-      <ion-icon *ngIf="techChartOptions.sortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="updateTechChart({sortByLabel: true})">
+      <ion-icon *ngIf="techChartDefaults.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.LABEL</span>
     </button>
-    <button mat-menu-item (click)="setTechChartOption({sortByLabel: false})" translate>
-      <ion-icon *ngIf="!techChartOptions.sortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="updateTechChart({sortByLabel: false})" translate>
+      <ion-icon *ngIf="!techChartDefaults.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.VALUE</span>
     </button>
   </mat-menu>
@@ -126,8 +126,8 @@
   <mat-menu #chartAxisXMenu="matMenu">
     <!-- Freeze values -->
     <button mat-menu-item
-            (click)="setTechChartOption({fixAxis: !techChartOptions.fixAxis})">
-      <ion-icon *ngIf="techChartOptions.fixAxis" name="checkmark"></ion-icon>
+            (click)="updateTechChart({options: {fixAxis: !techChartDefaults.options?.fixAxis}})">
+      <ion-icon *ngIf="techChartDefaults.fixAxis" name="checkmark"></ion-icon>
       <ion-label translate>EXTRACTION.MAP.FREEZE_VALUES</ion-label>
     </button>
   </mat-menu>
@@ -330,7 +330,8 @@
   </div>
 
   <!-- Details -->
-  <div class="details" #detailPanel [attr._leaflet_disable_click]="true">
+  <div class="details" #detailPanel
+       [attr._leaflet_disable_click]="true">
     <ion-card color="light"
               *ngIf="details$|push:'immediate'; let details"
               @fadeInOutAnimation>
@@ -367,16 +368,15 @@
       <ion-col class="ion-align-self-end">
 
         <!-- chart -->
-        <ion-card *rxIf="$tech; let tech; else addChartButton"
+        <ion-card *rxIf="$techChart; let tech; else addChartButton"
                   color="light"
-                  class="chart"
-                  [class.chart-bar]="techChartOptions.type==='bar'"
+                  class="chart chart-{{tech.type}}"
                   @fadeInAnimation>
           <ion-toolbar color="transparent"
                        [matMenuTriggerFor]="techColumnMenu"
                        (click)="$event.stopPropagation()">
             <ion-text color="primary" [title]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP'|translate">
-              <span [innerHTML]="tech.title | translate: tech.titleParams"></span>
+              <span [innerHTML]="tech.options.plugins.title.text"></span>
               <mat-icon class="ion-color-primary">arrow_drop_down</mat-icon>
             </ion-text>
 
@@ -397,11 +397,11 @@
           <ion-card-content >
             <!-- Tech graph card -->
               <canvas baseChart
-                      [data]="tech.data"
-                      [labels]="tech.labels"
-                      [chartType]="techChartOptions.type"
-                      [options]="animationOverrides.techChartOptions || techChartOptions"
-                      (chartClick)="onChartClick($event)">
+                      [type]="tech.type"
+                      [datasets]="tech.data.datasets"
+                      [labels]="tech.data.labels"
+                      [options]="tech.options"
+                      (chartClick)="onTechChartClick($event)">
               </canvas>
           </ion-card-content>
         </ion-card>
@@ -464,7 +464,9 @@
     <!-- Legend edition form -->
     <ion-row>
       <ion-col>
-        <ion-card color="light" *ngIf="showLegendForm" @fadeInAnimation class="legend-form">
+        <ion-card color="light" class="legend-form ion-margin-top"
+                  *ngIf="showLegendForm"
+                  @fadeInAnimation>
 
           <ion-card-header>
             <ion-card-subtitle>

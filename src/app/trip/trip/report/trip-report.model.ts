@@ -180,13 +180,13 @@ export class RdbPmfmSpeciesList<SL = any> extends RdbSpeciesList<SL>{
 }
 
 export class RdbPmfmSpeciesLength<HL = any> extends RdbSpeciesLength<HL>{
-  elevateNumberAtLength: number;
+  elevatedNumberAtLength: number;
   taxonGroupId: number;
   referenceTaxonId: number;
 
   fromObject(source: any){
     super.fromObject(source);
-    this.elevateNumberAtLength = toNumber(source.elevateNumberAtLength);
+    this.elevatedNumberAtLength = toNumber(source.elevatedNumberAtLength);
     this.taxonGroupId = toNumber(source.taxonGroupId);
     this.referenceTaxonId = toNumber(source.referenceTaxonId);
   }

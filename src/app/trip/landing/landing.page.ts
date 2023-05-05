@@ -384,7 +384,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
       this.samplesTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
       this.samplesTable.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
-        program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT));
+        program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT));
+      this.samplesTable.showLabelColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
 
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()

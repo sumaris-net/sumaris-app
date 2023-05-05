@@ -1,75 +1,100 @@
-import {ChartArea, ChartConfiguration, ChartDataSets, ChartPoint, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions} from 'chart.js';
-import {Color, ColorScale, ColorScaleOptions, isNil} from '@sumaris-net/ngx-components';
+import {
+  BarController,
+  BarElement,
+  CategoryScale,
+  Chart,
+  ChartArea,
+  ChartConfiguration,
+  ChartDataset,
+  ChartOptions,
+  ChartTypeRegistry,
+  DoughnutController,
+  LinearScale,
+  LineController,
+  LineElement,
+  LogarithmicScale,
+  Plugin,
+  PluginOptionsByType,
+  Point,
+  PointElement,
+  Scale,
+  Title
+} from 'chart.js';
+import { Color, ColorScale, ColorScaleOptions, isNil } from '@sumaris-net/ngx-components';
+import chartTrendline from 'chartjs-plugin-trendline';
+import { BoxAndWiskers, BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
 
-
-interface TresholdLineOptions {
+declare type ThresholdLineStyle = 'solid' | 'dashed' | string;
+interface ThresholdLineOptions {
   color?: string,
-  style?: 'solid' | 'dashed',
+  style?: ThresholdLineStyle,
   width?: number,
   value: number,
   orientation?: 'x' | 'y',
 }
-export interface ChartJsUtilsTresholdLineOptions {
-  options?: {
-    plugins?: {
-      tresholdLine?: TresholdLineOptions,
+export interface ChartJsUtilsThresholdLineOptions<TType extends keyof ChartTypeRegistry> {
+  options?: ChartOptions<TType> & {
+    plugins?: PluginOptionsByType<TType> & {
+      thresholdLine?: ThresholdLineOptions
     }
   }
 }
 
-export const ChartJsPluginTresholdLine: PluginServiceRegistrationOptions & PluginServiceGlobalRegistration = {
+export const ChartJsPluginThresholdLine: Plugin<any> = {
   id: 'thresholdline',
-  afterDraw: function(chart: Chart) {
+  afterDraw: function(chart: Chart & ChartJsUtilsThresholdLineOptions<any>) {
 
-    function computeStop(scale: ChartScales, value: number) {
-      var res: number;
-      var lengthType = scale['id'][0] === 'y' ? 'height' : 'width';
+    function computeStop(scale: Scale<any>, value: number) {
+      if (!scale || isNil(value)) throw new Error(`Missing required argument 'scale' or 'value'`);
+      const lengthType = scale['id']?.[0] === 'y' ? 'height' : 'width';
+      if (isNil(scale[lengthType])) throw new Error(`Missing 'scale.${lengthType}'!`);
       switch (scale.type) {
         case 'category':
-          res = (scale[lengthType] / (scale['maxIndex'] + 1)) * value;
-          break;
+          if (isNil(scale['maxIndex'])) throw new Error(`Missing 'scale.maxIndex'!`);
+          return (scale[lengthType] / (scale['maxIndex'] + 1)) * value;
         case 'linear':
-          res = Math.round(scale[lengthType] * (value / scale['max']));
-          break;
+          if (isNil(scale['max'])) throw new Error(`Missing 'scale.max'!`);
+          return Math.round(scale[lengthType] * (value / scale['max']));
         default:
           throw new Error(`Scale type ${scale.type} not implemented`);
       }
-      return res;
     }
 
     // DEBUG
-    //console.debug(`[${this.constructor.name}.computeStop]`, arguments);
+    //console.debug(`[ChartJsPluginTresholdLine]`, arguments);
 
-    if (chart.options.plugins.tresholdLine === undefined) return;
-    if (chart.options.plugins.tresholdLine.value === undefined) {
-      console.warn(`[${this.constructor.name}.computeStop]: called without value`)
+    if (chart.options.plugins.thresholdLine === undefined) return;
+    if (chart.options.plugins.thresholdLine.value === undefined) {
+      console.warn(`[ChartJsPluginThresholdLine] called without value`)
       return
     }
 
-    const param: TresholdLineOptions = {
-      color: chart.options.plugins.tresholdLine.color || '#000000',
-      style: chart.options.plugins.tresholdLine.style || 'solid',
-      width: chart.options.plugins.tresholdLine.width || 3,
-      value: chart.options.plugins.tresholdLine.value,
-      orientation: chart.options.plugins.tresholdLine.orientation || 'x',
+    const param: ThresholdLineOptions = {
+      color: chart.options.plugins.thresholdLine.color || '#000000',
+      style: chart.options.plugins.thresholdLine.style || 'solid',
+      width: chart.options.plugins.thresholdLine.width || 3,
+      value: chart.options.plugins.thresholdLine.value,
+      orientation: chart.options.plugins.thresholdLine.orientation || 'x',
     }
 
-    var scale: ChartScales;
+    let scale: Scale<any>;
     for (let i in chart['scales']) {
       if (i[0] === param.orientation) scale = chart['scales'][i];
       if (scale) break;
     }
     if (!scale) {
-      console.warn(`[${this.constructor.name}.genDummySamplesSets]: no scale found for orientation ${orientation}`)
+      console.warn(`[ChartJsPluginThresholdLine] no scale found for orientation ${orientation}`)
       return;
     }
-
+    let stopVal: number;
     try {
-      var stopVal = computeStop(scale, param.value);
-    } catch (e) {
-      console.warn(`[${this.constructor.name}.genDummySamplesSets]: `, e);
+      stopVal = computeStop(scale, param.value);
     }
-    var xStart = 0, xStop = 0, yStart = 0, yStop = 0;
+    catch (e) {
+      console.error('Error while trying to compute the stopVal: ' + e?.message, e);
+      return;
+    }
+    let xStart = 0, xStop = 0, yStart = 0, yStop = 0;
     if (param.orientation === 'y') {
       yStart = yStop = chart.chartArea.bottom - stopVal;
       xStart = chart.chartArea.left;
@@ -85,11 +110,11 @@ export const ChartJsPluginTresholdLine: PluginServiceRegistrationOptions & Plugi
       if (scale) break;
     }
     if (!scale) {
-      console.warn(`[${this.constructor.name}.computeStop]: no scale found for orientation ${orientation}`)
+      console.warn(`[ChartJsPluginThresholdLine] no scale found for orientation ${orientation}`)
       return;
     }
 
-    // Draw tresholdline
+    // Draw thresholdLine
     const ctx = chart.ctx;
     ctx.lineWidth = param.width;
     if (param.style === 'dashed') ctx.setLineDash([8, 8]);
@@ -108,22 +133,20 @@ interface MedianLineOptions {
   width?: number,
   orientation?: 'x' | 'y' | 'b',
 }
-export interface ChartJsUtilsMediandLineOptions {
-  options?: {
-    plugins?: {
-      medianLine?: MedianLineOptions,
+export interface ChartJsUtilsMedianLineOptions<TType extends keyof ChartTypeRegistry> {
+  options?: ChartOptions<TType> & {
+    plugins?: PluginOptionsByType<TType> & {
+      medianLine?: MedianLineOptions
     }
   }
 }
-export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginServiceGlobalRegistration = {
-
+export const ChartJsPluginMedianLine: Plugin<any> = {
   id: 'medianline',
-
-  afterDraw: function(chart: Chart) {
+  afterDraw: function(chart: Chart<any> & ChartJsUtilsMedianLineOptions<any>) {
 
     function getStartStopFromOrientation(
       area: ChartArea,
-      scales: { x: ChartScales, y: ChartScales },
+      scales: { x: Scale<any>, y: Scale<any> },
       orientation: 'x' | 'y' | 'b'
     ): { start: { x: number, y: number }, stop: { x: number, y: number } } {
       const res = {start: {x: 0, y: 0}, stop: {x: 0, y: 0}};
@@ -154,7 +177,7 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
     }
 
     // DEBUG
-    //console.debug(`[${this.constructor.name}.getStartSropFromOrientation]`, arguments);
+    //console.debug(`[ChartJsPluginMedianLine.getStartSropFromOrientation]`, arguments);
 
     if (chart.options.plugins.medianLine === undefined) return;
 
@@ -166,17 +189,12 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
     }
 
     // Get the first x and y scale on the chart
-    const scales: { x: ChartScales, y: ChartScales } = ((chartScales: ChartScales[]) => {
-      const res = {x: undefined, y: undefined};
-      for (let scaleId in chartScales) {
-        let idFirstChar = scaleId[0]; // be x or y
-        if (['x', 'y'].includes(idFirstChar)) res[idFirstChar] = chartScales[scaleId];
-        if (res.x && res.y) break;
-      }
-      return res;
+    const scales: { x: Scale<any>, y: Scale<any> } = ((scales: { [key: string]: Scale }) => {
+      const {x, y} = scales;
+      return {x, y};
     })(chart['scales'])
     if (Object.entries(scales).find(s => s === undefined)) {
-      console.warn(`[${this.constructor.name}.getStartSropFromOrientation] least one scale is undefinded`, scales);
+      console.warn(`[ChartJsPluginMedianLine.getStartStopFromOrientation] least one scale (x,y) is undefined`, scales);
     }
 
     // Draw median
@@ -194,7 +212,31 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
 
 export class ChartJsUtils {
 
-  static computeChartPoints(values: number[][], radius: number = 6): ChartPoint[] {
+  private static _commonsRegistered = false;
+  private static _pluginsRegistered = false;
+
+  static register() {
+    this.registerCommons();
+    this.registerPlugins();
+  }
+
+  static registerCommons() {
+    if (this._commonsRegistered) return; // Skip
+    Chart.register(LineController, LineElement, PointElement, BarElement, BarController, DoughnutController, Title, LinearScale, LogarithmicScale, CategoryScale);
+    this._commonsRegistered = true;
+  }
+
+  static registerPlugins() {
+    if (this._pluginsRegistered) return; // Skip
+    Chart.register(chartTrendline);
+    Chart.register(ChartJsPluginThresholdLine);
+    Chart.register(ChartJsPluginMedianLine);
+    // Box plot (see https://github.com/sgratzl/chartjs-chart-boxplot)
+    Chart.register(BoxPlotController, BoxAndWiskers);
+    this._pluginsRegistered = true;
+  }
+
+  static computeChartPoints(values: number[][], radius: number = 6): Point[] {
     return values.map(s => {return {x: s[0], y: s[1], r: radius}});
   }
 
@@ -215,7 +257,7 @@ export class ChartJsUtils {
   }
 
   static pushLabels(chart: ChartConfiguration, labels: string[]) {
-    chart.data = chart.data || {};
+    chart.data = chart.data || {datasets: []};
     if (isNil(chart.data.labels)) {
       chart.data.labels = labels;
     }
@@ -223,13 +265,21 @@ export class ChartJsUtils {
       chart.data.labels.push(...labels);
     }
   }
+  static setLabels(chart: ChartConfiguration, labels: string[]) {
+    chart.data = chart.data || {datasets: undefined};
+    chart.data.labels = labels;
+  }
 
-  static pushDataSetOnChart(chart: ChartConfiguration, dataset: ChartDataSets) {
-    chart.data = chart.data || {};
+  static pushDataSet(chart: ChartConfiguration, dataset: ChartDataset) {
+    chart.data = chart.data || {datasets: []};
     if (isNil(chart.data.datasets)) chart.data.datasets = [dataset]
     else chart.data.datasets.push(dataset);
   }
 
+  static setSingleDataSet(chart: ChartConfiguration, dataset: ChartDataset) {
+    chart.data = chart.data || {datasets: undefined};
+    chart.data.datasets = [dataset];
+  }
 }
 
 export class ChartJsUtilsColor {
