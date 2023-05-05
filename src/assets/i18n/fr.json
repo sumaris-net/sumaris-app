@@ -1159,7 +1159,7 @@
       "VESSEL_LENGTH_STATS": "{{min}} à {{max}} m",
       "VESSEL_LENGTH_AVG": "{{avg}} m",
       "SEABED_FEATURES": "Types de fond :",
-      "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
+      "OPERATION_COUNT": "Nombre d'OP sélectionnées :",
       "SPECIES": "Espèce",
       "LANDING": "Débarquement",
       "DISCARD": "Rejet",

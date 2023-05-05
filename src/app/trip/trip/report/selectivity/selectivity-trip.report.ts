@@ -469,8 +469,16 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     // Set max scale
     const scaleMax = Math.ceil(max / 10 + 0.5) * 10;
-    chart.options.scales.xAxes[0].ticks = {min: 0, max: scaleMax};
-    chart.options.scales.yAxes[0].ticks = {min: 0, max: scaleMax};
+    chart.options.scales.x = {
+      ...chart.options.scales.x,
+      min: 0,
+      max: scaleMax
+    };
+    chart.options.scales.y = {
+      ...chart.options.scales.y,
+      min: 0,
+      max: scaleMax
+    }
 
     return [chart];
   }
