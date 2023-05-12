@@ -363,7 +363,9 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     this.locationListForm.value = []; //data.locations;
 
     this.gearListForm.value = data.gears;
-    this.taxonGroupListForm.value = data.taxonGroups;
+    this.taxonGroupListForm.value = data.taxonGroups?.sort((a, b) => {
+      return ('' + a.taxonGroup.label).localeCompare(b.taxonGroup.label);
+    });
     this.taxonNameListForm.value = data.taxonNames;
 
 
