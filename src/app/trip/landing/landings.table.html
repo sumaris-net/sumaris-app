@@ -23,7 +23,7 @@
   <ng-template #hasSelection>
 
     <!-- Delete -->
-    <button mat-icon-button *ngIf="enabled && canUserCancelOrDelete"
+    <button mat-icon-button *ngIf="enabled && canCancelOrDeleteSelectedRows"
             [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
@@ -244,7 +244,7 @@
         <ng-container *ngIf="row.editing; else notEditing">
           <!-- undo or delete -->
           <button mat-icon-button color="light"
-                  *ngIf="row.validator?.invalid && canUserCancelOrDelete"
+                  *ngIf="row.validator?.invalid && canCancelOrDelete(row)"
                   [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                   (click)="cancelOrDelete($event, row)">
             <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
@@ -262,7 +262,7 @@
         <ng-template #notEditing>
           <!-- Delete row button -->
           <button mat-icon-button
-                  *ngIf="canUserCancelOrDelete && singleSelectedRow === row; else otherButtons"
+                  *ngIf="enabled && singleSelectedRow === row && canCancelOrDelete(row); else otherButtons"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="cancelOrDelete($event, row)">
             <mat-icon>delete</mat-icon>

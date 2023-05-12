@@ -320,30 +320,36 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
+
+  get canCancelOrDeleteSelectedRows(): boolean {
     // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
     if (this.accountService.isAdmin()) {
       return true;
     }
 
-    const row = !this.selection.isEmpty() && this.selection.selected[0];
+    if (this.selection.isEmpty()) return false;
+
+    return this.selection.selected.every(row => this.canCancelOrDelete(row));
+  }
+
+  /* -- protected methods -- */
+
+  canCancelOrDelete(row: TableElement<Landing>): boolean {
+    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+    if (this.accountService.isAdmin()) {
+      return true;
+    }
+
+    const personId = this.accountService.person?.id;
     const entity = this.toEntity(row);
     const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
+    if (personId === recorder?.id) {
       return true;
     }
 
     // When connected user is in observed location observers
-    for (const observer of this._parentObservers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
-    return false;
+    return this._parentObservers?.some(o => o.id === personId) || false;
   }
-
-  /* -- protected methods -- */
 
   protected markForCheck() {
     this.cd.markForCheck();
