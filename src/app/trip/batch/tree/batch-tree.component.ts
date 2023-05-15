@@ -122,6 +122,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   readonly programLabel$ = this._state.select('programLabel');
   readonly program$ = this._state.select('program');
   readonly showSamplingBatchColumns$ = this._state.select(['allowSpeciesSampling', 'programAllowMeasure'], ({allowSpeciesSampling, programAllowMeasure}) => allowSpeciesSampling && programAllowMeasure);
+  readonly showCatchForm$ = this._state.select('showCatchForm');
+  readonly showBatchTables$ = this._state.select('showBatchTables');
+  readonly allowSubBatches$ = this._state.select('allowSubBatches');
 
   protected set showSubBatchesTable(value: boolean) {
     this._state.set('showSubBatchesTable', _ => value);
@@ -428,10 +431,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           this.subBatchesTable.readySubject,
           this.batchGroupsTable.dataSource.rowsSubject
             .pipe(map(isNotEmptyArray)),
-          this._state.select('allowSubBatches')
+          this.allowSubBatches$
         ])
         .pipe(
-          map(([hasPmfms, ready, howSows, allowSubBatches]) => hasPmfms && ready && howSows && allowSubBatches || false)
+          map(([hasPmfms, ready, howBatchGroupRows, allowSubBatches]) => hasPmfms && ready && howBatchGroupRows && allowSubBatches || false)
         )
       );
 

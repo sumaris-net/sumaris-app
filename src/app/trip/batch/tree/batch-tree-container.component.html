@@ -37,20 +37,21 @@
       <mat-toolbar>
 
         <!-- Toggle tree panel -->
-        <button mat-icon-button *rxIf="treePanelFloating$"
-                (click)="toggleTreePanel()"
-                [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
-          <mat-icon class="mat-icon-rtl-mirror"
-                    matBadge="!"
-                    *ngIf="model; let model"
-                    [matBadgeHidden]="model.valid && model.childrenValid"
-                    matBadgeOverlap="false"
-                    matBadgeColor="accent"
-                    matBadgeSize="small"
-                    matBadgePosition="above after"
-          >{{sidenav.opened ? 'chevron_left' : 'chevron_right'}}</mat-icon>
-          &nbsp;
-        </button>
+        <ng-container *rxIf="treePanelFloating$">
+          <button mat-icon-button *rxIf="model$; let model"
+                  (click)="toggleTreePanel()"
+                  [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate"
+                  matBadge="!"
+                  [matBadgeHidden]="model.valid && model.childrenValid"
+                  matBadgeOverlap="true"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">
+            <mat-icon>account_tree</mat-icon>
+          </button>
+
+          <span class="breadcrumb-separator"> / </span>
+        </ng-container>
 
         <div *ngIf="editingBatch$|async; let node; else helpMessage">
           <ng-container *ngTemplateOutlet="breadcrumbButtons; context: {$implicit: node}"></ng-container>
@@ -175,33 +176,34 @@
 
   <ng-container *ngIf="parent && !parent.hidden">
     <!-- Allow to select a parent's brother -->
-    <button mat-button class="breadcrumb"
-            *ngIf="parent.parent?.children|isArrayLength:{greaterThan: 1}; else noParentBrother"
-            [matMenuTriggerFor]="childrenMenu"
-            [matMenuTriggerData]="{node: parent.parent, selected: parent}">
-            <span matBadge="!"
-                  [matBadgeHidden]="!parent.invalid"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">{{parent.name}}</span>
-
-      <span class="breadcrumb-separator">/</span>
-    </button>
+    <ng-container *ngIf="parent.parent?.children|isArrayLength:{greaterThan: 1}; else noParentBrother">
+      <button mat-button class="breadcrumb"
+              [matMenuTriggerFor]="childrenMenu"
+              [matMenuTriggerData]="{node: parent.parent, selected: parent}"
+              matBadge="!"
+              [matBadgeHidden]="!parent.invalid"
+              matBadgeOverlap="true"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after">
+              {{parent.name}}
+      </button>
+      <span class="breadcrumb-separator"> / </span>
+    </ng-container>
 
     <!-- Parent has no brother  -->
     <ng-template #noParentBrother>
       <button mat-button class="breadcrumb"
-              (click)="startEditBatch($event, parent)">
-              <span matBadge="!"
-                    [matBadgeHidden]="!parent.invalid"
-                    matBadgeOverlap="false"
-                    matBadgeColor="accent"
-                    matBadgeSize="small"
-                    matBadgePosition="above after">{{parent.name}}</span>
-
-        <span class="breadcrumb-separator">/</span>
+              (click)="startEditBatch($event, parent)"
+              matBadge="!"
+              [matBadgeHidden]="!parent.invalid"
+              matBadgeOverlap="true"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after">
+              {{parent.name}}
       </button>
+      <span class="breadcrumb-separator"> / </span>
     </ng-template>
   </ng-container>
 </ng-template>
@@ -214,23 +216,22 @@
   <!-- current batch name -->
   <button mat-button
           class="breadcrumb selected"
+          *rxLet="currentBadge$ as badgeContent"
           [disabled]="!node.parent"
           [matMenuTriggerFor]="childrenMenu"
           [matMenuTriggerData]="{node: node.parent, selected: node}"
-          *rxLet="currentBadge$ as badgeContent"
-          >
-    <mat-label
-               [matBadge]="badgeContent?.text"
-               [matBadgeHidden]="badgeContent?.hidden"
-               [matBadgeColor]="badgeContent?.color"
-               matBadgeOverlap="false"
-               matBadgeSize="small"
-               matBadgePosition="above after">{{node.name}}</mat-label>
-
-    <span *ngIf="!node.isLeaf" class="breadcrumb-separator">/</span>
+          [matBadge]="badgeContent?.text"
+          [matBadgeHidden]="badgeContent?.hidden"
+          [matBadgeColor]="badgeContent?.color"
+          matBadgeOverlap="true"
+          matBadgeSize="small"
+          matBadgePosition="above after">
+    {{node.name}}
   </button>
 
   <ng-container *ngIf="!node.isLeaf">
+
+    <span class="breadcrumb-separator"> / </span>
 
     <!-- Children menu -->
     <button mat-button class="breadcrumb"

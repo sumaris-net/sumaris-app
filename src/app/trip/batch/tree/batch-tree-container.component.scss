@@ -44,8 +44,11 @@ mat-toolbar {
     font-size: inherit;
   }
 
+
   .breadcrumb-separator {
     color: var(--ion-color-step-550, #73849a);
+    margin-inline-start: var(--padding-start);
+    margin-inline-end: calc(-1 * var(--padding-end));
   }
 
   .mat-button.breadcrumb {
@@ -61,10 +64,14 @@ mat-toolbar {
       color: var(--ion-color-dark);
     }
 
-    .breadcrumb-separator {
-      margin-inline-start: var(--padding-start);
-      margin-inline-end: calc(-1 * var(--padding-end));
+    &.mat-badge-overlap .mat-badge-content {
+      right: 0px !important;
     }
+    &.mat-badge-overlap .mat-badge-content {
+      top: 0px !important;
+    }
+
+
   }
 
   ion-item.help {

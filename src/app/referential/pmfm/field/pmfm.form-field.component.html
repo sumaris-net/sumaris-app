@@ -51,7 +51,8 @@
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
-           autocomplete="off" type="number"
+           autocomplete="off"
+           type="number"
            pattern="[0-9]*"
            step="1"
            [readonly]="readonly"
@@ -72,6 +73,7 @@
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
         <span *ngSwitchCase="'pattern'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'precision'">{{(compact ? 'ERROR.FIELD_NOT_VALID_PRECISION_COMPACT' : 'ERROR.FIELD_NOT_VALID_PRECISION') | translate: control.errors.precision }}</span>
         <span *ngSwitchCase="'min'">
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
@@ -110,6 +112,7 @@
       <ng-container [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'decimal'" translate>ERROR.FIELD_NOT_VALID_DECIMAL</span>
+        <span *ngSwitchCase="'precision'">{{(compact ? 'ERROR.FIELD_NOT_VALID_PRECISION_COMPACT' : 'ERROR.FIELD_NOT_VALID_PRECISION') | translate: control.errors.precision }}</span>
         <span *ngSwitchCase="'min'">
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">

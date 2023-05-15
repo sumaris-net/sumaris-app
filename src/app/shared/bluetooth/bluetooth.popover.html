@@ -1,0 +1,95 @@
+<ion-content>
+  <ion-list class="ion-list-popover">
+
+    <ion-row class="ion-list-header column">
+      <ion-col>
+        <ion-label>{{titleI18n | translate}}</ion-label>
+      </ion-col>
+    </ion-row>
+
+    <ion-item *rxLet="enabled$ as enabled" [color]="enabled ? 'secondary100' : 'medium'">
+      <ion-icon name="bluetooth" slot="start"></ion-icon>
+      <ion-label>{{(enabled ? 'SHARED.BLUETOOTH.ENABLED' : 'SHARED.BLUETOOTH.DISABLED') | translate}}</ion-label>
+      <ion-toggle [checked]="enabled" (ionChange)="toggleBluetooth()"></ion-toggle>
+    </ion-item>
+
+    <!-- Selected devices -->
+    <ion-item *rxFor="let device of selectedDevices$">
+      <app-icon [ref]="selectedDevicesIcon" slot="start"></app-icon>
+      <ion-label>
+        <h2>{{ device.name }}</h2>
+        <p>{{ device.address }}</p>
+        <p *ngIf="device.meta?.model as model">
+          {{ model }}
+          <span *ngIf="device.meta.version"> - {{ device.meta.version|lowercase }}</span>
+        </p>
+      </ion-label>
+      <ion-spinner *rxIf="connecting$; else disconnectButton" slot="end" color="secondary"></ion-spinner>
+      <ng-template #disconnectButton>
+        <ion-button slot="end" color="secondary"
+                    [disabled]="connecting$|async"
+                    (click)="disconnect(device)"
+                    translate>SHARED.BLUETOOTH.BTN_DISCONNECT</ion-button>
+      </ng-template>
+    </ion-item>
+
+    <ng-container *rxLet="loading$ as loading">
+      <ion-item-divider>
+        <ion-label translate>SHARED.BLUETOOTH.AVAILABLE_DEVICES</ion-label>
+        <ion-button slot="end"
+                    *ngIf="!loading"
+                    color="tertiary"
+                    [fill]="loading ? 'clear' : 'solid'"
+                    [disabled]="loading"
+                    (click)="scan()">{{'SHARED.BLUETOOTH.BTN_SCAN'|translate}}</ion-button>
+      </ion-item-divider>
+
+      <!-- loading -->
+      <ion-item *ngIf="loading; else notLoading"
+                lines="none" disabled>
+        <ion-skeleton-text [animated]="true" style="width: 100%"></ion-skeleton-text>
+      </ion-item>
+
+      <ng-template #notLoading>
+        <ng-container *ngIf="(devices$|async) as devices">
+          <ion-item
+            *ngFor="let device of devices; trackBy: trackByFn; last as last;"
+            [lines]="last ? 'none' : undefined"
+            tappable
+            (click)="connect($event, device)">
+
+            <mat-icon slot="start">{{getDeviceMatIcon(device)}}</mat-icon>
+
+            <ion-label>
+              <h2>{{ device.name }}</h2>
+              <p>{{ device.address }}</p>
+            </ion-label>
+          </ion-item>
+
+          <!-- no result -->
+          <ion-item *ngIf="devices|isEmptyArray" lines="none">
+            <ion-text color="danger" class="text-italic">{{'SHARED.BLUETOOTH.NO_DEVICE' | translate}}</ion-text>
+          </ion-item>
+        </ng-container>
+      </ng-template>
+
+      <!-- footer -->
+      <ion-row class="ion-list-footer column">
+        <ion-col>
+          <ion-text class="ion-float-end ion-padding-end">
+            <i>
+              <span *rxIf="loading$; else resultCount" translate>COMMON.LOADING_DOTS</span>
+              <ng-template #resultCount>
+                <span *rxIf="deviceCount$; let count">
+                {{'COMMON.RESULT_COUNT'|translate: {count: count} }}
+                </span>
+              </ng-template>
+            </i>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
+  </ion-list>
+</ion-content>
+

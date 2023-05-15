@@ -1,3 +1,4 @@
+
 .mat-expansion-panel {
   margin-bottom: 5px;
 
@@ -19,19 +20,10 @@
     }
   }
 }
-.table-container {
-  height: calc(100%);
-
-  &.has-offline-nav {
-    height: calc(100% - var(--mat-tab-link-height) - 2px) !important;
-  }
-}
 
 .mat-table {
   min-width: 100%;
   --mat-cell-vertical-padding: 4px;
-
-
 
   .mat-header-row,
   .mat-row {
@@ -59,6 +51,11 @@
     .mat-column-departureLocation,
     .mat-column-returnLocation {
       min-width: 150px;
+    }
+
+    .mat-column-observers,
+    .mat-column-recorderPerson {
+      min-width: 180px;
     }
 
     .mat-column-actions {

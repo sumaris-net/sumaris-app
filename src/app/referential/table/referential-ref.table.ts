@@ -27,7 +27,8 @@ export declare type AppTableMode = 'select' | 'edit'; // TODO more
   styleUrls: ['./referential-ref.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
+export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter>
+  extends AppTable<T, F> {
 
   private _mode: AppTableMode = 'edit';
 

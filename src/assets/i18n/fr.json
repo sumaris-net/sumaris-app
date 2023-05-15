@@ -670,7 +670,7 @@
         "MESH_GAUGE_ASS_MM": "Maillage - Cul de châlut (mm)",
         "GROUNDROPE_TYPE": "Type de bourrelet",
         "VERTICAL_OPENING_ESTIMATED": "Ouverture verticale - Estimée (m)",
-        "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
+        "VERTICAL_OPENING_MEASURED": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
         }
@@ -978,6 +978,8 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
+        "SORTING_START_DATE_TIME": "Début de tri",
+        "SORTING_END_DATE_TIME": "Fin de tri",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",
@@ -1093,7 +1095,7 @@
           "TAG_ID": "Référence de la marque"
         },
         "AUCTION_CONTROL": {
-          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon (g)"
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
@@ -2734,6 +2736,28 @@
       "NEED_GEOLOCATION": "<b>Activation de la géolocalisation requise</b><br/><br/>Pour pouvoir utiliser correctement l'application veuillez autoriser la géolocalisation de l'appareil."
     }
   },
+  "SHARED": {
+    "BLUETOOTH": {
+      "TITLE": "Paramètres Bluetooth",
+      "ENABLED": "Activé",
+      "DISABLED": "Désactivé",
+      "AVAILABLE_DEVICES": "Périphériques disponibles :",
+      "ADDRESS": "Adresse (MAC)",
+      "NAME": "Nom",
+      "NO_DEVICE": "Aucun périphérique trouvé",
+      "BTN_SCAN": "Analyser",
+      "BTN_DISCONNECT": "Déconnecter",
+      "ERROR": {
+        "DISABLED": "Le bluetooth est désactivé"
+      }
+    },
+    "ICHTHYOMETER": {
+      "TITLE": "Ichtyomètre bluetooth",
+      "SETTINGS": {
+        "DEVICES": "Ichthyomètre: Périphérique(s)"
+      }
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
@@ -2746,11 +2770,13 @@
     "FIELD_MIN_COMPACT": "Min {{min}}",
     "FIELD_MAX": "Valeur maximale : {{max}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Trop de décimales (max: {{maxDecimals}})",
+    "FIELD_MAXIMUM_DECIMALS": "Trop de décimales (max : {{maxDecimals}})",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale > {{maxDecimals}}",
     "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_DECIMAL": "Valeur décimale attendue",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
+    "FIELD_NOT_VALID_PRECISION": "Precision minimale : {{precision}}",
+    "FIELD_NOT_VALID_PRECISION_COMPACT": "Precision min {{precision}}",
     "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",

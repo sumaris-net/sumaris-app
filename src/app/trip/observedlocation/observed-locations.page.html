@@ -119,32 +119,11 @@
 
 </mat-menu>
 
-<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
-<ion-content class="ion-no-padding" scroll-y="false">
+<ion-content class="ion-no-padding ion-flex-direction-column">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
-
-  <!-- Network status (+ Install and upgrade link)  -->
-  <app-install-upgrade-card [isLogin]="isLogin"
-                            [showInstallButton]="false"
-                            [showUpgradeWarning]="true"
-                            [showOfflineWarning]="false">
-  </app-install-upgrade-card>
-
-  <!-- Update offline mode -->
-  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
-                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
-                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
-                                [progressionValue]="$progression | push: 'low'">
-  </app-update-offline-mode-card>
-
-  <!-- error -->
-  <ion-item *ngIf="errorSubject|async ; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
@@ -297,6 +276,27 @@
       </ion-button>
     </mat-action-row>
   </mat-expansion-panel>
+
+
+  <!-- Network status (+ Install and upgrade link)  -->
+  <app-install-upgrade-card [isLogin]="isLogin"
+                            [showInstallButton]="false"
+                            [showUpgradeWarning]="true"
+                            [showOfflineWarning]="false">
+  </app-install-upgrade-card>
+
+  <!-- Update offline mode -->
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
+                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
+                                [progressionValue]="$progression | push: 'low'">
+  </app-update-offline-mode-card>
+
+  <!-- error -->
+  <ion-item *ngIf="errorSubject|async ; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
 
   <!-- Tab nav - synchro status-->

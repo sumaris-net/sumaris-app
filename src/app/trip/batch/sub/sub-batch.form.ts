@@ -619,15 +619,15 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
 
     // Check weight-length conversion is enabled
-    pmfms = pmfms.filter(p => {
+    pmfms = pmfms.filter(pmfm => {
       // If RTP weight: enable conversion, and hidden pmfms
-      if (p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
-        || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
+      if (pmfm.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+        || pmfm.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
         this.enableLengthWeightConversion = true;
         if (this.weightDisplayedUnit) {
-          p = PmfmUtils.setWeightUnitConversion(p, this.weightDisplayedUnit);
+          pmfm = PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit);
         }
-        this.weightPmfm = p;
+        this.weightPmfm = pmfm;
         return false;
       }
       return true;

@@ -30,7 +30,7 @@
   <app-landings-table #table
                      [showObserversColumn]="false"
                      [showDateTimeColumn]="true"
-                     [canEdit]="false"
+                     [disabled]="true"
                      [canDelete]="false"
                      (onOpenRow)="selectRow($event)"
                      (onNewRow)="close($event)"

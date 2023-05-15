@@ -11,7 +11,7 @@ import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
-import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-data.test';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';

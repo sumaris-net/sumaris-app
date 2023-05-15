@@ -476,7 +476,7 @@ export class BatchForm<
     super.ngOnDestroy();
   }
 
-  applyState(state: Partial<BatchFormState>) {
+  applyState(state: Partial<S>) {
     this._state.set(oldState => ({
       ...oldState,
       ...state,

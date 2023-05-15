@@ -2,7 +2,7 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} fro
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
@@ -15,6 +15,7 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 import {LandingService} from '@app/trip/services/landing.service';
 import {Trip} from '@app/trip/services/model/trip.model';
 import {Program} from '@app/referential/services/model/program.model';
+import { Sample } from '@app/trip/services/model/sample.model';
 
 
 @Component({
@@ -67,7 +68,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       .then(pmfmGroups => {
         // Configure sample table
         this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
-        this.samplesTable.computedPmfmGroups = ['AGE'];
+        this.samplesTable.computedPmfmGroups = ['AGE']; // FIXME: use ParameterLabelGroups.AGE instead ?
         this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
       });
@@ -240,12 +241,12 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()]
+    const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL.toString()]
     if (strategyLabel) {
       this.$strategyLabel.next(strategyLabel);
     }
 
-    if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
+    if (this.parent instanceof ObservedLocation && isNotNil(data.id)) {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.WARNING.NOT_OBSERVER_ERROR' : null;
     }

@@ -1,7 +1,6 @@
 import {
   EntityClass,
   fromDateISOString,
-  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,

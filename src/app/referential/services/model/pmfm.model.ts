@@ -1,4 +1,4 @@
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol } from './model.enum';
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
@@ -11,7 +11,7 @@ export declare type ExtendedPmfmType = PmfmType | 'latitude' | 'longitude' | 'du
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)((?:\s+\/\s+[^/]+)|(?:\([^\)]+\)))$/);
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
 
 export interface IPmfm<
   T extends IPmfm<T, ID> = IPmfm<any, any>,
@@ -372,35 +372,28 @@ export abstract class PmfmUtils {
   }): string {
     if (!pmfm) return undefined;
 
-    let name;
+    let name, details;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
       // If withDetails = true, use complete name if exists
-      if (opts && opts.withDetails && pmfm.completeName) {
-        if (!opts.html) return pmfm.completeName;
-
-        // Html: secondary elements (matrix, fraction, method, etc.) small
+      if (opts?.withDetails && pmfm.completeName) {
+        // extract secondary elements (matrix, fraction, method, etc.)
         const index = pmfm.completeName.indexOf(' - ');
-        return index !== -1
-          ? `<b>${pmfm.completeName.substr(0, index)}</b><div class="pmfm-details">${pmfm.completeName.substr(index + 3)}</div>`
-          : pmfm.completeName;
-      }
-
-      // Remove parenthesis content (=synonym), if any
-      // e.g.
-      // - 'Longueur totale (LT)' should becomes 'Longueur totale'
-      // - 'D1 / Open wounds' should becomes 'D1'
-
-      if (!opts || opts.compact !== false) {
-        const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(pmfm.name || '');
-        name = matches && matches[1] || pmfm.name;
+        if (index !== -1) {
+          name = pmfm.completeName.substring(0, index);
+          details = pmfm.completeName.substring(index + 3);
+        }
+        else {
+          name = pmfm.completeName;
+        }
       }
       else {
         name = pmfm.name;
       }
-    } else if (PmfmUtils.isFullPmfm(pmfm)) {
-      name = pmfm.parameter && pmfm.parameter.name;
-      if (opts && opts.withDetails) {
-        name += [
+    }
+    else if (PmfmUtils.isFullPmfm(pmfm)) {
+      name = pmfm.parameter?.name;
+      if (opts?.withDetails) {
+        details = [
           pmfm.matrix && pmfm.matrix.name,
           pmfm.fraction && pmfm.fraction.name,
           pmfm.method && pmfm.method.name
@@ -408,14 +401,46 @@ export abstract class PmfmUtils {
       }
     }
 
+    name = this.sanitizeName(name, pmfm, opts);
+
+    if (isNotNilOrBlank(details)) {
+      if (opts?.html) {
+        return `<b>${name}</b><div class="pmfm-details">${details}</div>`;
+      }
+      else {
+        return `${name} - ${details}`;
+      }
+    }
+
+    return name;
+  }
+
+  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean;}): string {
+
+    // Compact mode
+    if (!opts || opts.compact !== false) {
+      // Remove parenthesis content (=synonym), if any
+      // e.g.
+      // - 'Longueur totale (LT)' should becomes 'Longueur totale'
+      // - 'D1 / Open wounds' should becomes 'D1'
+      const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(name || '');
+      name = matches?.[1] || name;
+    }
+
     // Append unit
     if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel && pmfm.unitLabel !== '°') {
-      if (opts && opts.html) {
-        name += `<small><br/>(${pmfm.unitLabel})</small>`;
+      if (opts?.html) {
+        if (opts?.withDetails) {
+          name += ` (${pmfm.unitLabel})`;
+        }
+        else {
+          name += `<small><br/>(${pmfm.unitLabel})</small>`;
+        }
       } else {
         name += ` (${pmfm.unitLabel})`;
       }
     }
+
     return name;
   }
 
@@ -429,7 +454,7 @@ export abstract class PmfmUtils {
                                                    expectedWeightSymbol: WeightUnitSymbol,
                                                    opts = { clone: true }): P[] {
     (pmfms || []).forEach((pmfm, i) => {
-      pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts);
+      pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts) || pmfm;
     });
     return pmfms;
   }
@@ -437,10 +462,12 @@ export abstract class PmfmUtils {
   static setWeightUnitConversion<P extends IPmfm>(source: P,
                                                   expectedWeightSymbol: WeightUnitSymbol,
                                                   opts = { clone: true }): P {
-    if (!this.isWeight(source)) return source;
+    if (!this.isWeight(source)) return source; // SKip if not a weight pmfm
 
     const actualWeightUnit = source.unitLabel?.toLowerCase() || UnitLabel.KG;
-    if (actualWeightUnit === expectedWeightSymbol) return; // Conversion not need
+    if (actualWeightUnit === expectedWeightSymbol) {
+      return source; // Conversion not need
+    }
 
     // actual -> kg (pivot) -> expected
     const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
@@ -458,20 +485,60 @@ export abstract class PmfmUtils {
       if (matches) {
         target.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
       }
-
-      // Convert max number decimals
-      if (isNotNil(target.maximumNumberDecimals)) {
-        const convertedMaximumNumberDecimals = Math.log10(conversionCoefficient);
-        target.maximumNumberDecimals = Math.max(0, target.maximumNumberDecimals - convertedMaximumNumberDecimals);
+    }
+    else if (target instanceof Pmfm) {
+      if (target.unit) {
+        // Update the complete name (the unit part), if exists
+        const matches = target.name && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.name);
+        if (matches) {
+          target.name = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
+        }
+        target.unit.label = expectedWeightSymbol;
+        target.unit.name = expectedWeightSymbol;
       }
     }
-    else if ((target instanceof Pmfm) && target.unit) {
-      target.unit.label = expectedWeightSymbol;
-      target.unit.name = expectedWeightSymbol;
+
+    // Convert max number decimals
+    if (isNotNil(target.maximumNumberDecimals)) {
+      const convertedMaximumNumberDecimals = Math.log10(conversionCoefficient);
+      target.maximumNumberDecimals = Math.max(0, target.maximumNumberDecimals - convertedMaximumNumberDecimals);
+      // DEBUG
+      //console.debug(`[pmfm-utils] PMFM '${target.label}' Changing maximumNumberDecimals to ${target.maximumNumberDecimals}`);
+    }
+
+    // DEBUG
+    //else console.debug(`[pmfm-utils] PMFM '${target.label}' without maximumNumberDecimals`, target);
+
+    // Convert precision
+    const precision = PmfmUtils.getOrComputePrecision(source);
+    if (precision > 0) {
+      target.precision = precision * conversionCoefficient;
+      // DEBUG
+      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing precision from ${precision} to ${target.precision}`);
+    }
+
+    // Convert type
+    if (target.type === 'double' && target.maximumNumberDecimals === 0) {
+      target.type = 'integer';
+      // DEBUG
+      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing type to '${target.type}'`);
     }
     return target;
   }
 
+  /**
+   * Get or compute the precision, for a numerical pmfm (double or integer). Will use the defined precision, or compute it from maximumNumberDecimals.
+   * Example:
+   * - if maximumNumberDecimals=null and precision=null, then precision = defaultPrecision
+   * - if maximumNumberDecimals=1 and precision=0.5, then precision=0.5
+   * - if maximumNumberDecimals=1 and precision=null, then precision=0.1
+   * @param pmfm
+   */
+  static getOrComputePrecision(pmfm: IPmfm, defaultPrecision?: number): number {
+    if (pmfm.precision > 0) return pmfm.precision;
+    if (isNil(pmfm.maximumNumberDecimals)) return defaultPrecision;
+    return Math.pow(10, -1 * pmfm.maximumNumberDecimals);
+  }
 }
 
 

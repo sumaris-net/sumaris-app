@@ -34,9 +34,9 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   private _onTouchedCallback: () => void = noop;
   private _subscription = new Subscription();
 
-  type: string;
-  numberInputStep: string;
-  formArrayHelper: FormArrayHelper<PmfmValue>;
+  protected type: string;
+  protected numberInputStep: string;
+  protected formArrayHelper: FormArrayHelper<PmfmValue>;
 
   /**
    * Same as `formControl`, but avoid to activate the Angular directive
@@ -270,8 +270,8 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   /* -- protected method -- */
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
-    return Math.pow(10, -1 * (pmfm.maximumNumberDecimals || 0))
-      .toString().replace(',', '.');
+    return PmfmUtils.getOrComputePrecision(pmfm, 1)
+      .toString();
   }
 
   protected updateTabIndex() {

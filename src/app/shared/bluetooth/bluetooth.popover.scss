@@ -1,0 +1,42 @@
+
+:host(.popover-viewport) {
+  ion-content {
+    overflow-y: auto;
+    user-select: none;
+    max-height: var(--max-height);
+  }
+}
+
+ion-list {
+  ion-item {
+    &.tappable {
+      cursor: pointer;
+    }
+    &.tappable:hover {
+      --ion-item-background: var(--ion-item-background-color-hover);
+    }
+  }
+}
+
+.message {
+  font-size: 0.9em;
+
+  p {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+}
+
+.top-action {
+  text-align: end;
+  margin-right: 8px;
+  a {
+    cursor: pointer;
+    color: var(--ion-color-contrast);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+

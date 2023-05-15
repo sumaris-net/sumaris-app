@@ -27,6 +27,7 @@ export interface SelectVesselsForDataModalOptions {
   allowAddNewVessel: boolean;
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
+  showSamplesCountColumn: boolean;
   defaultVesselSynchronizationStatus: SynchronizationStatus;
   maxDateVesselRegistration?: Moment;
 }
@@ -54,6 +55,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @Input() allowAddNewVessel: boolean;
   @Input() showVesselTypeColumn: boolean;
   @Input() showBasePortLocationColumn: boolean;
+  @Input() showSamplesCountColumn: boolean;
 
   @Input() defaultVesselSynchronizationStatus: SynchronizationStatus;
   @Input() defaultRegistrationLocation: ReferentialRef;

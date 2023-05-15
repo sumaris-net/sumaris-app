@@ -25,6 +25,9 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {DevicePositionService} from '@app/data/services/device-position.service';
 import {IonModal} from '@ionic/angular';
 import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/services/config/device-position.config';
+import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
+import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
+import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
 
 @Component({
   selector: 'app-root',
@@ -46,6 +49,7 @@ export class AppComponent {
     private configService: ConfigService,
     private settings: LocalSettingsService,
     private devicePositionService: DevicePositionService,
+    private bluetoothService: BluetoothService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private cd: ChangeDetectorRef
@@ -64,6 +68,9 @@ export class AppComponent {
 
     // Add additional account fields
     this.addAccountFields();
+
+    // Add additional settings fields
+    this.addLocalSettingFields();
 
     this.addCustomSVGIcons();
 
@@ -214,6 +221,21 @@ export class AppComponent {
         departmentDefinition.autocomplete.attributes = attributes;
         departmentDefinition.autocomplete.displayWith = (value) => value && joinPropertiesPath(value, attributes) || undefined;
       });
+  }
+
+  protected addLocalSettingFields() {
+    if (this.platform.mobile) {
+      console.debug('[app] Add additional local settings options...');
+
+      const ichthyometerOption = {
+        ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS,
+        autocomplete: {
+          ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS.autocomplete,
+          suggestFn: (value, filter) => this.bluetoothService.suggest(value, filter)
+        }
+      }
+      this.settings.registerOption(ichthyometerOption);
+    }
   }
 
   protected addCustomSVGIcons() {

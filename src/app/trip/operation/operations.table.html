@@ -101,9 +101,23 @@
     <mat-icon>sort</mat-icon>
     <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
   </button>
-
 </mat-menu>
 
+<!-- debug -->
+<app-debug *ngIf="debug" [title]="'Operations'">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        ready: {{readySubject|async}}<br/>
+        loading: {{loading}}<br/>
+        enabled: {{enabled}}<br/>
+        dirty: {{dirtySubject|async}}<br/>
+      </ion-col>
+      <ion-col>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
 
 <!-- error -->
 <ion-item *ngIf="mobile && error" lines="none">
@@ -111,7 +125,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
+<div #tableContainer class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="paginator && true">
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
@@ -410,11 +426,11 @@
 </ion-footer>
 
 <ng-template #addRowButton>
-  <span *ngIf="!mobile && enabled">&nbsp;
-    <ion-button color="medium"
-                (click)="addRow()">
-      <ion-icon name="add" slot="start"></ion-icon>
-      <span translate>COMMON.BTN_ADD</span>
-    </ion-button>
-  </span>
+<span *ngIf="!mobile && enabled">&nbsp;
+  <ion-button color="medium"
+              (click)="addRow()">
+    <ion-icon name="add" slot="start"></ion-icon>
+    <span translate>COMMON.BTN_ADD</span>
+  </ion-button>
+</span>
 </ng-template>

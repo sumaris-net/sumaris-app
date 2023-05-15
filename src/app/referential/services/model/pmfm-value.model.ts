@@ -128,12 +128,15 @@ export abstract class PmfmValueUtils {
     }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {
-      return '' + (+value / value.__conversionCoefficient);
+      // DEBUG
+      //console.debug(`[pmfm-value] Apply inverse conversion: ${value} * ${value.__conversionCoefficient}`);
+
+      return (+value / value.__conversionCoefficient).toString();
     }
     // Qualitative value, String or number
     else {
       value = notNilOrDefault(value.id, value);
-      return '' + value;
+      return ''+ value;
     }
   }
 
@@ -162,15 +165,19 @@ export abstract class PmfmValueUtils {
         return null;
       case 'integer':
         if (isNilOrNaN(value)) return null;
-        value = parseInt(value);
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
-
           // DEBUG
-          console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+          //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
 
+          value = parseFloat(value); // Fix OBSBIO-20 input value could be a float
           value = new Number(value * pmfm.displayConversion.conversionCoefficient);
+
+          // Storage conversion coefficient (need by inverse conversion)
           value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
+        }
+        else {
+          value = parseInt(value);
         }
         return value;
       case 'double':
@@ -179,7 +186,7 @@ export abstract class PmfmValueUtils {
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
           // DEBUG
-          //console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+          //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
 
           value = new Number(value * pmfm.displayConversion.conversionCoefficient);
 
@@ -194,7 +201,7 @@ export abstract class PmfmValueUtils {
       case 'date':
         return fromDateISOString(value) || null;
       default:
-        throw new Error('Unknown pmfm\'s type: ' + pmfm.type);
+        throw new Error('Unknown pmfm type: ' + pmfm.type);
     }
   }
 

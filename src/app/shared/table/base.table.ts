@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, toBoolean
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -67,7 +67,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
-  @Input() showPaginator = true;
+  @Input() showPaginator: boolean;
   @Input() showFooter = true;
   @Input() showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -144,6 +144,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   ngOnInit() {
     super.ngOnInit();
+    this.showPaginator = toBoolean(this.showPaginator, !!this.paginator);
 
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
@@ -176,17 +177,31 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       );
     }
 
+    // Enable permanent selection (to keep selected rows after reloading)
+    // (only on desktop, if not already done)
+    if (!this.mobile && !this.permanentSelection) {
+      this.initPermanentSelection();
+    }
+
     this.restoreCompactMode();
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Add shortcut
-    if (!this.mobile && this.tableContainerRef) {
+    this.initTableContainer(this.tableContainerRef?.nativeElement);
+  }
+
+  initTableContainer(element: any) {
+    if (!element) return; // Skip if already done
+
+    if (!this.mobile) {
+
+      // Add shortcuts
+      console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element: this.tableContainerRef.nativeElement })
+          .addShortcut({ keys: 'control.a', element })
           .pipe(
             filter(() => this.canEdit),
             map(() => this.dataSource?.getRows()),
@@ -198,7 +213,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
           })
       );
       this.registerSubscription(
-        this.hotkeys.addShortcut({keys: 'control.shift.+', element: this.tableContainerRef.nativeElement, description: 'COMMON.BTN_ADD'})
+        this.hotkeys.addShortcut({keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element})
           .pipe(filter(e => !this.disabled && this.canEdit))
           .subscribe((event) => this.addRow(event))
       );

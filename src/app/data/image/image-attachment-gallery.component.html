@@ -1,11 +1,11 @@
 <app-image-gallery [dataSource]="galleryDataSource"
                    [mobile]="mobile"
                    [disabled]="disabled"
-                   [readOnly]="readOnly"
+                   [readOnly]="readOnly || disabled"
                    [mode]="mode"
                    [cardColor]="cardColor"
                    [showToolbar]="showToolbar"
-                   [showAddCardButton]="showAddCardButton"
+                   [showAddCardButton]="!disabled && showAddCardButton"
                    [showFabButton]="showFabButton"
                    (onAfterAddRows)="onAfterAddRows($event)">
 </app-image-gallery>
