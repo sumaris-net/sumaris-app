@@ -22,7 +22,7 @@ APK_FILE_ALTERNATIVE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-
 
 cd ${PROJECT_DIR}
 
-# Sign files
+# Checking files
 echo "Checking keystore file..."
 if [[ ! -f "${KEYSTORE_FILE}" ]]; then
   echo "Keystore file not found: ${KEYSTORE_FILE}"

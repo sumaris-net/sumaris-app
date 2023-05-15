@@ -43,15 +43,15 @@ echo "Sending v$version extension to Github..."
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
     # Get it from user config dir
-  GITHUB_TOKEN=$(cat ~/.config/${PROJECT_NAME}/.github)
+    GITHUB_TOKEN=$(cat ~/.config/${PROJECT_NAME}/.github)
 fi
 if [[ "_${GITHUB_TOKEN}" != "_" ]]; then
     GITHUT_AUTH="Authorization: token ${GITHUB_TOKEN}"
 else
     echo "ERROR: Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-      echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
-      echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
+    echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
+    echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
     exit 1
 fi
 
@@ -75,13 +75,13 @@ case "$task" in
       prerelease="false"
     fi
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version"`
-    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
+    result=$(curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version")
+    release_url=$(echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+")
     if [[ "_$release_url" != "_" ]]; then
       echo "Deleting existing release... $release_url"
-      result=`curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url`
+      result=$(curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url)
       if [[ "_$result" != "_" ]]; then
-          error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
+          error_message=$(echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\"")
           echo "Delete existing release failed with error $error_message"
           exit 1
       fi
@@ -104,9 +104,8 @@ case "$task" in
 
     ###  Sending files
     echo "Uploading files to ${upload_url} ..."
-    DIRNAME=$(pwd)
 
-    ZIP_FILE="${DIRNAME}/dist/${PROJECT_NAME}.zip"
+    ZIP_FILE="${PROJECT_DIR}/dist/${PROJECT_NAME}.zip"
     if [[ -f "${ZIP_FILE}" ]]; then
       artifact_name="${PROJECT_NAME}-${version}-web.zip"
       result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${artifact_name}")
