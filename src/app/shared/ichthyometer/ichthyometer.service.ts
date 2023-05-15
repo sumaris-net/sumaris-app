@@ -5,7 +5,7 @@ import { IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.icon';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/ichthyometer.gwaleen';
 import { EMPTY, from, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import { APP_LOGGING_SERVICE, ILogger, ILoggingService, isEmptyArray, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, sleep, StartableService } from '@sumaris-net/ngx-components';
-import { mergeMap, switchMap } from 'rxjs/internal/operators';
+import { mergeMap, switchMap } from 'rxjs/operators';
 import { catchError, debounceTime, filter, finalize, map, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
 

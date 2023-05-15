@@ -106,16 +106,14 @@ export class AppBluetoothIcon<
 
   constructor(
     injector: Injector,
-    protected bluetoothService: BluetoothService,
-    @Optional() initialState?: Partial<S>
+    protected bluetoothService: BluetoothService
   ) {
     this.cd = injector.get(ChangeDetectorRef)
     this.popoverController = injector.get(PopoverController);
     this.settings = injector.get(LocalSettingsService);
-    this.state.set({
+    this.state.set(<Partial<S>>{
       connectedDevices: [],
-      deviceFilter: null,
-      ...initialState
+      deviceFilter: null
     });
 
     this.state.connect('enabled', this.bluetoothService.enabled$);

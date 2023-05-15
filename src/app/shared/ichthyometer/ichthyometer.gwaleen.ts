@@ -1,4 +1,4 @@
-import { Injectable, Injector, OnDestroy } from '@angular/core';
+import { Directive, Inject, InjectionToken, Injector, OnDestroy } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.icon';
@@ -12,8 +12,9 @@ interface GwaleenIchthyometerState {
   connected: boolean;
   enabled: boolean;
 }
+export const APP_ICHTYOMETER_DEVICE = new InjectionToken<IchthyometerDevice>('IchthyometerDevice');
 
-@Injectable()
+@Directive()
 export class GwaleenIchthyometer extends StartableService implements Ichthyometer, OnDestroy {
 
   static END_DELIMITER = "#";
@@ -59,7 +60,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
   constructor(
     private injector: Injector,
-    device: IchthyometerDevice
+    @Inject(APP_ICHTYOMETER_DEVICE) device: IchthyometerDevice
   ) {
     super(injector.get(BluetoothService));
     this.bluetoothService = injector.get(BluetoothService);
