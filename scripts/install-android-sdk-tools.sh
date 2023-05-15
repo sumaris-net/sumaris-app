@@ -68,6 +68,7 @@ done
 echo "-------------------------------------------"
 echo "--- Installing Android NDK..."
 sdkmanager "ndk;22.0.7026061" --sdk_root=${ANDROID_SDK_ROOT}
+sdkmanager "ndk;25.2.9519653" --sdk_root=${ANDROID_SDK_ROOT}
 sdkmanager "ndk;${ANDROID_NDK_VERSION}" --sdk_root=${ANDROID_SDK_ROOT}
 
 echo "--- Installing Android [OK]"

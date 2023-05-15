@@ -16,22 +16,10 @@ KEYSTORE_PWD=
 . ${PROJECT_DIR}/scripts/env-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-
-cd ${PROJECT_DIR}
-
-# Run the build
-echo "--- Building Capacitor App..."
-echo ""
-npm run android-build
-[[ $? -ne 0 ]] && exit 1
-
-echo "--- Building Capacitor App [OK]"
-
-
-echo "--- Cleaning previous Android APK ..."
-# Remove existing builds
 APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
 APK_UNSIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
+
+echo "--- Cleaning previous Android APK ..."
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   rm -f ${APK_SIGNED_FILE}
 fi;
@@ -40,6 +28,16 @@ if [[ -f "${APK_UNSIGNED_FILE}" ]]; then
 fi;
 echo "--- Cleaning previous Android APK [OK]"
 echo ""
+
+# Run the build
+echo "--- Building Capacitor App..."
+echo ""
+cd ${PROJECT_DIR}
+npm run android-build
+[[ $? -ne 0 ]] && exit 1
+
+echo "--- Building Capacitor App [OK]"
+
 
 echo "**********************************"
 echo " /!\ You should now :"
