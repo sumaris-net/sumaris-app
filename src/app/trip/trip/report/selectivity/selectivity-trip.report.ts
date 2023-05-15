@@ -340,12 +340,13 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       if (opts.stats.weights) {
         // TODO finish this feature, then enable
         if (!environment.production) {
-          // const boxPlotChart = this.createSpeciesBoxPlot(species, {
-          //   stats: opts.stats,
-          //   subCategories: this.stats.subCategories,
-          //   catchCategories: ['LAN', 'DIS']
-          // });
-          // if (boxPlotChart) charts.push(boxPlotChart);
+          /*const boxPlotChart = this.createSpeciesBoxPlot(species, {
+            stats: opts.stats,
+            subCategories: this.stats.subCategories,
+            catchCategories: ['LAN', 'DIS']
+          });
+          if (boxPlotChart) charts.push(boxPlotChart);
+          */
         }
       }
     }
