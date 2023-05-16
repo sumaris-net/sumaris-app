@@ -713,8 +713,8 @@ export const ProgramProperties = Object.freeze({
   LANDING_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.sample.label.enable',
     label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_LABEL_ENABLE',
-    defaultValue: 'false',
-    type: 'boolean'
+    type: 'boolean',
+    defaultValue: 'false'
   },
   LANDING_SAMPLE_WEIGHT_UNIT: <FormFieldDefinition>{
     key: 'sumaris.landing.samples.weightUnit',

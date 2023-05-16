@@ -2,18 +2,25 @@
              [canGoBack]="false"
              [canShowMenu]="true">
 
+  <div *rxIf="$title; let title" slot="start">
+    <!-- simple title -->
+    <ion-title *ngIf="!showTitleSegment; else titleSegment">{{title|translate}}</ion-title>
 
-  <ion-segment [value]="selectedSegment"
-               mode="md" slot="start"
-               *rxIf="$title; let title"
-               (ionChange)="onSegmentChanged($event)">
-    <ion-segment-button value="observations" class="ion-title">
-      <ion-label>{{$observedLocationTitle|async|translate}}</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="" class="ion-title">
-      <ion-label>{{title|translate}}</ion-label>
-    </ion-segment-button>
-  </ion-segment>
+    <!-- segment to show observed locations -->
+    <ng-template #titleSegment>
+      <ion-segment [value]="selectedSegment"
+                   mode="md"
+                   (ionChange)="onSegmentChanged($event)">
+        <ion-segment-button value="observations" class="ion-title">
+          <ion-label>{{$observedLocationTitle|async|translate}}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="" class="ion-title">
+          <ion-label>{{title|translate}}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ng-template>
+  </div>
+
 
   <ion-buttons slot="end">
 

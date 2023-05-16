@@ -55,11 +55,12 @@ export class ObservedLocationsPage extends
   AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   protected $title = new BehaviorSubject<string>('');
-  protected $landingTitle = new BehaviorSubject<string>('');
+  protected $landingsTitle = new BehaviorSubject<string>('');
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected selectedSegment = 'observations';
 
+  @Input() showTitleSegment = false;
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
@@ -348,6 +349,10 @@ export class ObservedLocationsPage extends
 
   protected async onConfigLoaded(config: Configuration) {
     console.info('[observed-locations] Init using config', config);
+
+    // Show title segment ? (always disable on mobile)
+    this.showTitleSegment = !this.mobile && config.getPropertyAsBoolean(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_LANDINGS_TAB_ENABLE);
+
     const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
     this.$title.next(title);
 
@@ -422,8 +427,8 @@ export class ObservedLocationsPage extends
     this.i18nColumnSuffix = i18nSuffix;
 
     // Title
-    const landingTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
-    this.$landingTitle.next(landingTitle);
+    const landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
+    this.$landingsTitle.next(landingsTitle);
 
     // Hide program column
     this.showProgramColumn = false;
@@ -437,7 +442,7 @@ export class ObservedLocationsPage extends
     this.i18nColumnSuffix = '';
 
     // Title
-    this.$landingTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+    this.$landingsTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
 
     // Show program column
     this.showProgramColumn = true;

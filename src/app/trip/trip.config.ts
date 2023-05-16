@@ -61,6 +61,12 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
       }
     ],
     defaultValue: 'MENU.OCCASIONS'
+  },
+  OBSERVED_LOCATION_LANDINGS_TAB_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landings.tab.enable',
+    label: 'OBSERVED_LOCATION.OPTIONS.LANDINGS_TAB_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
   }
 });
 

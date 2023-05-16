@@ -97,6 +97,7 @@ export class LandingsPage extends AppRootDataTable<
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
+  @Input() showTitleSegment = false;
   @Input() showFilterProgram = true;
   @Input() showFilterStrategy = false; // Can be override by setProgram() or resetProgram()
   @Input() showFilterVessel = true;
@@ -392,8 +393,11 @@ export class LandingsPage extends AppRootDataTable<
   protected async onConfigLoaded(config: Configuration) {
     console.info('[landings] Init using config', config);
 
+    // Show title segment ? (always disable on mobile)
+    this.showTitleSegment = !this.mobile && config.getPropertyAsBoolean(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_LANDINGS_TAB_ENABLE);
+
     // title
-    const observedLocationTitle = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME)
+    const observedLocationTitle = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
     this.$observedLocationTitle.next(observedLocationTitle);
 
     // Quality

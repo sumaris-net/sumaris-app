@@ -1296,7 +1296,8 @@
     },
     "OPTIONS": {
       "ENABLE": "Sorties > Activer ?",
-      "NAME": "Sorties > Titre (menu)"
+      "NAME": "Sorties > Titre (menu)",
+      "LANDINGS_TAB_ENABLE": "Sorties > Activer l'onglet débarquements ?"
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
@@ -1381,6 +1382,10 @@
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
         "TITLE": "Échantillonnages"
+      },
+      "AUCTION_CONTROL": {
+        "SAMPLES_COUNT": "Nb. prélèvements",
+        "TITLE": "Navires contrôlés"
       }
     },
     "PMFM": {
@@ -2015,9 +2020,9 @@
       "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
-      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité du poids",
-      "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillons ?",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Échantillon : Unité du poids",
+      "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Échantillon : Libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "REPORT_ENABLE": "Rapport > Activer les rapports ?",
