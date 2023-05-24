@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AlertController } from '@ionic/angular';
-import { UntypedFormBuilder } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {AlertController} from '@ionic/angular';
+import {UntypedFormBuilder} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
 import {
   AccountService,
-  AppTable,
+  AppTable, DateUtils,
   EntitiesTableDataSource,
   filterNotNil,
   firstNotNilPromise,
@@ -16,24 +16,23 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { BehaviorSubject } from 'rxjs';
-import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
-import { AggregatedLandingService } from '../services/aggregated-landing.service';
-import { Moment } from 'moment';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { TableElement } from '@e-is/ngx-material-table';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { AggregatedLandingModal } from './aggregated-landing.modal';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AggregatedLandingFormOption } from './aggregated-landing.form';
-import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {BehaviorSubject} from 'rxjs';
+import {AggregatedLanding, VesselActivity} from '../services/model/aggregated-landing.model';
+import {AggregatedLandingService} from '../services/aggregated-landing.service';
+import moment, {Moment} from 'moment';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {TableElement} from '@e-is/ngx-material-table';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
+import {AggregatedLandingModal} from './aggregated-landing.modal';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {AggregatedLandingFormOption} from './aggregated-landing.form';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -367,8 +366,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (this.debug)
       console.debug(`[aggregated-landings-table] Calendar will use this dates:\n- '${dates.map(d => d.format()).join('\n- ')}'`);
 
-    const now = moment();
-    const currentDay = dates.find(date => date.isSame(now)) || firstDay;
+    const now = DateUtils.moment();
+    const currentDay = dates.find(date => DateUtils.isSame(date, now, 'day')) || firstDay;
     this.$currentDate.next(currentDay);
 
     this.$dates.next(dates);
