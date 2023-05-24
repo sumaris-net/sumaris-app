@@ -49,6 +49,11 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
   }
 
   protected onRowClick(row: TableElement<ReferentialRef>) {
-    this.table.selection.toggle(row);
+    if (this.allowMultipleSelection) {
+      this.table.selection.toggle(row);
+    }
+    else {
+      this.close();
+    }
   }
 }
