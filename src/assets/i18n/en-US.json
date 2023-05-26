@@ -502,7 +502,7 @@
       "ADMIN": "Administrator",
       "SUPERVISOR": "Manager",
       "USER": "Observer",
-      "GUEST": "Invité"
+      "GUEST": "Guest"
     },
     "LIST": {
       "TITLE": "Users",
@@ -1286,8 +1286,8 @@
       "DURATION_PLACEHOLDER": "Period to import"
     },
     "OPTIONS": {
-      "ENABLE": "Observations > Enable?",
-      "NAME": "Observations > Title (menu)"
+      "ENABLE": "Occasions > Enable?",
+      "NAME": "Occasions > Title (menu)"
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
@@ -1817,7 +1817,7 @@
       "QUALITATIVE_VALUE": "Qualitative values",
       "QUALITY_FLAG": "Quality flags",
       "TAXON_GROUP_TYPE": "Species group types",
-      "TAXON_GROUP": "Species group",
+      "TAXON_GROUP": "Commercial and target species",
       "TAXON_NAME": "Scientific species",
       "TAXONOMIC_LEVEL": "Taxonomic levels",
       "REFERENCE_TAXON": "Scientific species identifier",
@@ -1934,7 +1934,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Catch > Country (ID) for alive weight equivalences",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable ?",
-      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample: Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
@@ -1974,32 +1974,32 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
-      "OBSERVED_LOCATION_START_TIME_ENABLE": "Observation > Start date: Time ?",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
-      "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Observation: Fill observers?",
-      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
-      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Observation > Weekly activity calendar?",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Observation > Weekly activity calendar > Target program",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Observation > Weekly activity calendar > First day of the week",
-      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Observation > Weekly activity calendar > Number of days in the week",
-      "LANDING_EDITOR": "Observation > Landing: editor",
+      "OBSERVED_LOCATION_START_TIME_ENABLE": "Occasion > Start date: Time ?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Occasion > End date?",
+      "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Occasion: Fill observers?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Occasion > Location level(s)",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Occasion > Weekly activity calendar?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Occasion > Weekly activity calendar > Target program",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Occasion > Weekly activity calendar > Number of days in the week",
+      "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",
       "LANDING_EDITOR_TRIP": "Fishing trip",
       "LANDING_EDITOR_SAMPLING": "Biological parameters",
-      "LANDING_CREATION_DATE_ENABLE": "Observation > Landings: Show creation date?",
-      "LANDING_RECORDER_PERSON_ENABLE": "Observation > Landings: Show recorder?",
-      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Observation > Landings: Show base harbour?",
-      "LANDING_STRATEGY_ENABLE": "Observation > Landing : Enter strategy?",
-      "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
-      "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
-      "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
-      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Landings : Fishing area: Location level(s)",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
-      "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
-      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "LANDING_CREATION_DATE_ENABLE": "Occasion > Landings: Show creation date?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Occasion > Landings: Show recorder?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Occasion > Landings: Show base harbour?",
+      "LANDING_STRATEGY_ENABLE": "Occasion > Landing : Enter strategy?",
+      "LANDING_DATE_TIME_ENABLE": "Occasion > Landing: Enter date?",
+      "LANDING_OBSERVERS_ENABLE": "Occasion > Landing: Enter observers?",
+      "LANDING_LOCATION_ENABLE": "Occasion > Landings: Show harbour?",
+      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Landings : Fishing area: Location level(s)",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Occasion > Landings: Show samples count?",
+      "LANDING_SAMPLES_WEIGHT_UNIT": "Occasion > Landings: Weight unit",
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "REPORT_ENABLE": "Report > Enable report?",
       "STRATEGY_EDITOR" : "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
@@ -2488,9 +2488,9 @@
       }
     },
     "SYNCHRONIZATION_STATUS": {
-      "DIRTY": "Offline",
+      "DIRTY": "Not sent",
       "READY_TO_SYNC": "Ready to synchronize",
-      "SYNC": "Online"
+      "SYNC": "Sent"
     },
     "INFO": {
       "IMPORTATION_PCT_DOTS": "Importation... {{pct}}%",

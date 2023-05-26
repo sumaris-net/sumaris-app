@@ -1,7 +1,7 @@
 
 .mat-table {
   --packet-count: 6;
-  --mat-column-taxonGroup: calc(100vw / 3);
+  --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
   --mat-column-small-count: calc(var(--packet-count) + 2);
   --mat-column-actions-width: 82px;
   --mat-cell-vertical-padding: 4px;
@@ -9,7 +9,6 @@
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
   --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
-
 
   &.mobile {
     --mat-column-actions-width: 41px;
@@ -63,11 +62,11 @@
 
     .mat-column-taxonGroup {
       padding-left: 8px;
-      width: var(--mat-column-taxonGroup);
+      max-width: var(--mat-column-taxonGroup);
     }
 
     .mat-column-small {
-      width: calc(calc(100vw - var(--mat-column-taxonGroup) - var(--mat-column-actions-width)) / var(--mat-column-small-count));
+      max-width: calc(calc(100vw - var(--mat-column-taxonGroup) - var(--mat-column-actions-width)) / var(--mat-column-small-count));
     }
 
     .mat-column-actions {

@@ -273,14 +273,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     );
 
     // Combo location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        ...filter,
+        levelIds: this.locationLevelIds
+      }),
       filter: {
         entityName: 'Location',
-        levelIds: this.locationLevelIds
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes,
       mobile: this.mobile
     });
 

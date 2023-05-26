@@ -246,7 +246,10 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
     const modal = await this.modalCtrl.create({
       component: SelectReferentialModal,
-      componentProps: opts,
+      componentProps: {
+        allowMultipleSelection: true,
+        ...opts
+      },
       keyboardClose: true,
       cssClass: 'modal-large'
     });
