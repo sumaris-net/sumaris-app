@@ -58,7 +58,7 @@
                  class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
                  [dynamicHeight]="false">
 
     <!-- TAB: general -->
@@ -96,13 +96,16 @@
                                 [requiredStrategy]="true"
                                 [showMeasurements]="true"
                                 [showError]="false"
-                                [showProgram]="false"
                                 [showStrategy]="true"
+                                [showParent]="showParent"
+                                [showLocation]="false"
                                 [showMetier]="true"
                                 [showFishingArea]="true"
                                 [showTripDepartureDateTime]="true"
                                 [allowManyMetiers]="false"
+                                [parentAcquisitionLevel]="parentAcquisitionLevel"
                                 (onSubmit)="save($event)"
+                                (onOpenObservedLocation)="openObservedLocation($event)"
                                 [debug]="debug">
 
                 <!-- zero effort (warning) -->
@@ -246,15 +249,20 @@
       <ion-row>
         <ion-col>
           editor.loading: {{loading}}<br/>
+          editor.enabled: {{enabled}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
         </ion-col>
         <ion-col>
           landingForm.loading: {{landingForm.loading}}<br/>
+          landingForm.enabled: {{landingForm.enabled}}<br/>
           landingForm.ready: {{landingForm.readySubject|async}}<br/>
           landingForm.dirty: {{landingForm.dirty}}<br/>
           <br/>
           landingForm.dateTime: {{form|formGetValue:'dateTime'|dateFormat: {time: true} }}<br/>
+          landingForm.location: {{form|formGetValue:'location'|propertyGet: 'label' }}<br/>
+          <br/>
+          landingForm.showLocation: {{landingForm.showLocation}}<br/>
         </ion-col>
         <ion-col>
           samplesTable.loading: {{samplesTable.loading}}<br/>

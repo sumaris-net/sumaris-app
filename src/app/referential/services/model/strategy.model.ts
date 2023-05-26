@@ -15,6 +15,7 @@ export class Strategy<
   O extends StrategyAsObjectOptions = StrategyAsObjectOptions
   > extends BaseReferential<Strategy, number, O> {
 
+  static ENTITY_NAME = 'Strategy';
   static fromObject: (source: any, opts?: any) => Strategy;
 
   analyticReference: string|ReferentialRef = null;
@@ -218,6 +219,7 @@ export class AppliedPeriod {
     this.appliedStrategyId = source.appliedStrategyId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    console.log('TODO: ', source.startDate);
     this.acquisitionNumber = source.acquisitionNumber;
   }
 

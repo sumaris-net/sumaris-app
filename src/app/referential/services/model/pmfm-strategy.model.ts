@@ -298,6 +298,10 @@ export class DenormalizedPmfmStrategy
     else {
       result.referenceTaxonIds = null;
     }
+
+    // Remove strategyId
+    delete result.strategyId;
+
     return result;
   }
 

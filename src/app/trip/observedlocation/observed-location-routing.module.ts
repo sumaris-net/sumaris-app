@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
-import { ObservedLocationsPage } from './observed-locations.page';
+import { ObservedLocationsPage } from './table/observed-locations.page';
 import { ObservedLocationPage } from './observed-location.page';
 import { LandedTripPage } from '../landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';

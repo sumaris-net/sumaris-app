@@ -525,6 +525,7 @@ export class ProgramRefService
         map(pmfms => pmfms.reduce((res, p) => {
             let index = res.findIndex(other => other.id === p.id);
             if (index !== -1) {
+              console.debug('[program-ref-service] Merging duplicated pmfms:', res[index], p);
               res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
               return res;
             }

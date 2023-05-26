@@ -3,8 +3,10 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   Alerts,
-  ConfigService, Configuration,
-  HammerSwipeEvent, isNilOrBlank,
+  ConfigService,
+  Configuration,
+  HammerSwipeEvent,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -12,30 +14,28 @@ import {
   PersonUtils,
   ReferentialRef,
   SharedValidators,
-  StatusIds, TranslateContextService
+  StatusIds,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
-import { ObservedLocationService } from './observed-location.service';
+import { ObservedLocationService } from '../observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { ObservedLocation } from './observed-location.model';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
+import { ObservedLocation } from '../observed-location.model';
+import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
-import { ObservedLocationOfflineModal } from './offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from './observed-location.filter';
-import { filter, tap } from 'rxjs/operators';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
+import { filter } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { TranslateService } from '@ngx-translate/core';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { AnimationController, IonSegment } from '@ionic/angular';
-import { AnimationBuilder } from '@ionic/core';
-import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 
 
@@ -67,6 +67,7 @@ export class ObservedLocationsPage extends
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
+  @Input() allowMultipleSelection = true;
 
   @Input()
   set showProgramColumn(value: boolean) {

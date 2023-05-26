@@ -1263,6 +1263,9 @@
         "TAB_GENERAL": "Sortie"
       }
     },
+    "SELECT_MODAL": {
+      "TITLE": "Sélection de sortie"
+    },
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Sélection du navire",
       "TAB_VESSELS": "Recherche navire",
@@ -1344,6 +1347,10 @@
       "STRATEGY_PLACEHOLDER": "Stratégie",
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
       "VESSEL_SNAPSHOT": "Navire",
+      "OBSERVED_LOCATION": "Sortie :",
+      "OBSERVED_LOCATION_PLACEHOLDER": "Sortie",
+      "BTN_SELECT_OBSERVED_LOCATION": "Sélectionner la sortie",
+      "BTN_OPEN_OBSERVED_LOCATION": "Ouvrir la sortie",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
@@ -1967,6 +1974,7 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_REPORT_ENABLE": "Marée > Activer l'édition de rapport ?",
       "TRIP_REPORT_TYPE": "Marée > Type de rapport",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité châlut",
@@ -2007,6 +2015,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
+      "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
@@ -2025,7 +2034,6 @@
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "REPORT_ENABLE": "Rapport > Activer les rapports ?",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",

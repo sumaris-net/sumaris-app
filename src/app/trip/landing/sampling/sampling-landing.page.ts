@@ -137,12 +137,23 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     try {
       const [program] = await Promise.all([
         firstNotNilPromise(this.$program, {stop: this.destroySubject}),
-        this.landingForm.waitIdle()
+        this.landingForm.waitIdle({stop: this.destroySubject})
       ]);
 
       if (strategy &&  strategy.label) {
+        const dateTime = (this.landingForm.showDateTime && this.data.dateTime)
+          || (this.parent instanceof Trip && this.parent.departureDateTime)
+          || (this.parent instanceof ObservedLocation && this.parent.startDateTime);
+
+        // If no date (e.g. no parent selected yet) : skip
+        if (!dateTime) {
+          // DEBUG
+          console.debug('[sampling-landing-page] Skip strategy effort loaded: no date (no parent entity)');
+          return;
+        }
+
         // Add validator errors on expected effort for this sampleRow (issue #175)
-        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, dateTime);
 
         // DEBUG
         console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
@@ -177,7 +188,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
     catch (err) {
       const error = err?.message || err;
-      console.error(error);
+      console.error('[sampling-landing-page] Error while checking strategy effort', err);
       this.setError(error);
     }
     finally {

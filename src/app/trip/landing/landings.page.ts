@@ -53,7 +53,7 @@ import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/observed-locations.page';
+import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 
 
 export const LandingsPageSettingsEnum = {
@@ -90,6 +90,7 @@ export class LandingsPage extends AppRootDataTable<
   protected $title = new BehaviorSubject<string>(undefined);
   protected $observedLocationTitle = new BehaviorSubject<string>(undefined);
   protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
+  protected $detailProgram = new BehaviorSubject<Program>(undefined); // Program to use to create new landing
   protected i18nPmfmPrefix: string;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
@@ -467,6 +468,8 @@ export class LandingsPage extends AppRootDataTable<
     });
     this.showFilterSampleTagId = samplePmfms?.some(PmfmUtils.isTagId) || false;
 
+    this.$detailProgram.next(program);
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -491,6 +494,7 @@ export class LandingsPage extends AppRootDataTable<
 
     this.$title.next(this.i18nColumnPrefix + 'TITLE');
     this.$pmfms.next([]);
+    this.$detailProgram.next(undefined);
     if (this.loaded) this.updateColumns();
   }
 
@@ -567,7 +571,7 @@ export class LandingsPage extends AppRootDataTable<
    */
   protected onSwipeTab(event: HammerSwipeEvent): boolean {
     // DEBUG
-    // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
+    // if (this.debug) console.debug("[landings] onSwipeTab()");
 
     // Skip, if not a valid swipe event
     if (!event
@@ -592,14 +596,19 @@ export class LandingsPage extends AppRootDataTable<
 
     const data = Landing.fromObject(row.currentData);
 
+    // Get the detail program
+    const program = await this.getDetailProgram(data);
+    if (!program) return false; // User cancelled
+
     // Get the detail editor
-    const detailEditor = await this.getDetailEditor(data);
+    const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+    console.debug('[landings] Opening a landing, using editor: ' + editor);
 
-    if (!detailEditor) return false; // User cancelled
-
-    return await this.router.navigate([detailEditor, id], {
+    return await this.navController.navigateForward([editor, id], {
       relativeTo: this.route,
-      queryParams: {}
+      queryParams: {
+        parent: AcquisitionLevelCodes.OBSERVED_LOCATION
+      }
     });
   }
 
@@ -612,18 +621,25 @@ export class LandingsPage extends AppRootDataTable<
       return true;
     }
 
+    // Get the detail program
+    const program = await this.getDetailProgram();
+    if (!program) return false; // User cancelled
+
     // Get the detail editor
-    const detailEditor = await this.getDetailEditor();
+    const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+    console.debug('[landings] Opening new landing, using editor: ' + editor);
 
-    if (!detailEditor) return false; // User cancelled
-
-    return await this.router.navigate([detailEditor, 'new'], {
-      relativeTo: this.route
+    return await this.navController.navigateForward([editor, 'new'], {
+      relativeTo: this.route,
+      queryParams: {
+        program: program?.label,
+        parent: AcquisitionLevelCodes.OBSERVED_LOCATION
+      }
     });
   }
 
   async openTrashModal(event?: Event) {
-    console.debug('[observed-locations] Opening trash modal...');
+    console.debug('[landings] Opening trash modal...');
     // TODO BLA
     /*const modal = await this.modalCtrl.create({
       component: TripTrashModal,
@@ -751,12 +767,12 @@ export class LandingsPage extends AppRootDataTable<
 
   /* -- protected methods -- */
 
-  protected async getDetailEditor(source?: Landing): Promise<LandingEditor> {
+  protected async getDetailProgram(source?: Landing): Promise<Program | undefined> {
     // Find data program
     let programLabel = source?.program?.label || this.filter?.program?.label;
-    let program: Program = programLabel && (await this.programRefService.loadByLabel(programLabel));
+    let program: Program = programLabel && (await this.programRefService.loadByLabel(programLabel))
+      || this.$detailProgram.value;
 
-    // If no data (e.g. new landing): ask user a program
     if (!program) {
       const modal = await this.modalCtrl.create({
         component: SelectProgramModal,
@@ -771,14 +787,14 @@ export class LandingsPage extends AppRootDataTable<
       });
       await modal.present();
       const {data} = await modal.onDidDismiss();
-      if (!(data instanceof Program)) return; // User cancelled
 
-      program = data;
+      program = data?.[0];
+      if (!(program instanceof Program)) return; // User cancelled
+
+      console.debug('[landings] Selected program: ', program);
     }
 
-    const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-
-    return editor;
+    return program;
   }
 
   protected markForCheck() {

@@ -125,9 +125,9 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - npm install -g @ionic/cli@6.19.1 @angular/cli@11.2.19
+    - npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.11
     # Update project dependencies
-    - npm install
+    - npm install --force
   only:
     - develop
     - /^feature\/.*/

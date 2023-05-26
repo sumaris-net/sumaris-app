@@ -58,7 +58,7 @@
                  class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
                  [dynamicHeight]="false">
 
     <!-- TAB: general -->

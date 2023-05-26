@@ -26,7 +26,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected dateAdapter: DateAdapter<Moment>,) {
+    protected dateAdapter: DateAdapter<Moment>
+  ) {
     super(formBuilder, translate, settings);
   }
 

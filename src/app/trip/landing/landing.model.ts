@@ -19,6 +19,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 
 /**
@@ -29,16 +30,19 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
   static fromObject: (source: any, opts?: any) => Landing;
 
+  strategy: ReferentialRef = null;
   dateTime: Moment = null;
   location: ReferentialRef = null;
   rankOrder?: number = null;
   rankOrderOnVessel?: number = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
+  // Parent entity
   tripId: number = null;
-
   trip: IEntity<any> = null;
   observedLocationId: number = null;
+  observedLocation: IEntity<any> = null;
+
   observers: Person[] = null;
   samples: Sample[] = null;
   samplesCount?: number = null;
@@ -56,16 +60,29 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
 
-    // Trip
+    // Parent
     target.tripId = this.tripId;
-    target.trip = this.trip && this.trip.asObject(opts) || undefined;
+    target.trip = this.trip?.asObject(opts) || undefined;
+    target.observedLocationId = this.observedLocationId;
+    target.observedLocation = this.observedLocation?.asObject(opts) || undefined;
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(opts)) || undefined;
     target.samplesCount = this.samples && this.samples.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length || undefined;
 
+    // Strategy
+    target.strategy = this.strategy?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for field*/ });
+
     if (opts && opts.minify) {
       delete target.rankOrderOnVessel;
+
+      target.observedLocationId = toNumber(target.observedLocationId, target.observedLocation?.id);
+      delete target.observedLocation;
+
+      if (target.strategy?.label && PmfmIds.STRATEGY_LABEL !== -1) {
+        target.measurementValues[PmfmIds.STRATEGY_LABEL] = target.strategy.label;
+      }
+      delete target.strategy;
     }
 
     return target;
@@ -81,13 +98,19 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.measurementValues = {...source.measurementValues}; // Copy values
 
     // Parent
-    this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
     this.trip = source.trip && EntityClasses.fromObject(source.trip, {entityName: 'Trip'}) || undefined;
+    this.observedLocationId = source.observedLocationId;
+    this.observedLocation = source.observedLocation && EntityClasses.fromObject(source.observedLocation, {entityName: 'ObservedLocation'}) || undefined;
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     this.samplesCount = toNumber(source.samplesCount, this.samples?.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length);
+
+    // Strategy
+    this.strategy = ReferentialRef.fromObject(source.strategy)
+      || (source.measurementValues?.[PmfmIds.STRATEGY_LABEL] && Strategy.fromObject({ label:  source.measurementValues[PmfmIds.STRATEGY_LABEL]}))
+      || undefined;
 
     // Fill rankOrder (workaround - fix an issue in IMAGINE)
     // FIXME: remove when SAMPLE.RANK_ORDER will always be filled by IMAGINE

@@ -85,7 +85,10 @@
                                 [programLabel]="$programLabel|async"
                                 [i18nSuffix]="i18nContext.suffix"
                                 [showError]="false"
+                                [showParent]="showParent"
+                                [parentAcquisitionLevel]="parentAcquisitionLevel"
                                 (onSubmit)="save($event)"
+                                (onOpenObservedLocation)="openObservedLocation($event)"
                                 [debug]="debug">
               </app-landing-form>
             </ion-col>

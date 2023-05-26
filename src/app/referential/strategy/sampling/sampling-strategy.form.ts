@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {
   AppForm,
-  AppFormUtils,
+  AppFormUtils, DateUtils,
   DEFAULT_PLACEHOLDER_CHAR,
   EntityUtils,
   firstArrayValue,
@@ -307,6 +307,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return null;
       });
 
+    const dbTimeZone = this.strategyService.dbTimeZone;
     this.appliedPeriodsForm.setAsyncValidators([
       async (control: UntypedFormArray) => {
         const appliedPeriodsForm = this.appliedPeriodsForm;
@@ -332,10 +333,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         const invalidQuarters = (appliedPeriods || [])
           .map(AppliedPeriod.fromObject)
           .filter(period => {
-            const quarter = period.startDate.quarter();
+            const quarter = period.startDate.tz(dbTimeZone).quarter();
             const quarterEffort: StrategyEffort = this.data && this.data.effortByQuarter && this.data.effortByQuarter[quarter];
             return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
-          }).map(period => period.startDate.quarter());
+          }).map(period => period.startDate.tz(dbTimeZone).quarter());
         if (isNotEmptyArray(invalidQuarters)) {
           if (this.form.touched) appliedPeriodsForm.markAllAsTouched();
           if (this.form.dirty) appliedPeriodsForm.markAsDirty();
@@ -948,19 +949,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // APPLIED_PERIODS
       // get model appliedPeriods which are stored in first applied strategy
+      const dbTimeZone = this.strategyService.dbTimeZone;
       const appliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
         || firstArrayValue(data.appliedStrategies || []);
       const appliedPeriods = appliedStrategyWithPeriods.appliedPeriods || [];
 
       // Find year, from applied period, or use current
-      const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
+      const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.tz(dbTimeZone).year())) || DateUtils.moment().year();
 
       // format periods for applied period in view and init default period by quarter if no set
       appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
         const startMonth = (quarter - 1) * 3 + 1;
         // INFO CLT : #IMAGINE-643 [Ligne de plan] Décalage heure de début et de fin des efforts
         // We use local timezone for Imagine instead of utc
-        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000`);
+        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000`).tz(dbTimeZone);
         const endDate = startDate.clone().add(2, 'month').endOf('month').endOf('day');
         // Find the existing entity, or create a new one
         const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
@@ -1066,10 +1068,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     });
 
     // Compute year
-    const year = isNotNil(this.form.controls.year.value) ? moment(this.form.controls.year.value).year() : moment().year();
+    const dbTimeZone = this.strategyService.dbTimeZone;
+    const year = isNotNil(this.form.controls.year.value) ? DateUtils.moment(this.form.controls.year.value).tz(dbTimeZone).year() : DateUtils.moment().year();
 
     // Fishing Area + Efforts --------------------------------------------------------------------------------------------
-
     const appliedStrategyWithPeriods = firstArrayValue((target.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));
     if (appliedStrategyWithPeriods) {
       appliedStrategyWithPeriods.appliedPeriods = (appliedStrategyWithPeriods && appliedStrategyWithPeriods.appliedPeriods || [])
@@ -1077,8 +1079,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .filter(period => isNotNil(period.acquisitionNumber))
         .map(ap => {
           // Set year (a quarter should be already set)
-          ap.startDate.set('year', year);
-          ap.endDate.set('year', year);
+          ap.startDate.tz(dbTimeZone).set('year', year);
+          ap.endDate.tz(dbTimeZone).set('year', year);
           ap.appliedStrategyId = appliedStrategyWithPeriods.id;
           return ap;
         });

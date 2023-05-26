@@ -27,6 +27,7 @@
           </mat-boolean-field>
         </ion-col>
 
+        <!-- parent operation -->
         <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
           <mat-form-field [class.cdk-visually-hidden]="!isChildOperation"
                           [class.mat-form-field-invalid]="control.invalid"
@@ -50,7 +51,7 @@
                       style="color: var(--ion-color-danger)"
                       (click)="addParentOperation()"
                       [title]="msg|translate">
-                <mat-icon >error</mat-icon>
+                <mat-icon>error</mat-icon>
               </button>
               <button matSuffix mat-icon-button type="button"
                       [matMenuTriggerFor]="parentFieldMenu"

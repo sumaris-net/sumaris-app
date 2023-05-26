@@ -434,6 +434,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+
+  TRIP_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
   TRIP_REPORT_TYPE: <FormFieldDefinition>{
     key: 'sumaris.trip.report.type',
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
@@ -616,6 +623,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  OBSERVED_LOCATION_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
@@ -771,15 +784,6 @@ export const ProgramProperties = Object.freeze({
       attributes: ['name']
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
-  },
-
-  /* -- Report options -- */
-
-  REPORT_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.report.enable',
-    label: 'PROGRAM.OPTIONS.REPORT_ENABLE',
-    type: 'boolean',
-    defaultValue: 'false'
   },
 
 

@@ -43,7 +43,7 @@
                  [class.mat-tab-group-header-hidden]="!(showChildrenTable$|push)"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
                  [disablePagination]="true"
                  [dynamicHeight]="false">
 

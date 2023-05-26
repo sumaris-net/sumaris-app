@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar color="secondary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'OBSERVED_LOCATION.SELECT_MODAL.TITLE' | translate }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <button mat-icon-button *ngIf="!mobile"
+              [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <!-- reset filter -->
+      <button mat-icon-button (click)="table.resetFilter()"
+              *ngIf="table.filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <button mat-icon-button (click)="table.filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="table.filterCriteriaCount; else emptyFilter"
+                  [matBadge]="table.filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+
+      <ion-button *ngIf="!(loadingSubject|async) && hasSelection()" (click)="close($event)"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-no-padding">
+  <!-- error -->
+  <ion-item *ngIf="table.error" visible-xs visible-sm visible-mobile>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="table.error|translate"></ion-label>
+  </ion-item>
+
+  <app-observed-locations-page #table
+                               [allowMultipleSelection]="allowMultipleSelection"
+                               [showToolbar]="false"
+                               [showRecorder]="true"
+                               [disabled]="true"
+                               [readOnly]="true"
+                               (onOpenRow)="selectRow($event)"
+                               (onNewRow)="close($event)"
+  ></app-observed-locations-page>
+
+  <!-- buttons -->
+  <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
+
+  </ion-toolbar>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button *ngIf="allowMultipleSelection"
+                    [fill]="hasSelection() && 'solid' || 'clear'"
+                    [disabled]="!hasSelection()"
+                    (click)="close($event)" color="primary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

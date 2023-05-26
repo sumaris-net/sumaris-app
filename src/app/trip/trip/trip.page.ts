@@ -286,7 +286,7 @@ export class TripPage
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
     this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
-    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
 
     // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);

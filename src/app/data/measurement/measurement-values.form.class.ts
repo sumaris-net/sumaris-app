@@ -517,8 +517,7 @@ export abstract class MeasurementValuesForm<
 
       // Call the map function
       if (this.options.mapPmfms) {
-        const res = this.options.mapPmfms(pmfms);
-        pmfms = (res instanceof Promise) ? await res : res;
+        pmfms = await this.options.mapPmfms(pmfms);
       }
 
       // Apply (if changed)

@@ -14,6 +14,7 @@ import { TranslateService } from '@ngx-translate/core';
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
   withStrategy?: boolean;
+  withObservedLocation?: boolean;
   strategy: Strategy;
 }
 
@@ -61,12 +62,20 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       rankOrderOnVessel: [toNumber(data && data.rankOrderOnVessel, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
+
+      // Parent id
       observedLocationId: [toNumber(data && data.observedLocationId, null)],
       tripId: [toNumber(data && data.tripId, null)],
 
       // Computed values (e.g. for BIO-PARAM program)
       samplesCount: [data && data.samplesCount, null]
     });
+
+
+    // Add observed location
+    if (opts.withObservedLocation) {
+      formConfig.observedLocation = [data && data.observedLocation, SharedValidators.entity];
+    }
 
     // Add observers
     if (opts.withObservers) {

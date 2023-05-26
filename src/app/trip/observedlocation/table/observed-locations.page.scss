@@ -21,10 +21,14 @@
 
 .table-container {
   --table-offline-nav: 0px;
-  height: calc(100% - var(--table-offline-nav, 0px));
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-offline-nav, 0px) - var(--table-toolbar-height, 0px));
 
   &.has-offline-nav {
     --table-offline-nav: var(--mat-tab-link-height, 48px);
+  }
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
   }
 }
 

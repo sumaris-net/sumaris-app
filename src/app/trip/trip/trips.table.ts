@@ -280,7 +280,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     // If only one restored: open it
     const trip = data?.length === 1 && data[0];
     if (isNotNil(trip.id)) {
-      await this.router.navigate([trip.id], {
+      await this.navController.navigateForward([trip.id], {
         relativeTo: this.route
       });
     }

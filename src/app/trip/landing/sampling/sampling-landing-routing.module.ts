@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
 import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-landing.module';
+import { ObservedLocationPage } from '@app/trip/observedlocation/observed-location.page';
 
 const routes: Routes = [
   {
