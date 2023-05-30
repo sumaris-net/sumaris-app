@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, Optional, ViewChild } from '@angular/core';
 import {
+  APP_LOGGING_SERVICE,
   AppEditor,
   AppErrorWithDetails,
   AppFormUtils,
@@ -10,7 +11,7 @@ import {
   filterTrue,
   firstNotNilPromise,
   FormErrorTranslatorOptions,
-  getPropertyByPath,
+  getPropertyByPath, ILogger, ILoggingService,
   isEmptyArray,
   isNil,
   isNotEmptyArray, isNotNil,
@@ -97,6 +98,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   private _listenStatusChangesSubscription: Subscription;
   private _listenProgramChanges = true;
+  protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
 
@@ -316,7 +318,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected physicalGearService: PhysicalGearService,
               protected context: TripContextService,
               protected _state: RxState<ComponentState>,
-              protected cd: ChangeDetectorRef) {
+              protected cd: ChangeDetectorRef,
+              @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
+              ) {
     super(route, router, injector.get(NavController), alertCtrl, translate);
 
     // Defaults
@@ -424,6 +428,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     });
 
     // DEBUG
+    this._logger = loggingService.getLogger('batch-tree-container');
     this.debug = !environment.production;
   }
 
@@ -633,6 +638,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       return true;
     }
+    catch(err) {
+      this._logger?.error('save', `Error while saving batch tree: ${err?.message || err}`);
+      throw err;
+    }
     finally {
       this.markAllAsTouched();
       if (!this.submitted) {
@@ -648,11 +657,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   setSelectedTabIndex(value: number) {
-
+    this.batchTree?.setSelectedTabIndex(value);
   }
 
   realignInkBar() {
-
+    this.batchTree?.realignInkBar();
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
@@ -1074,7 +1083,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return getPropertyByPath(this.model, path) as BatchModel|undefined;
   }
 
-  forward(event?: Event, model?: BatchModel) {
+  async forward(event?: Event, model?: BatchModel) {
     console.debug(this._logPrefix + 'Go forward');
     event?.stopImmediatePropagation();
 
@@ -1083,12 +1092,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     const nextVisible = TreeItemEntityUtils.forward(model, c => !c.hidden);
     if (nextVisible) {
-      this.startEditBatch(null, nextVisible);
+      await this.startEditBatch(null, nextVisible);
       this.setSelectedTabIndex(0);
     }
   }
 
-  backward(event?: Event, model?: BatchModel) {
+  async backward(event?: Event, model?: BatchModel) {
     console.debug(this._logPrefix + 'Go backward');
     event?.stopImmediatePropagation();
 
@@ -1097,7 +1106,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     const previousVisible = TreeItemEntityUtils.backward(model, c => !c.hidden);
     if (previousVisible) {
-      this.startEditBatch(null, previousVisible);
+      await this.startEditBatch(null, previousVisible);
+      this.setSelectedTabIndex(0);
     }
   }
 
