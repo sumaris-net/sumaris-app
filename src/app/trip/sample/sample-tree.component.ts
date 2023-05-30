@@ -435,9 +435,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.samplesTable.showTaxonGroupColumn = toBoolean(this.showTaxonGroupColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE));
-    this.samplesTable.showTaxonNameColumn = toBoolean(this.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE));
-    this.samplesTable.showSampleDateColumn  = toBoolean(this.showSampleDateColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE));
+    this.samplesTable.showTaxonGroupColumn = toBoolean(this.showTaxonGroupColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE));
+    this.samplesTable.showTaxonNameColumn = toBoolean(this.showTaxonNameColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE));
+    this.samplesTable.showSampleDateColumn  = toBoolean(this.showSampleDateColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE));
     this.samplesTable.showLabelColumn = toBoolean(this.showLabelColumn , program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE));
     this.samplesTable.showImagesColumn = toBoolean(this.showImagesColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE));
     this.samplesTable.programLabel = program.label;
