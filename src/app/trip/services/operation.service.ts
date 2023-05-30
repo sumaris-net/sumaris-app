@@ -760,6 +760,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }): Observable<Operation> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
+    // Skip listening local operation (should not be need)
+    if (EntityUtils.isLocalId(id)) {
+      return EMPTY;
+    }
+
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({

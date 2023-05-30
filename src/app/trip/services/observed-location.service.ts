@@ -22,7 +22,7 @@ import {
   NetworkService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {Observable} from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
@@ -59,6 +59,7 @@ import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {OverlayEventDetail} from '@ionic/core';
 import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
@@ -420,11 +421,23 @@ export class ObservedLocationService
     return res && res.total > 0;
   }
 
-  public listenChanges(id: number, opts?: {
-    interval?: number;
-    fetchPolicy: FetchPolicy;
-  }): Observable<ObservedLocation> {
-    if (!id && id !== 0) throw new Error('Missing argument \'id\' ');
+  public listenChanges(id: number, opts?: EntityServiceListenChangesOptions): Observable<ObservedLocation> {
+    if (isNil(id)) throw new Error('Missing argument \'id\' ');
+
+    // If local entity
+    if (EntityUtils.isLocalId(id)) {
+      if (this._debug) console.debug(this._logPrefix + `Listening for local changes on ${this._logTypeName} {${id}}...`);
+      return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
+        .pipe(
+          map(({data}) => {
+            const json = isNotEmptyArray(data) && data[0];
+            const entity = (!opts || opts.toEntity !== false) ? this.fromObject(json) : json;
+            // Set an updateDate, to force update detection
+            if (entity && this._debug) console.debug(this._logPrefix + `${this._logTypeName} {${id}} updated locally !`, entity);
+            return entity;
+          })
+        );
+    }
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
