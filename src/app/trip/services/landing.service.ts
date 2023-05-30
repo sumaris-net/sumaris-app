@@ -735,7 +735,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     interval?: number;
     fetchPolicy: FetchPolicy;
   }): Observable<Landing> {
-    if (!id && id !== 0) throw new Error('Missing argument \'id\'');
+    if (isNil(id)) throw new Error('Missing argument \'id\'');
+
+    // Should not need to watch local entity
+    if (EntityUtils.isLocalId(id)) {
+      return EMPTY;
+    }
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 

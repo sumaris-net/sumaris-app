@@ -764,26 +764,25 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (EntityUtils.isLocalId(id)) {
       return EMPTY;
     }
-    else {
-      if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
-      return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
-        query: OperationSubscriptions.listenChanges,
-        fetchPolicy: opts && opts.fetchPolicy || undefined,
-        variables: {id, interval: toNumber(opts && opts.interval, 10)},
-        error: {
-          code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
-          message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
-        }
-      })
-        .pipe(
-          map(({data}) => {
-            const entity = data && Operation.fromObject(data);
-            if (entity && this._debug) console.debug(`[operation-service] Operation {${id}} updated on server!`, entity);
-            return entity;
-          })
-        );
-    }
+    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
+
+    return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
+      query: OperationSubscriptions.listenChanges,
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
+      error: {
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
+      }
+    })
+      .pipe(
+        map(({data}) => {
+          const entity = data && Operation.fromObject(data);
+          if (entity && this._debug) console.debug(`[operation-service] Operation {${id}} updated on server!`, entity);
+          return entity;
+        })
+      );
   }
 
   /**
