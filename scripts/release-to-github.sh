@@ -38,8 +38,6 @@ if [[ "_${description}" == "_" ]]; then
     description="Release $version"
 fi
 
-echo "Sending v$version extension to Github..."
-
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
     # Get it from user config dir
@@ -74,6 +72,7 @@ case "$task" in
     else
       prerelease="false"
     fi
+
 
     result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
