@@ -1642,6 +1642,12 @@
     "EXTERIOR_MARKING": "Marquage extérieur",
     "REGISTRATION_CODE": "Immatriculation",
     "PAGE_HISTORY_SUBTITLE": "Référentiel",
+    "LAST_NAME": "Nom",
+    "FIRST_NAME": "Prénom",
+    "DEPARTMENT": {
+      "LABEL": "Code organisme",
+      "NAME": "Libellé organisme"
+    },
     "BASE_PORT_LOCATION": {
       "LABEL": "Code port d'attache",
       "NAME": "Libellé port d'attache"

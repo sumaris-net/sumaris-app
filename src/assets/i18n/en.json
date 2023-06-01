@@ -247,7 +247,7 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Referential > PMFM > Strategy label",
         "PMFM_TAG_ID": "Referential > PMFM > Sample Tag-ID",
-        "PMFM_TRIP_PROGRESS": "Referential > PMFM > Trip progress ? (Booleen)",
+        "PMFM_TRIP_PROGRESS": "Referential > PMFM > Trip progress ? (Boolean)",
         "PMFM_DRESSING": "Referential > PMFM > Dressing (Whole, ...)",
         "PMFM_PRESERVATION": "Referential > PMFM > Preservation (Fresh, ...)",
         "PMFM_TRAWL_SIZE_CAT": "Referential > PMFM > Sorting category for trawl (NONE, ...)",
@@ -1634,6 +1634,12 @@
     "EXTERIOR_MARKING": "Exterior marking",
     "REGISTRATION_CODE": "Registration code",
     "PAGE_HISTORY_SUBTITLE": "Referential",
+    "LAST_NAME": "Last name",
+    "FIRST_NAME": "First name",
+    "DEPARTMENT": {
+      "LABEL": "Organization code",
+      "NAME": "Organization name"
+    },
     "BASE_PORT_LOCATION": {
       "LABEL": "Harbour code",
       "NAME": "Harbour name"
