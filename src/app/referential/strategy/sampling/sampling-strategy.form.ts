@@ -232,16 +232,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('age').disable();
       form.get('sex').disable();
 
-      // Commented, because now all efforts should be edited, even past quarters - Fix issue OBSBIO-48
-      /* Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
+      // Allow user to update efforts, even past quarters - Fix issue OBSBIO-48
       this.appliedPeriodsForm.controls.map(control => {
-          const formGroupControl = control as FormGroup;
-          if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
-            formGroupControl.disable();
-          } else {
-            formGroupControl.enable();
-          }
-        });*/
+        const formGroupControl = control as UntypedFormGroup;
+        formGroupControl.enable();
+      });
     }
   }
 
