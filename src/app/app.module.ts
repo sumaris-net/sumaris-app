@@ -32,7 +32,7 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
-  FormFieldDefinitionMap, isAndroid,
+  FormFieldDefinitionMap, isAndroid, isCapacitor, isIOS, isMobile,
   JobModule,
   LocalSettings,
   LocalSettingsOptions, LoggingService,
@@ -84,7 +84,6 @@ import { ObservedLocationService } from '@app/trip/observedlocation/observed-loc
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
-import { isCapacitor, isIOS, isMobile } from '../../ngx-sumaris-components/src/app/shared/platforms';
 
 @NgModule({
   declarations: [
