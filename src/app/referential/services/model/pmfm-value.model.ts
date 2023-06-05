@@ -1,4 +1,4 @@
-import moment, { isMoment, Moment } from 'moment';
+import { isMoment, Moment } from 'moment/moment';
 import {
   DateUtils,
   fromDateISOString,
@@ -14,12 +14,11 @@ import {
   ReferentialUtils,
   toDateISOString
 } from '@sumaris-net/ngx-components';
-import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
-import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
+import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
-export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
+
 export const PMFM_VALUE_SEPARATOR = '|';
 
 export declare type ConvertedNumber = Number & {__conversionCoefficient: number};
@@ -124,7 +123,7 @@ export abstract class PmfmValueUtils {
     }
     // If date, convert to ISO string
     if (value instanceof Date) {
-     return toDateISOString(moment(value));
+     return toDateISOString(DateUtils.moment(value));
     }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {

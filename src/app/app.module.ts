@@ -84,6 +84,7 @@ import { ObservedLocationService } from '@app/trip/observedlocation/observed-loc
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
+import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 
 @NgModule({
   declarations: [
@@ -234,9 +235,10 @@ import { NgChartsModule } from 'ng2-charts';
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
-      ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
-      ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
-      ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
+        ...PMFM_VALIDATOR_I18N_ERROR_KEYS,
+        ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
+        ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
+        ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 
     // Configure hammer gesture

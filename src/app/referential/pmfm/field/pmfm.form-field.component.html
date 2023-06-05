@@ -78,6 +78,8 @@
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'significantFiguresNumber'">
+          {{ 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'| translate:control.errors.significantFiguresNumber }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
       </ng-container>
     </mat-error>
@@ -116,6 +118,8 @@
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'significantFiguresNumber'">
+          {{ 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'| translate:control.errors.significantFiguresNumber }}</span>
         <span *ngSwitchCase="'maxDecimals'">
           {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:control.errors.maxDecimals }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>

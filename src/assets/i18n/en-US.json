@@ -1736,7 +1736,7 @@
       "MAX_VALUE": "Max value",
       "DEFAULT_VALUE": "Default value",
       "MAXIMUM_NUMBER_DECIMALS": "Maximal number of decimals",
-      "SIGNIF_FIGURES_NUMBER": "Significant number of digits",
+      "SIGNIF_FIGURES_NUMBER": "No. of significant figures",
       "PRECISION": "Precision",
       "PARAMETER": "Parameter",
       "MATRIX": "Matrix",
@@ -1750,6 +1750,9 @@
       },
       "EDIT": {
         "TITLE": "PMFM {{label}} - {{name}}"
+      },
+      "ERROR": {
+        "FIELD_SIGNIF_FIGURES_NUMBER": "No. of significant figures: {{significantFiguresNumber}}"
       }
     },
     "MATRIX": {
