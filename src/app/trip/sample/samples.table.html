@@ -89,7 +89,7 @@
 </ion-item>
 
 <div #tableContainer class="table-container"
-     *rxIf="$pmfms; let pmfms"
+     *ngIf="$pmfms|async; let pmfms"
      (ngInit)="initTableContainer(tableContainer)"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar && !showGroupHeader"
