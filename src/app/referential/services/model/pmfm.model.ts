@@ -200,7 +200,6 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
   }
 
   fromObject(source: any): Pmfm {
-    console.debug('MYTEST Pmfm.fromObject', source);
     super.fromObject(source);
 
     this.entityName = source.entityName || Pmfm.ENTITY_NAME;
