@@ -1,9 +1,9 @@
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
-import { MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol } from './model.enum';
-import { Parameter, ParameterType } from './parameter.model';
-import { PmfmValue } from './pmfm-value.model';
-import { Moment } from 'moment';
-import { FullReferential } from '@app/referential/services/model/referential.model';
+import {DateUtils, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
+import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
+import {Parameter, ParameterType} from './parameter.model';
+import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
+import {Moment} from 'moment';
+import {FullReferential} from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -81,7 +81,7 @@ export interface IFullPmfm<
 @EntityClass({typename: 'UnitConversionVO'})
 export class UnitConversion {
 
-  static fromObject: (source: Partial<UnitConversion>, opts?: any) => UnitConversion;
+  static fromObject: (source: any, opts?: any) => UnitConversion;
 
   fromUnit: ReferentialRef;
   toUnit: ReferentialRef;
@@ -91,11 +91,43 @@ export class UnitConversion {
   constructor() {
   }
 
-  fromObject(source: any) {
+  clone(opts?: EntityAsObjectOptions & any): UnitConversion {
+    const target = new UnitConversion();
+    this.copy(target, opts);
+    return target;
+  }
+
+  copy(target: UnitConversion, opts?: EntityAsObjectOptions & any) {
+    target.fromObject(this.asObject(opts), opts);
+  }
+
+  asObject(opts?:EntityAsObjectOptions): any {
+    return {
+      fromUnit: this.fromUnit?.asObject(opts),
+      toUnit: this.toUnit?.asObject(opts),
+      conversionCoefficient: this.conversionCoefficient,
+      updateDate: DateUtils.toDateISOString(this.updateDate),
+    }
+  }
+
+  fromObject(source: any, opts?: any) {
     this.fromUnit = source.fromUnit && ReferentialRef.fromObject(source.fromUnit);
     this.toUnit = source.toUnit && ReferentialRef.fromObject(source.toUnit);
     this.conversionCoefficient = source.conversionCoefficient;
     this.updateDate = fromDateISOString(source.updateDate);
+  }
+
+  /**
+   * Invert fromUnit and toUnit. Set the conversionCoefficient to its inverse.
+   * @return self This object itself.
+   */
+  reverse() {
+    const currentFromUnit = this.fromUnit;
+    const currentToUnit = this.toUnit;
+    this.fromUnit = currentToUnit;
+    this.toUnit = currentFromUnit;
+    this.conversionCoefficient = 1 / this.conversionCoefficient;
+    return this;
   }
 }
 
@@ -123,8 +155,6 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
   qualitativeValues: ReferentialRef[];
 
   completeName: string; // Computed attributes
-  // alreadyConverted: boolean;
-
   displayConversion?: UnitConversion;
 
   constructor() {
@@ -149,6 +179,7 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
       delete target.fraction;
       delete target.method;
       delete target.unit;
+      delete target.displayConversion;
     }
     else {
       target.parameter = this.parameter && this.parameter.asObject(opts);
@@ -156,18 +187,24 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
       target.fraction = this.fraction && this.fraction.asObject(opts);
       target.method = this.method && this.method.asObject(opts);
       target.unit = this.unit && this.unit.asObject(opts);
+      target.displayConversion = this.displayConversion?.asObject(opts);
     }
 
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(opts)) || undefined;
+    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, {applyConversion: false});
+
+    // Revert conversion (if any)
+    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), {markAsConverted: false});
 
     return target;
   }
 
   fromObject(source: any): Pmfm {
+    console.debug('MYTEST Pmfm.fromObject', source);
     super.fromObject(source);
 
     this.entityName = source.entityName || Pmfm.ENTITY_NAME;
-    this.type = source.type;
+    this.type = source.type || source.parameter?.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.defaultValue = source.defaultValue;
@@ -484,19 +521,30 @@ export abstract class PmfmUtils {
 
     // actual -> kg (pivot) -> expected
     const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
+    const conversion = UnitConversion.fromObject({conversionCoefficient,
+      fromUnit: {label: source.unitLabel},
+      toUnit: {label: expectedWeightSymbol}
+    });
 
     // Clone to keep existing pmfm unchanged
     const target = (!opts || opts.clone !== false) ? source.clone() as P : source;
 
-    target.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
+    target.displayConversion = conversion;
+
+    return this.applyConversion(source, conversion);
+  }
+
+  static applyConversion<P extends IPmfm>(target: P, conversion: UnitConversion, opts?: {markAsConverted: boolean}): P {
+    const expectedUnitSymbol = conversion.toUnit?.label || '';
+    const conversionCoefficient = toNumber(conversion.conversionCoefficient, 1);
 
     if (this.isDenormalizedPmfm(target)) {
-      target.unitLabel = expectedWeightSymbol;
+      target.unitLabel = expectedUnitSymbol;
 
       // Update the complete name (the unit part), if exists
       const matches = target.completeName && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.completeName);
       if (matches) {
-        target.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
+        target.completeName = `${matches[1]}(${expectedUnitSymbol})${matches[3]||''}`;
       }
     }
     else if (target instanceof Pmfm) {
@@ -504,10 +552,10 @@ export abstract class PmfmUtils {
         // Update the complete name (the unit part), if exists
         const matches = target.name && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.name);
         if (matches) {
-          target.name = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
+          target.name = `${matches[1]}(${expectedUnitSymbol})${matches[3]||''}`;
         }
-        target.unit.label = expectedWeightSymbol;
-        target.unit.name = expectedWeightSymbol;
+        target.unit.label = expectedUnitSymbol;
+        target.unit.name = expectedUnitSymbol;
       }
     }
 
@@ -518,16 +566,40 @@ export abstract class PmfmUtils {
       // DEBUG
       //console.debug(`[pmfm-utils] PMFM '${target.label}' Changing maximumNumberDecimals to ${target.maximumNumberDecimals}`);
     }
-
     // DEBUG
     //else console.debug(`[pmfm-utils] PMFM '${target.label}' without maximumNumberDecimals`, target);
 
+    // Convert min value
+    if (isNotNil(target.minValue)) {
+      target.minValue = PmfmValueUtils.applyConversion(target.minValue, conversionCoefficient);
+      // DEBUG
+      // console.debug(`[pmfm-utils] PMFM '${target.label}' Changing minValue to ${target.minValue}`);
+    }
+    // DEBUG
+    // else console.debug(`[pmfm-utils] PMFM '${target.label}' without minValue`, target);
+
+    // Convert max value
+    if (isNotNil(target.maxValue)) {
+      target.maxValue = PmfmValueUtils.applyConversion(target.maxValue, conversionCoefficient);
+      // DEBUG
+      // console.debug(`[pmfm-utils] PMFM '${target.label}' Changing maxValue to ${target.maxValue}`);
+    }
+    // DEBUG
+    // else console.debug(`[pmfm-utils] PMFM '${target.label}' without maxValue`, target);
+
     // Convert precision
-    const precision = PmfmUtils.getOrComputePrecision(source);
+    const precision = PmfmUtils.getOrComputePrecision(target);
     if (precision > 0) {
       target.precision = precision * conversionCoefficient;
       // DEBUG
-      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing precision from ${precision} to ${target.precision}`);
+      // console.debug(`[pmfm-utils] PMFM '${target.label}' Changing precision from ${precision} to ${target.precision}`);
+    }
+
+    // Convert default value
+    if (isNotNil(target.defaultValue) && (!isNaN(Number(target.defaultValue)))) {
+      target.defaultValue = PmfmValueUtils.applyConversion(target.defaultValue, conversionCoefficient);
+      // DEBUG
+      console.debug(`[pmfm-utils] PMFM '${target.label}' Changing defaultValue from to ${target.defaultValue}`);
     }
 
     // Convert type

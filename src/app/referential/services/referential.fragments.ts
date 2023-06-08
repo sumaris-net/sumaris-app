@@ -216,6 +216,9 @@ export const ReferentialFragments = {
     unitLabel
     defaultValue
     maximumNumberDecimals
+    signifFiguresNumber
+    detectionThreshold
+    precision
     unitId
     parameterId
     matrixId

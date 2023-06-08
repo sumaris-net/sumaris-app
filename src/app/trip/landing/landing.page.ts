@@ -555,7 +555,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         {
           strategyLabel: strategyLabel,
           acquisitionLevel: table.acquisitionLevel
-        });
+        }, this.debug);
       const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)

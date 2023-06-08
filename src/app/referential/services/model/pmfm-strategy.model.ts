@@ -347,9 +347,15 @@ export class DenormalizedPmfmStrategy
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
+
+    target.displayConversion = this.displayConversion?.asObject(options);
+    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, {applyConversion: false});
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this);
     target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
+
+    // Revert conversion (if any)
+    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), {markAsConverted: false});
+
     return target;
   }
 
@@ -366,10 +372,13 @@ export class DenormalizedPmfmStrategy
     this.type = source.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
-    this.maximumNumberDecimals = source.maximumNumberDecimals;
-    this.defaultValue = source.defaultValue;
     this.acquisitionNumber = source.acquisitionNumber;
+    this.displayConversion = source.displayConversion;
+    this.defaultValue = source.defaultValue;
+    this.maximumNumberDecimals = source.maximumNumberDecimals;
     this.signifFiguresNumber = source.signifFiguresNumber;
+    this.detectionThreshold = source.detectionThreshold;
+    this.precision = source.precision;
     this.isMandatory = source.isMandatory;
     this.isComputed = source.isComputed;
     this.rankOrder = source.rankOrder;
@@ -379,8 +388,9 @@ export class DenormalizedPmfmStrategy
     this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
-    this.displayConversion = source.displayConversion;
     this.children = source.children && source.children.map(child => new DenormalizedPmfmStrategy(child)) || undefined;
+
+    if (this.displayConversion) PmfmUtils.applyConversion(this, this.displayConversion);
   }
 
   get required(): boolean {
