@@ -33,7 +33,7 @@ import { debounceTime, filter, tap, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from './landing.model';
-import { Operation, Trip } from '../trip/trip.model';
+import { Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
@@ -43,7 +43,7 @@ import { merge, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
@@ -391,8 +391,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       data.observers = parent.observers;
 
       if (parent instanceof ObservedLocation) {
-        data.observedLocation = parent;
-        data.observedLocationId = undefined;
+        data.observedLocation = this.showParent ? this.parent : undefined;
+        data.observedLocationId = this.showParent ? null : this.parent.id;
         data.location = this.landingForm.showLocation && data.location || parent.location;
         data.dateTime = this.landingForm.showDateTime && data.dateTime || parent.startDateTime || parent.endDateTime;
         // Keep trip, because some data are stored into the trip (e.g. fishingAreas, metier, ...)
