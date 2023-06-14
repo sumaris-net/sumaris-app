@@ -8,7 +8,7 @@
 
   <ion-grid>
     <!-- PROGRAM -->
-    <ion-row>
+    <ion-row *ngIf="showProgram">
       <ion-col offset-md="2" offset-lg="3">
         <mat-autocomplete-field formControlName="program"
                                 [placeholder]="'TRIP.PROGRAM'|translate"

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {UntypedFormArray, UntypedFormBuilder, UntypedFormControl} from '@angular/forms';
 import {
   Alerts,
   ConfigService,
@@ -17,31 +17,31 @@ import {
   StatusIds,
   TranslateContextService
 } from '@sumaris-net/ngx-components';
-import { ObservedLocationService } from '../observed-location.service';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { ObservedLocation } from '../observed-location.model';
-import { AppRootDataTable } from '@app/data/table/root-table.class';
-import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
-import { environment } from '@environments/environment';
-import { BehaviorSubject } from 'rxjs';
-import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
-import { filter } from 'rxjs/operators';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { ContextService } from '@app/shared/context.service';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { AnimationController, IonSegment } from '@ionic/angular';
-import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
+import {ObservedLocationService} from '../observed-location.service';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ObservedLocation} from '../observed-location.model';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
+import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../../trip.config';
+import {environment} from '@environments/environment';
+import {BehaviorSubject} from 'rxjs';
+import {ObservedLocationOfflineModal} from '../offline/observed-location-offline.modal';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../observed-location.filter';
+import {filter} from 'rxjs/operators';
+import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
+import {ContextService} from '@app/shared/context.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Program} from '@app/referential/services/model/program.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {LANDING_TABLE_DEFAULT_I18N_PREFIX} from '@app/trip/landing/landings.table';
+import {AnimationController, IonSegment} from '@ionic/angular';
+import {LandingsPageSettingsEnum} from '@app/trip/landing/landings.page';
 
 
 export const ObservedLocationsPageSettingsEnum = {
-  PAGE_ID: "observedLocations",
-  FILTER_KEY: "filter",
+  PAGE_ID: 'observedLocations',
+  FILTER_KEY: 'filter',
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
 };
 
@@ -51,8 +51,7 @@ export const ObservedLocationsPageSettingsEnum = {
   styleUrls: ['observed-locations.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends
-  AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   protected $title = new BehaviorSubject<string>('');
   protected $landingsTitle = new BehaviorSubject<string>('');
@@ -68,6 +67,8 @@ export class ObservedLocationsPage extends
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() allowMultipleSelection = true;
+  @Input() inModal: boolean = false;
+  @Input() enableFilterPanelCompact: boolean = false;
 
   @Input()
   set showProgramColumn(value: boolean) {
@@ -104,12 +105,12 @@ export class ObservedLocationsPage extends
     super(injector,
       ObservedLocation, ObservedLocationFilter,
       ['quality',
-      'program',
-      'location',
-      'startDateTime',
-      'observers',
-      'recorderPerson',
-      'comments'],
+        'program',
+        'location',
+        'startDateTime',
+        'observers',
+        'recorderPerson',
+        'comments'],
       _dataService,
       null
     );
@@ -200,8 +201,9 @@ export class ObservedLocationsPage extends
 
     // Clear the context
     this.resetContext();
-  }
 
+    this.filterPanelFloating = !this.enableFilterPanelCompact;
+  }
 
   async setFilter(filter: Partial<ObservedLocationFilter>, opts?: { emitEvent: boolean }) {
     // Program
@@ -209,8 +211,7 @@ export class ObservedLocationsPage extends
     if (isNotNilOrBlank(programLabel)) {
       const program = await this.programRefService.loadByLabel(programLabel);
       await this.setProgram(program);
-    }
-    else {
+    } else {
       // Check if user can access more than one program
       const {data, total} = await this.programRefService.loadAll(0, 1, null, null, {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
@@ -218,13 +219,16 @@ export class ObservedLocationsPage extends
       if (isNotEmptyArray(data) && total === 1) {
         const program = data[0];
         await this.setProgram(program);
-      }
-      else {
+      } else {
         await this.resetProgram();
       }
     }
 
-    super.setFilter(filter, opts);
+    super.setFilter(filter, {
+      ...opts,
+      emitEvent: this.enableFilterPanelCompact ? true : opts?.emitEvent
+    });
+
   }
 
   async openTrashModal(event?: Event) {
@@ -273,7 +277,7 @@ export class ObservedLocationsPage extends
       modal.present();
 
       // Wait until closed
-      const { data, role } = await modal.onDidDismiss();
+      const {data, role} = await modal.onDidDismiss();
 
       if (!data || role === 'cancel') return; // User cancelled
 
@@ -288,7 +292,7 @@ export class ObservedLocationsPage extends
     return super.prepareOfflineMode(event, opts);
   }
 
-  async deleteSelection(event: Event, opts?: {interactive?: boolean}): Promise<number> {
+  async deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
     const observedLocationIds = (rowsToDelete || [])
@@ -375,7 +379,7 @@ export class ObservedLocationsPage extends
     this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
 
     // Restore filter from settings, or load all
-    await this.restoreFilterOrLoad();
+    if (this.enabled) await this.restoreFilterOrLoad();
 
     this.updateColumns();
   }

@@ -76,6 +76,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() compact = false;
   @Input() mobile = false;
   @Input() pressHighlightDuration = 10000; // 10s
+  @Input() highlightedRowId: number;
 
 
   @Input() set canEdit(value: boolean) {
@@ -92,7 +93,6 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   filterForm: UntypedFormGroup = null;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
-  highlightedRowId: number;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;

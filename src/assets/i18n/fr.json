@@ -1329,6 +1329,10 @@
         "VESSEL_COUNT": "Nombre de navires contrôlés :",
         "EXPORT_JSON_FILENAME": "RapportDeControle-{{ location }}-{{ dateTime }}.json"
       }
+    },
+    "SELECT_OBSERVED_LOCATION_MODAL": {
+      "TAB_SELECT": "Recherche",
+      "TAB_NEW": "Nouvelle Sortie"
     }
   },
   "LANDING": {

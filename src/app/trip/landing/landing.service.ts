@@ -488,6 +488,7 @@ export class LandingService
       // Transform to entity
       const entity = data && Landing.fromObject(data);
       if (entity && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, entity);
+      entity.trip = Trip.fromObject(data.trip);
       return entity;
     } finally {
       this.loading = false;

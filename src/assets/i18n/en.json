@@ -1316,6 +1316,10 @@
         "VESSEL_COUNT": "Number of controlled vessels :",
         "EXPORT_JSON_FILENAME": "Control_report-{{ location }}-{{ dateTime }}.json"
       }
+    },
+    "SELECT_OBSERVED_LOCATION_MODAL": {
+      "TAB_SELECT": "Search",
+      "TAB_NEW": "New Observed Location"
     }
   },
   "LANDING": {

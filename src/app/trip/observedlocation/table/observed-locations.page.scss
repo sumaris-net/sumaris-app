@@ -1,4 +1,14 @@
+.ion-content-in-modal-mobile {
+  height: calc(100vh - 139px);
+}
+.ion-content-in-modal-desktop {
+  height: calc(100vh - 247px);
+}
 
+.filter-panel-compacted {
+  overflow: unset ;
+  --expansion-panel-padding: 0;
+}
 
 .mat-expansion-panel {
   margin-bottom: 5px;

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { ObservedLocationForm } from './observed-location.form';
+import { ObservedLocationForm } from './form/observed-location.form';
 import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';

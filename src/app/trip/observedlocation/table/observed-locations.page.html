@@ -139,20 +139,63 @@
 
 </mat-menu>
 
-<ion-content class="ion-no-padding ion-flex-direction-column">
+<ion-content class="ion-no-padding ion-flex-direction-column"
+             [scrollY]="!inModal"
+             [class.ion-content-in-modal-mobile]="mobile && inModal"
+             [class.ion-content-in-modal-desktop]="!mobile && inModal">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- search -->
+  <!-- Compact filter (e.g. in modal) -->
+  <form class="form-container ion-padding-top"
+        *ngIf="enableFilterPanelCompact"
+        [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+    <ion-grid>
+      <ion-row>
+        <ion-col *ngIf="showFilterLocation" size="12" size-md="4">
+          <!-- Location -->
+          <mat-autocomplete-field
+            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
+            formControlName="location"
+            [config]="autocompleteFields.location"
+            [clearable]="true">
+            <mat-icon matPrefix>room</mat-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+
+        <!-- Period criteria -->
+
+        <!-- Start date -->
+        <ion-col size="12" size-sm="6" size-md="4" *ngIf="showFilterPeriod">
+          <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
+                          formControlName="startDate"
+                          [clearable]="true">
+            <ion-icon matPrefix name="calendar-outline"></ion-icon>
+          </mat-date-field>
+        </ion-col>
+
+        <!-- End date -->
+        <ion-col size="12" size-sm="6" size-md="4" *ngIf="showFilterPeriod">
+          <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
+                          formControlName="endDate"
+                          [clearable]="true">
+          </mat-date-field>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
+
   <mat-expansion-panel #filterExpansionPanel
                        class="filter-panel"
+                       [class.cdk-visually-hidden]="enableFilterPanelCompact"
                        [class.filter-panel-floating]="filterPanelFloating">
-    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+    <form class="form-container ion-padding-top" *ngIf="!enableFilterPanelCompact"
+          [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <ion-grid>
-        <ion-row *ngIf="showFilterProgram">
+        <ion-row *ngIf="showFilterProgram" >
           <ion-col>
             <!-- Program -->
             <mat-autocomplete-field
@@ -165,9 +208,9 @@
           </ion-col>
         </ion-row>
 
+        <!-- Location -->
         <ion-row *ngIf="showFilterLocation">
           <ion-col>
-            <!-- Location -->
             <mat-autocomplete-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
               formControlName="location"
@@ -180,8 +223,8 @@
 
         <!-- Period criteria -->
         <ion-row *ngIf="showFilterPeriod">
-          <ion-col>
-            <!-- Start date -->
+          <!-- Start date -->
+          <ion-col size="12" size-sm="6">
             <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
                             formControlName="startDate"
                             [clearable]="true">
@@ -189,8 +232,8 @@
             </mat-date-field>
           </ion-col>
 
-          <ion-col>
-            <!-- End date -->
+          <!-- End date -->
+          <ion-col size="12" size-sm="6">
             <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
                             formControlName="endDate"
                             [clearable]="true">
@@ -199,7 +242,7 @@
         </ion-row>
 
         <!-- Recorder criteria -->
-        <ion-row *ngIf="showRecorder">
+        <ion-row *ngIf="showRecorder" >
           <ion-col>
             <!-- Recorder department -->
             <mat-autocomplete-field
@@ -224,7 +267,7 @@
           </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="showObservers || showQuality">
+        <ion-row *ngIf="showObservers || showQuality" >
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
             <mat-autocomplete-field
@@ -238,7 +281,7 @@
           </ion-col>
 
           <!-- Data quality status -->
-          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
+          <ion-col *ngIf="showQuality && filterDataQualityControl; let control" >
             <mat-form-field>
               <mat-select [formControl]="control"
                           [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY'|translate" required>
@@ -297,16 +340,16 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-
   <!-- Network status (+ Install and upgrade link)  -->
-  <app-install-upgrade-card [isLogin]="isLogin"
+  <app-install-upgrade-card *ngIf="!enableFilterPanelCompact"
+                            [isLogin]="isLogin"
                             [showInstallButton]="false"
                             [showUpgradeWarning]="true"
                             [showOfflineWarning]="false">
   </app-install-upgrade-card>
 
   <!-- Update offline mode -->
-  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+  <app-update-offline-mode-card *ngIf="!enableFilterPanelCompact && (showUpdateOfflineFeature||importing)"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
                                 [progressionValue]="$progression | push: 'low'">
@@ -317,7 +360,6 @@
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
-
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">

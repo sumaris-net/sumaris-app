@@ -5,6 +5,7 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { SelectObservedLocationsModal } from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
 import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/table/observed-location-table.module';
+import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/observed-location-form.module';
 
 
 @NgModule({
@@ -15,6 +16,7 @@ import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/tabl
     TranslateModule.forChild(),
 
     AppObservedLocationsTableModule,
+    AppObservedLocationFormModule,
   ],
   declarations: [
     SelectObservedLocationsModal

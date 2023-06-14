@@ -1,10 +1,7 @@
 import { NgModule } from '@angular/core';
-import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationPage } from './observed-location.page';
-import { ObservedLocationsPage } from './table/observed-locations.page';
 import { SelectVesselsForDataModal } from './vessels/select-vessel-for-data.modal';
 import { TranslateModule } from '@ngx-translate/core';
-import { ObservedLocationOfflineModal } from './offline/observed-location-offline.modal';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
@@ -15,6 +12,7 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/table/observed-location-table.module';
+import {AppObservedLocationFormModule} from '@app/trip/observedlocation/form/observed-location-form.module';
 
 
 @NgModule({
@@ -36,15 +34,15 @@ import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/tabl
 
     // Sub modules
     AppObservedLocationsTableModule,
-    AppObservedLocationOfflineModule
+    AppObservedLocationOfflineModule,
+    AppObservedLocationFormModule,
   ],
   declarations: [
-    ObservedLocationForm,
     ObservedLocationPage,
     SelectVesselsForDataModal
   ],
   exports: [
-    AppObservedLocationsTableModule
+    AppObservedLocationsTableModule,
   ]
 })
 export class AppObservedLocationModule {

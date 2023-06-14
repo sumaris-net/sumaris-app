@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { ObservedLocationValidatorService } from './observed-location.validator';
-import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { ObservedLocationValidatorService } from '../observed-location.validator';
+import { MeasurementValuesForm } from '../../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {
   DateUtils,
@@ -22,7 +22,7 @@ import {
   toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
-import { ObservedLocation } from './observed-location.model';
+import { ObservedLocation } from '../observed-location.model';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -45,6 +45,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showEndTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
+  @Input() showProgram = true;
   @Input() startDateDay: number = null;
   @Input() forceDurationDays: number;
   @Input() timezone: string = null;

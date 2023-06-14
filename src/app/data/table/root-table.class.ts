@@ -649,21 +649,6 @@ export abstract class AppRootDataTable<
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
-
-    filter = this.asFilter(filter);
-
-    // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria();
-    if (criteriaCount !== this.filterCriteriaCount) {
-      this.filterCriteriaCount = criteriaCount;
-      this.markForCheck();
-    }
-
-    // Update the form content
-    if (!opts || opts.emitEvent !== false) {
-      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
-    }
-
     super.setFilter(filter as F, opts);
   }
 

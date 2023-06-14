@@ -310,6 +310,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (strategyLabel) {
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+      data.strategy = contextualStrategy;
     }
 
     // Emit program, strategy
@@ -370,10 +371,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.parent = parent;
 
       // Update data (copy some properties)
-      if (this.loaded) {
+      if (this.loaded && !this.saving) {
         const data = await this.getValue();
         await this.fillPropertiesFromParent(data, parent);
-        await this.updateView(data, {openTabIndex: -1});
+        this.landingForm.markAsUntouched(); // Need to force full update of the form (otherwise it keep)
+        await this.landingForm.setValue(data);
+        this.landingForm.markAsDirty();
         this.markForCheck();
       }
     }

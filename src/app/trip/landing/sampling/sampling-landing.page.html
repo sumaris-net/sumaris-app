@@ -106,6 +106,8 @@
                                 [parentAcquisitionLevel]="parentAcquisitionLevel"
                                 (onSubmit)="save($event)"
                                 (onOpenObservedLocation)="openObservedLocation($event)"
+                                (onObservedLocationChanges)="onRefreshEffort.emit()"
+                                (onStrategyChanges)="onRefreshEffort.emit($event)"
                                 [debug]="debug">
 
                 <!-- zero effort (warning) -->
@@ -259,6 +261,7 @@
           landingForm.ready: {{landingForm.readySubject|async}}<br/>
           landingForm.dirty: {{landingForm.dirty}}<br/>
           <br/>
+          landingForm.observedLocationId: {{form|formGetValue:'observedLocationId' }}<br/>
           landingForm.dateTime: {{form|formGetValue:'dateTime'|dateFormat: {time: true} }}<br/>
           landingForm.location: {{form|formGetValue:'location'|propertyGet: 'label' }}<br/>
           <br/>

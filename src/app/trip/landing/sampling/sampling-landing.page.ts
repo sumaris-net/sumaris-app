@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -15,7 +15,7 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 import {LandingService} from '@app/trip/landing/landing.service';
 import {Trip} from '@app/trip/trip/trip.model';
 import {Program} from '@app/referential/services/model/program.model';
-import { Sample } from '@app/trip/sample/sample.model';
+import {debounceTime} from 'rxjs/operators';
 
 
 @Component({
@@ -28,6 +28,7 @@ import { Sample } from '@app/trip/sample/sample.model';
 export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
 
+  onRefreshEffort = new EventEmitter<any>()
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
@@ -51,8 +52,15 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     super.ngOnInit();
 
     // Configure sample table
-    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change change if referential ref is not ready (see ngAfterViewInit() )
+    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
+
+    this.registerSubscription(
+      this.onRefreshEffort.pipe(
+        debounceTime(250)
+      )
+      .subscribe(strategy => this.checkStrategyEffort(strategy))
+    );
   }
 
   ngAfterViewInit() {
@@ -127,12 +135,12 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
 
-    if (!strategy) return; // Skip if empty
-
-    await this.checkStrategyEffort(strategy);
+    this.onRefreshEffort.emit(strategy);
   }
 
-  protected async checkStrategyEffort(strategy: Strategy) {
+  protected async checkStrategyEffort(strategy?: Strategy) {
+
+    strategy = strategy || this.landingForm.strategyControl?.value;
 
     try {
       const [program] = await Promise.all([
@@ -140,7 +148,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
         this.landingForm.waitIdle({stop: this.destroySubject})
       ]);
 
-      if (strategy &&  strategy.label) {
+      if (strategy?.label) {
         const dateTime = (this.landingForm.showDateTime && this.data.dateTime)
           || (this.parent instanceof Trip && this.parent.departureDateTime)
           || (this.parent instanceof ObservedLocation && this.parent.startDateTime);
@@ -164,6 +172,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
           this.samplesTable.disable();
           this.zeroEffortWarning = false;
           this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+          this.landingForm.strategyControl.markAsTouched();
         }
         // Effort is set, but = 0
         else if (strategyEffort.expectedEffort === 0) {
@@ -177,6 +186,13 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
           this.noEffortError = false;
           SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
         }
+      }
+
+      // No strategy
+      else {
+        this.zeroEffortWarning = false;
+        this.noEffortError = false;
+        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
       }
 
       if (this.noEffortError) {
@@ -339,4 +355,5 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
     return done;
   }
+
 }

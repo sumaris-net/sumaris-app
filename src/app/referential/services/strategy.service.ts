@@ -14,7 +14,7 @@ import {
   isEmptyArray,
   isNil,
   isNilOrBlank,
-  isNilOrNaN,
+  isNilOrNaN, isNotEmptyArray,
   isNotNil,
   JsonUtils,
   LoadResult,
@@ -43,6 +43,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
+import {Moment} from 'moment';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -202,6 +203,18 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     this.configService.config.subscribe(config => this.onConfigChanged(config));
   }
 
+  async getDateRangeByLabel(label: string): Promise<{startDate: Moment, endDate: Moment}> {
+    const strategy = await this.loadByLabel(label);
+    return strategy.appliedStrategies
+      .reduce((acc, strategy) => {
+        return strategy.appliedPeriods.reduce((acc, period) => {
+          acc.startDate = DateUtils.min(acc.startDate, period.startDate).clone();
+          acc.endDate = DateUtils.max(acc.endDate, period.endDate).clone();
+          return acc;
+        }, acc);
+      }, {startDate: undefined, endDate: undefined});
+  }
+
   private onConfigChanged(config: Configuration) {
     const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
     this.$dbTimeZone.next(dbTimeZone);
@@ -258,6 +271,12 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'network-only'
     });
     return res && res.data;
+  }
+
+  async loadByLabel(label: string) {
+    const filter = StrategyFilter.fromObject({label});
+    const result = await this.loadAll(0, 1, 'id', 'asc', filter);
+    return isNotEmptyArray(result.data) && result.data[0] || null;
   }
 
   async loadStrategiesReferentials<T extends IReferentialRef = ReferentialRef>(

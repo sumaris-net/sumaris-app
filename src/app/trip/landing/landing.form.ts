@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap, tap} from 'rxjs/operators';
 import { AcquisitionLevelCodes, AcquisitionLevelType, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
 import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
@@ -7,7 +7,7 @@ import { MeasurementsValidatorService } from '../../data/measurement/measurement
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
-  ConfigService,
+  ConfigService, DateUtils,
   EntityUtils,
   FormArrayHelper,
   getPropertyByPath,
@@ -54,6 +54,7 @@ import { Moment } from 'moment/moment';
 import { ISelectObservedLocationsModalOptions, SelectObservedLocationsModal } from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
 import { Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import {StrategyService} from '@app/referential/services/strategy.service';
 
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
@@ -255,6 +256,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   @Output() onObservedLocationChanges = new EventEmitter<ObservedLocation>();
   @Output() onOpenObservedLocation = new EventEmitter<ObservedLocation>();
+  @Output() onStrategyChanges = new EventEmitter<Strategy>();
 
   constructor(
     injector: Injector,
@@ -272,6 +274,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected networkService: NetworkService,
     protected observedLocationService: ObservedLocationService,
+    protected strategyService: StrategyService,
     protected dateAdapter: DateAdapter<Moment>
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
@@ -451,9 +454,19 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     );
     this._state.connect('observedLocationControl', this._state.select('showObservedLocation'), (_, show) => this.initObservedLocationControl(show));
 
-    this._state.connect('observedLocationLabel', this.onObservedLocationChanges.pipe(filter(parent => !parent || parent instanceof ObservedLocation)), (_, parent) => {
+    this._state.connect('observedLocationLabel', this.onObservedLocationChanges
+        .pipe(
+          filter(parent => !parent || parent instanceof ObservedLocation),
+          distinctUntilChanged(EntityUtils.equals)
+      ),
+      (_, parent) => {
       return this.displayObservedLocation(parent as ObservedLocation);
     })
+
+    this._state.hold(this.strategyControl$.pipe(
+      switchMap(control => control.valueChanges),
+      distinctUntilChanged(EntityUtils.equals)
+    ), (strategy) => this.onStrategyChanges.emit(strategy));
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -476,11 +489,16 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   protected async updateView(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }): Promise<void> {
     if (!data) return;
 
-    // Save already changed data
+    // Reapplied changed data
     if (this.isNewData && this.form.touched) {
+      const json = this.form.value;
+      Object.keys(json).forEach(key => {
+        if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
+      })
+
       data = Landing.fromObject({
         ...data.asObject(),
-        ...this.form.value
+        ...json,
       });
     }
 
@@ -681,27 +699,53 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   protected async openSelectObservedLocationModal(event?: Event) {
     if (event) event.preventDefault();
     const control = this.observedLocationControl;
-    if (!control) return;
+    if (!control || control.disabled) return;
 
-    const modal = await this.modalCtrl.create({
-      component: SelectObservedLocationsModal,
-      componentProps: <ISelectObservedLocationsModalOptions>{
-        allowMultipleSelection: false,
-        filter: ObservedLocationFilter.fromObject({
-          programLabel: this.programLabel
-        })
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large'
-    });
-    await modal.present();
-    const {data} = await modal.onDidDismiss();
+    try {
+      control.disable({emitEvent: false});
 
-    const value = data?.[0];
-    if (!value) return; // User cancelled
+      const program = await this.programRefService.loadByLabel(this.programLabel);
+      const defaultData = ObservedLocation.fromObject({
+        program,
+      });
+      const filter = ObservedLocationFilter.fromObject({
+        program,
+      });
 
-    console.debug('[landing-form] Selected observed location: ', value);
-    control.setValue(value);
+      if (this.showStrategy) {
+        const strategy = this.strategyControl.value;
+        const period = strategy && await this.strategyService.getDateRangeByLabel(this.strategyControl.value.label);
+        filter.startDate = strategy && period.startDate || DateUtils.moment().startOf('year');
+        filter.endDate = strategy && period.endDate || DateUtils.moment().endOf('year');
+      }
+
+      const modal = await this.modalCtrl.create({
+        component: SelectObservedLocationsModal,
+        componentProps: <ISelectObservedLocationsModalOptions>{
+          allowMultipleSelection: false,
+          showFilterProgram: false,
+          allowNewObservedLocation: true,
+          defaultNewObservedLocation: defaultData,
+          selectedId: control.value?.id,
+          filter,
+        },
+        keyboardClose: true,
+        backdropDismiss: true,
+        cssClass: 'modal-large'
+      });
+      await modal.present();
+      const {data} = await modal.onDidDismiss();
+
+      const value = data?.[0];
+      if (!value) return; // User cancelled
+
+      console.debug('[landing-form] Selected observed location: ', value);
+      control.setValue(value);
+      this.form.markAllAsTouched();
+    }
+    finally {
+      control.enable();
+    }
   }
 
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
