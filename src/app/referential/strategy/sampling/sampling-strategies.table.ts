@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, TemplateRef, ViewChild} from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -102,6 +102,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
   @Input() useSticky = true;
+  @Input() cellTemplate: TemplateRef<any>
 
   @Input() set program(program: Program) {
    this.setProgram(program);
@@ -111,7 +112,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return this._program;
   }
 
-  @Output() onNewDataFromRow = new Subject<TableElement<SamplingStrategy>>()
+  @Output() onNewDataFromRow = new Subject<{row: TableElement<SamplingStrategy>; event: Event}>()
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 

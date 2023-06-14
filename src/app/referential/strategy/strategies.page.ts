@@ -127,9 +127,9 @@ export class StrategiesPage implements OnInit {
     });
   }
 
-  onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>) {
+  onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>, path?: string) {
     this.setContext(row.currentData);
-    this.router.navigateByUrl('/observations/new');
+    this.router.navigateByUrl(path || '/observations/new');
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {

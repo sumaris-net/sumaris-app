@@ -85,7 +85,29 @@
                                      [paginator]="paginator"
                                      (onOpenRow)="onOpenRow($event)"
                                      (onNewRow)="onNewRow($event)"
-                                     (onNewDataFromRow)="onNewDataFromRow($event)">
+                                     [cellTemplate]="actionCellTemplate">
+        <ng-template #actionCellTemplate let-row>
+          <!-- add new data -->
+          <button mat-icon-button class="visible-hover-row"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="$event.preventDefault()"
+                  [matMenuTriggerFor]="addButtonMenu">
+            <mat-icon>add_location_alt</mat-icon>
+          </button>
+
+          <mat-menu #addButtonMenu="matMenu">
+            <button mat-menu-item
+              [title]="'OBSERVED_LOCATION.NEW.TITLE'|translate"
+              (click)="onNewDataFromRow(row)">
+              {{ 'OBSERVED_LOCATION.NEW.TITLE'|translate }}
+            </button>
+            <button mat-menu-item
+              [title]="'LANDING.NEW.TITLE'|translate"
+              (click)="onNewDataFromRow(row, '/observations/landings/sampling/new')">
+              {{ 'LANDING.NEW.TITLE'|translate }}
+            </button>
+          </mat-menu>
+        </ng-template>
       </app-sampling-strategies-table>
 
       <!-- legacy strategy table -->

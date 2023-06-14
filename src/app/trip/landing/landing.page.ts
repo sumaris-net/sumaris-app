@@ -422,6 +422,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       const programLabel = queryParams['program'];
       if (programLabel && EntityUtils.isEmpty(data?.program, 'id')) {
         data.program = await this.programRefService.loadByLabel(programLabel);
+      } else {
+        // Check is program is filled in clipboard and if is the case use-it
+        const program = this.context.getValue('program');
+        data.program = program;
+        this.context.resetValue('program');
       }
     }
   }
