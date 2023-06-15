@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Subject } from 'rxjs';
 import { AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
-import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
+import {LandingEditor, ProgramProperties, StrategyEditor} from '../services/config/program.config';
 import { Program } from '../services/model/program.model';
 import { Strategy } from '../services/model/strategy.model';
 import { ProgramService } from '../services/program.service';
@@ -13,6 +13,8 @@ import { StrategiesTable } from './strategies.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ContextService } from '@app/shared/context.service';
+import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {NavController} from '@ionic/angular';
 
 
 // app-strategies-page
@@ -57,6 +59,7 @@ export class StrategiesPage implements OnInit {
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
+    protected navController: NavController,
     protected referentialRefService: ReferentialRefService,
     protected programService: ProgramService,
     protected programRefService: ProgramRefService,
@@ -91,7 +94,9 @@ export class StrategiesPage implements OnInit {
 
       // Read program's properties
       this.strategyEditor = program.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR);
-      this.i18nSuffix = program.getProperty<StrategyEditor>(ProgramProperties.I18N_SUFFIX);
+      const i18nSuffix = program.getProperty<StrategyEditor>(ProgramProperties.I18N_SUFFIX);
+      this.i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+
       this.$title.next(program.label);
       this.cd.markForCheck();
 
@@ -127,9 +132,20 @@ export class StrategiesPage implements OnInit {
     });
   }
 
-  onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>, path?: string) {
+  onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>, acquisitionLevel: AcquisitionLevelType) {
     this.setContext(row.currentData);
-    this.router.navigateByUrl(path || '/observations/new');
+    switch (acquisitionLevel) {
+      case AcquisitionLevelCodes.LANDING:
+        const editor = this.data.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+        return this.navController.navigateForward(`/observations/landings/${editor}/new`, {
+          queryParams: {
+            parent: AcquisitionLevelCodes.OBSERVED_LOCATION
+          }
+        });
+      case AcquisitionLevelCodes.OBSERVED_LOCATION:
+      default:
+        return this.navController.navigateForward('/observations/new');
+    }
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {

@@ -359,6 +359,7 @@ export class LandingService
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
+      // TODO : Autoriser le trie par rankOrder
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
       filter: dataFilter && dataFilter.asPodObject()

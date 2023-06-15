@@ -98,13 +98,13 @@
           <mat-menu #addButtonMenu="matMenu">
             <button mat-menu-item
               [title]="'OBSERVED_LOCATION.NEW.TITLE'|translate"
-              (click)="onNewDataFromRow(row)">
+              (click)="onNewDataFromRow(row, 'OBSERVED_LOCATION')">
               {{ 'OBSERVED_LOCATION.NEW.TITLE'|translate }}
             </button>
             <button mat-menu-item
-              [title]="'LANDING.NEW.TITLE'|translate"
-              (click)="onNewDataFromRow(row, '/observations/landings/sampling/new')">
-              {{ 'LANDING.NEW.TITLE'|translate }}
+              [title]="'LANDING.NEW.TITLE'|translateContext: this.i18nSuffix"
+              (click)="onNewDataFromRow(row, 'LANDING')">
+              {{ 'LANDING.NEW.TITLE'|translateContext: this.i18nSuffix }}
             </button>
           </mat-menu>
         </ng-template>
