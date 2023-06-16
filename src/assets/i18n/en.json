@@ -1140,16 +1140,16 @@
       "TITLE_SLIDE": "Trip report",
       "VESSEL_NAME": "Vessel name(s):",
       "VESSEL_EXTERIOR_MARKING": "Registration code(s):",
-      "SELECTIVITY_DEVICES": "Slection device(s):",
+      "SELECTIVITY_DEVICES": "Selectivity device(s):",
       "DATES": "Period: from {{startDate}} to {{endDate}}",
       "SEA_STATE": "Sea state:",
       "GEAR_SPEED": "Gear speed:",
       "GEAR_SPEED_STATS": "{{min}} to {{max}} Nds (average {{avg}} Nds)",
       "GEAR_SPEED_AVG": "{{avg}} Nds",
-      "VESSEL_LENGTH": "Vessel length(s) :",
+      "VESSEL_LENGTH": "Vessel length(s):",
       "VESSEL_LENGTH_STATS": "{{min}} to {{max}} m",
       "VESSEL_LENGTH_AVG": "{{avg}} m",
-      "SEABED_FEATURES": "Seabed features :",
+      "SEABED_FEATURES": "Seabed features:",
       "OPERATION_COUNT": "Nb selected OP:",
       "SPECIES": "Species",
       "LANDING": "Landing",
@@ -1301,10 +1301,10 @@
     "REPORT": {
       "TITLE": "Occasion report - {{ location }} - {{ dateTime }}",
       "TITLE_SHORT": "Occasion report",
-      "LOCATION": "Location :",
-      "DATE_TIME": "Date/time :",
-      "OBSERVERS": "Observers(s) :",
-      "VESSEL_COUNT": "Number of vessels :",
+      "LOCATION": "Location:",
+      "DATE_TIME": "Date/time:",
+      "OBSERVERS": "Observers(s):",
+      "VESSEL_COUNT": "Number of vessels:",
       "SUMMARY_TITLE": "Global summary",
       "EXPORT_JSON_FILENAME": "Occasion-report-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
@@ -1313,17 +1313,17 @@
       "AUCTION_CONTROL": {
         "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
         "TITLE_SHORT": "Summary of controls",
-        "VESSEL_COUNT": "Number of controlled vessels :",
+        "VESSEL_COUNT": "Number of controlled vessels:",
         "EXPORT_JSON_FILENAME": "Control_report-{{ location }}-{{ dateTime }}.json"
       }
     },
     "SELECT_OBSERVED_LOCATION_MODAL": {
       "TAB_SELECT": "Search",
-      "TAB_NEW": "New Observed Location"
+      "TAB_NEW": "New occasion"
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>Occasion: {{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "New landing",
       "SAMPLING": {
@@ -1432,10 +1432,10 @@
     },
     "COMPOSITION": {
       "SAMPLED_PACKETS": "Sampled packets",
-      "PACKETS_WEIGHT_DOTS": "Weight (kg) :",
+      "PACKETS_WEIGHT_DOTS": "Weight (kg):",
       "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
-      "TOTAL_PCT_DOTS": "Total (%) :",
+      "TOTAL_PCT_DOTS": "Total (%):",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Weight (kg)",
       "BTN_SALE": "Fill sales",
@@ -1471,7 +1471,7 @@
     "REPORT": {
       "TITLE": "Control report - {{vessel}} - {{date}}",
       "TITLE_SHORT": "Control report",
-      "AUCTION": "Auction :",
+      "AUCTION": "Auction:",
       "CONTROLLED_SPECIES": "Controlled species:"
     }
   },
@@ -1947,7 +1947,7 @@
       "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
-      "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]) :",
+      "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]):",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
@@ -2050,7 +2050,7 @@
         "LABEL": "Code",
         "GENERATE_LABEL_INCREMENT_BUTTON": "generate increment",
         "ANALYTIC_REFERENCE_PLACEHOLDER": "Analytic reference",
-        "DEPARTMENTS": "Recorder(s) department(s) :",
+        "DEPARTMENTS": "Recorder(s) department(s):",
         "DEPARTMENT_PLACEHOLDER": "Recorder department #",
         "LOCATIONS": "Applied location(s):",
         "LOCATION_PLACEHOLDER": "Applied location #",
@@ -2098,7 +2098,7 @@
           "ANALYTIC_REFERENCE": "EOTP",
           "RECORDER_DEPARTMENTS": "Recorder laboratory(s)",
           "TAXON_NAMES": "Target species",
-          "QUARTERS_DOTS": "Quarters :",
+          "QUARTERS_DOTS": "Quarters:",
           "START_YEAR": "Start year",
           "END_YEAR": "End year",
           "PARAMETER_GROUPS": "Parameters to be measured",
@@ -2119,15 +2119,15 @@
       },
       "SUMMARY": {
         "TITLE": "Strategy",
-        "LOCATIONS" :"Applied locations:",
-        "TAXON_NAMES" :"Sceitnfic species(s):",
-        "TAXON_GROUPS" :"Commercial specie(s) :",
-        "BTN_SHOW" :"Open the strategy",
-        "SAMPLING" : {
+        "LOCATIONS": "Applied locations:",
+        "TAXON_NAMES":"Sceitnfic species(s):",
+        "TAXON_GROUPS":"Commercial specie(s):",
+        "BTN_SHOW": "Open the strategy",
+        "SAMPLING": {
           "TITLE": "Sampling scheme",
-          "LOCATIONS" :"Fishing area(s):",
-          "TAXON_NAMES" :"Target species:",
-          "TAXON_GROUPS" :"Commercial species:",
+          "LOCATIONS": "Fishing area(s):",
+          "TAXON_NAMES": "Target species:",
+          "TAXON_GROUPS": "Commercial species:",
           "BTN_SHOW": "Open the sampling scheme"
         }
       },

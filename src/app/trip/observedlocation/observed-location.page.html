@@ -10,7 +10,7 @@
              [canGoBack]="true">
 
   <button slot="end" mat-icon-button
-          *ngIf="!embedded && (enabled && !isNewData || debug)"
+          *ngIf="showOptionsMenu && (enabled && !isNewData || debug)"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>
@@ -64,7 +64,6 @@
 <ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
-                 [class.mat-tab-group-header-hidden]="embedded"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -128,7 +127,7 @@
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
               <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
-                <app-entity-quality-form *ngIf="!embedded">
+                <app-entity-quality-form *ngIf="showQualityForm">
                 </app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>

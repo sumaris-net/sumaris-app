@@ -38,7 +38,7 @@
 
       <!-- start date time -->
       <ion-col size="12" size-sm="auto">
-        <mat-date-time-field *ngIf='showStartTime; else startDateOnly'
+        <mat-date-time-field *ngIf="showStartTime; else startDateOnly"
                              formControlName="startDateTime"
                              [placeholder]="'OBSERVED_LOCATION.EDIT.DATE_TIME'|translate"
                              [tabindex]="tabindex+2"

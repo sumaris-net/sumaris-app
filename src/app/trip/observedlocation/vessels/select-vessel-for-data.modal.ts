@@ -42,7 +42,8 @@ export interface SelectVesselsForDataModalOptions {
 export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptions, OnInit, AfterViewInit, OnDestroy {
 
   selectedTabIndex = 0;
-  subscription = new Subscription();
+
+  protected _subscription = new Subscription();
 
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
   @ViewChild(VesselsTable, { static: true }) vesselsTable: VesselsTable;
@@ -136,7 +137,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
-      this.subscription.add(
+      this._subscription.add(
         this.configService.config
           .pipe(
             debounceTime(100),
@@ -162,7 +163,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this._subscription.unsubscribe();
   }
 
   async selectRow(row) {

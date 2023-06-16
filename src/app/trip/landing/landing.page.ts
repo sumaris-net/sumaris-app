@@ -708,7 +708,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return this.navController.navigateForward(['observations', parent.id], {
       replaceUrl: false, // Back should return in the landing
       queryParams: {
-        color: <PredefinedColors>'secondary',
         tab: 0,
         embedded: true
       }

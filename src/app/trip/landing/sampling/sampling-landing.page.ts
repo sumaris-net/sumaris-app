@@ -1,10 +1,21 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
-import {Subscription} from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
-import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from './biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../landing.model';
@@ -42,7 +53,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       enableListenChanges: false
     });
     this.i18nContext.suffix = 'SAMPLING.';
@@ -105,8 +116,10 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
 
     // Move to second tab
-    if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
-      setTimeout(() => this.selectedTabIndex = 1 );
+    if (this.showSamplesTable && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+      this.autoOpenNextTab = false; // Should switch only once
     }
   }
 
@@ -328,22 +341,22 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.TITLE_PREFIX', {
+      await firstValueFrom(this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      })) || '';
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
+      return titlePrefix + this.translate.instant(`LANDING.NEW.${i18nSuffix}TITLE`);
     }
     // Existing data
     const strategy = await firstNotNilPromise(this.$strategy, {stop: this.destroySubject});
 
-    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+    return titlePrefix + this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategy && strategy.label
-    }).toPromise());
+    });
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): boolean {

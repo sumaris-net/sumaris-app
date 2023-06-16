@@ -219,7 +219,6 @@ export class AppliedPeriod {
     this.appliedStrategyId = source.appliedStrategyId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    console.log('TODO: ', source.startDate);
     this.acquisitionNumber = source.acquisitionNumber;
   }
 

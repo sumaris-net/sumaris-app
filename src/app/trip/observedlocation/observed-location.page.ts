@@ -91,9 +91,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   @Input() showToolbar = true;
-  @Input() embedded = false;
+  @Input() showQualityForm = true;
+  @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-
 
   constructor(
     injector: Injector,
@@ -137,16 +137,21 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       })
     );
 
+    // Detect embedded mode, from route params
     this.registerSubscription(
-      this.route.queryParams.subscribe(queryParams => {
-        // Manage embedded mode
-        this.embedded = isNotNil(queryParams['embedded']) && queryParams['embedded'] !== 'false' && queryParams['embedded'] !== false;
-
-        // Manage toolbar color
-        if (isNotNilOrBlank(queryParams['color'])) {
-          this.toolbarColor = queryParams['color'];
-        }
-        this.markForCheck();
+      this.route.queryParams
+        .pipe(first())
+        .subscribe(queryParams => {
+          // Manage embedded mode
+          const embedded = toBoolean(queryParams['embedded'], false);
+          if (embedded) {
+            this.showLandingTab = false;
+            this.showOptionsMenu = false;
+            this.showQualityForm = false;
+            this.autoOpenNextTab = false; // Keep first tab
+            this.toolbarColor = 'secondary';
+            this.markForCheck();
+          }
       })
     );
 
@@ -179,9 +184,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     // Move to second tab
-    if (this.showLandingTab && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
+    if (this.showLandingTab && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
+      this.autoOpenNextTab = false; // Should switch only once
     }
   }
 

@@ -65,15 +65,15 @@
         <ion-label translate>OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW</ion-label>
       </ng-template>
 
-      <div class="ion-padding-top">
-        <app-form-observed-location #form
-                                    [programLabel]="programLabel"
-                                    [showError]="true"
-                                    [showEndDateTime]="false"
-                                    [showProgram]="false"
-                                    [debug]="false">
-        </app-form-observed-location>
-      </div>
+      <ion-grid class="ion-padding" style="max-width: 800px;">
+          <app-form-observed-location #form
+                                      [programLabel]="programLabel"
+                                      [showError]="true"
+                                      [showEndDateTime]="false"
+                                      [showProgram]="false"
+                                      [debug]="false">
+          </app-form-observed-location>
+      </ion-grid>
     </mat-tab>
 
 
@@ -102,7 +102,7 @@
         <ion-button *ngIf="(tabSearch.isActive && allowMultipleSelection) || (tabNew.isActive)"
                     [fill]="((tabSearch.isActive && hasSelection()) || (tabNew.isActive && form.valid)) && 'solid' || 'clear'"
                     [disabled]="(tabSearch.isActive && !hasSelection()) || (tabNew.isActive && !form.valid)"
-                    (click)="close($event)" color="primary">
+                    (click)="close($event)" color="tertiary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

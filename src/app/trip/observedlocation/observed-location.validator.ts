@@ -89,7 +89,7 @@ export class ObservedLocationValidatorService
   }
 
   protected createStartDateValidator(opts?: ObservedLocationValidatorOptions): ValidatorFn {
-    const validators: ValidatorFn[] = [];
+    const validators: ValidatorFn[] = [Validators.required];
 
     // Check if a date is at the given day of week
     if (isNotNil(opts.startDateDay)) {

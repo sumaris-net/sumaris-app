@@ -1336,7 +1336,7 @@
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>Sortie : {{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "Nouveau débarquement",
       "SAMPLING": {

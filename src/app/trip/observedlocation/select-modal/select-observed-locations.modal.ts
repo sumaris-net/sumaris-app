@@ -33,7 +33,6 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
 
   protected _subscription = new Subscription();
   protected _logPrefix = '[select-observed-location-modal]';
-  protected observedLocationService: ObservedLocationService;
 
   @ViewChild('table', { static: true }) table: ObservedLocationsPage;
   @ViewChild('form', { static: true }) form: ObservedLocationForm;
@@ -57,9 +56,9 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   constructor(
     protected injector: Injector,
     protected viewCtrl: ModalController,
+    protected observedLocationService: ObservedLocationService,
     protected cd: ChangeDetectorRef
   ) {
-    this.observedLocationService = injector.get(ObservedLocationService);
     // default value
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
   }
@@ -89,13 +88,14 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
         //this.table.permanentSelection?.setSelection(ObservedLocation.fromObject({id: this.selectedId}));
       }
 
-
       if (this.allowNewObservedLocation) {
         if (this.defaultNewObservedLocation) this.form.setValue(this.defaultNewObservedLocation);
         this.form.enable();
         this.form.markAsReady();
       }
 
+      this.selectedTabIndex = 0;
+      this.tabGroup.realignInkBar();
       this.markForCheck();
     }, 200);
   }
@@ -119,20 +119,23 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
 
   async close(event?: any): Promise<boolean> {
     try {
-      let data:ObservedLocation[];
       if (this.tabSearch.isActive) {
         if (this.hasSelection()) {
-          data = (this.table.selection.selected || [])
+          const data = (this.table.selection.selected || [])
             .map(row => row.currentData)
             .map(ObservedLocation.fromObject)
             .filter(isNotNil);
+          return this.viewCtrl.dismiss(data);
         }
       }
       else if (this.tabNew.isActive) {
-        data = [await this.createObservedLocation()];
+        const newData = await this.createObservedLocation();
+        if (newData) {
+          return this.viewCtrl.dismiss([newData]);
+        }
       }
-      this.viewCtrl.dismiss(data);
-      return true;
+
+      return false;
     } catch (err) {
       // nothing to do
       return false;

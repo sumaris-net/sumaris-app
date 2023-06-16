@@ -1140,7 +1140,7 @@
       "TITLE_SLIDE": "Trip report",
       "VESSEL_NAME": "Vessel name(s):",
       "VESSEL_EXTERIOR_MARKING": "Registration code(s):",
-      "SELECTIVITY_DEVICES": "Slection device(s):",
+      "SELECTIVITY_DEVICES": "Selectivity device(s):",
       "DATES": "Period: from {{startDate}} to {{endDate}}",
       "SEA_STATE": "Sea state:",
       "GEAR_SPEED": "Gear speed:",
@@ -1319,11 +1319,11 @@
     },
     "SELECT_OBSERVED_LOCATION_MODAL": {
       "TAB_SELECT": "Search",
-      "TAB_NEW": "New Observed Location"
+      "TAB_NEW": "New occasion"
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>Occasion: {{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "New landing",
       "SAMPLING": {
