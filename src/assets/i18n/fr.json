@@ -1048,6 +1048,7 @@
         "IMAGES": "Photos",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
+        "BTN_WEIGHT_UNIT_DOTS": "Unité de poids...",
         "WEIGHT": "Poids",
         "LENGTH": "Taille",
         "MATURITY": "Maturité",
@@ -1355,6 +1356,7 @@
       "OBSERVED_LOCATION_PLACEHOLDER": "Sortie",
       "BTN_SELECT_OBSERVED_LOCATION": "Sélectionner la sortie",
       "BTN_OPEN_OBSERVED_LOCATION": "Ouvrir la sortie",
+      "BTN_REPORT": "Éditer le rapport",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
@@ -1825,6 +1827,12 @@
         "INSERT-UPDATE": "Insertions ou mises à jour"
       }
     },
+    "UNIT": {
+      "WEIGHT": {
+        "KG": "Kilogrammes",
+        "G": "Grammes"
+      }
+    },
     "STATUS_ENUM": {
       "ENABLE": "Actif à la saisie",
       "DISABLE": "Inactif à la saisie",
@@ -1968,7 +1976,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : Saisir nb indiv. ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité du poids",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité de poids",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Capture > Pays (ID) pour les équivalents poids vifs",
       "TRIP_SAMPLE_ENABLE": "Marée > Échantillon : Activer ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Marée > Échantillon : Date et heure ?",
@@ -2037,7 +2045,7 @@
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
-      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité du poids",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",

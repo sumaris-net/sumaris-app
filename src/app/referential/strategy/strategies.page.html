@@ -90,28 +90,30 @@
           <!-- add new data -->
           <button mat-icon-button class="visible-hover-row visible-selected-row"
                   [title]="'PROGRAM.STRATEGY.TABLE.BTN_ADD_DATA_DOTS'|translateContext: this.i18nSuffix"
-                  (click)="samplingTable.highlightedRowId = $event.preventDefault() || row.id"
+                  (click)="$event.preventDefault() || samplingTable.highlightRow(row)"
                   [matMenuTriggerFor]="addButtonMenu">
             <mat-icon>add_location_alt</mat-icon>
           </button>
 
           <mat-menu #addButtonMenu="matMenu">
-            <button mat-menu-item
-              (click)="onNewDataFromRow(row, 'OBSERVED_LOCATION')">
-              <mat-icon>
-                <ion-icon name="location"></ion-icon>
-                <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
-              </mat-icon>
-              {{ 'OBSERVED_LOCATION.NEW.TITLE'|translateContext: this.i18nSuffix }}
-            </button>
-            <button mat-menu-item
-              (click)="onNewDataFromRow(row, 'LANDING')">
-              <mat-icon>
-                <ion-icon name="boat"></ion-icon>
-                <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
-              </mat-icon>
-              {{ 'LANDING.NEW.TITLE'|translateContext: this.i18nSuffix }}
-            </button>
+            <ng-template matMenuContent>
+              <button mat-menu-item
+                (click)="onNewDataFromRow(row, 'OBSERVED_LOCATION')">
+                <mat-icon>
+                  <ion-icon name="location"></ion-icon>
+                  <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
+                </mat-icon>
+                {{ 'OBSERVED_LOCATION.NEW.TITLE'|translateContext: this.i18nSuffix }}
+              </button>
+              <button mat-menu-item
+                (click)="onNewDataFromRow(row, 'LANDING')">
+                <mat-icon>
+                  <ion-icon name="boat"></ion-icon>
+                  <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
+                </mat-icon>
+                {{ 'LANDING.NEW.TITLE'|translateContext: this.i18nSuffix }}
+              </button>
+            </ng-template>
           </mat-menu>
         </ng-template>
       </app-sampling-strategies-table>

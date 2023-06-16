@@ -294,6 +294,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .subscribe());
   }
 
+  highlightRow(row: TableElement<SamplingStrategy>) {
+    this.highlightedRowId = row?.id;
+    this.markForCheck();
+  }
+
   clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
     this.highlightedRowId = row?.id;
     return super.clickRow(event, row);

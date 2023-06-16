@@ -1015,6 +1015,10 @@ export class SamplesTable
     this.tagCount$.next(tagCount);
   }
 
+  protected changeWeightUnit(unitLabel: WeightUnitSymbol) {
+    console.log('TODO: change weight unit to ' + unitLabel);
+  }
+
   selectInputContent = AppFormUtils.selectInputContent;
   isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
   isIndividualRelease = SampleUtils.isIndividualRelease;

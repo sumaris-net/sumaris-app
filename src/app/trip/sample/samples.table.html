@@ -60,6 +60,14 @@
     <ion-label translate>TRIP.SAMPLE.TABLE.BTN_ADD_PMFM</ion-label>
   </button>
 
+
+  <!-- unit change -->
+  <button mat-menu-item
+          [matMenuTriggerFor]="weightUnitMenu">
+    <mat-icon>balance</mat-icon>
+    <ion-label translate>TRIP.SAMPLE.TABLE.BTN_WEIGHT_UNIT_DOTS</ion-label>
+  </button>
+
   <mat-divider *ngIf="showDisplayColumnModal"></mat-divider>
 
   <!-- display columns option -->
@@ -80,6 +88,19 @@
     </ng-template>
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
+</mat-menu>
+
+<mat-menu #weightUnitMenu="matMenu">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="changeWeightUnit('kg')">
+      <ion-icon *ngIf="weightDisplayedUnit === 'kg'" name="checkmark"></ion-icon>
+      {{ 'REFERENTIAL.UNIT.WEIGHT.KG'|translate }}
+    </button>
+    <button mat-menu-item (click)="changeWeightUnit('g')">
+      <ion-icon *ngIf="weightDisplayedUnit === 'g'" name="checkmark"></ion-icon>
+      {{ 'REFERENTIAL.UNIT.WEIGHT.G'|translate }}
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- error -->
