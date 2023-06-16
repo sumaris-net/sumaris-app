@@ -42,7 +42,7 @@ export const VesselSnapshotFragments = {
     registrationCode
     intRegistrationCode
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`,
@@ -58,7 +58,7 @@ export const VesselSnapshotFragments = {
       ...LocationFragment
     }
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`,
@@ -72,7 +72,7 @@ export const VesselSnapshotFragments = {
       ...LocationFragment
     }
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`
@@ -86,7 +86,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all with total
   loadAllWithTotal: gql`query VesselSnapshotsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -96,7 +96,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     total: vesselSnapshotsCount(filter: $filter)
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load one item
   load: gql`query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
@@ -105,7 +105,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all WITH base port location
   loadAllWithPort: gql`query VesselSnapshotsWithPort($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -115,7 +115,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
   }
   ${VesselSnapshotFragments.lightVesselSnapshotWithPort}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all WITH base port location AND total
   loadAllWithPortAndTotal: gql`query VesselSnapshotsWithPortAndTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -126,7 +126,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
   }
   ${VesselSnapshotFragments.lightVesselSnapshotWithPort}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 export declare interface VesselServiceLoadOptions extends EntityServiceLoadOptions {
@@ -143,6 +143,7 @@ export class VesselSnapshotService
   private defaultFilter: Partial<VesselSnapshotFilter> = null;
   private defaultLoadOptions: Partial<VesselServiceLoadOptions> = null;
   private suggestLengthThreshold: number = 0;
+  private enableSearchRegistrationByPrefix: boolean = VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_SEARCH_REGISTRATION_CODE_AS_PREFIX.defaultValue;
 
   private get onConfigOrSettingsChanges(): Observable<any> {
     return merge(
@@ -301,10 +302,13 @@ export class VesselSnapshotService
     // Not enough character to launch the search
     if ((searchText && searchText.length || 0) < this.suggestLengthThreshold) return {data: undefined};
 
-    // Exclude search on name, when NOT the first display attributes
     let searchAttributes = filter.searchAttributes;
-    if (searchText && !searchText.startsWith('*') && searchAttributes[0] !== 'name') {
-      searchAttributes = searchAttributes.filter(attr => attr !== 'name');
+
+    // Exclude search on name, when search by prefix is enabled (by config)
+    if (this.enableSearchRegistrationByPrefix) {
+      if (searchText && !searchText.startsWith('*') && searchAttributes && searchAttributes[0] !== 'name') {
+        searchAttributes = searchAttributes.filter(attr => attr !== 'name');
+      }
     }
 
     return this.loadAll(0, !value ? 30 : 20, undefined, undefined,
@@ -512,5 +516,6 @@ export class VesselSnapshotService
     };
 
     this.suggestLengthThreshold = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_MIN_LENGTH);
+    this.enableSearchRegistrationByPrefix = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_SEARCH_REGISTRATION_CODE_AS_PREFIX);
   }
 }

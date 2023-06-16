@@ -46,12 +46,12 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     protected dataService: AggregatedLandingService,
     protected programRefService: ProgramRefService,
     protected validatorService: VesselActivityValidatorService,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     public network: NetworkService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService, null,
+    super(injector, measurementsValidatorService, formBuilder, programRefService, null,
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });

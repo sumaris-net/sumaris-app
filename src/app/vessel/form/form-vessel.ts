@@ -6,6 +6,7 @@ import { AccountService, AppForm, AppFormUtils, isNil, LocalSettingsService, Ref
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormGroup } from '@angular/forms';
 import { Moment } from 'moment';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 @Directive({ selector: 'input[toRegistrationCode]'})
 export class ToRegistrationCodeDirective {
@@ -31,6 +32,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   private _defaultRegistrationLocation: ReferentialRef;
   private _withNameRequired: boolean;
   private _maxDate: Moment;
+  private _basePortLocationSuggestLengthThreshold: number = +VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH.defaultValue
 
   data: Vessel;
 
@@ -71,6 +73,21 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   get defaultRegistrationLocation(): ReferentialRef {
     return this._defaultRegistrationLocation;
+  }
+
+  @Input() set basePortLocationSuggestLengthThreshold(value: number) {
+    if (this._basePortLocationSuggestLengthThreshold !== value) {
+      this._basePortLocationSuggestLengthThreshold = value;
+
+      // Update fields
+      if (this.autocompleteFields.basePortLocation) {
+        this.autocompleteFields.basePortLocation.suggestLengthThreshold = value;
+      }
+    }
+  }
+
+  get basePortLocationSuggestLengthThreshold() {
+    return this._basePortLocationSuggestLengthThreshold;
   }
 
   @Input() set withNameRequired(value: boolean) {
@@ -138,6 +155,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
         levelId: LocationLevelIds.PORT,
         statusId: StatusIds.ENABLE
       },
+      suggestLengthThreshold: this._basePortLocationSuggestLengthThreshold,
       mobile: this.mobile
     });
     this.registerAutocompleteField('registrationLocation', {
@@ -153,6 +171,19 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
+        statusId: StatusIds.ENABLE
+      },
+      mobile: this.mobile
+    });
+
+    // Combo hull material
+    this.registerAutocompleteField('hullMaterial', {
+      // TODO use suggest function, and load Pmfm qualitative value, using PmfmIds.HULL_MATERIAL
+      service: this.referentialRefService,
+      attributes: ['name'],
+      filter: {
+        entityName: 'QualitativeValue',
+        levelLabel: 'HULL_MATERIAL',
         statusId: StatusIds.ENABLE
       },
       mobile: this.mobile

@@ -1,3 +1,37 @@
+:host {
+  --mat-drawer-content-container-height: var(--mat-tab-body-content-height, 100%);
+
+  mat-sidenav {
+    min-width: 300px;
+
+    --toolbar-height: 0;
+    &.has-footer {
+      --toolbar-height: var(--ion-toolbar-height);
+    }
+
+    app-batch-model-tree {
+      display: block;
+      height: calc(100% - var(--toolbar-height, 0px));
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    ion-footer::before {
+      background-image: unset;
+      border: 0;
+    }
+  }
+
+  mat-sidenav-content {
+    height: var(--mat-drawer-content-container-height);
+
+    .mat-sidenav-content {
+      --mat-tab-body-content-height: calc(var(--mat-drawer-content-container-height) - var(--mat-toolbar-height, 0px));
+
+    }
+  }
+}
+
 mat-toolbar {
   // Reduce start padding
   padding-inline-start: 0 !important;
@@ -10,8 +44,11 @@ mat-toolbar {
     font-size: inherit;
   }
 
+
   .breadcrumb-separator {
     color: var(--ion-color-step-550, #73849a);
+    margin-inline-start: var(--padding-start);
+    margin-inline-end: calc(-1 * var(--padding-end));
   }
 
   .mat-button.breadcrumb {
@@ -27,10 +64,14 @@ mat-toolbar {
       color: var(--ion-color-dark);
     }
 
-    .breadcrumb-separator {
-      margin-inline-start: var(--padding-start);
-      margin-inline-end: calc(-1 * var(--padding-end));
+    &.mat-badge-overlap .mat-badge-content {
+      right: 0px !important;
     }
+    &.mat-badge-overlap .mat-badge-content {
+      top: 0px !important;
+    }
+
+
   }
 
   ion-item.help {
@@ -47,45 +88,6 @@ mat-toolbar {
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
-}
-
-.batch-tree {
-  --app-tree-indent: 16px;
-  --padding-start: 0;
-
-  ul {
-    padding-inline-start: var(--app-tree-indent);
-    &.ion-no-padding {
-      padding-inline-start: 0 !important;
-    }
-  }
-
-  ul,
-  li {
-    margin-top: 0;
-    margin-bottom: 0;
-    list-style-type: none;
-
-    ion-item {
-      .visible-hover {
-        display: none;
-        visibility: hidden;
-      }
-
-      &:hover {
-        .visible-hover {
-          display: unset;
-          visibility: unset;
-        }
-      }
-    }
-  }
-
-  .mat-tree-node {
-    display: block;
-  }
-
-
 }
 
 .filter-panel {
@@ -108,44 +110,19 @@ mat-toolbar {
   }
 
 }
-ion-item {
-  --icon-size: 24px;
-  --padding-start: 0 !important;
-  --ion-item-background: var(--ion-color-transparent);
 
-  ion-button {
-    mat-badge-small.mat-badge-after .mat-badge-content {
-      right: -9px !important;
-    }
-    .mat-badge-small.mat-badge-above .mat-badge-content {
-      top: -3px !important;
-    }
-  }
-  &.activated {
-    --ion-item-background: var(--ion-color-secondary100);
-  }
 
-  .mat-icon {
-    height: var(--icon-size);
-    width: var(--icon-size);
-  }
-  .material-icons {
-    font-size: var(--icon-size);
-  }
-  .small-icon {
-    --icon-size: 18px !important;
-  }
+.cdk-visually-hidden{
+  visibility: hidden !important;
+  display: none !important;
+}
 
-  ion-label {
-    word-wrap: break-word;
-    white-space: normal;
-
-    // Show matBadge in h2
-    overflow: visible;
-
-    .text-bold {
-      font-weight: bold;
-    }
+ion-modal {
+  mat-tab-group {
+    height: 100%;
+  }
+  .mat-tab-body-wrapper {
+    height: 100%;
   }
 }
 
@@ -170,10 +147,3 @@ ion-col.selector-toggle {
     }
   }
 }
-
-.cdk-visually-hidden{
-  visibility: hidden !important;
-  display: none !important;
-}
-
-

@@ -201,7 +201,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
@@ -215,7 +215,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected networkService: NetworkService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
@@ -229,6 +229,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl = formBuilder.control(null, Validators.required);
     //this.form.addControl('strategy', this.strategyControl);
 
+    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
   }
 
@@ -272,14 +273,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     );
 
     // Combo location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        ...filter,
+        levelIds: this.locationLevelIds
+      }),
       filter: {
         entityName: 'Location',
-        levelIds: this.locationLevelIds
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes,
       mobile: this.mobile
     });
 

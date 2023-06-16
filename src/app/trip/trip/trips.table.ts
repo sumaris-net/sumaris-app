@@ -19,12 +19,13 @@ import {
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
+  splitByProperty,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -36,12 +37,12 @@ import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offlin
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -64,8 +65,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
+  qualityFlags: ReferentialRef[];
+  qualityFlagsById: {[id:number]: ReferentialRef};
 
-  @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -86,7 +88,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -120,7 +121,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
-      dataQualityStatus: [null]
+      dataQualityStatus: [null],
+      qualityFlagId: [null, SharedValidators.integer]
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -204,6 +206,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
             this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
             this.setShowColumn('quality', this.showQuality, {emitEvent: false});
 
+            if (this.showQuality) {
+              this.referentialRefService.loadQualityFlags().then(items => {
+                this.qualityFlags = items;
+                this.qualityFlagsById = splitByProperty(items, 'id');
+              });
+            }
+
             // Recorder
             this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
             this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
@@ -211,6 +220,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
             // Observers
             this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
             this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+
 
             this.updateColumns();
 
@@ -261,8 +271,19 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
+    const { data, role } = await modal.onDidDismiss();
+    if (role === 'cancel' || isEmptyArray(data)) return; // CANCELLED
+
+    // Select the local trips tab
+    this.setSynchronizationStatus('DIRTY');
+
+    // If only one restored: open it
+    const trip = data?.length === 1 && data[0];
+    if (isNotNil(trip.id)) {
+      await this.router.navigate([trip.id], {
+        relativeTo: this.route
+      });
+    }
   }
 
   async prepareOfflineMode(event?: Event, opts?: {
@@ -277,7 +298,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
         name: this._dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
-      const value = <TripSynchroImportFilter>{
+      let synchroFilter = <TripSynchroImportFilter>{
         vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
         programLabel: filter.program && filter.program.label || undefined,
         ...feature.filter
@@ -285,7 +306,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
         componentProps: <TripOfflineModalOptions>{
-          value
+          value: synchroFilter
         }, keyboardClose: true
       });
 
@@ -293,11 +314,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       modal.present();
 
       // Wait until closed
-      const res = await modal.onDidDismiss();
-      if (!res || !res.data) return; // User cancelled
+      const {data, role} = await modal.onDidDismiss();
+
+      if (!data || role === 'cancel') return; // User cancelled
 
       // Update feature filter, and save it into settings
-      feature.filter = res && res.data;
+      synchroFilter = TripSynchroImportFilter.fromObject(data);
+      feature.filter = synchroFilter.asObject();
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG
@@ -352,7 +375,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return this.downloadAsJson(ids);
   }
 
-  async openDownloadPage(event?: Event) {
+  async openDownloadPage(event?: Event, type?: ExtractionType) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
@@ -373,9 +396,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.markForCheck();
 
     // Create extraction type and filter
+    type = type || ExtractionType.fromLiveLabel('PMFM_TRIP');
     const programLabel = programs[0].label;
     const tripIds = trips.map(t => t.id);
-    const type = ExtractionType.fromLiveLabel('PMFM_TRIP');
     const filter = ExtractionUtils.createTripFilter(programLabel, tripIds);
     const queryParams = ExtractionUtils.asQueryParams(type, filter);
 
@@ -427,8 +450,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       this.selection.clear();
       this.markForCheck();
 
-      // Open the operation
-      await this.router.navigate(['trips', data.tripId, 'operation', data.id]);
+      //Full load the program
+      const program = await this.programRefService.loadByLabel(programLabel);
+
+      // Build the final path
+      const operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+      const editorPath = operationEditor !== 'legacy' ? [operationEditor]: [];
+      await this.router.navigate(['trips', data.tripId, 'operation', ...editorPath, data.id]);
+
       return;
     }
   }
@@ -468,5 +497,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
       type: 'application/json'
     });
+  }
+
+  protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
+    return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 }

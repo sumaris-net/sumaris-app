@@ -29,7 +29,6 @@
 }
 
 .mat-table {
-  min-width: 100%;
   --mat-cell-vertical-padding: 4px;
 
   .mat-column-program {
@@ -42,6 +41,11 @@
 
   .mat-column-location {
     min-width: 150px;
+  }
+
+  .mat-column-observers,
+  .mat-column-recorderPerson {
+    min-width: 180px;
   }
 
   .mat-column-actions {

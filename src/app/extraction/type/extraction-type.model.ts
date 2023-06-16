@@ -13,7 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber, equals, trimEmptyToNull
+  Person, toNumber, equals, trimEmptyToNull, collectByProperty
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -90,7 +90,7 @@ export class ExtractionType<
   }
 
   get category(): ExtractionCategoryType {
-    return (isNil(this.id) || this.id < 0) ? 'LIVE' : 'PRODUCT';
+    return (isNil(this.id) || this.id < 0) && !this.isSpatial ? 'LIVE' : 'PRODUCT';
   }
 }
 
@@ -163,13 +163,23 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 
   searchText?: string;
   sheetName?: string;
+  sheetNames?: string[];
+  preview?: boolean;
   criteria?: ExtractionFilterCriterion[];
+
+  // Additional for the pod
+  meta?: {
+    // Trip specific
+    excludeInvalidStation?: boolean;
+  }
 
   fromObject(source: any): ExtractionFilter {
     super.fromObject(source);
     this.searchText = source.searchText;
     this.criteria = source.criteria && source.criteria.map(ExtractionFilterCriterion.fromObject);
     this.sheetName = source.sheetName;
+    this.preview = source.preview;
+    this.meta = source.meta;
     return this;
   }
 
@@ -255,14 +265,15 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     const target = super.asObject(opts) as any;
 
     // Pod serialization
-    if (opts.minify) {
-      const isMulti = typeof target.value === 'string' && target.value.indexOf(',') !== -1;
+    if (opts?.minify) {
+      const isMulti = (typeof target.value === 'string' && target.value.indexOf(',') !== -1)
+        || isNotEmptyArray(target.values);
       switch (target.operator) {
         case '=':
+        case 'IN':
           if (isMulti) {
             target.operator = 'IN';
-            target.values = (target.value as string)
-              .split(',')
+            target.values = (target.values || (target.value as string).split(','))
               .map(trimEmptyToNull)
               .filter(isNotNil);
             delete target.value;
@@ -271,8 +282,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
         case '!=':
           if (isMulti) {
             target.operator = 'NOT IN';
-            target.values = (target.value as string)
-              .split(',')
+            target.values = (target.values || (target.value as string).split(','))
               .map(trimEmptyToNull)
               .filter(isNotNil);
             delete target.value;
@@ -306,10 +316,12 @@ export class ExtractionTypeUtils {
     if (isNil(type)) return undefined;
     if (type.name) return type; // Skip if already has a name
 
-    // Get format, from label
-    const format = type.label && type.label.split('-')[0].toUpperCase();
+    // Get format
+    const format = type.format
+    // Parse label if not fetched
+      || type.label && type.label.split('-')[0].toUpperCase();
 
-    let key = `EXTRACTION.${type.category || 'LIVE'}.${format}.TITLE`.toUpperCase();
+    let key = `EXTRACTION.FORMAT.${format}.TITLE`.toUpperCase();
     let name = translate.instant(key, type);
 
     // No I18n translation
@@ -346,7 +358,17 @@ export class ExtractionTypeUtils {
 export class ExtractionTypeCategory {
 
   static fromTypes(types: ExtractionType[]): ExtractionTypeCategory[] {
-    const typesByCategory = arrayGroupBy(types, 'category');
+    const typesByCategory = collectByProperty(types, 'category');
+
+    // Add a spatial product category
+    if (typesByCategory['PRODUCT']) {
+      const spatialProduct = typesByCategory['PRODUCT'].filter(t => t.isSpatial && t.id >= 0 /*exclude live agg*/);
+      if (isNotEmptyArray(spatialProduct)) {
+        typesByCategory['PRODUCT'] = typesByCategory['PRODUCT'].filter(t => !t.isSpatial);
+        typesByCategory['SPATIAL_PRODUCT'] = spatialProduct;
+      }
+    }
+
     return Object.getOwnPropertyNames(typesByCategory)
       .map(category => ({label: category, types: typesByCategory[category]}));
   }

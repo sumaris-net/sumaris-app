@@ -461,7 +461,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     }
 
     const appUrl = window.location.href;
-    const shareUrl = `${appUrl}/share/report/${fileName}`;
+    const shareUrl = `${environment.baseUrl}/share/report/${fileName}`;
     return { url: shareUrl};
   }
 

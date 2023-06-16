@@ -5,7 +5,7 @@ import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, 
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
-import { IonContent, ModalController } from '@ionic/angular';
+import { Animation, IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
@@ -17,6 +17,7 @@ import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
+import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 
 export interface ISubBatchesModalOptions {
 
@@ -51,7 +52,8 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    { provide: ContextService, useExisting: TripContextService},
+    {provide: ContextService, useExisting: TripContextService},
+    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {
@@ -71,9 +73,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
-  private isOnFieldMode: boolean;
+  private _isOnFieldMode: boolean;
+  protected $title = new Subject<string>();
 
-  $title = new Subject<string>();
+  protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
 
   get selectedRow(): TableElement<SubBatch> {
     return this.selection.selected[0] || this.editedRow;
@@ -103,6 +106,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() mobile: boolean;
+  @Input() playSound: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -144,8 +148,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   ngOnInit() {
 
-    console.debug('[sub-batches-modal] Init modal...');
-
     if (this.disabled) {
       this.showForm = false;
       this.disable();
@@ -154,10 +156,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.ngOnInit();
 
     // default values
-    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
-    this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
+    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.showIndividualCount = !this._isOnFieldMode; // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
-
+    this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
     this.showForm = this.showForm && (this.form && !this.disabled);
 
     this.markAsReady();
@@ -236,13 +238,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.setValue(data, opts);
   }
 
-  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
     await this.scrollToTop();
-    await super.doSubmitForm(event, row);
+    const done = await super.doSubmitForm(event, row);
 
     // Forget the edited row
-    this.selectedRow = null;
-    this.markForCheck();
+    if (done) {
+      this.selectedRow = null;
+      this.markForCheck();
+    }
+
+    return done;
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -308,7 +314,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
-    row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
+    row = row || this.selectedRow;
     if (!row) throw new Error ("Missing row argument, or a row selection.");
 
     // Confirm last edited row
@@ -411,7 +417,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
+    const rowMaxRankOrder = await super.getMaxRankOrder();
+    this._previousMaxRankOrder = Math.max(rowMaxRankOrder, this._previousMaxRankOrder || this._initialMaxRankOrder);
+    return this._previousMaxRankOrder;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
@@ -432,12 +440,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return updatedRow;
   }
 
-  protected onInvalidForm() {
+  protected async onInvalidForm(): Promise<void> {
 
     // Play an error beep, if on field
-    if (this.isOnFieldMode) this.audio.playBeepError();
+    if (this.playSound) await this.audio.playBeepError();
 
-    super.onInvalidForm();
+    return super.onInvalidForm();
   }
 
   /**
@@ -445,55 +453,60 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
    * @param row
    * @pram times duration of highlight
    */
-  protected onRowChanged(row: TableElement<SubBatch>) {
+  protected async onRowChanged(row: TableElement<SubBatch>) {
 
-    // Play a beep, if on field
-    if (this.isOnFieldMode) this.audio.playBeepConfirm();
+    // Play a beep
+    if (this.playSound) await this.audio.playBeepConfirm();
 
-    // Unselect previous selected rows
-    this.selection.clear();
-
-    // Selection the row (this will apply CSS class mat-row-selected)
-    this.selection.select(row);
+    // Selection the animated row (this will apply CSS class mat-row-animated)
+    this.animationSelection.select(row);
     this.cd.detectChanges();
 
-    const rowAnimation = createAnimation()
-      .addElement(document.querySelectorAll('.mat-row-selected'))
-      .beforeStyles({ 'transition-timing-function': 'ease-out' })
-      .keyframes([
-        { offset: 0, opacity: '0.5', transform: 'scale(1.5)', background: 'var(--ion-color-accent)'},
-        { offset: 0.5, opacity: '1', transform: 'scale(0.9)'},
-        { offset: 0.7, transform: 'scale(1.1)'},
-        { offset: 0.9, transform: 'scale(1)'},
-        { offset: 1, background: 'var(--ion-color-base)'}
-      ]);
-
-    const cellAnimation =  createAnimation()
-      .addElement(document.querySelectorAll('.mat-row-selected .mat-cell'))
-      .beforeStyles({
-        color: 'var(--ion-color-accent-contrast)'
-      })
-      .keyframes([
-        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
-        { offset: 0.8},
-        { offset: 1, 'font-weight': 'normal', color: 'var(--ion-color-base)'}
-      ]);
-
-    Promise.all([
-      rowAnimation.duration(500).play(),
-      cellAnimation.duration(500).play()
-    ])
+    this.createRowAnimation(document.querySelector('.mat-row-animated'))
+      .duration(500)
+      .play()
       .then(() => {
         // If row is still selected: unselect it
-        if (this.selection.isSelected(row)) {
-          this.selection.deselect(row);
+        if (this.animationSelection.isSelected(row)) {
+          this.animationSelection.deselect(row);
           this.markForCheck();
         }
       });
   }
 
+  trackByFn(index: number, row: TableElement<SubBatch>): any {
+    return row.currentData.rankOrder;
+  }
 
   async scrollToTop() {
     return this.content.scrollToTop();
+  }
+
+  private createRowAnimation(rowElement: Element): Animation {
+    const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-cell'));
+    if (!rowElement || isEmptyArray(cellElements)) {
+      return createAnimation();
+    }
+
+    const rowAnimation = createAnimation()
+      .addElement(rowElement)
+      .beforeStyles({ 'transition-timing-function': 'ease-in-out' })
+      .keyframes([
+        { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)'},
+        { offset: 0.5, opacity: '0.9', transform: 'translateX(2%)'},
+        { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)'}
+      ]);
+
+    const cellAnimation =  createAnimation()
+      .addElement(cellElements)
+      .beforeStyles({
+        color: 'var(--ion-color-accent-contrast)'
+      })
+      .keyframes([
+        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
+        { offset: 1, color: 'var(--ion-color-base)'}
+      ]);
+
+    return createAnimation().addAnimation([rowAnimation, cellAnimation]);
   }
 }

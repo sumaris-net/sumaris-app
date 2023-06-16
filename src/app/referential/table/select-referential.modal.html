@@ -1,0 +1,46 @@
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async|translate"
+                   (cancel)="cancel()"
+                   (validate)="close($event)"
+                   [showSpinner]="loading"
+                   [canValidate]="!loading && allowMultipleSelection && hasSelection()">
+</app-modal-toolbar>
+
+<ion-content class="ion-no-padding" [scrollY]="false">
+  <!-- main table -->
+  <app-referential-ref-table #table
+                             [showFilter]="showFilter"
+                             [showLevelFilter]="showLevelFilter"
+                             [mode]="'select'"
+                             (onOpenRow)="onRowClick($event)"
+                             (onNewRow)="close($event)">
+  </app-referential-ref-table>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark"
+                    (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button *ngIf="allowMultipleSelection"
+                    [fill]="hasSelection() && 'solid' || 'clear'"
+                    [disabled]="!hasSelection()"
+                    (click)="close($event)"
+                    color="tertiary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

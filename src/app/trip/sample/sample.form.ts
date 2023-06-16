@@ -2,7 +2,19 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit 
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, isNotEmptyArray, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  FormArrayHelper,
+  IFormControlPathTranslator,
+  IReferentialRef,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNilOrBlank,
+  LoadResult,
+  toNumber,
+  UsageMode
+} from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
@@ -19,7 +31,8 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SampleForm extends MeasurementValuesForm<Sample>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, IFormControlPathTranslator {
+
 
   childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;
@@ -40,13 +53,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SampleValidatorService,
     protected subValidatorService: SubSampleValidatorService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(),
       {
         skipDisabledPmfmControl: false,
@@ -107,6 +120,10 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   toggleComment() {
     this.showComment = !this.showComment;
+
+    // Mark form as dirty, if need to reset comment (see getValue())
+    if (!this.showComment && isNotNilOrBlank(this.form.get('comments').value)) this.form.markAsDirty();
+
     this.markForCheck();
   }
 
@@ -115,10 +132,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
     super.onApplyingEntity(data, opts);
 
+    this.showComment = this.showComment || isNotNilOrBlank(data.comments);
+
     const childrenCount = data.children?.length || 0;
     if (this.childrenArrayHelper.size() !== childrenCount) {
       this.childrenArrayHelper.resize(childrenCount);
     }
+
   }
 
   protected getValue(): Sample {

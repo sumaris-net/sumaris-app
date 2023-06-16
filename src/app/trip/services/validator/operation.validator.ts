@@ -2,7 +2,19 @@ import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
-import { AppFormUtils, FormErrors, fromDateISOString, isNil, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  equals,
+  FormErrors,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  SharedFormGroupValidators,
+  SharedValidators,
+  toBoolean,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
@@ -18,8 +30,11 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
-import { DataValidators } from '@app/data/services/validator/data.validators';
 import { TranslateService } from '@ngx-translate/core';
+import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
+import { DataEntity } from '@app/data/services/model/data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import {PhysicalGearValidatorOptions} from '@app/trip/physicalgear/physicalgear.validator';
 
 
 export interface IPmfmForm {
@@ -63,23 +78,30 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
     private fishingAreaValidator: FishingAreaValidatorService,
+    private programRefService: ProgramRefService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {
-    opts = this.fillDefaultOptions(opts);
+    opts = opts || <O>{};
 
     const form = super.getFormGroup(data, opts);
 
+    // Do not store options here - will be done in updateFormGroup()
+    //setFormOptions(form, opts);
+
     // Add measurement form
     if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+      if (!opts.pmfms) {
+        const acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+        opts.pmfms = (opts.program?.strategies?.[0] && opts.program.strategies[0].denormalizedPmfms || [])
+          .filter(p => p.acquisitionLevel === acquisitionLevel);
+      }
       form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
         forceOptional: opts.isOnFieldMode,
-        pmfms
+        pmfms: opts.pmfms
       }));
     }
 
@@ -124,6 +146,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       form.addControl('childOperation', this.createChildOperationControl(data?.childOperation));
     }
 
+    // Execute once, to be sure validators are same
+    this.updateFormGroup(form, opts);
+
+
     return form;
   }
 
@@ -137,13 +163,15 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         fishingStartDateTime: [data && data.fishingStartDateTime || null],
         fishingEndDateTime: [data && data.fishingEndDateTime || null],
         endDateTime: [data && data.endDateTime || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
-        rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
+        tripId: [toNumber(data?.tripId, null)],
+        rankOrder: [toNumber(data?.rankOrder, null)],
+        rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
 
-        parentOperation: [data && data.parentOperation || null], // Validators define later, int updateFormGroup
+        parentOperation: [data && data.parentOperation || null], // Validators define later, in updateFormGroup
         parentOperationId: [toNumber(data && data.parentOperationId, null)],
         childOperationId: [toNumber(data && data.childOperationId, null)]
       });
@@ -201,6 +229,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
    */
   updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
+
+    const previousOptions = getFormOptions(form);
+
+    // Skip if same
+    if (equals(previousOptions, opts)) {
+      console.debug('[operation-validator] Skipping form update (same options)')
+      return;
+    }
+
+    setFormOptions(form, opts);
 
     // DEBUG
     console.debug(`[operation-validator] Updating form group validators`);
@@ -367,10 +405,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Is a child
     else if (opts.isChild) {
       console.info('[operation-validator] Updating validator -> Child operation');
-      parentControl.setValidators(Validators.compose([Validators.required,
-        SharedValidators.entity,
-        DataValidators.excludeQualityFlag(QualityFlagIds.MISSING, 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION')
-      ]));
+      const tripIdControl = form.controls.tripId as UntypedFormGroup;
+      const parentValidators = [Validators.required,
+        opts && !opts.isOnFieldMode ? OperationValidators.remoteParent(tripIdControl) : SharedValidators.entity,
+        OperationValidators.existsParent
+      ];
+      parentControl.setValidators(Validators.compose(parentValidators));
       parentControl.enable();
 
       if (childControl) {
@@ -385,13 +425,18 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // fishingEndDateTime = START
       if (opts.withFishingEnd) {
-        fishingEndDateTimeControl.setValidators(Validators.compose([
+        const fishingEndDateTimeValidators = [
           Validators.required,
           // Should be after parent dates
           opts.withFishingStart
             ? SharedValidators.dateRangeEnd('fishingStartDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
             : SharedValidators.dateRangeEnd('startDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
-        ]));
+        ];
+        fishingEndDateTimeControl.setValidators(opts.withEnd
+          ? fishingEndDateTimeValidators
+          // If no endDateTime, add trip dates validator
+          : [...tripDatesValidators, ...fishingEndDateTimeValidators]
+        );
         fishingEndDateTimeControl.enable();
 
         // Enable position
@@ -411,9 +456,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           ...tripDatesValidators,
           SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
         ];
-        endDateTimeControl.setValidators(opts?.isOnFieldMode
-          ? Validators.compose(endDateTimeValidators)
-          : Validators.compose([Validators.required, ...endDateTimeValidators]));
+        endDateTimeControl.setValidators(opts.isOnFieldMode
+          ? endDateTimeValidators
+          : [Validators.required, ...endDateTimeValidators]);
         endDateTimeControl.enable();
 
         // Enable position
@@ -675,10 +720,38 @@ export class OperationValidators {
       return undefined;
     };
   }
+
+  static remoteParent(tripIdControl: UntypedFormGroup): ValidatorFn {
+    return (control): FormErrors => {
+      const parent = control.value;
+      const parentId = parent?.id;
+      // Error if the parent is a local operation, defined in another trip
+      // Same trip should be OK
+      if (isNotNil(parentId) && parentId < 0) {
+        const tripId = toNumber(tripIdControl.value);
+        const parentTripId = parent?.tripId;
+        if (isNotNil(parentTripId) && parentTripId !== tripId) {
+          return <ValidationErrors>{ remoteParent: true };
+        }
+      }
+      return null;
+    };
+  }
+
+  static existsParent(control): ValidationErrors|undefined {
+    const parent = control.value as DataEntity<any>;
+    const qualityFlagId = parent?.qualityFlagId;
+    if (qualityFlagId === QualityFlagIds.MISSING) {
+      return {existsParent: true}
+    }
+    return null;
+  }
 }
 
 
 export const OPERATION_VALIDATOR_I18N_ERROR_KEYS = {
   maxDistance: 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE',
+  remoteParent: 'TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION',
+  existsParent: 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION',
   invalidOrIncomplete: 'ERROR.INVALID_OR_INCOMPLETE_FILL'
 };

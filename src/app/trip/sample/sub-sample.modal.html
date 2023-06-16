@@ -49,15 +49,6 @@
                        [defaultLongitudeSign]="defaultLongitudeSign"
                        (onSubmit)="onSubmit($event)">
 
-
-    <ion-row beforeComment *ngIf="mobile && !disabled">
-      <ion-col size="12">
-        <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">
-          <ion-toggle [checked]="showComment"></ion-toggle>
-          <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
-        </ion-item>
-      </ion-col>
-    </ion-row>
   </app-sub-sample-form>
 
 

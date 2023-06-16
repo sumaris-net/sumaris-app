@@ -1,3 +1,11 @@
+ion-content.embedded.has-paginator {
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-paginator-height));
+
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
 
 .mat-toolbar {
   form {
@@ -7,7 +15,6 @@
     }
   }
 }
-
 
 .mat-expansion-panel {
   --expansion-panel-padding: 0!important;
@@ -36,7 +43,13 @@
 }
 
 .table-container {
-  height: calc(100% - 50px);
+  --table-toolbar-height: 0px;
+
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - 1px);
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
 }
 
 .mat-table  {
@@ -75,5 +88,20 @@
   .mat-column-substrate_type,
   .mat-column-survival_sampling_type {
     min-width: 180px;
+  }
+
+  /* -- Manage some well known dates columns -- */
+  .mat-column-departure_date_time,
+  .mat-column-return_date_time {
+    min-width: 180px;
+  }
+
+  /* -- Manage some well known large columns -- */
+  .mat-column-trip_comments,
+  .mat-column-gear_label,
+  .mat-column-gear_comments,
+  .mat-column-station_comments {
+    min-width: 180px;
+    max-width: 250px;
   }
 }

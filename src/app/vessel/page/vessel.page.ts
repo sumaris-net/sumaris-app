@@ -10,12 +10,12 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   HistoryPageReference,
-  isNil,
+  isNil, isNotNilOrNaN,
   NetworkService,
   PlatformService,
   referentialToString,
   SharedValidators,
-  StatusIds,
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -106,8 +106,10 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     super.ngAfterViewInit();
 
     this.registerSubscription(this.onUpdateView.subscribe(() => {
-      this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}));
-      this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}));
+      if (isNotNilOrNaN(this.data.id)) {
+        this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({vesselId: this.data.id}), {emitEvent: true});
+        this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({vesselId: this.data.id}), {emitEvent: true});
+      }
     }));
   }
 
@@ -340,11 +342,13 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   async save(event, options?: any): Promise<boolean> {
-    return super.save(event, {
+    const saved = await super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
       isNewRegistration: this.isNewRegistration
     });
+
+    return saved;
   }
 
   protected getJsonValueToSave(): Promise<any> {

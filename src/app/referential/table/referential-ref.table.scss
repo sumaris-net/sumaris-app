@@ -1,0 +1,40 @@
+.table-container {
+  --table-filter-height: 0px;
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-filter-height) - var(--table-paginator-height, 0));
+
+  &.has-filter {
+    --table-filter-height: 81.5px;
+  }
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
+.mat-table {
+  min-width: 100%;
+  --mat-cell-vertical-padding: 4px;
+
+  .mat-column-label {
+    min-width: 50px;
+    max-width: 150px;
+  }
+
+  .mat-column-status {
+    max-width: 110px;
+  }
+
+  .mat-column-comments {
+    max-width: 110px;
+  }
+
+  mat-header-cell.hidden,
+  mat-cell.hidden {
+    visibility: hidden;
+    display: none;
+  }
+}

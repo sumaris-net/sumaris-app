@@ -66,7 +66,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private readonly _subscription = new Subscription();
-  private isOnFieldMode: boolean;
+  private _isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -141,10 +141,10 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // Default values
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
-    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    this.showComment = !this.mobile || isNotNil(this.data.comments);
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
     this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
     this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
     this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
@@ -226,7 +226,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     const data = await this.getDataToSave();
     // invalid
     if (!data) {
-      if (this.isOnFieldMode) this.audio.playBeepError();
+      if (this._isOnFieldMode) this.audio.playBeepError();
       return;
     }
 
@@ -236,7 +236,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
       this.isNew = true;
-      if (this.isOnFieldMode) this.audio.playBeepConfirm();
+      if (this._isOnFieldMode) this.audio.playBeepConfirm();
 
       await this.scrollToTop();
     } finally {
@@ -282,13 +282,15 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   async delete(event?: Event) {
+    // Apply deletion, if callback exists
     if (this.onDelete) {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
       if (deleted) await this.modalCtrl.dismiss();
     }
     else {
-      await this.modalCtrl.dismiss(this.data, 'DELETE');
+      // Ask caller the modal owner apply deletion
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 
@@ -323,7 +325,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         if (this.defaultSampleDate) {
           this.data.sampleDate = this.defaultSampleDate.clone();
         }
-        else if (this.isOnFieldMode) {
+        else if (this._isOnFieldMode) {
           this.data.sampleDate = moment();
         }
       }
@@ -361,11 +363,22 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       if (this.invalid) {
         if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-          controlPathTranslator: this.form,
-          separator: '<br/>'
-        })
-        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+
+        // If not many fields/pmfms: display a simple message,
+        // Otherwise (many fields/pmfms) show a detailed message
+        if (!this.pmfms || this.pmfms.length < 5) {
+          this.setError('COMMON.FORM.HAS_ERROR');
+        }
+        else {
+          const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+            controlPathTranslator: this.form,
+            separator: '<br/>'
+          });
+          const errorMessage = isNotNilOrBlank(error)
+            ? `<small class="error-details">${error}</small>`
+            : 'COMMON.FORM.HAS_ERROR';
+          this.setError(errorMessage);
+        }
         this.form.markAllAsTouched();
         this.scrollToTop();
         return;
@@ -434,7 +447,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (!this.openSubSampleModal) return; // Skip
 
     // Save
-    const savedSample = await this.getDataToSave({disable: false});
+    const savedSample = await this.getDataToSave();
     if (!savedSample) return;
 
     try {

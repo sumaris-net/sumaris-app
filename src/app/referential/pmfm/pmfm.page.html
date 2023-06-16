@@ -5,7 +5,7 @@
 
 <ion-content>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group #tabGroup (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
@@ -59,10 +59,10 @@
                           <mat-icon>open_in_new</mat-icon>
                         </button>
                       </ion-col>
-                      <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative">
+                      <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative; let notQualitative">
                         <app-form-field [definition]="fieldDefinitions.unit"
                                         formControlName="unit"
-                                        required>
+                                        [required]="notQualitative">
                         </app-form-field>
                       </ion-col>
                     </ion-row>
@@ -102,6 +102,12 @@
                                           tabindex="25">
                           </app-form-field>
                         </ion-col>
+                        <ion-col>
+                          <app-form-field [definition]="fieldDefinitions.precision"
+                                          formControlName="precision"
+                                          tabindex="26">
+                          </app-form-field>
+                        </ion-col>
                       </ion-row>
                     </div>
 
@@ -111,13 +117,15 @@
                     <ion-row>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.matrix"
-                                        formControlName="matrix">
+                                        formControlName="matrix"
+                                        tabindex="27">
                         </app-form-field>
 
                       </ion-col>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.fraction"
-                                        formControlName="fraction">
+                                        formControlName="fraction"
+                                        tabindex="28">
                         </app-form-field>
                       </ion-col>
                     </ion-row>
@@ -126,7 +134,8 @@
                     <ion-row>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.method"
-                                        formControlName="method">
+                                        formControlName="method"
+                                        tabindex="29">
                         </app-form-field>
 
                       </ion-col>
@@ -146,6 +155,39 @@
         </ion-grid>
 
       </div>
+    </mat-tab>
+
+    <!-- TAB: Qualitative value -->
+    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="list"></ion-icon>
+        </mat-icon>
+        <ion-label translate>REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
+      </ng-template>
+
+      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
+                                    [canEdit]="!useDefaultQualitativesValues"
+                                    [canDelete]="!useDefaultQualitativesValues"
+                                    [confirmBeforeDelete]="false"
+                                    [saveBeforeDelete]="false"
+                                    [showPaginator]="false"
+                                    [showSelectColumn]="!useDefaultQualitativesValues"
+                                    [hasRankOrder]="false"
+                                    [showUpdateDateColumn]="false"
+                                    [showCommentsColumn]="false"
+                                    [inlineEdition]="false"
+                                    (onOpenRow)="onQualitativeValueRowClick($event)"
+                                    (onAfterDeletedRows)="onAfterDeleteQualitativeValueRows($event)"
+                                    (onNewRow)="openSelectReferentialModal()">
+
+        <ion-item lines="none" matToolbarEnd>
+          <ion-label>{{'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES'|translate}}</ion-label>
+          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
+        </ion-item>
+
+      </app-simple-referential-table>
     </mat-tab>
 
   </mat-tab-group>

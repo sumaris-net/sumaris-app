@@ -6,6 +6,7 @@ import { AggregatedLandingModal } from './aggregated-landing.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
+import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 
 
 @NgModule({
@@ -14,7 +15,8 @@ import { AppReferentialModule } from '@app/referential/referential.module';
     TranslateModule.forChild(),
 
     // Functional modules
-    AppReferentialModule
+    AppReferentialModule,
+    AppPmfmFormFieldModule
   ],
   declarations: [
     AggregatedLandingsTable,

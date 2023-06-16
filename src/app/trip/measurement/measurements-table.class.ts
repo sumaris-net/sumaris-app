@@ -1,7 +1,7 @@
-import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {Observable} from 'rxjs';
-import {TableElement} from '@e-is/ngx-material-table';
-import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
@@ -20,16 +20,16 @@ import {
   toNumber,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
-import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
-import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
-import {BaseValidatorService} from '@app/shared/service/base.validator.service';
-import {MeasurementsTableEntitiesService} from './measurements-table.service';
-import {MeasurementsTableValidatorOptions, MeasurementsTableValidatorService} from './measurements-table.validator';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { MeasurementsTableEntitiesService } from './measurements-table.service';
+import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 
 
 export interface BaseMeasurementsTableConfig<
@@ -76,6 +76,11 @@ export abstract class BaseMeasurementsTable<
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
+  readonly hasPmfms$ = this.$pmfms.pipe(
+    filter(isNotNil),
+    map(isNotEmptyArray),
+    distinctUntilChanged()
+  );
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -177,14 +182,6 @@ export abstract class BaseMeasurementsTable<
     this._dataService.pmfms = pmfms;
   }
 
-  get $hasPmfms(): Observable<boolean> {
-    return this.$pmfms.pipe(
-      filter(isNotNil),
-      map(isNotEmptyArray),
-      distinctUntilChanged()
-    );
-  }
-
   get hasPmfms(): boolean {
     return isNotEmptyArray(this.pmfms);
   }
@@ -241,14 +238,7 @@ export abstract class BaseMeasurementsTable<
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
-
-    // this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
-    //   mapPmfms: this.options.mapPmfms || undefined,
-    //   requiredStrategy: this.options.requiredStrategy,
-    //   debug: this.options.debug || false
-    // });
-
-    //this.setValidatorService(validatorService);
+    this.canEdit = true;
 
     // For DEV only
     //this.debug = !environment.production;
@@ -512,10 +502,13 @@ export abstract class BaseMeasurementsTable<
 
     // Check entity can be added
     const canAdd = await this.canAddEntity(data);
-    if (!canAdd) return undefined;
+    if (!canAdd) {
+      console.warn(this.logPrefix + "Cannot add entity to table");
+      return undefined;
+    }
 
     if (this._addingRow) {
-      console.warn(" Skipping add new row. Another add is in progress.");
+      console.warn(this.logPrefix + "Skipping addEntityToTable(). Another add is in progress.");
       return;
     }
     this._addingRow = true;
@@ -538,13 +531,8 @@ export abstract class BaseMeasurementsTable<
       // Adapt measurement values to row
       this.normalizeEntityToRow(data, row);
 
-      // Affect data to new row
-      if (row.validator) {
-        row.validator.patchValue(data);
-        row.validator.markAsDirty();
-      } else {
-        row.currentData = data;
-      }
+      // Set row's data
+      row.currentData = data;
 
       if (row.editing) {
         // Confirm the created row
@@ -660,10 +648,11 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  private _onRowEditing(row: TableElement<T>) {
+  private async _onRowEditing(row: TableElement<T>) {
+    if (row.id === -1) return; // Skip new row, because already processed by onRowCreated()
+
     if (row.validator && this.options.onPrepareRowForm) {
-      // Skip new row, because already processed by onRowCreated()
-      if (row.id !== -1) this.options.onPrepareRowForm(row.validator);
+      await this.options.onPrepareRowForm(row.validator);
     }
   }
 }

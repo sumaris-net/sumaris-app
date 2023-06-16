@@ -65,6 +65,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   styleUrls: ['sub-batches.table.scss'],
   providers: [
     {provide: ContextService, useExisting: TripContextService},
+    SubBatchValidatorService,
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {
@@ -326,19 +327,25 @@ export class SubBatchesTable
     }
   }
 
-  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
+
     // Skip if loading,
     // or if previous edited row not confirmed
-    if (this.loading) return;
-    if (row !== this.editedRow && !this.confirmEditCreate()) return;
+
+    //await this.waitIdle();
+    if (this.loading) {
+      console.warn('Table is busy: cannot submit form');
+      return false;
+    }
+
+    if (row !== this.editedRow && !this.confirmEditCreate()) return false;
 
     await AppFormUtils.waitWhilePending(this.form);
 
     if (this.form.invalid) {
-      this.onInvalidForm();
-      return;
+      await this.onInvalidForm();
+      return false;
     }
-
     const subBatch = this.form.form.value;
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
 
@@ -361,6 +368,8 @@ export class SubBatchesTable
     else {
       await this.updateEntityToTable(subBatch, row);
     }
+
+    return true;
   }
 
   async add(batches: SubBatch[], opts?: {linkDataToParentGroup?: boolean}) {
@@ -745,7 +754,7 @@ export class SubBatchesTable
     }
   }
 
-  protected onInvalidForm() {
+  protected async onInvalidForm(): Promise<void> {
     this.form.markAllAsTouched({emitEvent: true});
     if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
   }
@@ -846,7 +855,7 @@ export class SubBatchesTable
     this.cd.markForCheck();
   }
 
-  private async onPrepareRowForm(form: UntypedFormGroup) {
+  private onPrepareRowForm(form: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[sub-batches-table] Initializing row validator');
 
@@ -858,7 +867,7 @@ export class SubBatchesTable
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
-      const subscription = await this.validatorService.delegate.enableWeightLengthConversion(form, {
+      const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),

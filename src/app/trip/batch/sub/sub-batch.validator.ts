@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {Injectable} from '@angular/core';
+import {UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {
+  DateUtils,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -14,30 +15,29 @@ import {
   SharedValidators,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Batch, BatchWeight } from '../common/batch.model';
-import { SubBatch } from './sub-batch.model';
-import { Subscription } from 'rxjs';
-import { BatchWeightValidator } from '@app/trip/batch/common/batch.validator';
-import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { LocationUtils } from '@app/referential/location/location.utils';
-import { VesselPosition } from '@app/data/services/model/vessel-position.model';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { Moment } from 'moment';
-import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
-import { environment } from '@environments/environment';
-import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils } from '@app/referential/services/model/model.utils';
-import { DataContext } from '@app/data/services/model/data-context.model';
-import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
-import { ContextService } from '@app/shared/context.service';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import moment from 'moment';
-import { TranslateService } from '@ngx-translate/core';
+import {Batch, BatchWeight} from '../common/batch.model';
+import {SubBatch} from './sub-batch.model';
+import {Subscription} from 'rxjs';
+import {BatchWeightValidator} from '@app/trip/batch/common/batch.validator';
+import {LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {WeightLengthConversionRefService} from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
+import {FishingArea} from '@app/data/services/model/fishing-area.model';
+import {LocationUtils} from '@app/referential/location/location.utils';
+import {VesselPosition} from '@app/data/services/model/vessel-position.model';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import moment, {Moment} from 'moment';
+import {BatchErrorCodes} from '@app/trip/batch/batch.errors';
+import {RoundWeightConversionRefService} from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils} from '@app/referential/services/model/model.utils';
+import {DataContext} from '@app/data/services/model/data-context.model';
+import {BatchGroup, BatchGroupUtils} from '@app/trip/batch/group/batch-group.model';
+import {ContextService} from '@app/shared/context.service';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {TranslateService} from '@ngx-translate/core';
+import {PositionUtils} from '@app/trip/services/position.utils';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
@@ -50,7 +50,10 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
   pmfms?: IPmfm[];
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable(
+  // Canot be root, because we need to inject context dynamically
+  //{providedIn: 'root'}
+)
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {
 
   constructor(
@@ -63,7 +66,8 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     ) {
     super(formBuilder, translate, settings);
 
-    //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
+    // DEBUG
+    //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context?.constructor.name})`);
   }
 
   getFormGroupConfig(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): { [p: string]: any } {
@@ -134,7 +138,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     })
   }
 
-  async enableWeightLengthConversion(form: UntypedFormGroup, opts: {
+  enableWeightLengthConversion(form: UntypedFormGroup, opts: {
     pmfms: IPmfm[];
     qvPmfm?: IPmfm;
     // Context
@@ -154,7 +158,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     debug?: boolean;
     markForCheck?: () => void;
     onError?: (err) => void;
-  }): Promise<Subscription> {
+  }): Subscription {
 
     if (!this.context) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. Missing data context');
@@ -165,14 +169,15 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     const parentGroup = opts.parentGroup
       || (opts?.parentGroupPath && form.get(opts.parentGroupPath))?.value
       || this.context?.getValue('parentGroup') as BatchGroup;
-    let rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
+    const rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
     const qvPmfm = opts?.qvPmfm;
 
     // DEBUG
-    if (!rectangleLabel && !environment.production) {
-      rectangleLabel = '65F1'
-      console.warn('[sub-batch-validator] TODO: force rectangle label (for DEV) to ' + rectangleLabel);
-    }
+    // if (!rectangleLabel && !environment.production) {
+    //   rectangleLabel = '65F1'
+    //   console.warn('[sub-batch-validator] TODO: force rectangle label (for DEV) to ' + rectangleLabel);
+    // }
+
     // Make sure to have a statistical rectangle
     if (!rectangleLabel) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. No statistical rectangle (in options or data context)');
@@ -233,12 +238,13 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Read fishing Areas
     const fishingAreas = this.context?.getValue('fishingAreas') as FishingArea[];
     if (isNotEmptyArray(fishingAreas)) {
-      console.debug('Trying to get rectangle from fishing areas: ', fishingAreas);
+      console.debug('[sub-batch-validator] Trying to get statistical rectangle, from fishing areas ...');
       const rectangle = (fishingAreas || [])
           .map(fa => fa.location)
           .filter(isNotNil)
           .find(location => isNil(location.levelId) || (location.levelId === LocationLevelIds.ICES_RECTANGLE || location.levelId === LocationLevelIds.GFCM_RECTANGLE));
       if (isNotNilOrBlank(rectangle?.label)) {
+        console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangle.label);
         return rectangle.label;
       }
       // Continue
@@ -247,10 +253,13 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Read vessel positions
     const vesselPositions = this.context?.getValue('vesselPositions') as VesselPosition[];
     if (isNotEmptyArray(vesselPositions)) {
-      console.debug('Trying to get rectangle from position: ', vesselPositions);
-      const rectangleLabel = (vesselPositions || [])
+      console.debug('[sub-batch-validator] Trying to get statistical rectangle, from positions ...');
+      const rectangleLabel = (vesselPositions || []).slice()// Copy before reverse()
+        .reverse() // Last position first
+        .filter(p => PositionUtils.isNotNilAndValid(p))
         .map(position => LocationUtils.getRectangleLabelByLatLong(position.latitude, position.longitude))
         .find(isNotNil);
+      if (rectangleLabel) console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangleLabel);
       return rectangleLabel;
     }
   }
@@ -332,8 +341,8 @@ export class SubBatchValidators {
     const parentPath = opts.parentGroupPath || 'parentGroup';
     const qvPath = isNotNil(opts.qvPmfm?.id) && `measurementValues.${opts.qvPmfm.id}` || undefined;
 
-    const date = opts.date || moment();
-    const month = date.month();
+    const date = opts.date || DateUtils.moment();
+    const month = date.month() + 1; // month() return 0 for januray
     const year = date.year();
 
     // Find the length Pmfm with a value
@@ -390,7 +399,11 @@ export class SubBatchValidators {
 
       // Find a Weight-Length conversion
       const wlConversion = await wlService.loadByFilter({
-        month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id, rectangleLabel: opts.rectangleLabel
+        month, year,
+        lengthPmfmId: lengthPmfm.id,
+        referenceTaxonId,
+        sexId: toNumber(sex?.id, QualitativeValueIds.SEX.UNSEXED), // Unsexed by default
+        rectangleLabel: opts.rectangleLabel
       });
 
       // Compute weight
@@ -454,6 +467,8 @@ export class SubBatchValidators {
             computed: true,
             estimated: false
           }, opts);
+        }
+        if (weightMeasurementControl && +weightMeasurementControl.value !== +valueStr) {
           weightMeasurementControl?.setValue(valueStr, opts);
         }
       }

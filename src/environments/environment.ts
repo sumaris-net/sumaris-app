@@ -29,7 +29,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.32.0',
+  peerMinVersion: '2.3.0',
 
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
@@ -117,6 +117,8 @@ export const environment = Object.freeze(<AppEnvironment>{
 
     // Token auth (using Person.pubkey)
     username: 'admin@sumaris.net', password: 'admin'
+
+    //username: 'admsih@sfa.sc', password: 'admsih321'
   },
 
   account: {
@@ -131,7 +133,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 30
+    listenIntervalInSeconds: 0
   }
 });
 

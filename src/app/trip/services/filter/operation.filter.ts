@@ -1,4 +1,4 @@
-import { EntityClass, FilterFn, fromDateISOString, isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntityClass, FilterFn, fromDateISOString, isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import { Operation, VesselPositionUtils } from '@app/trip/services/model/trip.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
@@ -30,6 +30,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   synchronizationStatus?: SynchronizationStatus[];
   dataQualityStatus?: DataQualityStatusIdType;
   boundingBox?: BBox;
+  parentOperationIds?: number[];
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
 
@@ -50,6 +51,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.taxonGroupLabels = source.taxonGroupLabels;
     this.dataQualityStatus = source.dataQualityStatus;
     this.boundingBox = source.boundingBox;
+    this.excludedIds = source.excludedIds;
+    this.parentOperationIds = source.parentOperationIds;
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -71,20 +74,20 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     //console.debug('filtering operations...', this);
 
     // Included ids
-    if (isNotNil(this.includedIds)){
-      const includedIds = this.includedIds;
+    if (isNotEmptyArray(this.includedIds)){
+      const includedIds = this.includedIds.slice();
       filterFns.push(o => includedIds.includes(o.id));
     }
 
     // Exclude id
     if (isNotNil(this.excludeId)) {
       const excludeId = this.excludeId;
-      filterFns.push(o => o.id !== excludeId);
+      filterFns.push(o => o.id !== +excludeId);
     }
 
     // ExcludedIds
-    if (isNotNil(this.excludedIds) && this.excludedIds.length > 0) {
-      const excludedIds = this.excludedIds;
+    if (isNotEmptyArray(this.excludedIds)) {
+      const excludedIds = this.excludedIds.slice();
       filterFns.push(o => !excludedIds.includes(o.id));
     }
 
@@ -121,7 +124,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
 
     // PhysicalGearIds;
     if (isNotEmptyArray(this.physicalGearIds)) {
-      const physicalGearIds = this.physicalGearIds;
+      const physicalGearIds = this.physicalGearIds.slice();
       filterFns.push(o => isNotNil(o.physicalGear?.id) && physicalGearIds.indexOf(o.physicalGear.id) !== -1);
     }
 
@@ -168,6 +171,12 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
         const programLabel = this.programLabel;
         filterFns.push(o => isNil(o.programLabel) || o.programLabel === programLabel);
       }
+    }
+
+    // Filter on parent operation
+    if (isNotEmptyArray(this.parentOperationIds)){
+      const parentOperationIds = this.parentOperationIds.slice();
+      filterFns.push(o => parentOperationIds.includes(toNumber(o.parentOperationId, o.parentOperation?.id)));
     }
 
     return filterFns;

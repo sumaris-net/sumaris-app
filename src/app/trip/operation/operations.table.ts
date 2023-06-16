@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import {TableElement, TableElementReactiveForms, ValidatorService} from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService } from '../services/operation.service';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { OperationsMapModal, OperationsMapModalOptions } from './map/operations-map.modal';
 import { environment } from '@environments/environment';
@@ -25,7 +25,9 @@ import { OperationEditor } from '@app/referential/services/config/program.config
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable
+  extends AppBaseTable<Operation, OperationFilter>
+  implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
@@ -182,15 +184,14 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
-          readOnly: true,
-          watchAllOptions: {
+          readOnly: false,
+          watchAllOptions: <OperationServiceWatchOptions>{
             withBatchTree: false,
             withSamples: false,
             withTotal: true
           }
         }
     );
-    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
@@ -290,12 +291,20 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       console.info('[operation-table] User select an operation from the map:', data);
 
       // Open the row
-      const row = this.dataSource.getRows().find(row => row.currentData.id === data.id);
+      let row = this.dataSource.getRows().find(row => row.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
       }
       else {
-        this.openRow(data.id, null);
+        // Create a fake row
+        row = await this.dataSource.createNew(null, {editing: true});
+        try {
+          row.currentData = data;
+          await this.openRow(data.id, row);
+        }
+        finally {
+          row.cancelOrDelete();
+        }
       }
     }
 

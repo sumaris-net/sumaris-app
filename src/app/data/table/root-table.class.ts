@@ -1,9 +1,10 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import {debounceTime, distinctUntilChanged, filter, map, mapTo, mergeMap, startWith, tap, throttleTime} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
+  arrayDistinct,
   chainPromises,
   ConnectionType,
   FileEvent,
@@ -16,13 +17,14 @@ import {
   isNotNilOrBlank,
   NetworkService,
   referentialToString,
+  StatusIds,
   toBoolean,
   toDateISOString,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject, merge, Observable} from 'rxjs';
-import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
-import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
+import { SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
@@ -33,6 +35,11 @@ import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { isNonEmptyArray } from '@apollo/client/utilities';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
@@ -57,11 +64,15 @@ export abstract class AppRootDataTable<
   >
   extends AppBaseTable<T, F, S, V, ID> {
 
+  private _selectionExtractionTypes$: Observable<ExtractionType[]>;
 
   protected readonly network: NetworkService;
-  protected readonly userEventService: UserEventService;
   protected readonly accountService: AccountService;
+  protected readonly userEventService: UserEventService;
+  protected readonly extractionTypeService: ExtractionTypeService;
+  protected readonly programRefService: ProgramRefService;
   protected readonly popoverController: PopoverController;
+
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
 
   canDelete: boolean;
@@ -87,6 +98,8 @@ export abstract class AppRootDataTable<
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
 
+  @Input() showQuality = true;
+
   @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
     this.setSynchronizationStatus(value);
@@ -94,6 +107,13 @@ export abstract class AppRootDataTable<
 
   get isLogin(): boolean {
     return this.accountService.isLogin();
+  }
+
+  get selectionExtractionTypes$() {
+    if (this._selectionExtractionTypes$ == null) {
+      this._selectionExtractionTypes$ = this.watchSelectionExtractionTypes();
+    }
+    return this._selectionExtractionTypes$;
   }
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
@@ -116,6 +136,8 @@ export abstract class AppRootDataTable<
     this.network = injector.get(NetworkService);
     this.accountService = injector.get(AccountService);
     this.userEventService = injector.get(UserEventService);
+    this.extractionTypeService = injector.get(ExtractionTypeService);
+    this.programRefService = injector.get(ProgramRefService);
     this.popoverController = injector.get(PopoverController);
 
     this.readOnly = false;
@@ -124,8 +146,6 @@ export abstract class AppRootDataTable<
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-
-
   }
 
   ngOnInit() {
@@ -181,7 +201,7 @@ export abstract class AppRootDataTable<
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           filter(() => isNotNilOrBlank(this.settingsId)),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
   }
@@ -409,14 +429,14 @@ export abstract class AppRootDataTable<
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
       .map(row => row.currentData)
-      .findIndex(DataRootEntityUtils.isReadyToSync) !== -1;
+      .findIndex(RootDataEntityUtils.isReadyToSync) !== -1;
   }
 
   get hasDirtySelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
       .map(row => row.currentData)
-      .findIndex(DataRootEntityUtils.isLocalAndDirty) !== -1;
+      .findIndex(RootDataEntityUtils.isLocalAndDirty) !== -1;
   }
 
   async terminateAndSynchronizeSelection() {
@@ -472,7 +492,7 @@ export abstract class AppRootDataTable<
 
     const ids = rows
       .map(row => row.currentData)
-      .filter(DataRootEntityUtils.isLocalAndDirty)
+      .filter(RootDataEntityUtils.isLocalAndDirty)
       .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to terminate
@@ -486,7 +506,7 @@ export abstract class AppRootDataTable<
       // Update rows, when no refresh will be emitted
       if (opts?.emitEvent === false) {
         rows.map(row => {
-            if (DataRootEntityUtils.isLocalAndDirty(row.currentData)) {
+            if (RootDataEntityUtils.isLocalAndDirty(row.currentData)) {
               row.currentData.synchronizationStatus = 'READY_TO_SYNC';
             }
           });
@@ -520,7 +540,6 @@ export abstract class AppRootDataTable<
 
   async synchronizeSelection(opts?: {
     showSuccessToast?: boolean;
-    cleanPageHistory?: boolean;
     emitEvent?: boolean;
     rows?: TableElement<T>[]
   }) {
@@ -543,7 +562,7 @@ export abstract class AppRootDataTable<
 
     const ids = rows
       .map(row => row.currentData)
-      .filter(DataRootEntityUtils.isReadyToSync)
+      .filter(RootDataEntityUtils.isReadyToSync)
       .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to sync
@@ -560,12 +579,6 @@ export abstract class AppRootDataTable<
         this.showToast({
           message: 'INFO.SYNCHRONIZATION_SUCCEED'
         });
-      }
-
-      // Clean history
-      if (!opts || opts.cleanPageHistory) {
-        // FIXME: find a way o clean only synchronized data ?
-        this.settings.clearPageHistory();
       }
 
     } catch (error) {
@@ -721,6 +734,52 @@ export abstract class AppRootDataTable<
           }
         }),
         filter(isNotNil)
+      );
+  }
+
+  /**
+   * Watch programs of selected rows
+   * @protected
+   */
+  protected watchSelectedDataProgramLabels(debounceTimeMs = 650): Observable<string[]> {
+    // @ts-ignore
+    return this.selection.changed
+      .pipe(
+        map(_ => this.selection.selected)
+      )
+      .pipe(
+
+        // Get program labels, from selected rows
+        startWith(this.selection.selected),
+        debounceTime(debounceTimeMs),
+        map(rows => arrayDistinct((rows || []).map(row => row.currentData?.program?.label))),
+        filter(isNonEmptyArray),
+        distinctUntilChanged(),
+
+        // DEBUG
+        tap(programLabels => console.debug(this.logPrefix + `Loading programs [${programLabels.join(', ')}] ...`))
+      );
+  }
+
+  /**
+   * Watch extraction types from programs found in the selected rows
+   * @protected
+   */
+  protected watchSelectionExtractionTypes(): Observable<ExtractionType[]> {
+    // @ts-ignore
+    return this.watchSelectedDataProgramLabels(450)
+      .pipe(
+
+        // DEBUG
+        tap(programLabels => console.debug(this.logPrefix + `Watching extraction types with programs {${programLabels.join(', ')}} ...`)),
+
+        // Load extraction types, from program's formats
+        switchMap(programLabels => this.extractionTypeService.watchAllByProgramLabels(programLabels, <ExtractionTypeFilter>{
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+            isSpatial: false,
+            category: 'LIVE'
+          }, {fetchPolicy: 'cache-first'})
+        )
       );
   }
 }

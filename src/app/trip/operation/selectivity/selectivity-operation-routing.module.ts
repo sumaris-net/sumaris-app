@@ -17,10 +17,9 @@ const routes: Routes = [
         pathMatch: 'full',
         component: SelectivityOperationPage,
         canDeactivate: [ComponentDirtyGuard],
-      },
-      {
-        path: 'report',
-        loadChildren: () => import('@app/trip/trip/report/selectivity/selectivity-report-routing.module').then(m => m.SelectivityReportRoutingModule),
+        data: {
+          pathIdParam: 'selectivityOperationId'
+        },
       }
     ],
   }

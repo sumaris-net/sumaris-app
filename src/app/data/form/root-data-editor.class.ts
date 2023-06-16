@@ -5,7 +5,9 @@ import {
   AddToPageHistoryOptions,
   AppEditorOptions,
   AppEntityEditor,
+  AppErrorWithDetails,
   changeCaseToUnderscore,
+  DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
   fromDateISOString,
@@ -29,8 +31,6 @@ import { StrategyRefService } from '../../referential/services/strategy-ref.serv
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
-import moment from 'moment';
-import {AppErrorWithDetails} from '@sumaris-net/ngx-components';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -171,12 +171,6 @@ export abstract class AppRootDataEditor<
     );
   }
 
-  startListenRemoteChanges() {
-    if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
-
-    super.startListenRemoteChanges();
-  }
-
   ngOnDestroy() {
     super.ngOnDestroy();
 
@@ -282,11 +276,13 @@ export abstract class AppRootDataEditor<
     // Remove previous subscription, if exists
     this.remoteProgramSubscription?.unsubscribe();
 
-    const previousUpdateDate = fromDateISOString(program.updateDate) || moment();
+    const previousUpdateDate = fromDateISOString(program.updateDate) || DateUtils.moment();
     const subscription = this.programRefService.listenChanges(program.id)
       .pipe(
         filter(isNotNil),
-        filter(() => !this.dirty), // Avoid reloading while editing the page
+        // Avoid reloading while editing the page
+        filter(() => !this.dirty),
+        // Filter or newer program only
         filter(data => previousUpdateDate.isBefore(data.updateDate)),
         // Reload program & strategies
         mergeMap(_ => this.reloadProgram())
@@ -307,10 +303,14 @@ export abstract class AppRootDataEditor<
     // Remove previous listener (e.g. on a previous program id)
     this.remoteStrategySubscription?.unsubscribe();
 
+    const previousUpdateDate = fromDateISOString(program.updateDate) || DateUtils.moment();
     const subscription = this.strategyRefService.listenChangesByProgram(program.id)
         .pipe(
           filter(isNotNil),
-          filter(() => !this.dirty), // Avoid reloading while editing the page
+          // Avoid reloading while editing the page
+          filter(() => !this.dirty),
+          // Filter or newer strategy only
+          filter(updateDate => previousUpdateDate.isBefore(updateDate)),
           // Reload strategies
           mergeMap((_) => this.reloadStrategy())
         )

@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, toBoolean
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -25,6 +25,9 @@ import {filter, first, map, mergeMap, switchMap, takeUntil} from 'rxjs/operators
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
+import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
+import { timer } from 'rxjs';
+import { subscribe } from 'graphql/execution';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -64,7 +67,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
-  @Input() showPaginator = true;
+  @Input() showPaginator: boolean;
   @Input() showFooter = true;
   @Input() showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -72,6 +75,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() stickyEnd = false;
   @Input() compact = false;
   @Input() mobile = false;
+  @Input() pressHighlightDuration = 10000; // 10s
 
 
   @Input() set canEdit(value: boolean) {
@@ -140,6 +144,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   ngOnInit() {
     super.ngOnInit();
+    this.showPaginator = toBoolean(this.showPaginator, !!this.paginator);
 
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
@@ -172,17 +177,31 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       );
     }
 
+    // Enable permanent selection (to keep selected rows after reloading)
+    // (only on desktop, if not already done)
+    if (!this.mobile && !this.permanentSelection) {
+      this.initPermanentSelection();
+    }
+
     this.restoreCompactMode();
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Add shortcut
-    if (!this.mobile && this.tableContainerRef) {
+    this.initTableContainer(this.tableContainerRef?.nativeElement);
+  }
+
+  initTableContainer(element: any) {
+    if (!element) return; // Skip if already done
+
+    if (!this.mobile) {
+
+      // Add shortcuts
+      console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element: this.tableContainerRef.nativeElement })
+          .addShortcut({ keys: 'control.a', element })
           .pipe(
             filter(() => this.canEdit),
             map(() => this.dataSource?.getRows()),
@@ -194,7 +213,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
           })
       );
       this.registerSubscription(
-        this.hotkeys.addShortcut({keys: 'control.shift.+', element: this.tableContainerRef.nativeElement, description: 'COMMON.BTN_ADD'})
+        this.hotkeys.addShortcut({keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element})
           .pipe(filter(e => !this.disabled && this.canEdit))
           .subscribe((event) => this.addRow(event))
       );
@@ -257,6 +276,51 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
+  }
+
+  pressRow(event: Event|undefined, row: TableElement<T>): boolean {
+    if (!this.mobile) return; // Skip if inline edition, or not mobile
+
+    event?.preventDefault();
+
+    // Toggle row selection
+    this.selection.toggle(row);
+
+    // Unselect after 4s
+    if (this.pressHighlightDuration > 0) {
+      if (this.selection.isSelected(row)) {
+
+        // Hightlight the row (only for the first row selected)
+        if (this.singleSelectedRow === row) {
+          this.highlightedRowId = row.id;
+        }
+
+        timer(this.pressHighlightDuration)
+          .pipe(
+            //takeUntil(this.selection.changed),
+            takeUntil(this.destroySubject),
+            first()
+          )
+          .subscribe(() => {
+            // Row is still highlighted: remove highlight
+            if (this.highlightedRowId === row.id) {
+              this.highlightedRowId = null;
+            }
+            // Unselect, if only this row is selected
+            if (this.selection.isSelected(row) && this.selection.selected.length === 1) {
+              this.selection.deselect(row);
+            }
+            this.markForCheck();
+          });
+      } else {
+        // Remove highlight
+        if (this.highlightedRowId === row.id) {
+          this.highlightedRowId = null;
+        }
+      }
+    }
+
+    this.markForCheck();
   }
 
   async addOrUpdateEntityToTable(data: T, opts?: {confirmEditCreate?: boolean}){
@@ -554,9 +618,9 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
    * @protected
    */
   protected equals(d1: T, d2: T): boolean {
-    return EntityUtils.isEntity(d1) ? d1.equals(d2)
-      : (EntityUtils.isEntity(d2) ? d2.equals(d1)
-        : super.equals(d1, d2));
+    if (d1) return this.asEntity(d1).equals(d2);
+    if (d2) return this.asEntity(d2).equals(d1);
+    return false;
   }
 
   protected markForCheck() {

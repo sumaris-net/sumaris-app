@@ -1,11 +1,17 @@
-<app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && (dirty || saving)"
-             [hasClose]="!loading && (!dirty && !saving)"
+
+<!-- Top toolbar -->
+<app-toolbar *ngVar="{saving: (savingSubject|push), loading: (loadingSubject|push)} as vars"
+             [color]="toolbarColor"
+             [hasValidate]="!vars.loading && (dirty || vars.saving)"
+             [hasClose]="!vars.loading && !(dirty || vars.saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              (onClose)="close($event)"
              [backHref]="defaultBackHref"
              [canGoBack]="true">
+
+  <ion-title [innerHTML]="$title|async"></ion-title>
+
   <ion-buttons slot="end">
 
     <ng-container *ngIf="mobile && selectedTabIndex === 2">
@@ -26,13 +32,13 @@
       </button>
     </ng-container>
 
-    <button slot="end" mat-icon-button
-            *ngIf="enabled && !isNewData || debug"
-            [disabled]="saving"
+    <!-- option menu -->
+    <ion-button *ngIf="!isNewData || canCopyLocally || debug"
+            [disabled]="vars.loading || vars.saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon>more_vert</mat-icon>
-    </button>
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
   </ion-buttons>
 </app-toolbar>
 
@@ -41,22 +47,29 @@
 
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport"
-          [disabled]="isNewData || disabled"
+          [disabled]="isNewData || !data.controlDate"
           (click)="openReport($event)">
     <ion-label>
-      <mat-icon>description</mat-icon>&nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>&nbsp;
+      <span translate>TRIP.EDIT.BTN_REPORT_DOTS</span>
     </ion-label>
   </button>
 
   <!-- reset -->
   <button mat-menu-item
-          [disabled]="!dirty"
+          [disabled]="disabled || !dirty"
           (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
+  </button>
+
+  <button mat-menu-item
+          *ngIf="canCopyLocally"
+          (click)="copyLocally()">
+    <mat-icon>file_copy</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
   </button>
 
   <!-- DEV only -->
@@ -66,11 +79,6 @@
       <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
       <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
       <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-    </button>
-    <button mat-menu-item *ngIf="!isNewData && data?.id > 0"
-            (click)="copyLocally()">
-      <mat-icon>file_copy</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
     </button>
     <button mat-menu-item
             (click)="devToggleOfflineMode()">
@@ -93,7 +101,6 @@
   </button>
 </mat-menu>
 
-<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
 <ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
@@ -157,7 +164,7 @@
               <!-- trip -->
               <form-trip #tripForm
                          [showError]="false"
-                         [returnFieldsRequired]="usageMode|isNotOnField"
+                         [returnFieldsRequired]="usageMode|isOnDesk"
                          (onSubmit)="save($event)"
                          (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
@@ -214,8 +221,8 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="physicalGearsTable.visibleRowCount"
-          [matBadgeHidden]="!physicalGearsTable.visibleRowCount"
+          [matBadge]="physicalGearsTable.totalRowCount"
+          [matBadgeHidden]="!physicalGearsTable.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
@@ -226,18 +233,13 @@
 
       <div class="ion-no-padding">
 
-        <!-- error -->
-        <ion-item *ngIf="mobile && physicalGearsTable.error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
-        </ion-item>
-
         <app-physical-gears-table #physicalGearsTable
                                   [programLabel]="$programLabel|async"
                                   [showToolbar]="!mobile"
-                                  [showError]="false"
                                   (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
                                   [useSticky]="!mobile"
+                                  [mobile]="mobile"
+                                  [usageMode]="usageMode"
                                   [debug]="debug">
         </app-physical-gears-table>
 
@@ -263,21 +265,6 @@
       </ng-template>
 
       <div class="ion-no-padding">
-        <!-- debug -->
-        <app-debug *ngIf="debug" [title]="'Operations table'">
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                ready: {{operationsTable.readySubject|async}}<br/>
-                loading: {{operationsTable.loading}}<br/>
-                enabled: {{operationsTable.enabled}}<br/>
-                dirty: {{operationsTable.dirtySubject|async}}<br/>
-              </ion-col>
-              <ion-col>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
 
         <app-operations-table #operationsTable
                               (onOpenRow)="onOpenOperation($event)"
@@ -324,12 +311,41 @@
   </ion-fab>
 
   <!-- FAB button: add operation -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-           *ngSwitchCase="2"
-           [class.cdk-visually-hidden]="operationsTable.disabled"
-           @fadeInOutAnimation>
-    <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  <ng-container *ngSwitchCase="2">
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+             *ngIf="!operationsTable.allowParentOperation; else allowParentFabButton"
+             [class.cdk-visually-hidden]="operationsTable.disabled"
+             @fadeInOutAnimation>
+      <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+    <ng-template #allowParentFabButton>
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+               [class.cdk-visually-hidden]="operationsTable.disabled"
+               @fadeInOutAnimation>
+        <ion-fab-button color="tertiary" >
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+
+        <ion-fab-list side="top">
+
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD'|translate"
+                          (click)="onNewOperation($event, {type: 'child'})">
+            <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
+            <ion-icon class="icon-secondary" name="add"></ion-icon>
+          </ion-fab-button>
+
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT'|translate"
+                          (click)="onNewOperation($event, {type: 'parent'})">
+            <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
+            <ion-icon class="icon-secondary" name="add"></ion-icon>
+          </ion-fab-button>
+
+
+        </ion-fab-list>
+      </ion-fab>
+    </ng-template>
+  </ng-container>
 </ng-container>

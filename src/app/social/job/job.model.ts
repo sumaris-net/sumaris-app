@@ -1,14 +1,6 @@
-import {
-  Entity,
-  EntityAsObjectOptions,
-  EntityClass,
-  EntityFilter,
-  FilterFn,
-  fromDateISOString,
-  isNotEmptyArray, isNotNil,
-  toDateISOString
-} from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IconRef, isNotEmptyArray, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 export type JobTypeEnum = 'IMPORT_ORDER_ITEM_SHAPE' | 'IMPORT_MONITORING_LOCATION_SHAPE';
 export type JobStatusEnum = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'FATAL' | 'CANCELLED';
@@ -28,6 +20,9 @@ export class Job extends Entity<Job> {
   log: string;
   configuration: any;
   report: any;
+
+  progression?: ProgressionModel;
+  icon?: IconRef;
 
   constructor() {
     super(Job.TYPENAME);
@@ -79,6 +74,8 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
   types: JobTypeEnum[];
   status: JobStatusEnum[];
   lastUpdateDate: Moment;
+  includedIds: number[];
+  excludedIds: number[];
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -86,6 +83,8 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
     this.types = source.types || [];
     this.status = source.status || [];
     this.lastUpdateDate = source.lastUpdateDate;
+    this.excludedIds = source.excludedIds;
+    this.includedIds = source.includedIds;
   }
 
   protected buildFilter(): FilterFn<Job>[] {
@@ -100,10 +99,28 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
     if (isNotEmptyArray(this.status)) {
       filterFns.push((data) => this.status.includes(data.status));
     }
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push((data) => this.includedIds.includes(+data.id));
+    }
+    if (isNotEmptyArray(this.excludedIds)) {
+      filterFns.push((data) => !this.excludedIds.includes(+data.id));
+    }
     if (this.lastUpdateDate) {
       filterFns.push((data) => data.updateDate >= this.lastUpdateDate);
     }
 
     return filterFns;
+  }
+}
+
+export class JobStatusUtils {
+  static isFinished(status: JobStatusEnum) {
+    switch (status) {
+      case 'PENDING':
+      case 'RUNNING':
+        return false;
+      default:
+        return true;
+    }
   }
 }

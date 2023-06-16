@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppTabEditor, AppTable, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, ObjectMap, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { SamplesTable } from '@app/trip/sample/samples.table';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
@@ -46,10 +46,15 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() useSticky = false;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() showLabelColumn = false;
   @Input() requiredStrategy = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
-
+  @Input() showGroupHeader = false;
+  @Input() showLabelColumn: boolean; // By default, resolved from program properties
+  @Input() showImagesColumn: boolean; // By default, resolved from program properties
+  @Input() showTaxonGroupColumn: boolean; // By default, resolved from program properties
+  @Input() showTaxonNameColumn: boolean; // By default, resolved from program properties
+  @Input() showSampleDateColumn: boolean;
+  @Input() pmfmGroups: ObjectMap<number[]>;
 
   @Input() set defaultSampleDate(value: Moment) {
     this.samplesTable.defaultSampleDate = value;
@@ -118,13 +123,14 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
+    protected navController: NavController,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, translate,
+    super(route, router, navController, alertCtrl, translate,
       {
         tabCount: settings.mobile ? 1 : 3
       });
@@ -178,8 +184,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
       // If sub tables exists (desktop mode), check if there have some pmfms
       this.registerSubscription(
         combineLatest([
-          this.individualMonitoringTable.$hasPmfms,
-          this.individualReleasesTable.$hasPmfms
+          this.individualMonitoringTable.hasPmfms$,
+          this.individualReleasesTable.hasPmfms$
         ])
           .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
             this.showIndividualMonitoringTable = hasMonitoringPmfms;
@@ -429,9 +435,11 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
-    this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
-    this.samplesTable.showSampleDateColumn  = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_ENABLE);
+    this.samplesTable.showTaxonGroupColumn = toBoolean(this.showTaxonGroupColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE));
+    this.samplesTable.showTaxonNameColumn = toBoolean(this.showTaxonNameColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE));
+    this.samplesTable.showSampleDateColumn  = toBoolean(this.showSampleDateColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE));
+    this.samplesTable.showLabelColumn = toBoolean(this.showLabelColumn , program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE));
+    this.samplesTable.showImagesColumn = toBoolean(this.showImagesColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE));
     this.samplesTable.programLabel = program.label;
     this.samplesTable.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.samplesTable.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);

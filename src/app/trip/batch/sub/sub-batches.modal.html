@@ -186,6 +186,7 @@
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"
                    class="mat-row-small"
                    [class.mat-row-dirty]="isNewRow(row)"
+                   [class.mat-row-animated]="animationSelection.isSelected(row)"
                    [class.mat-row-selected]="selection.isSelected(row)"
                    [matMenuTriggerFor]="rowActionsMenu"
                    [matMenuTriggerRestoreFocus]="false"

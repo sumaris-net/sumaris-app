@@ -49,6 +49,9 @@ export abstract class PmfmValueUtils {
       return DateUtils.equals(pv1 as any, pv2 as any);
     }
 
+    // Integer can be serialized as '1.0' or '1' (from javascript or java code)
+    if (!isNaN(+pv1) && +pv1 === +pv2) return true;
+
     // Serialize ReferentialRef to id
     const v1 = typeof pv1 === 'object' && isNotNil(pv1.id) ? pv1.id : pv1;
     const v2 = typeof pv2 === 'object' && isNotNil(pv2.id) ? pv2.id : pv2;
@@ -111,7 +114,11 @@ export abstract class PmfmValueUtils {
 
   static asObject(value: PmfmValue | PmfmValue[] | any): string|any {
     if (isNil(value)) return undefined;
-    // If moment object, then convert to ISO string- fix #157
+    // Multiple values (e.g. selective device, on a physical gear)
+    if (Array.isArray(value)) {
+      return value.map(v => this.asObject(v)).join(PMFM_VALUE_SEPARATOR);
+    }
+    // If moment object, then convert to ISO string - fix #157
     if (isMoment(value)) {
       return toDateISOString(value);
     }
@@ -119,18 +126,17 @@ export abstract class PmfmValueUtils {
     if (value instanceof Date) {
      return toDateISOString(moment(value));
     }
-    if (Array.isArray(value)) {
-      // Do nothing, managed in measurementValuesMultiples property
-      return value;
-    }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {
-      return '' + (+value / value.__conversionCoefficient);
+      // DEBUG
+      //console.debug(`[pmfm-value] Apply inverse conversion: ${value} * ${value.__conversionCoefficient}`);
+
+      return (+value / value.__conversionCoefficient).toString();
     }
     // Qualitative value, String or number
     else {
       value = notNilOrDefault(value.id, value);
-      return '' + value;
+      return ''+ value;
     }
   }
 
@@ -159,15 +165,19 @@ export abstract class PmfmValueUtils {
         return null;
       case 'integer':
         if (isNilOrNaN(value)) return null;
-        value = parseInt(value);
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
-
           // DEBUG
-          console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+          //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
 
+          value = parseFloat(value); // Fix OBSBIO-20 input value could be a float
           value = new Number(value * pmfm.displayConversion.conversionCoefficient);
+
+          // Storage conversion coefficient (need by inverse conversion)
           value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
+        }
+        else {
+          value = parseInt(value);
         }
         return value;
       case 'double':
@@ -176,7 +186,7 @@ export abstract class PmfmValueUtils {
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
           // DEBUG
-          //console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+          //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
 
           value = new Number(value * pmfm.displayConversion.conversionCoefficient);
 
@@ -191,7 +201,7 @@ export abstract class PmfmValueUtils {
       case 'date':
         return fromDateISOString(value) || null;
       default:
-        throw new Error('Unknown pmfm\'s type: ' + pmfm.type);
+        throw new Error('Unknown pmfm type: ' + pmfm.type);
     }
   }
 

@@ -1,0 +1,173 @@
+<app-toolbar [title]="i18nPrefix+title|translate"
+             color="primary"
+             [canGoBack]="false">
+
+  <ion-buttons slot="end">
+
+    <!-- reset filter -->
+    <button mat-icon-button (click)="resetFilter()"
+            *ngIf="filterCriteriaCount">
+      <mat-icon color="accent">filter_list_alt</mat-icon>
+      <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+    </button>
+
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+    <!-- show filter -->
+    <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+      <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
+                [matBadge]="filterCriteriaCount"
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after">filter_list_alt</mat-icon>
+      <ng-template #emptyFilter>
+        <mat-icon>filter_list_alt</mat-icon>
+      </ng-template>
+    </button>
+
+  </ion-buttons>
+
+</app-toolbar>
+
+<ion-content class="ion-no-padding" scroll-y="false">
+
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel"
+    [class.filter-panel-floating]="filterPanelFloating">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event)">
+
+      <ion-grid>
+        <ion-row>
+
+          <ion-col>
+            <!-- Recorder person -->
+            <mat-autocomplete-field
+              [placeholder]="i18nPrefix+'FILTER.RECORDER_PERSON'|translate"
+              formControlName="recorderPerson"
+              [config]="autocompleteFields.person"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- Start date -->
+            <mat-date-field [placeholder]="i18nPrefix+'FILTER.START_DATE'|translate"
+                            formControlName="startDate"
+                            [clearable]="true">
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            </mat-date-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- End date -->
+            <mat-date-field [placeholder]="i18nPrefix+'FILTER.END_DATE'|translate"
+                            formControlName="endDate"
+                            [clearable]="true">
+            </mat-date-field>
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [class.cdk-visually-hidden]="(loading$|async) || filterForm.dirty"
+                 [color]="total === 0 ? 'danger' : undefined"
+                 class="ion-padding">
+        {{ (total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count:(total|numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <button mat-icon-button color="accent"
+              (click)="toggleFilterPanelFloating()"
+              class="hidden-xs hidden-sm hidden-md"
+              [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE')|translate">
+        <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+      </button>
+
+      <!-- Close panel -->
+      <ion-button mat-button fill="clear" color="dark"
+                  (click)="closeFilterPanel()"
+                  [disabled]="loading$|async">
+        <ion-text>{{ 'COMMON.BTN_CLOSE'|translate }}</ion-text>
+      </ion-button>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  [color]="filterForm.dirty ? 'tertiary' : 'dark'"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="applyFilterAndClosePanel($event)">
+        <ion-text> {{ 'COMMON.BTN_APPLY'|translate }}</ion-text>
+      </ion-button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
+  <div class="map-container">
+    <!-- Leaflet map -->
+    <div leaflet [attr.id]="mapId"
+         (leafletMapReady)="onMapReady($event)"
+         [leafletOptions]="options"
+         [leafletLayersControl]="layersControl">
+
+    </div>
+  </div>
+
+  <mat-expansion-panel #tableExpansionPanel class="table-panel"
+                       [class.table-panel-floating]="filterPanelFloating">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <ion-text color="primary" >
+          {{'DEVICE_POSITION.MAP.TABLE.TITLE'|translate}}
+          <span *ngIf="total<=visibleTotal; else warning">({{total}})</span>
+          <ng-template #warning>
+            <ion-text color="danger" *ngIf="!loading">
+              <ion-icon name="alert-circle"></ion-icon>
+              {{'DEVICE_POSITION.MAP.TABLE.LIMIT_TO'|translate: {total: total, visibleTotal: visibleTotal} }}
+            </ion-text>
+          </ng-template>
+        </ion-text>
+      </mat-panel-title>
+      <mat-panel-description>
+
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ion-grid class="mat-table" #table>
+      <ion-row class="mat-header-row">
+        <ion-col class="mat-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
+        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
+        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
+        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
+        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
+      </ion-row>
+      <ng-container *rxFor="let feature of features$" >
+        <ion-row #tableRows
+                 class="mat-row"
+                 [class.mat-row-selected]="selection.isSelected(feature)"
+                 (click)="onRowClick($event, feature)">
+          <ion-col class="mat-cell mat-column-dateTime">
+            {{feature.properties.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{feature.properties.dateTime|dateFromNow }}</ion-text>
+          </ion-col>
+          <ion-col class="mat-cell" size="2">{{feature.properties.latitude|numberFormat }}</ion-col>
+          <ion-col class="mat-cell" size="2">{{feature.properties.longitude|numberFormat }}</ion-col>
+          <ion-col class="mat-cell">{{feature.properties.recorderPerson|personToString }}</ion-col>
+          <ion-col class="mat-cell ion-no-padding ion-padding-horizontal">
+            <ion-button class="text-button" size="small" fill="clear" color="primary"
+                        (click)="onOpenDataClick($event, feature.properties)"
+                        [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA'|translate">
+              {{feature.properties.objectTypeName}} #{{feature.properties.objectId}}
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ng-container>
+    </ion-grid>
+  </mat-expansion-panel>
+
+</ion-content>

@@ -1,3 +1,4 @@
+
 mat-toolbar {
   &.expanded {
     background-color: var(--ion-color-secondary);
@@ -6,7 +7,7 @@ mat-toolbar {
 .table-container {
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
-  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height) - 2px);
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
@@ -24,7 +25,6 @@ mat-toolbar {
   }
 }
 .mat-table {
-  min-width: 100%;
   --mat-cell-vertical-padding: 4px;
 
   .mat-header-row,

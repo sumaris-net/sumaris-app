@@ -1,11 +1,19 @@
 import { DataEntity } from './model/data-entity.model';
 import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+
+
+export interface IProgressionOptions {
+  // Progression
+  progression?: ProgressionModel;
+  maxProgression?: number;
+}
 
 export interface IDataEntityQualityService<
   T extends DataEntity<T, ID>,
   ID = number,
-  CO = any> {
+  CO extends IProgressionOptions = IProgressionOptions> {
 
   canUserWrite(data: T, opts?: any): boolean;
   control(data: T, opts?: CO): Promise<AppErrorWithDetails|FormErrors>;

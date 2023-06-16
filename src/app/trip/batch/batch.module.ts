@@ -24,6 +24,8 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
 import { MatTreeModule } from '@angular/material/tree';
 import { BatchesTable } from '@app/trip/batch/common/batches.table';
 import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
+import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
+import {MatSidenavModule} from '@angular/material/sidenav';
 
 @NgModule({
   imports: [
@@ -32,6 +34,7 @@ import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
 
     // Material tree component
     MatTreeModule,
+    MatSidenavModule,
 
     // App module
     AppCoreModule,
@@ -52,6 +55,7 @@ import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
     // Components
     BatchTreeComponent,
     BatchTreeContainerComponent,
+    BatchModelTreeComponent,
     CatchBatchForm,
 
     BatchGroupsTable,
@@ -79,8 +83,9 @@ import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
     BatchSortingValueIconPipe,
 
     // Components
-    BatchTreeContainerComponent,
     BatchTreeComponent,
+    BatchTreeContainerComponent,
+    BatchModelTreeComponent,
     CatchBatchForm,
     BatchGroupsTable,
     BatchGroupForm,

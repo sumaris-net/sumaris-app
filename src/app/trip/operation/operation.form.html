@@ -27,7 +27,7 @@
           </mat-boolean-field>
         </ion-col>
 
-        <ion-col size="12" size-sm="6" size-md="" size-lg="">
+        <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
           <mat-form-field [class.cdk-visually-hidden]="!isChildOperation"
                           [class.mat-form-field-invalid]="control.invalid"
                           *ngVar="parentControl as control">
@@ -53,38 +53,41 @@
                 <mat-icon >error</mat-icon>
               </button>
               <button matSuffix mat-icon-button type="button"
-                      *ngIf="control.valid"
-                      [matMenuTriggerFor]="optionsMenu"
+                      [matMenuTriggerFor]="parentFieldMenu"
                       tabindex="-1"
                       [title]=" 'COMMON.BTN_OPTIONS'|translate">
                 <mat-icon>more_vert</mat-icon>
               </button>
 
-              <!-- Type = options menu -->
-              <mat-menu #optionsMenu="matMenu" xPosition="after">
+              <!-- Parent = options menu -->
+              <mat-menu #parentFieldMenu="matMenu" xPosition="after">
+                <ng-template matMenuContent>
+                  <button mat-menu-item type="button"
+                          tabindex="-1"
+                          (click)="addParentOperation()">
+                    <ion-label>
+                      <mat-icon>list</mat-icon>
+                      <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
+                    </ion-label>
+                  </button>
+                  <button mat-menu-item type="button" *ngIf="openParentOperation.observers|isNotEmptyArray"
+                          [disabled]="control.value | isNilOrBlank"
+                          tabindex="-1"
+                          (click)="openParentOperation.emit(control.value)">
+                    <ion-label>
+                      <mat-icon>open_in_new</mat-icon>
+                      <span translate>TRIP.OPERATION.EDIT.BTN_OPEN_PARENT</span>
+                    </ion-label>
 
-                <button mat-menu-item type="button"
-                        tabindex="-1"
-                        (click)="addParentOperation()">
-                  <ion-label>
-                    <mat-icon>list</mat-icon>
-                    <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
-                  </ion-label>
-                </button>
-                <button mat-menu-item type="button" [disabled]="control.value | isNilOrBlank"
-                        tabindex="-1"
-                        (click)="updateParentOperation()">
-                  <ion-label>
-                    <mat-icon>edit</mat-icon>
-                    <span translate>TRIP.OPERATION.EDIT.BTN_EDIT_PARENT</span>
-                  </ion-label>
-
-                </button>
+                  </button>
+                </ng-template>
               </mat-menu>
             </ng-template>
 
             <mat-error [ngSwitch]="control.errors|mapKeys|arrayFirst">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+              <span *ngSwitchCase="'remoteParent'" translate>TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION</span>
+              <span *ngSwitchCase="'existsParent'" translate>TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION</span>
               <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
             </mat-error>
           </mat-form-field>
@@ -226,7 +229,7 @@
                      *ngIf="form.controls.fishingStartDateTime as control">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
                                    [formControl]="control"
-                                   [required]="usageMode|isNotOnField"
+                                   [required]="usageMode|isOnDesk"
                                    [clearable]="usageMode|isOnField"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.valueChanges|async">
@@ -249,7 +252,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+11"
-                                 [required]="usageMode|isNotOnField"
+                                 [required]="usageMode|isOnDesk"
                                  [defaultSign]="defaultLatitudeSign">
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
@@ -261,7 +264,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+13"
-                                 [required]="usageMode|isNotOnField"
+                                 [required]="usageMode|isOnDesk"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'fishingStartPosition')"
@@ -360,7 +363,7 @@
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
                                    [startDate]="previousEndDateTimeControl.value"
-                                   [required]="usageMode|isNotOnField"
+                                   [required]="usageMode|isOnDesk"
                                    [clearable]="usageMode|isOnField">
 
                 <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
@@ -379,7 +382,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+12"
-                                 [required]="usageMode|isNotOnField"
+                                 [required]="usageMode|isOnDesk"
                                  [defaultSign]="defaultLatitudeSign">
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
@@ -390,7 +393,7 @@
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+15"
-                                 [required]="usageMode|isNotOnField"
+                                 [required]="usageMode|isOnDesk"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"
@@ -468,7 +471,7 @@
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
-      <ion-col>
+      <ion-col size="12">
         <mat-form-field appearance="outline">
           <textarea matInput #comments
                     formControlName="comments"

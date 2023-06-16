@@ -129,10 +129,7 @@ export class TaxonNameRef
     const target: any = super.asObject(options);
     if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
 
-    if (target.taxonGroupIds) {
-      console.log('TODO Check why need to delete taxonGroupIds. May be to save on pod ?', target);
-    }
-    delete target.taxonGroupIds; // Not need
+    delete target.taxonGroupIds; // Not need by pod here (should be in TaxonGroupHistoryRecord)
     return target;
   }
 

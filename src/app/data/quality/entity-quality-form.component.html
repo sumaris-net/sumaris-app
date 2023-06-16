@@ -28,24 +28,28 @@
   </ion-text>
 </ion-label>
 
-<p>
+<!-- Progress bar -->
+<app-progress-bar [progression]="_progression"
+                  [cancellable]="true">
+</app-progress-bar>
 
+<p>
   <!-- Control (only if local) -->
-  <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"
+  <ion-button *ngIf="canControl && !canSynchronize && !canTerminate"
               [disabled]="busy"
-              (click)="control($event)" expand="block" color="tertiary">
-    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
+              (click)="control($event)"
+              expand="block" color="tertiary">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
+    <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
   </ion-button>
 
   <!-- Terminate -->
-  <ion-button mat-icon-button *ngIf="canTerminate"
+  <ion-button *ngIf="canTerminate"
               [disabled]="busy"
               (click)="terminate($event)"
-              expand="block" color="tertiary"
-              class="large-text">
-    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-text>
+              expand="block" color="tertiary">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
+    <ion-label class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-label>
   </ion-button>
 
   <!-- synchronize -->
@@ -54,8 +58,8 @@
               [disabled]="busy"
               [color]="network.offline ? 'danger100' : 'danger'"
               (click)="synchronize($event)" >
-    <ion-icon slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
-    <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+    <ion-icon *ngIf="_mobile" slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
+    <ion-label translate>QUALITY.BTN_SYNCHRONIZE</ion-label>
   </ion-button>
 
 
@@ -63,8 +67,8 @@
               expand="block" color="success"
               [disabled]="busy"
               (click)="validate($event)">
-    <ion-icon slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
+    <ion-label translate>QUALITY.BTN_VALIDATE</ion-label>
   </ion-button>
   <ion-button *ngIf="canUnvalidate"
               expand="block" color="light"
@@ -72,8 +76,8 @@
               (click)="unvalidate($event)">
     <ion-text color="danger" translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
-
 </p>
+
 
 <ng-container *ngIf="qualityFlags as qualityFlags">
   <p *ngIf="qualityFlags.length && (canQualify || canUnqualify)" class="ion-padding-top">
@@ -81,9 +85,9 @@
       <!-- flags menu -->
       <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
         <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
-        <ion-button  *ngFor="let qualityFlag of qualityFlags"
+        <ion-button  *rxFor="let qualityFlag of qualityFlags"
                      size="small" expand="block"
-                     [color]="qualityFlagToColor(qualityFlag.id)"
+                     [color]="qualityFlag.id|qualityFlagToColor"
                      (click)="qualify($event, qualityFlag.id)">
           {{qualityFlag.label | translate}}
         </ion-button>
@@ -109,13 +113,15 @@
           <br/>
         </ion-label>
         <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block"
-                    [color]="qualityFlagToColor(data.qualityFlagId)">
+                    [color]="data.qualityFlagId|qualityFlagToColor">
           <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
           <ion-text>
-            {{getI18nQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
+            {{translateQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
           <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
         </ion-button>
       </ng-container>
   </p>
+
+
 
 </ng-container>

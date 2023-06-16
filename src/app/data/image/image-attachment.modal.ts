@@ -7,7 +7,8 @@ import { EntityUtils, InMemoryEntitiesService, toBoolean } from '@sumaris-net/ng
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 
 export interface IImageModalOptions {
-  data: ImageAttachment[]
+  disabled: boolean;
+  data: ImageAttachment[];
 }
 
 @Component({

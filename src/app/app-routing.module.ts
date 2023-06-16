@@ -1,8 +1,7 @@
 import { NgModule } from '@angular/core';
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { environment } from '@environments/environment';
 
 const routes: Routes = [
   // Core path
@@ -168,7 +167,7 @@ const routes: Routes = [
   imports: [
     QuicklinkModule,
     SharedRoutingModule,
-    RouterModule.forRoot(routes, <ExtraOptions>{
+    RouterModule.forRoot(routes, {
 
       // DEBUG
       //enableTracing: !environment.production,
@@ -182,9 +181,6 @@ const routes: Routes = [
   exports: [
     RouterModule,
     SharedRoutingModule
-  ],
-  providers: [
-    {provide: ComponentDirtyGuard, useClass: ComponentDirtyGuard}
   ]
 })
 export class AppRoutingModule {

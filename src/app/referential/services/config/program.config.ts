@@ -1,12 +1,15 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+export type TripReportType = 'legacy' | 'selectivity';
 export type OperationEditor = 'legacy' | 'selectivity';
 export type StrategyEditor = 'legacy' | 'sampling';
+export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -91,6 +94,21 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.gears.columns.pmfmIds',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6]
+    },
+  },
+
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.gear.rankOrder.enable',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE',
@@ -102,6 +120,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN',
     defaultValue: 'false',
     type: 'boolean'
+  },
+  TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.minChildrenCount',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT',
+    defaultValue: 2,
+    type: 'integer'
   },
   TRIP_PHYSICAL_GEAR_HELP_MESSAGE: <FormFieldDefinition>{
     key: 'sumaris.trip.gear.help.message',
@@ -190,6 +214,12 @@ export const ProgramProperties = Object.freeze({
   TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.taxonGroups.noWeight',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT',
+    defaultValue: '',
+    type: 'string'
+  },
+  TRIP_BATCH_TAXON_GROUPS_NO_LANDING: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.taxonGroups.noLanding',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_LANDING',
     defaultValue: '',
     type: 'string'
   },
@@ -291,7 +321,15 @@ export const ProgramProperties = Object.freeze({
   TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.roundWeightConversion.country.id',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID',
-    type: 'integer',
+    type: 'entity',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY,
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: undefined
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
@@ -300,7 +338,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+  TRIP_SAMPLE_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.dateTime.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
     defaultValue: 'true',
@@ -316,6 +354,18 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.sample.taxonGroup.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE',
     defaultValue: 'true',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.label.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_LABEL_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.images.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_IMAGES_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
@@ -384,6 +434,22 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_REPORT_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.type',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
+    type: 'enum',
+    values: [
+      {
+        key: <TripReportType>'legacy',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_LEGACY'
+      },
+      {
+        key: <TripReportType>'selectivity',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY'
+      }
+    ],
+    defaultValue: <TripReportType>'legacy'
+  },
 
   // Operation
   TRIP_OPERATION_EDITOR: <FormFieldDefinition>{
@@ -424,7 +490,14 @@ export const ProgramProperties = Object.freeze({
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: TaxonGroupTypeIds.METIER_DCF_5.toString()
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
@@ -457,6 +530,23 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '2400', // 100 days
     type: 'integer'
   },
+  TRIP_EXTRACTION_SAMPLING_METHOD: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.sampling.method',
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHOD',
+    type: 'enum',
+    values: [
+      {
+        key: <TripExtractionSamplingMethod>'Observer',
+        value: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHODS.OBSERVER'
+      },
+      {
+        key: <TripExtractionSamplingMethod>'SelfSampling',
+        value: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHODS.SELF_SAMPLING'
+      }
+    ],
+    defaultValue: 'Observer' // See RDB/COST extraction specification
+  },
+
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',
@@ -671,6 +761,32 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false'
   },
 
+
+  /* -- Extraction options -- */
+
+  EXTRACTION_FORMATS: <FormFieldDefinition>{
+    key: 'sumaris.extraction.formats',
+    label: 'PROGRAM.OPTIONS.EXTRACTION_FORMATS',
+    type: 'enums',
+    values: [
+      <Property>{key: 'NA', value: 'COMMON.EMPTY_OPTION'}, // Used to disabled extraction
+      <Property>{key: 'RDB', value: 'EXTRACTION.FORMAT.RDB.NAME'},
+      <Property>{key: 'SURVIVAL_TEST', value: 'EXTRACTION.FORMAT.SURVIVAL_TEST.NAME'},
+      <Property>{key: 'COST', value: 'EXTRACTION.FORMAT.COST.NAME'},
+      <Property>{key: 'FREE1', value: 'EXTRACTION.FORMAT.FREE1.NAME'},
+      <Property>{key: 'FREE2', value: 'EXTRACTION.FORMAT.FREE2.NAME'},
+      <Property>{key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME'},
+      <Property>{key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME'},
+      <Property>{key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME'},
+    ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p?.key
+    },
+    defaultValue: null // =  All
+  },
+
   /* -- Program / Strategy options -- */
 
   STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
@@ -755,7 +871,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'legacy'
   },
 
-  /* -- QUalitative value options -- */
+  /* -- Qualitative value options -- */
 
   MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
     key: 'sumaris.measurements.maxVisibleButtons',
@@ -787,6 +903,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
+    ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {

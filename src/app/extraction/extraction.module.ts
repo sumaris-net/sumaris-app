@@ -14,6 +14,7 @@ import { ExtractionHelpModal } from './help/help.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChartsModule } from 'ng2-charts';
 import { AppCoreModule } from '@app/core/core.module';
+import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -24,6 +25,7 @@ import { AppCoreModule } from '@app/core/core.module';
     ChartsModule,
 
     AppCoreModule,
+    AppSharedModule,
     AppReferentialModule
   ],
   declarations: [

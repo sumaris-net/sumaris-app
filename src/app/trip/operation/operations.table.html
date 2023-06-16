@@ -101,9 +101,23 @@
     <mat-icon>sort</mat-icon>
     <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
   </button>
-
 </mat-menu>
 
+<!-- debug -->
+<app-debug *ngIf="debug" [title]="'Operations'">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        ready: {{readySubject|async}}<br/>
+        loading: {{loading}}<br/>
+        enabled: {{enabled}}<br/>
+        dirty: {{dirtySubject|async}}<br/>
+      </ion-col>
+      <ion-col>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
 
 <!-- error -->
 <ion-item *ngIf="mobile && error" lines="none">
@@ -111,7 +125,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
+<div #tableContainer class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="paginator && true">
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
@@ -227,7 +243,7 @@
       </th>
       <td mat-cell *matCellDef="let row"
           [class.ion-padding-start]="mobile">
-        <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
+        <ion-text>{{row.currentData.rankOrder}}</ion-text>
       </td>
     </ng-container>
 
@@ -349,7 +365,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
+    <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
       <th mat-header-cell *matHeaderCellDef>
         <!-- options menu -->
         <button mat-icon-button matHeader
@@ -359,20 +375,32 @@
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
-        <!-- Duplicate row -->
-        <button mat-icon-button *ngIf="canDuplicate" class="visible-hover-row"
-                [title]="'COMMON.BTN_DUPLICATE'|translate"
-                (click)="$event.preventDefault() || duplicateRow($event, row)">
-          <mat-icon>content_copy</mat-icon>
-        </button>
+        <ng-container *rxIf="enabled">
+          <!-- Duplicate row button -->
+          <button mat-icon-button *ngIf="canDuplicate && (!mobile || singleSelectedRow === row)"
+                  [class.visible-hover-row]="!mobile"
+                  [title]="'COMMON.BTN_DUPLICATE'|translate"
+                  (click)="$event.preventDefault() || duplicateRow($event, row)">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+
+          <!-- Delete row button -->
+          <button mat-icon-button
+                  *ngIf="mobile && singleSelectedRow === row"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
       </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"
         class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id"
-        (click)="clickRow($event, row)">
+        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        (click)="clickRow($event, row)"
+        (press)="pressRow($event, row)">
     </tr>
   </table>
 
@@ -398,11 +426,11 @@
 </ion-footer>
 
 <ng-template #addRowButton>
-  <span *ngIf="!mobile && enabled">&nbsp;
-    <ion-button color="medium"
-                (click)="addRow()">
-      <ion-icon name="add" slot="start"></ion-icon>
-      <span translate>COMMON.BTN_ADD</span>
-    </ion-button>
-  </span>
+<span *ngIf="!mobile && enabled">&nbsp;
+  <ion-button color="medium"
+              (click)="addRow()">
+    <ion-icon name="add" slot="start"></ion-icon>
+    <span translate>COMMON.BTN_ADD</span>
+  </ion-button>
+</span>
 </ng-template>

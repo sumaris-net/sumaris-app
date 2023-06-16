@@ -52,27 +52,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
-  locationFilter: Partial<ReferentialRefFilter> = {
-    entityName: 'Location'
-  };
   startDatePickerFilter: DateFilterFn<Moment>;
   mobile: boolean;
 
-  @Input() set locationLevelIds(value: number[]) {
-    if (this.locationFilter.levelIds !== value) {
-
-      console.debug('[observed-location-form] Location level ids:', value);
-      this.locationFilter = {
-        ...this.locationFilter,
-        levelIds: value
-      };
-      this.markForCheck();
-    }
-  }
-
-  get locationLevelIds(): number[] {
-    return this.locationFilter && this.locationFilter.levelIds;
-  }
+  @Input() locationLevelIds: number[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -112,14 +95,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;
@@ -150,8 +133,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Combo location
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
-      filter: this.locationFilter,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        ...filter,
+        levelIds: this.locationLevelIds
+      }),
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
       mobile: this.mobile
     });
 

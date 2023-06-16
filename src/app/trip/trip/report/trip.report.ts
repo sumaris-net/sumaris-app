@@ -1,72 +1,494 @@
-import { Component, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { AppRootDataReport } from '@app/data/report/root-data-report.class';
-import { Trip } from '@app/trip/services/model/trip.model';
+import { Component, EventEmitter, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Operation, Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { Color, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import {
+  arrayDistinct,
+  collectByProperty,
+  Color,
+  DateUtils,
+  FilterFn,
+  firstTruePromise,
+  getProperty,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
+  removeDuplicatesFromArray,
+  sleep,
+  waitFor
+} from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
-import { OperationService } from '@app/trip/services/operation.service';
-import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
 import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
+import { TripReportService } from '@app/trip/trip/report/trip-report.service';
+import { IDenormalizedPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { ArrayElementType, collectByFunction, Function } from '@app/shared/functions';
+import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
+import { filter } from 'rxjs/operators';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { AppExtractionReport } from '@app/data/report/extraction-report.class';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Moment } from 'moment';
+
+export declare type BaseNumericStats = {min: number; max: number; avg: number};
+export declare type SpeciesChart = ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions;
+export declare class TripReportStats {
+  programLabel: string;
+  startDate: Moment;
+  endDate: Moment;
+  trips: Trip[];
+  operations: Operation[];
+  vesselSnapshots: VesselSnapshot[];
+  vesselLength: BaseNumericStats;
+  species: {
+    label: string;
+    charts: SpeciesChart[];
+  }[];
+}
 
 @Component({
   selector: 'app-trip-report',
   templateUrl: './trip.report.html',
   styleUrls: ['./trip.report.scss'],
+  providers: [
+    {provide: TripReportService, useClass: TripReportService}
+  ],
   encapsulation: ViewEncapsulation.None
 })
-export class TripReport extends AppRootDataReport<Trip> {
+export class TripReport<
+  R extends RdbPmfmExtractionData,
+  S extends TripReportStats,
+  HL extends ArrayElementType<R['HL']> = ArrayElementType<R['HL']>
+  >
+  extends AppExtractionReport<R, S> {
 
-  private tripService: TripService;
-  private operationService: OperationService;
-  mapReadySubject = new BehaviorSubject<boolean>(false);
+  defaultTitleOptions: ChartTitleOptions = {
+    fontColor: Color.get('secondary').rgba(1),
+    fontSize: 26,
+    display: true
+  };
+  scaleLabelDefaultOption: ScaleTitleOptions = {
+    display: true,
+    fontStyle: 'bold',
+    fontSize: 18
+  };
+  legendDefaultOption: ChartLegendOptions = {
+    position: 'right' // or 'right'
+  };
+  defaultOpacity = 0.8;
+  landingColor = Color.get('tertiary');
+  discardColor = Color.get('danger');
 
-  @ViewChild('mapContainer', { 'read': ViewContainerRef }) mapContainer;
-  @ViewChild('mapTemplate') mapTemplate: TemplateRef<null>;
+  protected readonly tripService: TripService;
+  protected readonly tripReportService: TripReportService<R>;
+  protected readonly vesselSnapshotService: VesselSnapshotService;
+  protected readonly pmfmNamePipe: PmfmNamePipe;
 
-  constructor(injector: Injector, @Inject(DOCUMENT) private _document: Document) {
+  protected mapReadySubject = new BehaviorSubject<boolean>(false);
+  protected onRefresh = new EventEmitter<void>();
+
+  @ViewChild('mapContainer', { 'read': ViewContainerRef }) protected mapContainer;
+  @ViewChild('mapTemplate') protected mapTemplate: TemplateRef<null>;
+
+  constructor(injector: Injector,
+              tripReportService: TripReportService<R>,
+              @Inject(DOCUMENT) private _document: Document) {
     super(injector);
+    this.tripReportService = tripReportService;
     this.tripService = injector.get(TripService);
-    this.operationService = injector.get(OperationService);
+    this.vesselSnapshotService = injector.get(VesselSnapshotService);
+    this.pmfmNamePipe = injector.get(PmfmNamePipe);
     Chart.plugins.register(pluginTrendlineLinear);
     Chart.plugins.register(ChartJsPluginTresholdLine);
     Chart.plugins.register(ChartJsPluginMedianLine);
+
+    this.onRefresh
+      .pipe(filter(_ => this.loaded))
+      .subscribe(() => this.reload({cache: false}));
   }
 
-  protected async loadData(id: number): Promise<Trip> {
-    console.debug(`[${this.constructor.name}.loadData]`, arguments);
-    const data = await this.tripService.load(id, { withOperation: false });
+  protected async loadFromRoute(opts?: any): Promise<R> {
 
-    const res = await this.operationService.loadAllByTrip({
-      tripId: id
-    }, { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/ });
+    const id: number = this.getIdFromPathIdAttribute(this._pathIdAttribute);
+    if (isNotNil(id)) {
+      const trip = await this.tripService.load(id, { withOperation: false });
 
-    data.operations = res.data;
+      // Load report data
+      this.filter = ExtractionUtils.createTripFilter(trip.program.label, [trip.id]);
+    }
+    else {
+      const {label, category, q} = this.route.snapshot.queryParams;
+      this.type = ExtractionType.fromObject({label, category});
+      const criteria = q && ExtractionUtils.parseCriteriaFromString(q);
+      if (isNotEmptyArray(criteria)) {
+        this.filter = ExtractionFilter.fromObject({criteria});
+      }
+    }
 
-    // NOTE : This may be done in another place
-    this.stats.charts = this.computeDummyCharts();
+    if (!this.filter || this.filter.isEmpty())  throw { message:  'ERROR.LOAD_DATA_ERROR' };
+
+    return this.load(this.filter, {
+      ...opts,
+      type: this.type
+    });
+  }
+
+  protected async load(filter: ExtractionFilter, opts?: {
+    type?: ExtractionType;
+    cache?: boolean;
+  }): Promise<R> {
+    console.debug(`[${this.constructor.name}.load]`, arguments);
+
+    // Load data
+    const data = await this.loadData(filter, opts);
+
+    // Compute stats
+    this.stats = await this.computeStats(data, opts);
+
 
     return data;
   }
 
+  protected loadData(filter: ExtractionFilter,
+                     opts?: {
+                       type?: ExtractionType;
+                       cache?: boolean;
+                     }): Promise<R> {
+    return this.tripReportService.loadAll(filter, {
+      ...opts,
+      formatLabel: this.type?.label,
+      fetchPolicy: 'no-cache'
+    });
+  }
+
+
+  protected async computeStats(data: R, opts?: {
+    getSubCategory?: Function<any, string>;
+    stats?: S;
+    cache?: boolean;
+  }): Promise<S> {
+    const stats = opts?.stats || <S>{};
+
+    // Fill trips and operations
+    stats.trips = (data.TR || []).map(tr => tr.asTrip());
+    stats.operations = (data.HH || []).map(s => s.asOperation());
+    stats.programLabel = stats.trips.map(t => t.program?.label).find(isNotNil);
+    stats.vesselSnapshots = await this.computeVesselSnapshots(data.TR);
+
+    stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime), DateUtils.moment());
+    stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.departureDateTime), DateUtils.moment(0));
+    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
+
+    // Split SL and HL by species
+    const slMap = collectByProperty(data.SL, 'species');
+    const hlMap = collectByProperty(data.HL, 'species');
+
+    // For each species (found in SL, because HL is not always filled)
+    const speciesNames = Object.keys(slMap);
+    stats.species = (await Promise.all(speciesNames.map(async (species) => {
+        const speciesData = {
+          ...data,
+          SL: slMap[species],
+          HL: hlMap[species]
+        }
+
+        const speciesOpts = {getSubCategory: undefined, ...opts, stats};
+        const charts = await this.computeSpeciesCharts(species, speciesData, speciesOpts);
+        if (isNotEmptyArray(charts)) {
+          return { label: species, charts};
+        }
+      })
+    )).filter(isNotNil);
+
+    return stats;
+  }
+
+  protected async computeVesselSnapshots(data: R['TR']): Promise<VesselSnapshot[]> {
+    const vesselIds = removeDuplicatesFromArray((data || []).map(tr => tr.vesselIdentifier));
+    const vessels = await Promise.all(vesselIds.map(id => this.vesselSnapshotService.load(id, {toEntity: false, fetchPolicy: 'cache-first'})));
+    return vessels;
+  }
+
+  protected async computeSpeciesCharts(
+    species: string,
+    data: R,
+    opts: {
+      stats: S;
+      getSubCategory: Function<any, string>|undefined;
+      subCategories?: string[];
+    }): Promise<SpeciesChart[]> {
+
+    return this.computeSpeciesLengthCharts(species, data.HL as HL[], opts);
+  }
+
+  protected async computeSpeciesLengthCharts(
+    species: string,
+    data: HL[],
+    opts: {
+      stats: S;
+      getSubCategory: Function<any, string>|undefined;
+      subCategories?: string[];
+    }): Promise<SpeciesChart[]> {
+    if (isEmptyArray(data) || !opts?.stats?.programLabel) return [];
+
+    // Load individual batch pmfms
+    const lengthPmfms = (await this.programRefService.loadProgramPmfms(opts.stats.programLabel, {
+      acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL
+    })).filter(PmfmUtils.isLength);
+
+    // Get data
+    const taxonGroupId = (data || []).map(hl => hl.taxonGroupId).find(isNotNil);
+
+    // Get sub categories
+    const subCategories = opts.getSubCategory && this.computeSubCategories(data, opts);
+
+    // Create landing/discard colors for each sub categories
+    const landingColors = ChartJsUtilsColor.getDerivativeColor(this.landingColor, Math.max(2, subCategories?.length || 0));
+    const discardColors = ChartJsUtilsColor.getDerivativeColor(this.discardColor, Math.max(2, subCategories?.length || 0));
+
+    // Search the right length pmfms
+    const lengthPmfm = (lengthPmfms || []).find(p => isNil(taxonGroupId) || isEmptyArray(p.taxonGroupIds) || p.taxonGroupIds.includes(taxonGroupId));
+
+    let threshold = undefined; // TODO load threshold by species
+    const charts: SpeciesChart[] = [];
+
+    // Total catch
+    {
+      const catchChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
+        subtitle: this.translate.instant('TRIP.REPORT.CHART.TOTAL_CATCH'),
+        threshold,
+        catchCategories: ['LAN', 'DIS'],
+        catchCategoryColors: [landingColors, discardColors],
+        subCategories,
+        getSubCategory: opts?.getSubCategory
+      });
+      if (catchChart) charts.push(catchChart);
+    }
+
+    // Landing
+    {
+      const landingChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
+        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
+        filter: (sl: RdbSpeciesLength) => sl.catchCategory === 'LAN',
+        catchCategoryColors: [landingColors],
+        subCategories,
+        getSubCategory: opts?.getSubCategory
+      });
+      if (landingChart) charts.push(landingChart);
+    }
+
+    // Discard
+    {
+      const discardFilter: (SpeciesLength) => boolean = (sl: RdbSpeciesLength) => sl.catchCategory === 'DIS';
+      const discardChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
+        subtitle: this.translate.instant('TRIP.REPORT.DISCARD'),
+        filter: discardFilter,
+        catchCategoryColors: [discardColors],
+        subCategories,
+        getSubCategory: opts?.getSubCategory
+      });
+      if (discardChart) charts.push(discardChart);
+    }
+
+    return charts;
+  }
+
+  protected computeSpeciesLengthBarChart(
+    species: string,
+    data: HL[],
+    lengthPmfm: IDenormalizedPmfm,
+    opts?: {
+      subtitle: string;
+      filter?: FilterFn<HL>;
+      catchCategories?: CatchCategoryType[],
+      catchCategoryColors?: Color[][],
+      subCategories?: string[],
+      getSubCategory?: Function<any, string>;
+      getNumberAtLength?: Function<HL, number>;
+      threshold?: number;
+    }): SpeciesChart {
+    const pmfmName = lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, {withUnit: true, html: false})
+      || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
+    const unitConversion =  lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
+
+    // Filter data
+    if (opts?.filter) data = data.filter(opts.filter);
+
+    // if no data: skip
+    if (isEmptyArray(data)) return null;
+
+    const translations = this.translate.instant([
+      'TRIP.REPORT.CHART.SPECIES_LENGTH',
+      'TRIP.REPORT.CHART.TOTAL_CATCH',
+      'TRIP.REPORT.DISCARD',
+      'TRIP.REPORT.LANDING',
+    ]);
+    const chart: SpeciesChart = {
+      type: 'bar',
+      options: {
+        title: {
+          ...this.defaultTitleOptions,
+          text: [species,
+            [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')
+          ]
+        },
+        scales: {
+          xAxes: [
+            {
+              stacked: true,
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: pmfmName
+              }
+            }
+          ],
+          yAxes: [
+            {
+              stacked: true,
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT')
+              }
+            }
+          ]
+        },
+        legend: {
+          ...this.legendDefaultOption
+        },
+        plugins: (opts?.threshold > 0) && {
+          tresholdLine: { // NOTE : custom plugin
+            color: Color.get('red').rgba(this.defaultOpacity),
+            style: 'dashed',
+            width: opts.threshold,
+            value: opts.threshold,
+            orientation: 'x'
+          },
+          labels: {
+            render: function (args) {
+              const lines = args.text.split('\n');
+              const fontSize = args.index === 0 ? 18 : 14;
+              const lineHeight = args.index === 0 ? 1.2 : 1.5;
+
+              return lines
+                .map(
+                  (line) =>
+                    `<div style="font-size: ${fontSize}px; line-height: ${lineHeight}">${line}</div>`
+                )
+                .join('');
+            }
+          }
+        }
+      }
+    };
+
+    // FInd min/max (and check if can used elevatedNumberAtLength)
+    let min = 99999;
+    let max = 0;
+    let hasElevateNumberAtLength = true;
+    data.forEach(sl => {
+      const length = sl.lengthClass * unitConversion;
+      min = Math.min(min, length);
+      max = Math.max(max, length);
+      if (isNil(sl.elevateNumberAtLength) && hasElevateNumberAtLength) hasElevateNumberAtLength = false;
+    }) ;
+
+    // Add labels
+    const labelCount = Math.max(1, Math.abs(max - min) + 1)
+    const xAxisLabels = new Array(labelCount)
+      .fill(Math.min(min, max))
+      .map((v, index) => (v + index).toString());
+    ChartJsUtils.pushLabels(chart, xAxisLabels);
+
+    if (!hasElevateNumberAtLength) {
+      console.warn(`[${this.constructor.name}] Cannot used elevateNumberAtLength, for species '${species}'`);
+    }
+    const getNumberAtLength = opts?.getNumberAtLength
+      || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
+      || ((hl) => hl.numberAtLength);
+
+    const createCatchCategorySeries = (data: HL[], seriesIndex = 0, subCategory?: string) => {
+      const dataByCatchCategory = collectByProperty(data, 'catchCategory');
+
+      // For each LAN, DIS
+      const catchCategories = opts?.catchCategories || Object.keys(dataByCatchCategory);
+      catchCategories
+        .forEach((catchCategory, index) => {
+          const data = new Array(xAxisLabels.length).fill(0);
+          (dataByCatchCategory[catchCategory] || []).forEach(hl => {
+            const labelIndex = hl.lengthClass * unitConversion - min;
+            data[labelIndex] += (getNumberAtLength(hl) || 0);
+          });
+
+          const color = opts.catchCategoryColors[index][seriesIndex];
+          const label = (!opts.filter || isNil(subCategory))
+            ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], subCategory].filter(isNotNil).join(' - ')
+            : subCategory;
+          ChartJsUtils.pushDataSetOnChart(chart, {
+            label,
+            backgroundColor: color.rgba(this.defaultOpacity),
+            stack: `${seriesIndex}`,
+            data
+          });
+        });
+    }
+
+    if (opts.getSubCategory) {
+      const dataBySubCategory = collectByFunction<HL>(data, opts.getSubCategory);
+      const subCategories = removeDuplicatesFromArray([...opts?.subCategories, ...Object.keys(dataBySubCategory)]);
+      if (isNotEmptyArray(subCategories)) {
+        console.warn(`[${this.constructor.name}] No sub categories found for species '${species}'`);
+        subCategories.forEach((subCategory, index) => {
+          createCatchCategorySeries(dataBySubCategory[subCategory], index, subCategory)
+        })
+      }
+      else {
+          createCatchCategorySeries(data);
+      }
+    }
+    else {
+      createCatchCategorySeries(data);
+    }
+
+    return chart;
+  }
+
+  protected computeSubCategories<T extends {meta?: {[key: string]: any}}>(data: T[], opts: {
+    subCategories?: string[];
+    firstSubCategory?: string;
+    getSubCategory: Function<any, string>;
+  }): string[] {
+
+    if (isNotEmptyArray(opts?.subCategories)) return opts.subCategories; // Skip if already computed
+
+    // Compute sub category, in meta
+    opts.subCategories = [];
+    let getSubCategory = opts.getSubCategory;
+    data.forEach(sl => {
+      sl.meta = sl.meta || {};
+      sl.meta.subCategory = sl.meta.subCategory || getSubCategory(sl);
+      // Append to list
+      if (sl.meta.subCategory && !opts.subCategories.includes(sl.meta.subCategory)) opts.subCategories.push(sl.meta.subCategory);
+    });
+
+    // Make to keep sub category first
+    if (opts.firstSubCategory) {
+      return removeDuplicatesFromArray([opts.firstSubCategory, ...opts.subCategories].filter(isNotNilOrBlank));
+    }
+
+    return opts.subCategories;
+  }
+
   onMapReady() {
     this.mapReadySubject.next(true);
-  }
-
-  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
-    return {
-      ...super.computeSlidesOptions(),
-      printHref: isNotNil(this.id) ? `/trips/${this.id}/report` : undefined
-    };
-  }
-
-  onSlideChanged(event: RevealSlideChangedEvent) {
-    // DEBUG
-    //console.debug(`[${this.constructor.name}.onSlideChanged]`, event);
   }
 
   async updateView() {
@@ -77,7 +499,6 @@ export class TripReport extends AppRootDataReport<Trip> {
     await waitFor(() => !!this.reveal);
     await this.reveal.initialize();
 
-
     if (this.reveal.printing) {
       await sleep(500);
       await this.showMap();
@@ -86,25 +507,32 @@ export class TripReport extends AppRootDataReport<Trip> {
     }
   }
 
-  protected computeDefaultBackHref(data: Trip): string {
-    console.debug(`[${this.constructor.name}.computeDefaultBackHref]`, arguments);
-    const baseTripPath = `/trips/${data.id}`;
-    return `${baseTripPath}?tab=1`;
+  protected computeDefaultBackHref(data: R, stats: S): string {
+    if (stats.trips?.length === 1) {
+      const baseTripPath = `/trips/${stats.trips[0].id}`;
+      return `${baseTripPath}?tab=1`;
+    }
   }
 
-  protected computePrintHref(data: Trip): string {
-    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
-    const baseTripPath = `/trips/${data.id}`;
-    return `${baseTripPath}/report`;
+  protected computePrintHref(data: R, stats: S): string {
+    if (stats.trips?.length === 1) {
+      const baseTripPath = `/trips/${stats.trips[0].id}`;
+      return `${baseTripPath}/report`;
+    }
+
+    // TODO serialize into queryParams, and redirect to extraction
   }
 
-  protected async computeTitle(data: Trip): Promise<string> {
-    console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
-    const title = await this.translate.get('TRIP.REPORT.TITLE', {
-      departureDate: this.dateFormat.transform(data.departureDateTime, { time: false }),
-      vessel: data.vesselSnapshot.exteriorMarking
-    }).toPromise();
-    return title;
+  protected async computeTitle(data: R, stats: S): Promise<string> {
+
+    if (stats.vesselSnapshots?.length === 1) {
+      return this.translate.instant('TRIP.REPORT.TITLE', {
+        departureDate: this.dateFormat.transform(stats.startDate, {time: false}),
+        vessel: stats.vesselSnapshots[0].exteriorMarking
+      });
+    }
+
+    return this.translate.instant('TRIP.REPORT.TITLE_SLIDE');
   }
 
   async showMap() {
@@ -112,323 +540,33 @@ export class TripReport extends AppRootDataReport<Trip> {
     await firstTruePromise(this.mapReadySubject);
   }
 
-  /* -- DEBUG only -- */
-
-  protected computeDummyCharts(): { [key: string]: ChartConfiguration } {
-    const defaultTitleOptions: ChartTitleOptions = {
-      fontColor: Color.get('secondary').rgba(1),
-      fontSize: 42,
-      display: true
-    };
-    const scaleLableDefaultOption: ScaleTitleOptions = {
-      display: true,
-      fontStyle: 'bold',
-      fontSize: 18
-    };
-    const legendDefaultOption: ChartLegendOptions = {
-      position: 'right'
-    };
-    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions } = {};
-
-    const defaultOpacity = 0.8;
-    const colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('tertiary'), 2);
-    const colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('danger'), 2);
-
-    charts['01'] = {
-      type: 'bar',
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Capture totales -']
-        },
-        scales: {
-          xAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Nb individus'
-              }
-            }
-          ]
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        plugins: {
-          tresholdLine: { // NOTE : custom plugin
-            color: Color.get('red').rgba(defaultOpacity),
-            style: 'dashed',
-            width: 3,
-            value: 3,
-            orientation: 'x'
-          }
-        }
-      }
-    };
-    const chart01_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
-    ChartJsUtils.pushLabels(charts['01'], chart01_label);
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Débarquement - Babord',
-      backgroundColor: colorLanding[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 2),
-      stack: '0'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Rejet - Babord',
-      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 1 / 2),
-      stack: '0'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Débarquement - Tribord',
-      backgroundColor: colorLanding[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 2),
-      stack: '1'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Rejet - Tribord',
-      backgroundColor: colorDiscard[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 1 / 2),
-      stack: '1'
-    });
-
-    charts['02'] = {
-      type: 'bar',
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Débarquement -']
-        },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Nb individus'
-              }
-            }
-          ]
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        plugins: {
-          tresholdLine: { // NOTE : Custom plugin
-            color: Color.get('red').rgba(defaultOpacity),
-            style: 'dashed',
-            width: 3,
-            value: 4
-          }
-        }
-      }
-    };
-    const chart02_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
-    ChartJsUtils.pushLabels(charts['02'], chart02_label);
-    ChartJsUtils.pushDataSetOnChart(charts['02'], {
-      label: 'Selectif - Tribord',
-      backgroundColor: colorLanding[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 20, 4, 1.2)
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['02'], {
-      label: 'Selectif - Babord',
-      backgroundColor: colorLanding[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 60, 20, 4, 2)
-    });
-
-    charts['03'] = {
-      type: 'bar',
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Rejet -']
-        },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Nb individus'
-              }
-            }
-          ]
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        plugins: {
-          tresholdLine: { // NOTE : Custom plugin
-            color: Color.get('red').rgba(defaultOpacity),
-            style: 'dashed',
-            width: 3,
-            value: 4
-          }
-        }
-      }
-    };
-    const chart03_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
-    ChartJsUtils.pushLabels(charts['03'], chart03_label);
-    ChartJsUtils.pushDataSetOnChart(charts['03'], {
-      label: 'Selectif - Tribord',
-      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 30, 4, 1.2)
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['03'], {
-      label: 'Selectif - Babord',
-      backgroundColor: colorDiscard[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 30, 4, 1.2)
-    });
-
-    charts['04'] = {
-      type: 'bubble',
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Comparaison des débarquements et rejets', '(sous trait)']
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut sélectif (kg)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut standard (kg)'
-              }
-            }
-          ]
-        },
-        plugins: {
-          medianLine: {
-            color: Color.get('red').rgba(defaultOpacity),
-            orientation: 'b',
-            style: 'solid',
-            width: 3
-          }
-        }
-      }
-    };
-    ChartJsUtils.pushDataSetOnChart(charts['04'], {
-      label: 'Langoustine G',
-      backgroundColor: colorLanding[0].rgba(defaultOpacity),
-      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['04'], {
-      label: 'Langoustine D',
-      backgroundColor: colorLanding[1].rgba(defaultOpacity),
-      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['04'], {
-      label: 'Langoustine R',
-      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
-      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
-    });
-
-    // Box plot
-    charts['04_testboxplot'] = <ChartConfiguration>{
-      type: 'boxplot',
-      colors: [
-        // Color should be specified, in order to works well
-        colorDiscard[0].rgba(defaultOpacity),
-        colorDiscard[1].rgba(defaultOpacity),
-        colorLanding[0].rgba(defaultOpacity),
-        colorLanding[1].rgba(defaultOpacity),
-      ],
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Comparaison des débarquements et rejets', '(sous trait)']
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut sélectif (kg)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut standard (kg)'
-              }
-            }
-          ]
-        }
-      },
-      data: {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-        datasets: [
-          {
-            label: 'Dataset 1',
-            backgroundColor: 'rgba(255,0,0,0.5)',
-            borderColor: 'red',
-            borderWidth: 1,
-            //outlierColor: "#999999",
-            //padding: 10,
-            //itemRadius: 0,
-            data: [
-              [1000, 2000, 3000,1000, 2000, 3000, 5000]
-            ]
-          },
-          {
-            label: 'Dataset 2',
-            backgroundColor: 'rgba(0,0,255,0.5)',
-            borderColor: 'blue',
-            borderWidth: 1,
-            //outlierColor:
-            //"#999999",
-            //padding:
-            //10,
-            //itemRadius: 0,
-            data: [
-              [1000, 2000, 3000,1000, 2000, 3000, 5000]
-            ]
-          }
-        ]
-      }
-    };
-
-    return charts;
+  protected collectDistinctStringPropertyValues<T = any, K extends keyof T = any>(data: T[], propertyName: K): string[] {
+    return arrayDistinct(
+      data.map(v => getProperty(v, propertyName)).filter(v => typeof v === 'string') as unknown as string[]);
   }
 
+
+  protected collectNumericPropertyValues<T = any, K extends keyof T = any>(data: T[], propertyName: K): number[] {
+    return data.map(v => +getProperty(v, propertyName))
+        .filter(isNotNilOrNaN) as number[];
+  }
+
+  protected computeNumericStats<T = any, K extends keyof T = any>(data: T[], propertyName: K): BaseNumericStats {
+    const values = this.collectNumericPropertyValues(data, propertyName);
+    if (isEmptyArray(values)) return undefined; // SKip if cannot compute min/max/avg
+    return <BaseNumericStats>{
+      min: Math.min(...values),
+      max: Math.max(...values),
+      avg: values.reduce((a,b) => a+b, 0) / values.length
+    }
+  }
+
+  protected collectDistinctQualitativeValue<T = any, K extends keyof T = any>(data: T[], propertyName: K): string[] {
+    return this.collectDistinctStringPropertyValues(data, propertyName)
+      .map(value => value.indexOf(' - ') !== -1 ? value.split(' - ')[1] : value as unknown as string);
+  }
+
+  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[];}) {
+    return isNotEmptyArray(species?.charts);
+  }
 }

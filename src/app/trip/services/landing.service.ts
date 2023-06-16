@@ -36,7 +36,7 @@ import { filter, map } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { Sample } from './model/sample.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -50,7 +50,7 @@ import { ObservedLocation } from '@app/trip/services/model/observed-location.mod
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 
@@ -106,7 +106,7 @@ export const LandingFragments = {
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   landing: gql`fragment LandingFragment on LandingVO {
     id
@@ -474,8 +474,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     if (!entities) return entities;
 
     const localEntities = entities.filter(entity => entity
-      && (entity.id < 0 || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC'))
+      && (
+        (entity.id < 0)
+        || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC')
+        || (opts?.observedLocationId && opts.observedLocationId < 0)
+      )
     );
+
     if (isNotEmptyArray(localEntities)) {
       return this.saveAllLocally(localEntities, opts);
     }
@@ -538,7 +543,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // If parent is a local entity: force to save locally
     // If is a local entity: force a local save
-    const offline = entity.observedLocationId < 0 || DataRootEntityUtils.isLocal(entity);
+    const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
     if (offline) {
       return await this.saveLocally(entity, opts);
     }
@@ -730,7 +735,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     interval?: number;
     fetchPolicy: FetchPolicy;
   }): Observable<Landing> {
-    if (!id && id !== 0) throw new Error('Missing argument \'id\'');
+    if (isNil(id)) throw new Error('Missing argument \'id\'');
+
+    // Should not need to watch local entity
+    if (EntityUtils.isLocalId(id)) {
+      return EMPTY;
+    }
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -1083,7 +1093,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         const source = sources.find(source => target.equals(source));
         EntityUtils.copyIdAndUpdateDate(source, target);
-        DataRootEntityUtils.copyControlAndValidationDate(source, target);
+        RootDataEntityUtils.copyControlAndValidationDate(source, target);
 
         // Copy parent Id (need for link to parent)
         target.parentId = source?.parentId;

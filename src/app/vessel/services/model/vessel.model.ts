@@ -1,5 +1,6 @@
 import { Moment } from 'moment';
 import {
+  DateUtils,
   Department,
   Entity,
   EntityAsObjectOptions,
@@ -12,10 +13,10 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {
@@ -89,6 +90,9 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   lengthOverAll: number;
   grossTonnageGt: number;
   grossTonnageGrt: number;
+  constructionYear: number;
+  ircs: string;
+  hullMaterial: ReferentialRef;
   basePortLocation: ReferentialRef;
   creationDate: Moment;
   recorderDepartment: Department;
@@ -101,6 +105,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   constructor() {
     super(VesselFeatures.TYPENAME);
+    this.hullMaterial = null;
     this.basePortLocation = null;
     this.recorderDepartment = null;
     this.recorderPerson = null;
@@ -110,6 +115,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   clone(): VesselFeatures {
     const target = new VesselFeatures();
     this.copy(target);
+    target.hullMaterial = this.hullMaterial && this.hullMaterial.clone() || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
     target.vesselId = this.vesselId || undefined;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
@@ -126,9 +132,10 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target: any = super.asObject(options);
 
     target.vesselId = this.vesselId;
+    target.hullMaterial = this.hullMaterial && this.hullMaterial.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
+    target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
+    target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
@@ -138,21 +145,25 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 
   fromObject(source: any) {
     super.fromObject(source);
+    this.vesselId  = source.vesselId;
     this.exteriorMarking = source.exteriorMarking;
     this.name = source.name;
     this.comments = source.comments || undefined;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.administrativePower = source.administrativePower || undefined;
-    this.lengthOverAll = source.lengthOverAll || undefined;
-    this.grossTonnageGt = source.grossTonnageGt || undefined;
-    this.grossTonnageGrt = source.grossTonnageGrt || undefined;
-    this.creationDate = fromDateISOString(source.creationDate);
-    this.vesselId  = source.vesselId;
-    this.qualityFlagId = source.qualityFlagId;
+    this.administrativePower = source.administrativePower;
+    this.lengthOverAll = source.lengthOverAll;
+    this.grossTonnageGt = source.grossTonnageGt;
+    this.grossTonnageGrt = source.grossTonnageGrt;
+    this.constructionYear = source.constructionYear;
+    this.ircs = source.ircs;
+    this.hullMaterial = source.hullMaterial && ReferentialRef.fromObject(source.hullMaterial);
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
+
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
+    this.creationDate = fromDateISOString(source.creationDate);
+    this.qualityFlagId = source.qualityFlagId;
   }
 
   get empty(): boolean {
@@ -193,8 +204,8 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
     const target: any = super.asObject(options);
 
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
+    target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
+    target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
 
     return target;
   }

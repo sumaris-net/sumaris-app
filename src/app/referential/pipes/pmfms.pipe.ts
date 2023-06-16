@@ -51,17 +51,22 @@ export class PmfmNamePipe implements PipeTransform {
       // I18n translation WITH context, if any
       if (opts.i18nContext) {
         const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
-        if (contextualTranslation !== i18nKey) return contextualTranslation;
+        if (contextualTranslation !== i18nKey) {
+          return PmfmUtils.sanitizeName(contextualTranslation, pmfm, opts);
+        }
       }
 
       // I18n translation without context
       const translation = this.translate.instant(i18nKey);
-      if (translation !== i18nKey) return translation;
+      if (translation !== i18nKey) {
+        return PmfmUtils.sanitizeName(translation, pmfm, opts);
+      }
     }
 
     // Default name, computed from the PMFM object
     return PmfmUtils.getPmfmName(pmfm, opts);
   }
+
 }
 
 interface PmfmValueOptions {
@@ -85,7 +90,12 @@ export class PmfmValuePipe implements PipeTransform {
   ) {
   }
 
-  transform(value: any, opts: PmfmValueOptions): any {
+  transform(value: any, opts: PmfmValueOptions & {separator?: string}): any {
+    // Multiple values
+    if (Array.isArray(value)) {
+      return value.map(v => this.transform(v, opts)).join(opts?.separator || ', ');
+    }
+
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':

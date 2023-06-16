@@ -1,3 +1,18 @@
+<app-debug *ngIf="debug">
+  <ion-row>
+    <ion-col>
+      loading: {{loading}}<br/>
+      enabled: {{enabled}}<br/>
+      dirty: {{dirty}}<br/>
+    </ion-col>
+    <ion-col>
+      filter: <pre>{{filter|json}}</pre><br/>
+    </ion-col>
+  </ion-row>
+
+  <ng-content select="[appDebug]"></ng-content>
+</app-debug>
+
 <mat-toolbar *ngIf="showToolbar">
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -48,7 +63,7 @@
           *ngIf="canDownload"
           (click)="exportToCsv($event)">
     <mat-icon>download</mat-icon>
-    <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+    <ion-label>{{'COMMON.BTN_DOWNLOAD'|translate|uppercase}}</ion-label>
   </button>
 
   <!-- upload button -->
@@ -56,7 +71,7 @@
           *ngIf="canUpload"
           (click)="importFromCsv($event)">
     <mat-icon>upload</mat-icon>
-    <ion-label translate>COMMON.BTN_IMPORT</ion-label>
+    <ion-label>{{'COMMON.BTN_IMPORT'|translate|uppercase}}</ion-label>
   </button>
 
 
@@ -91,6 +106,7 @@
      [class.has-paginator]="showPaginator">
 
   <table *ngIf="columnDefinitions|isNotEmptyArray"
+         #table
     mat-table
     matSort
     matSortDisableClear

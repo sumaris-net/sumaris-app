@@ -1,6 +1,6 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
-import {EntityClass, EntityUtils, isNotEmptyArray, ReferentialRef} from '@sumaris-net/ngx-components';
+import { EntityClass, EntityUtils, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -71,13 +71,29 @@ export class BatchGroupUtils {
       && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
   }
 
-  static computeChildrenPmfmsByQvPmfm(qvId: number, pmfms: IPmfm[]) {
-    return (pmfms || [])
+  /**
+   * Map PMFM, for batch group's children.
+   * Depending of the qvId, some pmfms can be hidden (e.g. DRESSING and PRESERVATION are hidden, if qvId = DISCARD)
+   *
+   * @param pmfms
+   * @param opts
+   */
+  static mapChildrenPmfms(pmfms: IPmfm[], opts: {
+    qvPmfm?: IPmfm;
+    qvId?: number,
+    isDiscard?: boolean
+  }) {
+    const isDiscard = opts.isDiscard
+      || (opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
+
+    const childrenPmfms = (pmfms || [])
+      // Remove qvPmfm (will be add first)
+      .filter(pmfm => pmfm.id !== opts.qvPmfm?.id)
       // Allow DISCARD_REASON only on DISCARD
-      .filter(pmfm => pmfm.id !== PmfmIds.DISCARD_REASON || qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
+      .filter(pmfm => pmfm.id !== PmfmIds.DISCARD_REASON || isDiscard)
       .map(pmfm => {
         // If DISCARD
-        if (qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD) {
+        if (isDiscard) {
           // Hide pmfm DRESSING and PRESERVATION, and force default values
           if (PmfmUtils.isDressing(pmfm)) {
             pmfm = pmfm.clone();
@@ -92,7 +108,7 @@ export class BatchGroupUtils {
           else if (pmfm.id === PmfmIds.TRAWL_SIZE_CAT) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
-            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'SANS' });
+            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'NA' });
           }
           // Hide computed weight
           else if (pmfm.isComputed && PmfmUtils.isWeight(pmfm)) {
@@ -101,9 +117,19 @@ export class BatchGroupUtils {
           }
         }
         return pmfm;
-      })
-  }
+      });
+    if (opts.qvPmfm && isNotNil(opts?.qvId)) {
+      const qvPmfm = opts.qvPmfm.clone();
+      qvPmfm.hidden = true;
+      qvPmfm.required = true;
+      qvPmfm.defaultValue = opts.qvPmfm.qualitativeValues.find(qv => qv.id === opts.qvId)
+      return [qvPmfm, ...childrenPmfms];
+    }
+    else {
+      return childrenPmfms;
+    }
 
+  }
 
   /**
    * Find the parent batch, of a subBatches, by the parent group

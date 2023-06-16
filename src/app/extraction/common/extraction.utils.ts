@@ -1,7 +1,8 @@
 /* -- Extraction -- */
 
-import { arraySize, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { arraySize, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { Moment } from 'moment';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -65,20 +66,32 @@ export class ExtractionUtils {
       queryParams.sheet = filter.sheetName;
     }
     if (isNotEmptyArray(filter.criteria)) {
-      queryParams.q = filter.criteria.reduce((res, criterion) => {
-        if (isNilOrBlank(criterion.name)) return res; // Skip if no value or no name
-        let value = criterion.value || '';
-        let operator = criterion.operator || '=';
-        let sheetNamePrefix = criterion.sheetName ? `${criterion.sheetName}:` : '';
-        if (isNotNilOrBlank(criterion.endValue)) {
-          value += `:${criterion.endValue}`;
-        } else if (isNotEmptyArray(criterion.values)) {
-          value = criterion.values.join(',');
-        }
-        return res.concat(`${sheetNamePrefix}${criterion.name}${operator}${value}`);
-      }, []).join(";");
+      queryParams.q = this.asCriteriaQueryString(filter.criteria);
+    }
+
+    const metaProperties = filter?.meta && Object.entries(filter.meta);
+    if (isNotEmptyArray(metaProperties)) {
+      queryParams.meta = metaProperties
+        .filter(([key, value]) => isNotNil(value))
+        .map(([key, value]) => `${key}:${value}`).join(';');
     }
     return queryParams;
+  }
+
+  static asCriteriaQueryString(criteria: ExtractionFilterCriterion[]): string {
+    if (isEmptyArray(criteria)) return undefined;
+    return criteria.reduce((res, criterion) => {
+      if (isNilOrBlank(criterion.name)) return res; // Skip if no value or no name
+      let value = criterion.value || '';
+      let operator = criterion.operator || '=';
+      let sheetNamePrefix = criterion.sheetName ? `${criterion.sheetName}:` : '';
+      if (isNotNilOrBlank(criterion.endValue)) {
+        value += `:${criterion.endValue}`;
+      } else if (isNotEmptyArray(criterion.values)) {
+        value = criterion.values.join(',');
+      }
+      return res.concat(`${sheetNamePrefix}${criterion.name}${operator}${value}`);
+    }, []).join(";");
   }
 
   static parseCriteriaFromString(q: string, defaultSheetName?: string): ExtractionFilterCriterion[] {
@@ -110,6 +123,22 @@ export class ExtractionUtils {
       })
       .filter(isNotNilOrBlank)
       .map(ExtractionFilterCriterion.fromObject);
+  }
+
+  static parseMetaString(meta: string): any {
+    if (isNilOrBlank(meta)) return undefined;
+    return meta.split(';')
+      .reduce((res, prop) => {
+        const parts = prop.split(':');
+        const key = parts[0];
+        let value: any = parts[1];
+        if (value === 'true') value = true;
+        else if (value === 'false') value = false;
+        return {
+          ...res,
+          [key]: value
+        };
+      }, {});
   }
 
   static filterWithValues(columns: ExtractionColumn[], opts?: {allowNullValuesOnNumeric?: boolean}) {

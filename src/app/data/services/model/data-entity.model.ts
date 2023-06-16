@@ -1,7 +1,8 @@
 import { Moment } from 'moment';
-import { DateUtils, Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, Department, Entity, removeEnd, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
 import { IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Batch } from '@app/trip/batch/common/batch.model';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -117,11 +118,13 @@ export abstract class DataEntityUtils {
    * @param entity
    * @param opts
    */
-  static markAsNotControlled(entity: DataEntity<any, any>|undefined) {
+  static markAsNotControlled(entity: DataEntity<any, any>|undefined, opts?: {keepQualityFlag?: boolean;}) {
     // Mark as controlled
     entity.controlDate = null;
     // Clean quality flag
-    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    if (!opts || opts.keepQualityFlag !== true) {
+      entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    }
     // Clean qualification data
     entity.qualificationComments = null;
     entity.qualificationDate = null;
@@ -159,5 +162,30 @@ export abstract class DataEntityUtils {
 
     // Clean quality flag
     entity.qualityFlagId = QualityFlagIds.BAD;
+  }
+
+  /**
+   * Check if an entity has been mark as invalid
+   * @param entity
+   */
+  static isInvalid(entity: Batch) {
+    return isNil(entity.controlDate) && isNil(entity.qualificationDate) && entity.qualityFlagId === QualityFlagIds.BAD;
+  }
+
+  /**
+   * Reset controlDate, and reset quality fLag and comment
+   * @param entity
+   * @param opts
+   */
+  static hasNoQualityFlag(entity: DataEntity<any, any>|undefined): boolean {
+    return isNil(entity.qualityFlagId) || entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  /**
+   * Get entity name from the __typename of an entity
+   * @param entity
+   */
+  static getEntityName(entity: DataEntity<any, any>|undefined): string|undefined {
+    return entity && removeEnd(entity.__typename || 'UnknownVO', 'VO');
   }
 }

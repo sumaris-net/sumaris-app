@@ -16,6 +16,7 @@ export interface ISelectPhysicalGearModalOptions {
   programLabel?: string;
   distinctBy?: string[];
   withOffline?: boolean;
+  showGearColumn?: boolean;
 }
 
 @Component({
@@ -39,6 +40,7 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
   @Input() programLabel: string;
   @Input() distinctBy: string[];
   @Input() withOffline: boolean;
+  @Input() showGearColumn: boolean;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -65,7 +67,7 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
       label: this.programLabel
     });
     this.table.filter = this.filter;
-    this.table.dataSource.serviceOptions = <PhysicalGearServiceWatchOptions>{
+    this.table.dataSource.watchAllOptions = <PhysicalGearServiceWatchOptions>{
       distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
       withOffline: this.withOffline
     };
@@ -96,20 +98,14 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
     }
   }
 
-  async close(event?: any): Promise<boolean> {
-    try {
-      if (this.hasSelection()) {
-        const gears = (this.table.selection.selected || [])
-          .map(row => row.currentData)
-          .map(PhysicalGear.fromObject)
-          .filter(isNotNil);
-        this.modalCtrl.dismiss(gears);
-      }
-      return true;
-    } catch (err) {
-      // nothing to do
-      return false;
-    }
+  async close(event?: any){
+    if (!this.hasSelection()) return; // Skip if nothing selected
+
+    const gears = (this.table.selection.selected || [])
+      .map(row => row.currentData)
+      .map(PhysicalGear.fromObject)
+      .filter(isNotNil);
+    return this.modalCtrl.dismiss(gears);
   }
 
   async cancel() {

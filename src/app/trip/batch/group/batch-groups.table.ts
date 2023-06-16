@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { UntypedFormGroup, Validators } from '@angular/forms';
+import {UntypedFormGroup, Validators} from '@angular/forms';
 import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -11,13 +11,12 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -26,12 +25,12 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { Batch } from '../common/batch.model';
+import {Batch} from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { map, takeUntil, tap } from 'rxjs/operators';
+import {Observable, Subject, Subscription} from 'rxjs';
+import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
@@ -47,6 +46,8 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import { RxState } from '@rx-angular/state';
+import { environment } from '@environments/environment';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -79,10 +80,12 @@ export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): Bat
 }
 
 export const BatchGroupColumnFlags = Object.freeze({
-  IS_WEIGHT: 0x0001,
-  IS_INDIVIDUAL_COUNT: 0x0010,
-  IS_SAMPLING: 0x0100,
-  IS_SAMPLING_RATIO: 0x1000,
+  IS_WEIGHT: 0x000001,
+  IS_INDIVIDUAL_COUNT: 0x000010,
+  IS_SAMPLING: 0x000100,
+  IS_SAMPLING_RATIO: 0x001000,
+  IS_ALWAYS_COMPUTED: 0x010000,
+  IS_TOTAL: 0x100000
 });
 
 declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
@@ -114,11 +117,16 @@ declare interface GroupColumnDefinition {
   qvIndex: number;
   colSpan?: number;
 }
+interface BatchGroupsTableState {
+  showSamplingBatchColumns: boolean;
+  individualCountColumns: boolean;
+}
 
 @Component({
   selector: 'app-batch-groups-table',
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupsTable extends AbstractBatchesTable<
@@ -141,7 +149,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 3,
       isWeight: true,
-      flags: BatchGroupColumnFlags.IS_WEIGHT,
+      flags: BatchGroupColumnFlags.IS_WEIGHT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total mat-column-weight',
       computed: (batch) => batch && batch.weight?.computed || false
     },
@@ -154,7 +162,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
-      flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
+      flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total'
     },
 
@@ -167,7 +175,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       unitLabel: <SamplingRatioFormat>'%',
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
-      computed: (batch, parent, samplingRatioFormat) => batch && BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat) || false
+      computed: (batch, parent, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch?.children?.[0]?.samplingRatioText, samplingRatioFormat) || false
     },
     {
       type: 'double',
@@ -180,7 +188,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       isWeight: true,
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
-      computed: (batch) => batch?.children[0]?.weight?.computed || false
+      computed: (batch) => batch?.children?.[0]?.weight?.computed || false
     },
     {
       type: 'double',
@@ -189,12 +197,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
       isIndividualCount: true,
       isSampling: true,
-      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_ALWAYS_COMPUTED,
       computed: true
     }
   ];
 
-  private _showSamplingBatchColumns = true;
   private _showWeightColumns = true;
   private _rowValidatorSubscription: Subscription;
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
@@ -251,26 +258,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
 
-  @Input() set showSamplingBatchColumns(value: boolean) {
-    if (this._showSamplingBatchColumns !== value) {
-      this._showSamplingBatchColumns = value;
-
-      if (this.validatorService) {
-        this.configureValidator(this.validatorService.measurementsOptions);
-      }
-
-      this.setModalOption('showSamplingBatch', value);
-
-      // updateColumns only if pmfms are ready
-      if (!this.loading && this._initialPmfms) {
-        this.computeDynamicColumns(this.qvPmfm, {cache: false /* no cache, to force computed */ });
-        this.updateColumns();
-      }
-    }
+  @Input() set showSamplingBatchColumns(value: boolean){
+    this._state.set('showSamplingBatchColumns', (_) => value);
   }
-
   get showSamplingBatchColumns(): boolean {
-    return this._showSamplingBatchColumns;
+    return this._state.get('showSamplingBatchColumns');
   }
 
   @Input() set showWeightColumns(value: boolean) {
@@ -297,11 +289,17 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.setShowColumn(pmfmId.toString(), show);
   }
 
-  @Input() showIndividualCountColumns: boolean;
   @Input() showError = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
+
+  @Input() set showIndividualCountColumns(value: boolean){
+    this._state.set('individualCountColumns', (_) => value);
+  }
+  get showIndividualCountColumns(): boolean {
+    return this._state.get('individualCountColumns');
+  }
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -309,7 +307,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     injector: Injector,
     validatorService: BatchGroupValidatorService,
     protected context: TripContextService,
-    protected pmfmNamePipe: PmfmNamePipe
+    protected pmfmNamePipe: PmfmNamePipe,
+    protected _state: RxState<BatchGroupsTableState>
   ) {
     super(injector,
       BatchGroup, BatchFilter,
@@ -325,7 +324,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       injector.get(LocalSettingsService).mobile ? null : validatorService,
       {
         // Need to set additional validator here
-        // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
+        // WARN: we cannot use onStartEditingRow here, because it is called AFTER row.validator.patchValue()
         //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
         onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
@@ -340,7 +339,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.saveBeforeFilter = true;
     this.saveBeforeSort = true;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
-    // this.showCommentsColumn = false; // Already set in batches-table
+    this.showCommentsColumn = !this.mobile; // Was set to 'false' in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
     // -- For DEV only
@@ -352,6 +351,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
+    this.showSamplingBatchColumns = toBoolean(this.showSamplingBatchColumns, true);
 
     // in DEBUG only: force validator = null
     //if (this.debug && this.mobile) this.setValidatorService(null);
@@ -361,6 +361,22 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Configure sortBy replacement
     this.memoryDataService.addSortByReplacement('taxonGroup', `taxonGroup.${firstArrayValue(this.autocompleteFields.taxonGroup.attributes)}`)
     this.memoryDataService.addSortByReplacement('taxonName', `taxonName.${firstArrayValue(this.autocompleteFields.taxonName.attributes)}`)
+
+    // Listen showSamplingBatchColumns
+    this._state.hold(this._state.select('showSamplingBatchColumns'),  async (value) => {
+      if (this.validatorService) {
+        this.configureValidator(this.validatorService.measurementsOptions);
+      }
+
+      this.setModalOption('showSamplingBatch', value);
+
+      // updateColumns only if pmfms are ready
+      if (this._initialPmfms) {
+        if (this.loading) await this.waitIdle({ timeout: 500 });
+        this.computeDynamicColumns(this.qvPmfm, { cache: false /* no cache, to force computed */ });
+        this.updateColumns();
+      }
+    });
 
   }
 
@@ -382,15 +398,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     };
   }
 
-  // getRowValidator(data?: BatchGroup, opts?: any): UntypedFormGroup {
-  //   return super.getRowValidator(data, {
-  //     qvPmfm: this.qvPmfm,
-  //     ...opts
-  //   });
-  // }
-
   translateControlPath(controlPath: string): string {
-    if (controlPath.startsWith('.measurementValues.')) {
+    if (controlPath.startsWith('measurementValues.')) {
       const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this._speciesPmfms || []).find(p => p.id === pmfmId);
@@ -399,21 +408,24 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     else if (controlPath.includes('.measurementValues.')) {
       const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = (this._childrenPmfms || []).find(p => p.id === pmfmId);
+      const pmfm = [...this._childrenPmfms, this.qvPmfm].find(p => p?.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
     else if (controlPath.startsWith('children.')){
       const parts = controlPath.split('.');
+      let prefix = '';
       if (this.qvPmfm) {
         const qvIndex = parseInt(parts[1]);
-        const qv = this.qvPmfm.qualitativeValues[qvIndex];
-        const subPath = parts.slice(2).join('.');
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === subPath);
-        if (qv && col) return `${qv.name} - ${this.translate.instant(col.label)}`;
+        prefix = this.qvPmfm.qualitativeValues[qvIndex]?.name;
+        controlPath = parts.slice(2).join('.');
       }
-      else {
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
-        if (col) return this.translate.instant(col.label);
+      const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
+      prefix = prefix.length ? `${prefix} > ` : prefix;
+      if (col) return `${prefix} > ${this.translate.instant(col.label)}`;
+
+      // Example: error on the sampling form group
+      if (controlPath === 'children.0') {
+        return prefix + this.translate.instant( 'TRIP.BATCH.EDIT.SAMPLING_BATCH');
       }
     }
     return super.translateControlPath(controlPath);
@@ -423,7 +435,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
   }
-
 
   setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
     this.subBatchesModalOptions = this.subBatchesModalOptions || {};
@@ -465,7 +476,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
             }
 
             // Should have sub batches, when sampling batch exists
-            const hasSubBatches = this._showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(child));
+            const hasSubBatches = this.showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(child));
 
             // Make sure to create a sampling batch, if has sub bacthes
             if (hasSubBatches) {
@@ -488,7 +499,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         }
 
         // Should have sub batches, when sampling batch exists
-        const hasSubBatches = this._showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(batch));
+        const hasSubBatches = this.showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(batch));
 
         // Make sure to create a sampling batch, if has sub bacthes
         if (hasSubBatches) {
@@ -534,25 +545,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
 
     return col.computed(row.currentData, null, this.samplingRatioFormat);
-  }
-
-  isMissingValue(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
-    if (!hasFlag(col.flags, BatchGroupColumnFlags.IS_WEIGHT)
-      || !hasFlag(col.flags, BatchGroupColumnFlags.IS_SAMPLING)) return false;
-    const samplingBatch = (col.qvIndex >= 0
-      // With qv pmfm
-      ? row.currentData.children[col.qvIndex]
-      // With no qv pmfm
-      : row.currentData
-    )?.children[0]; // Get sampling batch
-
-    const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value < 0)
-      && isNotNil(samplingBatch?.individualCount);
-
-    // DEBUG
-    //console.debug('[batch-group-table] missing sample weight', col.path, missing);
-
-    return missing;
   }
 
   /**
@@ -646,7 +638,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     const qvId = this.qvPmfm?.qualitativeValues[qvIndex]?.id || -1;
     const childrenPmfms = qvId !== -1
-      ? BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qvId, this._childrenPmfms)
+      ? BatchGroupUtils.mapChildrenPmfms(this._childrenPmfms, {qvPmfm: this.qvPmfm, qvId})
       : this._speciesPmfms;
     data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, childrenPmfms, {keepSourceObject: true});
 
@@ -680,7 +672,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     batch.label = childLabel;
 
     if (qv) {
-      batch.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
+      batch.measurementValues[this.qvPmfm.id.toString()] = qv;
     }
     // Clean previous weights
     this.weightPmfms.forEach(p => batch.measurementValues[p.id.toString()] = undefined);
@@ -689,8 +681,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (isNotNilOrNaN(batch.weight?.value)) {
       batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
-      batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value;
+      batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value?.toString();
     }
+
+    // Convert measurementValues to model
+    batch.measurementValues = MeasurementValuesUtils.normalizeValuesToModel(batch.measurementValues,
+      this._childrenPmfms,
+      // Keep weight values
+      {keepSourceObject: true});
 
     // If sampling
     if (isNotEmptyArray(batch.children)) {
@@ -724,13 +722,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     else {
       batch.children = [];
     }
+
     return batch;
   }
 
   async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
-    if (event) event.preventDefault();
+    event?.preventDefault();
+    event?.stopPropagation(); // Avoid to send event to clicRow()
 
     // Loading spinner
     this.markAsLoading();
@@ -769,7 +769,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (this.qvPmfm) {
       const qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
       this._speciesPmfms = this._initialPmfms.filter((pmfm, index) => index < qvPmfmIndex);
-      this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
+      this._childrenPmfms = [
+        this.qvPmfm,
+        ...this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm))
+      ];
     }
     else {
       this._speciesPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
@@ -842,7 +845,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
       const childrenColumns = this.computeDynamicColumnsByQv();
       this.dynamicColumns = speciesColumns.concat(childrenColumns);
-      this.showToolbar = !this.mobile;
+      this.showToolbar = !this.mobile || isNotEmptyArray(this.availableTaxonGroups) /* show auto fill button*/;
     }
     else {
       const groupColumns = [];
@@ -878,6 +881,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): BatchGroupColumnDefinition[] {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
+    const qvId = qvGroup?.id || -1;
     let rankOrderOffset = this._speciesPmfms.filter(p => !p.hidden).length;
     if (qvIndex > 0) {
       rankOrderOffset += qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (!this.mobile && this._childrenPmfms.length || 0));
@@ -885,15 +889,17 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
-    const hideSamplingColumns = !this._showSamplingBatchColumns;
+    const hideSamplingColumns = !this.showSamplingBatchColumns;
     const hideSamplingRatioColumns = hideSamplingColumns;
 
     // Add pmfm columns
-    const pmfmColumns = BatchGroupUtils.computeChildrenPmfmsByQvPmfm((qvGroup?.id || -1), this._childrenPmfms)
+    const childrenPmfms = BatchGroupUtils.mapChildrenPmfms(this._childrenPmfms, {qvPmfm: this.qvPmfm, qvId});
+    const pmfmColumns = childrenPmfms
       .map((pmfm, index) => {
         const key: string = qvGroup ? `${qvGroup.label}_${pmfm.id}` : `${pmfm.id}`;
         const rankOrder: number = rankOrderOffset + index;
         const hidden = this.mobile || pmfm.hidden;
+        const path = qvIndex === -1 ? `measurementValues.${pmfm.id}` : `children.${qvIndex}.measurementValues.${pmfm.id}`;
         return <BatchGroupColumnDefinition>{
           type: 'pmfm',
           label: this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix}),
@@ -907,7 +913,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           isSampling: false,
           pmfm,
           unitLabel: pmfm.unitLabel,
-          path: qvIndex >= 0 ? `children.${qvIndex}.measurementValues.${pmfm.id}` : `measurementValues.${pmfm.id}`
+          path
         };
       });
 
@@ -928,10 +934,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
           if (def.key === 'totalIndividualCount') {
-            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(batch, parent)]);
+            computed = composeBatchComputed([computed, (batch, parent) => {
+              return !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup);
+            }]);
           }
-          else if (def.key === 'totalWeight') {
-            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(batch, parent)]);
+          else if (hasFlag(def.flags, BatchGroupColumnFlags.IS_WEIGHT)) {
+            computed = composeBatchComputed([computed, (batch, parent) => {
+              return this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)
+            }]);
           }
         }
         return <BatchGroupColumnDefinition>{
@@ -1041,24 +1051,57 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       .filter(name => !this.excludesColumns.includes(name));
   }
 
-  protected async openSubBatchesModalFromParentModal(parent: BatchGroup): Promise<BatchGroup> {
+  /**
+   * Open the sub batches modal, from a parent batch group.
+   * Return the updated parent, or undefined if o changes (e.g. user cancelled)
+   * @param data
+   * @protected
+   */
+  protected async openSubBatchesModalFromParentModal(data: BatchGroup): Promise<BatchGroup|undefined> {
 
-    // Make sure the row exists
-    this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
-      || (await this.findRowByEntity(parent))
-      // Or add it to table, if new
-      || (await this.addEntityToTable(parent, {confirmCreate: false}));
+    let changes = false;
 
-    const subBatches = await this.openSubBatchesModal(parent, {
+    // Search if row already exists
+    let row = await this.findRowByEntity(data);
+
+    // Row already exists: edit the row
+    if (row) {
+      if (row !== this.editedRow) {
+        const confirmed: boolean = this.confirmEditCreate();
+        if (!confirmed) throw new Error('Cannot confirmed the preview edited row !');
+      }
+
+      // Update row's data
+      row.currentData = data;
+
+      // Select the row (highlight)
+      this.editedRow = row;
+    }
+
+    // Add new row to table
+    else {
+      console.debug('[batch-group-table] Adding batch group, before opening sub batches modal...');
+      row = await this.addEntityToTable(data, {confirmCreate: false});
+      if (!row) throw new Error('Cannot add new row!');
+      changes = true;
+    }
+
+    const subBatches = await this.openSubBatchesModal(data, {
       showParent: false // action triggered from the parent batch modal, so the parent field can be hidden
     });
 
-    if (isNil(subBatches)) return; // User cancelled
+    // User cancelled from the subbatches modal
+    if (!subBatches) {
+      // If row was added, return changes made when adding the row
+      if (changes) return data;
+      // No changes
+      return;
+    }
 
-    const updatedParent = this.updateBatchGroupFromSubBatches(parent, subBatches);
+    // Update the parent
+    data = this.updateBatchGroupFromSubBatches(data, subBatches);
 
-    // Return the updated parent
-    return updatedParent;
+    return data;
   }
 
 
@@ -1069,7 +1112,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
-    // FIXME: opts.showParent=true is not working well !!
+    // FIXME: opts.showParent=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
     const $dismiss = new Subject<any>();
@@ -1120,12 +1163,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const {data, role} = await modal.onDidDismiss();
 
     $dismiss.next(); // disconnect datasource observables
 
     // User cancelled
-    if (isNil(data)) {
+    if (isNil(data) || role === 'cancel') {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
     } else {
       // DEBUG
@@ -1137,12 +1180,18 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return data;
   }
 
-  protected async openDetailModal(dataToOpen?: BatchGroup): Promise<OverlayEventDetail<BatchGroup | undefined>> {
-    const isNew = !dataToOpen && true;
+  protected async openDetailModal(dataToOpen?: BatchGroup, row?: TableElement<BatchGroup>): Promise<OverlayEventDetail<BatchGroup | undefined>> {
+    console.debug('[batch-group-table] Opening detail modal...');
 
+    let originalData: BatchGroup;
+    let isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new BatchGroup();
       await this.onNewEntity(dataToOpen);
+    }
+    else {
+      // Clone data, to keep the original data (allow to cancel - see below)
+      originalData = this.asEntity(dataToOpen).clone();
     }
 
     this.markAsLoading();
@@ -1154,8 +1203,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         pmfms: this._initialPmfms,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
-        data: dataToOpen,
-        isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         availableTaxonGroups: this.availableTaxonGroups,
@@ -1164,11 +1211,40 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
         samplingRatioFormat: this.samplingRatioFormat,
-        mobile: this.mobile,
-        openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
+        openSubBatchesModal: (data) => this.openSubBatchesModalFromParentModal(data),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
+        onSaveAndNew: async (dataToSave) => {
+          // Always try to retrieve the row (fix #403)
+          row = await this.findRowByEntity(dataToSave);
+
+          // Insert or update
+          let savedRow: TableElement<BatchGroup>;
+          if (isNew && !row) {
+            savedRow = await this.addEntityToTable(dataToSave, {editing: false});
+          } else if (row) {
+            savedRow = await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
+          }
+          if (!savedRow) return undefined; // Failed
+
+          // Prepare new entity
+          dataToOpen = new BatchGroup();
+          await this.onNewEntity(dataToOpen);
+
+          isNew = true; // Next row should be new
+          row = null; // Forget the row to update
+          originalData = null; // forget the orignal data
+
+          return dataToOpen;
+        },
+        i18nSuffix: this.i18nColumnSuffix,
+        mobile: this.mobile,
+        usageMode: this.usageMode,
         // Override using given options
-        ...this.modalOptions
+        ...this.modalOptions,
+
+        // Data to open
+        isNew,
+        data: dataToOpen
       },
       cssClass: 'modal-large',
       backdropDismiss: false,
@@ -1179,11 +1255,27 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    // /!\ we use 'onWillDismiss' (and NOT 'onDidDismiss') to make sure row is deleted if cancelled, BEFORE modal is really closed
+    const {data, role} = await modal.onWillDismiss();
 
     if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data, role);
 
     this.markAsLoaded();
+
+    // User cancelled: try to rollback changes
+    if (!data || role === 'cancel') {
+
+      // new data: delete if exists
+      // /!\ it can be added when open the subbatches moda : that why we need to delete a new row !
+      if (isNew) {
+        await this.deleteEntity(null, dataToOpen);
+      }
+      // Revert changes
+      else if (originalData) {
+        row = await this.findRowByEntity(dataToOpen);
+        row.currentData = originalData;
+      }
+    }
 
     return {data: data instanceof BatchGroup ? data : undefined, role};
   }
@@ -1229,8 +1321,18 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.updateColumns();
   }
 
-  protected async findRowByEntity(batchGroup: BatchGroup): Promise<TableElement<BatchGroup>> {
-    return batchGroup && this.dataSource.getRows().find(r => BatchGroup.equals(r.currentData, batchGroup));
+  protected async findRowByEntity(data: BatchGroup): Promise<TableElement<BatchGroup>> {
+    const result = await super.findRowByEntity(data);
+
+    // TODO: remove this code, after testing well the App
+    if (!environment.production) {
+      const result2 = data && this.dataSource.getRows().find(r => BatchGroup.equals(r.currentData, data));
+      if (result !== result2) {
+        console.warn('TODO: findRowByEntity(). Nos same result, using static BatchGroup.equals() !', result, result2);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -1262,7 +1364,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected updateBatchGroupFromSubBatches(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
     if (!parent) return parent; // skip
 
-    const children = (subBatches || []).filter(b => Batch.equals(parent, b.parentGroup));
+    const children = (subBatches || []).filter(b => this.equals(parent, b.parentGroup));
 
     if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
@@ -1338,7 +1440,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     // Default measurements
     const filter = this.filter;
-    const filteredSpeciesPmfmIds = filter?.measurementValues && Object.keys(filter.measurementValues).filter(key => key !== '__typename');
+    const filteredSpeciesPmfmIds = MeasurementValuesUtils.getPmfmIds(filter?.measurementValues);
     if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
       data.measurementValues = data.measurementValues || {};
       filteredSpeciesPmfmIds.forEach(pmfmId => {
@@ -1398,43 +1500,106 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Remove previous subscription
     this._rowValidatorSubscription?.unsubscribe();
 
+    const data = form.value as BatchGroup;
+
     // Clean quality flag
-    const qualityFlagId = form.get('qualityFlagId').value;
+    const qualityFlagId = data.qualityFlagId;
     if (qualityFlagId !== QualityFlagIds.NOT_QUALIFIED) {
-      form.patchValue(<Partial<Batch>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
+      form.patchValue(<Partial<BatchGroup>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
       form.markAsDirty();
       this.markAsDirty({emitEvent: false});
     }
 
-    // Add computation and validation
-    const requiredSampleWeight = (form.controls['observedIndividualCount']?.value || 0) > 0;
-    const subscription = this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
-      qvPmfm: this.qvPmfm,
-      samplingRatioFormat: this.samplingRatioFormat,
-      requiredSampleWeight,
-      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
-      markForCheck: () => this.markForCheck()
+    const hasSubBatches = (data.observedIndividualCount || 0) > 0;
+    const taxonGroupNoWeight = this.isTaxonGroupNoWeight(data.taxonGroup);
+    const weightRequired = !taxonGroupNoWeight;
+    const individualCountRequired = taxonGroupNoWeight;
+    const requiredSampleWeight = weightRequired && hasSubBatches;
+
+    // Updating row form, with new options
+    this.validatorService.updateFormGroup(form, {
+      withWeight: weightRequired,
+      weightRequired,
+      individualCountRequired
     });
-    if (subscription) {
 
-      // Register subscription
-      this.registerSubscription(subscription);
-      this._rowValidatorSubscription = subscription;
-
-      // When unsubscribe, unregister
-      subscription.add(() => {
-        this.unregisterSubscription(subscription);
-        this._rowValidatorSubscription = undefined;
-      });
+    if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+      // If taxon group with NO weights: reset weight and sampling ratio
+      if (taxonGroupNoWeight) {
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_WEIGHT);
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
+      }
+        // Default case (weight allowed)
+      // - Reset totalIndividualCount
+      else {
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL);
+      }
     }
+
+    const subscription = new Subscription();
+
+    // Detect taxon group changes
+    // e.g. if a taxon group becomes 'RJB' (no weight), we should refresh the form
+    if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+      subscription.add(
+        form.get('taxonGroup').valueChanges
+          .pipe(
+            filter(ReferentialUtils.isNotEmpty), // Skip if not item selected
+            map(taxonGroup => this.isTaxonGroupNoWeight(taxonGroup)),
+            filter(v => v !== taxonGroupNoWeight) // distinguish changes from initial call
+          )
+          .subscribe(_ => {
+            // DEBUG
+            //console.debug(this.logPrefix + 'Detecting taxon group changes: will update form...');
+
+            // Refresh form, because taxon group has changed
+            this.onPrepareRowForm(form);
+          })
+      );
+    }
+
+    // Enable computation of weights and sampling ratio
+    if (!taxonGroupNoWeight) {
+      subscription.add(this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
+        qvPmfm: this.qvPmfm,
+        samplingRatioFormat: this.samplingRatioFormat,
+        requiredSampleWeight,
+        weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
+        markForCheck: () => this.markForCheck()
+      }));
+    }
+
+    // Register row subscription
+    this._rowValidatorSubscription = subscription;
+    this.registerSubscription(this._rowValidatorSubscription);
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this._rowValidatorSubscription = undefined;
+    });
   }
 
-  protected isTaxonGroupNoWeight(batch: Batch, parent: Batch): boolean {
-    if (isEmptyArray(this.taxonGroupsNoWeight)) return false;
-    const taxonGroup = parent?.taxonGroup || batch.taxonGroup;
-    if (isNilOrBlank(taxonGroup?.label)) return false;
+  protected isTaxonGroupNoWeight(taxonGroup: TaxonGroupRef): boolean {
+    if (!taxonGroup || !taxonGroup?.label || isEmptyArray(this.taxonGroupsNoWeight)) return false;
     return this.taxonGroupsNoWeight.includes(taxonGroup.label);
   };
+
+  protected resetColumnValueByFlag(form: UntypedFormGroup, flag: number, opts? : {emitEvent?: boolean}) {
+    let dirty = false;
+    this.dynamicColumns.filter(column => hasFlag(column.flags, flag))
+      .forEach(column => {
+        const control = form.get(column.path);
+        if (isNotNil(control.value)) {
+          control.setValue(null);
+          dirty = true;
+        }
+      });
+
+    if (dirty && opts?.emitEvent !== false) {
+      form.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+    }
+    return dirty;
+  }
 
   confirmEditCreate(event?: Event, row?: TableElement<BatchGroup>): boolean {
     const confirmed = super.confirmEditCreate(event, row);
@@ -1445,6 +1610,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
     return confirmed;
   }
+
 
 
   getDebugData(type:'rowValidator'): any {

@@ -1,15 +1,20 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { FloatLabelType } from '@angular/material/form-field';
-import { AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
-import { filter } from 'rxjs/operators';
-import { isNilOrNaN, roundHalfUp } from '@app/shared/functions';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional, Provider} from '@angular/core';
+import {ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormControl} from '@angular/forms';
+import {Subscription} from 'rxjs';
+import {FloatLabelType, MatFormFieldAppearance} from '@angular/material/form-field';
+import {AppFormUtils, isNil, isNotNilOrNaN} from '@sumaris-net/ngx-components';
+import {filter} from 'rxjs/operators';
+import {isNilOrNaN, roundHalfUp} from '@app/shared/functions';
 
-const noop = () => {
-};
+const noop = () => {};
 
 export declare type SamplingRatioFormat = '%' | '1/w';
+
+const DEFAULT_VALUE_ACCESSOR: Provider = {
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => MatSamplingRatioField),
+  multi: true
+};
 
 export const DEFAULT_MAX_DECIMALS = 6;
 
@@ -18,11 +23,7 @@ export const DEFAULT_MAX_DECIMALS = 6;
   templateUrl: './material.sampling-ratio.html',
   styleUrls: ['./material.sampling-ratio.scss'],
   providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      multi: true,
-      useExisting: forwardRef(() => MatSamplingRatioField),
-    }
+    DEFAULT_VALUE_ACCESSOR
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,7 +32,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   private _onTouchedCallback: () => void = noop;
   private _subscription = new Subscription();
   private _disabling = false;
-  private _writing = false;
+  private _writing = true; // Will be changed to 'false' by ngOnInit()
 
   _readonly = false;
   _inputFormControl: UntypedFormControl;
@@ -42,13 +43,14 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   _placeholder: string;
 
   get disabled(): any {
-    return this.readonly || this.formControl.disabled;
+    return this.formControl.disabled;
   }
 
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() required = false;
   @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() appearance: MatFormFieldAppearance;
   @Input() tabindex: number;
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
   @Input() autofocus: boolean;
@@ -79,7 +81,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   @Input() set format(value: SamplingRatioFormat) {
     if (this._format !== value) {
       this._format = value;
-      this.onFormatChanged();
+      this._onFormatChanged();
       this.markForCheck();
     }
   }
@@ -111,11 +113,11 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
 
 
     this._inputFormControl = this.formBuilder.control([null]);
-    this.onFormatChanged();
+    this._onFormatChanged();
 
     this._subscription.add(
         this._inputFormControl.valueChanges
-        .subscribe((value) => this.onFormChange(value))
+        .subscribe((value) => this._onFormChange(value))
     );
 
     // Listen status changes (when done outside the component  - e.g. when setErrors() is calling on the formControl)
@@ -126,6 +128,8 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
         )
         .subscribe((_) => this.markForCheck())
     );
+
+    this._writing = false;
   }
 
   ngOnDestroy() {
@@ -133,21 +137,24 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   }
 
   writeValue(obj: any): void {
-    if (this._writing) return;
-
-    const value = (typeof obj === 'string') ? parseFloat(obj.replace(/,/g, '.')) : obj;
+    if (this._writing) return; // Skip
     this._writing = true;
 
-    let formValue: number = this.toFormValue(value);
+    try {
+      const value = (typeof obj === 'string') ? parseFloat(obj.replace(/,/g, '.')) : obj;
 
-    // DEBUG
-    //console.debug("[mat-sampling-ratio] formValue: " + formValue);
+      const formValue: number = this.toFormValue(value);
 
-    this._inputFormControl.patchValue(formValue, {emitEvent: false});
-    this._writing = false;
-    this.markForCheck();
+      // DEBUG
+      //console.debug("[mat-sampling-ratio] formValue: " + formValue);
+
+      this._inputFormControl.patchValue(formValue, {emitEvent: false});
+    }
+    finally {
+      this._writing = false;
+      this.markForCheck();
+    }
   }
-
 
   registerOnChange(fn: any): void {
     this._onChangeCallback = fn;
@@ -158,14 +165,18 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this._disabling) return;
-
+    if (this._disabling) return; // Skip
     this._disabling = true;
+
+    // DEBUG
+    console.debug('[mat-sampling-ratio] setDisabledState() with isDisabled=' + isDisabled);
+
     if (isDisabled) {
-      this._inputFormControl.disable({onlySelf: true, emitEvent: false});
+      this._inputFormControl.disable({emitEvent: false});
     } else {
-      this._inputFormControl.enable({onlySelf: true, emitEvent: false});
+      this._inputFormControl.enable({emitEvent: false});
     }
+
     this._disabling = false;
     this.markForCheck();
   }
@@ -184,7 +195,15 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     return '';
   }
 
-  private onFormatChanged() {
+  clear() {
+    this.formControl.setValue(null);
+    this.markAsTouched();
+    this.markAsDirty();
+  }
+
+  /* -- protected functions -- */
+
+  private _onFormatChanged() {
     switch (this._format) {
       case '1/w':
         this._inputMaxDecimals = Math.max(0, this.maxDecimals - 2);
@@ -202,7 +221,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     }
   }
 
-  private onFormChange(value: number): void {
+  private _onFormChange(value: number): void {
     if (this._writing) return; // Skip if call by self
     this._writing = true;
 
@@ -213,7 +232,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
         ...this._inputFormControl.errors
       });
       this._writing = false;
-      this.checkIfTouched();
+      this._checkIfTouched();
       return;
     }
 
@@ -234,7 +253,9 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
 
     // Set model value
     this.emitChange(modelValue);
+
     this._writing = false;
+    this.markForCheck();
   }
 
   private emitChange(value: number) {
@@ -247,11 +268,11 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
       this._onChangeCallback(value);
 
       // Check if need to update controls
-      this.checkIfTouched();
+      this._checkIfTouched();
     }
   }
 
-  private checkIfTouched(): boolean {
+  private _checkIfTouched(): boolean {
     if (this.formControl.touched || this._inputFormControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
@@ -269,6 +290,16 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
       default:
         return Math.min(100, roundHalfUp(value * 100, this._inputMaxDecimals));
     }
+  }
+
+  private markAsTouched(opts?: {onlySelf?: boolean}) {
+    this._inputFormControl.markAsTouched(opts);
+    this._onTouchedCallback();
+    this.markForCheck();
+  }
+
+  private markAsDirty(opts?: any) {
+    this.formControl.markAsDirty(opts);
   }
 
   private markForCheck() {

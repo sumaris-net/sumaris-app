@@ -1,6 +1,6 @@
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional } from '@angular/core';
-import { AppForm, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
+import { AppForm, BaseReferential, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { FormGroupDirective } from '@angular/forms';
 
@@ -15,7 +15,7 @@ import { FormGroupDirective } from '@angular/forms';
     }
   ]
 })
-export class ReferentialForm extends AppForm<Referential> implements OnInit {
+export class ReferentialForm<T extends BaseReferential<any> = Referential> extends AppForm<T> implements OnInit {
 
   statusById: { [id: number]: IStatus; };
   protected cd: ChangeDetectorRef;
@@ -58,7 +58,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
     }
   }
 
-  setValue(data: Referential, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     super.setValue(data, opts);
 
     // Make sure to set entityName if set from Input()

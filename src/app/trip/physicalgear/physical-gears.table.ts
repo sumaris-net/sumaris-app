@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy,
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
-import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -14,6 +14,9 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -44,6 +47,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;
   @Input() mobile: boolean;
+  @Input() usageMode: UsageMode;
   @Input() minRowCount = 0;
 
   @Input() set tripId(tripId: number) {
@@ -113,7 +117,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   constructor(
     injector: Injector,
     formBuilder: UntypedFormBuilder,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>,
+    protected context: TripContextService
   ) {
     super(injector,
       PhysicalGear, PhysicalGearFilter,
@@ -122,7 +127,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       {
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });
 
     this.filterForm = formBuilder.group({
@@ -144,7 +149,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     // Excluded columns, by default
     this.excludesColumns.push('lastUsed');
     this.excludesColumns.push('subGearsCount');
-    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supported
+
 
     // FOR DEV ONLY ----
     this.logPrefix = '[physical-gears-table] ';
@@ -157,6 +162,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
     this._enabled = this.canEdit;
+    if (!this._enabled || !this.canDelete || !this.mobile) this.excludesColumns.push('actions');
 
     // Update filter when changes
     this.registerSubscription(
@@ -240,7 +246,21 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     super.setFilter(value as PhysicalGearFilter, opts);
   }
 
+  setError(error: string, opts?: {emitEvent?: boolean; }) {
+    super.setError(error, opts);
+  }
+
+  resetError(opts?: {emitEvent?: boolean; }) {
+    this.setError(undefined, opts);
+  }
+
   /* -- protected function -- */
+
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+    const includedPmfmIds = this.context.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
+    // Keep selectivity device, if any
+    return pmfms.filter(p => p.required || (includedPmfmIds?.includes(p.id)));
+  }
 
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
@@ -314,9 +334,10 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
           )
         },
         onDelete: (event, data) => this.deleteEntity(event, data),
-        mobile: this.mobile,
-        i18nSuffix: this.i18nColumnSuffix,
         showGear: this.showGearColumn,
+        i18nSuffix: this.i18nColumnSuffix,
+        mobile: this.mobile,
+        usageMode: this.usageMode,
         // Override using given options
         ...this.modalOptions
       },
@@ -336,6 +357,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (data && this.debug) console.debug(this.logPrefix + 'Modal result: ', data, role);
 
     return {data: (data instanceof PhysicalGear) ? data : undefined, role};
+  }
+  pressRow(event: Event | undefined, row: TableElement<PhysicalGear>): boolean {
+    return super.pressRow(event, row);
   }
 
   async deleteEntity(event: Event, data: PhysicalGear): Promise<boolean> {

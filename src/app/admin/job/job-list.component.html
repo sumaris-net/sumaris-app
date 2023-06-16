@@ -1,0 +1,41 @@
+<mat-toolbar>
+  <button mat-icon-button (click)="openAddJobMenu()" [title]="'COMMON.BTN_ADD' | translate">
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-icon-button (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</mat-toolbar>
+
+<ion-content>
+  <ion-list>
+    <ng-container *rxFor="let job of jobs$; trackBy: trackByFn">
+      <ion-item *ngVar="(job.status === 'RUNNING' || job.status === 'PENDING') as runningOrPending"
+                (click)="openDetail(job)"
+                [class.running]="runningOrPending"
+                tappable>
+        <app-icon *ngIf="job.icon; let icon" slot="start" [ref]="icon"></app-icon>
+        <ion-label color="dark">
+          <h4>
+            <span class="name">{{ job.name }}</span>
+            | <b>{{ 'SOCIAL.JOB.STATUS_ENUM.' + job.status | translate }}</b>
+          </h4>
+          <p>
+            <ng-container *ngIf="job.startDate && !runningOrPending">
+              {{job.startDate|dateFormat: {time: true} }}
+              &nbsp;|&nbsp;{{job.startDate|dateFromNow}}
+            </ng-container>
+
+            <ng-container *ngIf="job.progression; let progression">
+              <app-progress-bar [progression]="progression"
+                                (cancel)="cancel($event, job)"></app-progress-bar>
+            </ng-container>
+          </p>
+        </ion-label>
+
+        <!-- end date -->
+        <ion-badge *ngIf="!runningOrPending" slot="end">{{job.endDate|dateFormat}}</ion-badge>
+      </ion-item>
+    </ng-container>
+  </ion-list>
+</ion-content>

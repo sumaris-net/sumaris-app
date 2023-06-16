@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
+  DateUtils,
   EntitiesTableDataSource,
   filterNotNil,
   firstNotNilPromise,
@@ -33,7 +34,6 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -354,7 +354,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     console.debug(`[aggregated-landings-table] Computing dates... {timezone: '${this._timeZone}'}`);
 
     // Clear startDate time (at the TZ expected by the DB)
-    const firstDay = moment(this._startDate).tz(this._timeZone).startOf('day');
+    const firstDay = DateUtils.moment(this._startDate).tz(this._timeZone).startOf('day');
 
     console.debug(`[aggregated-landings-table] Starting calendar at: '${firstDay.format()}'`);
 
@@ -367,8 +367,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     if (this.debug)
       console.debug(`[aggregated-landings-table] Calendar will use this dates:\n- '${dates.map(d => d.format()).join('\n- ')}'`);
 
-    const now = moment();
-    const currentDay = dates.find(date => date.isSame(now)) || firstDay;
+    const now = DateUtils.moment();
+    const currentDay = dates.find(date => DateUtils.isSame(date, now, 'day')) || firstDay;
     this.$currentDate.next(currentDay);
 
     this.$dates.next(dates);

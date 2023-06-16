@@ -1,0 +1,55 @@
+<ion-toolbar color="primary">
+  <ion-title>Ichthyometer demo</ion-title>
+</ion-toolbar>
+
+<ion-content class="ion-padding">
+
+  <h4>Gwaleen</h4>
+
+
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <app-ichthyometer-icon type="gwaleen"></app-ichthyometer-icon>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        Bluetooth: {{(enabled$|push) ? 'ON' : 'OFF'}}
+      </ion-col>
+      <ion-col>
+        <ion-button *rxIf="enabled$" (click)="disconnectAll()">Disconnect all</ion-button>
+        <ng-template #disabled>
+          <ion-text>No connected ichthyometer</ion-text>
+        </ng-template>
+      </ion-col>
+      <ion-col>
+        <ion-spinner *rxIf="loading$"></ion-spinner>
+      </ion-col>
+    </ion-row>
+
+    <ion-row *rxFor="let device of connectedDevices$">
+      <ion-col>
+        <ion-text>{{device.name}}</ion-text><br/>
+        <ion-text color="medium"><small>{{device.address}}</small></ion-text>
+      </ion-col>
+      <ion-col>
+        <ion-text>{{device.meta?.model}}</ion-text><br/>
+        <ion-text color="medium"><small>v{{device.meta?.version}}</small></ion-text>
+      </ion-col>
+      <ion-col>
+        <ion-button *rxIf="device.enabled$; else disabled" (click)="disconnect(device)">Disconnect</ion-button>
+      </ion-col>
+    </ion-row>
+
+    <!-- output -->
+    <ion-row>
+      <ion-col size="12">
+        <ion-text color="medium">
+          <span *rxFor="let value of values$">{{value}} mm<br/></span>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+</ion-content>

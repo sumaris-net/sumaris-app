@@ -1,0 +1,293 @@
+<ng-container [ngSwitch]="type">
+
+  <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
+    <!-- nothing to display (hidden) -->
+  </div>
+
+  <div *ngSwitchCase="'array'">
+    <ion-grid class="ion-no-padding" *ngVar="control|formGetArray as formArray">
+      <ion-row>
+        <ion-col *ngFor="let childControl of formArray.controls; index as j; last as last"
+                 size="auto">
+          <ion-row>
+            <ion-col size="auto" class="ion-align-self-center">
+              <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                              [control]="childControl|formGetControl"
+                              [required]="required && j === 0"
+                              [readonly]="readonly"
+                              [tabindex]="tabindex+j"
+                              [floatLabel]="floatLabel"
+                              [autofocus]="autofocus"
+                              [placeholder]="placeholder"
+                              [mobile]="mobile"
+                              (click)="clicked.emit($event)"
+              >
+              </app-pmfm-field>
+            </ion-col>
+
+            <ion-col size="auto" class="ion-align-self-center">
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_ADD'|translate"
+                      [disabled]="disabled"
+                      *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
+                      (click)="formArrayHelper.add()">
+                <mat-icon>add</mat-icon>
+              </button>
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_DELETE'|translate"
+                      [disabled]="disabled"
+                      (click)="formArrayHelper.removeAt(j)"
+                      tabindex="-1">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </div>
+
+  <!-- integer -->
+  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
+    <input matInput #matInput
+           autocomplete="off"
+           type="number"
+           pattern="[0-9]*"
+           step="1"
+           [readonly]="readonly"
+           [min]="pmfm.minValue"
+           [max]="pmfm.maxValue"
+           [appAutofocus]="autofocus"
+           [placeholder]="placeholder"
+           [formControl]="control|formGetControl"
+           (keydown.enter)="onPressEnter.emit($event)"
+           (keypress)="filterNumberInput($event, false)"
+           (focus)="focused.emit($event)"
+           (blur)="blurred.emit($event)"
+           (click)="clicked.emit($event)"
+           [required]="required"
+           [tabIndex]="tabindex">
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'pattern'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'precision'">{{(compact ? 'ERROR.FIELD_NOT_VALID_PRECISION_COMPACT' : 'ERROR.FIELD_NOT_VALID_PRECISION') | translate: control.errors.precision }}</span>
+        <span *ngSwitchCase="'min'">
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
+        <span *ngSwitchCase="'max'">
+          {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
+
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-form-field>
+
+  <!-- double -->
+  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
+    <input matInput #matInput
+           type="number"
+           decimal="true"
+           autocomplete="off"
+           [readonly]="readonly"
+           [min]="pmfm.minValue"
+           [max]="pmfm.maxValue"
+           [appAutofocus]="autofocus"
+           [placeholder]="placeholder"
+           [step]="numberInputStep"
+           (keyup.enter)="onPressEnter.emit($event)"
+           (keypress)="filterNumberInput($event, true)"
+           (blur)="blurred.emit($event)"
+           (focus)="focused.emit($event)"
+           (click)="clicked.emit($event)"
+           [formControl]="control|formGetControl"
+           [required]="required"
+           [tabIndex]="tabindex">
+
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'decimal'" translate>ERROR.FIELD_NOT_VALID_DECIMAL</span>
+        <span *ngSwitchCase="'precision'">{{(compact ? 'ERROR.FIELD_NOT_VALID_PRECISION_COMPACT' : 'ERROR.FIELD_NOT_VALID_PRECISION') | translate: control.errors.precision }}</span>
+        <span *ngSwitchCase="'min'">
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
+        <span *ngSwitchCase="'max'">
+          {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'maxDecimals'">
+          {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:control.errors.maxDecimals }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
+
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-form-field>
+
+  <!-- duration -->
+  <mat-duration-field *ngSwitchCase="'duration'" #matInput
+                      [formControl]="control|formGetControl"
+                      [placeholder]="placeholder"
+                      [floatLabel]="floatLabel"
+                      [required]="required"
+                      [readonly]="readonly"
+                      [compact]="compact"
+                      [tabindex]="tabindex">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-duration-field>
+
+  <!-- boolean -->
+  <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
+                     [style]="style"
+                     [formControl]="control|formGetControl"
+                     [placeholder]="placeholder"
+                     [floatLabel]="floatLabel"
+                     [required]="required"
+                     [readonly]="readonly"
+                     [compact]="compact"
+                     [tabindex]="tabindex"
+                     [buttonsColCount]="maxVisibleButtons"
+                     [showButtonIcons]="showButtonIcons">
+    <div matSuffix>
+      <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
+      <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
+                      style="visibility: hidden;">
+      </ion-fab-button>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-boolean-field>
+
+  <!-- date -->
+  <mat-date-field *ngSwitchCase="'date'" #matInput
+                  [formControl]="control|formGetControl"
+                  [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                  [floatLabel]="floatLabel"
+                  [required]="required"
+                  [readonly]="readonly"
+                  [compact]="compact"
+                  [tabindex]="tabindex"
+                  [autofocus]="autofocus"
+                  [mobile]="mobile">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-date-field>
+
+  <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
+                       [formControl]="control|formGetControl"
+                       [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                       [floatLabel]="floatLabel"
+                       [required]="required"
+                       [readonly]="readonly"
+                       [compact]="compact"
+                       [tabindex]="tabindex"
+                       [autofocus]="autofocus"
+                       [mobile]="mobile">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-date-time-field>
+
+  <!-- qualitative value -->
+  <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
+                     [pmfm]="pmfm"
+                     [autofocus]="autofocus"
+                     [formControl]="control|formGetControl"
+                     [floatLabel]="floatLabel"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [readonly]="readonly"
+                     [compact]="compact"
+                     [tabindex]="tabindex"
+                     [style]="style"
+                     [maxVisibleButtons]="maxVisibleButtons"
+                     [buttonsColCount]="maxVisibleButtons"
+                     [showButtonIcons]="showButtonIcons"
+                     (keyup.enter)="onPressEnter.emit($event)"
+                     (click)="clicked.emit($event)"
+                     [mobile]="mobile">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </app-pmfm-qv-field>
+
+  <!-- string -->
+  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
+    <input matInput #matInput
+           autocomplete="off"
+           [appAutofocus]="autofocus"
+           [formControl]="control|formGetControl"
+           [placeholder]="placeholder"
+           [required]="required"
+           [tabIndex]="tabindex"
+           (click)="clicked.emit($event)"
+           (keypress)="filterAlphanumericalInput($event)"
+           (keyup.enter)="onPressEnter.emit($event)"
+           (focus)="focused.emit($event)"
+           (blur)="blurred.emit($event)">
+
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'maxlength'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'minlength'">{{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:control.errors.maxlength }}</span>
+        <span *ngSwitchCase="'minlength'">{{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:control.errors.minlength }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
+
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-form-field>
+
+  <!-- latitude -->
+  <mat-latlong-field *ngSwitchCase="'latitude'"
+                     [floatLabel]="floatLabel"
+                     [formControl]="control|formGetControl"
+                     type="latitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLatitudeSign">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-latlong-field>
+
+  <!-- longitude -->
+  <mat-latlong-field *ngSwitchCase="'longitude'"
+                     [floatLabel]="floatLabel"
+                     [formControl]="control|formGetControl"
+                     type="longitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLongitudeSign">
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </mat-latlong-field>
+
+  <!-- other -->
+  <div *ngSwitchDefault>
+    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
+    <div matSuffix>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+    </div>
+  </div>
+
+</ng-container>
+
+<ng-template #matSuffixTemplate>
+  <ng-content select="[matSuffix]"></ng-content>
+</ng-template>

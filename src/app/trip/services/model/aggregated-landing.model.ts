@@ -1,7 +1,19 @@
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { Moment } from 'moment';
 import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { Entity, EntityAsObjectOptions, EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityUtils,
+  fromDateISOString,
+  getPropertyByPath,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  ReferentialRef,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { SortDirection } from '@angular/material/sort';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
@@ -117,8 +129,8 @@ export class AggregatedLandingUtils {
     const collator = new Intl.Collator(undefined, { numeric: true });
     const direction = !sortDirection || sortDirection === 'asc' ? 1 : -1;
     return (r1, r2) => {
-      let v1 = EntityUtils.getPropertyByPath(r1, property);
-      let v2 = EntityUtils.getPropertyByPath(r2, property);
+      let v1 = getPropertyByPath(r1, property);
+      let v2 = getPropertyByPath(r2, property);
       if (isNil(v1)) return -direction;
       if (isNil(v2)) return direction;
       if (EntityUtils.isNotEmpty(v1, 'id') && EntityUtils.isNotEmpty(v2, 'id')) {

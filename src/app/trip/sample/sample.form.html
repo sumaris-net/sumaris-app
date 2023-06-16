@@ -1,15 +1,17 @@
+
+
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!--<ion-text *ngIf="debug">
-    I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
-    I18n Field prefix: {{i18nFieldPrefix}}<br/>
-    I18n Suffix: {{i18nSuffix}}<br/>
-  </ion-text>-->
+     I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
+     I18n Field prefix: {{i18nFieldPrefix}}<br/>
+     I18n Suffix: {{i18nSuffix}}<br/>
+   </ion-text>-->
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *ngIf="showError && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error ion-text-wrap" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding ion-padding-start">
@@ -42,6 +44,7 @@
                                 [tabindex]="tabindex+2"
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup">
+          <ion-icon matPrefix *ngIf="mobile" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 
@@ -55,6 +58,7 @@
                                 [tabindex]="tabindex+3"
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">
+          <ion-icon matPrefix *ngIf="mobile && !showTaxonGroup" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 
@@ -63,7 +67,7 @@
         <mat-date-time-field formControlName="sampleDate"
                              [placeholder]="'TRIP.SAMPLE.EDIT.SAMPLE_DATE_PLACEHOLDER'|translateContext: i18nSuffix"
                              [tabindex]="tabindex+4"
-                             [required]="usageMode|isNotOnField"
+                             [required]="usageMode|isOnDesk"
                              [clearable]="usageMode|isOnField">
         </mat-date-time-field>
       </ion-col>
@@ -111,7 +115,7 @@
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
-      <ion-col>
+      <ion-col size="12">
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
                     maxlength="2000"

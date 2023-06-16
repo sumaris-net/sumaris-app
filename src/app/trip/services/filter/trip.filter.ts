@@ -146,6 +146,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
 export class TripSynchroImportFilter extends DataSynchroImportFilter {
 
+
   static toTripFilter(f: TripSynchroImportFilter): TripFilter {
     if (!f) return undefined;
     return TripFilter.fromObject({

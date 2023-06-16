@@ -1,3 +1,4 @@
+
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { combineLatest, Observable } from 'rxjs';
@@ -32,7 +33,7 @@ import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrat
 import { Vessel } from './model/vessel.model';
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
-import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
 import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
 import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
 import { VESSEL_FEATURE_NAME } from './config/vessel.config';
@@ -68,7 +69,7 @@ export const VesselFragments = {
         label
       }
       vesselType {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       vesselFeatures {
         ...VesselFeaturesFragment
@@ -99,7 +100,7 @@ export const VesselFragments = {
           label
         }
         vesselType {
-            ...ReferentialFragment
+            ...LightReferentialFragment
         }
         vesselFeatures {
             ...VesselFeaturesFragment
@@ -129,7 +130,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   loadAllWithTotal: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
         data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -143,7 +144,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   loadAll: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
         data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -156,7 +157,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   importSiopFile:  gql`query ImportVesselSiopFile($fileName: String) {
       data: importSiopVessels(fileName: $fileName) {
@@ -179,7 +180,7 @@ const VesselMutations: BaseRootEntityGraphqlMutations & {replaceAll: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   deleteAll: gql`mutation DeleteVessels($ids:[Int]!){
         deleteVessels(ids: $ids)
@@ -543,7 +544,7 @@ export class VesselService
     await super.deleteAllLocally(entities, opts);
 
     // Delete the associated vessel snapshot
-    const snapshots = entities.filter(DataRootEntityUtils.isLocal).map(e => e.id);
+    const snapshots = entities.filter(RootDataEntityUtils.isLocal).map(e => e.id);
     if (isEmptyArray(snapshots)) return; // Skip
     await this.entities.deleteMany(snapshots, {entityName: VesselSnapshot.TYPENAME});
   }

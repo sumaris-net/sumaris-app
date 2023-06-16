@@ -35,6 +35,9 @@ export class TreeItemEntityUtils {
       indexInParent = current.parent ? (current.parent.children || []).indexOf(current) : -1;
     }
 
+    // Return parent
+    if (current !== node && (!filterFn || filterFn(current))) return current;
+
     return this.first(current, filterFn);
   }
 
@@ -125,7 +128,7 @@ export class TreeItemEntityUtils {
     return this.deleteRecursively(node, filterFn);
   }
 
-  private static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+  static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
     return (node.children || []).reduce((res, child) => {
         return res.concat(this.filterRecursively(child, filterFn));
       },
@@ -134,8 +137,7 @@ export class TreeItemEntityUtils {
     );
   }
 
-  // Internal function
-  private static deleteRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+  static deleteRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
     if (isEmptyArray(node.children)) return []; // Skip
 
     // Delete children
@@ -147,4 +149,43 @@ export class TreeItemEntityUtils {
       return res.concat(...this.deleteRecursively(c, filterFn))
     }, deletedBatches);
   }
+
+  /**
+   * Visit each node, from root to leaf
+   * @param node
+   * @param action
+   */
+  static visit<T extends ITreeItemEntity<any>>(node: T, action: (T) => void) {
+    if (node == null) {
+      return;
+    }
+
+    // Appliquer l'action sur le nœud actuel
+    action(node);
+
+    // Parcourir les enfants
+    if (node.children) {
+      node.children.forEach(child => this.visit(child, action))
+    }
+  }
+
+  /**
+   * Visit each node, from leaf to root
+   * @param node
+   * @param action
+   */
+  static visitInverse<T extends ITreeItemEntity<any>>(node: T, action: (T) => void) {
+    if (node == null) {
+      return;
+    }
+
+    // Parcourir les enfants
+    if (node.children) {
+      node.children.forEach(child => this.visitInverse(child, action))
+    }
+
+    // Appliquer l'action sur le nœud actuel
+    action(node);
+  }
+
 }

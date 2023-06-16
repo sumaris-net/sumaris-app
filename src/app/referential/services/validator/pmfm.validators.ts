@@ -1,7 +1,6 @@
-import {ValidatorFn, Validators} from "@angular/forms";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../model/pmfm.model";
+import { ValidatorFn, Validators } from '@angular/forms';
+import { isNil, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
+import { IPmfm, PmfmUtils } from '../model/pmfm.model';
 
 const REGEXP_INTEGER = /^[+|-]?[0-9]+$/;
 const REGEXP_DOUBLE = /^[+|-]?[0-9]+(\.[0-9]+)?$/;
@@ -38,9 +37,16 @@ export class PmfmValidators {
         validatorFns.push(Validators.pattern(REGEXP_DOUBLE));
       }
       // Double with a N decimal
-      else if (pmfm.maximumNumberDecimals >= 1) {
+      else if (pmfm.maximumNumberDecimals > 0) {
         validatorFns.push(SharedValidators.decimal({maxDecimals: pmfm.maximumNumberDecimals}));
       }
+
+      // Precision (only if defined, or if maximumNumberDecimals is defined)
+      const precision = PmfmUtils.getOrComputePrecision(pmfm, null);
+      if (precision > 0) {
+        validatorFns.push(SharedValidators.precision(precision));
+      }
+
     } else if (pmfm.type === 'qualitative_value') {
       validatorFns.push(SharedValidators.entity);
     }

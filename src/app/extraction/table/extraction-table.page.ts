@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, from, merge, Observable, Subject } from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import {
   AccountService,
   Alerts,
-  arrayGroupBy,
+  CompletableEvent,
   DEFAULT_PAGE_SIZE,
-  DEFAULT_PAGE_SIZE_OPTIONS, firstFalsePromise,
+  DEFAULT_PAGE_SIZE_OPTIONS,
+  EntityServiceLoadOptions,
   firstNotNilPromise,
   isNil,
   isNilOrBlank,
@@ -17,12 +18,13 @@ import {
   SETTINGS_DISPLAY_COLUMNS,
   sleep,
   StatusIds,
-  TableSelectColumnsComponent
+  TableSelectColumnsComponent, TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableDataSource } from '@e-is/ngx-material-table';
 import {
   ExtractionCategories,
   ExtractionColumn,
+  ExtractionFilter,
   ExtractionFilterCriterion,
   ExtractionResult,
   ExtractionRow,
@@ -32,11 +34,11 @@ import {
 } from '../type/extraction-type.model';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
-import { combineAll, concatAll, debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, map, throttleTime } from 'rxjs/operators';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { ExtractionService } from '../common/extraction.service';
+import { CacheDuration, ExtractionService } from '../common/extraction.service';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -51,12 +53,15 @@ import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
+import { ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 
 export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programs: Program[];
   programLabel: string;
   program: Program;
   categories: ExtractionTypeCategory[];
+  enableReport: boolean;
 }
 
 @Component({
@@ -74,9 +79,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected readonly $programs = this._state.select('programs');
   protected readonly $program = this._state.select('program');
   protected readonly $categories = this._state.select('categories');
+  protected readonly $enableReport = this._state.select('enableReport');
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
+  cacheDuration: CacheDuration = null; // = default
 
   data: ExtractionResult;
   $title = new BehaviorSubject<string>('EXTRACTION.TABLE.TITLE');
@@ -84,13 +91,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   displayedColumns: string[];
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   dataSource: TableDataSource<ExtractionRow>;
-  settingsId: string;
   canCreateProduct = false;
   isAdmin = false;
 
   filterCriteriaCount$: Observable<number>;
   filterPanelFloating = true;
   stickyEnd = true;
+
+  @Input() autoload = true;
+  @Input() embedded = false;
+  @Input() showToolbar = true;
+  @Input() showFilter = true;
+  @Input() showDownloadButton = true;
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -110,27 +122,29 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected get program(): Program {
     return this._state.get('program');
   }
+  protected set enableReport(value: boolean) {
+    this._state.set('enableReport', (_) => value);
+  }
+  protected get enableReport(): boolean {
+    return this._state.get('enableReport');
+  }
+  get filterChanges(): Observable<any> {
+    return this.criteriaForm.form.valueChanges
+      .pipe(
+        //debounceTime(450),
+        map(_ => this.getFilterValue())
+      )
+  }
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    alertCtrl: AlertController,
-    toastController: ToastController,
-    translate: TranslateService,
-    accountService: AccountService,
-    service: ExtractionService,
-    settings: LocalSettingsService,
-    formBuilder: UntypedFormBuilder,
-    platform: PlatformService,
-    modalCtrl: ModalController,
+    injector: Injector,
     state: RxState<ExtractionTableState>,
-    protected location: Location,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(injector, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -165,7 +179,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
         // If already loading: skip
         if (this.loading) {
           // Warn user that he should wait
-          if (this.started) this.showToast({type: 'warning', message: 'EXTRACTION.INFO.PLEASE_WAIT_WHILE_RUNNING'})
+          if (this.started && !this.embedded) this.showToast({type: 'warning', message: 'EXTRACTION.INFO.PLEASE_WAIT_WHILE_RUNNING'})
           return;
         }
 
@@ -174,6 +188,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           this.paginator.pageIndex = 0;
         }
 
+        if (!this.started) {
+          console.warn('[extraction-table] Service not started: skip refresh event');
+          return;
+        }
+
+        // Load data
         return this.loadData();
       }));
 
@@ -190,21 +210,41 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this._state.connect('program', this._state.select(['programLabel', 'programs'], res => res)
       .pipe(
         map(({programLabel, programs}) => {
-          return (programs || []).find(p => p.label === programLabel);
+          return programLabel && (programs || []).find(p => p.label === programLabel) || null;
         })
       ));
 
-    this._state.connect('categories', this.$types
+    this._state.connect('categories', this.types$
       .pipe(
         filter(isNotNil),
         map(ExtractionTypeCategory.fromTypes)
       ));
+
+    this._state.connect('enableReport', this._state.select('program')
+      .pipe(
+        map(program => program?.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE) || false)
+      ));
+
+    if (this.autoload && !this.embedded) {
+      this.loadFromRouteOrSettings();
+    }
+    else {
+      this.markAsLoaded();
+    }
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
 
     this.$cancel.next(true);
+  }
+
+  protected async loadFromRouteOrSettings(): Promise<boolean> {
+    const found = await super.loadFromRouteOrSettings();
+    if (found) return found;
+
+    // Mark as loaded, if not found
+    setTimeout(() => this.markAsLoaded());
   }
 
   async updateView(data: ExtractionResult) {
@@ -254,7 +294,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
 
-    const changed = await super.setType(type, {...opts, emitEvent: false});
+    const changed = await super.setType(type, {...opts, emitEvent: false, skipLocationChange: true});
 
     if (changed) {
       this.$cancel.next(); // Cancelled existing load process
@@ -272,9 +312,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Reset program
       this.resetProgram();
 
-      this.markAsReady();
+      if (!opts || opts.emitEvent !== false) {
 
-      if (!opts || opts.emitEvent !== true) {
+        this.markAsReady();
+        this.markAsStarted();
+
         this.onRefresh.emit();
       }
     }
@@ -306,7 +348,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.setProgramLabel(programLabel);
 
     // Refresh data
-    if (opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
+
+      this.markAsReady();
+      this.markAsStarted();
+
       this.onRefresh.emit();
     }
   }
@@ -325,6 +371,34 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (resetPaginator) {
       this.resetPaginatorAndSort();
     }
+  }
+
+  async setFilterValue(filter: ExtractionFilter, opts?: { emitEvent?: boolean }): Promise<void> {
+
+    filter = this.service.asFilter(filter);
+
+    // Detect and hide the project (=program) criterion
+    let programLabel: string;
+    filter.criteria = (filter.criteria || []).map(criterion => {
+      // Detect project field
+      if (criterion.name === 'project' && criterion.operator === '=' && isNotNilOrBlank(criterion.value)) {
+        criterion = criterion.clone();
+        // Mark as hidden
+        criterion.hidden = true;
+
+        // Remember
+        programLabel = criterion.value;
+      }
+      return criterion;
+    });
+
+    // Apply program label
+    if (isNotNilOrBlank(programLabel)) {
+      this.setProgramLabel(programLabel);
+    }
+
+    // Set filter value
+    await super.setFilterValue(filter, opts);
   }
 
   resetPaginatorAndSort() {
@@ -364,6 +438,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   onCellValueClick(event: MouseEvent, column: ExtractionColumn, value: string) {
+    if (!this.showFilter) return; // Skip if cannot filter
+
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: column.columnName,
       operator: DEFAULT_CRITERION_OPERATOR,
@@ -446,7 +522,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const filter = this.getFilterValue();
     this.disable();
 
-    let newType: ExtractionType;
     try {
       console.info('[extraction-table] Saving as new product...');
 
@@ -469,9 +544,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Wait for types cache updates
       await sleep(1000);
 
-      // Change current type
-      newType = await this.findTypeByFilter(ExtractionTypeUtils.minify(savedEntity));
+      // Open the new aggregation
+      await this.openProduct(savedEntity);
 
+      // Change current type
+      await this.setType(savedEntity, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
@@ -481,9 +558,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       this.enable();
     }
 
-    if (newType) {
-      await this.setType(newType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
-    }
+
   }
 
   async delete(event?: Event) {
@@ -510,7 +585,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       await sleep(4000);
 
       // Change type, to the first one
-      const types = await firstNotNilPromise(this.$types);
+      const types = await firstNotNilPromise(this.types$);
       if (types && types.length) {
         await this.setType(types[0], {emitEvent: false, skipLocationChange: false, sheetName: undefined});
       }
@@ -540,6 +615,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // open the map
       return this.router.navigate(['extraction', 'map'],
         {
+          // TODO replace by ExtractinUtils.asQueryParams(this.type, this.getFilterValue())
           queryParams: {
             category: this.type.category,
             label: this.type.label,
@@ -588,19 +664,49 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.applyFilterAndClosePanel(event);
   }
 
+  doRefresh(event?: CompletableEvent) {
+    this.cacheDuration = 'none';
+    this.onRefresh.emit(event);
+
+    // Wait end
+    setTimeout(async () => {
+      await this.waitIdle();
+
+      // complete (e.g. IonRefresher)
+      if (event?.target && event.target.complete) {
+        event.target.complete();
+      }
+
+      // Refresh cache duration
+      this.cacheDuration = null;
+    }, 650);
+  }
+
+
+
   /* -- protected method -- */
 
+
+  async updateQueryParams(type?: ExtractionType, opts= { skipLocationChange: false, skipSettingsChange: false }): Promise<void> {
+    if (this.embedded) return; // Skip route update route, if embedded
+
+    return super.updateQueryParams(type, opts);
+  }
+
   protected resetProgram() {
-    this._state.set('programLabel', (_) => null);
-    this._state.set('program', (_) => null);
+    this._state.set({programLabel: null, program: null});
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
-    return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        // Exclude spatial because we cannot load columns yet
-        isSpatial: false
-      });
+    const filter = <ExtractionTypeFilter>{
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+    };
+
+    return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', filter);
+  }
+
+  protected loadType(id: number, opts?: EntityServiceLoadOptions): Promise<ExtractionType> {
+    return this.extractionTypeService.load(id, opts);
   }
 
   protected async loadData() {
@@ -611,7 +717,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
 
     const typeLabel = this.type.label;
-    this.settingsId = this.generateTableId();
     this.markAsLoading();
     this.resetError();
 
@@ -629,18 +734,19 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.markForCheck();
 
     const now = Date.now();
-    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName})...`);
+    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName}, cacheDuration: ${this.cacheDuration})...`);
 
     try {
 
       // Load rows
       const data = await this.service.loadRows(this.type,
-          this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
-          this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
-          this.sort?.active,
-          this.sort?.direction,
-          filter
-        );
+        this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
+        this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
+        this.sort?.active,
+        this.sort?.direction,
+        filter,
+        { cacheDuration: this.cacheDuration }
+      );
 
       if (cancelled) return; // Stop if cancelled
 
@@ -733,7 +839,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     // Try to get a title with the program
     const program = this.program;
     if (isNotNilOrBlank(program?.label)) {
-      const titleKey = `EXTRACTION.LIVE.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
+      const titleKey = `EXTRACTION.FORMAT.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
       const title = await this.translate.get(titleKey, program).toPromise();
       if (title !== titleKey) {
         this.$title.next(titlePrefix + title);
@@ -745,15 +851,32 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.$title.next(titlePrefix + this.type.name);
   }
 
-  private generateTableId() {
-    const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;
-    return id;
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
+  protected async openReport() {
+    const program = this.program;
+    if (!program || !this.enableReport) return; // Skip
 
+    const reportType = program.getProperty<TripReportType>(ProgramProperties.TRIP_REPORT_TYPE);
+    const reportPath = reportType !== 'legacy' ? [reportType] : [];
+    const filter = this.getFilterValue();
+    await this.router.navigate(['extraction', 'report', 'trips', ...reportPath], {
+      queryParams: ExtractionUtils.asQueryParams(this.type, filter)
+    });
+  }
 
+  private _extractionTypesProgramLabel: string;
+  private _extractionTypesByPrograms$: Observable<ExtractionType[]>;
+
+  protected watchExtractionTypesByProgram(programLabel: string) {
+    if (this._extractionTypesProgramLabel !== programLabel) {
+      this._extractionTypesProgramLabel = programLabel;
+      this._extractionTypesByPrograms$ = this.extractionTypeService.watchAllByProgramLabels([programLabel]);
+    }
+
+    return this._extractionTypesByPrograms$;
+  }
 }

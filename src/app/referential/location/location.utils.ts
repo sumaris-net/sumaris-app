@@ -14,7 +14,7 @@ export class LocationUtils {
    * @return A label corresponding to a statistical rectangle, or undefined if no statistical rectangle exists for this position
    */
   static getRectangleLabelByLatLong(lat: number, lon: number): string | undefined {
-    if (isNil(lat) || isNil(lat)) return undefined; // Skip
+    if (isNil(lat) || isNil(lon)) return undefined; // Skip
 
     let result: string;
 

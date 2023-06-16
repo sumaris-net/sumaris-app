@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {FormArray, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
 import { AppFormUtils, FormErrors, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
@@ -66,6 +66,18 @@ export class BatchGroupValidatorService extends
       });
   }
 
+  updateFormGroup(form: UntypedFormGroup, opts?: BatchGroupValidatorOptions) {
+    opts = this.fillDefaultOptions(opts);
+
+    if (opts.qvPmfm) {
+      const childrenArray = form.get('children') as FormArray;
+      childrenArray.controls.forEach(child => this.updateFormGroup(child as FormGroup, opts.childrenOptions))
+    }
+    else {
+      super.updateFormGroup(form, opts);
+    }
+  }
+
   /* -- protected method -- */
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
@@ -76,15 +88,27 @@ export class BatchGroupValidatorService extends
 
       opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
+      const weightRequired = opts.isOnFieldMode === false && (opts.weightRequired !== false);
+      const individualCountRequired = opts.isOnFieldMode === false && (opts.individualCountRequired === true)
+      const withChildrenWeight = opts.withChildrenWeight !== false;
       if (opts.qvPmfm) {
+        // Disabled weight/individual required validator, on the root level
+        opts.individualCountRequired = false;
+        opts.weightRequired = false;
+
+        // Disable children (sum) weight here: should be visible in the sample batch, is any
+        opts.withChildrenWeight = false;
+
+        // Configure children (on child by QV)
         opts.withChildren = true;
         opts.childrenCount = opts.qvPmfm.qualitativeValues?.length || 1;
         opts.childrenOptions = {
           root: false,
           withWeight: true,
-          weightRequired: opts.isOnFieldMode === false,
-          pmfms: opts.childrenPmfms,
-          withMeasurements: isNotEmptyArray(opts.childrenPmfms)
+          weightRequired,
+          individualCountRequired,
+          pmfms: [opts.qvPmfm, ...(opts.childrenPmfms || [])],
+          withMeasurements: true
         };
         opts.childrenOptions.withChildren = opts.enableSamplingBatch;
         if (opts.childrenOptions.withChildren) {
@@ -92,20 +116,31 @@ export class BatchGroupValidatorService extends
           opts.childrenOptions.childrenOptions = {
             root: false,
             withWeight: true,
-            withMeasurements: false
+            withMeasurements: false,
+            pmfms: null,
+            withChildrenWeight,
+            // Need for v1 compatibility - sampling batch may not be created
+            labelRequired: false,
+            rankOrderRequired: false
           };
         }
       }
       else {
         opts.withWeight = true;
         opts.withChildren = opts.enableSamplingBatch;
+        opts.weightRequired = weightRequired;
+        opts.individualCountRequired = individualCountRequired;
         if (opts.withChildren) {
+          opts.childrenCount = 1; // One sampling batch
           opts.childrenOptions = {
-            childrenCount: 1,
             root: false,
             withWeight: true,
+            withMeasurements: false,
             pmfms: null,
-            withMeasurements: false
+            withChildrenWeight,
+            // Need for v1 compatibility - sampling batch may not be created
+            labelRequired: false,
+            rankOrderRequired: false
           };
         }
       }
@@ -148,11 +183,11 @@ export class BatchGroupValidators {
           const individualCount = form.get(qvFormPath + '.individualCount');
           const samplingIndividualCount = form.get(qvFormPath + '.children.0.individualCount');
 
-          if (!samplingIndividualCount) return; // Nothing to compute
+          if (!samplingIndividualCount) return; // Nothing to compute (no sampling batch)
 
           // Enable controls
           if (individualCount.disabled) individualCount.enable();
-          if (samplingIndividualCount?.disabled) samplingIndividualCount.enable();
+          if (samplingIndividualCount.disabled) samplingIndividualCount.enable();
 
           // Start computation
           return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath), {...opts, emitEvent: false, onlySelf: false});

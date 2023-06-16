@@ -1,0 +1,44 @@
+
+.table-container {
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-paginator-height, 0px));
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
+.mat-table {
+  .mat-column-label {
+    min-width: 50px;
+    max-width: 120px;
+  }
+
+  .mat-column-name,
+  .mat-column-description {
+    min-width: 100px;
+  }
+
+  .mat-column-status {
+    min-width: 100px;
+    max-width: 110px;
+  }
+
+  .mat-column-comments {
+    max-width: 50px;
+  }
+
+  .visible-hover {
+    visibility: hidden;
+  }
+
+  .mat-row:hover {
+    .visible-hover {
+      visibility: unset;
+    }
+  }
+}

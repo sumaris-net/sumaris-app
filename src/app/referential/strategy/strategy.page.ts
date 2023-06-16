@@ -1,28 +1,38 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Strategy } from '../services/model/strategy.model';
-import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { ReferentialRefService } from '../services/referential-ref.service';
-import { ModalController } from '@ionic/angular';
-import { StrategyForm } from './strategy.form';
-import { StrategyValidatorService } from '../services/validator/strategy.validator';
-import { StrategyService } from '../services/strategy.service';
-import { BehaviorSubject } from 'rxjs';
-import { Program } from '../services/model/program.model';
-import { ReferentialForm } from '../form/referential.form';
-import { debounceTime, filter, tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { ProgramRefService } from '../services/program-ref.service';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import {Strategy} from '../services/model/strategy.model';
+import {
+  AccountService,
+  Alerts,
+  AppEntityEditor,
+  EntityServiceLoadOptions, FilesUtils,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE
+} from '@sumaris-net/ngx-components';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {ModalController} from '@ionic/angular';
+import {StrategyForm} from './strategy.form';
+import {StrategyValidatorService} from '../services/validator/strategy.validator';
+import {StrategyService} from '../services/strategy.service';
+import {BehaviorSubject} from 'rxjs';
+import {Program} from '../services/model/program.model';
+import {ReferentialForm} from '../form/referential.form';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
+import {ProgramRefService} from '../services/program-ref.service';
+import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
 
-export enum AnimationState {
-  ENTER = 'enter',
-  LEAVE = 'leave'
-}
 
 @Component({
   selector: 'app-strategy',
   templateUrl: 'strategy.page.html',
+  styleUrls: ['./strategy.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: StrategyValidatorService}
   ],
@@ -33,6 +43,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   private initialPmfmCount: number;
 
   $program = new BehaviorSubject<Program>(null);
+  showImportModal = false;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
@@ -106,6 +117,13 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
+  canUserWrite(data: Strategy, opts?: any): boolean {
+    return super.canUserWrite(data, {...opts,
+      // Important: sent the opts.program, to check if user is a program manager
+      program: this.$program.value
+    });
+  }
+
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
 
@@ -113,6 +131,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       this.form.get('label').disable();
     }
   }
+
 
   /* -- protected methods -- */
 
@@ -174,6 +193,28 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     return data;
   }
 
+
+  protected async downloadAsJson(event?: Event, opts = {keepRemoteId: false}) {
+    if (event?.defaultPrevented) return false; // Skip
+    event?.preventDefault(); // Avoid propagation
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved = this.dirty && this.valid
+      // If on field mode AND valid: save silently
+      ? await this.save(event)
+      // Else If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm();
+    if (!saved) return; // not saved
+
+    // Download as JSON
+    await this.service.downloadAsJson(this.data, {
+      keepRemoteId: false,
+      ...opts,
+      program: this.$program.value});
+  }
+
   protected async askConfirmationToReload() {
     const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.RELOAD_PAGE', this.alertCtrl, this.translate, null);
     if (confirm) {
@@ -214,5 +255,12 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.cd.markForCheck();
   }
 
+  protected initTranscribingItemTable(table: TranscribingItemTable) {
+
+  }
+
+  protected startImport(event?: Event){
+
+  }
 }
 

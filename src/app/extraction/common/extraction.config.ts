@@ -49,12 +49,19 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     defaultValue: 5
   },
   EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
-    key: "sumaris.extraction.accessNotSelfExtraction.role",
+    key: 'sumaris.extraction.accessNotSelfExtraction.role',
     label: "EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE",
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(label => ({
       key: 'ROLE_' + label,
       value: 'USER.PROFILE_ENUM.' + label
     }))
-  }
+  },
+  EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.extraction.batch.denormalization.enable',
+    label: "EXTRACTION.OPTIONS.BATCH_DENORMALIZATION_ENABLE",
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+
 });

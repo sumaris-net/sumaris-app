@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild} from '@angular/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {PhysicalGearForm} from './physical-gear.form';
 import {
   AppEntityEditorModal,
@@ -8,8 +8,10 @@ import {
   firstNotNilPromise,
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
+  isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   PromiseEvent,
   ReferentialRef,
   toBoolean,
@@ -42,6 +44,7 @@ export interface IPhysicalGearModalOptions
   canEditGear: boolean;
   canEditRankOrder: boolean;
   allowChildrenGears: boolean;
+  minChildrenCount: number;
 
   // UI
   maxVisibleButtons?: number;
@@ -196,7 +199,11 @@ export class PhysicalGearModal
             // Check if table has something to display (some PMFM in the strategy)
             const childrenHasSomePmfms = (childrenPmfms||[]).some(p =>
               // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
-              (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
+              PmfmUtils.isDenormalizedPmfm(p) && isNotEmptyArray(p.gearIds)
+              // Keep only if applied to the selected gear (if any)
+              // We need to filter by gearId, because sometimes the table pmfms are outdated (e.g. on a previous gearId)
+              && (isNil(gearId) || p.gearIds.includes(gearId))
+            );
 
             return (childrenPmfms && isNotNil(gearId) && gearId !== INVALID_GEAR_ID)
               ? childrenHasSomePmfms
@@ -281,6 +288,26 @@ export class PhysicalGearModal
   updateViewState(data: PhysicalGear, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
     this.updateChildrenTableState(opts);
+
+    // Restore error
+    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) ? data.qualificationComments : undefined;
+    if (isNotNilOrBlank(errorMessage)) {
+      console.info('[physical-gear-modal] Restore error from qualificationComments : ', errorMessage);
+
+      // Clean quality flags
+      this.form.patchValue({
+        qualificationComments: null,
+        qualityFlagId: QualityFlagIds.NOT_QUALIFIED
+      }, {emitEvent: false});
+
+      setTimeout(() => {
+        this.markAllAsTouched();
+        this.form.updateValueAndValidity();
+
+        // Replace newline by a <br> tag, then display
+        this.setError(errorMessage.replace(/(\n|\r|<br\/>)+/g, '<br/>'));
+      });
+    }
   }
 
   updateChildrenTableState(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -300,29 +327,23 @@ export class PhysicalGearModal
 
   protected async setValue(data: PhysicalGear) {
 
-    try {
-      // Save children, before reset (not need in the main form)
-      const children = data.children;
-      data.children = undefined;
+    // Save children, before reset (not need in the main form)
+    const children = data.children;
+    data.children = undefined;
 
-      // Set main form
-      await this.physicalGearForm.setValue(data);
+    // Set main form
+    await this.physicalGearForm.setValue(data);
 
-      if (this.allowChildrenGears) {
-        const childrenTable = await firstNotNilPromise(this.childrenTable$, {stop: this.destroySubject, stopError: false});
+    if (this.allowChildrenGears) {
+      const childrenTable = await firstNotNilPromise(this.childrenTable$, {stop: this.destroySubject, stopError: false});
 
-        childrenTable.gearId = data.gear?.id;
-        childrenTable.markAsReady();
-        this.childrenGearService.value = children || [];
-        await childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
+      childrenTable.gearId = data.gear?.id;
+      childrenTable.markAsReady();
+      this.childrenGearService.value = children || [];
+      await childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
 
-        // Restore children
-        data.children = children;
-      }
-    }
-    catch (err) {
-      if (err === 'CANCELLED') return; // Skip
-      this.setError(err);
+      // Restore children
+      data.children = children;
     }
   }
 
@@ -411,4 +432,5 @@ export class PhysicalGearModal
       event.detail?.error(err);
     }
   }
+
 }

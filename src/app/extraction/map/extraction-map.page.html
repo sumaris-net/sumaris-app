@@ -2,18 +2,29 @@
 
   <ion-title>
     <span class="hidden-xs hidden-sm hidden-mobile"
-          [innerHTML]="$title | async"></span>
+          [innerHTML]="$title | push"></span>
   </ion-title>
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" *rxLet="type$ as type">
+    <!-- Edit button -->
+    <button mat-icon-button
+            *ngIf="!mobile && type && canEdit"
+            class="hidden-xs hidden-sm"
+            [routerLink]="'/extraction/product/' + type.id"
+            [title]="'COMMON.BTN_EDIT'|translate"
+            [disabled]="loading">
+      <mat-icon>edit</mat-icon>
+    </button>
+
     <!-- Help button -->
     <button mat-icon-button
-            *ngIf="type?.description"
+            *ngIf="!mobile && type?.description"
             class="hidden-xs hidden-sm"
             [title]="'COMMON.BTN_SHOW_HELP'|translate"
             (click)="openHelpModal($event)">
       <mat-icon>help_outline</mat-icon>
     </button>
+
     <!-- select map modal -->
     <ion-button (click)="openSelectTypeModal($event)"
                 color="accent"
@@ -26,24 +37,28 @@
     </ion-button>
 
     <!-- options sub menu -->
-    <ion-button *ngIf="canEdit"
+    <ion-button *ngIf="mobile && canEdit"
                 [matMenuTriggerFor]="optionMenu">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
 </app-toolbar>
 
-<ion-toolbar color="secondary" visible-xs visible-sm>
-  <ion-text>
-    <div [innerHTML]="$title | async" class="ion-padding-start"></div>
-  </ion-text>
-  <!-- Help button -->
-  <button mat-icon-button slot="end"
-          *ngIf="type?.description"
-          [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
-          (click)="openHelpModal($event)">
-    <mat-icon>help_outline</mat-icon>
-  </button>
+<ion-toolbar color="secondary"
+             class="visible-xs visible-sm">
+  <ion-label class="ion-text-wrap"
+             [innerHTML]="$title | async">
+  </ion-label>
+
+  <ion-buttons slot="end">
+    <!-- Help button -->
+    <button mat-icon-button
+            *ngIf="type?.description"
+            [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+            (click)="openHelpModal($event)">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+  </ion-buttons>
 </ion-toolbar>
 
 <!-- options menu -->
@@ -143,6 +158,7 @@
 
   <!-- filter panel -->
   <div class="filter" #filterPanel
+       [attr._leaflet_disable_click]="true"
        [class.expanded]="filterExpansionPanel.expanded"
        [class.cdk-visually-hidden]="!type">
 
@@ -314,10 +330,10 @@
   </div>
 
   <!-- Details -->
-  <div class="details" #detailPanel>
-    <ion-card *ngIf="$details | async as details"
-              color="light"
-              @fadeInAnimation>
+  <div class="details" #detailPanel [attr._leaflet_disable_click]="true">
+    <ion-card color="light"
+              *ngIf="details$|push:'immediate'; let details"
+              @fadeInOutAnimation>
 
       <ion-card-header *ngIf="details.title; let title">
         <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
@@ -345,13 +361,13 @@
   </div>
 
   <!-- Bottom right -->
-  <div #bottomRightPanel>
+  <div #bottomRightPanel [attr._leaflet_disable_click]="true">
     <ion-row class="ion-align-self-end">
 
       <ion-col class="ion-align-self-end">
 
         <!-- chart -->
-        <ion-card *ngIf="$tech | async as tech; else addChartButton"
+        <ion-card *rxIf="$tech; let tech; else addChartButton"
                   color="light"
                   class="chart"
                   [class.chart-bar]="techChartOptions.type==='bar'"
@@ -430,9 +446,9 @@
           </ion-card-header>
           <ion-card-content>
             <ion-grid class="ion-no-padding">
-              <ion-row *ngFor="let item of $legendItems | async">
+              <ion-row *rxFor="let item of legendItems$">
                 <ion-col class="ion-no-padding" style="max-width: 10px !important;"
-                         [ngStyle]="{'background-color': item.color}">
+                         [style.background-color]="item.color.rgba()">
                 </ion-col>
                 <ion-col size="auto" style="padding-left: 8px;">
                   <ion-label nowrap>{{item.label}}</ion-label>

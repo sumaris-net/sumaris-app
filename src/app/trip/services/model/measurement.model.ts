@@ -124,7 +124,7 @@ export class MeasurementUtils {
     });
   }
 
-  static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): any {
+  static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): PmfmValue {
     switch (pmfm.type) {
       case 'qualitative_value':
         if (source.qualitativeValue && source.qualitativeValue.id) {
@@ -234,26 +234,47 @@ export class MeasurementUtils {
 
 export class MeasurementValuesUtils {
 
-  static valueEquals(v1: any,
-                     v2: any): boolean {
-    return (v1 === v2) || (v1 && v2 && isNotNil(v1.id) && v1.id === v2.id);
+  /**
+   * Extract pmfm id, used in a measurementValues object
+   * @param m
+   */
+  static getPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
+    return Object.getOwnPropertyNames(source || {})
+      .filter(key => key !== '__typename')
+      .map(key => parseInt(key))
+      .filter(pmfmId => !isNaN(pmfmId));
   }
 
   static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
     return (isNil(m1) && isNil(m2))
-      || (m1 && !(Object.getOwnPropertyNames(m1).some(pmfmId => !this.valueEquals(m1[pmfmId], m2[pmfmId]))))
+      || (m1 && !this.getPmfmIds({...m1, ...m2}).some(pmfmId => {
+        const isSame = PmfmValueUtils.equals(m1[pmfmId], m2?.[pmfmId]);
+        // DEBUG
+        if (!isSame) {
+          console.debug('TODO Value not equals, on pmfmId ' + pmfmId);
+        }
+        return !isSame;
+      }))
       || false;
   }
 
-  static equalsPmfms(m1: { [pmfmId: number]: any },
-                     m2: { [pmfmId: number]: any },
+  static equalsPmfms(m1: MeasurementFormValues | MeasurementModelValues,
+                     m2: MeasurementFormValues | MeasurementModelValues,
                      pmfms: IPmfm[]): boolean {
     return (isNil(m1) && isNil(m2))
-      || !pmfms.find(pmfm => !this.valueEquals(m1[pmfm.id], m2[pmfm.id]));
+      || !pmfms.some(pmfm => !PmfmValueUtils.equals(m1[pmfm.id], m2[pmfm.id]));
+  }
+
+  static valueEquals(v1: any, v2: any): boolean {
+    return PmfmValueUtils.equals(v1, v2);
   }
 
   static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean }): string | undefined {
     return PmfmValueUtils.valueToString(value, opts);
+  }
+
+  static hasPmfmValue(source: MeasurementFormValues | MeasurementModelValues, pmfmId: number, value: any) {
+    return PmfmValueUtils.equals(source[pmfmId], value);
   }
 
   static normalizeValueToModel(value: PmfmValue | PmfmValue[], pmfm: IPmfm): string {
@@ -328,12 +349,11 @@ export class MeasurementValuesUtils {
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts?.onlyExistingPmfms) {
-      pmfms = Object.getOwnPropertyNames(source || {})
-        .filter(controlName => controlName !== '__typename')
+      pmfms = this.getPmfmIds(source)
         .reduce((res, pmfmId) => {
-        const pmfm = pmfms.find(p => p.id === +pmfmId);
-        return pmfm ? res.concat(pmfm) : res;
-      }, []);
+          const pmfm = pmfms.find(p => p.id === pmfmId);
+          return pmfm ? res.concat(pmfm) : res;
+        }, []);
     }
 
     // Create target, or copy existing (e.g. useful to keep extra pmfms)
@@ -415,9 +435,7 @@ export class MeasurementValuesUtils {
   static asObject(source: MeasurementModelValues | MeasurementFormValues, opts?: DataEntityAsObjectOptions): MeasurementModelValues | MeasurementFormValues {
     if (!opts || opts.minify !== true || !source) return source;
 
-    return Object.getOwnPropertyNames(source)
-      .filter(controlName => controlName !== '__typename') // Ignore __typename
-      .reduce((target, pmfmId) => {
+    return this.getPmfmIds(source).reduce((target, pmfmId) => {
         target[pmfmId] = PmfmValueUtils.asObject(source[pmfmId]);
         return target;
       }, {});

@@ -11,10 +11,11 @@ import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
-import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-data.test';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 
 @Component({
@@ -32,12 +33,16 @@ export class BatchGroupFormTestPage implements OnInit {
   filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
   showSamplingBatch = true;
+  samplingBatchEnabled = true;
   allowSubBatches = true;
   defaultHasSubBatches = false;
   hasSubBatches = false;
-  showHasSubBatchesButton = true
-  ;
+  showHasSubBatchesButton = true;
+  showEstimatedWeight = true;
+
+  showChildrenWeight = true;
   samplingRatioFormat: SamplingRatioFormat;
+  taxonGroupsNoWeight: string[];
   samplingRatioFormats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
 
   $program = new BehaviorSubject<Program>(null);
@@ -45,6 +50,15 @@ export class BatchGroupFormTestPage implements OnInit {
   outputs: {
     [key: string]: string;
   } = {};
+
+  get childrenState(): Partial<BatchFormState> {
+    return {
+      showChildrenWeight: this.showChildrenWeight,
+      showSamplingBatch: this.showSamplingBatch,
+      samplingBatchEnabled: this.samplingBatchEnabled,
+      showEstimatedWeight: this.showEstimatedWeight,
+    };
+  }
 
   @ViewChild(BatchGroupForm, { static: true }) form: BatchGroupForm;
 
@@ -122,8 +136,8 @@ export class BatchGroupFormTestPage implements OnInit {
       });
 
     this.filterForm.patchValue({
-      //program: { id: 10, label: 'ADAP-MER' },
-      program: { id: 70, label: 'APASE' },
+      program: { id: 10, label: 'ADAP-MER' },
+      //program: { id: 70, label: 'APASE' },
       gear: { id: 6, label: 'OTB' },
       example: { id: 1, label: 'default' },
     });
@@ -140,6 +154,7 @@ export class BatchGroupFormTestPage implements OnInit {
     this.allowSubBatches = hasBatchMeasure;
     this.showSamplingBatch = hasBatchMeasure;
     this.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
+    this.taxonGroupsNoWeight = program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
 
     this.$program.next(program);
   }
@@ -152,7 +167,8 @@ export class BatchGroupFormTestPage implements OnInit {
     await firstNotNilPromise(this.$program);
 
     // DEBUG
-    //console.debug('[batch-group-form-test] Applying data:', data);
+    console.debug('[batch-group-form-test] Applying data:', data);
+
     this.markAsReady();
     this.form.value = data && data.clone() || new BatchGroup();
     this.form.enable();

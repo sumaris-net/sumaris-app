@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, Self, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -11,6 +11,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
+  AccountService,
   Alerts,
   AppErrorWithDetails,
   DateUtils,
@@ -27,7 +28,7 @@ import {
   LocalSettingsService,
   NetworkService,
   PromiseEvent,
-  ReferentialRef,
+  ReferentialRef, sleep,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -35,7 +36,7 @@ import { Operation, Trip } from '../services/model/trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
-import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -52,6 +53,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import moment from 'moment';
+import { PredefinedColors } from '@ionic/core';
 
 export const TripPageTabs = {
   GENERAL: 0,
@@ -97,6 +99,9 @@ export class TripPage
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
+  canCopyLocally = false;
+
+  @Input() toolbarColor: PredefinedColors = 'primary';
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('saleForm', {static: true}) saleForm: SaleForm;
@@ -122,6 +127,7 @@ export class TripPage
     protected operationService: OperationService,
     protected context: ContextService,
     protected tripContext: TripContextService,
+    protected accountService: AccountService,
     public network: NetworkService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
@@ -153,7 +159,7 @@ export class TripPage
       this.onUpdateView
         .pipe(
           filter(_ => !this.loading),
-          debounceTime(200)
+          debounceTime(250)
         )
         .subscribe(() => this.operationsTable.onRefresh.emit()));
 
@@ -221,11 +227,29 @@ export class TripPage
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
 
       // Reset other errors
+      this.physicalGearsTable.resetError(opts);
       super.setError(undefined, opts);
-    } else {
+    }
+
+    // If errors in gears
+    else if (typeof error !== 'string' && error?.details?.errors?.gears) {
+      // Show error in operation table
+      this.physicalGearsTable.setError('TRIP.ERROR.INVALID_GEARS');
+
+      // Open the operation tab
+      this.tabGroup.selectedIndex = TripPageTabs.PHYSICAL_GEARS;
+
+      // Reset other errors
+      this.operationsTable.resetError(opts);
+      super.setError(undefined, opts);
+    }
+
+    // Error in the main form
+    else {
       super.setError(error, opts);
 
-      // Reset operation filter and error
+      // Reset error in table (and filter in op table)
+      this.physicalGearsTable.resetError(opts);
       this.operationsTable.resetError(opts);
     }
   }
@@ -294,6 +318,7 @@ export class TripPage
     this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.physicalGearsTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
+    this.physicalGearsTable.setModalOption('minChildrenCount', program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
     // Operation table
@@ -408,6 +433,8 @@ export class TripPage
     // program
     const programLabel =  data.program?.label;
     if (programLabel) this.$programLabel.next(programLabel);
+
+    this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
   updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -430,7 +457,9 @@ export class TripPage
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+    const reportType = this.program?.getProperty(ProgramProperties.TRIP_REPORT_TYPE) || ProgramProperties.TRIP_REPORT_TYPE.defaultValue;
+    const typePath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
   }
 
   protected async setValue(data: Trip) {
@@ -505,7 +534,7 @@ export class TripPage
     });
   }
 
-  async onNewOperation(event?: any) {
+  async onNewOperation(event?: any, operationQueryParams?: any) {
     const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
       ? await this.save(event)
@@ -525,11 +554,11 @@ export class TripPage
     // Reset operation
     this.tripContext?.resetValue('operation');
 
-    // OPen the operation editor
+    // Open the operation editor
     setTimeout(async () => {
-      const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-      await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
-        queryParams: {}
+      const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+      await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, 'new'], {
+        queryParams: operationQueryParams || {}
       });
       this.markAsLoaded();
     });
@@ -561,7 +590,9 @@ export class TripPage
       measurements: [
         { numericalValue: 1, pmfmId: 21}, // NB fisherman
         { numericalValue: 1, pmfmId: 188} // GPS_USED
-      ]
+      ],
+      // Keep existing synchronizationStatus
+      synchronizationStatus: this.data?.synchronizationStatus,
     });
 
     this.measurementsForm.value = trip.measurements;
@@ -614,9 +645,11 @@ export class TripPage
       excludeChildGear: (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR),
       excludeParentGear: (acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR)
     };
+    const showGearColumn = (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR);
+    const includedPmfmIds = this.tripContext.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS)
     const distinctBy = ['gear.id', 'rankOrder',
       ...(this.physicalGearsTable.pmfms||[])
-        .filter(p => p.required && !p.hidden)
+        .filter(p => (p.required && !p.hidden) || includedPmfmIds?.includes(p.id))
         .map(p => `measurementValues.${p.id}`)
     ];
 
@@ -629,7 +662,8 @@ export class TripPage
         acquisitionLevel,
         filter,
         distinctBy,
-        withOffline
+        withOffline,
+        showGearColumn
       },
       backdropDismiss: false,
       keyboardClose: true,
@@ -659,7 +693,11 @@ export class TripPage
   }
 
   async save(event?: Event, opts?: any): Promise<boolean> {
-    event?.preventDefault();
+    if (this.saving || this.loading) return false;
+
+    // Workaround to avoid the option menu to be selected
+    if (this.mobile) await sleep(50);
+
     return super.save(event, opts);
   }
 
@@ -771,7 +809,6 @@ export class TripPage
           })
       );
     }
-
   }
 
   protected markForCheck() {

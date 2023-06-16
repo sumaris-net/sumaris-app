@@ -1,3 +1,5 @@
+import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
+
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -53,8 +55,11 @@ export const TaxonomicLevelIds = {
 };
 
 export const PmfmIds = {
+  GEAR_SPEED: 9,
+  SEA_STATE: 33,
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
+  DISCARD_WEIGHT: 56,
   TAG_ID: 82,
   DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,
@@ -72,6 +77,8 @@ export const PmfmIds = {
   MEASURE_TIME: 103,
   RELEASE_LATITUDE: 110,
   RELEASE_LONGITUDE: 111,
+  SELECTIVITY_DEVICE: 4,
+  SELECTIVITY_DEVICE_APASE: 435,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
@@ -117,7 +124,10 @@ export const PmfmIds = {
   /* APASE */
   CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
-  TRAWL_SIZE_CAT: 418
+  TRAWL_SIZE_CAT: 418,
+  BATCH_SORTING: 176, // Vrac/Hors Vrac
+
+  HULL_MATERIAL: 433
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -151,6 +161,13 @@ export const QualitativeValueIds = {
   BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord
     STARBOARD: 474 // Tribord
+  },
+  BATCH_SORTING: {
+    BULK: 390, // Vrac
+    NON_BULK: 391 // Hors Vrac
+  },
+  SEX: {
+    UNSEXED: 188 // Non sexe
   }
 };
 
@@ -230,7 +247,8 @@ export const PmfmLabelPatterns = {
   LONGITUDE: /^LONGITUDE$/i,
   LENGTH: /LENGTH/i,
   WEIGHT: /WEIGHT$/i,
-  DRESSING: /^DRESSING/i
+  DRESSING: /^DRESSING/i,
+  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i
 };
 
 export const UnitIds = {
@@ -248,6 +266,7 @@ export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
+  MINUTES: 'min',
   // Weight units
   TON: <WeightUnitSymbol>'t',
   KG: <WeightUnitSymbol>'kg',
@@ -345,11 +364,24 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
+export enum ObjectTypeEnum {
+  TRIP = 'FISHING_TRIP',
+  OBSERVED_LOCATION = 'OBSERVED_LOCATION',
+}
+
 export class ModelEnumUtils {
   static refreshDefaultValues() {
     MethodIdGroups.CALCULATED = Methods.getCalculatedIds();
     LocationLevelGroups.FISHING_AREA = LocationLevels.getFishingAreaLevelIds();
     LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = LocationLevels.getWeightLengthConversionAreaLevelIds();
     LocationLevelGroups.STATISTICAL_RECTANGLE = LocationLevels.getStatisticalRectangleLevelIds();
+  }
+
+  static getObjectTypeByEntityName(entityName: string): ObjectTypeEnum {
+    if (!entityName) throw new Error('Missing argument \'entityName\'');
+    const label = changeCaseToUnderscore(entityName).toUpperCase();
+    const value = ObjectTypeEnum[label];
+    if (value) return value;
+    throw new Error('Missing an ObjectType for entityName: ' + entityName);
   }
 }

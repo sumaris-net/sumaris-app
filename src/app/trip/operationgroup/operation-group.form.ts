@@ -37,7 +37,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
@@ -46,7 +46,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     protected metierService: MetierService,
     protected accountService: AccountService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false
       })

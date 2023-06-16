@@ -1,7 +1,7 @@
 <app-modal-toolbar color="secondary"
                    [title]="$title|async"
-                   (cancel)="cancel()"
-                   (validate)="close($event)"
+                   (cancel)="close($event)"
+                   (validate)="onSubmitIfDirty($event)"
                    [canValidate]="!loading && !disabled"
                    [showSpinner]="loading">
 
@@ -30,7 +30,7 @@
   <app-batch-group-form #form
                         [showTaxonGroup]="showTaxonGroup"
                         [showTaxonName]="showTaxonName"
-                        [showChildrenSamplingBatch]="showSamplingBatch"
+                        [showComment]="showComment"
                         [availableTaxonGroups]="availableTaxonGroups"
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
                         [allowSubBatches]="allowSubBatches"
@@ -41,17 +41,17 @@
                         [samplingRatioFormat]="samplingRatioFormat"
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
-                        [qvPmfm]="qvPmfm"
                         [childrenPmfms]="childrenPmfms"
+                        [usageMode]="usageMode"
+                        [qvPmfm]="qvPmfm"
                         [pmfms]="pmfms"
                         [mobile]="mobile"
                         [debug]="debug">
 
 
     <!-- open individual modal -->
-    <ion-col beforeChildren *ngIf="form.hasSubBatches && allowSubBatches"
-             size="12" [sizeMd]="form.showHasSubBatchesButton ? 6 : 12"
-             class="ion-padding-bottom"
+    <ion-col afterSpecies *ngIf="!enableBulkMode && form.hasSubBatches && allowSubBatches"
+             size="12" [sizeMd]="form.showHasSubBatchesButton || !form.showTaxonName ? 6 : 12"
              [class.ion-padding-top]="form.showHasSubBatchesButton">
       <ion-button color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">
@@ -67,29 +67,72 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
+<ion-footer *ngIf="!mobile || enableBulkMode">
 
   <ion-toolbar>
 
     <ion-row class="ion-no-padding" nowrap>
-      <ion-col></ion-col>
+      <ng-container *ngIf="!enableBulkMode; else bulkButtons">
+        <ion-col></ion-col>
 
-      <!-- buttons -->
-      <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel()">
-          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
-        </ion-button>
+        <!-- buttons -->
+        <ion-col size="auto">
+          <ion-button fill="clear" color="dark" (click)="close()">
+            <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+          </ion-button>
 
-        <ion-button [fill]="loading ? 'clear' : 'solid'"
-                    [disabled]="disabled || loading"
-                    (keyup.enter)="close($event)"
-                    (click)="close($event)" color="tertiary">
-          <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
-          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
-        </ion-button>
-      </ion-col>
+          <ion-button [fill]="loading ? 'clear' : 'solid'"
+                      [disabled]="disabled || loading"
+                      (keyup.enter)="close($event)"
+                      (click)="close($event)" color="tertiary">
+            <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
+            <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+          </ion-button>
+        </ion-col>
+      </ng-container>
     </ion-row>
 
 
   </ion-toolbar>
 </ion-footer>
+
+<!-- open measure button -->
+<ng-template #subBatchesButton>
+
+</ng-template>
+
+<!-- Buttons in bulk mode -->
+<ng-template #bulkButtons>
+  <!-- open individual modal -->
+  <ion-col *ngIf="form.hasSubBatches && allowSubBatches">
+    <ion-button color="tertiary"
+                fill="outline" expand="block" shape="round"
+                (click)="onShowSubBatchesButtonClick($event)">
+      <mat-icon slot="start">assessment</mat-icon>
+      <ion-label>
+        <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
+        <span *ngIf="data?.observedIndividualCount; let count">&nbsp;({{count}})</span>
+      </ion-label>
+    </ion-button>
+  </ion-col>
+
+  <ion-col>
+    <ion-button class="mat-form-field-button button-round"
+                fill="solid" expand="full"
+                [disabled]="disabled || form.invalid"
+                [color]="form.invalid ? 'light' : 'tertiary'"
+                (click)="onSubmit($event)">
+      <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
+    </ion-button>
+  </ion-col>
+  <ion-col>
+    <ion-button class="mat-form-field-button button-round"
+                fill="solid" expand="full"
+                [disabled]="disabled || form.invalid"
+                [color]="form.invalid ? 'light' : 'tertiary'"
+                (click)="onSubmitAndNext($event)">
+      <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
+  </ion-col>
+</ng-template>

@@ -41,13 +41,13 @@ const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActi
   comments
   measurementValues
   metiers {
-    ...ReferentialFragment
+    ...LightReferentialFragment
   }
   observedLocationId
   landingId
   tripId
 }
-${ReferentialFragments.referential}`;
+${ReferentialFragments.lightReferential}`;
 
 const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on AggregatedLandingVO {
   __typename
@@ -61,7 +61,7 @@ const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on Aggr
   }
 }
 ${VesselSnapshotFragments.lightVesselSnapshot}
-${ReferentialFragments.referential}
+${ReferentialFragments.lightReferential}
 ${VesselActivityFragment}`;
 
 const Queries: BaseEntityGraphqlQueries = {

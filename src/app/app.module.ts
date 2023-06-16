@@ -10,7 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
-  APP_CONFIG_OPTIONS,
+  APP_CONFIG_OPTIONS, APP_DEBUG_DATA_SERVICE,
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
@@ -18,9 +18,11 @@ import {
   APP_LOCAL_SETTINGS,
   APP_LOCAL_SETTINGS_OPTIONS,
   APP_LOCAL_STORAGE_TYPE_POLICIES,
-  APP_LOCALES,
+  APP_LOCALES, APP_LOGGING_SERVICE,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
+  APP_PROGRESS_BAR_SERVICE,
+  APP_SETTINGS_MENU_ITEMS,
   APP_STORAGE,
   APP_TESTING_PAGES,
   APP_USER_EVENT_SERVICE,
@@ -33,15 +35,18 @@ import {
   FormFieldDefinitionMap,
   JobModule,
   LocalSettings,
+  LocalSettingsOptions, LoggingService,
   MenuItem,
   MenuOptions,
+  ProgressBarService,
+  ProgressInterceptor,
   SOCIAL_TESTING_PAGES,
   StorageService,
   TestingPage,
   UserEventModule
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import {HTTP_INTERCEPTORS, HttpClient, HttpClientModule} from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -72,8 +77,12 @@ import { ApolloModule } from 'apollo-angular';
 import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
-import {ProgressInterceptor} from '@sumaris-net/ngx-components';
+import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
+import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
+import { TripService } from '@app/trip/services/trip.service';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { DevicePositionService } from '@app/data/services/device-position.service';
+import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 
 @NgModule({
   declarations: [
@@ -136,7 +145,6 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
     Network,
     AudioManagement,
     Downloader,
-    //Geolocation,
 
     {provide: APP_BASE_HREF, useFactory: () => {
         try {
@@ -196,17 +204,25 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 
+    // Logging
+    {provide: APP_LOGGING_SERVICE, useClass: LoggingService},
+
     // User event
     {provide: UserEventService, useClass: UserEventService},
     {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
+    {provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService},
 
     // Job
     {provide: JobProgressionService, useClass: JobProgressionService},
     {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
 
+    // Device position
+    {provide: DevicePositionService, useClass: DevicePositionService},
+
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
       ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
+      ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 
@@ -221,10 +237,15 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
     },
 
     // Setting options definition
-    { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
-        ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
-        ...VESSEL_LOCAL_SETTINGS_OPTIONS,
-        ...TRIP_LOCAL_SETTINGS_OPTIONS
+    {
+      provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <LocalSettingsOptions>{
+        serializeAsString: true,
+        options: {
+          ...SHARED_LOCAL_SETTINGS_OPTIONS,
+          ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+          ...VESSEL_LOCAL_SETTINGS_OPTIONS,
+          ...TRIP_LOCAL_SETTINGS_OPTIONS
+        }
       }
     },
 
@@ -237,7 +258,8 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,
       ...EXTRACTION_CONFIG_OPTIONS,
-      ...TRIP_CONFIG_OPTIONS
+      ...TRIP_CONFIG_OPTIONS,
+      ...DEVICE_POSITION_CONFIG_OPTION,
     }},
 
     // Menu config
@@ -270,6 +292,7 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
+        {title: 'MENU.DEVICE_POSITION', path: '/extraction/device-position', icon: 'location-outline', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -277,6 +300,8 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
         {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+
+        {title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
         // Settings
@@ -311,6 +336,11 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
     },
+
+    // Settings menu options
+    {provide: APP_SETTINGS_MENU_ITEMS, useValue: <MenuItem[]>[
+        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR'},
+      ]},
 
     // About developers
     {
@@ -394,6 +424,10 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
         },
         backColor: '#0000'
       }
+    },
+    {
+      provide: DEVICE_POSITION_ENTITY_SERVICES,
+      useValue: [TripService, ObservedLocationService],
     }
   ],
   bootstrap: [AppComponent],

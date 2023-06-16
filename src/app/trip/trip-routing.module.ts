@@ -24,7 +24,11 @@ const routes: Routes = [
         pathMatch: 'full',
         component: TripPage,
         runGuardsAndResolvers: 'pathParamsChange',
-        canDeactivate: [ComponentDirtyGuard]
+        canDeactivate: [ComponentDirtyGuard],
+        data: {
+          profile: 'USER',
+          pathIdParam: 'tripId'
+        },
       },
       {
         path: 'operation',

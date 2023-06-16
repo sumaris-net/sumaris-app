@@ -1,13 +1,16 @@
-import {Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil,isNotEmptyArray,
+import {
+  Entity, EntityAsObjectOptions, EntityClass, EntityUtils, IReferentialRef, isNil, isNotEmptyArray,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
-  removeDuplicatesFromArray, toNumber} from '@sumaris-net/ngx-components';
+  removeDuplicatesFromArray, toNumber
+} from '@sumaris-net/ngx-components';
 import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion} from './pmfm.model';
 import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
 import {MethodIds, UnitIds} from './model.enum';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
 import { arrayEquals } from '@app/shared/functions';
+import { StrategyAsObjectOptions } from '@app/referential/services/model/strategy.model';
 
 
 @EntityClass({typename: 'PmfmStrategyVO'})
@@ -70,16 +73,16 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     super(PmfmStrategy.TYPENAME);
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    const target: any = super.asObject(options);
+  asObject(opts?: StrategyAsObjectOptions): any {
+    const target: any = super.asObject(opts);
     target.acquisitionLevel = PmfmStrategy.getAcquisitionLevelLabel(target);
 
     target.pmfmId = PmfmStrategy.getPmfmId(this);
-    target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...options});
-    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...options});
+    target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...opts});
+    target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...opts});
+    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...opts});
+    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...opts});
+    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...opts});
 
     // Serialize default value (into a number - because of the DB column's type)
     target.defaultValue = PmfmValueUtils.toModelValueAsNumber(this.defaultValue, this.pmfm);
@@ -90,6 +93,44 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     if (!this.isNumeric) {
       delete target.minValue;
       delete target.maxValue;
+    }
+
+    // CLean remote id
+    if (opts && opts.keepRemoteId === false) {
+      delete target.id;
+      delete target.updateDate;
+      delete target.strategyId;
+      delete target.pmfmId;
+      if (EntityUtils.isRemote(target.pmfm)) {
+        delete target.pmfm.id;
+        delete target.pmfm.updateDate;
+        delete target.pmfm.creationDate;
+        target.pmfm.qualitativeValues?.filter(EntityUtils.isRemote)
+          .forEach(qv => {
+            delete qv.id;
+            delete qv.updateDate;
+            delete qv.creationDate;
+          });
+        if (EntityUtils.isRemote(target.pmfm.parameter)) {
+          delete target.pmfm.parameter.id;
+          delete target.pmfm.parameter.updateDate;
+          delete target.pmfm.parameter.creationDate;
+          target.pmfm.parameter.qualitativeValues?.filter(EntityUtils.isRemote)
+            .forEach(qv => {
+              delete qv.id;
+              delete qv.updateDate;
+              delete qv.creationDate;
+            });
+        }
+
+      }
+      if (EntityUtils.isRemote(target.parameter)) delete target.parameter.id;
+      if (EntityUtils.isRemote(target.matrix)) delete target.matrix.id;
+      if (EntityUtils.isRemote(target.fraction)) delete target.fraction.id;
+      if (EntityUtils.isRemote(target.method)) delete target.method.id;
+      if (EntityUtils.isRemote(target.defaultValue)) delete target.defaultValue.id;
+      // Warn: do not replace gearIds, taxonGroupIds, referenceTaxonIds
+      // to avoid losing some data. Should be done by caller
     }
 
     return target;
@@ -187,7 +228,11 @@ export class DenormalizedPmfmStrategy
       methodId: source.methodId,
       unitLabel: source.unitLabel,
       isComputed: PmfmUtils.isComputed(source),
-      qualitativeValues: isNotEmptyArray(source.parameter.qualitativeValues) ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject) : undefined,
+      qualitativeValues: isNotEmptyArray(source.qualitativeValues)
+        ? source.qualitativeValues.map(ReferentialRef.fromObject)
+        : isNotEmptyArray(source.parameter.qualitativeValues)
+          ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject)
+          : undefined,
       displayConversion: source.displayConversion
     });
     return target;

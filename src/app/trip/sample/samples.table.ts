@@ -38,7 +38,7 @@ import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -110,6 +110,7 @@ export class SamplesTable
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
+  @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
   @Input() showError = true;
   @Input() showToolbar: boolean;
@@ -137,12 +138,16 @@ export class SamplesTable
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
   @Input() computedPmfmGroups: string[];
   @Input() pmfmIdsToCopy: number[];
-  @Input() pmfmValueColorWith: PmfmValueColorFn = null;
+  @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn = null;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
-      this.showGroupHeader = true;
-      this.showToolbar = false;
+      if (value && Object.keys(value).length) {
+        this.showGroupHeader = true;
+      }
+      else {
+        this.showGroupHeader = false;
+      }
       this.$pmfmGroups.next(value);
     }
   }
@@ -258,9 +263,13 @@ export class SamplesTable
 
   ngOnInit() {
     this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
+    this.canEdit
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
+
+    // Always add a confirmation before deletion, if mobile
+    if (this.mobile) this.confirmBeforeDelete = true;
 
     super.ngOnInit();
 
@@ -367,11 +376,12 @@ export class SamplesTable
         } else {
           await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
           row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
-          isNew = true; // Next row should be new
         }
         // Prepare new sample
         const newData = new Sample();
         await this.onNewEntity(newData);
+        isNew = true; // Next row should be new
+
         return newData;
       },
       openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
@@ -575,7 +585,7 @@ export class SamplesTable
     }, {
       allowMultiple: false
     });
-    if (!pmfmIds) return; // User cancelled
+    if (isEmptyArray(pmfmIds)) return; // User cancelled
 
     console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
     await this.addPmfmColumns(pmfmIds);
@@ -599,12 +609,18 @@ export class SamplesTable
   }
 
   async openImagesModal(event: Event, row: TableElement<Sample>){
+    const images = row.currentData.images;
+
+    // Skip if no images to display
+    if (this.disabled && isEmptyArray(images)) return;
+
     event.stopPropagation();
 
     const modal = await this.modalCtrl.create({
       component: AppImageAttachmentsModal,
       componentProps: <IImageModalOptions>{
-        data: row.currentData.images
+        data: images,
+        disabled: this.disabled
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -740,16 +756,15 @@ export class SamplesTable
     if (!this.allowRowDetail) return false;
 
     const {data, role} = await this.openDetailModal();
-    if (data) {
-      if (role === 'DELETE') {
-        // Nothing to DO, because is not created yet
-        return false;
-      }
-      else {
-        await this.addOrUpdateEntityToTable(data);
-      }
+    if (data && role !== 'delete') {
+      // Can be an update (is user use the 'save and new' modal's button),
+      await this.addOrUpdateEntityToTable(data);
+      return true;
     }
-    return true;
+    else {
+      this.editedRow = null;
+      return false;
+    }
   }
 
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
@@ -766,18 +781,14 @@ export class SamplesTable
     this.prepareEntityToSave(dataToOpen);
 
     const {data, role} = await this.openDetailModal(dataToOpen, row);
-    if (data) {
-      if (role === 'DELETE') {
-        await this.deleteEntity(null, data);
-        return false;
-      }
-      else {
-        await this.updateEntityToTable(data, row, {confirmEdit: false});
-      }
+    if (data && role !== 'delete') {
+      // Can be an update (is user use the 'save and new' modal's button),
+      await this.addOrUpdateEntityToTable(data);
+      return true;
     } else {
       this.editedRow = null;
+      return false;
     }
-    return true;
   }
 
   protected prepareEntityToSave(data: Sample) {
@@ -795,16 +806,18 @@ export class SamplesTable
 
     // Load each pmfms, by id
     const fullPmfms = await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-    const denormalizedPmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+    let pmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     // Add weight conversion
     if (this.weightDisplayedUnit) {
-      PmfmUtils.setWeightUnitConversions(denormalizedPmfms, this.weightDisplayedUnit, {clone: false});
+      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit, {clone: false});
+
+      console.debug('[samples-table] Add new pmfms: ', pmfms);
     }
 
     this.pmfms = [
       ...this.pmfms,
-      ...denormalizedPmfms
+      ...pmfms
     ];
   }
 
@@ -829,11 +842,11 @@ export class SamplesTable
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res || isEmptyArray(res.data)) return; // CANCELLED
+    const { data } = await modal.onDidDismiss();
+    if (isEmptyArray(data)) return; // CANCELLED
 
     // Return pmfm ids
-    return res.data.map(p => p.id);
+    return data.map(p => p.id);
   }
 
   /**
@@ -942,6 +955,12 @@ export class SamplesTable
       if (this.weightDisplayedUnit) {
         pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
       }
+    }
+
+    // DEBUG
+    const hasEmptyPmfm = pmfms.some(p => isNil(p?.id));
+    if (hasEmptyPmfm) {
+      console.error('[samples-table] Invalid PMFMS: ', pmfms);
     }
 
     // Add replacement map, for sort by

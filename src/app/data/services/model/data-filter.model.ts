@@ -1,12 +1,8 @@
-import { EntityFilter, isEmptyArray, isNil } from '@sumaris-net/ngx-components';
-import {DataEntity} from "./data-entity.model";
-import {Department}  from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import { Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { DataEntity } from './data-entity.model';
 import { DataQualityStatusIdType } from '@app/data/services/model/model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export abstract class DataEntityFilter<
   T extends DataEntityFilter<T, E, EID, AO, FO>,
@@ -36,9 +32,13 @@ export abstract class DataEntityFilter<
       target.recorderDepartmentId = this.recorderDepartment && isNotNil(this.recorderDepartment.id) ? this.recorderDepartment.id : undefined;
       delete target.recorderDepartment;
       target.qualityFlagIds = isNotNil(this.qualityFlagId) ? [this.qualityFlagId] : undefined;
-      delete target.qualityFlagIds;
       delete target.qualityFlagId;
       target.dataQualityStatus = this.dataQualityStatus && [this.dataQualityStatus] || undefined;
+
+      // If filter on NOT qualified data, remove quality flag
+      if (Array.isArray(target.dataQualityStatus) && target.dataQualityStatus.length && !target.dataQualityStatus.includes(<DataQualityStatusIdType>'QUALIFIED')) {
+        delete target.qualityFlagIds;
+      }
     }
     else {
       target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({...opts, ...NOT_MINIFY_OPTIONS});

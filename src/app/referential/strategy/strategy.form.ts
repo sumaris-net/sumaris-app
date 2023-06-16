@@ -12,11 +12,11 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import { PmfmStrategiesTable} from './pmfm-strategies.table';
+import { PmfmStrategiesTable } from './pmfm-strategies.table';
 import { ReferentialRefService } from '../services/referential-ref.service';
-import { ISelectReferentialModalOptions, SelectReferentialModal } from '../list/select-referential.modal';
+import { ISelectReferentialModalOptions, SelectReferentialModal } from '../table/select-referential.modal';
 import { ModalController } from '@ionic/angular';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { BehaviorSubject } from 'rxjs';
@@ -25,11 +25,9 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { Strategy, TaxonGroupStrategy, TaxonNameStrategy } from '../services/model/strategy.model';
 import { Program } from '../services/model/program.model';
-import { ReferentialFilter } from '../services/filter/referential.filter';
-import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
-import { IBaseSelectEntityModalOptions } from '@app/referential/list/base-select-entity.modal';
+import { MatSidenav } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-strategy-form',
@@ -105,6 +103,10 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
       }
     ]};
 
+  @Input() program: Program;
+  @Input() showBaseForm = true;
+  @Input() allowMultiple = false;
+
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
   @ViewChild('locationList', { static: true }) locationListForm: AppListForm;
@@ -112,6 +114,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
   @ViewChild('taxonGroupList', { static: true }) taxonGroupListForm: AppListForm;
   @ViewChild('taxonNameList', { static: true }) taxonNameListForm: AppListForm;
   @ViewChild('pmfmsTable', { static: true }) pmfmsTable: PmfmStrategiesTable;
+  @ViewChild('sidenav') sidenav: MatSidenav;
 
   get form(): UntypedFormGroup {
     return this.referentialForm.form;
@@ -122,10 +125,10 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     return firstChildWithError && firstChildWithError.error;
   }
 
-  @Input() program: Program;
-  @Input() showBaseForm = true;
+  get filterCriteriaCount() {
+    return this.pmfmsTable?.filterCriteriaCount || 0;
+  }
 
-  @Input() allowMultiple = false;
 
   constructor(
     injector: Injector,
@@ -243,7 +246,10 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
     const modal = await this.modalCtrl.create({
       component: SelectReferentialModal,
-      componentProps: opts,
+      componentProps: {
+        allowMultipleSelection: true,
+        ...opts
+      },
       keyboardClose: true,
       cssClass: 'modal-large'
     });
@@ -360,7 +366,9 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     this.locationListForm.value = []; //data.locations;
 
     this.gearListForm.value = data.gears;
-    this.taxonGroupListForm.value = data.taxonGroups;
+    this.taxonGroupListForm.value = data.taxonGroups?.sort((a, b) => {
+      return ('' + a.taxonGroup.label).localeCompare(b.taxonGroup.label);
+    });
     this.taxonNameListForm.value = data.taxonNames;
 
 
@@ -497,8 +505,36 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     return item && item.name || '';
   }
 
+  openFilterPanel() {
+    if (!this.sidenav?.opened) this.sidenav?.open();
+  }
+
+  closeFilterPanel() {
+    this.sidenav?.close();
+    this.markForCheck();
+  }
+
+  toggleFilterPanel() {
+    this.sidenav?.toggle();
+    this.markForCheck();
+  }
+
+  resetFilter() {
+    this.patchPmfmStrategyFilter({
+      referenceTaxonIds: null,
+      locationIds: null,
+      taxonGroupIds: null,
+      gearIds: null
+    });
+  }
+
+
   referentialToString = referentialToString;
   referentialEquals = ReferentialUtils.equals;
+
+  closeFloatingPanel() {
+    this.sidenav.close();
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

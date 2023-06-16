@@ -1,13 +1,12 @@
-import { Injectable, Injector } from '@angular/core';
+import {Injectable, Injector, Optional} from '@angular/core';
 import {
-  AccountService, AppErrorWithDetails,
+  AccountService,
   AppFormUtils,
   arrayDistinct,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
-  EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
@@ -20,28 +19,28 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
-import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
+import {COPY_LOCALLY_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
 import { ObservedLocation } from './model/observed-location.model';
-import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
-import { IDataEntityQualityService } from '../../data/services/data-quality-service.class';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from './landing.service';
-import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
+import {IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from './model/landing.model';
 import { ObservedLocationValidatorService } from './validator/observed-location.validator';
-import { environment } from '../../../environments/environment';
-import { VesselSnapshotFragments } from '../../referential/services/vessel-snapshot.service';
+import { environment } from '@environments/environment';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { OBSERVED_LOCATION_FEATURE_NAME } from './config/trip.config';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VESSEL_FEATURE_NAME } from '../../vessel/services/config/vessel.config';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { LandingFilter } from './filter/landing.filter';
 import { ObservedLocationFilter } from './filter/observed-location.filter';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
@@ -54,9 +53,16 @@ import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.m
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
 import moment from 'moment';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {OverlayEventDetail} from '@ionic/core';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 
-export interface ObservedLocationSaveOptions extends EntitySaveOptions {
+export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
   enableOptimisticResponse?: boolean; // True by default
 }
@@ -266,7 +272,10 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
     protected landingService: LandingService,
-    protected aggregatedLandingService: AggregatedLandingService
+    protected aggregatedLandingService: AggregatedLandingService,
+    protected trashRemoteService: TrashRemoteService,
+    @Optional() protected translate: TranslateService,
+    @Optional() protected toastController: ToastController
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
@@ -401,11 +410,34 @@ export class ObservedLocationService
     }
   }
 
-  public listenChanges(id: number, opts?: {
-    interval?: number;
-    fetchPolicy: FetchPolicy;
-  }): Observable<ObservedLocation> {
-    if (!id && id !== 0) throw new Error('Missing argument \'id\' ');
+  async hasOfflineData(): Promise<boolean> {
+    const result = await super.hasOfflineData();
+    if (result) return result;
+
+    const res = await this.entities.loadAll(ObservedLocation.TYPENAME, {
+      offset: 0,
+      size: 0
+    });
+    return res && res.total > 0;
+  }
+
+  public listenChanges(id: number, opts?: EntityServiceListenChangesOptions): Observable<ObservedLocation> {
+    if (isNil(id)) throw new Error('Missing argument \'id\' ');
+
+    // If local entity
+    if (EntityUtils.isLocalId(id)) {
+      if (this._debug) console.debug(this._logPrefix + `Listening for local changes on ${this._logTypeName} {${id}}...`);
+      return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
+        .pipe(
+          map(({data}) => {
+            const json = isNotEmptyArray(data) && data[0];
+            const entity = (!opts || opts.toEntity !== false) ? this.fromObject(json) : json;
+            // Set an updateDate, to force update detection
+            if (entity && this._debug) console.debug(this._logPrefix + `${this._logTypeName} {${id}} updated locally !`, entity);
+            return entity;
+          })
+        );
+    }
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
@@ -428,11 +460,9 @@ export class ObservedLocationService
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
-    const isNew = isNil(entity.id);
 
     // If is a local entity: force a local save
-    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
-    if (isLocal) {
+    if (RootDataEntityUtils.isLocal(entity)) {
       return this.saveLocally(entity, opts);
     }
 
@@ -452,7 +482,7 @@ export class ObservedLocationService
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
+    if (RootDataEntityUtils.isNew(entity)) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug('[observed-location-service] Using minify object, to send:', json);
 
     const variables = {
@@ -475,7 +505,7 @@ export class ObservedLocationService
         }
 
         // Add to cache
-        if (isNew) {
+        if (RootDataEntityUtils.isNew(entity)) {
           this.insertIntoMutableCachedQueries(proxy, {
             queries: this.getLoadQueries(),
             data: savedEntity
@@ -485,11 +515,24 @@ export class ObservedLocationService
     });
 
     // Update date of children entities, if need (see IMAGINE-276)
-    if (!isNew) {
+    if (!RootDataEntityUtils.isNew(entity)) {
       await this.updateChildrenDate(entity);
     }
 
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
     return entity;
+  }
+
+  async saveAll(entities: ObservedLocation[], opts?: ObservedLocationSaveOptions): Promise<ObservedLocation[]> {
+    const result = await super.saveAll(entities, opts);
+
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next(result);
+    }
+
+    return result;
   }
 
   async saveLocally(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -551,7 +594,55 @@ export class ObservedLocationService
       await this.updateChildrenDate(entity);
     }
 
+    if (!opts || opts.emitEvent !== false) {
+      this.onSave.next([entity]);
+    }
+
     return entity;
+  }
+
+  async copyLocally(source: ObservedLocation, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
+    console.debug('[observed-location-service] Copy trip locally...', source);
+
+    opts = {
+      keepRemoteId: false,
+      deletedFromTrash: false,
+      withLanding: true,
+      ...opts
+    };
+    const isLocal = RootDataEntityUtils.isLocal(source);
+
+    // Create a new entity (without id and updateDate)
+    const json = this.asObject(source, {
+      ...COPY_LOCALLY_AS_OBJECT_OPTIONS,
+      keepRemoteId: opts.keepRemoteId,
+    });
+    json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
+
+    // Save
+    const target = await this.saveLocally(ObservedLocation.fromObject(json), opts);
+
+    // Remove from the local trash
+    if (opts.deletedFromTrash) {
+      if (isLocal) {
+        await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
+      } else {
+        await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
+      }
+    }
+
+    if (opts.displaySuccessToast) {
+      await this.showToast({message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY', type: 'info'});
+    }
+
+    return target;
+  }
+
+  async copyLocallyById(id: number, opts?: ObservedLocationLoadOptions & {displaySuccessToast?: boolean}): Promise<ObservedLocation> {
+    // Load existing data
+    const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
+    // Copy remote trip to local storage
+    return await this.copyLocally(source, opts);
   }
 
   /**
@@ -564,12 +655,13 @@ export class ObservedLocationService
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities?.filter(EntityUtils.isRemote).map(t => t.id);
+    const remoteEntities = entities?.filter(EntityUtils.isRemote);
+    const ids = remoteEntities?.map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -586,7 +678,7 @@ export class ObservedLocationService
         });
 
         if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
-
+        this.onDelete.next(remoteEntities);
       }
     });
   }
@@ -602,7 +694,7 @@ export class ObservedLocationService
 
     // Get local entity ids, then delete id
     const localEntities = entities && entities
-      .filter(DataRootEntityUtils.isLocal);
+      .filter(RootDataEntityUtils.isLocal);
 
     // Delete, one by one
     await chainPromises((localEntities || [])
@@ -625,6 +717,7 @@ export class ObservedLocationService
       const landings = res && res.data;
 
       await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
+      this.onDelete.next([entity]);
 
       if (isNotNil(landings)) {
         await this.landingService.deleteAll(landings, {trash: false});
@@ -644,6 +737,7 @@ export class ObservedLocationService
       console.error('Error during observation location deletion: ', err);
       throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
+    this.onDelete.next([entity]);
   }
 
   async control(entity: ObservedLocation): Promise<FormErrors> {
@@ -675,7 +769,6 @@ export class ObservedLocationService
     }
 
     if (this._debug) console.debug(`[observed-location-service] Control ${entity.id}} [OK] in ${Date.now() - now}ms`);
-
     return undefined;
   }
 
@@ -746,11 +839,15 @@ export class ObservedLocationService
 
     try {
 
-      entity = await this.save(entity, opts);
+      entity = await this.save(entity, {...opts, emitEvent: false /*will emit a onSynchronize, instead of onSave */});
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+      if (!opts || opts.emitEvent !== false) {
+        this.onSynchronize.next({localId, remoteEntity: entity});
       }
 
       // synchronize landings
@@ -760,7 +857,7 @@ export class ObservedLocationService
             landing.observedLocationId = entity.id;
             landing.location = entity.location;
             return this.landingService.synchronize(landing);
-          }),
+          })
         );
       }
 
@@ -795,6 +892,13 @@ export class ObservedLocationService
       console.error(`[observed-location-service] Failed to locally delete observedLocation {${entity.id}} and its landings`, err);
       // Continue
     }
+
+    // Clear page history
+    try {
+      // FIXME: find a way o clean only synchronized data ?
+      await this.settings.clearPageHistory();
+    }
+    catch(err) { /* Continue */}
 
     return entity;
   }
@@ -921,6 +1025,10 @@ export class ObservedLocationService
         message: 'OBSERVED_LOCATION.ERROR.UPDATE_CHILDREN_DATE_ERROR'
       };
     }
+  }
+
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
   }
 
 }

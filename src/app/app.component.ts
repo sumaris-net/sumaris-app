@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -22,11 +22,18 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import {DevicePositionService} from '@app/data/services/device-position.service';
+import {IonModal} from '@ionic/angular';
+import { DEVICE_POSITION_CONFIG_OPTION } from '@app/data/services/config/device-position.config';
+import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
+import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
+import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
 
@@ -41,8 +48,11 @@ export class AppComponent {
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,
     private settings: LocalSettingsService,
+    private devicePositionService: DevicePositionService,
+    private bluetoothService: BluetoothService,
     private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer
+    private domSanitizer: DomSanitizer,
+    private cd: ChangeDetectorRef
   ) {
 
     this.start();
@@ -59,7 +69,12 @@ export class AppComponent {
     // Add additional account fields
     this.addAccountFields();
 
+    // Add additional settings fields
+    this.addLocalSettingFields();
+
     this.addCustomSVGIcons();
+
+    await this.startServiceWorkers();
 
     console.info('[app] Starting [OK]');
   }
@@ -76,6 +91,7 @@ export class AppComponent {
       }
     }, 16);
   }
+
 
   protected onConfigChanged(config: Configuration) {
 
@@ -109,6 +125,8 @@ export class AppComponent {
           danger: config.properties['sumaris.color.danger']
         }
       });
+
+      this.cd.markForCheck();
     }
   }
 
@@ -205,15 +223,33 @@ export class AppComponent {
       });
   }
 
-  protected addCustomSVGIcons() {
-    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow',
+  protected addLocalSettingFields() {
+    if (this.platform.mobile) {
+      console.debug('[app] Add additional local settings options...');
 
-      // PIFIL
-      'dolphin-damage'
-    ].forEach(filename => this.matIconRegistry.addSvgIcon(filename,
-      this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
+      const ichthyometerOption = {
+        ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS,
+        autocomplete: {
+          ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS.autocomplete,
+          suggestFn: (value, filter) => this.bluetoothService.suggest(value, filter)
+        }
+      }
+      this.settings.registerOption(ichthyometerOption);
+    }
+  }
+
+  protected addCustomSVGIcons() {
+    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow'
+      // ,'dolphin-damage' //PIFIL
+    ]
+    .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
+        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
       )
     );
+  }
+
+  protected async startServiceWorkers() {
+    await this.devicePositionService.start();
   }
 }
 

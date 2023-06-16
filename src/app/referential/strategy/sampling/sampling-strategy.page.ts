@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import {
   AccountService,
   AppEntityEditor,
@@ -36,7 +35,6 @@ import moment from 'moment';
 })
 export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, SamplingStrategyService> {
 
-  propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   $program = new BehaviorSubject<Program>(null);
 
   @ViewChild('form', { static: true }) strategyForm: SamplingStrategyForm;
@@ -51,7 +49,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     protected accountService: AccountService,
     protected samplingStrategyService: SamplingStrategyService,
     protected programService: ProgramService,
-    protected activatedRoute: ActivatedRoute,
     protected pmfmService: PmfmService,
     protected platform: PlatformService
   ) {
@@ -79,6 +76,13 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
+  canUserWrite(data: SamplingStrategy, opts?: any): boolean {
+    return super.canUserWrite(data, {...opts,
+      // Important: sent the opts.program, to check if user is a program manager
+      program: this.$program.value
+    });
+  }
+
   /* -- protected functions -- */
 
   protected async onNewEntity(data: SamplingStrategy, options?: EntityServiceLoadOptions): Promise<void> {
@@ -99,6 +103,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     // Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
     this.fillPmfmStrategyDefaults(data);
 
+    this.markAsPristine();
     this.markAsReady();
   }
 
@@ -169,9 +174,9 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
   }
 
   protected loadFromRoute(): Promise<void> {
-
     return super.loadFromRoute();
   }
+
 
   protected setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
@@ -202,14 +207,21 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {
-    // Check access concurence
+    // Disable form listeners (e.g. label)
     this.strategyForm.setDisableEditionListeners(true);
+
+    // Prepare label
     this.form.get('label').setValue(this.form.get('label').value?.replace(/\s/g, "")); // remove whitespace
     await this.clearCannotComputeTaxonBeforeSave();
     this.form.get('label').updateValueAndValidity();
-    const result = await super.save(event, options);
-    this.strategyForm.setDisableEditionListeners(false);
-    return result;
+
+    try {
+      // Call inherited save
+      return await super.save(event, options);
+    } finally {
+      // Enable form listeners
+      this.strategyForm.setDisableEditionListeners(false);
+    }
   }
 
   /**

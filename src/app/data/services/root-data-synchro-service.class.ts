@@ -1,15 +1,15 @@
-import { concat, defer, Observable, of } from 'rxjs';
+import {concat, defer, Observable, of, Subject} from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { DataRootEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import {
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
   BaseEntityServiceOptions,
   chainPromises,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
+  EntitiesStorage, EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, fromDateISOString,
   isEmptyArray,
   isNil,
   isNilOrNaN,
@@ -17,7 +17,7 @@ import {
   JobUtils,
   LocalSettingsService,
   NetworkService,
-  PersonService
+  PersonService, toDateISOString
 } from '@sumaris-net/ngx-components';
 import { BaseRootDataService, BaseRootEntityGraphqlMutations } from './root-data-service.class';
 
@@ -34,10 +34,16 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import moment from 'moment';
-
-
+import {SymbolBuilder} from '@angular/compiler-cli/src/ngtsc/typecheck/src/template_symbol_builder';
 
 export class DataSynchroImportFilter {
+
+  static fromObject(source: Partial<DataSynchroImportFilter>): DataSynchroImportFilter {
+    const target = new DataSynchroImportFilter();
+    target.fromObject(source);
+    return target;
+  }
+
   programLabel?: string;
   strategyIds?: number[];
   vesselId?: number;
@@ -45,6 +51,26 @@ export class DataSynchroImportFilter {
   endDate?: Date | Moment
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
+
+  fromObject(source: any, opts?: {minify?: boolean}) {
+    this.programLabel = source.programLabel;
+    this.strategyIds = source.strategyIds;
+    this.vesselId = source.vesselId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.periodDuration = source.periodDuration;
+    this.periodDurationUnit = source.periodDurationUnit;
+  }
+
+  asObject(opts?: {minify?: boolean}) {
+    const target: any = Object.assign({}, this);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    if (opts?.minify) {
+      delete target.periodDurationUnit;
+    }
+    return target;
+  }
 }
 
 export interface IDataSynchroService<
@@ -73,6 +99,15 @@ export interface IDataSynchroService<
 }
 
 const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
+
+export interface ISynchronizeEvent {
+  localId: any,
+  remoteEntity: RootDataEntity<any, any>,
+}
+
+export interface RootDataEntitySaveOptions extends EntitySaveOptions {
+  emitEvent?: boolean;
+}
 
 export function isDataSynchroService(object: any): object is IDataSynchroService<any> {
   return object && DataSynchroServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
@@ -105,6 +140,9 @@ export abstract class RootDataSynchroService<
 
   protected importationProgress$: Observable<number>;
   protected loading = false;
+  readonly onSave = new Subject<T[]>();
+  readonly onDelete = new Subject<T[]>();
+  readonly onSynchronize = new Subject<ISynchronizeEvent>();
 
   get featureName(): string {
     return this._featureName || DEFAULT_FEATURE_NAME;
@@ -284,7 +322,7 @@ export abstract class RootDataSynchroService<
         data = res && res.data;
       }
 
-      // COnvert to entity
+      // Convert to entity
       const entity = (!opts || opts.toEntity !== false)
         ? this.fromObject(data)
         : (data as T);
@@ -300,7 +338,7 @@ export abstract class RootDataSynchroService<
 
   async deleteAll(entities: T[], opts?: any): Promise<any> {
     // Delete local entities
-    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities && entities.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
@@ -359,7 +397,7 @@ export abstract class RootDataSynchroService<
 
     // Get local entity ids, then delete id
     const localEntities = entities && entities
-      .filter(DataRootEntityUtils.isLocal);
+      .filter(RootDataEntityUtils.isLocal);
 
     if (isEmptyArray(localEntities)) return; // Skip if empty
 

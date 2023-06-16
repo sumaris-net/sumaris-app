@@ -2,9 +2,11 @@
 
   <app-menu [logo]="logo" [appName]="appName" contentId="menu-content">
 
-    <!-- notification icons  -->
-    <app-job-progression-icon *ngIf="enabledNotificationIcons" [autoHide]="true" headerBottomRight></app-job-progression-icon>
-    <app-user-event-notification-icon *ngIf="enabledNotificationIcons" headerBottomRight></app-user-event-notification-icon>
+    <!-- notification icons  [autoHide]="true"  -->
+    <div *ngIf="enabledNotificationIcons" headerBottomRight>
+      <app-job-progression-icon [autoHide]="true"></app-job-progression-icon>
+      <app-user-event-notification-icon></app-user-event-notification-icon>
+    </div>
 
     <ion-router-outlet id="menu-content"></ion-router-outlet>
 

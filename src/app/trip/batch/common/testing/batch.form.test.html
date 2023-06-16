@@ -1,0 +1,274 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Batch form test page</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form class="form-container" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
+   <ion-grid class="ion-no-padding">
+
+     <!-- Filter -->
+     <ion-row>
+
+       <!-- Program -->
+       <ion-col>
+         <mat-autocomplete-field formControlName="program" class="min-width-large ion-text-wrap"
+                                 [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
+                                 [config]="autocomplete.fields.program"
+                                 [tabindex]="1"
+                                 required>
+         </mat-autocomplete-field>
+       </ion-col>
+
+       <!-- Gear  -->
+       <ion-col>
+         <mat-autocomplete-field formControlName="gear"
+                                 [placeholder]="'TRIP.PHYSICAL_GEAR.TABLE.GEAR'|translate"
+                                 [tabindex]="2"
+                                 [required]="true"
+                                 [config]="autocomplete.fields.gear">
+         </mat-autocomplete-field>
+       </ion-col>
+
+       <!-- Example select -->
+       <ion-col>
+         <mat-autocomplete-field formControlName="example"
+                                 placeholder="Data example"
+                                 [tabindex]="3"
+                                 [required]="true"
+                                 [showSearchBar]="false"
+                                 [config]="autocomplete.fields.example">
+         </mat-autocomplete-field>
+       </ion-col>
+
+       <!-- Sampling ratio type -->
+       <ion-col>
+         <mat-form-field>
+           <mat-select (valueChange)="samplingRatioFormat=$event"
+                       [value]="samplingRatioFormat" placeholder="Sampling ratio">
+             <mat-option *ngFor="let item of samplingRatioFormats" [value]="item.key">{{item.value|translate}}</mat-option>
+           </mat-select>
+         </mat-form-field>
+       </ion-col>
+
+       <!-- Action buttons -->
+       <ion-col size="4" size-md="2">
+         <!-- show tree -->
+         <ion-button (click)="dumpExample()" *ngIf="!outputs.example"
+                     fill="outline">
+           <ion-icon name="eye" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- hide tree -->
+         <ion-button (click)="outputs.example = undefined" *ngIf="outputs.example"
+                     fill="outline">
+           <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- copy to -->
+         <ion-button (click)="applyExample()"
+                     fill="outline">
+           <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
+         </ion-button>
+       </ion-col>
+     </ion-row>
+
+     <!-- Form options -->
+     <ion-row >
+
+       <!-- showWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showWeight=!showWeight"
+                       [checked]="showWeight">
+           <mat-label>showWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+
+       <!-- requiredWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredWeight=!requiredWeight"
+                       [disabled]="!showWeight"
+                       [checked]="requiredWeight">
+           <mat-label>requiredWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showEstimatedWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showEstimatedWeight=!showEstimatedWeight"
+                       [disabled]="!showEstimatedWeight"
+                       [checked]="showEstimatedWeight">
+           <mat-label>showEstimatedWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+
+       <!-- showExhaustiveInventory -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showExhaustiveInventory=!showExhaustiveInventory"
+                       [disabled]="!showExhaustiveInventory"
+                       [checked]="showExhaustiveInventory">
+           <mat-label>showExhaustiveInventory ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showIndividualCount=!showIndividualCount"
+                       [checked]="showIndividualCount">
+           <mat-label>showIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- requiredIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredIndividualCount=!requiredIndividualCount"
+                       [disabled]="!showIndividualCount"
+                       [checked]="requiredIndividualCount">
+           <mat-label>requiredIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showChildrenWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showChildrenWeight=!showChildrenWeight"
+                       [checked]="showChildrenWeight">
+           <mat-label>showChildrenWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+     </ion-row>
+
+     <!-- Sampling batch options -->
+     <ion-row>
+
+       <!-- showSamplingBatch -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
+                       [checked]="showSamplingBatch">
+           <mat-label>showSamplingBatch ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- samplingBatchEnabled -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="samplingBatchEnabled=!samplingBatchEnabled"
+                       [disabled]="!showSamplingBatch"
+                       [checked]="samplingBatchEnabled">
+           <mat-label>samplingBatchEnabled ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showSampleWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSampleWeight=!showSampleWeight"
+                       [checked]="showSampleWeight">
+           <mat-label>showSampleWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- requiredSampleWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredSampleWeight=!requiredSampleWeight"
+                       [disabled]="!showSampleWeight"
+                       [checked]="requiredSampleWeight">
+           <mat-label>requiredSampleWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showSampleIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSampleIndividualCount=!showSampleIndividualCount"
+                       [checked]="showSampleIndividualCount">
+           <mat-label>showSampleIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- requiredSampleIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredSampleIndividualCount=!requiredSampleIndividualCount"
+                       [disabled]="!showSampleIndividualCount"
+                       [checked]="requiredSampleIndividualCount">
+           <mat-label>requiredSampleIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+     </ion-row>
+
+   </ion-grid>
+
+   <div class="ion-padding" *ngIf="outputs.example">
+     <ion-text color="medium">
+       <h4>Output: </h4>
+       <p [innerHTML]="outputs.example">
+       </p>
+     </ion-text>
+   </div>
+
+   <ion-grid>
+
+
+      <!-- mobile -->
+      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
+      <ion-row>
+        <ion-col size="12">
+
+          <app-batch-form #form
+                          [programLabel]="$programLabel | async"
+                          [showTaxonName]="false"
+                          [showWeight]="showWeight"
+                          [requiredWeight]="requiredWeight"
+                          [showEstimatedWeight]="showEstimatedWeight"
+                          [showExhaustiveInventory]="showExhaustiveInventory"
+                          [showIndividualCount]="showIndividualCount"
+                          [requiredIndividualCount]="requiredIndividualCount"
+                          [samplingRatioFormat]="samplingRatioFormat"
+                          [showChildrenWeight]="showChildrenWeight"
+                          [showSamplingBatch]="showSamplingBatch"
+                          [samplingBatchEnabled]="samplingBatchEnabled"
+                          [showSampleWeight]="showSampleWeight"
+                          [requiredSampleWeight]="requiredSampleWeight"
+                          [showSampleIndividualCount]="showSampleIndividualCount"
+                          [requiredSampleIndividualCount]="requiredSampleIndividualCount"
+                          [gearId]="$gearId|async"
+                          [usageMode]="'FIELD'"
+                          [mobile]="true"
+                          [maxVisibleButtons]="6"
+                          [debug]="true">
+          </app-batch-form>
+        </ion-col>
+
+        <!-- buttons -->
+        <ion-col size="2">
+          <!-- log tree -->
+          <ion-button (click)="dumpBatchForm(form, 'mobile')"
+                      matTooltip="Output data to log"
+                      fill="outline">
+            <ion-label>Dump</ion-label>
+          </ion-button>
+
+          <!-- Reload from himself -->
+          <ion-button (click)="copyBatch(form, form)"
+                      matTooltip="Reload from himself data"
+                      fill="outline">
+            <ion-label>Reload</ion-label>
+          </ion-button>
+        </ion-col>
+        <ion-col size="10" *ngIf="outputs.mobile; let content">
+          <ion-text color="medium">
+            <h4>Output: </h4>
+            <p [innerHTML]="content">
+            </p>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </form>
+
+</ion-content>

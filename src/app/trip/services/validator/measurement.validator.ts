@@ -8,6 +8,7 @@ import {PmfmValidators} from '@app/referential/services/validator/pmfm.validator
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import { TranslateService } from '@ngx-translate/core';
+import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -15,6 +16,7 @@ export interface MeasurementsValidatorOptions {
   protectedAttributes?: string[];
   forceOptional?: boolean;
   withTypename?: boolean; // Default to true
+  updateOn?: ControlUpdateOnType
 }
 
 @Injectable({providedIn: 'root'})
@@ -45,14 +47,15 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     opts = this.fillDefaultOptions(opts);
 
     // Convert the array of Measurement into a normalized map of form values
-    const measurementValues = data
-      && (MeasurementValuesUtils.isMeasurementFormValues(data) ? data
+    const measurementValues = data && (MeasurementValuesUtils.isMeasurementFormValues(data)
+        ? data
+        // Transform to form values, if need
         : MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as unknown as Measurement[]),
-          opts.pmfms,
+            opts.pmfms,
           {
-            keepSourceObject: true,
-            onlyExistingPmfms: false
-          })) || undefined;
+              keepSourceObject: true,
+              onlyExistingPmfms: false
+            })) || undefined;
 
     const config = opts.pmfms.reduce((res, pmfm) => {
         const validator = PmfmValidators.create(pmfm, null, opts);
@@ -65,7 +68,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       }, {});
 
     // Validate __typename
-    if (!opts || opts.withTypename !== false) {
+    if (opts.withTypename !== false) {
       config['__typename'] = [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required];
     }
 
@@ -73,10 +76,10 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   }
 
   getFormGroupOptions(data?: T[] | MeasurementFormValues, opts?: O): AbstractControlOptions | null {
-    return null;
+    return { updateOn: opts?.updateOn };
   }
 
-  updateFormGroup(form: UntypedFormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O & {emitEvent?: boolean}) {
     opts = this.fillDefaultOptions(opts);
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
@@ -92,7 +95,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         // If new pmfm: add as control
         if (!formControl) {
           formControl = this.formBuilder.control(PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null, PmfmValidators.create(pmfm, null, opts));
-          form.addControl(controlName, formControl);
+          form.addControl(controlName, formControl, {emitEvent: opts?.emitEvent});
         }
       }
 
@@ -102,7 +105,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
           this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));
         }), SharedFormArrayValidators.requiredArrayMinLength(pmfm.required ? 1 : 0));
 
-        form.addControl(controlName, formArray);
+        form.addControl(controlName, formArray, {emitEvent: opts?.emitEvent});
       }
 
       // Remove from the remove list
@@ -112,14 +115,21 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
 
     // Remove unused controls
-    controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
+    controlNamesToRemove.forEach(controlName => form.removeControl(controlName, {emitEvent: opts?.emitEvent}));
 
     // Create control for '__typename' (required)
-    if (!form.get('__typename')) {
-      // DEBUG
-      //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
-
-      form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+    const typenameControl = form.get('__typename');
+    if (opts.withTypename !== false) {
+      if (!typenameControl) {
+        // DEBUG
+        //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required),
+          {emitEvent: opts?.emitEvent});
+      }
+    }
+    else if (typenameControl){
+      console.warn('[measurement-validator] Removing control \'__typename\' from measurement values form group. This is not recommended!');
+      form.removeControl('__typename', {emitEvent: opts?.emitEvent});
     }
   }
 

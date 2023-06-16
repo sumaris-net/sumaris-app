@@ -15,7 +15,7 @@ import {
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, QualityFlags, UnitLabel } from '@app/referential/services/model/model.enum';
 import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { roundHalfUp } from '@app/shared/functions';
@@ -46,11 +46,11 @@ export class BatchUtils {
     return source?.label?.startsWith(AcquisitionLevelCodes.CATCH_BATCH) || false;
   }
 
-  static isSortingBatch(source: Batch | any): source is Batch {
+  static isSortingBatch(source: Batch | any): boolean {
     return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#') || false;
   }
 
-  static isIndividualBatch(source: Batch | any): source is Batch {
+  static isIndividualBatch(source: Batch | any): boolean {
     return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#') || false;
   }
 
@@ -85,7 +85,11 @@ export class BatchUtils {
   }
 
   static isSamplingBatch(batch: Batch) {
-    return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
+    return batch?.label?.endsWith(Batch.SAMPLING_BATCH_SUFFIX) || false;
+  }
+
+  static isParentOfSamplingBatch(batch: Batch): boolean {
+    return batch.children?.length === 1 && this.isSamplingBatch(batch.children[0]);
   }
 
   static isSamplingNotEmpty(samplingBatch: Batch): boolean {
@@ -141,7 +145,15 @@ export class BatchUtils {
 
   static getSamplingChild(parent: Batch): Batch | undefined {
     const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
-    return (parent.children || []).find(b => b.label === samplingLabel);
+    return parent.children?.length === 1 && parent.children.find(b => b.label === samplingLabel);
+  }
+
+  static isEmptySamplingBatch(batch: Batch) {
+    return BatchUtils.isSamplingBatch(batch)
+      && isNil(BatchUtils.getWeight(batch)?.value)
+      && isNil(batch.samplingRatio)
+      && (batch.individualCount || 0) === 0
+      && isEmptyArray(batch.children)
   }
 
   /**
@@ -180,42 +192,58 @@ export class BatchUtils {
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + '#')) return res.concat(child);
+      if (child.label?.startsWith(acquisitionLevel + '#')) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
     return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + '#')) ||
+      return (child.label?.startsWith(acquisitionLevel + '#')) ||
         // If children, recursive call
         (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
     }) !== -1;
   }
 
 
-  static computeRankOrder(source: Batch) {
+  /**
+   * Méthode servant à corriger les rankOrder (et les label) des lots, à utiliser :
+   * - quand les lots ont été importés (copier/coller)
+   * - ou quand la saisie a été faite par plusieurs éditeurs de lots déconnecté les uns des autres (e.g. Batch Tree container)
+   * - ou pour corriger des problèmes dans les données (e.g. introduit par un bug, comme cela est arrivé sur la BDD SUMARiS historique)
+   * @param source
+   * @param sortingBatchIndividualRankOrder
+   */
+  static computeRankOrder(source: Batch, sortingBatchIndividualRankOrder = 1) {
 
-    if (!source.label || !source.children) return; // skip
+    if (!source?.label || !source.children) return; // skip
 
-    // Sort by id and rankOrder (new batch at the end)
-    source.children = source.children
-      .sort((b1, b2) => ((b1.id || 0) * 10000 + (b1.rankOrder || 0)) - ((b2.id || 0) * 10000 + (b2.rankOrder || 0)));
+    source.children
+      // Sort by id, then rankOrder. New batch at the end
+      .sort(Batch.idOrRankOrderComparator('asc'))
 
-    source.children.forEach((b, index) => {
-      b.rankOrder = index + 1;
+      // For each child
+      .forEach((b: Batch, index) => {
 
-      // Sampling batch
-      if (b.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
-        b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
-      }
-      // Individual measure batch
-      else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
-        b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
-      }
+        // Individual measure batch
+        if (this.isIndividualBatch(b)) {
+          b.rankOrder = sortingBatchIndividualRankOrder++;
+          b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
+        }
+        // Sampling batch
+        else if (this.isSamplingBatch(b)) {
+          b.rankOrder = index + 1;
+          b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
+        }
+        // Sorting batch
+        else {
+          b.rankOrder = index + 1;
+          // Do NOT compute label on SORTING BATCH, because it need sorting QV values
+          //b.label = ...
+        }
 
-      this.computeRankOrder(b); // Recursive call
-    });
+        this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Loop
+      });
   }
 
   /**
@@ -233,7 +261,7 @@ export class BatchUtils {
       this.computeIndividualCount(b); // Recursive call
 
       // Update sum of individual count
-      if (b.label && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+      if (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
         sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
       }
     });
@@ -244,7 +272,7 @@ export class BatchUtils {
     }
 
     // Parent is NOT a sampling batch
-    else if (isNotNil(sumChildrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
+    else if (isNotNil(sumChildrenIndividualCount) && source.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
       if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
         console.warn(`[batch-utils] Fix batch {${source.label}} individual count =${source.individualCount} but children individual count = ${sumChildrenIndividualCount}`);
         //source.individualCount = childrenIndividualCount;
@@ -271,10 +299,13 @@ export class BatchUtils {
         // Recursive call
         BatchUtils.sumObservedIndividualCount(b.children) :
         // Or get value from individual batches
-        b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) ? toNumber(b.individualCount, 1) :
+        (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+          ? toNumber(b.individualCount, 1)
           // Default value, if not an individual batches
           // Use '0' because we want only observed batches count
-          0)
+          : 0
+        )
+      )
       .reduce((sum, individualCount) => {
         return sum + individualCount;
       }, 0);
@@ -420,9 +451,17 @@ export class BatchUtils {
     }
   }
 
+  static isEmptyWeight(weight: BatchWeight): boolean {
+    return !weight || isNil(weight.value) && isNil(weight.computed) && isNil(weight.methodId) && isNil(weight.computed);
+  }
+
+  static isNotEmptyWeight(weight: BatchWeight): boolean {
+    return !this.isEmptyWeight(weight);
+  }
+
   static getWeight(source: Batch, weightPmfms?: IPmfm[]): BatchWeight | undefined {
     if (!source) return undefined;
-    if (source.weight) return source.weight;
+    if (this.isNotEmptyWeight(source.weight)) return source.weight;
 
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
 
@@ -432,19 +471,22 @@ export class BatchUtils {
         return isNotNilOrNaN(value) ? {
           value: +value,
           estimated: pmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
-          computed: pmfm.isComputed,
+          computed: pmfm.isComputed || pmfm.methodId === MethodIds.CALCULATED,
           methodId: pmfm.methodId
         }: undefined;
       })
       .filter(isNotNil)
       .sort((w1, w2) => {
-        const r1 = 10 * (!w1.computed ? 1 : 0)
-          + (!w1.estimated ? 1 : 0);
-        const r2 = 10 * (!w2.computed ? 1 : 0)
-          + (!w2.estimated ? 1 : 0);
-        return r1-r2;
+        const score1 = BatchUtils.getWeightScore(w1);
+        const score2 = BatchUtils.getWeightScore(w2);
+        return score1 - score2;
       })
       .find(isNotNil);
+  }
+
+  static getWeightScore(weight: BatchWeight): number {
+    return 10 * (!weight.computed ? 1 : 0)
+      + (!weight.estimated ? 1 : 0);
   }
 
   static getWeightPmfm(weight: BatchWeight, weightPmfms: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): IPmfm {
@@ -548,7 +590,8 @@ export class BatchUtils {
           message += ' length:' + length + 'cm';
         }
         const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.DISCARD_WEIGHT];
         if (isNotNil(weight)) {
           message += ' weight:' + weight + 'kg';
         }
@@ -659,7 +702,7 @@ export class BatchUtils {
 
     // Recursive call to children
     if (!opts || opts.withChildren !== false) {
-      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
+      (entity.children || []).forEach(c => this.markAsNotControlled(c, opts));
     }
   }
 
@@ -685,5 +728,13 @@ export class BatchUtils {
    */
   static markAsInvalid(entity: Batch, errorMessage: string) {
     DataEntityUtils.markAsInvalid(entity, errorMessage);
+  }
+
+  /**
+   * Check if an entity has been mark as invalid
+   * @param entity
+   */
+  static isInvalid(entity: Batch) {
+    return DataEntityUtils.isInvalid(entity);
   }
 }

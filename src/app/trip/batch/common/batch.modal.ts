@@ -18,6 +18,7 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showIndividualCount: boolean;
+  showComment: boolean;
 
   // Other options
   availableTaxonGroups?: IReferentialRef[] | Observable<IReferentialRef[]>;
@@ -52,6 +53,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showIndividualCount = false;
   @Input() showTotalIndividualCount = false;
   @Input() showSamplingBatch = false;
+  @Input() showComment: boolean;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() usageMode: UsageMode;
@@ -62,91 +64,92 @@ export class BatchModal implements OnInit, IBatchModalOptions {
 
   @Input() onDelete: (event: Event, data: Batch) => Promise<boolean>;
 
-    @ViewChild('form', {static: true}) form: BatchForm;
+  @ViewChild('form', {static: true}) form: BatchForm;
 
-    get dirty(): boolean {
-        return this.form.dirty;
+  get dirty(): boolean {
+    return this.form.dirty;
+  }
+
+  get invalid(): boolean {
+    return this.form.invalid;
+  }
+
+  get valid(): boolean {
+    return this.form.valid;
+  }
+
+  constructor(
+      protected injector: Injector,
+      protected viewCtrl: ModalController,
+      protected settings: LocalSettingsService,
+      protected translate: TranslateService,
+      protected cd: ChangeDetectorRef
+  ) {
+    // Default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+
+    // TODO: for DEV only
+    //this.debug = !environment.production;
+  }
+
+
+  ngOnInit() {
+    // Default values
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
+    this.disabled = toBoolean(this.disabled, false);
+    this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
+
+    if (this.disabled) {
+      this.form.disable();
     }
 
-    get invalid(): boolean {
-        return this.form.invalid;
+    this.form.value = this.data || new Batch();
+
+    // Compute the title
+    this.computeTitle();
+
+    if (!this.isNew) {
+      // Update title each time value changes
+      this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
     }
 
-    get valid(): boolean {
-        return this.form.valid;
+  }
+
+  async cancel() {
+    await this.viewCtrl.dismiss();
+  }
+
+  async close(event?: Event) {
+    if (this.loading) return; // avoid many call
+
+    if (this.invalid) {
+        if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
+        this.form.error = "COMMON.FORM.HAS_ERROR";
+        this.form.markAllAsTouched();
+        return;
     }
 
-    constructor(
-        protected injector: Injector,
-        protected viewCtrl: ModalController,
-        protected settings: LocalSettingsService,
-        protected translate: TranslateService,
-        protected cd: ChangeDetectorRef
-    ) {
-        // Default value
-        this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this.loading = true;
 
-        // TODO: for DEV only
-        //this.debug = !environment.production;
-    }
+    // Save table content
+    const data = this.form.value;
 
+    await this.viewCtrl.dismiss(data);
+  }
 
-    ngOnInit() {
-      // Default values
-      this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
-      this.disabled = toBoolean(this.disabled, false);
+  /* -- protected methods -- */
 
-      if (this.disabled) {
-          this.form.disable();
+  protected markForCheck() {
+      this.cd.markForCheck();
+  }
+
+  protected async computeTitle(data?: Batch) {
+      data = data || this.data;
+      if (this.isNew || !data) {
+          this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
+      } else {
+          const label = BatchUtils.parentToString(data);
+          this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
       }
-
-      this.form.value = this.data || new Batch();
-
-      // Compute the title
-      this.computeTitle();
-
-      if (!this.isNew) {
-          // Update title each time value changes
-          this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
-      }
-
-    }
-
-    async cancel() {
-        await this.viewCtrl.dismiss();
-    }
-
-    async close(event?: Event) {
-        if (this.loading) return; // avoid many call
-
-        if (this.invalid) {
-            if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
-            this.form.error = "COMMON.FORM.HAS_ERROR";
-            this.form.markAllAsTouched();
-            return;
-        }
-
-        this.loading = true;
-
-        // Save table content
-        const data = this.form.value;
-
-        await this.viewCtrl.dismiss(data);
-    }
-
-    /* -- protected methods -- */
-
-    protected markForCheck() {
-        this.cd.markForCheck();
-    }
-
-    protected async computeTitle(data?: Batch) {
-        data = data || this.data;
-        if (this.isNew || !data) {
-            this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
-        } else {
-            const label = BatchUtils.parentToString(data);
-            this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
-        }
-    }
+  }
 }

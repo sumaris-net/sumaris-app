@@ -1,7 +1,6 @@
 import {
   EntityClass,
   fromDateISOString,
-  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -334,8 +333,7 @@ export class SampleUtils {
       }
       // Measurement
       if (opts.showMeasure !== false && sample.measurementValues) {
-        Object.keys(sample.measurementValues)
-          .filter(key => key !== '__typename')
+        MeasurementValuesUtils.getPmfmIds(sample.measurementValues)
           .forEach(pmfmId => {
             message += ` pmfm#${pmfmId}: ${sample.measurementValues[pmfmId]}`;
           })

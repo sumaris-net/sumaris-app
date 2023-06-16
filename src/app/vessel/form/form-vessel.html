@@ -30,6 +30,9 @@
 
     <!-- Registration -->
     <ion-row *ngIf="registrationForm; let registrationForm" [formGroup]="registrationForm">
+      <ion-col size="12">
+        <h3 translate>VESSEL.VESSEL_REGISTRATION_DIVIDER</h3>
+      </ion-col>
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE'|translate"
@@ -39,6 +42,15 @@
                  toRegistrationCode
           >
           <mat-error *ngIf="registrationForm.controls.registrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+      <ion-col>
+        <mat-form-field>
+          <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE'|translate"
+                 formControlName="intRegistrationCode"
+                 autocomplete="off"
+                 toRegistrationCode>
+          <mat-error *ngIf="registrationForm.controls.intRegistrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col>
@@ -61,8 +73,12 @@
       </ion-col>
     </ion-row>
 
-    <!-- Exterior marking -->
+    <!-- Features -->
     <ion-row *ngIf="featuresForm; let featuresForm" [formGroup]="featuresForm">
+      <ion-col size="12">
+        <h3 translate>VESSEL.VESSEL_FEATURES_DIVIDER</h3>
+      </ion-col>
+      <!-- Exterior marking -->
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING'|translate"
@@ -71,19 +87,7 @@
           <mat-error *ngIf="featuresForm.controls.exteriorMarking.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
-      <ion-col size="auto">
-        <mat-date-field [placeholder]="'VESSEL.VESSEL_FEATURES.START_DATE'|translate"
-                        formControlName="startDate"
-                        [required]="true">
-          <mat-error *ngIf="featuresForm.controls.startDate.hasError('dateIsAfter')">
-            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: featuresForm.controls.startDate.errors.dateIsAfter }}
-          </mat-error>
-        </mat-date-field>
-      </ion-col>
-    </ion-row>
-
-    <!-- Name -->
-    <ion-row *ngIf="featuresForm; let featuresForm" [formGroup]="featuresForm">
+      <!-- Name -->
       <ion-col>
         <mat-form-field>
           <input matInput autocomplete="off"
@@ -92,6 +96,16 @@
                  [required]="withNameRequired">
           <mat-error *ngIf="featuresForm.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
+      </ion-col>
+
+      <ion-col size="auto">
+        <mat-date-field [placeholder]="'VESSEL.VESSEL_FEATURES.START_DATE'|translate"
+                        formControlName="startDate"
+                        [required]="true">
+          <mat-error *ngIf="featuresForm.controls.startDate.hasError('dateIsAfter')">
+            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: featuresForm.controls.startDate.errors.dateIsAfter }}
+          </mat-error>
+        </mat-date-field>
       </ion-col>
     </ion-row>
 
@@ -174,6 +188,35 @@
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>-->
+
+      <!-- Construction year -->
+      <ion-col size="12" size-md="4">
+        <mat-form-field>
+          <input type="number" step="1" min="1970" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR'|translate"
+                 formControlName="constructionYear" (keypress)="filterNumberInput($event, true)">
+          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('integer')" translate>ERROR.FIELD_NOT_VALID_INTEGER</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('min')">
+            {{ 'ERROR.FIELD_MIN'| translate:{min: 1970} }}</mat-error>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- IRCS -->
+      <ion-col size="12" size-md="4">
+        <mat-form-field>
+          <input type="text" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.IRCS'|translate"
+                 formControlName="ircs"
+                 toRegistrationCode>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- Hull material -->
+      <ion-col>
+        <mat-autocomplete-field
+          [placeholder]="'VESSEL.VESSEL_FEATURES.HULL_MATERIAL'|translate"
+          formControlName="hullMaterial"
+          [config]="autocompleteFields.hullMaterial">
+        </mat-autocomplete-field>
+      </ion-col>
     </ion-row>
 
 

@@ -22,16 +22,16 @@
           <mat-form-field class="name">
             <mat-select formControlName="name"
                         [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
-                        (selectionChange)="updateCriterionValueDefinition(i, $event.value, true)">
-              <mat-option *ngFor="let column of $columns | async"
-                          [value]="column.columnName">{{column.name}}</mat-option>
+                        (selectionChange)="updateDefinitionAt(i, $event.value, true)">
+              <mat-option *rxFor="let definition of $columnValueDefinitions"
+                          [value]="definition.key">{{definition.label}}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <!-- operator -->
           <mat-form-field class="operator">
             <mat-select formControlName="operator"
-                        (selectionChange)="updateCriterionValueDefinition(i, $event.value, false)">
+                        (selectionChange)="updateDefinitionAt(i, $event.value, false)">
               <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
                 operator.symbol) | translate }}
               </mat-option>
@@ -41,44 +41,44 @@
 
         <!-- value -->
         <ion-col class="ion-no-padding"
-                 [class.has-two-fields]="criterionForm.controls.operator.value === 'BETWEEN'">
-          <ng-container *ngIf="getCriterionValueDefinition(i) | async as definition; else fakeDisabledField">
-
-            <app-form-field class="value"
-                            [placeholder]="(criterionForm.controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
-                            [formControl]="criterionForm.controls.value"
-                            [definition]="definition">
+                 *ngVar="{
+                    operator: (criterionForm|formGetControl:'operator'),
+                    value: (criterionForm|formGetControl:'value'),
+                    endValue: (criterionForm|formGetControl:'endValue')
+                 } as controls"
+                 [class.has-two-fields]="controls.operator.value === 'BETWEEN'">
+          <ng-container *rxIf="getCriterionValueDefinition(i); let definition; else unknownValue">
+            <app-form-field class="value" #field
+                            [placeholder]="(controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') | translate"
+                            [formControl]="controls.value"
+                            [definition]="definition"
+                            [clearable]="true"
+                            (keyup.enter)="controls.operator.value !== 'BETWEEN' && doSubmit($event)">
             </app-form-field>
 
             <!-- second value (for between operator) -->
-            <app-form-field *ngIf="criterionForm.controls.operator.value === 'BETWEEN'"
+            <app-form-field *ngIf="controls.operator.value === 'BETWEEN'"
                             class="value"
-                            [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
-                            [formControl]="criterionForm.controls.endValue"
+                            [placeholder]="'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
+                            [formControl]="controls.endValue"
                             [definition]="definition"
                             (keyup.enter)="doSubmit($event)">
-              <button matSuffix type="button" mat-icon-button tabindex="-1"
-                      [disabled]="disabled"
-                      [title]="'COMMON.BTN_DELETE'|translate"
-                      (click)="removeFilterCriterion($event, i)">
-                <mat-icon>close</mat-icon>
-              </button>
             </app-form-field>
           </ng-container>
 
-          <ng-template #fakeDisabledField>
+          <ng-template #unknownValue>
             <mat-form-field class="value">
-              <input matInput [disabled]="true" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_VALUE'|translate">
+              <input matInput [disabled]="true" [placeholder]="'EXTRACTION.FILTER.CRITERION_VALUE'|translate">
             </mat-form-field>
           </ng-template>
 
-          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+          <button type="button" mat-icon-button [disabled]="disabled"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="removeFilterCriterion($event, i)">
-            <mat-icon>close</mat-icon>
+            <mat-icon>delete</mat-icon>
           </button>
 
-          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+          <button type="button" mat-icon-button [disabled]="disabled"
                   *ngIf="i == criteriaForm?.length-1"
                   [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
                   (click)="addFilterCriterion()">

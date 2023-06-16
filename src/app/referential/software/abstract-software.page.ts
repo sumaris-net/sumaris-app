@@ -1,18 +1,23 @@
-import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Directive, Injector, ViewChild} from '@angular/core';
 import {AbstractControl, UntypedFormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
   AppEntityEditor,
   AppPropertiesForm,
-  CORE_CONFIG_OPTIONS, EntityServiceLoadOptions,
+  CORE_CONFIG_OPTIONS,
+  EntityServiceLoadOptions,
   EntityUtils,
   FormFieldDefinition,
   FormFieldDefinitionMap,
   IEntityService,
-  isNil, isNotNil,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
   PlatformService,
-  Software
+  Software,
+  SuggestFn
 } from '@sumaris-net/ngx-components';
 import {ReferentialForm} from '../form/referential.form';
 import {SoftwareService} from '../services/software.service';
@@ -58,12 +63,13 @@ export abstract class AbstractSoftwarePage<
     // Convert map to list of options
     this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
       .map(def => {
-        if (def.type === 'entity') {
+        if (def.type === 'entity' || def.type === 'entities') {
           def = Object.assign({}, def); // Copy
-          def.autocomplete = def.autocomplete || {
-            attributes: ['label', 'name']
+          def.autocomplete = {
+            suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+            attributes: ['label', 'name'],
+            ...(def.autocomplete || {})
           };
-          def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
         }
         return def;
       });
@@ -126,10 +132,8 @@ export abstract class AbstractSoftwarePage<
     // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
 
-
     this.markAsPristine();
   }
-
 
   protected async getJsonValueToSave(): Promise<any> {
     const data = await super.getJsonValueToSave();
@@ -137,11 +141,18 @@ export abstract class AbstractSoftwarePage<
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
 
-    // Convert entities to id
+    // Transform properties
     data.properties = this.propertiesForm.value;
     data.properties
-      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
-      .forEach(property => property.value = property.value.id);
+      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
+      .forEach(property => {
+        if (Array.isArray(property.value)) {
+          property.value = property.value.map(v => v?.id).filter(isNotNil).join(',');
+        }
+        else {
+          property.value = (property.value as any)?.id
+        }
+      });
 
     return data;
   }
@@ -173,33 +184,64 @@ export abstract class AbstractSoftwarePage<
     this.markAsReady();
   }
 
-  async loadEntityProperties(data: T | null) {
 
-    return Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitions.find(def => def.key === key && def.type === 'entity'))
+  protected async loadEntityProperties(data: T | null) {
+
+    await Promise.all(Object.keys(data.properties)
+      .map(key => this.propertyDefinitions.find(def => def.key === key && (def.type === 'entity' || def.type === 'entities')))
       .filter(isNotNil)
-      .map(def => {
-        let value = data.properties[def.key];
-        const filter = {...def.autocomplete.filter};
-        const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
-        if (joinAttribute === 'id') {
-          filter.id = parseInt(value);
-          value = '*';
+      .map(async (def) => {
+        if (def.type === 'entities') {
+          const values = (data.properties[def.key] || '').trim().split(/[|,]+/);
+          if (isNotEmptyArray(values)) {
+            const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
+            data.properties[def.key] = entities as any;
+          }
+          else {
+            data.properties[def.key] = null;
+          }
         }
+        // If type = 'entity'
         else {
-          filter.searchAttribute = joinAttribute;
+          let value = data.properties[def.key];
+          value = typeof value === 'string' ?  value.trim() : value;
+          if (isNotNilOrBlank(value)) {
+            const entity = await this.resolveEntity(def, value)
+            data.properties[def.key] = entity;
+          }
+          else {
+            data.properties[def.key] = null;
+          }
         }
-        // Fetch entity, as a referential
-        return this.referentialRefService.suggest(value, filter)
-          .then(matches => {
-            data.properties[def.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
-          })
-          // Cannot ch: display an error
-          .catch(err => {
-            console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
-            data.properties[def.key] = ({id: value,  label: '??'}) as any;
-          });
       }));
+  }
+
+  protected async resolveEntity(def: FormFieldDefinition, value: any): Promise<any> {
+    if (!def.autocomplete) {
+      console.warn('Missing autocomplete, in definition of property ' + def.key);
+      return; // Skip
+    }
+
+    const filter = Object.assign({}, def.autocomplete.filter); // Copy filter
+    const joinAttribute = def.autocomplete.filter?.joinAttribute || 'id';
+    if (joinAttribute === 'id') {
+      filter.id = parseInt(value);
+      value = '*';
+    }
+    else {
+      filter.searchAttribute = joinAttribute;
+    }
+    const suggestFn: SuggestFn<any, any> = def.autocomplete.suggestFn || this.referentialRefService.suggest;
+    try {
+      // Fetch entity, as a referential
+      const res = await suggestFn(value, filter);
+      const data = Array.isArray(res) ? res : res.data;
+      return (data && data[0] || {id: value,  label: '??'}) as any;
+    }
+    catch (err) {
+      console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
+      return {id: value,  label: '??'};
+    }
   }
 
   protected markForCheck() {

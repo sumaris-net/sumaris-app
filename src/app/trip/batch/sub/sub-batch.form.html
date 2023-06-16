@@ -149,7 +149,7 @@
 
   <!-- pmfms -->
   <ng-container *rxIf="pmfms$; let pmfms; strategy: 'userBlocking'; else measurementsSkeleton">
-    <app-pmfm-field *rxFor="let pmfm of pmfms; strategy: 'userBlocking'; index as i; last as last"
+    <app-pmfm-field *rxFor="let pmfm of pmfms; strategy: 'userBlocking'; index as i; last as last; "
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                     [pmfm]="pmfm"
@@ -207,6 +207,11 @@
            readonly
            [placeholder]="weightPmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
            [formControl]="form|formGetControl: 'weight.value'">
+
+    <!-- Compute indicator -->
+    <ion-label matSuffix *rxIf="pending$">
+      <ion-spinner color="secondary"></ion-spinner>
+    </ion-label>
   </mat-form-field>
 
   <!-- submit button -->

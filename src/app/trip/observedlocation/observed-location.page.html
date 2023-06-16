@@ -18,6 +18,12 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <button mat-menu-item *ngIf="canCopyLocally"
+          (click)="copyLocally()">
+    <mat-icon>file_copy</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+  </button>
+
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport"
           [disabled]="isNewData || disabled"
@@ -53,7 +59,6 @@
 
 </mat-menu>
 
-<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
 <ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
@@ -168,7 +173,7 @@
                               [programLabel]="$programLabel|async"
                               [showObserversColumn]="false"
                               [showDateTimeColumn]="false"
-                              [showToolbar]="true"
+                              [showToolbar]="!mobile"
                               (onOpenRow)="onOpenLanding($event)"
                               (onNewRow)="onNewLanding($event)"
                               (onOpenTrip)="onOpenTrip($event)"

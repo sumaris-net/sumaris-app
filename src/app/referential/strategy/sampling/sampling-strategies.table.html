@@ -11,7 +11,8 @@
 
     <!-- Add -->
     <button mat-icon-button
-            *ngIf="canEdit && !mobile"
+            *rxIf="canEdit$"
+            class="hidden-xs hidden-sm"
             [title]="'COMMON.BTN_ADD'|translate"
             (click)="addRow()">
       <mat-icon>add</mat-icon>
@@ -48,12 +49,17 @@
   <ng-template #hasSelection>
     <!-- duplicate -->
     <button mat-icon-button class="hidden-xs hidden-sm"
+            *rxIf="canEdit$"
+            [disabled]="disabled"
             [title]="'COMMON.BTN_DUPLICATE'|translate"
             (click)="openStrategyDuplicateYearSelectionModal($event, selection.selected)">
       <mat-icon>library_add</mat-icon>
     </button>
 
-    <button mat-icon-button color="light" *ngIf="canDelete && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+    <button mat-icon-button color="light"
+            *rxIf="canDelete$"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>

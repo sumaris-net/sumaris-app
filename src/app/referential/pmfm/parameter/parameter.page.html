@@ -1,0 +1,118 @@
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+</app-toolbar>
+
+<ion-content>
+
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden"
+                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>REFERENTIAL.PMFM.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="ion-padding">
+        <!-- error -->
+        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+        </ion-item>
+
+        <ion-grid class="ion-no-padding">
+
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-no-padding ion-padding-top">
+              <!-- base form-->
+              <app-referential-form #referentialForm
+                                    [form]="form"
+                                    [showError]="false"
+                                    [debug]="debug"
+                                    (onSubmit)="save($event)">
+
+                <!-- Other fields -->
+                <form [formGroup]="form" class="form-container">
+                  <ion-row>
+                    <ion-col>
+
+                        <!-- Type -->
+                        <app-form-field [definition]="fieldDefinitions.type"
+                                        formControlName="type"
+                                        required="true"
+                                        tabindex="20">
+                        </app-form-field>
+
+                    </ion-col>
+                  </ion-row>
+                </form>
+
+              </app-referential-form>
+            </ion-col>
+
+            <!-- entity metadata-->
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
+              <app-entity-metadata [value]="data"></app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Qualitative value -->
+    <mat-tab label="{{'REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE'|translate}}"
+             [disabled]="!isQualitative">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="list"></ion-icon>
+        </mat-icon>
+        <ion-label translate>REFERENTIAL.PARAMETER.TAB_QUALITATIVE_VALUE</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
+      </ng-template>
+
+      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
+                                    [canEdit]="canEdit"
+                                    [canDelete]="canEdit"
+                                    [showPaginator]="false"
+                                    [hasRankOrder]="false"
+                                    [showUpdateDateColumn]="false">
+      </app-simple-referential-table>
+
+      <!-- final space-->
+      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+    </mat-tab>
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </app-form-buttons-bar>
+</ion-footer>
+
+
+<!-- FAB button: add qualitative value -->
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
+         *ngIf="qualitativeValuesTable.enabled && selectedTabIndex===1"
+         @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="!saving && qualitativeValuesTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

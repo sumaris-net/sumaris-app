@@ -35,6 +35,7 @@ import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
 import {OperationPasteFlags} from '@app/referential/services/config/program.config';
 import {hasFlag} from '@app/shared/flags.utils';
 import {PositionUtils} from '@app/trip/services/position.utils';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 /* -- Helper function -- */
 
@@ -69,13 +70,35 @@ export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndP
 export class Operation
   extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
+  static ENTITY_NAME = 'Operation';
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
+
+  static rankOrderComparator(sortDirection: SortDirection = 'asc'): (n1: Operation, n2: Operation) => number {
+    return !sortDirection || sortDirection !== 'desc' ? Operation.sortByAscRankOrder : Operation.sortByDescRankOrder;
+  };
+
+  static sortByAscRankOrder(n1: Operation, n2: Operation): number {
+    return n1.rankOrder === n2.rankOrder ? 0 :
+      (n1.rankOrder > n2.rankOrder ? 1 : -1);
+  }
+
+  static sortByDescRankOrder(n1: Operation, n2: Operation): number {
+    return n1.rankOrder === n2.rankOrder ? 0 :
+      (n1.rankOrder > n2.rankOrder ? -1 : 1);
+  }
+
+  static sortByEndDateOrStartDate(n1: Operation, n2: Operation): number {
+    const d1 = n1.endDateTime || n1.startDateTime;
+    const d2 = n2.endDateTime || n2.startDateTime;
+    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+  };
 
   startDateTime: Moment = null;
   endDateTime: Moment = null;
   fishingStartDateTime: Moment = null;
   fishingEndDateTime: Moment = null;
   comments: string = null;
+  rankOrder: number = null; // This attribute is not stored in the DB, but used to retrieve an operation locally, after saving it
   rankOrderOnPeriod: number = null;
   hasCatch: boolean = null;
   positions: VesselPosition[] = null;
@@ -227,14 +250,29 @@ export class Operation
     target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
     if (opts?.minify) {
-      delete target.parentOperation;
       delete target.childOperation;
+
+      // When store into local storage, keep tripId on parent local operation (if not same trip)
+      // This is need at validation time (see OperationValidators.remoteParent) to detect local parent outside the trip
+      if (opts.keepTrip
+        && target.parentOperationId < 0
+        && isNotNil(this.parentOperation?.tripId)
+        // Integrity check: make sure parentOperation reference same operation as 'target.parentOperationId'
+        && this.parentOperation.id === target.parentOperationId) {
+        target.parentOperation = {
+          id: this.parentOperation.id,
+          tripId: this.parentOperation.tripId
+        };
+      }
+      else {
+        delete target.parentOperation;
+      }
     } else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    // Clean properties copied from the parent trip
+    // Clean properties copied from the parent trip (need by filter)
     if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
@@ -257,6 +295,7 @@ export class Operation
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
+    this.rankOrder = source.rankOrder;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
     if (source.startPosition || source.endPosition || source.fishingStartPosition || source.fishingEndPosition) {
@@ -339,11 +378,15 @@ export class Operation
 
     //Parent Operation
     this.parentOperationId = source.parentOperationId;
-    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
+    this.parentOperation = (source.parentOperation || isNotNil(source.parentOperationId))
+      ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId})
+      : undefined;
 
     //Child Operation
     this.childOperationId = source.childOperationId;
-    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
+    this.childOperation = (source.childOperation || isNotNil(source.childOperationId))
+      ? Operation.fromObject(source.childOperation || {id: source.childOperationId})
+      : undefined;
   }
 
   paste(source: Operation, flags = OperationPasteFlags.ALL ) {
@@ -385,16 +428,31 @@ export class Operation
 
   equals(other: Operation): boolean {
     return (super.equals(other) && isNotNil(this.id))
-      || ((this.startDateTime === other.startDateTime
-          || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+      // Functional test
+      || (
+        // Dates
+        (this.startDateTime === other.startDateTime || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+        // RankOrder
+        && ((!this.rankOrder && !other.rankOrder) || (this.rankOrder === other.rankOrder))
+        // RankOrder on period
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
+  }
+
+  get abnormal() {
+    return this.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
 }
 
 export class OperationUtils {
   static isOperation(data: DataEntity<any>): data is Operation {
     return data?.__typename === Operation.TYPENAME;
+  }
+  static isAbnormal(data: Operation): boolean {
+    return data?.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+  }
+  static hasParentOperation(data: Operation): boolean {
+    return data && isNotNil(data.parentOperationId) || isNotNil(data.parentOperation?.id);
   }
 }
 
@@ -540,6 +598,8 @@ export class OperationGroup extends DataEntity<OperationGroup>
 
 @EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
+
+  static ENTITY_NAME = 'Trip';
 
   static fromObject: (source: any, opts?: any) => Trip;
 

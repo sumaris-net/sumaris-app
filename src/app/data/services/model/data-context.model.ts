@@ -32,14 +32,14 @@ export abstract class DataContextService<S extends DataContext = DataContext> ex
   }
 
   get clipboard(): DataClipboard|undefined {
-    return this.getValue('clipboard') as DataClipboard;
+    return this.get('clipboard') as DataClipboard;
   }
 
   get program(): Program|undefined {
-    return this.getValue('program') as unknown as Program;
+    return this.get('program');
   }
 
   get strategy(): Strategy|undefined {
-    return this.getValue('strategy') as unknown as  Strategy;
+    return this.get('strategy');
   }
 }

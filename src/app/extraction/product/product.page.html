@@ -1,11 +1,11 @@
 <app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
-
-  <button mat-icon-button [matMenuTriggerFor]="optionsMenu"
-          [title]=" 'COMMON.BTN_OPTIONS'|translate">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+  <ion-buttons slot="end">
+    <button mat-icon-button [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Type = options menu -->
@@ -18,56 +18,156 @@
   </button>
 </mat-menu>
 
-<ion-content class="ion-padding">
+<ion-content>
 
-  <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-header-pagination-hidden"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 [dynamicHeight]="false">
 
-  <ion-grid class="ion-no-padding">
-    <ion-row class="ion-no-padding ion-padding-top">
-      <ion-col>
-        <!-- form -->
-        <app-product-form #productForm
-                          [showError]="false">
-        </app-product-form>
+    <!-- TAB: general -->
+    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error"></ion-icon>
+      </ng-template>
 
-      </ion-col>
+      <div class="ion-padding">
 
-      <ion-col class="ion-no-padding" size="12" size-xl="3">
-        <app-entity-metadata [value]="data">
+        <app-debug *ngIf="debug">
+          <ion-grid>
+            <ion-row>
+              <ion-col>
+                ready: {{readySubject|async}}<br/>
+                loading: {{loading}}<br/>
+                enabled: {{enabled}}<br/>
+                dirty: {{dirty}}<br/>
+              </ion-col>
+              <ion-col>
+                productForm.ready: {{productForm.readySubject|async}}<br/>
+                productForm.loading: {{productForm.loading}}<br/>
+                productForm.enabled: {{productForm.enabled}}<br/>
+                productForm.dirty: {{productForm.dirty}}<br/>
+              </ion-col>
+              <ion-col *ngIf="datasourceTable">
+                datasourceTable.ready: {{datasourceTable.readySubject|async}}<br/>
+                datasourceTable.loading: {{datasourceTable.loading}}<br/>
+                datasourceTable.enabled: {{datasourceTable.enabled}}<br/>
+                datasourceTable.dirty: {{datasourceTable.dirty}}<br/>
+              </ion-col>
+              <ion-col *ngIf="resultTable">
+                resultTable.ready: {{resultTable.readySubject|async}}<br/>
+                resultTable.loading: {{resultTable.loading}}<br/>
+                resultTable.enabled: {{resultTable.enabled}}<br/>
+                resultTable.dirty: {{resultTable.dirty}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
 
-          <!-- open map button -->
-          <ion-button color="secondary" size="full"
-                      *ngIf="productForm.isSpatial"
-                      (click)="openMap($event)"
-                      [disabled]="loading">
-            <mat-icon slot="start">
-              <ion-icon name="earth"></ion-icon>
-            </mat-icon>
-            <ion-label>
-            {{'EXTRACTION.AGGREGATION.EDIT.BTN_OPEN_MAP'|translate}}
-            </ion-label>
-          </ion-button>
+        <!-- error -->
+        <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+        </ion-item>
 
-          <!-- Run extraction -->
-          <ion-button color="danger" size="full"
-                      *ngIf="productForm.isManualProcessing"
-                      (click)="updateProduct($event)"
-                      [disabled]="loading">
-            <ion-label>
-              {{'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE'|translate}}
-            </ion-label>
-          </ion-button>
-        </app-entity-metadata>
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding ion-padding-top">
+            <ion-col>
+              <!-- form -->
+              <app-product-form #productForm
+                                [showError]="false">
+              </app-product-form>
+
+            </ion-col>
+
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
+              <app-entity-metadata [value]="data">
+
+                <!-- open map button -->
+                <ion-button color="secondary" size="full"
+                            *ngIf="productForm.isSpatial"
+                            (click)="openMap($event)"
+                            [disabled]="loading">
+                  <mat-icon slot="start">
+                    <ion-icon name="earth"></ion-icon>
+                  </mat-icon>
+                  <ion-label>
+                  {{'EXTRACTION.AGGREGATION.EDIT.BTN_OPEN_MAP'|translate}}
+                  </ion-label>
+                </ion-button>
+
+                <!-- Run extraction -->
+                <ion-button color="accent" size="full"
+                            *ngIf="productForm.isManualProcessing"
+                            (click)="updateProduct($event)"
+                            [title]="'EXTRACTION.AGGREGATION.EDIT.BTN_EXECUTE_HELP'|translate"
+                            [disabled]="loading">
+                  <ion-icon slot="start" name="play"></ion-icon>
+                  <ion-label>
+                    {{'EXTRACTION.AGGREGATION.EDIT.BTN_EXECUTE'|translate}}
+                  </ion-label>
+                </ion-button>
+              </app-entity-metadata>
 
 
-      </ion-col>
+            </ion-col>
 
-    </ion-row>
-  </ion-grid>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </mat-tab>
+
+
+    <!-- TAB: datasource -->
+    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_DATASOURCE'|translate}}"
+             [disabled]="loading">
+      <ng-template mat-tab-label>
+        <mat-icon>filter_alt</mat-icon>
+        <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_DATASOURCE</ion-label>
+      </ng-template>
+
+      <app-extraction-table-page #datasourceTable
+                                 style="height: var(--mat-tab-body-content-height);"
+                                 queryTabIndexParamName="subtab"
+                                 [autoload]="false"
+                                 [embedded]="true"
+                                 [showDownloadButton]="false">
+
+      </app-extraction-table-page>
+    </mat-tab>
+
+    <!-- TAB: result -->
+    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_RESULT'|translate}}"
+             [disabled]="productForm.isSpatial">
+      <ng-template mat-tab-label>
+        <mat-icon>dataset</mat-icon>
+        <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_RESULT</ion-label>
+      </ng-template>
+
+      <app-extraction-table-page #resultTable
+                                 queryTabIndexParamName="subtab"
+                                 [autoload]="false"
+                                 [embedded]="true"
+                                 [showFilter]="false">
+
+        <!-- Run extraction -->
+        <button mat-raised-button toolbarButton color="accent"
+                    *ngIf="productForm.isManualProcessing"
+                    (click)="updateProduct($event)"
+                    [title]="'EXTRACTION.AGGREGATION.EDIT.BTN_EXECUTE_HELP'|translate"
+                    [disabled]="loading">
+          <mat-icon>play_arrow</mat-icon>
+          <mat-label>
+            {{'EXTRACTION.AGGREGATION.EDIT.BTN_EXECUTE'|translate|uppercase}}
+          </mat-label>
+        </button>
+      </app-extraction-table-page>
+    </mat-tab>
+  </mat-tab-group>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

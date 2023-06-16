@@ -2,29 +2,48 @@
   <ion-grid class="ion-no-padding">
     <ion-row>
       <ion-col>
-        batchTree.loading: {{loading}}<br/>
-        batchTree.ready: {{readySubject|async}}<br/>
-        batchTree.dirty: {{dirty}}<br/>
-        batchTree.valid: {{valid}}<br/>
-        batchTree.program: {{($program|async)?.label}}<br/>
-        batchTree.showCatchForm: {{showCatchForm}}<br/>
-        batchTree.showBatchTables: {{showBatchTables}}<br/>
-        batchTree.i18nContext.suffix: {{i18nContext.suffix}}<br/>
+        loading: {{loading}} (subject: {{loadingSubject|async}})<br/>
+        ready: {{readySubject|async}}<br/>
+        dirty: {{dirty}}<br/>
+        valid: {{valid}}<br/>
+        disabled: {{disabled}}<br/>
+        program: {{(programLabel$|async)}}<br/>
+        i18nContext.suffix: {{i18nContext.suffix}}<br/>
+        <br/>
+        showCatchForm: {{showCatchForm}}<br/>
+        showBatchTables: {{showBatchTables}}<br/>
+        programAllowMeasure: {{programAllowMeasure}}<br/>
+        allowSpeciesSampling: {{allowSpeciesSampling}}<br/>
+        allowSubBatches: {{allowSubBatches}}<br/>
       </ion-col>
       <ion-col>
         catchBatchForm.loading: {{catchBatchForm.loading}}<br/>
         catchBatchForm.ready: {{catchBatchForm.readySubject|async}}<br/>
         catchBatchForm.dirty: {{catchBatchForm.dirty}}<br/>
         catchBatchForm.valid: {{catchBatchForm.valid}}<br/>
+        catchBatchForm.disabled: {{catchBatchForm.disabled}}<br/>
         catchBatchForm.program: {{catchBatchForm.programLabel}}<br/>
         catchBatchForm.i18nPmfmPrefix: {{catchBatchForm.i18nPmfmPrefix}}<br/>
         catchBatchForm.i18nSuffix: {{catchBatchForm.i18nSuffix}}<br/>
+        catchBatchForm.pmfms: {{catchBatchForm.pmfms?.length}}<br/>
+        catchBatchForm.defaultWeightPmfm: {{catchBatchForm.defaultWeightPmfm?.label}}<br/>
+        catchBatchForm.samplingRatioFormat: {{catchBatchForm.samplingRatioFormat}}<br/>
+        <br/>
+        catchBatchForm.hasContent: {{catchBatchForm.hasContent$|push}}<br/>
+        catchBatchForm.showWeight: {{catchBatchForm.showWeight}}<br/>
+        catchBatchForm.requiredWeight: {{catchBatchForm.requiredWeight}}<br/>
+        catchBatchForm.showSamplingBatch: {{catchBatchForm.showSamplingBatch}}<br/>
+        catchBatchForm.samplingBatchEnabled: {{catchBatchForm.samplingBatchEnabled}}<br/>
+        catchBatchForm.showSampleWeight: {{catchBatchForm.showSampleWeight}}<br/>
+        catchBatchForm.requiredSampleWeight: {{catchBatchForm.requiredSampleWeight}}<br/>
       </ion-col>
-      <ion-col>
+      <ion-col *ngIf="showBatchTables">
         batchGroupsTable.loading: {{batchGroupsTable.loading}}<br/>
         batchGroupsTable.ready: {{batchGroupsTable.readySubject|async}}<br/>
         batchGroupsTable.dirty: {{batchGroupsTable.dirtySubject|async}}<br/>
         batchGroupsTable.valid: {{batchGroupsTable.valid}}<br/>
+        batchGroupsTable.disabled: {{batchGroupsTable.disabled}}<br/>
+        <br/>
         batchGroupsTable.program: {{batchGroupsTable.programLabel}}<br/>
         <!--          batchGroupsTable.i18nPmfmPrefix: {{batchGroupsTable.i18nPmfmPrefix}}<br/>-->
         <!--          batchGroupsTable.i18nColumnPrefix: {{batchGroupsTable.i18nColumnPrefix}}<br/>-->
@@ -38,6 +57,8 @@
         subBatchesTable.ready: {{subBatchesTable.readySubject|async}}<br/>
         subBatchesTable.dirty: {{subBatchesTable.dirtySubject|async}}<br/>
         subBatchesTable.valid: {{subBatchesTable.valid}}<br/>
+        subBatchesTable.disabled: {{subBatchesTable.disabled}}<br/>
+        <br/>
         subBatchesTable.program: {{subBatchesTable.programLabel}}<br/>
         batchGroupsTable.showTaxonNameColumn: {{subBatchesTable.showTaxonNameColumn}}<br/>
         batchGroupsTable.showIndividualCount: {{subBatchesTable.showIndividualCount}}<br/>
@@ -52,9 +73,9 @@
         <ion-button (click)="dumpDebugData('rowValidator')">Dump table row</ion-button>
       </ion-col>
     </ion-row>
-    <ion-row *ngIf="debugObject">
+    <ion-row *ngIf="_debugData">
       <ion-col size="12">
-        <pre>{{debugObject|json}}</pre>
+        <pre>{{_debugData|json}}</pre>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -68,22 +89,22 @@
 
 <!-- catch batch form -->
 <div class="ion-padding"
-     [class.cdk-visually-hidden]="!showCatchForm">
+     [class.cdk-visually-hidden]="!(showCatchForm$|push:'userBlocking')">
   <form-catch-batch #catchBatchForm
-                    [programLabel]="$programLabel|async"
+                    [programLabel]="programLabel$|async"
                     [acquisitionLevel]="rootAcquisitionLevel"
                     (onSubmit)="save($event)"
                     [tabindex]="200"
                     [showError]="false"
                     [i18nPmfmPrefix]="i18nPmfmPrefix"
-                    [i18nSuffix]="i18nContext.suffix"
+                    [i18nSuffix]="i18nContext?.suffix"
                     [debug]="debug">
   </form-catch-batch>
 </div>
 
 <mat-tab-group #tabGroup
                class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"
-               [class.cdk-visually-hidden]="!showBatchTables"
+               [class.cdk-visually-hidden]="!(showBatchTables$|push:'userBlocking')"
                [class.mat-tab-group-header-hidden]="mobile"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"
@@ -101,16 +122,15 @@
     <!-- Batches group -->
     <app-batch-groups-table #batchGroupsTable
                             acquisitionLevel="SORTING_BATCH"
-                            [programLabel]="$programLabel|async"
+                            [programLabel]="programLabel$|async"
                             [usageMode]="usageMode"
                             [disabled]="disabled"
                             [useSticky]="useSticky"
                             [debug]="debug"
                             [mobile]="mobile"
                             [allowSubBatches]="allowSubBatches"
-                            [showTaxonGroupColumn]="true"
-                            [showTaxonNameColumn]="true"
-                            [showCommentsColumn]="false"
+                            [showSamplingBatchColumns]="showSamplingBatchColumns$|async"
+                            [showCommentsColumn]="!mobile"
                             (onSubBatchesChanges)="onSubBatchesChanges($event)">
     </app-batch-groups-table>
   </mat-tab>
@@ -118,7 +138,7 @@
 
   <!-- TAB: individual measure -->
   <mat-tab #measureTab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           [disabled]="!allowSubBatches || !showSubBatchesTable"
+           [disabled]="showSubBatchesTable !== true"
            *ngIf="!mobile">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
@@ -134,7 +154,7 @@
 
     <app-sub-batches-table #subBatchesTable
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-                           [programLabel]="$programLabel | async"
+                           [programLabel]="programLabel$|async"
                            [usageMode]="usageMode"
                            [useSticky]="useSticky"
                            [debug]="debug"

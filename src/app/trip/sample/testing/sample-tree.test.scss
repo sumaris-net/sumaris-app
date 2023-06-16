@@ -1,0 +1,9 @@
+:host {
+  .mat-tab-group-root {
+    --mat-tab-body-content-height-root: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - 95px);
+    --mat-tab-body-content-height: var(--mat-tab-body-content-height-root);
+  }
+}
+.mat-tab-body.mat-tab-body-active {
+  overflow-y: visible; // Workaround for iPad
+}

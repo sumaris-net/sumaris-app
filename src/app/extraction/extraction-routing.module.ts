@@ -40,7 +40,25 @@ const routes: Routes = [
         }
       }
     ]
-  }
+  },
+  {
+    path: 'report',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: 'trips',
+        loadChildren: () => import('../trip/trip/report/trip-report-routing.module').then(m => m.TripReportRoutingModule)
+      }
+    ]
+  },
+  {
+    path: 'device-position',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'ADMIN'
+    },
+    loadChildren: () => import('./position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
+  },
 ];
 
 @NgModule({
