@@ -57,6 +57,12 @@ ion-content.ion-flex-direction-column::part(scroll) {
     */
   }
 
+  .mat-row.mat-row-selected {
+    .mat-cell .visible-selected-row {
+      visibility: visible !important;
+    }
+  }
+
   .mat-header-row,
   .mat-row,
   .mat-footer-row {

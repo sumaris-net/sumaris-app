@@ -2134,6 +2134,7 @@
         }
       },
       "TABLE": {
+        "BTN_ADD_DATA_DOTS": "Ajouter une donnée...",
         "LABEL": "Code",
         "LOCATIONS": "Lieu(x) applicable(s)",
         "ANALYTIC_REFERENCE": "Code analytique",
@@ -2153,6 +2154,7 @@
         "OTHER": "Autre",
 
         "SAMPLING": {
+          "BTN_ADD_DATA_DOTS": "Ajouter une sortie ou un échantillonnage...",
           "LABEL": "Code de la ligne",
           "LOCATIONS": "Zone(s) de pêche",
           "ANALYTIC_REFERENCE": "EOTP",
