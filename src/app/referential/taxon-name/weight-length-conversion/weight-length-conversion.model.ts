@@ -45,7 +45,7 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T>>
     target.creationDate = toDateISOString(this.creationDate);
     if (opts?.minify) {
       // Convert statusId object into integer
-      target.statusId = (typeof this.statusId === 'object') ? this.statusId['id'] : this.statusId;
+      target.statusId = (typeof this.statusId === 'object') ? (this.statusId as any)['id'] : this.statusId;
     }
     return target;
   }

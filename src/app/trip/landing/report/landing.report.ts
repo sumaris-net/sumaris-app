@@ -436,7 +436,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
 
     const blob = new Blob([arrayUt8], {type: "application/json"});
     blob['lastModifiedDate'] = (new Date()).toISOString();
-    blob['name'] = filename;
+    (blob as any)['name'] = filename;
 
     const { fileName, message } = await this.fileTransferService.uploadResource(<File>blob, {
       resourceType: 'report',
