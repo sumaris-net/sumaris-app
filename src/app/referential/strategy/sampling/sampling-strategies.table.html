@@ -358,8 +358,8 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text *ngIf="row.currentData.effortByQuarter|mapGet: quarter; let effort">
-            <!-- OBSBIO-49 - use warning color if more than expected effort -->
-            <ion-text [color]="effort.realized ? (effort.realizedMore ? 'warning' : 'success') : 'dark'">
+            <!-- OBSBIO-49 et OBSBIO-83 - use warning color if more than expected effort -->
+            <ion-text [color]="effort.realized ? (effort.realizedMore ? 'tertiary' : 'success') : 'dark'">
               <span>{{effort.realizedEffort}}</span>
               <span>&#47;</span>
               <span>{{effort.expectedEffort}}</span>
