@@ -132,8 +132,9 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
     // Observers can delete - https://youtrack.ifremer.fr/issue/IMAGINE-632
     const currentPerson = this.accountService.person;
-    if (isNil(this.data.validationDate)) {
+    if (isNil(this.data.validationDate) && isNil(this.parent?.validationDate)) {
       const isObserver = (data?.observers || [])
+        .concat(this.parent?.observers || [])
         .some(observer => ReferentialUtils.equals(currentPerson, observer))
       if (isObserver) return true;
     }
