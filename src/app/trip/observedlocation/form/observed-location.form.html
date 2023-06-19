@@ -166,9 +166,9 @@
       </ion-col>
       <ion-col>
         <!-- pmfms -->
-        <form [formGroup]="measurementValuesForm"
-              *rxIf="pmfms$; let pmfms; else measurementsSkeleton; ">
-          <app-pmfm-field *rxFor="let pmfm of pmfms; index as i;"
+        <form *rxIf="pmfms$; let pmfms; else measurementsSkeleton;"
+              [formGroup]="measurementValuesForm">
+          <app-pmfm-field *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;"
                                       [pmfm]="pmfm"
                                       [controlName]="pmfm|pmfmIdString"
                                       [compact]="compact"

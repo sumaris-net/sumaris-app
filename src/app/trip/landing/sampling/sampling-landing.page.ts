@@ -13,7 +13,7 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
+  LocalSettingsService, ReferentialUtils,
   SharedValidators
 } from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from './biological-sampling.validators';
@@ -43,6 +43,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
+  canDelete = false;
 
   constructor(
     injector: Injector,
@@ -87,7 +88,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       .then(pmfmGroups => {
         // Configure sample table
         this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
-        this.samplesTable.computedPmfmGroups = ['AGE']; // FIXME: use ParameterLabelGroups.AGE instead ?
+        this.samplesTable.computedPmfmGroups = ParameterLabelGroups.AGE;
         this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
       });
@@ -104,6 +105,8 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
+
+    this.canDelete = this.canUserDelete(data);
   }
 
   updateTabsState(data: Landing) {
@@ -123,25 +126,18 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-    if (this.accountService.isAdmin()) {
-      return true;
+  canUserDelete(data: Landing, opts?: any): boolean {
+    const canWrite = this.canUserWrite(data);
+    if (canWrite) return true;
+
+    // Observers can delete - https://youtrack.ifremer.fr/issue/IMAGINE-632
+    const currentPerson = this.accountService.person;
+    if (isNil(this.data.validationDate)) {
+      const isObserver = (data?.observers || [])
+        .some(observer => ReferentialUtils.equals(currentPerson, observer))
+      if (isObserver) return true;
     }
 
-    const entity = this.data;
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
-
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -246,7 +242,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   protected async getValue(): Promise<Landing> {
     let data = await super.getValue();
 
-    // Make to convert as an entity
+    // Convert into entity
     data = Landing.fromObject(data);
 
     // Compute final TAG_ID, using the strategy label
@@ -340,7 +336,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
+    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
       await firstValueFrom(this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''

@@ -73,7 +73,7 @@
         <!-- error -->
         <ion-item *ngIf="landingForm.error||error as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
@@ -94,7 +94,7 @@
             <!-- data quality -->
             <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="showEntityMetadata">
               <app-entity-metadata [value]="data">
-                <app-entity-quality-form *ngIf="showQualityForm">
+                      <app-entity-quality-form *ngIf="showQualityForm">
                 </app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
@@ -120,7 +120,6 @@
       </ng-template>
 
       <div>
-
         <!-- error -->
         <ion-item *ngIf="submitted && (samplesTable.error || (landingForm.measurementValuesForm|translateFormError: errorTranslatorOptions)); let error"
                   visible-xs visible-sm visible-mobile lines="none">
@@ -139,7 +138,7 @@
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
-              <ng-container *rxFor="let pmfm of pmfms; strategy: 'immediate'; index as i;">
+              <ng-container *rxFor="let pmfm of pmfms; trackBy: landingForm.trackPmfmFn; strategy: 'immediate'; index as i;">
 
                 <ion-col size="11" size-md="5" >
                   <app-pmfm-field [pmfm]="pmfm"
@@ -184,6 +183,7 @@
                            [showImagesColumn]="true"
                            [showToolbar]="!mobile"
                            [showGroupHeader]="false"
+                           [enableTagIdGeneration]="false"
                            [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
@@ -191,6 +191,7 @@
                            [pmfmValueColor]="getPmfmValueColor"
                            [compactFields]="true"
                            [i18nColumnSuffix]="i18nContext.suffix"
+                           (weightUnitChanges)="setWeightDisplayUnit($event)"
                            [debug]="debug"
                            [mobile]="mobile">
 
@@ -262,20 +263,37 @@
       <ion-row>
         <ion-col>
           editor.loading: {{loading}}<br/>
+          editor.enabled: {{enabled}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
           editor.saving: {{savingSubject|async}}<br/>
         </ion-col>
         <ion-col>
           landingForm.loading: {{landingForm.loading}}<br/>
+          landingForm.enabled: {{landingForm.enabled}}<br/>
           landingForm.ready: {{landingForm.readySubject|async}}<br/>
           landingForm.dirty: {{landingForm.dirty}}<br/>
+          <br/>
+          landingForm.observedLocationId: {{form|formGetValue:'observedLocationId' }}<br/>
+          landingForm.dateTime: {{form|formGetValue:'dateTime'|dateFormat: {time: true} }}<br/>
+          landingForm.location: {{form|formGetValue:'location'|propertyGet: 'label' }}<br/>
+          <br/>
+          landingForm.acquisitionLevel: {{landingForm.acquisitionLevel}}<br/>
+          landingForm.programLabel: {{landingForm.programLabel}}<br/>
+          landingForm.showLocation: {{landingForm.showLocation}}<br/>
+          landingForm.pmfms: {{(landingForm.pmfms$|async)?.length}}<br/>
         </ion-col>
         <ion-col>
-          samplesTable.loading: {{samplesTable.loadingSubject|async}}<br/>
+          samplesTable.loading: {{samplesTable.loading}}<br/>
+          samplesTable.loadingSubject: {{samplesTable.loadingSubject|async}}<br/>
           samplesTable.ready: {{samplesTable.readySubject|async}}<br/>
           samplesTable.dirty: {{samplesTable.dirty}}<br/>
           samplesTable.dirtySubject: {{samplesTable.dirtySubject|async}}<br/>
+          <br/>
+          samplesTable.acquisitionLevel: {{samplesTable.acquisitionLevel}}<br/>
+          samplesTable.programLabel: {{samplesTable.programLabel}}<br/>
+          samplesTable.pmfms: {{(samplesTable.$pmfms|async)?.length}}<br/>
+          <br/>
           samplesTable.showIndividualMonitoringButton: {{samplesTable.showIndividualMonitoringButton}}<br/>
           samplesTable.showIndividualReleaseButton: {{samplesTable.showIndividualReleaseButton}}<br/>
           samplesTable.showImagesButton: {{samplesTable.showImagesColumn}}<br/>

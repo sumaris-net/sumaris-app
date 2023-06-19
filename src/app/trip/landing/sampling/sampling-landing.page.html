@@ -32,7 +32,7 @@
 
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled || !canUserCancelOrDelete"
+          [disabled]="isNewData || disabled || !canDelete"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
@@ -51,7 +51,6 @@
   </button>
 
 </mat-menu>
-
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
@@ -77,9 +76,9 @@
 
       <div>
         <!-- error -->
-        <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="landingForm.error||error as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
         </ion-item>
 
         <ng-container *ngIf="debug">
@@ -95,9 +94,9 @@
                                 [programLabel]="$programLabel|async"
                                 [i18nSuffix]="i18nContext.suffix"
                                 [requiredStrategy]="true"
+                                [showStrategy]="true"
                                 [showMeasurements]="true"
                                 [showError]="false"
-                                [showStrategy]="true"
                                 [showParent]="showParent"
                                 [showLocation]="false"
                                 [showMetier]="true"
@@ -151,7 +150,7 @@
                   <!-- data quality -->
                   <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
                     <app-entity-metadata [value]="data">
-                      <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
+                      <app-entity-quality-form *ngIf="showQualityForm">
                       </app-entity-quality-form>
 
                       <!-- not observer (warning) -->
@@ -203,6 +202,8 @@
                             [showTaxonGroupColumn]="false"
                             [showPmfmDetails]="true"
                             [showDisplayColumnModal]="false"
+                            [enableTagIdGeneration]="true"
+                            [defaultTagIdGenerationMode]="'remote'"
                             [canAddPmfm]="true"
                             [defaultSampleDate]="data?.dateTime"
                             [allowSubSamples]="false"
@@ -238,9 +239,8 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && selectedTabIndex === 1"
-         @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+         *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+         @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
@@ -256,6 +256,7 @@
           editor.enabled: {{enabled}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
+          editor.saving: {{savingSubject|async}}<br/>
         </ion-col>
         <ion-col>
           landingForm.loading: {{landingForm.loading}}<br/>

@@ -2,14 +2,16 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/c
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable, Subscription } from 'rxjs';
 import { Landing } from '../landing.model';
 import { AuctionControlValidators } from './auction-control.validators';
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
-  AppHelpModalOptions, ColorName,
-  EntityServiceLoadOptions, EntityUtils,
+  AppHelpModalOptions,
+  ColorName,
+  EntityServiceLoadOptions,
+  EntityUtils,
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
@@ -21,7 +23,8 @@ import {
   LoadResult,
   LocalSettingsService,
   ReferentialUtils,
-  SharedValidators, toBoolean,
+  SharedValidators,
+  toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
@@ -86,7 +89,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
       mobile: this.mobile
     });
-
   }
 
   ngAfterViewInit() {
@@ -107,7 +109,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     this.pmfms$ = filterNotNil(this.$taxonGroups)
         .pipe(
-          mergeMap(() => filterNotNil(this.landingForm.pmfms$)),
+          switchMap(() => this.landingForm.pmfms$),
+          filter(isNotNil),
           map(pmfms => pmfms.map(pmfm => {
             // Controlled species PMFM
             if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
@@ -361,7 +364,10 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected async getValue(): Promise<Landing> {
-    const data = await super.getValue();
+    let data = await super.getValue();
+
+    // Convert into entity
+    data = Landing.fromObject(data);
 
     if (this.showSamplesTable && data.samples) {
       const taxonGroup = this.taxonGroupControl.value;
@@ -390,20 +396,20 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   protected async computeTitle(data: Landing): Promise<string> {
     const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      await this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
+      await firstValueFrom(this.translate.get('AUCTION_CONTROL.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      })) || '';
 
     // new data
     if (!data || (isNil(data.id) && ReferentialUtils.isEmpty(data.vesselSnapshot))) {
-      return titlePrefix + (await this.translate.get('AUCTION_CONTROL.NEW.TITLE').toPromise());
+      return titlePrefix + this.translate.instant('AUCTION_CONTROL.NEW.TITLE');
     }
 
     // Existing data
-    return titlePrefix + (await this.translate.get('AUCTION_CONTROL.EDIT.TITLE', {
+    return titlePrefix + this.translate.instant('AUCTION_CONTROL.EDIT.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
-    }).toPromise());
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -428,6 +434,5 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
       (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
-
 
 }

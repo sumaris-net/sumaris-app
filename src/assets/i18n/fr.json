@@ -1048,7 +1048,8 @@
         "IMAGES": "Photos",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
-        "BTN_WEIGHT_UNIT_DOTS": "Unité de poids...",
+        "BTN_WEIGHT_UNIT_DOTS": "Poids...",
+        "BTN_GENERATE_TAG_ID_DOTS": "Code prélèvement...",
         "WEIGHT": "Poids",
         "LENGTH": "Taille",
         "MATURITY": "Maturité",
@@ -1060,6 +1061,11 @@
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "BTN_IMAGES": "Ajouter des photos",
+        "TAG_ID_GENERATION_MODE": {
+          "REMOTE": "Auto-généré par le système",
+          "NONE": "Saisie manuelle",
+          "PREVIOUS_ROW": "Ligne précédente + 1"
+        },
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",
@@ -2844,6 +2850,7 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
+    "DATA_NOT_UNIQUE": "Problème d'unicité",
     "DATA_UPDATE_DATE_CHANGED": "Vos modifications ne pourront pas être sauvegardées.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DOWNLOAD_FAILED": "Échec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",

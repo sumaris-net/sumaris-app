@@ -39,7 +39,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
-import { merge, Subscription } from 'rxjs';
+import { firstValueFrom, merge, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -126,12 +126,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-  }
-
-  ngOnInit() {
-
-
-    super.ngOnInit();
   }
 
   ngAfterViewInit() {
@@ -502,16 +496,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (this.isNewData) {
-      if (!enableStrategy) {
-        this.landingForm.canEditStrategy = true;
-        this.markAsReady();
-      }
-      else {
-        this.landingForm.requiredStrategy = false;
-        this.landingForm.canEditStrategy = true;
-        this.markAsReady();
-      }
+    if (!enableStrategy) {
+      this.markAsReady();
+    }
+    // Strategy is enabled: special case for new data
+    else if (this.isNewData) {
+      this.landingForm.requiredStrategy = false;
+      this.landingForm.canEditStrategy = true;
+      this.markAsReady();
     }
 
     // Listen program's strategies change (will reload strategy if need)
@@ -563,7 +555,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         {
           strategyLabel: strategyLabel,
           acquisitionLevel: table.acquisitionLevel
-        }, this.debug);
+        });
       const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
@@ -638,20 +630,20 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      await this.translate.get('LANDING.TITLE_PREFIX', {
+      await firstValueFrom(this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      })) || '';
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
+      return titlePrefix + this.translate.instant(`LANDING.NEW.${i18nSuffix}TITLE`);
     }
 
     // Existing data
-    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+    return titlePrefix + this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
-    }).toPromise());
+    });
   }
 
   protected computePageUrl(id: number|'new') {
@@ -745,7 +737,5 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Reload data
     setTimeout(() => this.reload(), 250);
-
-
   }
 }

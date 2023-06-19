@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap, tap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, AcquisitionLevelType, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
 import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
@@ -7,7 +7,8 @@ import { MeasurementsValidatorService } from '../../data/measurement/measurement
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
-  ConfigService, DateUtils,
+  ConfigService,
+  DateUtils,
   EntityUtils,
   FormArrayHelper,
   getPropertyByPath,
@@ -54,7 +55,7 @@ import { Moment } from 'moment/moment';
 import { ISelectObservedLocationsModalOptions, SelectObservedLocationsModal } from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
 import { Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import {StrategyService} from '@app/referential/services/strategy.service';
+import { StrategyService } from '@app/referential/services/strategy.service';
 
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
@@ -93,16 +94,13 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   fishingAreaFocusIndex = -1;
   mobile: boolean;
 
-  showStrategy$ = this._state.select('showStrategy');
   strategyControl$ = this._state.select('strategyControl');
-  showObservedLocation$ = this._state.select('showObservedLocation');
   observedLocationLabel$ = this._state.select('observedLocationLabel');
   observedLocationControl$ = this._state.select('observedLocationControl');
 
   autocompleteFilters = {
     fishingArea: false
   };
-
 
   get empty(): any {
     const value = this.value;
@@ -113,45 +111,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   get valid(): boolean {
     return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty))
-    // && (!this.showStrategy || this.strategyControl.valid);
-  }
-
-  get invalid(): boolean {
-    return super.invalid
-      // Check strategy
-      //|| (this.showStrategy && this.strategyControl.invalid);
-  }
-
-  get pending(): boolean {
-    return super.pending
-      // Check strategy
-      //|| (this.showStrategy && this.strategyControl.pending);
-  }
-
-  get dirty(): boolean {
-    return super.dirty
-      // Check strategy
-      //|| (this.showStrategy && this.strategyControl.dirty);
-  }
-
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    super.markAsUntouched(opts);
-    //this.strategyControl.markAsUntouched(opts);
-  }
-
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsTouched(opts);
-    //this.strategyControl.markAsTouched(opts);
-  }
-
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAllAsTouched(opts);
-    //this.strategyControl.markAsTouched(opts);
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsPristine(opts);
-    //this.strategyControl.markAsPristine(opts);
   }
 
   get observersForm(): UntypedFormArray {
@@ -459,9 +418,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
           filter(parent => !parent || parent instanceof ObservedLocation),
           distinctUntilChanged(EntityUtils.equals)
       ),
-      (_, parent) => {
-      return this.displayObservedLocation(parent as ObservedLocation);
-    })
+      (_, parent) => this.displayObservedLocation(parent as ObservedLocation))
 
     this._state.hold(this.strategyControl$.pipe(
       switchMap(control => control.valueChanges),
@@ -491,6 +448,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     // Reapplied changed data
     if (this.isNewData && this.form.touched) {
+      console.warn('[landing-form] Merging form value and input data, before updateing view')
       const json = this.form.value;
       Object.keys(json).forEach(key => {
         if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
@@ -628,11 +586,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     }
   }
 
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.disable(opts);
-    //this.strategyControl?.disable(opts);
-  }
-
   async addVesselModal(): Promise<any> {
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
@@ -679,21 +632,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     return this.referentialRefService.suggest(value, filter, undefined, undefined,
       { fetchPolicy }
     );
-  }
-
-  protected async suggestObservedLocation(value: any, filter?: any): Promise<LoadResult<ObservedLocation>> {
-
-    const res = await this.observedLocationService.loadAll(0, 10, null, null, <ObservedLocationFilter>{
-      program: {label: this.programLabel}
-    }, {withTotal: true});
-
-    const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
-    (res?.data || []).forEach(ol => {
-      ol.startDateTime = this.dateAdapter.format(ol.startDateTime, dateTimePattern) as unknown as any;
-    });
-
-    console.debug('[landing-form] Suggested observed location: ', res);
-    return res;
   }
 
   protected async openSelectObservedLocationModal(event?: Event) {
