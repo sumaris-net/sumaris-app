@@ -266,6 +266,7 @@ export class ProgramRefService
 
     // TODO: check rights on program (ProgramPerson, ProgramDepartment)
     // const program = opts?.program || load()
+    // See http://youtrack.ifremer.fr/issue/Obsbio-92
     console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
 
     // Check same department
