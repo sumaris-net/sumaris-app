@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -40,7 +40,6 @@ import { SampleFilter } from './sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -217,6 +216,7 @@ export class SamplesTable
   }
 
   @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('weightUnitChanges') onWeightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
   constructor(
     injector: Injector,
@@ -1013,10 +1013,6 @@ export class SamplesTable
       .filter(isNotNilOrBlank)
       .length;
     this.tagCount$.next(tagCount);
-  }
-
-  protected changeWeightUnit(unitLabel: WeightUnitSymbol) {
-    console.log('TODO: change weight unit to ' + unitLabel);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

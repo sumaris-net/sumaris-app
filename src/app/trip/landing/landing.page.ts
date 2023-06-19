@@ -43,7 +43,7 @@ import { merge, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
@@ -722,5 +722,30 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     console.warn('[landing-page] No row validator override');
     return null;
+  }
+
+  protected async setWeightDisplayUnit(unitLabel: WeightUnitSymbol) {
+    if (this.samplesTable.weightDisplayedUnit === unitLabel) return; // Skip if same
+
+    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+      // If on field mode: try to save silently
+      ? await this.save(null, {openTabIndex: -1})
+      // If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Skip
+
+    console.debug('[landing-page] Change weight unit to ' + unitLabel);
+    this.samplesTable.weightDisplayedUnit = unitLabel;
+    this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT, unitLabel);
+
+    // Reload program and strategy
+    await this.reloadProgram({clearCache: false});
+    if (this.landingForm.requiredStrategy) await this.reloadStrategy({clearCache: false});
+
+    // Reload data
+    setTimeout(() => this.reload(), 250);
+
+
   }
 }

@@ -143,9 +143,10 @@
                            [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
-                           (prepareRowForm)="onPrepareSampleForm($event)"
                            [compactFields]="true"
                            [i18nColumnSuffix]="i18nContext.suffix"
+                           (prepareRowForm)="onPrepareSampleForm($event)"
+                           (weightUnitChanges)="setWeightDisplayUnit($event)"
                            [debug]="debug">
         </app-samples-table>
       </div>

@@ -63,6 +63,7 @@
 
   <!-- unit change -->
   <button mat-menu-item
+          *ngIf="onWeightUnitChanges.observers|isNotEmptyArray"
           [matMenuTriggerFor]="weightUnitMenu">
     <mat-icon>balance</mat-icon>
     <ion-label translate>TRIP.SAMPLE.TABLE.BTN_WEIGHT_UNIT_DOTS</ion-label>
@@ -92,11 +93,11 @@
 
 <mat-menu #weightUnitMenu="matMenu">
   <ng-template matMenuContent>
-    <button mat-menu-item (click)="changeWeightUnit('kg')">
+    <button mat-menu-item (click)="onWeightUnitChanges.emit('kg')">
       <ion-icon *ngIf="weightDisplayedUnit === 'kg'" name="checkmark"></ion-icon>
       {{ 'REFERENTIAL.UNIT.WEIGHT.KG'|translate }}
     </button>
-    <button mat-menu-item (click)="changeWeightUnit('g')">
+    <button mat-menu-item (click)="onWeightUnitChanges.emit('g')">
       <ion-icon *ngIf="weightDisplayedUnit === 'g'" name="checkmark"></ion-icon>
       {{ 'REFERENTIAL.UNIT.WEIGHT.G'|translate }}
     </button>

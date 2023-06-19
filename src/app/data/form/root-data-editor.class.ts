@@ -327,11 +327,13 @@ export abstract class AppRootDataEditor<
    * Force to reload the program
    * @protected
    */
-  protected async reloadProgram() {
+  protected async reloadProgram(opts = {clearCache: true}) {
     if (this.debug) console.debug(`[root-data-editor] Force program reload...`);
 
     // Cache clear
-    await this.programRefService.clearCache();
+    if (opts?.clearCache !== false) {
+      await this.programRefService.clearCache();
+    }
 
     this._reloadProgram$.next();
   }
@@ -340,11 +342,13 @@ export abstract class AppRootDataEditor<
    * Force to reload the strategy
    * @protected
    */
-  protected async reloadStrategy() {
+  protected async reloadStrategy(opts = {clearCache: true}) {
     if (this.debug) console.debug(`[root-data-editor] Force strategy reload...`);
 
     // Cache clear
-    await this.strategyRefService.clearCache();
+    if (opts?.clearCache !== false) {
+      await this.strategyRefService.clearCache();
+    }
 
     this._reloadStrategy$.next();
   }
