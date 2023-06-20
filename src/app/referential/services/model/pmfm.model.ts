@@ -536,6 +536,8 @@ export abstract class PmfmUtils {
   static applyConversion<P extends IPmfm>(target: P, conversion: UnitConversion, opts?: {markAsConverted: boolean}): P {
     const expectedUnitSymbol = conversion.toUnit?.label || '';
     const conversionCoefficient = toNumber(conversion.conversionCoefficient, 1);
+    // Must be done before updating maximumNumberDecimals (result depends of its value)
+    const precision = PmfmUtils.getOrComputePrecision(target);
 
     if (this.isDenormalizedPmfm(target)) {
       target.unitLabel = expectedUnitSymbol;
@@ -587,7 +589,7 @@ export abstract class PmfmUtils {
     // else console.debug(`[pmfm-utils] PMFM '${target.label}' without maxValue`, target);
 
     // Convert precision
-    const precision = PmfmUtils.getOrComputePrecision(target);
+
     if (precision > 0) {
       target.precision = precision * conversionCoefficient;
       // DEBUG
