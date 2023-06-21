@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnIn
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, AcquisitionLevelType, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
-import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
@@ -145,7 +145,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   @Input() i18nSuffix: string;
   @Input() required = true;
-  @Input() showProgram = true;
+  @Input() showProgram = false;
   @Input() showVessel = true;
   @Input() showDateTime = false; // Default value of program option LANDING_DATE_TIME_ENABLE
   @Input() showLocation = false; // Default value of program option LANDING_LOCATION_ENABLE

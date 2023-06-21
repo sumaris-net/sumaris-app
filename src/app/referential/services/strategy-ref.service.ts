@@ -6,9 +6,8 @@ import {
   BaseEntityGraphqlQueries,
   EntitiesStorage,
   firstArrayValue,
-  firstNotNilPromise, fromDateISOString,
+  firstNotNilPromise, fromDateISOString, isEmptyArray,
   isNil,
-  isNotEmptyArray,
   isNotNil,
   NetworkService,
   toNumber
@@ -19,7 +18,7 @@ import { ReferentialFilter } from './filter/referential.filter';
 import { Strategy } from './model/strategy.model';
 import { StrategyFragments } from './strategy.fragments';
 import { defer, Observable, Subject, Subscription } from 'rxjs';
-import { filter, finalize, map } from 'rxjs/operators';
+import {filter, finalize, map} from 'rxjs/operators';
 import { BaseReferentialService } from './base-referential-service.class';
 import { Moment } from 'moment';
 
@@ -144,18 +143,21 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     if (this.network.offline) {
       res = this.entities.watchAll<Strategy>(Strategy.TYPENAME, {
         offset: 0,
-        size: 1,
+        size: 2,
         filter: (p) => p.label ===  label && (!opts.programId || p.programId === opts.programId)
-      })
-        .pipe(
-          map(res => firstArrayValue(res && res.data))
-        );
+      }).pipe(
+        map(res => {
+          if (isEmptyArray(res.data)) throw new Error('ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
+          if (res.data.length > 1) throw new Error('ERROR.STRATEGY_LABEL_DUPLICATED');
+          return firstArrayValue(res && res.data);
+        })
+      );
     }
     else {
       res = this.graphql.watchQuery<{data: any[]}>({
         query: this.queries.loadAll,
         variables: {
-          offset: 0, size: 1,
+          offset: 0, size: 2,
           filter: {
             label,
             levelId: toNumber(opts && opts.programId, undefined)
@@ -165,10 +167,17 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && opts.fetchPolicy || 'no-cache',
         error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
-      }).pipe(map(res => firstArrayValue(res && res.data)));
+      }).pipe(
+        map(res => {
+          if (isEmptyArray(res.data)) throw new Error('ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
+          if (res.data.length > 1) throw new Error('ERROR.STRATEGY_LABEL_DUPLICATED');
+          return firstArrayValue(res && res.data);
+        })
+      );
     }
 
-    return res.pipe(
+    return res
+      .pipe(
       filter(isNotNil),
       map(data => {
         const entity = (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data;

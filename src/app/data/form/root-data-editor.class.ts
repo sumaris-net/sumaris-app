@@ -1,6 +1,6 @@
 import { Directive, Injector } from '@angular/core';
 
-import { BehaviorSubject, merge, Subject, Subscription } from 'rxjs';
+import {BehaviorSubject, combineLatestWith, merge, Subject, Subscription} from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -9,7 +9,6 @@ import {
   changeCaseToUnderscore,
   DateUtils,
   EntityServiceLoadOptions,
-  EntityUtils,
   fromDateISOString,
   HistoryPageReference,
   IEntityService,
@@ -23,12 +22,12 @@ import {
   ReferentialRef,
   ReferentialUtils
 } from '@sumaris-net/ngx-components';
-import { distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import { Program } from '../../referential/services/model/program.model';
+import {catchError, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import { Program } from '@app/referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
-import { Strategy } from '../../referential/services/model/strategy.model';
-import { StrategyRefService } from '../../referential/services/strategy-ref.service';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
 
@@ -135,38 +134,31 @@ export abstract class AppRootDataEditor<
 
     // Watch strategy
     this.registerSubscription(
-      merge(
-        this.$strategyLabel
-          .pipe(
-            distinctUntilChanged()
-          ),
-        // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._reloadStrategy$
-          .pipe(
-            map(() => this.$strategyLabel.value)
+      this.$program.pipe(
+        filter(isNotNil),
+        mergeMap(program => this.setProgram(program).then(_ => program)),
+        combineLatestWith(
+          merge(
+            this.$strategyLabel.pipe(distinctUntilChanged()),
+            this._reloadStrategy$.pipe(
+              map(() => this.$strategyLabel.value)
+            ),
           )
-      )
-      .pipe(
-        // DEBUG
-        //tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
-        mergeMap( (strategyLabel) => isNilOrBlank(strategyLabel)
-          ? Promise.resolve(undefined) // Allow to have empty strategy (e.g. when user reset the strategy field)
-          : this.strategyRefService.loadByLabel(strategyLabel)
         ),
-        // DEBUG
-        //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
+      ).pipe(
+        mergeMap(([program, strategyLabel]) => {
+          return isNilOrBlank(strategyLabel)
+            ? Promise.resolve(undefined) // Allow to have empty strategy (e.g. when user reset the strategy field)
+            : this.strategyRefService.loadByLabel(strategyLabel, {programId: program?.id});
+        }),
+        catchError((err, _) => {
+          this.setError(err);
+          return Promise.resolve(undefined);
+        }),
+        filter(isNotNil),
         filter(strategy => !equals(strategy, this.$strategy.value)),
-        tap(strategy => this.$strategy.next(strategy))
-      )
-      .subscribe());
-
-    this.registerSubscription(
-        this.$program.pipe(
-          filter(isNotNil),
-          tap(program => this.setProgram(program)),
-          mergeMap(_ => this.$strategy),
-          filter(isNotNil),
-          tap(strategy => this.setStrategy(strategy))
+        tap(strategy => this.$strategy.next(strategy)),
+        tap(strategy => this.setStrategy(strategy))
       ).subscribe()
     );
   }

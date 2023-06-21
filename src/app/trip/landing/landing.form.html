@@ -154,7 +154,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-container *ngIf="!loading">
+    <ng-container *rxIf="readySubject">
       <!-- metier -->
       <ion-row *ngFor="let metierForm of metiersForm?.controls; let i=index; first as first">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">

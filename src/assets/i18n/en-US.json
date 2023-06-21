@@ -2772,7 +2772,9 @@
     "FIELD_NOT_EXISTS": "Value doesn't exist",
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
-    "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>"
+    "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
+    "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategy not allowed or not found",
+    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
