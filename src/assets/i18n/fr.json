@@ -230,7 +230,7 @@
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
         "NAME_REQUIRED": "Navires: Nom obligatoire ?",
-        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Navires > Tri naturel des immatriculations ?"
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Navires: Tri naturel des immatriculations ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -2860,7 +2860,7 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
-    "DATA_NOT_UNIQUE": "Problème d'unicité",
+    "DATA_NOT_UNIQUE": "Erreur d'unicité",
     "DATA_UPDATE_DATE_CHANGED": "Vos modifications ne pourront pas être sauvegardées.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DOWNLOAD_FAILED": "Échec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
