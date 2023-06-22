@@ -19,7 +19,7 @@ export const DEVICE_POSITION_CONFIG_OPTION = Object.freeze({
   },
   TRACKING_SAVE_PERIOD: <FormFieldDefinition> {
     key: 'sumaris.device.position.tracking.savePeriodMs',
-    label: 'CONFIGURATION.OPTIONS.TRACKING_SAVE_PERIOD',
+    label: 'DEVICE_POSITION.OPTIONS.TRACKING_SAVE_PERIOD',
     type: 'integer',
     //defaultValue: 600000,
     defaultValue: 30000,
