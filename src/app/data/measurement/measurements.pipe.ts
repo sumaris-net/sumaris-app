@@ -30,10 +30,11 @@ export class MeasurementValueGetPipe extends PmfmValuePipe {
     html?: boolean;
     hideIfDefaultValue?: boolean;
     showLabelForPmfmIds?: number[];
+    separator?: string;
   }): any {
-    if (!entity.measurementValues) return undefined;
+    if (!entity.measurementValues || !opts?.pmfm) return undefined;
     return super.transform(entity.measurementValues[opts.pmfm.id], {
-      applyDisplayConversion: opts.pmfm?.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),
+      applyDisplayConversion: opts.pmfm.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),
       ...opts
     });
   }

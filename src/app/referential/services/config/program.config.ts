@@ -553,6 +553,12 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'Observer' // See RDB/COST extraction specification
   },
+  TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.batch.denormalization.enable',
+    label: "PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE",
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{

@@ -193,7 +193,7 @@ export abstract class PmfmValueUtils {
   }
 
   static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): string | undefined {
-    if (isNil(value) || !opts || !opts.pmfm) return null;
+    if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
       case 'qualitative_value':
         if (value && typeof value !== 'object') {

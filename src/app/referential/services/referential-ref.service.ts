@@ -41,7 +41,7 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
-  QualitativeValueIds,
+  QualitativeValueIds, QualityFlagIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds
@@ -734,6 +734,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.SELECTIVITY_DEVICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SELECTIVITY_DEVICE_ID);
 
     // Methods
+    MethodIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_UNKNOWN_ID);
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);
     MethodIds.OBSERVED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_OBSERVED_BY_OBSERVER_ID);
     MethodIds.ESTIMATED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_ESTIMATED_BY_OBSERVER_ID);
@@ -746,6 +747,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Units
     UnitIds.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.UNIT_NONE_ID);
+
+    // QualityFlag
+    QualityFlagIds.NOT_COMPLETED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITY_FLAG_NOT_COMPLETED_ID);
+    QualityFlagIds.MISSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITY_FLAG_MISSING_ID);
 
     // ParameterGroups
     ParameterGroupIds.SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_SURVEY_ID);

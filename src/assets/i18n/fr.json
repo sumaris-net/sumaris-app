@@ -229,7 +229,8 @@
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
-        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?",
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Navires > Tri naturel des immatriculations ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -261,6 +262,11 @@
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > PSFM > Poids du lot calculé par RTP",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > PSFM > Sommes de poids RTP des lots fils",
         "PMFM_SELECTIVITY_DEVICE_ID": "Référentiel > PSFM > Dispositif sélectif engin",
+        "PMFM_PACKAGING_ID": "Référentiel > PSFM > Packaging (produit)",
+        "PMFM_AVERAGE_WEIGHT_PRICE_ID": "Référentiel > PSFM > Prix moyen au kg (produit)",
+        "PMFM_AVERAGE_PACKAGING_PRICE_ID": "Référentiel > PSFM > Prix moyen (produit)",
+        "PMFM_SALE_ESTIMATED_RATIO_ID": "Référentiel > PSFM > Ratio de vente (produit)",
+        "PMFM_SALE_RANK_ORDER_ID": "Référentiel > PSFM > Numéro d'ordre de la vente",
         "PARAMETER_HULL_MATERIAL_ID": "Référentiel > Paramètres > Matériau de la coque",
         "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
@@ -269,6 +275,7 @@
         "METHOD_CALCULATED_ID": "Référentiel > Méthode > Calculée",
         "METHOD_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > Méthode > Calcul de poids par RTP",
         "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > Méthode > Calcul de la somme des poids RTP",
+        "METHOD_UNKNOWN_ID": "Référentiel > Méthode > Inconnue",
         "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
         "PARAMETER_GROUP_AGE_LABELS": "Stratégie > Paramètre > Code âge",
         "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
@@ -277,6 +284,8 @@
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
+        "QUALITY_FLAG_NOT_COMPLETED_ID": "Référentiel > Flag qualité > Incomplet",
+        "QUALITY_FLAG_MISSING_ID": "Référentiel > Flag qualité > Manquant",
         "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
         "QUALITATIVE_VALUE_DISCARD_ID": "Référentiel > Valeur qualitative > Partie rejetée (DIS)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
@@ -2026,6 +2035,7 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
+      "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
@@ -2502,7 +2512,7 @@
       "MAP_CENTER_ZOOM": "Extraction > Cartes : Zoom par défaut (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
-      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots"
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?"
     },
     "PRODUCT": {
       "NEW": {
@@ -2526,7 +2536,7 @@
         "TITLE": "Marées brutes (COST v{{version}})",
         "NAME": "COST"
       },
-      "FREE": {
+      "FREE1": {
         "TITLE": "Marées brutes (FREE v{{version}})",
         "NAME": "FREE1",
         "FISHING_TIME": "Heure",

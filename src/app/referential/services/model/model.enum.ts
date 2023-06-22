@@ -172,6 +172,7 @@ export const QualitativeValueIds = {
 };
 
 export const MethodIds = {
+  UNKNOWN: 0,
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
