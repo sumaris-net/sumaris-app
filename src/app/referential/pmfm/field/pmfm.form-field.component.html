@@ -7,42 +7,40 @@
   <div *ngSwitchCase="'array'">
     <ion-grid class="ion-no-padding" *ngVar="control|formGetArray as formArray">
       <ion-row>
-        <ion-col *ngFor="let childControl of formArray.controls; index as j; last as last"
-                 size="auto">
-          <ion-row>
-            <ion-col size="auto" class="ion-align-self-center">
-              <app-pmfm-field [pmfm]="pmfm" #pmfmField
-                              [control]="childControl|formGetControl"
-                              [required]="required && j === 0"
-                              [readonly]="readonly"
-                              [tabindex]="tabindex+j"
-                              [floatLabel]="floatLabel"
-                              [autofocus]="autofocus"
-                              [placeholder]="placeholder"
-                              [mobile]="mobile"
-                              (click)="clicked.emit($event)"
-              >
-              </app-pmfm-field>
-            </ion-col>
+        <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
+          <ion-col [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
+            <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                            [control]="childControl|formGetControl"
+                            [required]="required && j === 0"
+                            [readonly]="readonly"
+                            [tabindex]="tabindex+j"
+                            [floatLabel]="floatLabel"
+                            [autofocus]="autofocus"
+                            [placeholder]="placeholder"
+                            [mobile]="mobile"
+                            [style]="style"
+                            (click)="clicked.emit($event)"
+            >
+            </app-pmfm-field>
+          </ion-col>
 
-            <ion-col size="auto" class="ion-align-self-center">
-              <button type="button" mat-icon-button
-                      [title]="'COMMON.BTN_ADD'|translate"
-                      [disabled]="disabled"
-                      *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
-                      (click)="formArrayHelper.add()">
-                <mat-icon>add</mat-icon>
-              </button>
-              <button type="button" mat-icon-button
-                      [title]="'COMMON.BTN_DELETE'|translate"
-                      [disabled]="disabled"
-                      (click)="formArrayHelper.removeAt(j)"
-                      tabindex="-1">
-                <mat-icon>close</mat-icon>
-              </button>
-            </ion-col>
-          </ion-row>
-        </ion-col>
+          <ion-col [size]="style !== 'button' ? 'auto' : 2" class="ion-align-self-center">
+            <button type="button" mat-icon-button
+                    [title]="'COMMON.BTN_ADD'|translate"
+                    [disabled]="disabled"
+                    *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
+                    (click)="formArrayHelper.add()">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button type="button" mat-icon-button
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    [disabled]="disabled"
+                    (click)="formArrayHelper.removeAt(j)"
+                    tabindex="-1">
+              <mat-icon>close</mat-icon>
+            </button>
+          </ion-col>
+        </ng-container>
       </ion-row>
     </ion-grid>
 
