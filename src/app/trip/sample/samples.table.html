@@ -141,7 +141,7 @@
 </ion-item>
 
 <div #tableContainer class="table-container"
-     *ngIf="$pmfms|async; let pmfms"
+     *rxIf="$pmfms; let pmfms; strategy: 'native'"
      (ngInit)="initTableContainer(tableContainer)"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar && !showGroupHeader"
@@ -585,7 +585,7 @@
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
             [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-            [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}">
+            [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}:row.currentData">
           <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>

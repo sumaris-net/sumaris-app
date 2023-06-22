@@ -34,6 +34,8 @@ import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '../../../referential/services/model/pmfm.model';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { FormErrorTranslatorOptions } from '@sumaris-net/ngx-components/src/app/shared/validator/form-error-adapter.class';
+import { Sample } from '@app/trip/sample/sample.model';
+import { AppColors } from '@app/shared/colors.utils';
 
 @Component({
   selector: 'app-auction-control',
@@ -313,16 +315,17 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  getPmfmValueColor(pmfmValue: any, pmfm: IPmfm): ColorName {
+  getPmfmValueColor(pmfmValue: any, pmfm: IPmfm, data: Sample): AppColors {
 
-    let color: ColorName;
+    let color: AppColors;
 
     switch (pmfm.id) {
       case PmfmIds.OUT_OF_SIZE_PCT:
-        if (isNotNil(pmfmValue) && +pmfmValue > 50) {
-          color = 'danger';
-        } else {
-          color = 'success';
+        if (isNotNil(pmfmValue) && data.taxonGroup?.label === 'NEP') {
+            if (+pmfmValue >= 15) return 'danger';
+            if (+pmfmValue >= 10) return 'warning';
+            if (+pmfmValue >= 5) return 'secondary100';
+          return 'success';
         }
         break;
       case PmfmIds.COMPLIANT_PRODUCT:
