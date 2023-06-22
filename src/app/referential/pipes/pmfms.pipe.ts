@@ -187,13 +187,13 @@ export interface PmfmValueColorOptions {
 })
 export class PmfmValueColorPipe implements PipeTransform {
 
-  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions): string | undefined {
+  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions, data: any): string | undefined {
     const pmfm = opts['pmfm'] || <IPmfm>opts;
     const mapWithFn = typeof opts['mapWith'] === 'function' ? opts['mapWith'] : undefined;
     if (!pmfm || !mapWithFn) return undefined;
 
     // Get the color
-    const color = mapWithFn(pmfmValue, pmfm);
+    const color = mapWithFn(pmfmValue, pmfm, data);
 
     // Transform to CSS color (by default)
     if (opts['css'] !== false) {
