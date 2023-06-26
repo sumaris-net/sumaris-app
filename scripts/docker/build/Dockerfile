@@ -1,6 +1,6 @@
 # PREPARE STAGE
 ARG IMAGE_REGISTRY
-ARG DOCKER_IMAGE="node:14-slim"
+ARG DOCKER_IMAGE="node:16-slim"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
 FROM $DOCKER_IMAGE AS prepare
 ARG CACHE_DIR=/tmp/.build-cache
@@ -22,7 +22,7 @@ COPY --from=prepare $CACHE_DIR/package.json .
 # Install global dependencies
 RUN npm install -g npm @ionic/cli @angular/cli
 # Install project dependencies
-RUN npm install --unsafe-perm
+RUN npm install --unsafe-perm --force
 
 RUN ls -artl
 

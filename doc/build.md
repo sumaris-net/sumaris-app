@@ -8,14 +8,14 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node (v12) ex: 14.20.1
+2. Install Node v16 (e.g. v16.17.0)
 ```bash
-nvm install 14.20.1
+nvm install 16.17.0
 ```
 
 3. Install global dependency: 
 ```bash
-npm install -g yarn @ionic/cli @angular/cli 
+npm install -g @ionic/cli @angular/cli 
 ```
 
 4. Get sources (clone the repo) : `git clone ...`
@@ -32,7 +32,7 @@ sudo apt-get install chromium-browser docker.io
 1. Install project's dependencies:
 ```bash
 cd sumaris-app
-npm install
+npm install --force
 ```
 OR, alternatively: 
 ```bash
