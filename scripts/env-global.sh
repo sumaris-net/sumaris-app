@@ -29,11 +29,11 @@ REPO_API_URL="https://api.github.com/repos/${REPO}"
 REPO_PUBLIC_URL="https://github.com/${REPO}"
 
 
-NODE_VERSION=14
+NODE_VERSION=16
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
-ANDROID_SDK_VERSION=30.0.3
+ANDROID_SDK_VERSION=33.0.2
 ANDROID_SDK_CLI_VERSION=8512546 # See https://developer.android.com/studio#command-tools
 ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
 ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk
@@ -139,12 +139,12 @@ export PATH \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
 
 # Install global dependencies
-YARN_PATH=`which yarn`
 IONIC_PATH=`which ionic`
 NATIVE_RUN_PATH=`which native-run`
-if [[ "_" == "_${YARN_PATH}" ||"_" == "_${IONIC_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
+CORDOVA_RES_PATH=`which cordova-res`
+if [[ "_" == "_${IONIC_PATH}" ||  "_" == "_${NATIVE_RUN_PATH}" || "_" == "_${CORDOVA_RES_PATH}" ]]; then
   echo "--- Installing global dependencies..."
-  npm install -g @ionic/cli native-run yarn
+  npm install -g @ionic/cli native-run cordova-res
   [[ $? -ne 0 ]] && exit 1
 fi
 
@@ -152,6 +152,6 @@ fi
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     echo "--- Installing project dependencies..."
     cd ${PROJECT_DIR}
-    yarn
+    npm install
 fi
 

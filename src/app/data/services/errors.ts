@@ -1,5 +1,5 @@
 
-export const ErrorCodes = {
+export const DataErrorCodes = {
   LOAD_ENTITY_ERROR: 200,
   LOAD_ENTITIES_ERROR: 201,
   SAVE_ENTITY_ERROR: 202,

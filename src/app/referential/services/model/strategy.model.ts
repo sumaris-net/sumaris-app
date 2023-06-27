@@ -15,6 +15,7 @@ export class Strategy<
   O extends StrategyAsObjectOptions = StrategyAsObjectOptions
   > extends BaseReferential<Strategy, number, O> {
 
+  static ENTITY_NAME = 'Strategy';
   static fromObject: (source: any, opts?: any) => Strategy;
 
   analyticReference: string|ReferentialRef = null;

@@ -22,7 +22,7 @@ import {
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { ExtractionType, ExtractionTypeUtils } from './extraction-type.model';
-import { DataCommonFragments } from '@app/trip/services/trip.queries';
+import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';

@@ -3,8 +3,8 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { of } from 'rxjs';
 import { IGNORED_ENTITY_COLUMNS } from '@app/referential/table/referential.table';
-import { DevicePosition, DevicePositionFilter } from '@app/data/services/model/device-position.model';
-import { DevicePositionService } from '@app/data/services/device-position.service';
+import { DevicePosition, DevicePositionFilter } from '@app/data/position/device/device-position.model';
+import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import {
   AccountService, arrayDistinct,
   capitalizeFirstLetter, isNil,

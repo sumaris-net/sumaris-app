@@ -95,9 +95,20 @@ ion-card.chart {
   margin-inline-end: 10px;
   --ion-toolbar-height: var(--control-toolbar-height);
 
+  --ion-card-content-height: calc(100% - var(--ion-toolbar-height, 0px));
+
   &.chart-bar {
     width: 360px;
     height: 245px;
+  }
+
+  &.chart-pie,
+  &.chart-doughnut {
+    width: 360px;
+    height: 360px;
+    ion-card-content {
+      padding: 0 !important;
+    }
   }
 
   ion-toolbar {
@@ -139,6 +150,7 @@ ion-card.chart {
     padding-inline-end: 8px;
 
     display: block;
+    height: var(--ion-card-content-height);
   }
 }
 

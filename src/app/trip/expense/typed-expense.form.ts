@@ -1,10 +1,10 @@
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { filterNotNil, firstNotNilPromise, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, WaitForOptions } from '@sumaris-net/ngx-components';
-import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
+import { TypedExpenseValidatorService } from './typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
-import { Measurement } from '../services/model/measurement.model';
+import { Measurement } from '../../data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { IPmfm } from '../../referential/services/model/pmfm.model';

@@ -3,7 +3,7 @@ import { ExpenseForm } from './expense.form';
 import { TypedExpenseForm } from './typed-expense.form';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppCoreModule } from '@app/core/core.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
 

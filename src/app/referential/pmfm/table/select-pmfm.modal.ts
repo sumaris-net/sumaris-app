@@ -19,15 +19,17 @@ export interface ISelectPmfmModalOptions {
 export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> implements OnInit, ISelectPmfmModalOptions {
 
   constructor(
-      protected injector: Injector,
-      protected pmfmService: PmfmService,
+      injector: Injector,
+      dataService: PmfmService,
       protected cd: ChangeDetectorRef,
   ) {
-    super(injector, Pmfm, pmfmService, {
-      watchAllOptions: {
-        withDetails: true // Force to use PmfmFragment
-      }
-    });
+    super(injector, Pmfm, PmfmFilter,
+      dataService,
+      {
+        watchAllOptions: {
+          withDetails: true // Force to use PmfmFragment
+        }
+      });
   }
 
   protected async computeTitle(): Promise<string> {

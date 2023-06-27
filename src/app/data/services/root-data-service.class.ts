@@ -21,7 +21,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService } from './data-quality-service.class';
 import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
-import { ErrorCodes } from './errors';
+import { DataErrorCodes } from './errors';
 import { IWithRecorderDepartmentEntity } from './model/model.utils';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -106,7 +106,7 @@ export abstract class BaseRootDataService<
       variables: {
         data: json
       },
-      error: { code: ErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
@@ -147,7 +147,7 @@ export abstract class BaseRootDataService<
       variables: {
         data: json
       },
-      error: { code: ErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
       update: (cache, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
@@ -181,7 +181,7 @@ export abstract class BaseRootDataService<
         // TODO serializationKey:
         tracked: true
       },
-      error: { code: ErrorCodes.UNVALIDATE_ENTITY_ERROR, message: "ERROR.UNVALIDATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.UNVALIDATE_ENTITY_ERROR, message: "ERROR.UNVALIDATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
         const savedEntity = data && data.data;
         if (savedEntity) {
@@ -220,7 +220,7 @@ export abstract class BaseRootDataService<
       variables: {
         data: json
       },
-      error: { code: ErrorCodes.QUALIFY_ENTITY_ERROR, message: "ERROR.QUALIFY_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.QUALIFY_ENTITY_ERROR, message: "ERROR.QUALIFY_ENTITY_ERROR" },
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);

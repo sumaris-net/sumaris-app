@@ -223,6 +223,7 @@ export const StrategyFragments = {
     type
     minValue
     maxValue
+    precision
     maximumNumberDecimals
     signifFiguresNumber
     defaultValue

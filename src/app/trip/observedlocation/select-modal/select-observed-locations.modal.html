@@ -1,0 +1,112 @@
+<ion-header>
+  <ion-toolbar color="secondary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'OBSERVED_LOCATION.SELECT_MODAL.TITLE' | translate }}
+    </ion-title>
+
+    <ion-buttons slot="end" [class.cdk-visually-hidden]="!tabSearch.isActive">
+      <!-- Refresh -->
+      <button mat-icon-button *ngIf="!mobile"
+              [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <ion-button *ngIf="!(loadingSubject|async) && hasSelection()" (click)="close($event)"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-no-padding" scroll-y="false">
+  <!-- error -->
+  <ion-item *ngIf="table.error" visible-xs visible-sm visible-mobile>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="table.error|translate"></ion-label>
+  </ion-item>
+
+  <mat-tab-group #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
+                 dynamicHeight="true">
+    <mat-tab #tabSearch
+      label="{{'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_SELECT'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon matPrefix slot="start">search</mat-icon>
+        <ion-label translate>OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_SELECT</ion-label>
+        <ion-icon slot="start" name="alert-circle" color="danger" *ngIf="table.error"></ion-icon>
+      </ng-template>
+      <app-observed-locations-page #table
+                                   [allowMultipleSelection]="allowMultipleSelection"
+                                   [showToolbar]="false"
+                                   [showRecorder]="true"
+                                   [showFilterProgram]="showFilterProgram"
+                                   [disabled]="true"
+                                   [readOnly]="true"
+                                   [inModal]="true"
+                                   [enableFilterPanelCompact]="true"
+                                   (onOpenRow)="selectRow($event)"
+                                   (onNewRow)="close($event)"
+      ></app-observed-locations-page>
+    </mat-tab>
+
+    <mat-tab #tabNew
+      label="{{'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-icon matPrefix slot="start" name="add-circle-outline"></ion-icon>
+        <ion-label translate>OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW</ion-label>
+      </ng-template>
+
+      <ion-grid class="ion-padding" style="max-width: 800px;">
+          <app-form-observed-location #form
+                                      [programLabel]="programLabel"
+                                      [showError]="true"
+                                      [showEndDateTime]="false"
+                                      [showProgram]="false"
+                                      [debug]="false">
+          </app-form-observed-location>
+      </ion-grid>
+    </mat-tab>
+
+
+  </mat-tab-group>
+  <!-- buttons -->
+  <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
+
+  </ion-toolbar>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button *ngIf="(tabSearch.isActive && allowMultipleSelection) || (tabNew.isActive)"
+                    [fill]="((tabSearch.isActive && hasSelection()) || (tabNew.isActive && form.valid)) && 'solid' || 'clear'"
+                    [disabled]="(tabSearch.isActive && !hasSelection()) || (tabNew.isActive && !form.valid)"
+                    (click)="close($event)" color="tertiary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+  </ion-toolbar>
+</ion-footer>

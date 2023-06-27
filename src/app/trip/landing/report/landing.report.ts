@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
-import { LandingService } from '@app/trip/services/landing.service';
+import { LandingService } from '@app/trip/landing/landing.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AccountService,
@@ -33,10 +33,10 @@ import {
   waitForTrue
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Landing } from '@app/trip/services/model/landing.model';
+import { Landing } from '@app/trip/landing/landing.model';
 import { TranslateService } from '@ngx-translate/core';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -120,7 +120,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   protected readonly dateFormat: DateFormatService;
   protected readonly programRefService: ProgramRefService;
   protected readonly settings: LocalSettingsService;
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
 
   readonly readySubject = new BehaviorSubject<boolean>(false);
   readonly loadingSubject = new BehaviorSubject<boolean>(true);
@@ -243,7 +243,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
       if (!data || !parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
       const program = await this.programRefService.loadByLabel(parent.program.label);
-      this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+      this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT) as WeightUnitSymbol;
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
 
@@ -436,7 +436,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
 
     const blob = new Blob([arrayUt8], {type: "application/json"});
     blob['lastModifiedDate'] = (new Date()).toISOString();
-    blob['name'] = filename;
+    (blob as any)['name'] = filename;
 
     const { fileName, message } = await this.fileTransferService.uploadResource(<File>blob, {
       resourceType: 'report',

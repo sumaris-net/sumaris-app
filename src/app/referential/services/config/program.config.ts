@@ -434,6 +434,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+
+  TRIP_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
   TRIP_REPORT_TYPE: <FormFieldDefinition>{
     key: 'sumaris.trip.report.type',
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
@@ -546,6 +553,12 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'Observer' // See RDB/COST extraction specification
   },
+  TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.batch.denormalization.enable',
+    label: "PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE",
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
@@ -615,6 +628,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  OBSERVED_LOCATION_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
   },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
@@ -710,9 +729,15 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelGroups.FISHING_AREA.toString()
   },
-  LANDING_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+  LANDING_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.sample.label.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_LABEL_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+  LANDING_SAMPLE_WEIGHT_UNIT: <FormFieldDefinition>{
     key: 'sumaris.landing.samples.weightUnit',
-    label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_WEIGHT_UNIT',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_WEIGHT_UNIT',
     type: 'enum',
     values: [
       {
@@ -736,6 +761,21 @@ export const ProgramProperties = Object.freeze({
     //defaultValue: UnitLabel.KG
   },
 
+  LANDING_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landing.columns.pmfmIds',
+    label: 'PROGRAM.OPTIONS.LANDING_COLUMNS_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6]
+    },
+  },
+
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
@@ -750,15 +790,6 @@ export const ProgramProperties = Object.freeze({
       attributes: ['name']
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
-  },
-
-  /* -- Report options -- */
-
-  REPORT_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.report.enable',
-    label: 'PROGRAM.OPTIONS.REPORT_ENABLE',
-    type: 'boolean',
-    defaultValue: 'false'
   },
 
 

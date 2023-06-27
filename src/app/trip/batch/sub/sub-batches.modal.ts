@@ -4,7 +4,7 @@ import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
-import { BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
+import { BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
@@ -12,7 +12,7 @@ import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -176,7 +176,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       await this.initForm(pmfms);
 
       // Read data
-      const data = isObservable<SubBatch[]>(this.data) ? await this.data.toPromise() : this.data;
+      const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
       // Apply data to table
       this.setValue(data);

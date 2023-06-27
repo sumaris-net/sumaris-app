@@ -1,6 +1,6 @@
 import { ReferentialRef, UsageMode } from '@sumaris-net/ngx-components';
-import { VesselPosition } from './vessel-position.model';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
+import { VesselPosition } from '../../position/vessel/vessel-position.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { CONTEXT_DEFAULT_STATE, ContextService } from '@app/shared/context.service';

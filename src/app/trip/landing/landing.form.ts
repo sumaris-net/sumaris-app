@@ -1,20 +1,23 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
-import { LandingValidatorService } from '../services/validator/landing.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, AcquisitionLevelType, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { LandingValidatorService } from './landing.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
   ConfigService,
+  DateUtils,
   EntityUtils,
   FormArrayHelper,
+  getPropertyByPath,
   IReferentialRef,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   MatAutocompleteField,
   NetworkService,
@@ -23,6 +26,7 @@ import {
   PersonUtils,
   ReferentialRef,
   ReferentialUtils,
+  SharedValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
@@ -30,7 +34,7 @@ import {
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Landing } from '../services/model/landing.model';
+import { Landing } from './landing.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
@@ -38,16 +42,37 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { Trip } from '@app/trip/services/model/trip.model';
-import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
+import { Trip } from '@app/trip/trip/trip.model';
+import { TripValidatorService } from '@app/trip/trip/trip.validator';
 import { Metier } from '@app/referential/services/model/metier.model';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment/moment';
+import { ISelectObservedLocationsModalOptions, SelectObservedLocationsModal } from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
+import { Subscription } from 'rxjs';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { StrategyService } from '@app/referential/services/strategy.service';
 
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
 
 type FilterableFieldName = 'fishingArea';
+
+interface LandingFormState extends MeasurementValuesState {
+  showStrategy: boolean;
+  canEditStrategy: boolean;
+  showParent: boolean
+  parentAcquisitionLevel: AcquisitionLevelType
+  showObservedLocation: boolean;
+
+  strategyControl: UntypedFormControl;
+  observedLocationControl: UntypedFormControl;
+  observedLocationLabel: string;
+}
 
 @Component({
   selector: 'app-landing-form',
@@ -55,10 +80,11 @@ type FilterableFieldName = 'fishingArea';
   styleUrls: ['./landing.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
+export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState> implements OnInit {
 
   private _showObservers: boolean; // Disable by default
-  private _canEditStrategy: boolean;
+  private _parentSubscription: Subscription;
+  private _strategySubscription: Subscription;
 
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
@@ -67,11 +93,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   metierFocusIndex = -1;
   fishingAreaFocusIndex = -1;
   mobile: boolean;
-  strategyControl: UntypedFormControl;
+
+  strategyControl$ = this._state.select('strategyControl');
+  observedLocationLabel$ = this._state.select('observedLocationLabel');
+  observedLocationControl$ = this._state.select('observedLocationControl');
 
   autocompleteFilters = {
     fishingArea: false
   };
+
   get empty(): any {
     const value = this.value;
     return ReferentialUtils.isEmpty(value.location)
@@ -81,45 +111,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   get valid(): boolean {
     return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty))
-      && (!this.showStrategy || this.strategyControl.valid);
-  }
-
-  get invalid(): boolean {
-    return super.invalid
-      // Check strategy
-      || (this.showStrategy && this.strategyControl.invalid);
-  }
-
-  get pending(): boolean {
-    return super.pending
-      // Check strategy
-      || (this.showStrategy && this.strategyControl.pending);
-  }
-
-  get dirty(): boolean {
-    return super.dirty
-      // Check strategy
-      || (this.showStrategy && this.strategyControl.dirty);
-  }
-
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    super.markAsUntouched(opts);
-    this.strategyControl.markAsUntouched(opts);
-  }
-
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsTouched(opts);
-    this.strategyControl.markAsTouched(opts);
-  }
-
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAllAsTouched(opts);
-    this.strategyControl.markAsTouched(opts);
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsPristine(opts);
-    this.strategyControl.markAsPristine(opts);
   }
 
   get observersForm(): UntypedFormArray {
@@ -128,6 +119,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   get tripForm(): UntypedFormGroup {
     return this.form.controls.trip as UntypedFormGroup;
+  }
+
+  get observedLocationControl(): UntypedFormControl {
+    return this._state.get('observedLocationControl');
+  }
+
+  get strategyControl(): UntypedFormControl {
+    return this._state.get('strategyControl');
   }
 
   get metiersForm(): UntypedFormArray {
@@ -146,15 +145,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   @Input() i18nSuffix: string;
   @Input() required = true;
-  @Input() showProgram = true;
+  @Input() showProgram = false;
   @Input() showVessel = true;
-  @Input() showDateTime = true;
-  @Input() showLocation = true;
+  @Input() showDateTime = false; // Default value of program option LANDING_DATE_TIME_ENABLE
+  @Input() showLocation = false; // Default value of program option LANDING_LOCATION_ENABLE
   @Input() showComment = true;
   @Input() showMeasurements = true;
   @Input() showError = true;
   @Input() showButtons = true;
-  @Input() showStrategy = false;
   @Input() showMetier = false;
   @Input() showFishingArea = false;
   @Input() showTripDepartureDateTime = false;
@@ -164,6 +162,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
 
+  @Input() set showStrategy(value: boolean) {
+    this._state.set('showStrategy', (_) => value);
+  }
+
+  get showStrategy(): boolean {
+    return this._state.get('showStrategy');
+  }
+
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
     this.fishingAreaFields?.forEach(fishingArea => {
@@ -172,19 +178,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   @Input() set canEditStrategy(value: boolean) {
-    if (this._canEditStrategy !== value) {
-      this._canEditStrategy = value;
-      if (this._canEditStrategy && this.strategyControl.disabled) {
-        this.strategyControl.enable();
-      }
-      else if (!this._canEditStrategy && this.strategyControl.enabled) {
-        this.strategyControl.disable();
-      }
-    }
+    this._state.set('canEditStrategy', _ => value);
   }
 
   get canEditStrategy(): boolean {
-    return this._canEditStrategy;
+    return this._state.get('canEditStrategy');
   }
 
   @Input() set showObservers(value: boolean) {
@@ -198,6 +196,26 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   get showObservers(): boolean {
     return this._showObservers;
   }
+
+  @Input() set showParent(value: boolean) {
+    this._state.set('showParent', _ => value);
+  }
+
+  get showParent(): boolean {
+    return this._state.get('showParent') || false;
+  }
+
+  @Input() set parentAcquisitionLevel(value: AcquisitionLevelType) {
+    this._state.set('parentAcquisitionLevel', _ => value);
+  }
+
+  get parentAcquisitionLevel(): AcquisitionLevelType {
+    return this._state.get('parentAcquisitionLevel');
+  }
+
+  @Output() onObservedLocationChanges = new EventEmitter<ObservedLocation>();
+  @Output() onOpenObservedLocation = new EventEmitter<ObservedLocation>();
+  @Output() onStrategyChanges = new EventEmitter<Strategy>();
 
   constructor(
     injector: Injector,
@@ -213,7 +231,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected modalCtrl: ModalController,
     protected tripValidatorService: TripValidatorService,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
-    protected networkService: NetworkService
+    protected networkService: NetworkService,
+    protected observedLocationService: ObservedLocationService,
+    protected strategyService: StrategyService,
+    protected dateAdapter: DateAdapter<Moment>
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
@@ -225,10 +246,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
-    // Add some missing controls (strategy, metier and fishing areas)
-    this.strategyControl = formBuilder.control(null, Validators.required);
-    //this.form.addControl('strategy', this.strategyControl);
-
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
   }
@@ -237,7 +254,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
+    this.showStrategy = toBoolean(this.showStrategy, false); // Will init the strategy control, if need
+    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper, if need
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
@@ -340,17 +358,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         )
         .subscribe(programLabel => this.programLabel = programLabel));
 
-    // Propagate strategy changes
-    this.registerSubscription(
-      this.strategyControl.valueChanges
-        .pipe(
-          filter(value => EntityUtils.isNotEmpty(value, 'label')),
-          map(value => value.label),
-          distinctUntilChanged()
-        )
-        .subscribe(strategyLabel => this.strategyLabel = strategyLabel)
-    );
-
     // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
     this._state.hold(this.programLabel$, programLabel => {
       if (this.autocompleteFields.strategy) {
@@ -370,7 +377,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
         measControl.setValue(strategyLabel);
       }
-      if (this.strategyControl.value?.label !== strategyLabel) {
+
+      // Update strategy control
+      if (this.showStrategy && this.strategyControl && this.strategyControl.value?.label !== strategyLabel) {
+        console.debug('[landing-form] Updating strategy control, with value', {label: strategyLabel});
         this.strategyControl.setValue({label: strategyLabel}, {emitEvent: false});
         this.markForCheck();
       }
@@ -385,6 +395,36 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       if (this.showMetier) this.initMetiersHelper(tripForm);
       if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
+
+    // Add strategy control
+    this._state.connect('strategyControl', this._state.select('showStrategy'), (_, show) => this.initStrategyControl(show));
+
+    this._state.hold(this._state.select('canEditStrategy'), canEditStrategy => {
+      if (canEditStrategy && this.strategyControl?.disabled) {
+        this.strategyControl.enable();
+      }
+      else if (!canEditStrategy && this.strategyControl?.enabled) {
+        this.strategyControl.disable();
+      }
+    })
+
+    // Add observed location control
+    this._state.connect('showObservedLocation', this._state.select(['showParent', 'parentAcquisitionLevel'], s => s),
+      ({showParent, parentAcquisitionLevel}) => showParent && parentAcquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION
+    );
+    this._state.connect('observedLocationControl', this._state.select('showObservedLocation'), (_, show) => this.initObservedLocationControl(show));
+
+    this._state.connect('observedLocationLabel', this.onObservedLocationChanges
+        .pipe(
+          filter(parent => !parent || parent instanceof ObservedLocation),
+          distinctUntilChanged(EntityUtils.equals)
+      ),
+      (_, parent) => this.displayObservedLocation(parent as ObservedLocation))
+
+    this._state.hold(this.strategyControl$.pipe(
+      switchMap(control => control.valueChanges),
+      distinctUntilChanged(EntityUtils.equals)
+    ), (strategy) => this.onStrategyChanges.emit(strategy));
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -406,6 +446,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected async updateView(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }): Promise<void> {
     if (!data) return;
+
+    // Reapplied changed data
+    if (this.isNewData && this.form.touched) {
+      console.warn('[landing-form] Merging form value and input data, before updateing view')
+      const json = this.form.value;
+      Object.keys(json).forEach(key => {
+        if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
+      })
+
+      data = Landing.fromObject({
+        ...data.asObject(),
+        ...json,
+      });
+    }
 
     // Resize observers array
     if (this._showObservers) {
@@ -525,17 +579,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.markForCheck();
     }
 
-    if (this._canEditStrategy && this.strategyControl.disabled) {
+    if (this.canEditStrategy && this.strategyControl?.disabled) {
       this.strategyControl.enable(opts);
     }
-    else if (!this._canEditStrategy && this.strategyControl.enabled) {
+    else if (!this.canEditStrategy && this.strategyControl?.enabled) {
       this.strategyControl.disable({emitEvent: false});
     }
-  }
-
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.disable(opts);
-    this.strategyControl.disable(opts);
   }
 
   async addVesselModal(): Promise<any> {
@@ -584,6 +633,58 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.referentialRefService.suggest(value, filter, undefined, undefined,
       { fetchPolicy }
     );
+  }
+
+  protected async openSelectObservedLocationModal(event?: Event) {
+    if (event) event.preventDefault();
+    const control = this.observedLocationControl;
+    if (!control || control.disabled) return;
+
+    try {
+      control.disable({emitEvent: false});
+
+      const program = await this.programRefService.loadByLabel(this.programLabel);
+      const defaultData = ObservedLocation.fromObject({
+        program,
+      });
+      const filter = ObservedLocationFilter.fromObject({
+        program,
+      });
+
+      if (this.showStrategy) {
+        const strategy = this.strategyControl.value;
+        const period = strategy && await this.strategyService.getDateRangeByLabel(this.strategyControl.value.label);
+        filter.startDate = strategy && period.startDate || DateUtils.moment().startOf('year');
+        filter.endDate = strategy && period.endDate || DateUtils.moment().endOf('year');
+      }
+
+      const modal = await this.modalCtrl.create({
+        component: SelectObservedLocationsModal,
+        componentProps: <ISelectObservedLocationsModalOptions>{
+          allowMultipleSelection: false,
+          showFilterProgram: false,
+          allowNewObservedLocation: true,
+          defaultNewObservedLocation: defaultData,
+          selectedId: control.value?.id,
+          filter,
+        },
+        keyboardClose: true,
+        backdropDismiss: true,
+        cssClass: 'modal-large'
+      });
+      await modal.present();
+      const {data} = await modal.onDidDismiss();
+
+      const value = data?.[0];
+      if (!value) return; // User cancelled
+
+      console.debug('[landing-form] Selected observed location: ', value);
+      control.setValue(value);
+      this.form.markAllAsTouched();
+    }
+    finally {
+      control.enable();
+    }
   }
 
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
@@ -701,6 +802,65 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return tripForm;
   }
 
+  protected initStrategyControl(showStrategy: boolean): UntypedFormControl {
+    if (showStrategy) {
+      let control = this.strategyControl;
+      if (!control) {
+        const strategyLabel = this.strategyLabel;
+        control = this.formBuilder.control(strategyLabel && {label: strategyLabel} || null, Validators.required);
+        this.form.setControl('strategy',  control);
+
+        // Propagate strategy changes
+        const subscription = control.valueChanges
+            .pipe(
+              filter(value => EntityUtils.isNotEmpty(value, 'label')),
+              map(value => value.label),
+              distinctUntilChanged()
+            )
+            .subscribe(strategyLabel => this.strategyLabel = strategyLabel);
+        subscription.add(() => {
+          this.unregisterSubscription(subscription)
+          this._strategySubscription = null;
+        })
+        this.registerSubscription(subscription);
+        this._strategySubscription = subscription;
+      }
+      return control;
+    }
+    else {
+      this._strategySubscription?.unsubscribe();
+      this.form.removeControl('strategy');
+      return null;
+    }
+  }
+
+  protected initObservedLocationControl(showObservedLocation: boolean): UntypedFormControl {
+    if (showObservedLocation) {
+      let control = this.observedLocationControl;
+      if (!control) {
+
+        // Create control
+        control = this.formBuilder.control(this.data?.observedLocation || null, [Validators.required, SharedValidators.entity]);
+        this.form.addControl('observedLocation', control);
+
+        // Subscribe to changes, and redirect it to the parent event emitter
+        const subscription = control.valueChanges.subscribe(ol => this.onObservedLocationChanges.emit(ol));
+        subscription.add(() => {
+          this.unregisterSubscription(subscription)
+          this._parentSubscription = null;
+        });
+        this.registerSubscription(subscription);
+        this._parentSubscription = subscription;
+      }
+      return control;
+    }
+    else {
+      this._parentSubscription?.unsubscribe();
+      this.form.removeControl('observedLocation');
+      return null;
+    }
+  }
+
   protected initMetiersHelper(form: UntypedFormGroup) {
 
     if (!this.metiersHelper) {
@@ -780,6 +940,19 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected displayObservedLocation(ol: ObservedLocation): string {
+    if (!ol) return null;
+
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
+    const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+
+
+    return locationAttributes.map(attr => getPropertyByPath(ol, `location.${attr}`))
+      .concat([this.dateAdapter.format(ol.startDateTime, dateTimePattern)])
+      .filter(isNotNilOrBlank)
+      .join(' - ');
   }
 
   notHiddenPmfm(pmfm: IPmfm) {

@@ -1,6 +1,6 @@
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { isNotNil } from '@sumaris-net/ngx-components';
-import { MeasurementValuesTypes } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesTypes } from '@app/data/measurement/measurement.model';
 
 function getSortingMeasValues(opts: {
   gearPosition?: 'B'|'T';

@@ -23,9 +23,9 @@ import {LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSym
 import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {WeightLengthConversionRefService} from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
-import {FishingArea} from '@app/data/services/model/fishing-area.model';
+import {FishingArea} from '@app/data/fishing-area/fishing-area.model';
 import {LocationUtils} from '@app/referential/location/location.utils';
-import {VesselPosition} from '@app/data/services/model/vessel-position.model';
+import {VesselPosition} from '@app/data/position/vessel/vessel-position.model';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 import moment, {Moment} from 'moment';
 import {BatchErrorCodes} from '@app/trip/batch/batch.errors';
@@ -37,7 +37,7 @@ import {BatchGroup, BatchGroupUtils} from '@app/trip/batch/group/batch-group.mod
 import {ContextService} from '@app/shared/context.service';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import {TranslateService} from '@ngx-translate/core';
-import {PositionUtils} from '@app/trip/services/position.utils';
+import {PositionUtils} from '@app/data/position/position.utils';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;

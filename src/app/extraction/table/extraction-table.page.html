@@ -7,10 +7,10 @@
 
   <ion-buttons slot="end" *ngIf="type; let type">
 
-    <!-- report -->
-    <button mat-icon-button *rxIf="($enableReport|push) && !(loadingSubject|push)"
+    <!-- Trip report -->
+    <button mat-icon-button *rxIf="($enableTripReport|push) && !(loadingSubject|push)"
             [title]="'EXTRACTION.TABLE.BTN_REPORT'|translate"
-            (click)="openReport()">
+            (click)="openTripReport()">
       <mat-icon><ion-icon slot="icon-only" name="bar-chart"></ion-icon></mat-icon>&nbsp;
     </button>
 

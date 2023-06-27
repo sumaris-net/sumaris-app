@@ -172,6 +172,7 @@ export const QualitativeValueIds = {
 };
 
 export const MethodIds = {
+  UNKNOWN: 0,
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
@@ -248,7 +249,8 @@ export const PmfmLabelPatterns = {
   LENGTH: /LENGTH/i,
   WEIGHT: /WEIGHT$/i,
   DRESSING: /^DRESSING/i,
-  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i
+  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i,
+  TAG_ID: /^TAG_ID/i
 };
 
 export const UnitIds = {

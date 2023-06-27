@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
+import { IWithPacketsEntity, Packet } from './packet.model';
 import { ModalController } from '@ionic/angular';
 import { Subscription, BehaviorSubject } from 'rxjs';
 import { PacketForm } from './packet.form';

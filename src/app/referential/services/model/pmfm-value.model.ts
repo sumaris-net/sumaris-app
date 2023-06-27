@@ -1,4 +1,4 @@
-import moment, { isMoment, Moment } from 'moment';
+import { isMoment, Moment } from 'moment/moment';
 import {
   DateUtils,
   fromDateISOString,
@@ -12,14 +12,13 @@ import {
   notNilOrDefault,
   referentialToString,
   ReferentialUtils,
-  toDateISOString
+  toDateISOString, toNumber
 } from '@sumaris-net/ngx-components';
-import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
-import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
+import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
-export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
+
 export const PMFM_VALUE_SEPARATOR = '|';
 
 export declare type ConvertedNumber = Number & {__conversionCoefficient: number};
@@ -78,14 +77,9 @@ export abstract class PmfmValueUtils {
 
         // Apply conversion
         if (pmfm.displayConversion && opts.applyConversion && isNotNilOrNaN(pmfm.displayConversion.conversionCoefficient)) {
-
-          // DEBUG
-          console.debug(`[pmfm-value] Applying revert conversion: ${value} / ${pmfm.displayConversion.conversionCoefficient}`);
-
-          value = (+value) / pmfm.displayConversion.conversionCoefficient;
-
+          value = this.applyConversion(value, 1 / pmfm.displayConversion.conversionCoefficient, {markAsConverted: false});
         }
-        return value.toString();
+        return value;
       case 'string':
         return value;
       case 'boolean':
@@ -124,7 +118,7 @@ export abstract class PmfmValueUtils {
     }
     // If date, convert to ISO string
     if (value instanceof Date) {
-     return toDateISOString(moment(value));
+     return toDateISOString(DateUtils.moment(value));
     }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {
@@ -169,12 +163,7 @@ export abstract class PmfmValueUtils {
         if (pmfm.displayConversion) {
           // DEBUG
           //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
-
-          value = parseFloat(value); // Fix OBSBIO-20 input value could be a float
-          value = new Number(value * pmfm.displayConversion.conversionCoefficient);
-
-          // Storage conversion coefficient (need by inverse conversion)
-          value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
+          value = PmfmValueUtils.applyConversion(value, pmfm.displayConversion.conversionCoefficient);
         }
         else {
           value = parseInt(value);
@@ -182,16 +171,14 @@ export abstract class PmfmValueUtils {
         return value;
       case 'double':
         if (isNilOrNaN(value)) return null;
-        value = parseFloat(value);
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
           // DEBUG
           //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
-
-          value = new Number(value * pmfm.displayConversion.conversionCoefficient);
-
-          // Storage conversion coefficient (need by inverse conversion)
-          value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
+          value = PmfmValueUtils.applyConversion(value, pmfm.displayConversion.conversionCoefficient);
+        }
+        else {
+          value = parseFloat(value);
         }
         return value;
       case 'string':
@@ -206,7 +193,7 @@ export abstract class PmfmValueUtils {
   }
 
   static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): string | undefined {
-    if (isNil(value) || !opts || !opts.pmfm) return null;
+    if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
       case 'qualitative_value':
         if (value && typeof value !== 'object') {
@@ -236,6 +223,30 @@ export abstract class PmfmValueUtils {
       default:
         throw new Error('Unknown pmfm\'s type: ' + opts.pmfm.type);
     }
+  }
+
+  static applyConversion(value: any, conversionCoefficient?: number, opts?: {markAsConverted: boolean}): number {
+    if (isNil(value) || isNil(conversionCoefficient)) return value;
+
+    // SKip (already converted)
+    if (this.isConvertedNumber(value) && value.__conversionCoefficient === conversionCoefficient) {
+      if (opts?.markAsConverted === false) {
+        return +value; // Remove property __conversionCoefficient
+      }
+      return value as any as number;
+    }
+
+    // DEBUG
+    console.debug(`[pmfm-value] Applying conversion: ${value} * ${conversionCoefficient}`);
+
+    const target: any = new Number(parseFloat(value) * conversionCoefficient);
+
+    // Storage conversion coefficient (need by inverse conversion)
+    if (!opts || opts.markAsConverted !== false) {
+      target.__conversionCoefficient = conversionCoefficient;
+    }
+
+    return  target;
   }
 
 }

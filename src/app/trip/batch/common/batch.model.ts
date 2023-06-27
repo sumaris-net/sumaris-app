@@ -1,6 +1,6 @@
 import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds} from '../../../referential/services/model/model.enum';
 import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '../../../data/measurement/measurement.model';
 import { EntityClass, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
 import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';

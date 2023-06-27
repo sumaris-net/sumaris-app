@@ -26,6 +26,7 @@ export abstract class RootDataEntityFilter<
   extends DataEntityFilter<T, E, EID, AS, FO> {
 
   program: ReferentialRef;
+  strategy: ReferentialRef;
   synchronizationStatus: SynchronizationStatus;
   recorderPerson: Person;
   startDate?: Moment;
@@ -36,6 +37,7 @@ export abstract class RootDataEntityFilter<
     this.synchronizationStatus = source.synchronizationStatus || undefined;
     this.program = ReferentialRef.fromObject(source.program) ||
       isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
+    this.strategy = ReferentialRef.fromObject(source.strategy);
     this.recorderPerson = Person.fromObject(source.recorderPerson)
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
     this.startDate = fromDateISOString(source.startDate);
@@ -47,8 +49,11 @@ export abstract class RootDataEntityFilter<
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
-      target.programLabel = this.program && this.program.label || undefined;
+      target.programLabel = this.program?.label || undefined;
       delete target.program;
+
+      target.strategyLabels = this.strategy?.label ? [this.strategy.label] : undefined;
+      delete target.strategy;
 
       target.recorderPersonId = this.recorderPerson && this.recorderPerson.id || undefined;
       delete target.recorderPerson;
@@ -57,8 +62,9 @@ export abstract class RootDataEntityFilter<
       delete target.synchronizationStatus;
     }
     else {
-      target.program = this.program && this.program.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-      target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.program = this.program?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.strategy = this.strategy?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+      target.recorderPerson = this.recorderPerson?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.synchronizationStatus = this.synchronizationStatus;
     }
 

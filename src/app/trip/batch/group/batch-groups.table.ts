@@ -24,7 +24,7 @@ import {
   toBoolean
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import {Batch} from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
@@ -36,7 +36,7 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
@@ -45,7 +45,7 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
-import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 
@@ -1115,7 +1115,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // FIXME: opts.showParent=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    const $dismiss = new Subject<any>();
+    const stopSubject = new Subject<void>();
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -1136,7 +1136,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Define available parent, as an observable (if new parent can added)
         availableParents: this.dataSource.rowsSubject
           .pipe(
-            takeUntil($dismiss),
+            takeUntil(stopSubject),
             map((rows) => rows.map(r => r.currentData)),
             tap((data) => console.warn('[batch-groups-table] Modal -> New available parents:', data))
           ),
@@ -1165,7 +1165,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
 
-    $dismiss.next(); // disconnect datasource observables
+    stopSubject.next(); // disconnect datasource observables
 
     // User cancelled
     if (isNil(data) || role === 'cancel') {

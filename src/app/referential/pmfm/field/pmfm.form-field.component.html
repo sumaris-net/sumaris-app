@@ -7,42 +7,39 @@
   <div *ngSwitchCase="'array'">
     <ion-grid class="ion-no-padding" *ngVar="control|formGetArray as formArray">
       <ion-row>
-        <ion-col *ngFor="let childControl of formArray.controls; index as j; last as last"
-                 size="auto">
-          <ion-row>
-            <ion-col size="auto" class="ion-align-self-center">
-              <app-pmfm-field [pmfm]="pmfm" #pmfmField
-                              [control]="childControl|formGetControl"
-                              [required]="required && j === 0"
-                              [readonly]="readonly"
-                              [tabindex]="tabindex+j"
-                              [floatLabel]="floatLabel"
-                              [autofocus]="autofocus"
-                              [placeholder]="placeholder"
-                              [mobile]="mobile"
-                              (click)="clicked.emit($event)"
-              >
-              </app-pmfm-field>
-            </ion-col>
+        <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
+          <ion-col [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
+            <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                            [control]="childControl|formGetControl"
+                            [required]="required && j === 0"
+                            [readonly]="readonly"
+                            [tabindex]="tabindex+j"
+                            [floatLabel]="floatLabel"
+                            [autofocus]="autofocus"
+                            [placeholder]="placeholder"
+                            [mobile]="mobile"
+                            [style]="style"
+                            (click)="clicked.emit($event)">
+            </app-pmfm-field>
+          </ion-col>
 
-            <ion-col size="auto" class="ion-align-self-center">
-              <button type="button" mat-icon-button
-                      [title]="'COMMON.BTN_ADD'|translate"
-                      [disabled]="disabled"
-                      *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
-                      (click)="formArrayHelper.add()">
-                <mat-icon>add</mat-icon>
-              </button>
-              <button type="button" mat-icon-button
-                      [title]="'COMMON.BTN_DELETE'|translate"
-                      [disabled]="disabled"
-                      (click)="formArrayHelper.removeAt(j)"
-                      tabindex="-1">
-                <mat-icon>close</mat-icon>
-              </button>
-            </ion-col>
-          </ion-row>
-        </ion-col>
+          <ion-col [size]="style !== 'button' ? 'auto' : 2" class="ion-align-self-center">
+            <button type="button" mat-icon-button
+                    [title]="'COMMON.BTN_ADD'|translate"
+                    [disabled]="disabled"
+                    *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
+                    (click)="formArrayHelper.add()">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button type="button" mat-icon-button
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    [disabled]="disabled"
+                    (click)="formArrayHelper.removeAt(j)"
+                    tabindex="-1">
+              <mat-icon>close</mat-icon>
+            </button>
+          </ion-col>
+        </ng-container>
       </ion-row>
     </ion-grid>
 
@@ -78,10 +75,11 @@
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'significantFiguresNumber'">
+          {{ 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'| translate:control.errors.significantFiguresNumber }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
       </ng-container>
     </mat-error>
-
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -117,6 +115,8 @@
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'significantFiguresNumber'">
+          {{ 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'| translate:control.errors.significantFiguresNumber }}</span>
         <span *ngSwitchCase="'maxDecimals'">
           {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:control.errors.maxDecimals }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>

@@ -1,21 +1,32 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
-import {Subscription} from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
-import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
+import {
+  AccountService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService, ReferentialUtils,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
+import {BiologicalSamplingValidators} from './biological-sampling.validators';
 import {LandingPage} from '../landing.page';
-import {Landing} from '../../services/model/landing.model';
-import {ObservedLocation} from '../../services/model/observed-location.model';
+import {Landing} from '../landing.model';
+import {ObservedLocation} from '../../observedlocation/observed-location.model';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {LandingService} from '@app/trip/services/landing.service';
-import {Trip} from '@app/trip/services/model/trip.model';
+import {LandingService} from '@app/trip/landing/landing.service';
+import {Trip} from '@app/trip/trip/trip.model';
 import {Program} from '@app/referential/services/model/program.model';
-import { Sample } from '@app/trip/services/model/sample.model';
+import {debounceTime} from 'rxjs/operators';
 
 
 @Component({
@@ -28,9 +39,11 @@ import { Sample } from '@app/trip/services/model/sample.model';
 export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
 
+  onRefreshEffort = new EventEmitter<any>()
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
+  canDelete = false;
 
   constructor(
     injector: Injector,
@@ -41,7 +54,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       enableListenChanges: false
     });
     this.i18nContext.suffix = 'SAMPLING.';
@@ -51,8 +64,15 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     super.ngOnInit();
 
     // Configure sample table
-    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change change if referential ref is not ready (see ngAfterViewInit() )
+    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
+
+    this.registerSubscription(
+      this.onRefreshEffort.pipe(
+        debounceTime(250)
+      )
+      .subscribe(strategy => this.checkStrategyEffort(strategy))
+    );
   }
 
   ngAfterViewInit() {
@@ -68,7 +88,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       .then(pmfmGroups => {
         // Configure sample table
         this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
-        this.samplesTable.computedPmfmGroups = ['AGE']; // FIXME: use ParameterLabelGroups.AGE instead ?
+        this.samplesTable.computedPmfmGroups = ParameterLabelGroups.AGE;
         this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
       });
@@ -85,6 +105,8 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
+
+    this.canDelete = this.canUserDelete(data);
   }
 
   updateTabsState(data: Landing) {
@@ -97,52 +119,59 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
 
     // Move to second tab
-    if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
-      setTimeout(() => this.selectedTabIndex = 1 );
+    if (this.showSamplesTable && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+      this.autoOpenNextTab = false; // Should switch only once
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-    if (this.accountService.isAdmin()) {
-      return true;
+  canUserDelete(data: Landing, opts?: any): boolean {
+    const canWrite = this.canUserWrite(data);
+    if (canWrite) return true;
+
+    // Observers can delete - https://youtrack.ifremer.fr/issue/IMAGINE-632
+    const currentPerson = this.accountService.person;
+    if (isNil(this.data.validationDate) && isNil(this.parent?.validationDate)) {
+      const isObserver = (data?.observers || [])
+        .concat(this.parent?.observers || [])
+        .some(observer => ReferentialUtils.equals(currentPerson, observer))
+      if (isObserver) return true;
     }
 
-    const entity = this.data;
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
-
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
     return false;
   }
 
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
 
-    if (!strategy) return; // Skip if empty
-
-    await this.checkStrategyEffort(strategy);
+    this.onRefreshEffort.emit(strategy);
   }
 
-  protected async checkStrategyEffort(strategy: Strategy) {
+  protected async checkStrategyEffort(strategy?: Strategy) {
+
+    strategy = strategy || this.landingForm.strategyControl?.value;
 
     try {
       const [program] = await Promise.all([
         firstNotNilPromise(this.$program, {stop: this.destroySubject}),
-        this.landingForm.waitIdle()
+        this.landingForm.waitIdle({stop: this.destroySubject})
       ]);
 
-      if (strategy &&  strategy.label) {
+      if (strategy?.label) {
+        const dateTime = (this.landingForm.showDateTime && this.data.dateTime)
+          || (this.parent instanceof Trip && this.parent.departureDateTime)
+          || (this.parent instanceof ObservedLocation && this.parent.startDateTime);
+
+        // If no date (e.g. no parent selected yet) : skip
+        if (!dateTime) {
+          // DEBUG
+          console.debug('[sampling-landing-page] Skip strategy effort loaded: no date (no parent entity)');
+          return;
+        }
+
         // Add validator errors on expected effort for this sampleRow (issue #175)
-        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, dateTime);
 
         // DEBUG
         console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
@@ -153,6 +182,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
           this.samplesTable.disable();
           this.zeroEffortWarning = false;
           this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+          this.landingForm.strategyControl.markAsTouched();
         }
         // Effort is set, but = 0
         else if (strategyEffort.expectedEffort === 0) {
@@ -168,6 +198,13 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
         }
       }
 
+      // No strategy
+      else {
+        this.zeroEffortWarning = false;
+        this.noEffortError = false;
+        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+      }
+
       if (this.noEffortError) {
         this.samplesTable.disable();
       }
@@ -177,7 +214,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
     catch (err) {
       const error = err?.message || err;
-      console.error(error);
+      console.error('[sampling-landing-page] Error while checking strategy effort', err);
       this.setError(error);
     }
     finally {
@@ -206,7 +243,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   protected async getValue(): Promise<Landing> {
     let data = await super.getValue();
 
-    // Make to convert as an entity
+    // Convert into entity
     data = Landing.fromObject(data);
 
     // Compute final TAG_ID, using the strategy label
@@ -300,23 +337,23 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
-    const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.TITLE_PREFIX', {
+    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
+      await firstValueFrom(this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }).toPromise() || '';
+      })) || '';
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
+      return titlePrefix + this.translate.instant(`LANDING.NEW.${i18nSuffix}TITLE`);
     }
     // Existing data
     const strategy = await firstNotNilPromise(this.$strategy, {stop: this.destroySubject});
 
-    return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+    return titlePrefix + this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategy && strategy.label
-    }).toPromise());
+    });
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): boolean {
@@ -328,4 +365,5 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
     return done;
   }
+
 }

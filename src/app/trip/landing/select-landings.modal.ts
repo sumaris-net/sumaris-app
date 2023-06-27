@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
-import {LandingFilter} from "../services/filter/landing.filter";
+import {LandingFilter} from "./landing.filter";
 import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model/model.enum";
-import {Landing} from "../services/model/landing.model";
+import {Landing} from "./landing.model";
 import {Observable} from "rxjs";
 import {isNotNil} from "@sumaris-net/ngx-components";
 import {TableElement} from '@e-is/ngx-material-table';

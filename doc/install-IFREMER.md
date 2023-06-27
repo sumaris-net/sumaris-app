@@ -10,11 +10,11 @@ Puis, ajouter le clef publique dans github (settings du compte:  https://github.
 
 ## Installer Node JS
 Windows : 
-- <https://nodejs.org/dist/v12.18.3/node-v12.18.3-x64.msi>
-- ou <https://nodejs.org/dist/v12.18.3/node-v12.18.3-win-x64.zip>
+- <https://nodejs.org/dist/v16.17.0/node-v16.17.0-x64.msi>
+- ou <https://nodejs.org/dist/v16.17.0/node-v16.17.0-win-x64.zip>
 
 Linux : 
-- <https://nodejs.org/dist/v12.18.3/node-v12.18.3-linux-x64.tar.xz>
+- <https://nodejs.org/dist/v16.17.0/node-v16.17.0-linux-x64.tar.xz>
 
 ## Récupérer les sources
 Récupérer le projet sous git :

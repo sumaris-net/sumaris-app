@@ -4,6 +4,7 @@ import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEnti
 import { Subject } from 'rxjs';
 import { environment } from '@environments/environment';
 import { TableElement } from '@e-is/ngx-material-table';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   entityName: string;
@@ -11,6 +12,8 @@ export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   showFilter: boolean;
   allowMultipleSelection: boolean;
   mobile?: boolean;
+  dataService?: IEntitiesService<T, F>;
+  filterType?: new() => F;
 }
 
 @Directive()
@@ -33,6 +36,8 @@ export abstract class BaseSelectEntityModal<
   @Input() filter: F;
   @Input() entityName: string;
   @Input() allowMultipleSelection: boolean;
+  @Input() dataService: IEntitiesService<T, F>;
+  @Input() filterType: new() => F;
 
   get loading(): boolean {
     return this.table && this.table.loading;
@@ -41,17 +46,21 @@ export abstract class BaseSelectEntityModal<
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,
-    protected dataService: IEntitiesService<T, F>,
+    filterType: new() => F,
+    @Optional() dataService: IEntitiesService<T, F>,
     @Optional() protected options?: Partial<EntitiesTableDataSourceConfig<T, ID>>
   ) {
     this.modalCtrl = injector.get(ModalController);
+    this.dataService = dataService;
+    this.filterType = filterType;
   }
 
   ngOnInit() {
 
     // Init table
     if (!this.table) throw new Error('Missing table child component');
-    if (!this.filter) throw new Error('Missing argument \'filter\'');
+    if (!this.filter) throw new Error('Missing \'filter\'');
+    if (!this.dataService) throw new Error('Missing \'dataService\'');
 
     // Set defaults
     this.allowMultipleSelection = toBoolean(this.allowMultipleSelection, false);

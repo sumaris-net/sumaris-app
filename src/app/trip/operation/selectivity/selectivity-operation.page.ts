@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
-import { OperationService } from '@app/trip/services/operation.service';
+import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
-import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/trip/measurement/measurements.form.component';
+import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 
 @Component({

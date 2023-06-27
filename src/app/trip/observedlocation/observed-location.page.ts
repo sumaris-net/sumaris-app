@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import { ObservedLocationForm } from './observed-location.form';
-import { ObservedLocationService } from '../services/observed-location.service';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ObservedLocationForm } from './form/observed-location.form';
+import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
@@ -9,13 +9,13 @@ import {
   Alerts,
   AppTable,
   ConfigService,
-  CORE_CONFIG_OPTIONS,
+  CORE_CONFIG_OPTIONS, DateUtils,
   EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
   isNil,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   LocalSettingsService,
   NetworkService,
   ReferentialRef,
@@ -27,23 +27,24 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { Landing } from '../services/model/landing.model';
+import { ObservedLocation } from './observed-location.model';
+import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { BehaviorSubject } from 'rxjs';
 import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
-import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
+import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
 import { environment } from '@environments/environment';
-import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
-import { LandingFilter } from '../services/filter/landing.filter';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
+import { LandingFilter } from '../landing/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
+import { PredefinedColors } from '@ionic/core';
 
 
 const ObservedLocationPageTabs = {
@@ -74,20 +75,25 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showLandingTab = false;
   $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
   $table = new BehaviorSubject<ILandingsTable>(undefined);
-  $timezone = new BehaviorSubject<string>(undefined);
+  dbTimeZone = DateUtils.moment().tz();
   allowAddNewVessel: boolean;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
   showRecorder = true;
   showObservers = true;
-  landingEditor: LandingEditor = undefined;
+  landingEditor: LandingEditor;
   enableReport: boolean;
   canCopyLocally = false;
 
   get table(): ILandingsTable {
     return this.$table.value;
   }
+
+  @Input() showToolbar = true;
+  @Input() showQualityForm = true;
+  @Input() showOptionsMenu = true;
+  @Input() toolbarColor: PredefinedColors = 'primary';
 
   constructor(
     injector: Injector,
@@ -113,6 +119,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.defaultBackHref = '/observations';
     this.mobile = this.settings.mobile;
 
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
 
@@ -125,11 +132,29 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.configService.config.subscribe(config => {
         if (!config) return;
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-        const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
-        this.$timezone.next(dbTimeZone);
+        this.dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
         this.markForCheck();
       })
     );
+
+    // Detect embedded mode, from route params
+    this.registerSubscription(
+      this.route.queryParams
+        .pipe(first())
+        .subscribe(queryParams => {
+          // Manage embedded mode
+          const embedded = toBoolean(queryParams['embedded'], false);
+          if (embedded) {
+            this.showLandingTab = false;
+            this.showOptionsMenu = false;
+            this.showQualityForm = false;
+            this.autoOpenNextTab = false; // Keep first tab
+            this.toolbarColor = 'secondary';
+            this.markForCheck();
+          }
+      })
+    );
+
   }
 
   canUserWrite(data: ObservedLocation, opts?: any): boolean {
@@ -159,9 +184,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     // Move to second tab
-    if (this.showLandingTab && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
+    if (this.showLandingTab && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
+      this.autoOpenNextTab = false; // Should switch only once
     }
   }
 
@@ -398,7 +424,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await super.setProgram(program);
 
     try {
-      const timezone = await firstNotNilPromise(this.$timezone, {stop: this.destroySubject});
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
       this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
       this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -409,7 +434,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
       if (aggregatedLandings) {
         // Force some date properties
-        this.observedLocationForm.timezone = timezone;
+        this.observedLocationForm.timezone = this.dbTimeZone;
         this.observedLocationForm.showEndDateTime = true;
         this.observedLocationForm.showStartTime = false;
         this.observedLocationForm.showEndTime = false;
@@ -426,7 +451,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
+      this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
@@ -442,7 +467,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       if (aggregatedLandings) {
         console.debug("[observed-location] Init aggregated landings table:", table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
-        aggregatedLandingsTable.timeZone = timezone;
+        aggregatedLandingsTable.timeZone = this.dbTimeZone;
         aggregatedLandingsTable.nbDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       }

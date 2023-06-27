@@ -5,7 +5,7 @@ import { ReferentialRefService } from '../../../referential/services/referential
 import { DateUtils, EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, PlatformService, SharedValidators, waitFor } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
+import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
 import { getExampleTree, SAMPLE_TREE_EXAMPLES } from '@app/trip/sample/testing/sample-data.test';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Program } from '@app/referential/services/model/program.model';

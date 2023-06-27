@@ -7,7 +7,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { AppLandedTripModule } from '@app/trip/landedtrip/landed-trip.module';
 import { AppDataModule } from '@app/data/data.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
 

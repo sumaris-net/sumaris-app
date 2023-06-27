@@ -9,7 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { VesselModule } from '@app/vessel/vessel.module';
-import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPmfmModule } from '@app/referential/pmfm/pmfm.module';
 
 @NgModule({

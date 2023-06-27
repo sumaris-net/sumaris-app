@@ -266,6 +266,7 @@ export class ProgramRefService
 
     // TODO: check rights on program (ProgramPerson, ProgramDepartment)
     // const program = opts?.program || load()
+    // See http://youtrack.ifremer.fr/issue/Obsbio-92
     console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
 
     // Check same department
@@ -525,6 +526,7 @@ export class ProgramRefService
         map(pmfms => pmfms.reduce((res, p) => {
             let index = res.findIndex(other => other.id === p.id);
             if (index !== -1) {
+              console.debug('[program-ref-service] Merging duplicated pmfms:', res[index], p);
               res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
               return res;
             }

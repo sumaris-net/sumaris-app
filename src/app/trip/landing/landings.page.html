@@ -1,0 +1,668 @@
+<app-toolbar color="primary"
+             [canGoBack]="false"
+             [canShowMenu]="true">
+
+  <div *rxIf="$title; let title" slot="start">
+    <!-- simple title -->
+    <ion-title *ngIf="!showTitleSegment; else titleSegment">{{title|translate}}</ion-title>
+
+    <!-- segment to show observed locations -->
+    <ng-template #titleSegment>
+      <ion-segment [value]="selectedSegment"
+                   mode="md"
+                   (ionChange)="onSegmentChanged($event)">
+        <ion-segment-button value="observations" class="ion-title">
+          <ion-label>{{$observedLocationTitle|async|translate}}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="" class="ion-title">
+          <ion-label>{{title|translate}}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ng-template>
+  </div>
+
+
+  <ion-buttons slot="end">
+
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+
+      <!-- Add -->
+      <button mat-icon-button
+              *ngIf="canEdit && !mobile"
+              [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+
+      <!-- Refresh -->
+      <button mat-icon-button
+              *ngIf="!mobile"
+              [title]="'COMMON.BTN_REFRESH'|translate"
+              (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <!-- reset filter -->
+      <button mat-icon-button (click)="resetFilter()"
+              *ngIf="filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
+                  [matBadge]="filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+
+      <button mat-icon-button
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </ng-container>
+
+    <!-- if row selection -->
+    <ng-template #hasSelection>
+
+      <!-- Terminate and synchronize -->
+      <ion-button *ngIf="hasDirtySelection; else synchronizeButton"
+                  expand="block"
+                  [color]="offline ? 'danger100' : 'danger'"
+                  (click)="terminateAndSynchronizeSelection()">
+        <ion-text translate>QUALITY.BTN_TERMINATE_AND_SYNCHRONIZE</ion-text>
+      </ion-button>
+
+      <!-- Synchronize -->
+      <ng-template #synchronizeButton>
+        <ion-button *ngIf="hasReadyToSyncSelection"
+                    expand="block"
+                    [color]="offline ? 'danger100' : 'danger'"
+                    (click)="synchronizeSelection()">
+          <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+        </ion-button>
+      </ng-template>
+
+      <!-- delete -->
+      <button mat-icon-button class="hidden-xs hidden-sm"
+              *ngIf="canDelete  && canUserCancelOrDelete"
+              [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteSelection($event)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
+
+  </ion-buttons>
+</app-toolbar>
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- Update offline mode -->
+  <button mat-menu-item
+          *ngIf="hasOfflineMode"
+          [disabled]="offline"
+          (click)="prepareOfflineMode($event)">
+    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
+    <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
+  </button>
+
+  <!-- Init offline mode -->
+  <button mat-menu-item
+          *ngIf="!hasOfflineMode"
+          [disabled]="offline"
+          (click)="prepareOfflineMode($event)">
+    <mat-icon>cloud_off</mat-icon>
+    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- trash
+  <button mat-menu-item
+          *ngIf="isAdmin || synchronizationStatus !== 'SYNC'"
+          (click)="openTrashModal($event)">
+    <mat-icon>delete_sweep</mat-icon>
+    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
+  </button> -->
+
+  <!-- Force offline (DEV ONLY) -->
+  <button mat-menu-item *ngIf="debug && !offline"
+          (click)="toggleOfflineMode($event)">
+    <mat-icon>signal_wifi_off</mat-icon>
+    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+
+</mat-menu>
+
+<ion-content class="ion-no-padding ion-flex-direction-column">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- search -->
+  <mat-expansion-panel #filterExpansionPanel
+                       class="filter-panel"
+                       [class.filter-panel-floating]="filterPanelFloating">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm"
+          (ngSubmit)="onRefresh.emit()"
+          (keyup.enter)="applyFilterAndClosePanel($event)">
+
+      <ion-grid>
+        <ion-row *rxIf="showFilterProgram || showFilterStrategy">
+
+          <!-- Program -->
+          <ion-col *rxIf="showFilterProgram">
+            <mat-autocomplete-field
+              [placeholder]="'LANDING.TABLE.PROGRAM'|translate"
+              formControlName="program"
+              [config]="autocompleteFields.program"
+              [clearable]="true">
+              <ion-icon matPrefix name="contract"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Strategy -->
+          <ion-col *rxIf="showFilterStrategy">
+            <mat-autocomplete-field
+              [placeholder]="'LANDING.TABLE.STRATEGY'|translateContext: i18nColumnSuffix"
+              formControlName="strategy"
+              [config]="autocompleteFields.strategy"
+              [clearable]="true">
+              <mat-icon matPrefix>date_range</mat-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <ion-row *rxIf="showFilterLocation || showFilterVessel">
+
+          <!-- Location -->
+          <ion-col *rxIf="showFilterLocation"
+                   size="12" size-lg="6">
+            <mat-autocomplete-field
+              [placeholder]="'LANDING.TABLE.LOCATION'|translate"
+              formControlName="location"
+              [config]="autocompleteFields.location"
+              [clearable]="true">
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Vessel -->
+          <ion-col *rxIf="showFilterVessel"
+                   size="12" size-lg="6">
+            <mat-autocomplete-field
+              *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+              [placeholder]="'LANDING.TABLE.VESSEL'|translate"
+              formControlName="vesselSnapshot"
+              [config]="autocompleteFields.vesselSnapshot"
+              [clearable]="true">
+              <ion-icon matPrefix name="boat"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <!-- Period criteria -->
+        <ion-row *ngIf="showFilterPeriod">
+          <ion-col>
+            <!-- Start date -->
+            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate"
+                            formControlName="startDate"
+                            [clearable]="true">
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            </mat-date-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- End date -->
+            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate"
+                            formControlName="endDate"
+                            [clearable]="true">
+            </mat-date-field>
+          </ion-col>
+        </ion-row>
+
+        <!-- Recorder criteria -->
+        <ion-row *ngIf="showRecorder">
+          <ion-col>
+            <!-- Recorder department -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT'|translate"
+              formControlName="recorderDepartment"
+              [config]="autocompleteFields.department"
+              [clearable]="true">
+              <ion-icon matPrefix name="business"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- Recorder person -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON'|translate"
+              formControlName="recorderPerson"
+              [config]="autocompleteFields.person"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <ion-row *ngIf="showObservers || showQuality || showFilterSampleLabel || showFilterSampleTagId">
+          <!-- Observers criteria -->
+          <ion-col *ngIf="showObservers">
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS'|translate"
+              [formControl]="filterObserversForm.at(0)"
+              [config]="autocompleteFields.observers"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Data quality status -->
+          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
+            <mat-form-field>
+              <mat-select [formControl]="control"
+                          [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY'|translate" required>
+                <mat-select-trigger>
+                  <span *ngIf="statusById | mapGet: control.value; let item">
+                    <ion-icon [name]="item.icon"></ion-icon>
+                    {{ item.label | translate}}
+                  </span>
+                </mat-select-trigger>
+                <mat-option *ngFor="let item of statusList" [value]="item.id">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                  {{ item.label |translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ion-col>
+
+          <!-- Sample label -->
+          <ion-col *ngIf="showFilterSampleLabel">
+            <mat-form-field>
+              <ion-icon matPrefix name="pricetag"></ion-icon>
+              <input matInput formControlName="sampleLabel"
+                     autocomplete="off"
+                     [placeholder]="'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nColumnSuffix">
+              <button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="filterForm.get('sampleLabel').reset()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+
+          <!-- Sample Tag ID -->
+          <ion-col *ngIf="showFilterSampleTagId">
+            <mat-form-field>
+              <ion-icon matPrefix name="pricetag"></ion-icon>
+              <input matInput formControlName="sampleTagId"
+                     autocomplete="off"
+                     [placeholder]="'TRIP.SAMPLE.PMFM.TAG_ID'|translateContext: i18nColumnSuffix">
+              <button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="filterForm.get('sampleTagId').reset()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="empty && 'danger'"
+                 class="ion-padding">
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
+              numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- disable floating -->
+      <button mat-icon-button color="accent"
+              *ngIf="filterPanelFloating"
+              (click)="toggleFilterPanelFloating()"
+              class="hidden-xs hidden-sm hidden-md"
+              [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') |translate">
+        <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+      </button>
+
+      <!-- Close panel -->
+      <ion-button mat-button fill="clear" color="dark"
+                  (click)="closeFilterPanel()"
+                  [disabled]="loadingSubject|async">
+        <ion-text translate>COMMON.BTN_CLOSE</ion-text>
+      </ion-button>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  [color]="filterForm.dirty ? 'tertiary' : 'dark'"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="applyFilterAndClosePanel($event)"
+                  [disabled]="loadingSubject|async">
+        <ion-text translate>COMMON.BTN_APPLY</ion-text>
+      </ion-button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
+
+  <!-- Network status (+ Install and upgrade link)  -->
+  <app-install-upgrade-card [isLogin]="isLogin"
+                            [showInstallButton]="false"
+                            [showUpgradeWarning]="true"
+                            [showOfflineWarning]="false">
+  </app-install-upgrade-card>
+
+  <!-- Update offline mode -->
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
+                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
+                                [progressionValue]="$progression | push: 'low'">
+  </app-update-offline-mode-card>
+
+  <!-- error -->
+  <ion-item *ngIf="errorSubject|async ; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+
+  <!-- Tab nav - synchro status-->
+  <ng-container *ngIf="hasOfflineMode">
+    <nav mat-tab-nav-bar
+         *rxLet="synchronizationStatus$; let synchroStatus">
+      <a mat-tab-link
+         [active]="synchroStatus==='DIRTY'"
+         (click)="setSynchronizationStatus('DIRTY')">
+        <mat-icon>cloud_off</mat-icon>&nbsp;
+        <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+      </a>
+      <a mat-tab-link [active]="synchroStatus==='SYNC'"
+         [disabled]="offline"
+         (click)="setSynchronizationStatus('SYNC')">
+        <mat-icon>cloud_done</mat-icon>&nbsp;
+        <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+      </a>
+    </nav>
+  </ng-container>
+
+  <!-- table -->
+  <div #tableContainer class="table-container"
+       [class.has-offline-nav]="hasOfflineMode">
+
+    <table mat-table  matSort matSortDisableClear
+           [dataSource]="dataSource"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
+
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef
+            [class.cdk-visually-hidden]="!canEdit">
+          <mat-checkbox (change)="$event ? masterToggle() : null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+          <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- Id Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header
+            [class.cdk-visually-hidden]="!isAdmin">
+          <ion-label>#</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</td>
+      </ng-container>
+
+      <!-- Quality Column -->
+      <ng-container matColumnDef="quality">
+        <th mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
+          <ion-label translate>OBSERVED_LOCATION.TABLE.QUALITY</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <app-entity-quality-icon [value]="row.currentData"></app-entity-quality-icon>
+        </td>
+      </ng-container>
+
+      <!-- Program Column -->
+      <ng-container matColumnDef="program">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>OBSERVED_LOCATION.TABLE.PROGRAM</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData.program | referentialToString: ['label'] }}</ion-label>
+        </td>
+      </ng-container>
+
+
+      <!-- Vessel Column -->
+      <ng-container matColumnDef="vessel">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>LANDING.TABLE.VESSEL</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData?.vesselSnapshot | referentialToString: vesselSnapshotAttributes }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel type Column -->
+      <ng-container matColumnDef="vesselType">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>LANDING.TABLE.VESSEL_TYPE</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData?.vesselSnapshot?.vesselType | referentialToString: ['name'] }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel base port Column -->
+      <ng-container matColumnDef="vesselBasePortLocation">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: autocompleteFields.location.attributes }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- location -->
+      <ng-container matColumnDef="location">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>LANDING.TABLE.LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- date time  -->
+      <ng-container matColumnDef="dateTime" >
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+          <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
+        </th>
+        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+          <ion-text *ngIf="row.currentData.dateTime; let landingDateTime">{{ landingDateTime | dateFormat: {time: true} }}
+            <ion-text *ngIf="mobile" class="computed"><br/><small>{{ landingDateTime | dateFromNow }}</small></ion-text>
+          </ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Observers -->
+      <ng-container matColumnDef="observers">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ (row.currentData?.observers || row.currentData.observedLocation?.observers ) | personToString }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- creation date -->
+      <ng-container matColumnDef="creationDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+          <span translate>LANDING.TABLE.CREATION_DATE</span>
+        </th>
+        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+          {{  row.currentData.creationDate | dateFormat: {time: false} }}
+        </td>
+      </ng-container>
+
+      <!-- Recorder -->
+      <ng-container matColumnDef="recorderPerson">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>OBSERVED_LOCATION.TABLE.RECORDER_PERSON</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>
+            <ng-container *ngIf="row.currentData.recorderPerson; let recorderPerson; else recorderDepartment">
+              {{ recorderPerson | personToString }}
+            </ng-container>
+            <ng-template #recorderDepartment>
+              {{ row.currentData.recorderDepartment?.label }}
+            </ng-template>
+          </ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Pmfm columns -->
+      <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+          <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row"
+            [class.mat-cell-date-time]="pmfm|isDatePmfm"
+            [class.mat-cell-computed]="pmfm|isComputedPmfm">
+          <app-pmfm-field
+            *ngIf="row.editing; else readOnly"
+            [pmfm]="pmfm"
+            [formControl]="row.validator|formGetControl:['measurementValues', pmfm.id]"
+            floatLabel="never">
+          </app-pmfm-field>
+          <ng-template #readOnly>
+            <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Sample count column -->
+      <ng-container matColumnDef="samplesCount">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label>{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nColumnSuffix}}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.samplesCount }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Comments column -->
+      <ng-container matColumnDef="comments">
+        <th mat-header-cell *matHeaderCellDef>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon color="primary" class="comment"
+                    *ngIf="row.currentData.comments"
+                    [title]="row.currentData.comments"></mat-icon>
+        </td>
+      </ng-container>
+
+      <!-- Actions buttons column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>
+
+          <!-- display columns -->
+          <button mat-icon-button
+                  [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                  (click)="openSelectColumnsModal($event)">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </th>
+        <td mat-cell *matCellDef="let row">
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          class="mat-row-disabled"
+          [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+          (click)="clickRow($event, row)"
+          (press)="pressRow($event, row)">
+      </tr>
+    </table>
+
+    <ng-container *ngIf="loadingSubject|async; else noResult">
+      <ion-item>
+        <ion-skeleton-text animated></ion-skeleton-text>
+      </ion-item>
+    </ng-container>
+
+    <ng-template #noResult>
+      <ion-item *ngIf="totalRowCount === 0">
+        <ion-text color="danger"
+                  class="text-italic"
+                  [innerHTML]="(hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'OBSERVED_LOCATION.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate">
+        </ion-text>
+      </ion-item>
+    </ng-template>
+  </div>
+
+</ion-content>
+
+<ion-footer>
+  <mat-paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="defaultPageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
+
+<!-- Add button (mobile) -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="canEdit && mobile">
+  <ion-fab-button color="tertiary"
+                  [disabled]="importing">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+  <ion-fab-list side="top">
+
+    <ion-fab-button [disabled]="offline || importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_ONLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'SYNC')">
+      <mat-icon color="primary">cloud_done</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+    <ion-fab-button [disabled]="importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_OFFLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'DIRTY')">
+      <mat-icon color="primary">cloud_off</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab-list>
+
+</ion-fab>
+
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>
+

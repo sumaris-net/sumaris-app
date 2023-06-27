@@ -61,7 +61,7 @@ export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programLabel: string;
   program: Program;
   categories: ExtractionTypeCategory[];
-  enableReport: boolean;
+  enableTripReport: boolean;
 }
 
 @Component({
@@ -73,13 +73,13 @@ export interface ExtractionTableState extends ExtractionState<ExtractionType>{
 })
 export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, ExtractionTableState> implements OnInit, OnDestroy {
 
-  private $cancel = new Subject<boolean>();
+  private stopSubject = new Subject<void>();
 
   protected readonly $programLabel = this._state.select('programLabel');
   protected readonly $programs = this._state.select('programs');
   protected readonly $program = this._state.select('program');
   protected readonly $categories = this._state.select('categories');
-  protected readonly $enableReport = this._state.select('enableReport');
+  protected readonly $enableTripReport = this._state.select('enableTripReport');
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
@@ -122,11 +122,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected get program(): Program {
     return this._state.get('program');
   }
-  protected set enableReport(value: boolean) {
-    this._state.set('enableReport', (_) => value);
+  protected set enableTripReport(value: boolean) {
+    this._state.set('enableTripReport', (_) => value);
   }
-  protected get enableReport(): boolean {
-    return this._state.get('enableReport');
+  protected get enableTripReport(): boolean {
+    return this._state.get('enableTripReport');
   }
   get filterChanges(): Observable<any> {
     return this.criteriaForm.form.valueChanges
@@ -165,10 +165,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     }
 
     this.registerSubscription(
-      merge(
+      merge<any>(
+        this.onRefresh,
         this.sort?.sortChange || EMPTY,
-        this.paginator?.page || EMPTY,
-        this.onRefresh
+        this.paginator?.page || EMPTY
       )
       .pipe(
         debounceTime(100),
@@ -204,8 +204,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     this._state.connect('programs', this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
-    }), (s, res) => res.data);
+      acquisitionLevelLabels: [
+        // Acquisition levels used by Trip -> Operation
+        AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION,
+        // Acquisition levels used by ObservedLocation -> Landing
+        AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING
+      ]
+    }), (s, { data }) => data);
 
     this._state.connect('program', this._state.select(['programLabel', 'programs'], res => res)
       .pipe(
@@ -220,9 +225,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
         map(ExtractionTypeCategory.fromTypes)
       ));
 
-    this._state.connect('enableReport', this._state.select('program')
+    this._state.connect('enableTripReport', this._state.select('program')
       .pipe(
-        map(program => program?.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE) || false)
+        map(program =>  program?.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE) || false)
       ));
 
     if (this.autoload && !this.embedded) {
@@ -236,7 +241,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.$cancel.next(true);
+    this.stopSubject.next();
   }
 
   protected async loadFromRouteOrSettings(): Promise<boolean> {
@@ -297,7 +302,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const changed = await super.setType(type, {...opts, emitEvent: false, skipLocationChange: true});
 
     if (changed) {
-      this.$cancel.next(); // Cancelled existing load process
+      this.stopSubject.next(); // Cancelled existing load process
 
       this.canCreateProduct = this.type && this.accountService.isSupervisor();
 
@@ -714,14 +719,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (!this.type?.label) return; // skip
 
     // To many call
-    if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
+    if (this.stopSubject.observers.length >= 1) throw new Error("Too many call of loadData()");
 
     const typeLabel = this.type.label;
     this.markAsLoading();
     this.resetError();
 
     let cancelled = false;
-    const cancelSubscription = this.$cancel
+    const cancelSubscription = this.stopSubject
       .subscribe(() => {
         if (this.type?.label !== typeLabel) {
           console.debug(`[extraction-table] Loading ${typeLabel} [CANCELLED]`);
@@ -856,9 +861,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.cd.markForCheck();
   }
 
-  protected async openReport() {
+  protected async openTripReport() {
     const program = this.program;
-    if (!program || !this.enableReport) return; // Skip
+    if (!program || !this.enableTripReport) return; // Skip
 
     const reportType = program.getProperty<TripReportType>(ProgramProperties.TRIP_REPORT_TYPE);
     const reportPath = reportType !== 'legacy' ? [reportType] : [];

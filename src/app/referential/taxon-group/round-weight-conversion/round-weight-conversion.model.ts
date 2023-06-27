@@ -56,7 +56,7 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T>>
 
     if (opts?.minify) {
       // Convert statusId object into integer
-      target.statusId = (typeof this.statusId === 'object') ? this.statusId['id'] : this.statusId;
+      target.statusId = (typeof this.statusId === 'object') ? (this.statusId as any)['id'] : this.statusId;
     }
     return target;
   }

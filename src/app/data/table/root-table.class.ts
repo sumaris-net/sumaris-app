@@ -42,7 +42,7 @@ import { ExtractionTypeService } from '@app/extraction/type/extraction-type.serv
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
-  FILTER_KEY: "filter"
+  FILTER_KEY: 'filter'
 };
 
 export interface IRootDataEntitiesService<
@@ -51,6 +51,7 @@ export interface IRootDataEntitiesService<
   ID = number
   > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID> {
 
+  featureName: string;
 }
 
 @Directive()
@@ -60,9 +61,10 @@ export abstract class AppRootDataTable<
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
   V extends BaseValidatorService<T, ID> = any,
-  ID = number
+  ID = number,
+  O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
   >
-  extends AppBaseTable<T, F, S, V, ID> {
+  extends AppBaseTable<T, F, S, V, ID, O> {
 
   private _selectionExtractionTypes$: Observable<ExtractionType[]>;
 
@@ -88,7 +90,7 @@ export abstract class AppRootDataTable<
   progressionMessage: string = null;
   $progression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
-  featureId: string;
+  featureName: string;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -125,7 +127,7 @@ export abstract class AppRootDataTable<
     columnNames: string[],
     dataService: S,
     validatorService: V,
-    options?: BaseTableConfig<T, ID>
+    options?: O
   ) {
     super(injector,
       dataType, filterType,
@@ -157,7 +159,7 @@ export abstract class AppRootDataTable<
     if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
-    if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
+    if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
 
     // Listen synchronizationStatus
     this.synchronizationStatus$ = this.onRefresh
@@ -269,7 +271,7 @@ export abstract class AppRootDataTable<
 
       await new Promise<void>((resolve, reject) => {
         // Run the import
-        this._dataService.executeImport(null, {maxProgression})
+        this._dataService.runImport(null, {maxProgression})
           .pipe(
             filter(value => value > 0),
             map((progress) => {
@@ -647,21 +649,6 @@ export abstract class AppRootDataTable<
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
-
-    filter = this.asFilter(filter);
-
-    // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria();
-    if (criteriaCount !== this.filterCriteriaCount) {
-      this.filterCriteriaCount = criteriaCount;
-      this.markForCheck();
-    }
-
-    // Update the form content
-    if (!opts || opts.emitEvent !== false) {
-      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
-    }
-
     super.setFilter(filter as F, opts);
   }
 
@@ -672,7 +659,7 @@ export abstract class AppRootDataTable<
     if (this.network.online) {
 
       // Get last synchro date
-      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureId);
+      const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureName);
 
       // Check only if last synchro older than 10 min
       if (lastSynchronizationDate && lastSynchronizationDate.isBefore(moment().add(-10, 'minute'))) {

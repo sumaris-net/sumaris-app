@@ -60,6 +60,23 @@
     <ion-label translate>TRIP.SAMPLE.TABLE.BTN_ADD_PMFM</ion-label>
   </button>
 
+
+  <!-- unit change -->
+  <button mat-menu-item
+          *ngIf="onWeightUnitChanges.observers|isNotEmptyArray"
+          [matMenuTriggerFor]="weightUnitMenu">
+    <mat-icon>balance</mat-icon>
+    <ion-label translate>TRIP.SAMPLE.TABLE.BTN_WEIGHT_UNIT_DOTS</ion-label>
+  </button>
+
+  <!-- Enable/Disable tag id generation -->
+  <button mat-menu-item
+          *ngIf="enableTagIdGeneration"
+          [matMenuTriggerFor]="tagIdMenu">
+    <mat-icon><ion-icon name="pricetag"></ion-icon></mat-icon>
+    <ion-label>{{'TRIP.SAMPLE.TABLE.BTN_GENERATE_TAG_ID_DOTS'|translateContext: i18nColumnSuffix}}</ion-label>
+  </button>
+
   <mat-divider *ngIf="showDisplayColumnModal"></mat-divider>
 
   <!-- display columns option -->
@@ -74,12 +91,47 @@
   <!-- Compact mode -->
   <button mat-menu-item
           (click)="toggleCompactMode()">
-    <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
-    <ng-template #notCompactIcon>
+    <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
+    <ng-template #disabledIcon>
       <mat-icon >check_box_outline_blank</mat-icon>
     </ng-template>
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
+</mat-menu>
+
+<!-- Options: weight unit sub-menu -->
+<mat-menu #weightUnitMenu="matMenu">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="onWeightUnitChanges.emit('kg')">
+      <ion-icon [name]="weightDisplayedUnit === 'kg' ? 'checkmark': ''"></ion-icon>
+      {{ 'REFERENTIAL.UNIT.WEIGHT.KG'|translate }}
+    </button>
+    <button mat-menu-item (click)="onWeightUnitChanges.emit('g')">
+      <ion-icon [name]="weightDisplayedUnit === 'g' ? 'checkmark': ''"></ion-icon>
+      {{ 'REFERENTIAL.UNIT.WEIGHT.G'|translate }}
+    </button>
+  </ng-template>
+</mat-menu>
+
+<!-- Options: tag id sub-menu -->
+<mat-menu #tagIdMenu="matMenu">
+  <ng-template matMenuContent>
+    <ng-container *rxLet="tagIdGenerationMode; let mode">
+      <button mat-menu-item (click)="setTagIdGenerationMode('remote')"
+              [disabled]="networkService.offline">
+        <ion-icon [name]="mode === 'remote' ? 'checkmark' : ''"></ion-icon>
+        {{ 'TRIP.SAMPLE.TABLE.TAG_ID_GENERATION_MODE.REMOTE'|translate }}
+      </button>
+      <button mat-menu-item (click)="setTagIdGenerationMode('previousRow')">
+        <ion-icon [name]="mode === 'previousRow' ? 'checkmark' : ''"></ion-icon>
+        {{ 'TRIP.SAMPLE.TABLE.TAG_ID_GENERATION_MODE.PREVIOUS_ROW'|translate }}
+      </button>
+      <button mat-menu-item (click)="setTagIdGenerationMode('none')">
+        <ion-icon [name]="mode === 'none' ? 'checkmark' : ''"></ion-icon>
+        {{ 'TRIP.SAMPLE.TABLE.TAG_ID_GENERATION_MODE.NONE'|translate }}
+      </button>
+    </ng-container>
+  </ng-template>
 </mat-menu>
 
 <!-- error -->
@@ -89,7 +141,7 @@
 </ion-item>
 
 <div #tableContainer class="table-container"
-     *rxIf="$pmfms; let pmfms"
+     *rxIf="$pmfms; let pmfms; strategy: 'native'"
      (ngInit)="initTableContainer(tableContainer)"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar && !showGroupHeader"
@@ -533,7 +585,7 @@
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
             [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-            [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}">
+            [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}:row.currentData">
           <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>

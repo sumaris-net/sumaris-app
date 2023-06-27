@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { OperationValidatorService } from './operation.validator';
+import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from './operation.service';
 import {
   AccountService,
   AppTable, collectByProperty,
@@ -17,9 +17,9 @@ import {
   RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import { Operation, Trip } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { TripService } from '@app/trip/services/trip.service';
+import { Operation, Trip } from '../trip/trip.model';
+import { OperationFilter } from '@app/trip/operation/operation.filter';
+import { TripService } from '@app/trip/trip/trip.service';
 import { debounceTime, filter } from 'rxjs/operators';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import moment from 'moment/moment';

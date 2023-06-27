@@ -11,9 +11,9 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { Trip } from '../../services/model/trip.model';
-import { TripService } from '../../services/trip.service';
-import { TripFilter } from '../../services/filter/trip.filter';
+import { Trip } from '../trip.model';
+import { TripService } from '../trip.service';
+import { TripFilter } from '../trip.filter';
 import { UntypedFormBuilder } from '@angular/forms';
 import { TableElement } from '@e-is/ngx-material-table';
 import { environment } from '@environments/environment';
