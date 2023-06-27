@@ -15,7 +15,7 @@ import {
   firstNotNilPromise,
   HistoryPageReference,
   isNil,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
   LocalSettingsService,
   NetworkService,
   ReferentialRef,
@@ -159,7 +159,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   canUserWrite(data: ObservedLocation, opts?: any): boolean {
     return isNil(data.validationDate)
-      && this.dataService.canUserWrite(data, opts);
+      && this.dataService.canUserWrite(data, {
+        program: this.program,
+        ...opts,
+      });
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
@@ -374,32 +377,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.addRow(event);
     }
-  }
-
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-
-    // When connected user is an admin
-    if (this.accountService.isAdmin()) {
-      return true;
-    }
-
-    const entity = this.data;
-
-    // When observed location has been recorded by connected user
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
-
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
-    return false;
   }
 
   async openReport(event?: Event) {

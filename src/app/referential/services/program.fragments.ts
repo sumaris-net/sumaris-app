@@ -29,6 +29,7 @@ export const ProgramFragments = {
       locationClassificationIds
       locationIds
       acquisitionLevelLabels
+      privileges
     }`,
   program: gql`
     fragment ProgramFragment on ProgramVO {

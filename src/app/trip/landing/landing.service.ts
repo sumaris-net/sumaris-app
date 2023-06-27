@@ -2,15 +2,15 @@ import { Injectable, Injector } from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
-  chainPromises,
+  chainPromises, ConfigService,
   DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions, EntityServiceWatchOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTruePromise,
   FormErrors,
   fromDateISOString,
   IEntitiesService,
@@ -33,7 +33,6 @@ import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
-import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { Sample } from '../sample/sample.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -53,10 +52,10 @@ import { TripFilter } from '@app/trip/trip/trip.filter';
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '@app/trip/observedlocation/observed-location.filter';
-import { ObservedLocationServiceLoadOptions } from '@app/trip/observedlocation/observed-location.service';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
+import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -289,12 +288,15 @@ export class LandingService
     IEntityService<Landing> {
 
   protected loading = false;
+  protected observerOfDataCanWrite = false;
+  protected onConfigLoaded = new BehaviorSubject<boolean>(false);
 
   constructor(
     injector: Injector,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
     protected programRefService: ProgramRefService,
+    protected configService: ConfigService,
     protected tripService: TripService
   ) {
     super(injector,
@@ -310,6 +312,23 @@ export class LandingService
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     this._logPrefix = '[landing-service] ';
+  }
+
+  protected async ngOnStart(): Promise<void> {
+    await super.ngOnStart();
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        if (!config) return; // Skip
+        this.observerOfDataCanWrite = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_FOR_EXPLICIT_OBSERVER);
+        this.onConfigLoaded.next(true);
+      })
+    );
+    await firstTruePromise(this.onConfigLoaded);
+  }
+
+  protected ngOnStop(): Promise<void> | void {
+    this.onConfigLoaded.next(false);
+    return super.ngOnStop();
   }
 
   hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
@@ -854,6 +873,12 @@ export class LandingService
     return entity;
   }
 
+  canUserWrite(entity: Landing, opts?: any): boolean {
+    return super.canUserWrite(entity, opts)
+      // Or data is valid and user is explicitly declared as observer for it
+      || (isNil(entity.validationDate) && this.canObserverWriteEntity(opts?.parent, opts));
+  }
+
   async control(data: Landing): Promise<FormErrors> {
     console.warn('Not implemented', new Error());
     return undefined;
@@ -1215,5 +1240,13 @@ export class LandingService
         data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
     }
+  }
+
+  canObserverWriteEntity(entity: ObservedLocation, opts?: any): boolean {
+    return this.observerOfDataCanWrite
+      && (
+        entity?.observers
+        && entity.observers.some((item) => (item.id == this.accountService.person.id))
+      );
   }
 }

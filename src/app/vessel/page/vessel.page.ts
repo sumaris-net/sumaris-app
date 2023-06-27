@@ -8,7 +8,6 @@ import {
   AppEntityEditor,
   ConfigService,
   EntityServiceLoadOptions,
-  EntityUtils,
   HistoryPageReference,
   isNil, isNotNilOrNaN,
   NetworkService,
@@ -139,11 +138,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   canUserWrite(data: Vessel): boolean {
-    // Cannot edit a remote entity, when offline (e.g. when vessel was loaded from the local entity storage)
-    if (this.network.offline && EntityUtils.isRemote(data)) {
-      return false;
-    }
-    return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
+    return isNil(data.validationDate) && this.dataService.canUserWrite(data, {});
   }
 
   protected setValue(data: Vessel) {
@@ -342,13 +337,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   async save(event, options?: any): Promise<boolean> {
-    const saved = await super.save(event, {
+    return await super.save(event, {
       previousVessel: this.previousVessel,
       isNewFeatures: this.isNewFeatures,
       isNewRegistration: this.isNewRegistration
     });
-
-    return saved;
   }
 
   protected getJsonValueToSave(): Promise<any> {

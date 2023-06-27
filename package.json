@@ -25,14 +25,6 @@
     "lint.fix": "ng lint --fix"
   },
   "peerDependencies": {
-    "@angular-devkit/build-angular": "~14.2.11",
-    "@angular-devkit/core": "~14.2.11",
-    "@angular/compiler-cli": "~14.2.12",
-    "@apollo/client": "~3.7.13",
-    "@ionic/angular": "~7.0.9",
-    "@ionic/storage": "~3.0.6",
-    "d3": "~7.6.1",
-    "localforage": "~1.10.0",
     "rxjs": "~7.5.7"
   },
   "dependencies": {
@@ -80,7 +72,7 @@
     "@rx-angular/state": "^1.7.0",
     "@rx-angular/template": "^1.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "2.4.85",
+    "@sumaris-net/ngx-components": "2.4.86-rc1",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.2.1",
@@ -133,9 +125,6 @@
     "util": "^0.12.5",
     "uuid": "^7.0.3",
     "zone.js": "~0.11.8"
-  },
-  "peerDependencies": {
-    "rxjs": "~7.5.7"
   },
   "devDependencies": {
     "@angular-devkit/architect": "~0.1402.11",

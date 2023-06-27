@@ -1,15 +1,17 @@
-import { Injectable } from '@angular/core';
-import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 
 import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseGraphqlService, CryptoService,
-  EntityUtils, escapeRegExp,
+  BaseGraphqlService,
+  CryptoService,
+  EntityUtils,
+  escapeRegExp,
   firstNotNilPromise,
   GraphqlService,
   IEntityService,
@@ -21,17 +23,17 @@ import {
   ReferentialUtils,
   StatusIds
 } from '@sumaris-net/ngx-components';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { DataCommonFragments } from '../../trip/trip/trip.queries';
-import { SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
-import { ExtractionProduct } from './product.model';
-import { ExtractionFragments } from '../common/extraction.service';
-import { environment } from '@environments/environment';
-import { DataErrorCodes } from '@app/data/services/errors';
-import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
-import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
-import { ExtractionTypeFragments, ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
-import { TranslateService } from '@ngx-translate/core';
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils} from '../type/extraction-type.model';
+import {DataCommonFragments} from '@app/trip/trip/trip.queries';
+import {SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
+import {ExtractionProduct} from './product.model';
+import {ExtractionFragments} from '../common/extraction.service';
+import {environment} from '@environments/environment';
+import {DataErrorCodes} from '@app/data/services/errors';
+import {ExtractionErrorCodes} from '@app/extraction/common/extraction.errors';
+import {ExtractionTypeFilter} from '@app/extraction/type/extraction-type.filter';
+import {ExtractionTypeService} from '@app/extraction/type/extraction-type.service';
+import {TranslateService} from '@ngx-translate/core';
 
 
 export const ExtractionProductFragments = {
@@ -266,11 +268,20 @@ export class ProductService
   }
 
   canUserWrite(entity: ExtractionProduct, opts?: any) {
-    return this.accountService.isAdmin()
-      // New date allow for supervisors
-      || (isNil(entity.id) && this.accountService.isSupervisor())
-      // Supervisor on existing data, and the same recorder department
-      || (ReferentialUtils.isNotEmpty(entity && entity.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment));
+    if (!entity) return false;
+
+    // The administrator always write entity
+    if (this.accountService.isAdmin()) return true;
+
+    // If not user profile (e.g. GUEST): cannot write
+    if (!this.accountService.isUser()) return false;
+
+    // User is the data recorder: OK
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson))
+      return true;
+
+    // In other cases, can't write
+    return false;
   }
 
   async save(entity: ExtractionProduct,

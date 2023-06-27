@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -13,7 +13,7 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService, ReferentialUtils,
+  LocalSettingsService,
   SharedValidators
 } from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from './biological-sampling.validators';
@@ -43,7 +43,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
-  canDelete = false;
 
   constructor(
     injector: Injector,
@@ -105,8 +104,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
-
-    this.canDelete = this.canUserDelete(data);
   }
 
   updateTabsState(data: Landing) {
@@ -124,22 +121,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       this.tabGroup.realignInkBar();
       this.autoOpenNextTab = false; // Should switch only once
     }
-  }
-
-  canUserDelete(data: Landing, opts?: any): boolean {
-    const canWrite = this.canUserWrite(data);
-    if (canWrite) return true;
-
-    // Observers can delete - https://youtrack.ifremer.fr/issue/IMAGINE-632
-    const currentPerson = this.accountService.person;
-    if (isNil(this.data.validationDate) && isNil(this.parent?.validationDate)) {
-      const isObserver = (data?.observers || [])
-        .concat(this.parent?.observers || [])
-        .some(observer => ReferentialUtils.equals(currentPerson, observer))
-      if (isObserver) return true;
-    }
-
-    return false;
   }
 
   protected async setStrategy(strategy: Strategy) {
@@ -237,7 +218,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     //console.debug('Calling onEntityLoaded', data);
     await super.onEntityLoaded(data, options);
-
   }
 
   protected async getValue(): Promise<Landing> {

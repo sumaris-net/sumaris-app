@@ -127,7 +127,9 @@ export abstract class AppRootDataEditor<
       .pipe(
         // DEBUG --
         //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
-        switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug})),
+        switchMap(programLabel => {
+          return this.programRefService.watchByLabel(programLabel, {debug: this.debug})
+        }),
         tap(program => this.$program.next(program))
       )
       .subscribe());

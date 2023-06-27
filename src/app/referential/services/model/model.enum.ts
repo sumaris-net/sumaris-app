@@ -358,6 +358,8 @@ export const SaleTypeIds = {
   OTHER: 4
 };
 
+export declare type ProgramPrivilege = 'MANAGER' | 'OBSERVER' | 'VIEWER' | 'VALIDATOR' | 'QUALIFIER';
+
 export const ProgramPrivilegeIds = {
   MANAGER: 1,
   OBSERVER: 2,

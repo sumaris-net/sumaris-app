@@ -3,12 +3,12 @@ import {
   AccountService,
   AppFormUtils,
   arrayDistinct,
-  chainPromises,
+  chainPromises, ConfigService,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, firstTruePromise,
   FormErrors,
   GraphqlService,
   IEntitiesService,
@@ -22,7 +22,7 @@ import {
   NetworkService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
@@ -59,6 +59,7 @@ import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {OverlayEventDetail} from '@ionic/core';
 import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
+import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
 
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
@@ -260,11 +261,14 @@ export class ObservedLocationService
     IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions> {
 
   protected loading = false;
+  protected observerOfDataCanWrite = false;
+  protected onConfigLoaded = new BehaviorSubject<boolean>(false);
 
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
     protected accountService: AccountService,
+    protected configService: ConfigService,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
     protected validatorService: ObservedLocationValidatorService,
@@ -286,6 +290,23 @@ export class ObservedLocationService
     // FOR DEV ONLY
     this._debug = !environment.production;
     if (this._debug) console.debug('[observed-location-service] Creating service');
+  }
+
+  protected async ngOnStart(): Promise<void> {
+    await super.ngOnStart();
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        if (!config) return;
+        this.observerOfDataCanWrite = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_FOR_EXPLICIT_OBSERVER);
+        this.onConfigLoaded.next(true);
+      })
+    );
+    await firstTruePromise(this.onConfigLoaded);
+  }
+
+  protected ngOnStop(): Promise<void> | void {
+    this.onConfigLoaded.next(false);
+    return super.ngOnStop();
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -726,6 +747,12 @@ export class ObservedLocationService
     this.onDelete.next([entity]);
   }
 
+  canUserWrite(entity: ObservedLocation, opts?: any): boolean {
+    return super.canUserWrite(entity, opts)
+      // Or data is valid and user is explicitly declared as observer for it
+      || (isNil(entity.validationDate) && this.canObserverWriteEntity(entity, opts));
+  }
+
   async control(entity: ObservedLocation): Promise<FormErrors> {
 
     const now = this._debug && Date.now();
@@ -1017,4 +1044,11 @@ export class ObservedLocationService
     return Toasts.show(this.toastController, this.translate, opts);
   }
 
+  canObserverWriteEntity(entity: ObservedLocation, opts?: any): boolean {
+    return this.observerOfDataCanWrite
+      && (
+        entity?.observers
+        && entity.observers.some((item) => (item.id == this.accountService.person.id))
+      );
+  }
 }

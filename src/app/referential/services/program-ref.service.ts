@@ -37,7 +37,7 @@ import { ReferentialRefService } from './referential-ref.service';
 import { Program } from './model/program.model';
 
 import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
-import { IWithProgramEntity } from '@app/data/services/model/model.utils';
+import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '@app/data/services/model/model.utils';
 
 import { StrategyFragments } from './strategy.fragments';
 import { ProgramFragments } from './program.fragments';
@@ -55,6 +55,8 @@ import { SortDirection } from '@angular/material/sort';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import {ProgramPrivilege} from '@app/referential/services/model/model.enum';
+import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -190,6 +192,7 @@ export class ProgramRefService
   implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>,
     SuggestService<Program, Partial<ProgramFilter>> {
 
+  protected accesNotSelfDataDepartemetIds = new BehaviorSubject<number[]>(undefined);
 
   private _subscriptionCache: {[key: string]: {
       subject: Subject<Program>;
@@ -210,7 +213,7 @@ export class ProgramRefService
     protected referentialRefService: ReferentialRefService,
     protected toastController: ToastController,
     protected strategyRefService: StrategyRefService,
-    protected translate: TranslateService
+    protected translate: TranslateService,
   ) {
     super(injector, Program, ProgramFilter,
       {
@@ -249,6 +252,15 @@ export class ProgramRefService
           }
         })
     );
+
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        if (!config) return;
+        this.accesNotSelfDataDepartemetIds.next(config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS));
+      })
+    )
+
+    await firstNotNilPromise(this.accesNotSelfDataDepartemetIds);
   }
 
   canUserWrite(data: Program, opts?: any): boolean {
@@ -256,21 +268,47 @@ export class ProgramRefService
     return false;
   }
 
-  canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
+  canUserWriteEntity(entity: IWithRecorderDepartmentEntity<any, any, any> & IWithRecorderPersonEntity<any, any>, opts?: {program?: Program}): boolean {
     if (!entity) return false;
 
-    // If the user is the recorder: can write
-    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
-      return true;
+    // The administrator always write entity
+    if (this.accountService.isAdmin()) return true;
+
+    // If not user profile (e.g. GUEST): cannot write
+    if (!this.accountService.isUser()) return false;
+
+    // If no rights on program: cannot write
+    if (opts?.program) {
+      // Manager of program: OK
+      if (this.hasPrivilege(opts.program, 'MANAGER')) return true;
+
+      // Not a recorder : cannot write
+      if (!this.hasPrivilege(opts.program, 'OBSERVER')) return false;
     }
 
-    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
-    // const program = opts?.program || load()
-    // See http://youtrack.ifremer.fr/issue/Obsbio-92
-    console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
+    // User is the data recorder: OK
+    // TODO : Test departement before : user that have changed department can continue to modify the data
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson))
+      return true;
 
-    // Check same department
-    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+    // If user is allowed to write on department: OK
+    if (ReferentialUtils.isEmpty(this.accountService.department)) return false;
+
+    if (!entity.recorderDepartment?.id) {
+      console.warn('Department has no id! Unable to check write right on it.');
+      return false;
+    }
+
+    if (this.accountService.isSupervisor()
+      && (
+        // If supervisor and same recorder department: OK, user can write
+        (entity.recorderDepartment.id === this.accountService.department.id)
+        // Or if the supervisor is on department that can write all
+        || (this.accesNotSelfDataDepartemetIds.value?.includes(this.accountService.department.id))
+      )) return true;
+
+    // In other cases, can't write
+    return false;
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -344,7 +382,6 @@ export class ProgramRefService
     cache?: boolean;
     fetchPolicy?: WatchQueryFetchPolicy;
   }): Observable<Program> {
-
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
       const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, opts && JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
@@ -947,4 +984,9 @@ export class ProgramRefService
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
   }
+
+  protected hasPrivilege(program: Program, ...privileges: ProgramPrivilege[]): boolean {
+    return program?.privileges.some(p => privileges.includes(p));
+  }
+
 }

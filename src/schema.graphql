@@ -1045,6 +1045,8 @@ type ProgramVO {
   locations: [ReferentialVO]
   name: String
   persons: [ProgramPersonVO]
+  "Get current user program's privileges"
+  privileges: [String]
   properties: Map_String_StringScalar
   statusId: Int
   "Get program's strategies"
