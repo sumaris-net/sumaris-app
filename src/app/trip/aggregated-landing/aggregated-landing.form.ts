@@ -30,6 +30,7 @@ export class AggregatedLandingFormOption {
   initialDate: Moment | undefined;
   programLabel: string;
   acquisitionLevel: string;
+  readonly?: boolean;
 }
 
 @Component({
@@ -278,4 +279,5 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.cd.markForCheck();
   }
 
+  protected readonly console = console;
 }
