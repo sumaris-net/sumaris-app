@@ -27,7 +27,7 @@ import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
-import { Observable, of } from 'rxjs';
+import { Observable, of} from 'rxjs';
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -54,6 +54,7 @@ export abstract class BaseRootDataService<
   protected accountService: AccountService;
   protected programRefService: ProgramRefService;
 
+
   protected constructor(
     injector: Injector,
     dataType: new() => T,
@@ -72,11 +73,9 @@ export abstract class BaseRootDataService<
   }
 
   canUserWrite(entity: T, opts?: any): boolean {
+    // TODO Test validation date here rather than in *Pages ?
     return EntityUtils.isLocal(entity) // For performance, always give write access to local data
-      || this.accountService.isAdmin()
-      || (this.programRefService.canUserWriteEntity(entity)
-        && (isNil(entity.validationDate) || this.accountService.isSupervisor())
-      );
+      || this.programRefService.canUserWriteEntity(entity, {program: opts?.program});
   }
 
   listenChanges(id: ID, opts?: EntityServiceListenChangesOptions): Observable<T> {

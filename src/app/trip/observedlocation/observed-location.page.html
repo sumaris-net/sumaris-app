@@ -39,7 +39,7 @@
   <mat-divider></mat-divider>
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled || !canUserCancelOrDelete"
+          [disabled]="isNewData || disabled || !canUserWrite(data)"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;

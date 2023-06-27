@@ -1,12 +1,11 @@
 import {
-  BaseReferential, DateUtils,
+  BaseReferential,
   Entity,
   EntityClass,
   EntityUtils,
   FormFieldDefinition,
   isNotNil, ObjectMap,
   Person,
-  PropertiesMap,
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
@@ -17,6 +16,7 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
 import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramPrivilege} from '@app/referential/services/model/model.enum';
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {
@@ -31,6 +31,7 @@ export class Program extends BaseReferential<Program> {
   locations: ReferentialRef[] = null;
   departments: ProgramDepartment[] = null;
   persons: ProgramPerson[] = null;
+  privileges: ProgramPrivilege[];
 
   acquisitionLevelLabels: string[]; // Need to filter local programs
 
@@ -56,6 +57,7 @@ export class Program extends BaseReferential<Program> {
     this.departments = source.departments && source.departments.map(ProgramDepartment.fromObject) || [];
     this.persons = source.persons && source.persons.map(ProgramPerson.fromObject) || [];
     this.acquisitionLevelLabels = source.acquisitionLevelLabels || [];
+    this.privileges = source.privileges || undefined;
 
     this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
   }
@@ -77,6 +79,8 @@ export class Program extends BaseReferential<Program> {
     target.persons = this.persons && this.persons.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
 
     target.strategies = this.strategies && this.strategies.map(s => s.asObject(opts));
+
+    if (opts?.minify) delete target.privileges;
 
     return target;
   }

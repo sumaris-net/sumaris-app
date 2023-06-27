@@ -11,7 +11,6 @@ import {
   EntitiesStorage,
   EntitySaveOptions,
   EntityUtils,
-  GraphqlService,
   IEntitiesService,
   IEntityService,
   isNil,
@@ -19,7 +18,6 @@ import {
   LoadResult,
   NetworkService,
   Person,
-  PlatformService,
   ReferentialAsObjectOptions,
   StatusIds,
 } from '@sumaris-net/ngx-components';
@@ -237,7 +235,6 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     };
   }
 
-
   async existsByLabel(label: string, opts?: {
     excludedIds?: number[];
     fetchPolicy?: FetchPolicy;
@@ -249,10 +246,12 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   async save(entity: Program, opts?: ProgramSaveOptions): Promise<Program> {
 
+    // TODO isSamplingStrategyEditor is true on ProgramPage, so can't remove user rights from this page.
+    //      see https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/441
     const isSamplingStrategyEditor = 'sampling' === entity?.properties[ProgramProperties.STRATEGY_EDITOR.key];
     opts = {
       withStrategies: false,
-      withDepartmentsAndPersons: isSamplingStrategyEditor ? false : true,
+      withDepartmentsAndPersons: !isSamplingStrategyEditor,
       ...opts
     };
 

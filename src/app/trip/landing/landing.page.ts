@@ -52,7 +52,6 @@ import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
-import { PredefinedColors } from '@ionic/core';
 
 export class LandingEditorOptions extends AppEditorOptions {
 }
@@ -178,7 +177,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   canUserWrite(data: Landing, opts?: any): boolean {
     return isNil(data.validationDate)
       && isNil(this.parent?.validationDate)
-      && this.dataService.canUserWrite(data, opts);
+      && (this.dataService.canUserWrite(data, {
+          parent: this.parent,
+          program: this.program,
+          ...opts,
+        })
+      );
   }
 
   async reload(): Promise<void> {

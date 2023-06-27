@@ -84,6 +84,13 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: '',
 
   },
+  // TODO : this options is not implemented in pod side
+  ACCESS_NOT_SELF_DATA_FOR_EXPLICIT_OBSERVER: <FormFieldDefinition>{
+    key: 'sumaris.data.accessNotSelfDataForExplicitObserver',
+    label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_FOR_EXPLICIT_OBSERVER',
+    type: 'boolean',
+    defaultValue: false,
+  },
   QUALITY_PROCESS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.data.quality.process.enable',
     label: 'CONFIGURATION.OPTIONS.DATA_QUALITY_PROCESS_ENABLE',

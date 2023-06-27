@@ -1,5 +1,5 @@
-import { Directive, EventEmitter, Injector, Input, ViewChild } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Directive, EventEmitter, Injector, Input, ViewChild} from '@angular/core';
+import {Observable} from 'rxjs';
 import {
   AccountService,
   AppTabEditor,
@@ -18,23 +18,24 @@ import {
   LocalSettingsService,
   PlatformService,
   propertyComparator,
+  ReferentialUtils,
   toBoolean,
   toDateISOString,
   TranslateContextService
 } from '@sumaris-net/ngx-components';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { map } from 'rxjs/operators';
-import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ExtractionService } from './extraction.service';
-import { AlertController, ModalController, NavController, ToastController } from '@ionic/angular';
-import { ExtractionUtils } from './extraction.utils';
-import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
-import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
-import { RxState } from '@rx-angular/state';
-import { Location } from '@angular/common';
+import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils} from '../type/extraction-type.model';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {map} from 'rxjs/operators';
+import {ExtractionCriteriaForm} from '../criteria/extraction-criteria.form';
+import {TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ExtractionService} from './extraction.service';
+import {AlertController, ModalController, NavController, ToastController} from '@ionic/angular';
+import {ExtractionUtils} from './extraction.utils';
+import {ExtractionHelpModal, ExtractionHelpModalOptions} from '../help/help.modal';
+import {ExtractionTypeFilter} from '@app/extraction/type/extraction-type.filter';
+import {RxState} from '@rx-angular/state';
+import {Location} from '@angular/common';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -557,11 +558,21 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return params;
   }
 
-  protected canUserWrite(type: ExtractionType): boolean {
-    return type.category === ExtractionCategories.PRODUCT && (
-      this.accountService.isAdmin()
-      || (this.accountService.isUser() && type.recorderPerson?.id === this.accountService.person.id)
-      || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
+  protected canUserWrite(entity: ExtractionType): boolean {
+    if (!entity || entity.category !== ExtractionCategories.PRODUCT) return false;
+
+    // The administrator always write entity
+    if (this.accountService.isAdmin()) return true;
+
+    // If not user profile (e.g. GUEST): cannot write
+    if (!this.accountService.isUser()) return false;
+
+    // User is the data recorder: OK
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson))
+      return true;
+
+    // In other cases, can't write
+    return false;
   }
 
   protected getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<T, S>): string {
