@@ -88,7 +88,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     if (!pmfms) return; // Skip
 
     // If a catch batch layout
-    const layout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'catch' : 'default');
+    const layout: CatchBatchFormLayout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'CATCH' : 'SORTING_BATCH');
     if (layout === 'CATCH') {
 
       const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
