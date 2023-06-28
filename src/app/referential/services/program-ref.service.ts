@@ -899,7 +899,7 @@ export class ProgramRefService
     console.debug(`${this._logPrefix}Watching authorized programs...`);
 
     const variables = {
-      interval: Math.max(10, opts?.intervalInSeconds || environment.program?.listenIntervalInSeconds || 10)
+      interval: Math.max(10, opts?.intervalInSeconds || environment['program']?.listenIntervalInSeconds || 10)
     };
 
     this._listenAuthorizedSubscription = this.graphql.subscribe<{data: any}>({
