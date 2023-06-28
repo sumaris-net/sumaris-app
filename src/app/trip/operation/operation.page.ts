@@ -520,7 +520,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
     if (isNotNil(samplingTypeControl) && this.batchTree) {
       defaultTableStates = false;
-      this.showCatchTab = this.batchTree.showCatchForm;
+      this.showCatchTab = this.batchTree?.showCatchForm || false;
       this._measurementSubscription.add(
         samplingTypeControl.valueChanges
           .pipe(
@@ -550,6 +550,7 @@ export class OperationPage<S extends OperationState = OperationState>
             }
 
             this.showBatchTables = this.showBatchTablesByProgram;
+            this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 

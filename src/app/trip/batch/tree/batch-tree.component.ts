@@ -376,8 +376,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this._state.connect('showCatchForm',
       combineLatest([this.catchBatchForm.hasContent$, this.catchBatchForm.ready$])
         .pipe(
-          filter(([hasContent, ready]) => ready),
-          map(([hasContent, ready]) => hasContent),
+          filter(([_, ready]) => ready),
+          map(([hasContent, _]) => hasContent),
           tap(showCatchForm => {
             if (this._enabled) {
               if (showCatchForm && !this.catchBatchForm.enabled) {
@@ -677,6 +677,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     // Some specific taxon groups have no weight collected
     const taxonGroupsNoWeight = program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
     this.batchGroupsTable.taxonGroupsNoWeight = (taxonGroupsNoWeight || [])
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank);
+
+    // Some specific taxon groups are never landing
+    const taxonGroupsNoLanding = program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_LANDING);
+    this.batchGroupsTable.taxonGroupsNoLanding = (taxonGroupsNoLanding || [])
       .map(label => label.trim().toUpperCase())
       .filter(isNotNilOrBlank);
 

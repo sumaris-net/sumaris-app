@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import {UntypedFormGroup, Validators} from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -16,20 +16,21 @@ import {
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
-  ReferentialRef, ReferentialUtils,
+  ReferentialRef,
+  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
-import {Batch} from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import {Observable, Subject, Subscription} from 'rxjs';
+import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -80,12 +81,13 @@ export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): Bat
 }
 
 export const BatchGroupColumnFlags = Object.freeze({
-  IS_WEIGHT: 0x000001,
-  IS_INDIVIDUAL_COUNT: 0x000010,
-  IS_SAMPLING: 0x000100,
-  IS_SAMPLING_RATIO: 0x001000,
-  IS_ALWAYS_COMPUTED: 0x010000,
-  IS_TOTAL: 0x100000
+  IS_WEIGHT: 0x0000001,
+  IS_INDIVIDUAL_COUNT: 0x0000010,
+  IS_SAMPLING: 0x0000100,
+  IS_SAMPLING_RATIO: 0x0001000,
+  IS_ALWAYS_COMPUTED: 0x0010000,
+  IS_TOTAL: 0x0100000,
+  IS_LANDING: 0x1000000
 });
 
 declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
@@ -293,6 +295,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
+  @Input() taxonGroupsNoLanding: string[] = [];
 
   @Input() set showIndividualCountColumns(value: boolean){
     this._state.set('individualCountColumns', (_) => value);
@@ -597,6 +600,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           if (child) {
             this.normalizeChildToRow(child, qvIndex);
           }
+          // DEBUG
+          // else console.warn('[batch-group-table] Missing child batch having QV=' + qv.label, batch);
         });
       }
     }
@@ -930,6 +935,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
         const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
         let computed = def.computed;
+        let flags = def.flags;
 
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
@@ -944,10 +950,22 @@ export class BatchGroupsTable extends AbstractBatchesTable<
             }]);
           }
         }
+
+        // Is Landing ?
+        if (qvIndex< 0 || qvIndex === 0) {
+          flags = flags | BatchGroupColumnFlags.IS_LANDING;
+          // Detect computed column, when taxonGroupsNoLanding is used
+          if (isNotEmptyArray(this.taxonGroupsNoLanding)) {
+            computed = composeBatchComputed([computed, (batch, parent) => {
+              return this.isTaxonGroupNoLanding(parent?.taxonGroup || batch?.taxonGroup)
+            }]);
+          }
+        }
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
           ...def,
           key,
+          flags,
           label,
           unitLabel,
           qvIndex,
@@ -1511,6 +1529,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
 
     const hasSubBatches = (data.observedIndividualCount || 0) > 0;
+    const taxonGroupNoLanding = this.isTaxonGroupNoLanding(data.taxonGroup);
     const taxonGroupNoWeight = this.isTaxonGroupNoWeight(data.taxonGroup);
     const weightRequired = !taxonGroupNoWeight;
     const individualCountRequired = taxonGroupNoWeight;
@@ -1536,24 +1555,39 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       }
     }
 
+    // Disable/enable landing form
+    if (isNotEmptyArray(this.taxonGroupsNoLanding)) {
+      if (this.qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
+        const landingForm = form.get('children.0');
+        if (taxonGroupNoLanding) {
+          this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_LANDING, {emitEvent: false});
+          landingForm.disable();
+        } else if (landingForm.disabled) {
+          landingForm.enable();
+          landingForm.markAsUntouched();
+        }
+      }
+    }
+
     const subscription = new Subscription();
 
     // Detect taxon group changes
-    // e.g. if a taxon group becomes 'RJB' (no weight), we should refresh the form
-    if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+    // e.g. if a taxon group becomes 'RJB' (no weight, and no landing), we should refresh the form
+    if (isNotEmptyArray(this.taxonGroupsNoWeight) || isNotEmptyArray(this.taxonGroupsNoLanding)) {
       subscription.add(
         form.get('taxonGroup').valueChanges
           .pipe(
+            debounceTime(250),
             filter(ReferentialUtils.isNotEmpty), // Skip if not item selected
-            map(taxonGroup => this.isTaxonGroupNoWeight(taxonGroup)),
-            filter(v => v !== taxonGroupNoWeight) // distinguish changes from initial call
+            map(taxonGroup => [this.isTaxonGroupNoWeight(taxonGroup), this.isTaxonGroupNoLanding(taxonGroup)]),
+            filter(([noWeight, noLanding]) => noWeight !== taxonGroupNoWeight || noLanding !== taxonGroupNoLanding) // distinguish changes from initial call
           )
           .subscribe(_ => {
             // DEBUG
             //console.debug(this.logPrefix + 'Detecting taxon group changes: will update form...');
 
             // Refresh form, because taxon group has changed
-            this.onPrepareRowForm(form);
+            this.onPrepareRowForm(form); // Loop
           })
       );
     }
@@ -1583,9 +1617,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return this.taxonGroupsNoWeight.includes(taxonGroup.label);
   };
 
+  protected isTaxonGroupNoLanding(taxonGroup: TaxonGroupRef): boolean {
+    if (!taxonGroup || !taxonGroup?.label || isEmptyArray(this.taxonGroupsNoLanding)) return false;
+    return this.taxonGroupsNoLanding.includes(taxonGroup.label);
+  };
+
   protected resetColumnValueByFlag(form: UntypedFormGroup, flag: number, opts? : {emitEvent?: boolean}) {
     let dirty = false;
-    this.dynamicColumns.filter(column => hasFlag(column.flags, flag))
+    this.dynamicColumns
+      .filter(column => hasFlag(column.flags, flag))
       .forEach(column => {
         const control = form.get(column.path);
         if (isNotNil(control.value)) {
