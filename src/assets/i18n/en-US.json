@@ -2738,6 +2738,28 @@
       "NEED_GEOLOCATION": "<b>Activation of geolocation required</b><br/><br/>To be able to use the application correctly, please authorize the geolocation of the device."
     }
   },
+  "SHARED": {
+    "BLUETOOTH": {
+      "TITLE": "Bluetooth settings",
+      "ENABLED": "Enabled",
+      "DISABLED": "Disabled",
+      "AVAILABLE_DEVICES": "Available devices:",
+      "ADDRESS": "Address (MAC)",
+      "NAME": "Name",
+      "NO_DEVICE": "No device found",
+      "BTN_SCAN": "Scan",
+      "BTN_DISCONNECT": "Disconnect",
+      "ERROR": {
+        "DISABLED": "Bluetooth is disabled"
+      }
+    },
+    "ICHTHYOMETER": {
+      "TITLE": "Bluetooth ichthyometer",
+      "SETTINGS": {
+        "DEVICES": "Ichthyometer: Device(s)"
+      }
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Error",
     "FIELD_REQUIRED": "Value required",
