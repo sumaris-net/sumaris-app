@@ -3,7 +3,7 @@ import {ObservedLocationsPage} from '../table/observed-locations.page';
 import {ModalController} from '@ionic/angular';
 import {AcquisitionLevelCodes, AcquisitionLevelType} from '../../../referential/services/model/model.enum';
 import {Observable, Subscription} from 'rxjs';
-import {AppFormUtils, isNotNil, toBoolean} from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import {TableElement} from '@e-is/ngx-material-table';
 import {ObservedLocation} from '@app/trip/observedlocation/observed-location.model';
 import {ObservedLocationFilter} from '@app/trip/observedlocation/observed-location.filter';
@@ -20,6 +20,7 @@ export interface ISelectObservedLocationsModalOptions {
   allowNewObservedLocation: boolean;
   defaultNewObservedLocation: ObservedLocation;
   selectedId: number;
+  mobile: boolean;
 }
 
 @Component({
@@ -33,6 +34,7 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
 
   protected _subscription = new Subscription();
   protected _logPrefix = '[select-observed-location-modal]';
+  protected readonly settings: LocalSettingsService;
 
   @ViewChild('table', { static: true }) table: ObservedLocationsPage;
   @ViewChild('form', { static: true }) form: ObservedLocationForm;
@@ -48,6 +50,7 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   @Input() allowNewObservedLocation: boolean;
   @Input() defaultNewObservedLocation: ObservedLocation;
   @Input() selectedId: number;
+  @Input() mobile: boolean;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -59,12 +62,14 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
     protected observedLocationService: ObservedLocationService,
     protected cd: ChangeDetectorRef
   ) {
+    this.settings = injector.get(LocalSettingsService);
     // default value
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
   }
 
   ngOnInit() {
     // Set defaults
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.allowMultipleSelection = toBoolean(this.allowMultipleSelection, false);
     this.filter = this.filter || new ObservedLocationFilter();
     const programLabel = this.programLabel || this.filter.program && this.filter.program.label;

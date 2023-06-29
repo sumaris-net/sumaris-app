@@ -15,7 +15,7 @@
       <!-- Refresh -->
       <button mat-icon-button *ngIf="!mobile"
               [title]="'COMMON.BTN_REFRESH'|translate"
-              (click)="onRefresh.emit()">
+              (click)="table?.onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
 
@@ -52,6 +52,7 @@
                                    [disabled]="true"
                                    [readOnly]="true"
                                    [inModal]="true"
+                                   [mobile]="mobile"
                                    [enableFilterPanelCompact]="true"
                                    (onOpenRow)="selectRow($event)"
                                    (onNewRow)="close($event)"

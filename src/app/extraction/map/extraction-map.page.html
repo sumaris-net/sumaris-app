@@ -111,12 +111,12 @@
   <!-- Sort by sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartSortByMenu" translate>EXTRACTION.MAP.CHART_SORT_BY.TITLE</button>
   <mat-menu #chartSortByMenu="matMenu">
-    <button mat-menu-item (click)="updateTechChart({sortByLabel: true})">
-      <ion-icon *ngIf="techChartDefaults.sortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="updateTechChart({options: {sortByLabel: true}})">
+      <ion-icon *ngIf="techChartDefaults.options.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.LABEL</span>
     </button>
-    <button mat-menu-item (click)="updateTechChart({sortByLabel: false})" translate>
-      <ion-icon *ngIf="!techChartDefaults.sortByLabel" name="checkmark"></ion-icon>
+    <button mat-menu-item (click)="updateTechChart({options: {sortByLabel: false}})" translate>
+      <ion-icon *ngIf="!techChartDefaults.options.sortByLabel" name="checkmark"></ion-icon>
       <span translate> EXTRACTION.MAP.CHART_SORT_BY.VALUE</span>
     </button>
   </mat-menu>
@@ -127,7 +127,7 @@
     <!-- Freeze values -->
     <button mat-menu-item
             (click)="updateTechChart({options: {fixAxis: !techChartDefaults.options?.fixAxis}})">
-      <ion-icon *ngIf="techChartDefaults.fixAxis" name="checkmark"></ion-icon>
+      <ion-icon *ngIf="techChartDefaults.options.fixAxis" name="checkmark"></ion-icon>
       <ion-label translate>EXTRACTION.MAP.FREEZE_VALUES</ion-label>
     </button>
   </mat-menu>
