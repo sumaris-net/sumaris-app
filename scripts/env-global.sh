@@ -152,6 +152,6 @@ fi
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     echo "--- Installing project dependencies..."
     cd ${PROJECT_DIR}
-    npm install
+    npm install --unsafe-perm --force
 fi
 
