@@ -245,6 +245,9 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       skipLocationChange: true // Here, we not need an update of the location
     });
 
+    // No type found
+    if (!changed && !this.type) return false;
+
     // Update filter form
     if (isNotNilOrBlank(q)) {
       const criteria = this.parseCriteriaFromString(q, sheet);

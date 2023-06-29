@@ -25,10 +25,10 @@ import {
 import { BehaviorSubject, Subject } from 'rxjs';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { LandingReport } from '@app/trip/landing/report/landing.report';
-import { LandingService } from '@app/trip/services/landing.service';
-import { Landing } from '@app/trip/services/model/landing.model';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 
 
 @Component({
@@ -49,7 +49,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly programRefService: ProgramRefService;
   private readonly landingService: LandingService;
 
-  protected readonly destroySubject = new Subject();
+  protected readonly destroySubject = new Subject<void>();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
@@ -58,7 +58,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly _autoLoadDelay = 0;
 
   error: string;
-  $title = new Subject();
+  $title = new Subject<void>();
   $defaultBackHref = new Subject<string>();
   revealOptions: Partial<IRevealOptions>;
   i18nContext = {
@@ -269,7 +269,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   }
 
   protected async loadLandingsPmfms(landings: Landing[], program: Program): Promise<IPmfm[][]> {
-    const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT) as WeightUnitSymbol;
     return Promise.all(
       landings.map(async (landing) => {
         const taxonGroup = (landing.samples || [])

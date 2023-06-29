@@ -24,7 +24,7 @@
           (click)="openReport($event)">
     <ion-label>
       <mat-icon>description</mat-icon>&nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+      <span translate>LANDING.EDIT.BTN_REPORT</span>
     </ion-label>
   </button>
 
@@ -32,7 +32,7 @@
 
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled || !canUserCancelOrDelete"
+          [disabled]="isNewData || disabled || !canDelete"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
@@ -58,7 +58,7 @@
                  class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration: '0s'"
                  [dynamicHeight]="false">
 
     <!-- TAB: general -->
@@ -76,9 +76,9 @@
 
       <div>
         <!-- error -->
-        <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="landingForm.error||error as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
         </ion-item>
 
         <ng-container *ngIf="debug">
@@ -94,15 +94,20 @@
                                 [programLabel]="$programLabel|async"
                                 [i18nSuffix]="i18nContext.suffix"
                                 [requiredStrategy]="true"
+                                [showStrategy]="true"
                                 [showMeasurements]="true"
                                 [showError]="false"
-                                [showProgram]="false"
-                                [showStrategy]="true"
+                                [showParent]="showParent"
+                                [showLocation]="false"
                                 [showMetier]="true"
                                 [showFishingArea]="true"
                                 [showTripDepartureDateTime]="true"
                                 [allowManyMetiers]="false"
+                                [parentAcquisitionLevel]="parentAcquisitionLevel"
                                 (onSubmit)="save($event)"
+                                (onOpenObservedLocation)="openObservedLocation($event)"
+                                (onObservedLocationChanges)="onRefreshEffort.emit()"
+                                (onStrategyChanges)="onRefreshEffort.emit($event)"
                                 [debug]="debug">
 
                 <!-- zero effort (warning) -->
@@ -145,7 +150,7 @@
                   <!-- data quality -->
                   <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
                     <app-entity-metadata [value]="data">
-                      <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
+                      <app-entity-quality-form *ngIf="showQualityForm">
                       </app-entity-quality-form>
 
                       <!-- not observer (warning) -->
@@ -197,6 +202,8 @@
                             [showTaxonGroupColumn]="false"
                             [showPmfmDetails]="true"
                             [showDisplayColumnModal]="false"
+                            [enableTagIdGeneration]="true"
+                            [defaultTagIdGenerationMode]="'remote'"
                             [canAddPmfm]="true"
                             [defaultSampleDate]="data?.dateTime"
                             [allowSubSamples]="false"
@@ -204,6 +211,7 @@
                             [useSticky]="true"
                             [compactFields]="false"
                             (prepareRowForm)="onPrepareSampleForm($event)"
+                            (weightUnitChanges)="setWeightDisplayUnit($event)"
                             [debug]="debug">
         </app-samples-table>
       </div>
@@ -231,9 +239,8 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="showSamplesTable && selectedTabIndex === 1"
-         @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+         *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+         @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
@@ -246,15 +253,22 @@
       <ion-row>
         <ion-col>
           editor.loading: {{loading}}<br/>
+          editor.enabled: {{enabled}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
+          editor.saving: {{savingSubject|async}}<br/>
         </ion-col>
         <ion-col>
           landingForm.loading: {{landingForm.loading}}<br/>
+          landingForm.enabled: {{landingForm.enabled}}<br/>
           landingForm.ready: {{landingForm.readySubject|async}}<br/>
           landingForm.dirty: {{landingForm.dirty}}<br/>
           <br/>
+          landingForm.observedLocationId: {{form|formGetValue:'observedLocationId' }}<br/>
           landingForm.dateTime: {{form|formGetValue:'dateTime'|dateFormat: {time: true} }}<br/>
+          landingForm.location: {{form|formGetValue:'location'|propertyGet: 'label' }}<br/>
+          <br/>
+          landingForm.showLocation: {{landingForm.showLocation}}<br/>
         </ion-col>
         <ion-col>
           samplesTable.loading: {{samplesTable.loading}}<br/>

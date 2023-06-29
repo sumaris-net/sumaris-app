@@ -229,7 +229,8 @@
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
-        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?",
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Navires: Tri naturel des immatriculations ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -261,6 +262,11 @@
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > PSFM > Poids du lot calculé par RTP",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > PSFM > Sommes de poids RTP des lots fils",
         "PMFM_SELECTIVITY_DEVICE_ID": "Référentiel > PSFM > Dispositif sélectif engin",
+        "PMFM_PACKAGING_ID": "Référentiel > PSFM > Packaging (produit)",
+        "PMFM_AVERAGE_WEIGHT_PRICE_ID": "Référentiel > PSFM > Prix moyen au kg (produit)",
+        "PMFM_AVERAGE_PACKAGING_PRICE_ID": "Référentiel > PSFM > Prix moyen (produit)",
+        "PMFM_SALE_ESTIMATED_RATIO_ID": "Référentiel > PSFM > Ratio de vente (produit)",
+        "PMFM_SALE_RANK_ORDER_ID": "Référentiel > PSFM > Numéro d'ordre de la vente",
         "PARAMETER_HULL_MATERIAL_ID": "Référentiel > Paramètres > Matériau de la coque",
         "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
@@ -269,6 +275,7 @@
         "METHOD_CALCULATED_ID": "Référentiel > Méthode > Calculée",
         "METHOD_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > Méthode > Calcul de poids par RTP",
         "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > Méthode > Calcul de la somme des poids RTP",
+        "METHOD_UNKNOWN_ID": "Référentiel > Méthode > Inconnue",
         "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
         "PARAMETER_GROUP_AGE_LABELS": "Stratégie > Paramètre > Code âge",
         "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
@@ -277,6 +284,8 @@
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
+        "QUALITY_FLAG_NOT_COMPLETED_ID": "Référentiel > Flag qualité > Incomplet",
+        "QUALITY_FLAG_MISSING_ID": "Référentiel > Flag qualité > Manquant",
         "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
         "QUALITATIVE_VALUE_DISCARD_ID": "Référentiel > Valeur qualitative > Partie rejetée (DIS)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
@@ -1048,6 +1057,8 @@
         "IMAGES": "Photos",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
+        "BTN_WEIGHT_UNIT_DOTS": "Poids...",
+        "BTN_GENERATE_TAG_ID_DOTS": "Code prélèvement...",
         "WEIGHT": "Poids",
         "LENGTH": "Taille",
         "MATURITY": "Maturité",
@@ -1059,6 +1070,11 @@
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "BTN_IMAGES": "Ajouter des photos",
+        "TAG_ID_GENERATION_MODE": {
+          "REMOTE": "Auto-généré par le système",
+          "NONE": "Saisie manuelle",
+          "PREVIOUS_ROW": "Ligne précédente + 1"
+        },
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",
@@ -1089,6 +1105,7 @@
         "OTHER": "Autre"
       },
       "PMFM": {
+        "TAG_ID": "Code prélèvement",
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
@@ -1158,7 +1175,7 @@
       "VESSEL_LENGTH_STATS": "{{min}} à {{max}} m",
       "VESSEL_LENGTH_AVG": "{{avg}} m",
       "SEABED_FEATURES": "Types de fond :",
-      "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
+      "OPERATION_COUNT": "Nombre d'OP sélectionnées :",
       "SPECIES": "Espèce",
       "LANDING": "Débarquement",
       "DISCARD": "Rejet",
@@ -1262,6 +1279,9 @@
         "TAB_GENERAL": "Sortie"
       }
     },
+    "SELECT_MODAL": {
+      "TITLE": "Sélection de sortie"
+    },
     "SELECT_VESSEL_MODAL": {
       "TITLE": "Sélection du navire",
       "TAB_VESSELS": "Recherche navire",
@@ -1295,7 +1315,8 @@
     },
     "OPTIONS": {
       "ENABLE": "Sorties > Activer ?",
-      "NAME": "Sorties > Titre (menu)"
+      "NAME": "Sorties > Titre (menu)",
+      "LANDINGS_TAB_ENABLE": "Sorties > Activer l'onglet débarquements ?"
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
@@ -1303,8 +1324,8 @@
       "START_DATE_INVALID": "Doit commencer un {{day}}"
     },
     "CONFIRM": {
-      "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
-      "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+      "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
       "TITLE": "Rapport de sortie - {{ location }} - {{ dateTime }}",
@@ -1324,10 +1345,14 @@
         "VESSEL_COUNT": "Nombre de navires contrôlés :",
         "EXPORT_JSON_FILENAME": "RapportDeControle-{{ location }}-{{ dateTime }}.json"
       }
+    },
+    "SELECT_OBSERVED_LOCATION_MODAL": {
+      "TAB_SELECT": "Recherche",
+      "TAB_NEW": "Nouvelle Sortie"
     }
   },
   "LANDING": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
+    "TITLE_PREFIX": "<small>Sortie : {{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "Nouveau débarquement",
       "SAMPLING": {
@@ -1342,6 +1367,11 @@
       "STRATEGY_PLACEHOLDER": "Stratégie",
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
       "VESSEL_SNAPSHOT": "Navire",
+      "OBSERVED_LOCATION": "Sortie :",
+      "OBSERVED_LOCATION_PLACEHOLDER": "Sortie",
+      "BTN_SELECT_OBSERVED_LOCATION": "Sélectionner la sortie",
+      "BTN_OPEN_OBSERVED_LOCATION": "Ouvrir la sortie",
+      "BTN_REPORT": "Éditer le rapport",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
@@ -1362,19 +1392,28 @@
       }
     },
     "TABLE": {
+      "TITLE": "Débarquements",
       "VESSEL": "Navire",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
+      "QUALITY": "État",
+      "PROGRAM": "Programme",
+      "STRATEGY": "Stratégie",
       "LOCATION": "Port de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
-      "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
       "SAMPLES_COUNT": "Nb mesures",
       "SAMPLING": {
-        "SAMPLES_COUNT": "Nb. prélèvements"
+        "STRATEGY": "Ligne de plan",
+        "SAMPLES_COUNT": "Nb. prélèvements",
+        "TITLE": "Échantillonnages"
+      },
+      "AUCTION_CONTROL": {
+        "SAMPLES_COUNT": "Nb. prélèvements",
+        "TITLE": "Navires contrôlés"
       }
     },
     "PMFM": {
@@ -1400,6 +1439,10 @@
     },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
+    },
+    "CONFIRM": {
+      "DELETE_ONE_HAS_SAMPLE": "La donnée sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les données sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "WARNING": {
       "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
@@ -1764,6 +1807,9 @@
       },
       "EDIT": {
         "TITLE": "PSFM {{title}}"
+      },
+      "ERROR": {
+        "FIELD_SIGNIF_FIGURES_NUMBER": "Nb chiffres significatifs: {{significantFiguresNumber}}"
       }
     },
     "MATRIX": {
@@ -1800,6 +1846,12 @@
         "INSERT-ONLY": "Insertions uniquement",
         "UPDATE-ONLY": "Mises à jour uniquement",
         "INSERT-UPDATE": "Insertions ou mises à jour"
+      }
+    },
+    "UNIT": {
+      "WEIGHT": {
+        "KG": "Kilogrammes",
+        "G": "Grammes"
       }
     },
     "STATUS_ENUM": {
@@ -1920,7 +1972,7 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s) (PSFM)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
       "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Marée > Engin: Nombre minimum de sous-engins ?",
@@ -1945,7 +1997,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : Saisir nb indiv. ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité du poids",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité de poids",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Capture > Pays (ID) pour les équivalents poids vifs",
       "TRIP_SAMPLE_ENABLE": "Marée > Échantillon : Activer ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Marée > Échantillon : Date et heure ?",
@@ -1958,6 +2010,7 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_REPORT_ENABLE": "Marée > Activer l'édition de rapport ?",
       "TRIP_REPORT_TYPE": "Marée > Type de rapport",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité châlut",
@@ -1988,6 +2041,7 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
+      "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
@@ -1998,7 +2052,8 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
-      "LANDING_EDITOR": "Sortie > Débarquement: éditeur",
+      "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
+      "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
@@ -2011,10 +2066,11 @@
       "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
-      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
-      "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
+      "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
+      "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "REPORT_ENABLE": "Rapport > Activer les rapports ?",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
@@ -2108,6 +2164,7 @@
         }
       },
       "TABLE": {
+        "BTN_ADD_DATA_DOTS": "Ajouter une donnée...",
         "LABEL": "Code",
         "LOCATIONS": "Lieu(x) applicable(s)",
         "ANALYTIC_REFERENCE": "Code analytique",
@@ -2127,6 +2184,7 @@
         "OTHER": "Autre",
 
         "SAMPLING": {
+          "BTN_ADD_DATA_DOTS": "Ajouter une sortie ou un échantillonnage...",
           "LABEL": "Code de la ligne",
           "LOCATIONS": "Zone(s) de pêche",
           "ANALYTIC_REFERENCE": "EOTP",
@@ -2460,7 +2518,7 @@
       "MAP_CENTER_ZOOM": "Extraction > Cartes : Zoom par défaut (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
-      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots"
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?"
     },
     "PRODUCT": {
       "NEW": {
@@ -2484,7 +2542,7 @@
         "TITLE": "Marées brutes (COST v{{version}})",
         "NAME": "COST"
       },
-      "FREE": {
+      "FREE1": {
         "TITLE": "Marées brutes (FREE v{{version}})",
         "NAME": "FREE1",
         "FISHING_TIME": "Heure",
@@ -2758,7 +2816,7 @@
       }
     },
     "ICHTHYOMETER": {
-      "TITLE": "Ichtyomètre bluetooth",
+      "TITLE": "Ichtyomètre Bluetooth",
       "SETTINGS": {
         "DEVICES": "Ichthyomètre: Périphérique(s)"
       }
@@ -2808,6 +2866,7 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
+    "DATA_NOT_UNIQUE": "Erreur d'unicité",
     "DATA_UPDATE_DATE_CHANGED": "Vos modifications ne pourront pas être sauvegardées.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DOWNLOAD_FAILED": "Échec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
@@ -2856,7 +2915,9 @@
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
-    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>"
+    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
+    "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategie non autorisée ou non trouvée.",
+    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

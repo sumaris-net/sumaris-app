@@ -5,7 +5,7 @@ import {CoreModule, SharedModule, TestingPage} from '@sumaris-net/ngx-components
 import {TranslateModule} from '@ngx-translate/core';
 import {AppSharedReportModule} from '@app/shared/report/report.module';
 import {ReportTestPage} from '@app/shared/report/testing/report.testing';
-import {ChartsModule} from 'ng2-charts';
+import {NgChartsModule} from 'ng2-charts';
 
 export const REPORT_TESTING_PAGES: TestingPage[] = [
   {label: 'Report', page: '/testing/shared/report'}
@@ -26,8 +26,10 @@ const routes: Routes = [
     CoreModule,
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
+    NgChartsModule,
+
+    // App modules
     AppSharedReportModule,
-    ChartsModule
   ],
   declarations: [
     ReportTestPage

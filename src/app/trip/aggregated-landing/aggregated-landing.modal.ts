@@ -13,7 +13,7 @@ import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
-import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
+import {AggregatedLanding, VesselActivity} from "./aggregated-landing.model";
 import {Alerts} from "@sumaris-net/ngx-components";
 import {referentialToString}  from "@sumaris-net/ngx-components";
 import {isNil} from "@sumaris-net/ngx-components";

@@ -2,12 +2,11 @@ import { NgModule } from '@angular/core';
 import { AppReferentialModule } from '../referential/referential.module';
 import { CoreModule } from '@sumaris-net/ngx-components';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
-import { IsMeasurementFormValuesPipe, IsMeasurementModelValuesPipe, MeasurementValueGetPipe } from '@app/data/services/pipes/measurements.pipe';
+import { IsMeasurementFormValuesPipe, IsMeasurementModelValuesPipe, MeasurementValueGetPipe } from '@app/data/measurement/measurements.pipe';
 import { AppImageAttachmentModule } from '@app/data/image/image-attachment.module';
-import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
-import {DevicePositionService} from '@app/data/services/device-position.service';
+import { DevicePositionService } from '@app/data/position/device/device-position.service';
 
 @NgModule({
   imports: [
@@ -21,7 +20,6 @@ import {DevicePositionService} from '@app/data/services/device-position.service'
   ],
   declarations: [
     // Pipes
-    StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,
     MeasurementValueGetPipe,
@@ -36,7 +34,6 @@ import {DevicePositionService} from '@app/data/services/device-position.service'
     AppEntityQualityModule,
 
     // Pipes
-    StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,
     MeasurementValueGetPipe,

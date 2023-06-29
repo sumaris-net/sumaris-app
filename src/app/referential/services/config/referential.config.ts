@@ -1,7 +1,8 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
 import {
-  FractionIdGroups, LocationLevelGroups,
+  FractionIdGroups,
+  LocationLevelGroups,
   LocationLevelIds,
   MatrixIds,
   MethodIds,
@@ -10,6 +11,7 @@ import {
   PmfmIds,
   ProgramLabel,
   QualitativeValueIds,
+  QualityFlagIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds
 } from '../model/model.enum';
@@ -461,6 +463,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM
   },
+
+  METHOD_UNKNOWN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.UNKNOWN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_UNKNOWN_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.UNKNOWN
+  },
   FRACTION_INDIVIDUAL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Fraction.INDIVIDUAL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_INDIVIDUAL_ID',
@@ -579,6 +595,34 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.SEX.UNSEXED
+  },
+
+  QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualityFlag.NOT_COMPLETED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITY_FLAG_NOT_COMPLETED_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'QualityFlag',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualityFlagIds.NOT_COMPLETED
+  },
+
+  QUALITY_FLAG_MISSING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualityFlag.MISSING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITY_FLAG_MISSING_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'QualityFlag',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualityFlagIds.MISSING
   },
 
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{

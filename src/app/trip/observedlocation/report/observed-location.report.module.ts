@@ -5,7 +5,7 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { AuctionControlReportModule } from '@app/trip/landing/auctioncontrol/report/auction-control.report.module';
+import { AuctionControlReportModule } from '@app/trip/landing/auction-control/report/auction-control.report.module';
 import { SamplingLandingReportModule } from '@app/trip/landing/sampling/report/sampling-landing.report.module';
 import { LandingReportModule } from '@app/trip/landing/report/landing.report.module';
 

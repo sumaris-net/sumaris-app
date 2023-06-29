@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
@@ -88,7 +88,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     if (!pmfms) return; // Skip
 
     // If a catch batch layout
-    const layout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'catch' : 'default');
+    const layout: CatchBatchFormLayout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'CATCH' : 'SORTING_BATCH');
     if (layout === 'CATCH') {
 
       const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);

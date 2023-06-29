@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { EntitiesTableDataSource, isNotNil } from '@sumaris-net/ngx-components';
-import { Operation } from '@app/trip/services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { Operation } from '@app/trip/trip/trip.model';
+import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
 

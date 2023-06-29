@@ -5,16 +5,16 @@ import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions,
+  BaseEntityGraphqlSubscriptions, ConfigService, Configuration, CORE_CONFIG_OPTIONS, DateUtils,
   EntitiesStorage,
   EntityAsObjectOptions,
   EntitySaveOptions,
-  EntityUtils,
+  EntityUtils, firstNotNilPromise,
   IReferentialRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
-  isNilOrNaN,
+  isNilOrNaN, isNotEmptyArray,
   isNotNil,
   JsonUtils,
   LoadResult,
@@ -42,6 +42,8 @@ import { ProgramService } from '@app/referential/services/program.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject } from 'rxjs';
+import {Moment} from 'moment';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -172,6 +174,12 @@ const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
 @Injectable({providedIn: 'root'})
 export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
 
+  $dbTimeZone = new BehaviorSubject<string>(null);
+
+  get dbTimeZone(): string {
+    return this.$dbTimeZone.value || DateUtils.moment().tz();
+  }
+
   constructor(
     injector: Injector,
     protected network: NetworkService,
@@ -182,7 +190,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected programService: ProgramService,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected configService: ConfigService
   ) {
     super(injector, Strategy, StrategyFilter,
       {
@@ -190,6 +199,25 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         mutations: MUTATIONS,
         subscriptions: SUBSCRIPTIONS
       });
+
+    this.configService.config.subscribe(config => this.onConfigChanged(config));
+  }
+
+  async getDateRangeByLabel(label: string): Promise<{startDate: Moment, endDate: Moment}> {
+    const strategy = await this.loadByLabel(label);
+    return strategy.appliedStrategies
+      .reduce((acc, strategy) => {
+        return strategy.appliedPeriods.reduce((acc, period) => {
+          acc.startDate = DateUtils.min(acc.startDate, period.startDate).clone();
+          acc.endDate = DateUtils.max(acc.endDate, period.endDate).clone();
+          return acc;
+        }, acc);
+      }, {startDate: undefined, endDate: undefined});
+  }
+
+  private onConfigChanged(config: Configuration) {
+    const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+    this.$dbTimeZone.next(dbTimeZone);
   }
 
   async existsByLabel(label: string, opts?: {
@@ -243,6 +271,12 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'network-only'
     });
     return res && res.data;
+  }
+
+  async loadByLabel(label: string) {
+    const filter = StrategyFilter.fromObject({label});
+    const result = await this.loadAll(0, 1, 'id', 'asc', filter);
+    return isNotEmptyArray(result.data) && result.data[0] || null;
   }
 
   async loadStrategiesReferentials<T extends IReferentialRef = ReferentialRef>(
@@ -452,23 +486,27 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     target.analyticReference = source.analyticReference;
     target.programId = source.programId;
 
+    const dbTimeZone = await firstNotNilPromise(this.$dbTimeZone, {stop: this.stopSubject});
+
     target.appliedStrategies = (source.appliedStrategies || []).map(sourceAppliedStrategy => {
       const targetAppliedStrategy = new AppliedStrategy();
       targetAppliedStrategy.id = undefined;
       targetAppliedStrategy.updateDate = undefined;
       targetAppliedStrategy.location = sourceAppliedStrategy.location;
       targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map(sourceAppliedPeriod => {
+
+        // DEBUG
+        //console.debug(`[strategy-service] Duplicate applied period, into year ${year}`, sourceAppliedPeriod);
+
         return {
           acquisitionNumber: sourceAppliedPeriod.acquisitionNumber,
           startDate: sourceAppliedPeriod.startDate?.clone()
-            // Keep the local time, because the DB can use a local time - fix ObsBio-79
-            // TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
-            .local(true)
+            // Keep DB local time, because the DB can use a local time - fix ObsBio-79
+            .tz(dbTimeZone)
             .year(year),
-          endDate: sourceAppliedPeriod.endDate.clone()
+          endDate: sourceAppliedPeriod.endDate?.clone()
             // Keep the local time, because the DB can use a local time - fix ObsBio-79
-            // TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
-            .local(true)
+            .tz(dbTimeZone)
             .year(year)
         }
       })

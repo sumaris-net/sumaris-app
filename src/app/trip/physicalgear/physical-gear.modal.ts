@@ -18,7 +18,7 @@ import {
   toNumber,
   TranslateContextService
 } from '@sumaris-net/ngx-components';
-import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
 import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
 import {UntypedFormGroup} from '@angular/forms';
 import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';

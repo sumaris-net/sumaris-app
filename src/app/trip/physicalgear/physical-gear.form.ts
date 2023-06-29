@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm, MeasurementValuesState } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   focusNextInput,
@@ -21,7 +21,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { OperationService } from '@app/trip/services/operation.service';
+import { OperationService } from '@app/trip/operation/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 interface PhysicalGearFormState extends MeasurementValuesState {

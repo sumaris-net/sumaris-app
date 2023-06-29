@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorOptions, SampleValidatorService } from '../services/validator/sample.validator';
+import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
@@ -17,7 +17,7 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   LoadResult,
-  LocalSettingsService,
+  LocalSettingsService, NetworkService,
   ObjectMap,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -27,31 +27,30 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../data/measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample, SampleUtils } from '../services/model/sample.model';
+import { Sample, SampleUtils } from './sample.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
+import { SampleFilter } from './sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { OverlayEventDetail } from '@ionic/core';
-import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
+import { IPmfmForm } from '@app/trip/operation/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
-import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 declare interface GroupColumnDefinition {
@@ -66,6 +65,7 @@ export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', '
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments', 'images'];
 export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
+export declare type TagIdGenerationMode = 'none' | 'previousRow' | 'remote';
 
 @Component({
   selector: 'app-samples-table',
@@ -94,6 +94,8 @@ export class SamplesTable
 
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
+  protected networkService: NetworkService;
+  protected forcedTagIdGenerationMode: TagIdGenerationMode | undefined;
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -130,6 +132,9 @@ export class SamplesTable
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
+  @Input() enableTagIdGeneration = false;
+  @Input() defaultTagIdGenerationMode: TagIdGenerationMode;
+
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
   @Input() defaultLatitudeSign: '+' | '-';
@@ -216,9 +221,12 @@ export class SamplesTable
     return this.modalOptions[key];
   }
 
-  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  get tagIdGenerationMode(): TagIdGenerationMode {
+    return this.enableTagIdGeneration ? (this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode) : 'none';
+  }
 
-  @ViewChild('optionsMenu') optionMenu: MatMenu;
+  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('weightUnitChanges') onWeightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
   constructor(
     injector: Injector,
@@ -242,6 +250,7 @@ export class SamplesTable
     );
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
+    this.networkService = injector.get(NetworkService);
 
     this.confirmBeforeDelete = false;
     this.confirmBeforeCancel = false;
@@ -267,6 +276,7 @@ export class SamplesTable
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
+    this.defaultTagIdGenerationMode = this.defaultTagIdGenerationMode || 'none';
 
     // Always add a confirmation before deletion, if mobile
     if (this.mobile) this.confirmBeforeDelete = true;
@@ -708,13 +718,35 @@ export class SamplesTable
     // Get the previous sample
     const previousSample = this.getPreviousSample();
 
-
     // server call for first sample and increment from server call value
-    if (this.tagIdPmfm && this._strategyLabel && this.tagIdMinLength > 0) {
+    let tagIdGenerationMode = this.tagIdGenerationMode;
+    if (this.tagIdPmfm && tagIdGenerationMode !== 'none') {
+      // Force previous row, if offline
+      if (this.networkService.offline || !this._strategyLabel || this.tagIdMinLength <= 0) {
+        tagIdGenerationMode = 'previousRow';
+      }
+
+      let newTagId: string = null;
       const previousTagId = this.getPreviousTagId();
-      const nextAvailableTagId = parseInt((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
-      const newTagId = (isNilOrNaN(previousTagId) ? nextAvailableTagId
-        : Math.max(nextAvailableTagId, previousTagId + 1)).toString().padStart(this.tagIdMinLength, '0');
+      console.debug(`[samples-table] Generating new TAG_ID (mode: ${tagIdGenerationMode}, previous: ${previousTagId})`);
+
+      switch (tagIdGenerationMode) {
+        // Previous row + 1
+        case 'previousRow':
+          if (isNotNilOrNaN(previousTagId)) {
+            newTagId = (previousTagId + 1).toString().padStart(this.tagIdMinLength, '0');
+          }
+          break;
+
+        // Remote generation
+        case 'remote':
+          const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength);
+          const nextTagIdSuffix = parseInt(nextTagIdComplete.slice(-1 * this.tagIdMinLength));
+          newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix)
+            .padStart(this.tagIdMinLength, '0');
+          break;
+      }
+
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
     }
 
@@ -971,6 +1003,11 @@ export class SamplesTable
 
   openSelectColumnsModal(event?: Event): Promise<any> {
     return super.openSelectColumnsModal(event);
+  }
+
+  protected setTagIdGenerationMode(mode: TagIdGenerationMode) {
+    this.forcedTagIdGenerationMode = mode;
+    this.markForCheck();
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {

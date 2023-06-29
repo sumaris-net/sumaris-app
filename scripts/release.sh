@@ -117,7 +117,7 @@ esac
 echo "-------------------------------------------"
 echo "- Refresh dependencies..."
 echo "-------------------------------------------"
-npm i --no-save
+npm install --no-save --unsafe-perm --force
 [[ $? -ne 0 ]] && exit 1
 
 echo "-------------------------------------------"

@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { IWithProductsEntity, Product } from '@app/trip/services/model/product.model';
+import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
 import { ProductForm } from '@app/trip/product/product.form';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 

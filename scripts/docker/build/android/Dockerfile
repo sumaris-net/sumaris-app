@@ -70,7 +70,7 @@ RUN unzip ${ANDROID_HOME}/temp/*.zip -d ${ANDROID_HOME}
 #    git config --global user.name "User Name" && \
 RUN git clone https://github.com/E-IS/sumaris-app.git && \
     cd sumaris-app && \
-    npm install
+    npm install --unsafe-perm --force
 
 # Restore cordova platforms
 RUN cd sumaris-app && \

@@ -1,4 +1,4 @@
-import { ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { isNil, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../model/pmfm.model';
 
@@ -38,7 +38,14 @@ export class PmfmValidators {
       }
       // Double with a N decimal
       else if (pmfm.maximumNumberDecimals > 0) {
-        validatorFns.push(SharedValidators.decimal({maxDecimals: pmfm.maximumNumberDecimals}));
+        validatorFns.push(SharedValidators.decimal({ maxDecimals: pmfm.maximumNumberDecimals }));
+      }
+
+      // Significant figures number
+      if (pmfm.signifFiguresNumber > 0) {
+        // TODO test this, and add i18n validator message
+        console.warn('/!\ Enabling \'significantFiguresNumber\' validator (found in a pmfm)', pmfm);
+        validatorFns.push(PmfmValidators.significantFiguresNumber(pmfm.signifFiguresNumber));
       }
 
       // Precision (only if defined, or if maximumNumberDecimals is defined)
@@ -53,5 +60,41 @@ export class PmfmValidators {
 
     return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : null);
   }
+
+  static significantFiguresNumber(n: number): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      let significantFigures;
+
+      let strValue: string = (typeof value === 'string') ? value : ((typeof value === 'number') ? String(value) : '');
+      if (strValue) {
+        strValue = strValue.replace(/^[\s0]+|\s$/g, '');  // Remove leading zeros/space, and trailing space
+
+        // If there is a decimal point
+        if (strValue.includes('.')) {
+          const [wholePart, fractionalPart] = strValue.split('.');
+          // If 0.00xxx => ignore starting 0.00
+          if (wholePart.length === 0) {
+            const leadingDecimalZeros = fractionalPart.match(/^0*/)[0].length;
+            significantFigures = fractionalPart.slice(leadingDecimalZeros).replace(/^0+$/g, '').length;
+          }
+          // value > 1: count every figures numbers
+          else {
+            significantFigures = wholePart.length + fractionalPart.length;
+          }
+        }
+        // If there is no decimal point: count every non-trailing zeros
+        else {
+          significantFigures = strValue.replace(/0+$/g, '').length;  // Remove trailing zeros
+        }
+      }
+
+      // Check if value has n significant figures
+      return significantFigures <= n ? null : { 'significantFiguresNumber': {significantFiguresNumber: n} };
+    };
+  }
 }
 
+export const PMFM_VALIDATOR_I18N_ERROR_KEYS = {
+  significantFiguresNumber: 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'
+}

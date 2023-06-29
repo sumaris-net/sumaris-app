@@ -26,9 +26,9 @@ import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from './model/data-entity.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ErrorCodes } from './errors';
+import { DataErrorCodes } from './errors';
 import { FetchPolicy } from '@apollo/client/core';
-import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
@@ -81,7 +81,7 @@ export interface IDataSynchroService<
 
   load(id: ID, opts?: LO): Promise<T>;
 
-  executeImport(filter?: Partial<F>, opts?: {
+  runImport(filter?: Partial<F>, opts?: {
     maxProgression?: number;
   }): Observable<number>;
 
@@ -98,7 +98,7 @@ export interface IDataSynchroService<
   lastUpdateDate(): Promise<Moment>;
 }
 
-const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'executeImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
+const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'runImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
 export interface ISynchronizeEvent {
   localId: any,
@@ -165,7 +165,7 @@ export abstract class RootDataSynchroService<
     this.settings = injector.get(LocalSettingsService);
   }
 
-  executeImport(filter?: Partial<F>,
+  runImport(filter?: Partial<F>,
                 opts?: { maxProgression?: number; }
   ): Observable<number>{
     if (this.importationProgress$) return this.importationProgress$; // Avoid many call
@@ -309,14 +309,14 @@ export abstract class RootDataSynchroService<
       // If local entity
       if (EntityUtils.isLocalId(+id)) {
         data = await this.entities.load(+id, this._typename);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+        if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
       }
 
       else {
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: { id },
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
+          error: {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         data = res && res.data;

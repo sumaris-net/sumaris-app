@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { AppTabEditor, AppTable, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, ObjectMap, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
+import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -16,7 +16,7 @@ import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } 
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
+import { IPmfmForm } from '@app/trip/operation/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 

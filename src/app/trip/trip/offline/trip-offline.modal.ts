@@ -7,9 +7,9 @@ import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusId
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
-import { TripSynchroImportFilter } from '@app/trip/services/filter/trip.filter';
+import { TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
+import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 

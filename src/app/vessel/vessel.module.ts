@@ -16,6 +16,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
 import { SharedModule } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
+import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-color.pipe';
 
 @NgModule({
   imports: [
@@ -31,6 +32,8 @@ import { IonicModule } from '@ionic/angular';
     AppDataModule,
   ],
   declarations: [
+    // Pipes
+    VesselStatusToColorPipe,
 
     // Components
     VesselsTable,
@@ -46,6 +49,9 @@ import { IonicModule } from '@ionic/angular';
   exports: [
     SharedModule,
     TranslateModule,
+
+    // Pipes
+    VesselStatusToColorPipe,
 
     // Components
     VesselsTable,

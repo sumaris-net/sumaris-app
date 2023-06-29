@@ -1,6 +1,6 @@
 import {EntityClass, EntityUtils, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef} from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
 import {SortDirection} from '@angular/material/sort';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';

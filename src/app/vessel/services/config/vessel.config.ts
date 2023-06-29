@@ -58,6 +58,12 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'boolean',
     defaultValue: true
   },
+  VESSEL_REGISTRATION_CODE_NATURAL_ORDER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.persistence.vessel.registrationCode.naturalOrder.enable',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.REGISTRATION_CODE_NATURAL_ORDER_ENABLE',
+    type: 'boolean',
+    defaultValue: false
+  },
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',

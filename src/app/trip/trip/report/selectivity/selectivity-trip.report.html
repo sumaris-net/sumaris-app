@@ -145,11 +145,9 @@
       <section *ngFor="let chart of s.charts | mapValues">
         <div class="chart-container">
           <canvas baseChart
-                  [chartType]="chart.type"
-                  [labels]="chart.data.labels"
-                  [colors]="chart.colors"
-                  [options]="chart.options"
-                  [datasets]="chart.data.datasets">
+                  [type]="chart.type"
+                  [data]="chart.data"
+                  [options]="chart.options">
           </canvas>
         </div>
       </section>

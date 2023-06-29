@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, UsageMode } from '@sumaris-net/ngx-components';
-import { PacketValidatorService } from '../services/validator/packet.validator';
-import { Packet } from '../services/model/packet.model';
+import { PacketValidatorService } from '../packet/packet.validator';
+import { Packet } from '../packet/packet.model';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { Subscription } from 'rxjs';
 import { fillRankOrder } from '../../data/services/model/model.utils';
-import { SaleProduct, SaleProductUtils } from '../services/model/sale-product.model';
+import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '../../referential/services/model/pmfm-strategy.model';
 
 @Component({
