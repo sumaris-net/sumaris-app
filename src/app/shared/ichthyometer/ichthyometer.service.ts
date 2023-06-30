@@ -3,9 +3,22 @@ import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/gwaleen/ichthyometer.gwaleen';
 import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
-import { APP_LOGGING_SERVICE, ILogger, ILoggingService, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, sleep, StartableService } from '@sumaris-net/ngx-components';
-import { catchError, debounceTime, filter, finalize, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
+import {
+  APP_LOGGING_SERVICE,
+  ILogger,
+  ILoggingService,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  sleep,
+  StartableService,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import { catchError, debounceTime, filter, finalize, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
+import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 
 
 export declare type IchthyometerType = 'gwaleen';
@@ -97,6 +110,27 @@ export class IchthyometerService extends StartableService implements OnDestroy {
 
   async isConnected() {
     return isNotEmptyArray(this.ichthyometers);
+  }
+
+  watchLength(opts?: {unitLabel?: LengthUnitSymbol, precision?: number}): Observable<number> {
+    const sourceUnitSymbol: LengthUnitSymbol = 'mm';
+    const expectedLengthSymbol = opts?.unitLabel || 'cm';
+    const conversionCoefficient = sourceUnitSymbol === expectedLengthSymbol
+      ? 1
+      // actual -> meter (pivot) -> expected
+      : LengthMeterConversion[sourceUnitSymbol] / LengthMeterConversion[expectedLengthSymbol];
+    const precision = toNumber(opts?.precision, 0.000001);
+    const precisionCoef = 1 / precision;
+
+    return this.watch()
+      .pipe(
+        filter(isNotNilOrBlank),
+        map(strValue => {
+          const value = conversionCoefficient * parseFloat(strValue);
+          // Round to expected precision
+          return Math.round(value * precisionCoef) / precisionCoef;
+        })
+      )
   }
 
   watch(): Observable<string> {

@@ -26,6 +26,7 @@ import { BatchesTable } from '@app/trip/batch/common/batches.table';
 import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
 import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
 import {MatSidenavModule} from '@angular/material/sidenav';
+import { AppIchthyometerModule } from "@app/shared/ichthyometer/ichthyometer.module";
 
 @NgModule({
   imports: [
@@ -44,7 +45,8 @@ import {MatSidenavModule} from '@angular/material/sidenav';
     AppMeasurementModule,
 
     // Components
-    MatSamplingRatioFieldModule
+    MatSamplingRatioFieldModule,
+    AppIchthyometerModule
   ],
   declarations: [
     // Pipes

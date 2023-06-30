@@ -25,9 +25,9 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, tap} from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
-import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
+import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, Observable, Subject, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -39,7 +39,7 @@ import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 
 
 @Component({
@@ -174,6 +174,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
+    protected ichthyometerService: IchthyometerService,
     protected translate: TranslateService
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService,
@@ -378,6 +379,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
             individualCountControl.setValue(null);
           }
         }));
+
+    this.registerSubscription(
+      this.watchIchthyometer().subscribe()
+    )
 
     this.ngInitExtension();
   }
@@ -725,4 +730,44 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
+
+  watchIchthyometer(): Observable<any> {
+    const stopSubject = new Subject<void>();
+    return this.ichthyometerService.enabled$
+      .pipe(
+        filter(enabled => enabled),
+        mergeMap(pmfms => this.ready()),
+        switchMap(_ => this.pmfms$),
+        // DEBUG
+        //tap(pmfms => console.debug('[sub-batch-form] Looking for length pmfms: ' + JSON.stringify(pmfms))),
+        map((pmfms) => pmfms?.filter(PmfmUtils.isLength) || []),
+        mergeMap((lengthPmfms) => {
+          stopSubject.next();
+          const lengthPmfm = lengthPmfms?.find(p => this._measurementValuesForm.get(p.id.toString()));
+          if (!lengthPmfm) {
+            console.debug('[sub-batch-form] Cannot used ichthyometer: no length pmfm found');
+            return;
+          }
+          const control = this._measurementValuesForm.get(lengthPmfm.id.toString());
+          if (!control) {
+            console.debug('[sub-batch-form] Cannot used ichthyometer: control not found for pmfm#' + lengthPmfm.id);
+            return;
+          }
+          const expectedUnitSymbol = lengthPmfm.unitLabel as LengthUnitSymbol;
+          const expectedPrecision = PmfmUtils.getOrComputePrecision(lengthPmfm)
+          console.debug(`[sub-batch-form] Start watching ichthyometer for pmfm #${lengthPmfm.id} (${expectedUnitSymbol})`);
+          return this.ichthyometerService.watchLength({unitLabel: expectedUnitSymbol, precision: expectedPrecision})
+            .pipe(
+              takeUntil(stopSubject),
+              map(value => {
+                console.debug(`[sub-batch-form] Receiving value: ${value} ${expectedUnitSymbol}`);
+                if (control.enabled) {
+                  control.setValue(value);
+                  this.trySubmit(null);
+                }
+              })
+            )
+        })
+      )
+  }
 }
