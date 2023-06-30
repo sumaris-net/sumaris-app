@@ -3,12 +3,10 @@ import { RxState } from '@rx-angular/state';
 import { Platform } from '@ionic/angular';
 import { Ichthyometer, IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
-import { filter, switchMap } from 'rxjs/operators';
+import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 
 interface IchthyometerTestingState {
   loading: boolean;
-  enabled: boolean;
-  connectedDevices: Ichthyometer[];
   values: string[]; // Read values
 }
 
@@ -24,20 +22,11 @@ interface IchthyometerTestingState {
 export class IchthyometerTestingPage {
 
   readonly loading$ = this._state.select('loading');
-  readonly enabled$ = this._state.select('enabled');
-  readonly connectedDevices$ = this._state.select('connectedDevices');
   readonly values$ = this._state.select('values');
-
-  get connectedDevices(): Ichthyometer[] {
-    return this._state.get('connectedDevices');
-  }
-
-  get isConnected(): boolean {
-    return isNotEmptyArray(this.connectedDevices);
-  }
 
   constructor(
     protected platform: Platform,
+    protected bluetoothService: BluetoothService,
     protected ichthyometerService: IchthyometerService,
     private cd: ChangeDetectorRef,
     private _state: RxState<IchthyometerTestingState>
@@ -47,10 +36,8 @@ export class IchthyometerTestingPage {
       loading: false,
       values: []
     });
-    this._state.connect('enabled', this.ichthyometerService.enabled$);
-    this._state.connect('connectedDevices', this.ichthyometerService.connectedDevices$);
     this._state.connect('values', this.ichthyometerService.watch(),
-      (s, value)  => ([...(s.values || []), value]));
+       (s, value)  => ([...(s.values || []), value]));
   }
 
   async disconnectAll() {

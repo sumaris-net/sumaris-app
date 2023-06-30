@@ -6,41 +6,45 @@
 
   <h4>Gwaleen</h4>
 
-
   <ion-grid>
     <ion-row>
       <ion-col>
         <app-ichthyometer-icon type="gwaleen"></app-ichthyometer-icon>
       </ion-col>
     </ion-row>
+
     <ion-row>
       <ion-col>
-        Bluetooth: {{(enabled$|push) ? 'ON' : 'OFF'}}
-      </ion-col>
-      <ion-col>
-        <ion-button *rxIf="enabled$" (click)="disconnectAll()">Disconnect all</ion-button>
-        <ng-template #disabled>
-          <ion-text>No connected ichthyometer</ion-text>
-        </ng-template>
-      </ion-col>
-      <ion-col>
-        <ion-spinner *rxIf="loading$"></ion-spinner>
+        Bluetooth service: {{(bluetoothService.enabled$|push) ? 'Enabled' : 'Disabled'}}<br/>
+        Ichthyometer service:  {{(ichthyometerService.enabled$|push) ? 'Enabled' : 'Disabled'}}
       </ion-col>
     </ion-row>
 
-    <ion-row *rxFor="let device of connectedDevices$">
+    <ion-row>
+      <ion-col size="8"><h4>Connected devices :</h4></ion-col>
       <ion-col>
-        <ion-text>{{device.name}}</ion-text><br/>
-        <ion-text color="medium"><small>{{device.address}}</small></ion-text>
-      </ion-col>
-      <ion-col>
-        <ion-text>{{device.meta?.model}}</ion-text><br/>
-        <ion-text color="medium"><small>v{{device.meta?.version}}</small></ion-text>
-      </ion-col>
-      <ion-col>
-        <ion-button *rxIf="device.enabled$; else disabled" (click)="disconnect(device)">Disconnect</ion-button>
+        <ion-button *rxIf="ichthyometerService.enabled$" (click)="disconnectAll()">Disconnect all</ion-button>
       </ion-col>
     </ion-row>
+
+    <ng-container *ngFor="let ichthyometer of ichthyometerService.ichthyometers$|async; odd as odd; even as even">
+      <ion-row class="mat-row" [class.odd]="odd" [class.even]="even">
+        <ion-col>
+          <ion-text>{{ichthyometer.name}}</ion-text><br/>
+          <ion-text color="medium"><small>{{ichthyometer.address}}</small></ion-text>
+        </ion-col>
+        <ion-col>
+          <ion-text>{{ichthyometer.meta?.model}}</ion-text><br/>
+          <ion-text color="medium"><small>{{ichthyometer.meta?.version}}</small></ion-text>
+        </ion-col>
+        <ion-col>
+          <ion-button *rxIf="ichthyometer.enabled$; else disabled" (click)="disconnect(ichthyometer)">Disconnect</ion-button>
+          <ng-template #disabled>
+            <ion-text color="medium">Disabled</ion-text>
+          </ng-template>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
     <!-- output -->
     <ion-row>

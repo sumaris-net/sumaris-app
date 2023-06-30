@@ -1,13 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceCheckFn, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { map, mergeMap } from 'rxjs/operators';
-import { from } from 'rxjs';
-import { FilterFn, IconRef, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { map, switchMap } from 'rxjs/operators';
+import { FilterFn, IconRef, isNotEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
 import { PopoverController } from '@ionic/angular';
 import { BluetoothPopover, BluetoothPopoverOptions } from '@app/shared/bluetooth/bluetooth.popover';
-import { underscore } from '@angular-devkit/core/src/utils/strings';
+import { from } from 'rxjs';
 
 export declare type BluetoothIconType = 'bluetooth'|'bluetooth_connected'|'bluetooth_disabled' | string;
 
@@ -24,11 +23,17 @@ export interface BluetoothIconState<D extends BluetoothDevice = BluetoothDevice>
   autoConnect: boolean;
 }
 
+
+export const APP_BLUETOOTH_ICON_DEFAULT_STATE = new InjectionToken<Partial<BluetoothIconState<any>>>('BluetoothIconState');
+
 @Component({
   selector: 'app-bluetooth-icon',
   templateUrl: './bluetooth.icon.html',
   styleUrls: [
     './bluetooth.icon.scss'
+  ],
+  providers: [
+    {provide: APP_BLUETOOTH_ICON_DEFAULT_STATE, useValue: {matIcon: 'bluetooth'}}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,13 +47,12 @@ export class AppBluetoothIcon<
   private _forceDisabled = false;
   protected readonly cd: ChangeDetectorRef;
   protected readonly popoverController: PopoverController;
-  protected readonly settings: LocalSettingsService;
   protected readonly state = new RxState<S>();
   protected readonly icon$ = this.state.select('icon');
+  protected readonly enabled$ = this.state.select('enabled');
 
-  @Input() titleI18n: string = 'SHARED.BLUETOOTH.ICON_TITLE';
+  @Input() title: string = 'SHARED.BLUETOOTH.TITLE';
   @Input() selectedDeviceIcon: IconRef = {icon: 'information-circle'};
-  @Input() settingsId = 'bluetooth';
   @Input() checkAfterConnect: BluetoothDeviceCheckFn;
 
   @Input() set icon(value: IconRef) {
@@ -106,37 +110,38 @@ export class AppBluetoothIcon<
 
   constructor(
     injector: Injector,
-    protected bluetoothService: BluetoothService
+    protected bluetoothService: BluetoothService,
+    @Optional() @Inject(APP_BLUETOOTH_ICON_DEFAULT_STATE) state: Partial<S>
   ) {
     this.cd = injector.get(ChangeDetectorRef)
     this.popoverController = injector.get(PopoverController);
-    this.settings = injector.get(LocalSettingsService);
     this.state.set(<Partial<S>>{
-      connectedDevices: [],
-      deviceFilter: null
+      deviceFilter: null,
+      icon: {matIcon: 'bluetooth'},
+      ...state
     });
-
-    this.state.connect('enabled', this.bluetoothService.enabled$);
-    this.state.connect('devices', this.bluetoothService.connectedDevices$.pipe(
-      map(devices => (devices || []).map(d => this.asDevice(d)))
-    ));
-    this.state.connect('connectedDevices', this.state.select(['enabled', 'devices'], s => s)
-      .pipe(
-        map(({enabled, devices}) => {
-          console.info(`[bluetooth-icon] Devices changes to: ${devices?.map(d => d.address).join(',')}`)
-          return enabled ? devices : null
-        })
-      ));
-
-    this.state.hold(this.state.select(['enabled', 'connectedDevices'], s => s),
-      state => this.updateView(state)
-      );
   }
 
   ngOnInit() {
     // Default values
     this.autoConnect = toBoolean(this.autoConnect, false);
+    this.deviceFilter = this.deviceFilter || ((device) => !!device.address);
 
+    this.state.connect('enabled', from(this.bluetoothService.ready())
+      .pipe(switchMap(() => this.bluetoothService.enabled$)));
+    this.state.connect('devices', this.bluetoothService.connectedDevices$.pipe(
+      map(devices => (devices || []).map(d => this.asDevice(d)))));
+    this.state.connect('connectedDevices', this.state.select(['enabled', 'devices', 'deviceFilter'], s => s)
+      .pipe(
+        map(({enabled, devices}) => {
+          const connectedDevices = enabled ? (devices || []).filter(d => this.deviceFilter(d)) : null;
+          console.info(`[bluetooth-icon] Connected devices changes to: ${connectedDevices?.map(d => d.address).join(', ')}`);
+          return connectedDevices;
+        })
+      ));
+    this.state.hold(this.state.select(['enabled', 'connectedDevices'], s => s),
+      state => this.updateView(state)
+    );
   }
 
   ngOnDestroy() {
@@ -144,8 +149,9 @@ export class AppBluetoothIcon<
   }
 
   updateView(state: {enabled: boolean, connectedDevices: D[]}) {
+    console.debug('[bluetooth-icon] Updating view from state: ' + JSON.stringify(state));
     let matIcon: BluetoothIconType = 'bluetooth';
-    let color:PredefinedColors;
+    let color:PredefinedColors = 'primary';
     if (!state?.enabled) {
       matIcon = 'bluetooth_disabled';
       color = 'medium';
@@ -158,7 +164,7 @@ export class AppBluetoothIcon<
     const iconRef = {color, matIcon};
     console.debug('[bluetooth-icon] Updating view with icon: ' + JSON.stringify(iconRef));
 
-    this.state.set('icon', _ => iconRef);
+    this.icon = iconRef;
     this.cd.markForCheck();
   }
 
@@ -175,14 +181,15 @@ export class AppBluetoothIcon<
 
       const connectedDevices = this.state.get('connectedDevices');
 
+      const checkAfterConnectFn = typeof this.checkAfterConnect === 'function' ? (device) => this.checkAfterConnect(device) : undefined;
       const popover = await this.popoverController.create({
         component: BluetoothPopover,
         componentProps: <BluetoothPopoverOptions>{
-          titleI18n: this.titleI18n,
+          titleI18n: this.title,
           deviceFilter: this.deviceFilter,
           selectedDevices: connectedDevices,
           selectedDevicesIcon: this.selectedDeviceIcon,
-          checkAfterConnect: (device) => this.checkAfterConnect(device)
+          checkAfterConnect: checkAfterConnectFn
         },
         backdropDismiss: true,
         keyboardClose: true,

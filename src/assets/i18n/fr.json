@@ -884,7 +884,7 @@
         "SALE_TYPE": "Type de vente",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
-        "INDIVIDUAL_SAMPLING": "Echantillonnage",
+        "INDIVIDUAL_SAMPLING": "Échantillonnage",
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
@@ -902,7 +902,7 @@
       "EDIT": {
         "TITLE": "Lot #{{rankOrder}}",
         "BTN_SALE": "Saisir les ventes",
-        "BTN_INDIVIDUAL_SAMPLING": "Saisir l'échantillonage"
+        "BTN_INDIVIDUAL_SAMPLING": "Saisir l'échantillonnage"
       }
     },
     "BATCH": {
@@ -2805,6 +2805,7 @@
       "TITLE": "Paramètres Bluetooth",
       "ENABLED": "Activé",
       "DISABLED": "Désactivé",
+      "SCANNING_DOTS": "Analyse en cours...",
       "AVAILABLE_DEVICES": "Périphériques disponibles :",
       "ADDRESS": "Adresse (MAC)",
       "NAME": "Nom",

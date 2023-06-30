@@ -2743,6 +2743,7 @@
       "TITLE": "Bluetooth settings",
       "ENABLED": "Enabled",
       "DISABLED": "Disabled",
+      "SCANNING_DOTS": "Scanning in progress...",
       "AVAILABLE_DEVICES": "Available devices:",
       "ADDRESS": "Address (MAC)",
       "NAME": "Name",

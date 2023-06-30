@@ -64,7 +64,7 @@
     "@capacitor/share": "~4.1.1",
     "@capacitor/splash-screen": "~4.2.0",
     "@capacitor/status-bar": "~4.1.1",
-    "@e-is/capacitor-bluetooth-serial": "0.5.0",
+    "@e-is/capacitor-bluetooth-serial": "0.6.1",
     "@e-is/ngx-material-table": "0.14.11",
     "@ionic-native/audio-management": "^5.36.0",
     "@ionic-native/core": "^5.36.0",

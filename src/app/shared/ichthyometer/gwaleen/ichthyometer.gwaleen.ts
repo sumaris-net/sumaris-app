@@ -1,12 +1,11 @@
 import { Directive, Inject, InjectionToken, Injector, OnDestroy } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.icon';
-import { filter, finalize, map } from 'rxjs/operators';
-import { Ichthyometer, IchthyometerDevice } from '@app/shared/ichthyometer/ichthyometer.service';
+import { Ichthyometer, IchthyometerDevice, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
+import { filter, finalize, map, mergeMap } from 'rxjs/operators';
 import { BluetoothSerial } from '@e-is/capacitor-bluetooth-serial';
-import { APP_LOGGING_SERVICE, ILogger, isNilOrBlank, isNotNilOrBlank, sleep, StartableService } from '@sumaris-net/ngx-components';
-import { combineLatest, Observable } from 'rxjs';
+import { APP_LOGGING_SERVICE, firstNotNilPromise, ILogger, isNilOrBlank, isNotNilOrBlank, StartableService, WaitForOptions } from '@sumaris-net/ngx-components';
+import { combineLatest, Observable, race, Subject, timer } from 'rxjs';
 
 interface GwaleenIchthyometerState {
   connected: boolean;
@@ -17,17 +16,21 @@ export const APP_ICHTYOMETER_DEVICE = new InjectionToken<IchthyometerDevice>('Ic
 @Directive()
 export class GwaleenIchthyometer extends StartableService implements Ichthyometer, OnDestroy {
 
+  static TYPE = <IchthyometerType>'gwaleen';
+
+  static READ_TIMEOUT_MS = 1000; // 1s timeout
   static END_DELIMITER = "#";
   static PING_TIMEOUT_MS = 3000; // 3s timeout
   static PING_COMMAND = "a#";
   static PING_ACKNOWLEDGE = "%a:e#";
   static INFO_COMMAND = "b#";
-  static INFO_TIMEOUT_MS = 3000; // 3s timeout
+  static INFO_TIMEOUT_MS = 4000; // 4s timeout
   static INFO_RESULT_PREFIX = "%b:";
   static VALUE_LENGTH_PREFIX = '%l,';
 
   protected readonly _logger: ILogger;
   protected readonly _state = new RxState<GwaleenIchthyometerState>();
+  protected readonly _readSubject = new Subject<string>();
   protected readonly bluetoothService: BluetoothService;
 
   readonly enabled$ = this._state.select('enabled')
@@ -96,8 +99,9 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     return this._state.get('enabled');
   }
 
-  connect(): Promise<boolean> {
-    return this.connectIfNeed();
+  async connect(): Promise<boolean> {
+    const connected = this.connectIfNeed({emitEvent: false});
+    return connected;
   }
 
   disconnect(): Promise<void> {
@@ -112,6 +116,9 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
     // Continue: get model and version
     if (acknowledge) {
+
+      this.markAsConnected();
+
       const meta = await this.getModelAndVersion();
 
       // Update device with meta
@@ -134,14 +141,17 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
       .pipe(
         map((value) => {
 
-          // Length value
-          if (value && value.startsWith(GwaleenIchthyometer.VALUE_LENGTH_PREFIX) && value.endsWith(GwaleenIchthyometer.END_DELIMITER)) {
+          // Length
+          if (value?.startsWith(GwaleenIchthyometer.VALUE_LENGTH_PREFIX) && value.endsWith(GwaleenIchthyometer.END_DELIMITER)) {
             const numericalValue = value.substring(GwaleenIchthyometer.VALUE_LENGTH_PREFIX.length, value.length - 1);
-            console.debug(`[gwaleen] Received value '${numericalValue}' from device '${this.address}'`);
+            console.debug(`[gwaleen] Received numerical value '${numericalValue}' from device '${this.address}'`);
             return numericalValue;
           }
 
-          console.debug(`[gwaleen] Received unknown value '${value}'. Skip`);
+          // Any other value (e.g. ping ack)
+          else if (isNotNilOrBlank(value)){
+            this._readSubject.next(value);
+          }
           return undefined;
         }),
         filter(isNotNilOrBlank),
@@ -158,26 +168,14 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     this._logger?.debug('ping', `Sending ping to {${this.device.address}}...`);
 
     try {
-      await BluetoothSerial.write({ address: this.device.address, value: GwaleenIchthyometer.PING_COMMAND })
-      let acknowledge = false;
+      await this.write(GwaleenIchthyometer.PING_COMMAND);
+      const value = await this.read({timeout: GwaleenIchthyometer.PING_TIMEOUT_MS});
+      const acknowledge = value === GwaleenIchthyometer.PING_ACKNOWLEDGE;
 
-      // Define a timeout variable
-      let timeout = false;
-      setTimeout(() => timeout = !acknowledge,
-        GwaleenIchthyometer.PING_TIMEOUT_MS
-      );
-
-      do {
-        const { value } = await BluetoothSerial.readUntil({ address: this.device.address, delimiter: GwaleenIchthyometer.END_DELIMITER });
-        acknowledge = value === GwaleenIchthyometer.PING_ACKNOWLEDGE;
-        if (!acknowledge) {
-          if (isNotNilOrBlank(value)) {
-            console.debug(`[gwaleen] Received invalid ping result: '${value}'`);
-            this._logger?.debug('ping', `Received invalid ping result: '${value}'`);
-          }
-          await sleep(200); // Wait 100ms before retry
-        }
-      } while (!acknowledge && !timeout);
+      if (!acknowledge) {
+        console.debug(`[gwaleen] Received invalid ping result: '${value}'`);
+        this._logger?.debug('ping', `Received invalid ping result: '${value}'`);
+      }
 
       if (!acknowledge) {
         console.warn(`[gwaleen] Ping failed: timeout reached after ${GwaleenIchthyometer.PING_TIMEOUT_MS}ms`);
@@ -196,38 +194,26 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   }
 
   private async getModelAndVersion(): Promise<BluetoothDeviceMeta> {
-    let connected = await this.connectIfNeed();
+    let connected = await this.connectIfNeed({emitEvent: false});
     if (!connected) return; // Not connected
 
     const now = Date.now();
     console.debug(`[gwaleen] Asking info to {${this.device.address}}...`);
     this._logger?.debug('getInfo', `Asking info to {${this.device.address}}...`);
 
+    const result = {model: undefined, version: undefined};
     try {
       await BluetoothSerial.write({address: this.device.address, value: GwaleenIchthyometer.INFO_COMMAND})
-      const result = {model: undefined, version: undefined};
 
-      // Define a timeout variable
-      let timeout = false;
-      setTimeout(() => timeout = true,
-        GwaleenIchthyometer.INFO_TIMEOUT_MS
-      );
+      const value = await this.read({timeout: GwaleenIchthyometer.INFO_TIMEOUT_MS});
 
-      do {
-        let {value} = await BluetoothSerial.readUntil({address: this.device.address, delimiter: GwaleenIchthyometer.END_DELIMITER});
+      if (value?.startsWith(GwaleenIchthyometer.INFO_RESULT_PREFIX) && value.endsWith(GwaleenIchthyometer.END_DELIMITER)) {
+        const parts = value.substring(GwaleenIchthyometer.INFO_RESULT_PREFIX.length, value.length - 1).split(',');
+        result.model = parts[0];
+        result.version = parts[1];
+      }
 
-        if (value?.startsWith(GwaleenIchthyometer.INFO_RESULT_PREFIX) && value.endsWith(GwaleenIchthyometer.END_DELIMITER)) {
-          const parts = value.substring(GwaleenIchthyometer.INFO_RESULT_PREFIX.length, value.length - 1).split(',');
-          result.model = parts[0];
-          result.version = parts[1];
-        }
-        else {
-          if (isNotNilOrBlank(value)) console.debug('[gwaleen] Received invalid info result: ' + value);
-          await sleep(200);
-        }
-      } while (!result.model && !result.version && !timeout);
-
-      if (result) {
+      if (result?.model) {
         console.info(`[gwaleen] Asking info to {${this.device.address}} [OK] in ${Date.now() - now}ms - {model: '${result.model}', version: '${result.version}'}`);
         this._logger?.info('getInfo', `Asking info to {${this.device.address}} [OK] in ${Date.now() - now}ms - {model: '${result.model}', version: '${result.version}'}`);
       }
@@ -236,18 +222,18 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         this._logger?.warn('getInfo', `Asking info failed: timeout reached after ${GwaleenIchthyometer.INFO_TIMEOUT_MS}ms`);
       }
 
-      return result;
     }
     catch (err) {
       console.error(`[gwaleen] Failed asking info to {${this.device.address}}: ${err?.message||''}`, err);
       this._logger?.error('getInfo', `Failed asking info to {${this.device.address}}: ${err?.message||''}`);
-      throw err;
     }
+
+    return result;
   }
 
   /* -- internal functions -- */
 
-  private async connectIfNeed(): Promise<boolean> {
+  private async connectIfNeed(opts?: {emitEvent?: boolean}): Promise<boolean> {
     let connected = await this.bluetoothService.isConnected(this.device);
 
     if (!connected) {
@@ -259,7 +245,9 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     }
 
     // Update connected state
-    this._state.set('connected', _ => connected);
+    if (!opts || opts.emitEvent !== false) {
+      this.markAsConnected();
+    }
 
     return connected;
   }
@@ -274,5 +262,29 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
     // Update connected state
     this._state.set('connected', _ => connected);
+  }
+
+  protected write(value: string): Promise<void> {
+    return BluetoothSerial.write({address: this.device.address, value});
+  }
+
+  protected read(opts?: WaitForOptions): Promise<string> {
+    return firstNotNilPromise(
+      race([
+        timer(0, 200)
+          .pipe(
+            mergeMap(() => BluetoothSerial.readUntil({ address: this.device.address, delimiter: GwaleenIchthyometer.END_DELIMITER })),
+            map(({ value }) => value),
+            filter(isNotNilOrBlank)
+          ),
+      this._readSubject.pipe(filter(isNotNilOrBlank))
+    ]), {
+        timeout: opts?.timeout || GwaleenIchthyometer.READ_TIMEOUT_MS,
+        stop: this.stopSubject
+      });
+  }
+
+  protected markAsConnected() {
+    this._state.set('connected', _ => true);
   }
 }
