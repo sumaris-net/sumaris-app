@@ -50,7 +50,7 @@
     <ion-row>
       <ion-col size="12">
         <ion-text color="medium">
-          <span *rxFor="let value of values$">{{value}} mm<br/></span>
+          <span *rxFor="let item of values$">{{item.value}} {{item.unit}}<br/></span>
         </ion-text>
       </ion-col>
     </ion-row>

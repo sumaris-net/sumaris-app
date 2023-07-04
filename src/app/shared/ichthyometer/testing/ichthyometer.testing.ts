@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/
 import { RxState } from '@rx-angular/state';
 import { Platform } from '@ionic/angular';
 import { Ichthyometer, IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
-import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
+import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 
 interface IchthyometerTestingState {
   loading: boolean;
-  values: string[]; // Read values
+  values: {value: number; unit: LengthUnitSymbol}[]; // Input values
 }
 
 @Component({
@@ -36,7 +36,7 @@ export class IchthyometerTestingPage {
       loading: false,
       values: []
     });
-    this._state.connect('values', this.ichthyometerService.watch(),
+    this._state.connect('values', this.ichthyometerService.watchLength(),
        (s, value)  => ([...(s.values || []), value]));
   }
 

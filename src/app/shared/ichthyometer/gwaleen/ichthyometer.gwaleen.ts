@@ -4,8 +4,9 @@ import { BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '
 import { Ichthyometer, IchthyometerDevice, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
 import { filter, finalize, map, mergeMap } from 'rxjs/operators';
 import { BluetoothSerial } from '@e-is/capacitor-bluetooth-serial';
-import { APP_LOGGING_SERVICE, firstNotNilPromise, ILogger, isNilOrBlank, isNotNilOrBlank, StartableService, WaitForOptions } from '@sumaris-net/ngx-components';
+import { APP_LOGGING_SERVICE, firstNotNilPromise, ILogger, isNilOrBlank, isNotNilOrBlank, StartableService, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
 import { combineLatest, Observable, race, Subject, timer } from 'rxjs';
+import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 
 interface GwaleenIchthyometerState {
   connected: boolean;
@@ -157,6 +158,19 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         filter(isNotNilOrBlank),
         finalize(() => {
           console.info(`[gwaleen] Stop watching values from device '${this.address}'`);
+        })
+      );
+  }
+
+  watchLength(): Observable<{value: number; unit: LengthUnitSymbol}> {
+    return this.watch()
+      .pipe(
+        filter(isNotNilOrBlank),
+        map(strValue => {
+          return {
+            value: parseFloat(strValue),
+            unit: 'mm'
+          }
         })
       );
   }

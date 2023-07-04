@@ -3,22 +3,10 @@ import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/gwaleen/ichthyometer.gwaleen';
 import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
-import {
-  APP_LOGGING_SERVICE,
-  ILogger,
-  ILoggingService,
-  isEmptyArray,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  LocalSettingsService,
-  sleep,
-  StartableService,
-  toNumber
-} from '@sumaris-net/ngx-components';
-import { catchError, debounceTime, filter, finalize, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { APP_LOGGING_SERVICE, ILogger, ILoggingService, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, sleep, StartableService } from '@sumaris-net/ngx-components';
+import { catchError, debounceTime, filter, finalize, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
-import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
+import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 
 
 export declare type IchthyometerType = 'gwaleen';
@@ -34,7 +22,7 @@ export interface IchthyometerDevice extends BluetoothDevice {
 export interface Ichthyometer extends IchthyometerDevice {
 
   ping: () => Promise<boolean|BluetoothDeviceWithMeta>;
-  watch: () => Observable<string>;
+  watchLength: () => Observable<{ value: number; unit: LengthUnitSymbol }>;
   isEnabled: () => Promise<boolean>;
   enabled$: Observable<boolean>;
   connected$: Observable<boolean>;
@@ -112,49 +100,29 @@ export class IchthyometerService extends StartableService implements OnDestroy {
     return isNotEmptyArray(this.ichthyometers);
   }
 
-  watchLength(opts?: {unitLabel?: LengthUnitSymbol, precision?: number}): Observable<number> {
-    const sourceUnitSymbol: LengthUnitSymbol = 'mm';
-    const expectedLengthSymbol = opts?.unitLabel || 'cm';
-    const conversionCoefficient = sourceUnitSymbol === expectedLengthSymbol
-      ? 1
-      // actual -> meter (pivot) -> expected
-      : LengthMeterConversion[sourceUnitSymbol] / LengthMeterConversion[expectedLengthSymbol];
-    const precision = toNumber(opts?.precision, 0.000001);
-    const precisionCoef = 1 / precision;
+  watchLength(): Observable<{value: number; unit: LengthUnitSymbol}> {
 
-    return this.watch()
-      .pipe(
-        filter(isNotNilOrBlank),
-        map(strValue => {
-          const value = conversionCoefficient * parseFloat(strValue);
-          // Round to expected precision
-          return Math.round(value * precisionCoef) / precisionCoef;
-        })
-      )
-  }
-
-  watch(): Observable<string> {
     if (!this.started) this.start();
 
     const stopSubject = new Subject<void>();
-    console.info('[ichthyometer] Start watching values...');
+    console.info('[ichthyometer] Start watching length values...');
 
     return this.ichthyometers$
       .pipe(
         filter(isNotEmptyArray),
         switchMap(ichthyometers => merge(
-          ...(ichthyometers.map(ichthyometer => ichthyometer.watch()
+          ...(ichthyometers.map(ichthyometer => ichthyometer.watchLength()
             .pipe(
               takeUntil(stopSubject),
-              tap(value => console.info(`[ichthyometer] Received value '${value}' from device '${ichthyometer.address}'`)),
+              tap(({value, unit}) => console.info(`[ichthyometer] Received value '${value} ${unit}' from device '${ichthyometer.address}'`)),
               catchError(err => {
                 console.error(`[ichthyometer] Error while watching values from device '${ichthyometer.address}': ${err?.message||''}`);
                 return EMPTY;
               })
-          )))
+            )))
         )),
         finalize(() => {
-          console.info('[ichthyometer] Stop watching values...');
+          console.info('[ichthyometer] Stop watching length values...');
           stopSubject.next();
         })
       );

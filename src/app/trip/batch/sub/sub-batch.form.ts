@@ -27,7 +27,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
-import { BehaviorSubject, combineLatest, Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -40,6 +40,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 
 @Component({
@@ -380,9 +381,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           }
         }));
 
-    this.registerSubscription(
-      this.watchIchthyometer().subscribe()
-    )
+    // Listen icthyometer values
+    if (this.mobile) {
+      this.registerSubscription(
+        this.listenIchthyometer()
+      )
+    }
 
     this.ngInitExtension();
   }
@@ -731,43 +735,61 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   }
 
 
-  watchIchthyometer(): Observable<any> {
+  listenIchthyometer(): Subscription {
     const stopSubject = new Subject<void>();
-    return this.ichthyometerService.enabled$
+
+    return combineLatest([
+      this.ichthyometerService.enabled$,
+      from(this.ready()),
+      this.pmfms$
+    ])
       .pipe(
-        filter(enabled => enabled),
-        mergeMap(pmfms => this.ready()),
-        switchMap(_ => this.pmfms$),
+        filter(([enabled, _, __]) => enabled),
         // DEBUG
         //tap(pmfms => console.debug('[sub-batch-form] Looking for length pmfms: ' + JSON.stringify(pmfms))),
-        map((pmfms) => pmfms?.filter(PmfmUtils.isLength) || []),
-        mergeMap((lengthPmfms) => {
+        mergeMap(([_, __, pmfms]) => {
+          // Cancel previous watch
           stopSubject.next();
-          const lengthPmfm = lengthPmfms?.find(p => this._measurementValuesForm.get(p.id.toString()));
-          if (!lengthPmfm) {
+
+          // Collect all length fields
+          const lengthFields = (pmfms || []).filter(PmfmUtils.isLength)
+              .reduce((res, pmfm) => {
+                const control = this._measurementValuesForm.get(pmfm.id.toString());
+                if (!control) return res; // No control: skip
+                const unit = (pmfm.unitLabel || 'cm') as LengthUnitSymbol;
+                const precision = PmfmUtils.getOrComputePrecision(pmfm, 0.000001); // 6 decimals by default
+                return res.concat({control, unit, precision});
+              }, []);
+
+          // No length pmfms found: stop here
+          if (isEmptyArray(lengthFields)) {
             console.debug('[sub-batch-form] Cannot used ichthyometer: no length pmfm found');
             return;
           }
-          const control = this._measurementValuesForm.get(lengthPmfm.id.toString());
-          if (!control) {
-            console.debug('[sub-batch-form] Cannot used ichthyometer: control not found for pmfm#' + lengthPmfm.id);
-            return;
-          }
-          const expectedUnitSymbol = lengthPmfm.unitLabel as LengthUnitSymbol;
-          const expectedPrecision = PmfmUtils.getOrComputePrecision(lengthPmfm)
-          console.debug(`[sub-batch-form] Start watching ichthyometer for pmfm #${lengthPmfm.id} (${expectedUnitSymbol})`);
-          return this.ichthyometerService.watchLength({unitLabel: expectedUnitSymbol, precision: expectedPrecision})
+          console.debug(`[sub-batch-form] Start watching length from ichthyometer...`);
+          return this.ichthyometerService.watchLength()
             .pipe(
               takeUntil(stopSubject),
-              map(value => {
-                console.debug(`[sub-batch-form] Receiving value: ${value} ${expectedUnitSymbol}`);
-                if (control.enabled) {
-                  control.setValue(value);
+              map(({value, unit}) => {
+                console.debug(`[sub-batch-form] Receiving value: ${value} ${unit}`);
+
+                // Find first length control enabled
+                const lengthField = lengthFields.find(field => field.control.enabled);
+
+                if (lengthField) {
+                  // Convert value into the expected unit/precision
+                  const convertedValue = PmfmValueUtils.convertLengthValue(value, unit, lengthField.unit, lengthField.precision)
+
+                  // Apply converted value to control
+                  lengthField.control.setValue(convertedValue);
+
+                  // Try to submit the form (e.g. when only one control)
                   this.trySubmit(null);
                 }
               })
             )
         })
       )
+      .subscribe()
   }
 }

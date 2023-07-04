@@ -16,6 +16,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
+import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
+import { map } from 'rxjs/dist/types/operators';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 
@@ -249,4 +251,16 @@ export abstract class PmfmValueUtils {
     return  target;
   }
 
+  static convertLengthValue(sourceValue: number, sourceUnit: LengthUnitSymbol, targetUnit: LengthUnitSymbol, targetPrecision?: number): number {
+    const unitConversionCoefficient = sourceUnit === targetUnit ? 1
+      // source -> meter (pivot) -> target
+      : LengthMeterConversion[sourceUnit] / LengthMeterConversion[targetUnit];
+    targetPrecision = toNumber(targetPrecision, 0.000001); // Precision of 6 decimals by default
+    const precisionCoefficient = 1 / targetPrecision;
+
+    // Convert to the expected unit, and round to expected precision
+    const result = Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
+
+    return result;
+  }
 }
