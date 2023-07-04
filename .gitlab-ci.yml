@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: node:14-slim
+image: node:16-slim
 
 stages:
   - environment
@@ -125,7 +125,7 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.11
+    - npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.12
     # Update project dependencies
     - npm install --force
   only:
