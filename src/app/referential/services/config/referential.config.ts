@@ -128,12 +128,26 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.ICES_RECTANGLE
   },
+  LOCATION_LEVEL_GFCM_RECTANGLE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_GFCM_RECTANGLE_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.GFCM_RECTANGLE
+  },
   LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.ICES_DIVISION
+  },
+  LOCATION_LEVEL_ICES_SUB_AREA_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_SUB_AREA_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.ICES_SUB_AREA
   },
   LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
