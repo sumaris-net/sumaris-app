@@ -6,16 +6,18 @@ import { TranslateModule } from '@ngx-translate/core';
 import { IchthyometerTestingPage } from '@app/shared/ichthyometer/testing/ichthyometer.testing';
 import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.module';
 import { AppSharedModule } from '@app/shared/shared.module';
+import { BluetoothTestingPage } from '@app/shared/bluetooth/testing/bluetooth.testing';
+import { AppBluetoothModule } from '@app/shared/bluetooth/bluetooth.module';
 
-export const ICHTHYOMETER_TESTING_PAGES: TestingPage[] = [
-  {label: 'Ichthyometer', page: '/testing/shared/ichthyometer'}
+export const BLUETOOTH_TESTING_PAGES: TestingPage[] = [
+  {label: 'Bluetooth', page: '/testing/shared/bluetooth'}
 ];
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: IchthyometerTestingPage
+    component: BluetoothTestingPage
   }
 ];
 
@@ -26,15 +28,15 @@ const routes: Routes = [
     CoreModule,
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
-    AppIchthyometerModule
+    AppBluetoothModule
   ],
   declarations: [
-    IchthyometerTestingPage
+    BluetoothTestingPage
   ],
   exports: [
-    IchthyometerTestingPage
+    BluetoothTestingPage
   ]
 })
-export class AppIchthyometerTestingModule {
+export class AppBluetoothTestingModule {
 
 }

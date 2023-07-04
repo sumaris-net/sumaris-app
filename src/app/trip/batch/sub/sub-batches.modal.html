@@ -12,6 +12,8 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <app-ichthyometer-icon *ngIf="enabled"></app-ichthyometer-icon>
+
       <ion-spinner *ngIf="loadingSubject|async; else closeButton"></ion-spinner>
 
       <ng-template #closeButton>

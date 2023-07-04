@@ -195,7 +195,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.form.qvPmfm = this.qvPmfm;
     await this.form.setPmfms(pmfms);
 
-    // Marks as ready
+    // Mark form as ready
     this.form.markAsReady();
 
     await this.form.ready();

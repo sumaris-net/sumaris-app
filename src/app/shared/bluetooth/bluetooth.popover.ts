@@ -114,13 +114,14 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
       if (isNotEmptyArray(selectedDevices)) {
         let notConnectedDevices = [];
         this.markAsConnecting();
-        const connectedDevices = (await Promise.all(selectedDevices.map(d => this.connect(null, d)
+        const connectedDevices = (await Promise.all(selectedDevices
+          .map(d => this.connect(null, d, {dismiss: false})
+          .catch(_ => false)
           .then(connected => {
             if (connected) return d;
             notConnectedDevices.push(d)
             return null; // Will be excluded in the next filter()
           })
-          .catch(err => null)
         ))).filter(isNotNil);
         this.state.set(s => ({
           selectedDevices: connectedDevices,
@@ -209,6 +210,9 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
       // Add to selected devices
       this.state.set('selectedDevices', s => removeDuplicatesFromArray([...s.selectedDevices, device], 'address'));
 
+      connected = await this.service.isConnected(device);
+      if (connected) return true; // Already connected
+
       // Connect
       this.markAsConnecting();
       connected = await this.service.connect(device);
@@ -226,26 +230,31 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
           const deviceOrConnected = await this.checkAfterConnect(device);
           connected = !!deviceOrConnected;
           if (!connected) {
-            console.warn('[bluetooth-popover] Not a valid device!');
+            console.warn('[bluetooth-popover] Not a valid device!', deviceOrConnected);
           }
           else {
             if (typeof deviceOrConnected === 'object') {
               // Update device (with updated device received)
               this.state.set('selectedDevices', s => removeDuplicatesFromArray([deviceOrConnected, ...s.selectedDevices], 'address'));
             }
+            // Remove from available devices
+            this.state.set('devices', s => {
+              const index = s.devices.findIndex(d => d.address === device.address);
+              if (index !== -1) s.devices.splice(index, 1);
+              return s.devices;
+            });
           }
         }
         catch (e) {
           console.error('[bluetooth-popover] Failed during checkAfterConnect(): ' + (e?.message || e));
           connected = false;
         }
-        if (!connected) return false;
       }
 
       this.cd.markForCheck();
 
       // Dismiss, if connected
-      if (opts?.dismiss) {
+      if (!opts || opts.dismiss !== false) {
         await sleep(500);
         this.dismiss(this.selectedDevices);
       }
@@ -276,7 +285,10 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   }
 
   async disconnect(device: BluetoothDevice, opts?: {addToDevices: boolean}) {
-    if (!device) throw new Error('Missing device');
+    if (!device?.address) throw new Error('Missing device');
+
+    console.debug(`[bluetooth-popover] Disconnecting {${device.address}} ...`);
+
     await this.service.disconnect(device);
 
     this.state.set('selectedDevices', s => {
@@ -306,7 +318,6 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   getDeviceMatIcon(device: BluetoothDevice) {
     return bluetoothClassToMatIcon(device?.class || 0);
   }
-
 
   protected markForCheck() {
     this.cd.markForCheck();

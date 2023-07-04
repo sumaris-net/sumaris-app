@@ -46,14 +46,15 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: 'sih.sfa.sc',
-      port: 80,
-      useSsl: false
+      port: 443,
+      useSsl: true
     },
 
     // -- Tests instances --
     {
       host: 'adap-test.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
+      useSsl: true
     },
     {
       host: 'test.sumaris.net',

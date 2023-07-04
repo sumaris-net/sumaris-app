@@ -25,9 +25,9 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, tap} from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
-import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
+import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -39,7 +39,8 @@ import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 
 @Component({
@@ -174,6 +175,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
+    protected ichthyometerService: IchthyometerService,
     protected translate: TranslateService
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService,
@@ -378,6 +380,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
             individualCountControl.setValue(null);
           }
         }));
+
+    // Listen icthyometer values
+    if (this.mobile) {
+      this.registerSubscription(
+        this.listenIchthyometer()
+      )
+    }
 
     this.ngInitExtension();
   }
@@ -725,4 +734,62 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
+
+  listenIchthyometer(): Subscription {
+    const stopSubject = new Subject<void>();
+
+    return combineLatest([
+      this.ichthyometerService.enabled$,
+      from(this.ready()),
+      this.pmfms$
+    ])
+      .pipe(
+        filter(([enabled, _, __]) => enabled),
+        // DEBUG
+        //tap(pmfms => console.debug('[sub-batch-form] Looking for length pmfms: ' + JSON.stringify(pmfms))),
+        mergeMap(([_, __, pmfms]) => {
+          // Cancel previous watch
+          stopSubject.next();
+
+          // Collect all length fields
+          const lengthFields = (pmfms || []).filter(PmfmUtils.isLength)
+              .reduce((res, pmfm) => {
+                const control = this._measurementValuesForm.get(pmfm.id.toString());
+                if (!control) return res; // No control: skip
+                const unit = (pmfm.unitLabel || 'cm') as LengthUnitSymbol;
+                const precision = PmfmUtils.getOrComputePrecision(pmfm, 0.000001); // 6 decimals by default
+                return res.concat({control, unit, precision});
+              }, []);
+
+          // No length pmfms found: stop here
+          if (isEmptyArray(lengthFields)) {
+            console.debug('[sub-batch-form] Cannot used ichthyometer: no length pmfm found');
+            return;
+          }
+          console.debug(`[sub-batch-form] Start watching length from ichthyometer...`);
+          return this.ichthyometerService.watchLength()
+            .pipe(
+              takeUntil(stopSubject),
+              map(({value, unit}) => {
+                console.debug(`[sub-batch-form] Receiving value: ${value} ${unit}`);
+
+                // Find first length control enabled
+                const lengthField = lengthFields.find(field => field.control.enabled);
+
+                if (lengthField) {
+                  // Convert value into the expected unit/precision
+                  const convertedValue = PmfmValueUtils.convertLengthValue(value, unit, lengthField.unit, lengthField.precision)
+
+                  // Apply converted value to control
+                  lengthField.control.setValue(convertedValue);
+
+                  // Try to submit the form (e.g. when only one control)
+                  this.trySubmit(null);
+                }
+              })
+            )
+        })
+      )
+      .subscribe()
+  }
 }

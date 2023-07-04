@@ -56,7 +56,7 @@
             *ngFor="let device of devices; trackBy: trackByFn; last as last;"
             [lines]="last ? 'none' : undefined"
             tappable
-            (click)="connect($event, device)">
+            (click)="connect($event, device, {dismiss: true})">
 
             <mat-icon slot="start">{{getDeviceMatIcon(device)}}</mat-icon>
 
@@ -78,7 +78,7 @@
         <ion-col>
           <ion-text class="ion-float-end ion-padding-end">
             <i>
-              <span *rxIf="loading$; else resultCount" translate>COMMON.LOADING_DOTS</span>
+              <span *rxIf="loading$; else resultCount" translate>SHARED.BLUETOOTH.SCANNING_DOTS</span>
               <ng-template #resultCount>
                 <span *rxIf="deviceCount$; let count">
                 {{'COMMON.RESULT_COUNT'|translate: {count: count} }}

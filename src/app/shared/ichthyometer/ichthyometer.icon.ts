@@ -1,14 +1,9 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy } from '@angular/core';
-import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { AppBluetoothIcon, BluetoothIconState } from '@app/shared/bluetooth/bluetooth.icon';
-import { Ichthyometer, IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { BluetoothDeviceCheckFn } from '@app/shared/bluetooth/bluetooth.service';
+import { IchthyometerService, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
+import { IconRef } from '@sumaris-net/ngx-components';
 import { BluetoothDevice } from '@e-is/capacitor-bluetooth-serial';
 
-
-export declare type IchthyometerType = 'gwaleen';
-interface IchthyometerIconState extends BluetoothIconState<Ichthyometer> {
-  type: IchthyometerType;
-}
 
 @Component({
   selector: 'app-ichthyometer-icon',
@@ -18,42 +13,28 @@ interface IchthyometerIconState extends BluetoothIconState<Ichthyometer> {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppIchthyometerIcon extends AppBluetoothIcon<IchthyometerIconState, Ichthyometer> implements OnDestroy {
+export class AppIchthyometerIcon implements OnInit {
 
-
-  @Input() set type(value: IchthyometerType) {
-    this.state.set('type', _ => value);
-  }
-
-  get type(): IchthyometerType {
-    return this.state.get('type');
-  }
+  @Input() title = 'SHARED.ICHTHYOMETER.TITLE';
+  @Input() type: IchthyometerType
+  @Input() selectedDeviceIcon: IconRef = {matIcon: 'straighten'};
+  @Input() checkAfterConnect: BluetoothDeviceCheckFn;
 
   constructor(
     injector: Injector,
-    bluetoothService: BluetoothService,
     private ichthyometerService: IchthyometerService
   ) {
-    super(injector, bluetoothService);
-    this.titleI18n = 'SHARED.ICHTHYOMETER.TITLE';
-    this.selectedDeviceIcon = {matIcon: 'straighten'};
-    this.settingsId = 'ichthyometer';
+    this.ichthyometerService.start();
   }
-
 
   ngOnInit() {
-    super.ngOnInit();
+    const ichthyometerService = this.ichthyometerService;
 
-    const self = this;
+    this.checkAfterConnect = this.checkAfterConnect || ((device) => ichthyometerService.checkAfterConnect(device));
 
-    this.checkAfterConnect = this.checkAfterConnect || ((device) => {
-      const ichthyometer = self.ichthyometerService.get(device, self.type);
-      return ichthyometer.ping();
-    });
   }
 
-  asDevice(device: BluetoothDevice): Ichthyometer {
-    return this.ichthyometerService.get(device, this.type);
+  deviceFilter(device: BluetoothDevice): boolean {
+    return !!device.address;
   }
-
 }

@@ -74,8 +74,7 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: 'sih.sfa.sc',
-      port: 80,
-      useSsl: false
+      port: 443
     },
     {
       host: 'www.sumaris.net',

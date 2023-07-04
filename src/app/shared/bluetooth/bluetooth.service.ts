@@ -62,8 +62,13 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
 
   protected async ngOnStart(opts?: any): Promise<any> {
 
+    console.debug('[bluetooth] Starting service...');
+
     const enabled = await this.isEnabled();
-    this._state.set('enabled', _ => enabled);
+    if (enabled) {
+      console.info(`[bluetooth] State changed to: ${enabled ? 'Enabled' : 'Disabled'}`)
+      this._state.set('enabled', _ => enabled);
+    }
 
     await BluetoothSerial.startEnabledNotifications();
 
@@ -122,8 +127,8 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
    */
   on<T = any>(eventType: BluetoothEventType): Observable<T> {
     let listenerHandle: PluginListenerHandle;
-    return fromEventPattern((handler) => {
-      listenerHandle = BluetoothSerial.addListener(eventType as any, handler);
+    return fromEventPattern(async (handler) => {
+      listenerHandle = await BluetoothSerial.addListener(eventType as any, handler);
     })
       .pipe(
         takeUntil(this.stopSubject),
@@ -171,8 +176,9 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
     console.debug(`[bluetooth] Scan devices...`);
     const { devices } = await BluetoothSerial.scan();
 
-    console.debug(`Found ${devices?.length || 0} devices:`, devices);
-    this._logger?.debug('scan', `Found ${devices?.length || 0} devices: ${(devices || []).map(d => d.address).join(', ')}`);
+    const msg = `Found ${devices?.length || 0} device(s): ${(devices || []).map(d => d.address).join(', ')}`;
+    console.debug(`[bluetooth] ${msg}`);
+    this._logger?.debug('scan', msg);
 
     return devices;
   }
@@ -240,7 +246,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
   }
 
   watch(device: BluetoothDevice, options : {delimiter: string}): Observable<string> {
-    let unregisterListener;
+    let listenerHandle;
     let wasConnected: boolean;
 
     console.info(`[bluetooth] Start watching values from device '${device.address}'...`);
@@ -259,8 +265,8 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
           console.error(`[bluetooth] Error while connecting a bluetooth device: ${err?.message||''}, before watching it`, err);
           return EMPTY
         }),
-        switchMap(_ => fromEventPattern<BluetoothReadResult>((handler) => {
-          unregisterListener = BluetoothSerial.addListener('onRead', handler)
+        switchMap(_ => fromEventPattern<BluetoothReadResult>(async (handler) => {
+          listenerHandle = await BluetoothSerial.addListener('onRead', handler)
         })),
         map((res: BluetoothReadResult) => {
           let value = res?.value;
@@ -269,11 +275,15 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
         }),
         filter(isNotNilOrBlank),
         finalize(async () => {
-          console.debug(`[bluetooth] Stop listening {${device.address}}`);
-          unregisterListener();
+          console.debug(`[bluetooth] Stop watching values from {${device.address}}`);
+          listenerHandle.remove();
           await BluetoothSerial.stopNotifications({address: device.address});
+
           // Disconnect (if connect() was call here)
-          if (!wasConnected) await this.disconnect(device);
+          if (!wasConnected) {
+            console.debug(`[bluetooth] Disconnecting device {${device.address}}, after watch end`);
+            await this.disconnect(device);
+          }
         })
       );
   }

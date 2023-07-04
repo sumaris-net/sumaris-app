@@ -11,9 +11,9 @@
     </ion-title>
 
     <ion-buttons slot="end" >
-      <ion-spinner *ngIf="loading; else closeButton"></ion-spinner>
+      <ion-spinner *ngIf="loading; else loaded"></ion-spinner>
 
-      <ng-template #closeButton>
+      <ng-template #loaded>
         <ion-button (click)="close($event)"
                     [disabled]="invalid"
                     visible-xs visible-sm visible-mobile>
