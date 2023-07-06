@@ -81,7 +81,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.lightReferential}
 `;
 
-const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -138,7 +138,7 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
     }`
 };
 
-const MUTATIONS: BaseEntityGraphqlMutations = {
+const StrategyMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveStrategy($data: StrategyVOInput!){
     data: saveStrategy(strategy: $data){
       ...StrategyFragment
@@ -162,7 +162,7 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
   }`,
 };
 
-const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
+const StrategySubscriptions: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
     data: updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
       ...LightReferentialFragment
@@ -195,9 +195,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   ) {
     super(injector, Strategy, StrategyFilter,
       {
-        queries: QUERIES,
-        mutations: MUTATIONS,
-        subscriptions: SUBSCRIPTIONS
+        queries: StrategyQueries,
+        mutations: StrategyMutations,
+        subscriptions: StrategySubscriptions
       });
 
     this.configService.config.subscribe(config => this.onConfigChanged(config));
@@ -233,7 +233,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     };
     const {total} = await this.graphql.query<{ total: number }>({
-      query: QUERIES.count,
+      query: StrategyQueries.count,
       variables: { filter },
       error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
