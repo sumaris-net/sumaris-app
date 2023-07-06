@@ -2,7 +2,7 @@ import {Injectable, Injector, Optional} from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
-  arrayDistinct,
+  arrayDistinct, BaseEntityGraphqlQueries,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
@@ -136,7 +136,7 @@ export const ObservedLocationFragments = {
 };
 
 // Load query
-const ObservedLocationQueries = {
+const ObservedLocationQueries: BaseEntityGraphqlQueries & {countSamples: any} = {
   load: gql`query ObservedLocation($id: Int!) {
     data: observedLocation(id: $id) {
       ...ObservedLocationFragment
@@ -160,7 +160,11 @@ const ObservedLocationQueries = {
     }
     total: observedLocationsCount(filter: $filter, trash: $trash)
   }
-  ${ObservedLocationFragments.lightObservedLocation}`
+  ${ObservedLocationFragments.lightObservedLocation}`,
+
+  countSamples: gql`query SamplesCountQuery($filter: SampleFilterVOInput!){
+      total: samplesCount(filter: $filter)
+    }`
 };
 
 const ObservedLocationMutations = {
@@ -239,18 +243,12 @@ const ObservedLocationMutations = {
 
 const ObservedLocationSubscriptions = {
   listenChanges: gql`subscription UpdateObservedLocation($id: Int!, $interval: Int){
-    updateObservedLocation(id: $id, interval: $interval) {
+    data: updateObservedLocation(id: $id, interval: $interval) {
       ...LightObservedLocationFragment
     }
   }
   ${ObservedLocationFragments.lightObservedLocation}`
 };
-
-const CountSamples: any = gql`
-  query SamplesCountQuery($filter: SampleFilterVOInput!){
-    samplesCount(filter: $filter)
-  }
-`;
 
 @Injectable({providedIn: 'root'})
 export class ObservedLocationService
@@ -919,17 +917,17 @@ export class ObservedLocationService
     // Check remotely
     const remoteIds = (observedLocationIds || []).filter(EntityUtils.isRemoteId);
     if (isNotEmptyArray(remoteIds)) {
-      const sampleFilter = SampleFilter.fromObject({withTagId: true, observedLocationIds: remoteIds});
-      const res = await this.graphql.query<{ samplesCount: number }>({
-        query: CountSamples,
+      const filter = SampleFilter.fromObject({withTagId: true, observedLocationIds: remoteIds});
+      const res = await this.graphql.query<{ total: number }>({
+        query: ObservedLocationQueries.countSamples,
         variables: {
-          filter: sampleFilter.asPodObject()
+          filter: filter.asPodObject()
         },
         error: {code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR'},
         fetchPolicy: 'network-only'
       });
 
-      return (res?.samplesCount || 0) > 0;
+      return (res?.total || 0) > 0;
     }
 
     return false;
@@ -961,6 +959,11 @@ export class ObservedLocationService
           .then(program => {
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+
+            // TODO filter on location level
+            //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+
+            // TODO filter on vessel (e.g. OBSBIO)
           })),
 
         ...super.getImportJobs(filter, opts),
