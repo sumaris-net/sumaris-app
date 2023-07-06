@@ -12,6 +12,7 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
+  EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrorTranslator,
@@ -50,7 +51,7 @@ import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { Operation, OperationGroup, Trip } from './trip.model';
-import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
@@ -79,7 +80,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 export const TripFragments = {

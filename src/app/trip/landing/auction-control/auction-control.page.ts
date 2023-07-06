@@ -33,7 +33,7 @@ import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/m
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '../../../referential/services/model/pmfm.model';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { FormErrorTranslatorOptions } from '@sumaris-net/ngx-components/src/app/shared/validator/form-error-adapter.class';
+import { FormErrorTranslatorOptions } from '@sumaris-net/ngx-components';
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
 

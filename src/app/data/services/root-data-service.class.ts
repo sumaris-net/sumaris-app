@@ -17,7 +17,7 @@ import {
   isNil,
   isNotNil,
   Person,
-  PlatformService
+  PlatformService, EntityServiceListenChangesOptions
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService } from './data-quality-service.class';
 import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
@@ -26,7 +26,6 @@ import { IWithRecorderDepartmentEntity } from './model/model.utils';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { Observable, of} from 'rxjs';
 
 

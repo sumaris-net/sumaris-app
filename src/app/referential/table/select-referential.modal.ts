@@ -4,7 +4,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { BaseSelectEntityModal, IBaseSelectEntityModalOptions } from './base-select-entity.modal';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { IReferentialRef } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
+import { IReferentialRef } from '@sumaris-net/ngx-components';
 
 export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntityModalOptions<ReferentialRef, ReferentialRefFilter>> {
   filter: Partial<ReferentialRefFilter>;

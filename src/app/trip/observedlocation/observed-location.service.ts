@@ -20,7 +20,8 @@ import {
   JobUtils,
   LoadResult,
   NetworkService, ShowToastOptions, Toasts,
-  toNumber
+  toNumber,
+  EntityServiceListenChangesOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 
