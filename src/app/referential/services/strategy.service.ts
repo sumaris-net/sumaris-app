@@ -164,7 +164,7 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
 
 const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
-    updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
+    data: updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
       ...LightReferentialFragment
     }
   }

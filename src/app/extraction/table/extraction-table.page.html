@@ -269,7 +269,6 @@
              [class.has-paginator]="embedded"
              scroll-y="false">
 
-
   <mat-toolbar *ngIf="embedded && showToolbar"
                [class.expanded]="filterExpansionPanel.expanded">
 
@@ -392,6 +391,7 @@
   </ion-item>
 
   <div #tableContainer class="table-container"
+       [class.has-nav-link]="type?.sheetNames|isArrayLength:{greaterThan: 1}"
        [class.has-toolbar]="embedded && showToolbar">
     <table mat-table
            [dataSource]="dataSource"

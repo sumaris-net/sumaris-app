@@ -809,6 +809,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME'},
       <Property>{key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME'},
       <Property>{key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME'},
+      <Property>{key: 'VESSEL', value: 'EXTRACTION.FORMAT.VESSEL.NAME'},
     ],
     autocomplete: {
       columnNames: ['key', 'value'],

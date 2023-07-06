@@ -283,8 +283,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
           case 'enums': {
             const keys = (value || '').trim().split(/[|,]+/);
             if (isNotEmptyArray(keys)) {
-              const enumValues = keys.map(value => (def.values as (string|Property)[])?.find(v => value === (v['key'] || v)));
-              data.properties[def.key] = enumValues;
+              const enumValues = keys.map(key => (def.values as (string|Property)[])?.find(defValue => defValue && key === (defValue['key'] || defValue)));
+              data.properties[def.key] = enumValues || null;
             } else {
               data.properties[def.key] = null;
             }
