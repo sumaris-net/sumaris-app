@@ -203,7 +203,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
       },
       mobile: this.mobile,
-      showAllOnFocus: true
+      showAllOnFocus: this.mobile
     });
 
     // Combo: vessels
