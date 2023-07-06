@@ -2432,6 +2432,8 @@
       "LANDING_COUNTRY": "Pays de débarquement",
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
+      "HARBOUR_LABEL": "Code du port",
+      "HARBOUR_NAME": "Libellé du port",
       "PROJECT": "Programme de collecte",
       "TRIP_CODE": "Code marée",
       "STATION_NUMBER": "Numéro de station",
@@ -2474,6 +2476,7 @@
       "NB_FISHERMEN" : "Nombre d'homme à bord",
       "GEAR_LABEL": "Libellé de l'engin",
       "SMALLER_MESH_GAUGE": "Maillage à la jauge",
+      "NAME": "Nom",
       "NET_LENGTH": "Longueur filée",
       "NET_HEIGHT":"Hauteur du filet",
       "LENGTH_TOTAL_KM": "Longueur totale (km)",
@@ -2582,6 +2585,13 @@
         "SHEET": {
           "ST": "Stratégies",
           "SM": "Suivi de stratégies"
+        }
+      },
+      "VESSEL": {
+        "TITLE": "Navires observés",
+        "NAME": "Nom",
+        "SHEET": {
+          "VE": "Navires observés"
         }
       },
       "AGG_FREE": {
