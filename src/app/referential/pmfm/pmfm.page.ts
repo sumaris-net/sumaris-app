@@ -164,6 +164,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
+          attributes: ['id', 'name'],
           filter: {entityName: 'Matrix'},
           showAllOnFocus: false
         }
@@ -174,6 +175,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
+          attributes: ['id', 'name'],
           filter: {entityName: 'Fraction'},
           showAllOnFocus: false
         }
@@ -184,6 +186,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
+          attributes: ['id', 'name'],
           filter: {entityName: 'Method'},
           showAllOnFocus: false
         }

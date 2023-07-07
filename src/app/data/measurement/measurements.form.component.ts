@@ -229,16 +229,14 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Wait form ready, before mark as ready
-    this._state.hold(firstTrue(this.ready$),
-      () => super.markAsReady(opts));
+    this.doWhenReady(() => super.markAsReady(opts));
   }
 
   markAsLoaded(opts?: {
     emitEvent?: boolean;
   }) {
-    // Wait form loaded, before mark as loaded
-    this._state.hold(firstTrue(this.ready$),
-      () => super.markAsLoaded(opts));
+    // Wait form ready, before mark as ready
+    this.doWhenReady(() => super.markAsLoaded(opts));
   }
 
   trackPmfmFn(index: number, pmfm: IPmfm): any {
@@ -247,6 +245,11 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   /* -- protected methods -- */
+
+  protected doWhenReady(runnable: () => void) {
+    // Wait form ready, before executing
+    this._state.hold(firstTrue(this.ready$), runnable);
+  }
 
   protected getFormError(form: UntypedFormGroup): string {
     const errors = AppFormUtils.getFormErrors(form);
@@ -295,8 +298,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       }
     }
     catch(err) {
-      console.error(err);
-      this.error = err && err.message || err;
+      if (err?.message !== 'stop') {
+        console.error(`${this._logPrefix} Error while applying value: ${err && err.message || err}`, err);
+        this.setError(err && err.message || err);
+      }
       this.markAsLoaded();
     }
     finally {

@@ -209,8 +209,8 @@
            [formControl]="form|formGetControl: 'weight.value'">
 
     <!-- Compute indicator -->
-    <ion-label matSuffix *rxIf="pending$">
-      <ion-spinner color="secondary"></ion-spinner>
+    <ion-label matSuffix>
+      <ion-spinner *rxIf="computingWeight$" color="secondary"></ion-spinner>
     </ion-label>
   </mat-form-field>
 

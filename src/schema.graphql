@@ -528,8 +528,10 @@ type Mutation {
   cancelJob(id: Int!): JobVO
   "Confirm an account email"
   confirmAccountEmail(code: String, email: String): Boolean!
+  "Control a landing"
+  controlLanding(landing: LandingVOInput!): LandingVO
   "Control an observed location"
-  controlObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  controlObservedLocation(observedLocation: ObservedLocationVOInput, options: DataControlOptionsInput): ObservedLocationVO
   "Control an operation"
   controlOperation(operation: OperationVOInput!): OperationVO
   "Control a trip"
@@ -673,13 +675,13 @@ type Mutation {
   "Sent a message"
   sendMessage(message: MessageVOInput): Boolean!
   "Unvalidate an observed location"
-  unvalidateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  unvalidateObservedLocation(observedLocation: ObservedLocationVOInput, options: DataValidateOptionsInput): ObservedLocationVO
   "Unvalidate a trip"
   unvalidateTrip(trip: TripVOInput!): TripVO
   "Update an extraction product"
   updateExtractionProduct(id: Int!): ExtractionProductVO
   "Validate an observed location"
-  validateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  validateObservedLocation(observedLocation: ObservedLocationVOInput, options: DataValidateOptionsInput): ObservedLocationVO
   "Validate a trip"
   validateTrip(trip: TripVOInput!): TripVO
 }
@@ -1045,6 +1047,8 @@ type ProgramVO {
   locations: [ReferentialVO]
   name: String
   persons: [ProgramPersonVO]
+  "Get current user program's privileges"
+  privileges: [String]
   properties: Map_String_StringScalar
   statusId: Int
   "Get program's strategies"
@@ -2050,12 +2054,20 @@ input ConfigurationVOInput {
   updateDate: Date
 }
 
+input DataControlOptionsInput {
+  withChildren: Boolean
+}
+
 input DataFetchOptionsInput {
   withChildrenEntities: Boolean!
   withMeasurementValues: Boolean!
   withObservers: Boolean!
   withRecorderDepartment: Boolean!
   withRecorderPerson: Boolean!
+}
+
+input DataValidateOptionsInput {
+  withChildren: Boolean
 }
 
 input DenormalizedPmfmStrategyVOInput {

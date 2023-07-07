@@ -635,6 +635,12 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
     defaultValue: 'false'
   },
+  OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.control.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CONTROL_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
@@ -809,6 +815,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME'},
       <Property>{key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME'},
       <Property>{key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME'},
+      <Property>{key: 'VESSEL', value: 'EXTRACTION.FORMAT.VESSEL.NAME'},
     ],
     autocomplete: {
       columnNames: ['key', 'value'],

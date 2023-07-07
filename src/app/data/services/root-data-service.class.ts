@@ -1,5 +1,5 @@
-import { DataEntityAsObjectOptions } from './model/data-entity.model';
-import { Directive, Injector } from '@angular/core';
+import {DataEntityAsObjectOptions} from './model/data-entity.model';
+import {Directive, Injector} from '@angular/core';
 import {
   AccountService,
   AppErrorWithDetails,
@@ -19,7 +19,7 @@ import {
   Person,
   PlatformService
 } from '@sumaris-net/ngx-components';
-import { IDataEntityQualityService } from './data-quality-service.class';
+import { IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions } from './data-quality-service.class';
 import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import { DataErrorCodes } from './errors';
 import { IWithRecorderDepartmentEntity } from './model/model.utils';
@@ -28,6 +28,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { Observable, of } from 'rxjs';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -47,7 +48,11 @@ export abstract class BaseRootDataService<
   LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
   Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
-  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
+  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
+  CO extends IProgressionOptions = IProgressionOptions,
+  TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
+  VO extends IRootDataValidateOptions = IRootDataValidateOptions
+>
   extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
   implements IDataEntityQualityService<T, ID> {
 
@@ -86,11 +91,14 @@ export abstract class BaseRootDataService<
 
   abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails|FormErrors>;
 
-  async terminate(entity: T): Promise<T> {
+  async terminate(entity: T, opts?: TO): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');
     if (isNil(entity.id) || +entity.id < 0) {
       throw new Error("Entity must be saved before terminate!");
     }
+
+    // Fill options
+    opts = await this.fillTerminateOption(entity, opts);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -104,7 +112,8 @@ export abstract class BaseRootDataService<
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.terminate,
       variables: {
-        data: json
+        data: json,
+        options: opts?.withChildren ? {withChildren: true} : undefined
       },
       error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
       update: (proxy, {data}) => {
@@ -121,9 +130,9 @@ export abstract class BaseRootDataService<
    * Validate an root entity
    * @param entity
    */
-  async validate(entity: T): Promise<T> {
+  async validate(entity: T, opts?: VO): Promise<T> {
     if (!this.mutations.validate) throw Error('Not implemented');
-    if (isNil(entity.id) || +entity.id < 0) {
+    if (isNil(entity.id) || EntityUtils.isLocal(entity)) {
       throw new Error("Entity must be saved once before validate !");
     }
     if (isNil(entity.controlDate)) {
@@ -132,6 +141,9 @@ export abstract class BaseRootDataService<
     if (isNotNil(entity.validationDate)) {
       throw new Error("Entity is already validated !");
     }
+
+    // Fill options
+    opts = await this.fillValidateOption(entity, opts);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -145,23 +157,29 @@ export abstract class BaseRootDataService<
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.validate,
       variables: {
-        data: json
+        data: json,
+        options: opts?.withChildren ? {withChildren: true} : undefined,
       },
       error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
       update: (cache, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
+
+        this.refetchMutableWatchQueries({queries: this.getLoadQueries()})
       }
     });
 
     return entity;
   }
 
-  async unvalidate(entity: T): Promise<T> {
+  async unvalidate(entity: T, opts?: VO): Promise<T> {
     if (!this.mutations.unvalidate) throw Error('Not implemented');
     if (isNil(entity.validationDate)) {
       throw new Error("Entity is not validated yet !");
     }
+
+    // Fill options
+    opts = await this.fillValidateOption(entity, opts);
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -175,7 +193,8 @@ export abstract class BaseRootDataService<
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.unvalidate,
       variables: {
-        data: json
+        data: json,
+        options: opts?.withChildren ? {withChildren: true} : undefined,
       },
       context: {
         // TODO serializationKey:
@@ -191,6 +210,8 @@ export abstract class BaseRootDataService<
 
           if (this._debug) console.debug(this._logPrefix + `Entity unvalidated in ${Date.now() - now}ms`, entity);
         }
+
+        this.refetchMutableWatchQueries({queries: this.getLoadQueries()})
       }
     });
 
@@ -302,11 +323,33 @@ export abstract class BaseRootDataService<
     });
   }
 
+  protected async fillTerminateOption(entity: T, opts?: TO): Promise<TO> {
+    return this.fillProgramOptions(entity, opts);
+  }
+
+  protected async fillValidateOption(entity: T, opts?: VO): Promise<VO> {
+    return this.fillProgramOptions(entity, opts);
+  }
+
+  protected async fillProgramOptions<O extends {program?: Program}>(entity: T, opts?: O): Promise<O> {
+    opts = opts || <O>{};
+
+    // Load program (need only properties)
+    const programLabel = entity?.program?.label;
+    if (opts.program?.label !== programLabel) {
+      opts.program = await this.programRefService.loadByLabel(programLabel);
+    }
+
+    return opts;
+  }
+
+
   protected resetQualityProperties(entity: T) {
     entity.controlDate = undefined;
     entity.validationDate = undefined;
     entity.qualificationDate = undefined;
     entity.qualityFlagId = undefined;
+    // Do not reset qualification comments, because used to hold control errors
   }
 
 

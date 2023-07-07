@@ -1,9 +1,14 @@
-ion-content.embedded.has-paginator {
-  --table-paginator-height: 0px;
+ion-content {
+  --table-paginator-height: var(--app-paginator-height);
+
   height: calc(100% - var(--table-paginator-height));
 
-  &.has-paginator {
-    --table-paginator-height: var(--app-paginator-height);
+  &.embedded {
+    --table-paginator-height: 0px;
+
+    &.has-paginator {
+      --table-paginator-height: var(--app-paginator-height);
+    }
   }
 }
 
@@ -44,8 +49,13 @@ ion-content.embedded.has-paginator {
 
 .table-container {
   --table-toolbar-height: 0px;
+  --table-tab-link-height: 0px;
 
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - 1px);
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-tab-link-height, 0px) - 1px);
+
+  &.has-nav-bar {
+    --table-tab-link-height: var(--mat-tab-link-height);
+  }
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);

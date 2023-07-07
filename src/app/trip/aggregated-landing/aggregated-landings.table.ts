@@ -137,7 +137,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     );
     this.i18nColumnPrefix = 'AGGREGATED_LANDING.TABLE.';
 
-    this.readOnly = false; // Allow deletion
+    // NOTE : this.readOnly is false by default
+    // this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
@@ -159,15 +160,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     super.ngOnInit();
 
     this.isAdmin = this.accountService.isAdmin();
-    this.canEdit = this.isAdmin || this.accountService.isUser();
-    this.canDelete = this.isAdmin;
+    this.updateCanEditDelete(this.readOnly);
 
     this.registerSubscription(this._onRefreshDates.subscribe(() => this.refreshDates()));
 
     this.registerSubscription(this._onRefreshPmfms.subscribe(() => this.refreshPmfms()));
 
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
-
   }
 
   ngOnDestroy() {
@@ -178,6 +177,12 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this._onRefreshPmfms.unsubscribe();
     this._onRefreshDates.complete();
     this._onRefreshDates.unsubscribe();
+  }
+
+  updateCanEditDelete(readOnly: boolean) {
+    this.readOnly = readOnly;
+    this.canEdit = (this.isAdmin || this.accountService.isUser()) && !this.readOnly;
+    this.canDelete = this.isAdmin && !this.readOnly;
   }
 
   markAsReady(opts?: { emitEvent?: boolean }) {
@@ -262,6 +267,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           initialDate: date,
           programLabel: this._programLabel,
           acquisitionLevel: this._acquisitionLevel,
+          readonly: this.readOnly,
         },
       },
       backdropDismiss: false

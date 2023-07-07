@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
-import { MeasurementValuesForm } from '../../../data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm, MeasurementValuesState } from '../../../data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, filterTrue,
   focusNextInput,
   focusPreviousInput,
   GetFocusableInputOptions,
@@ -43,12 +43,15 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 
+export interface SubBatchFormState extends MeasurementValuesState{
+  computingWeight: boolean;
+}
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchForm extends MeasurementValuesForm<SubBatch>
+export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormState>
   implements OnInit, OnDestroy {
 
   protected _qvPmfm: IPmfm;
@@ -58,7 +61,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _weightConversionSubscription: Subscription;
 
-  protected readonly pending$: Observable<boolean>;
+  protected readonly computingWeight$ = this._state.select('computingWeight');
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
@@ -167,6 +170,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
   @ViewChild('submitButton') submitButton: IonButton;
 
+  get computingWeight(): boolean {
+    return this._state.get('computingWeight')
+  }
+
+  set computingWeight(value: boolean) {
+    this._state.set('computingWeight', _ => value);
+  }
 
   constructor(
     injector: Injector,
@@ -207,7 +217,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
 
     // Listen pending status
-    this.pending$ = this.form.statusChanges.pipe(map(status => status === 'PENDING'));
+    this._state.connect('computingWeight', this.form.statusChanges.pipe(
+      map(status => status === 'PENDING'),
+      filter(v => v === true)
+    ));
 
     // For DEV only
     this.debug = !environment.production;
@@ -670,8 +683,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           parentGroup: !this.showParentGroup ? this.parentGroup : undefined /*will use parent control*/,
           onError: (err) => {
             this.warning = err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED';
+            this.computingWeight = false;
             this.markForCheck();
           },
+          markForCheck: () => this.computingWeight = false,
           // DEBUG
           debug: this.debug
         });

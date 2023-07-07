@@ -239,6 +239,8 @@
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
+        "LOCATION_LEVEL_ICES_SUB_AREA_ID": "Référentiel > Niveau de lieu > Sous-Zone CIEM/ICES",
+        "LOCATION_LEVEL_GFCM_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique GFCM",
         "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Référentiel > Niveau(x) de lieu pour les zones de pêche (ids)",
         "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Référentiel > Niveau(x) de lieu pour les zones des RTP (ids)",
         "ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID": "Référentiel > Pays par défaut pour les équivalents poids vifs (id)",
@@ -1269,6 +1271,7 @@
       "OBSERVERS": "Observateurs :",
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
+      "LANDINGS": "Débarquement(s)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Contrôle du {{dateTime}}",
         "TAB_LANDINGS": "Navires contrôlés"
@@ -1321,7 +1324,8 @@
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
-      "START_DATE_INVALID": "Doit commencer un {{day}}"
+      "START_DATE_INVALID": "Doit commencer un {{day}}",
+      "INVALID_LANDING": "Débarquement invalide"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1397,7 +1401,6 @@
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",
       "DATE_TIME": "Date/heure",
-      "QUALITY": "État",
       "PROGRAM": "Programme",
       "STRATEGY": "Stratégie",
       "LOCATION": "Port de débarquement",
@@ -1406,6 +1409,7 @@
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
       "SAMPLES_COUNT": "Nb mesures",
+      "QUALITY": "État",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
@@ -2048,6 +2052,7 @@
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
+      "OBSERVED_LOCATION_CONTROL_ENABLE": "Sortie: Activer le controle à la terminaision de la saisie ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
@@ -2430,6 +2435,8 @@
       "LANDING_COUNTRY": "Pays de débarquement",
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
+      "HARBOUR_LABEL": "Code du port",
+      "HARBOUR_NAME": "Libellé du port",
       "PROJECT": "Programme de collecte",
       "TRIP_CODE": "Code marée",
       "STATION_NUMBER": "Numéro de station",
@@ -2472,6 +2479,7 @@
       "NB_FISHERMEN" : "Nombre d'homme à bord",
       "GEAR_LABEL": "Libellé de l'engin",
       "SMALLER_MESH_GAUGE": "Maillage à la jauge",
+      "NAME": "Nom",
       "NET_LENGTH": "Longueur filée",
       "NET_HEIGHT":"Hauteur du filet",
       "LENGTH_TOTAL_KM": "Longueur totale (km)",
@@ -2580,6 +2588,14 @@
         "SHEET": {
           "ST": "Stratégies",
           "SM": "Suivi de stratégies"
+        }
+      },
+      "VESSEL": {
+        "TITLE": "Navires observés",
+        "NAME": "Navires observés",
+        "VESSEL_NAME": "Nom du navire",
+        "SHEET": {
+          "VE": "Navires"
         }
       },
       "AGG_FREE": {

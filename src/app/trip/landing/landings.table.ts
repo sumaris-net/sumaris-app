@@ -3,7 +3,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 
 import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
@@ -18,7 +18,7 @@ import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['quality', 'vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';

@@ -1,8 +1,8 @@
-import {Injectable, Optional} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {MeasurementsValidatorService} from '../../data/measurement/measurement.validator';
+import {MeasurementsValidatorService} from '@app/data/measurement/measurement.validator';
 import {Landing} from './landing.model';
 import {DataRootEntityValidatorOptions} from '@app/data/services/validator/root-data-entity.validator';
 import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
@@ -95,6 +95,10 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) || false);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+
+    // TODO add more options, for all form parts:
+    // opts.withFishingArea = ...
+    // opts.withMetier = ...
 
     return opts;
   }

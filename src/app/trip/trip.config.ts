@@ -1,16 +1,21 @@
-import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition } from '@sumaris-net/ngx-components';
+import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
 import { Operation, Trip } from './trip/trip.model';
 import { TypePolicies } from '@apollo/client/core';
 import { ObservedLocation } from './observedlocation/observed-location.model';
 import { Landing } from './landing/landing.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { UnitLabel } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, UnitLabel } from '@app/referential/services/model/model.enum';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 /**
  * Name of the features (e.g. to be used by settings)
  */
 export const TRIP_FEATURE_NAME = 'trip';
 export const OBSERVED_LOCATION_FEATURE_NAME = 'observedLocation';
+export const TRIP_FEATURE_DEFAULT_PROGRAM_FILTER: Partial<ProgramFilter> = Object.freeze({
+  statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+  acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+});
 
 /**
  * Define configuration options

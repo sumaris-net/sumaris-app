@@ -867,11 +867,15 @@ export class SubBatchesTable
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
+      console.log('TODO enableWeightConversion');
       const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
-        markForCheck: () => this.markForCheck()
+        markForCheck: () => {
+          console.log('TODO end');
+          this.markForCheck()
+        }
       });
       if (subscription) {
         this._rowValidatorSubscription = subscription;

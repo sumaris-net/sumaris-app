@@ -55,7 +55,8 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     super(injector, SamplingStrategy, samplingStrategyService,
       {
         pathIdAttribute: 'strategyId',
-        tabCount: 1
+        tabCount: 1,
+        enableListenChanges: true
       });
     // default values
     this.defaultBackHref = "/referential/programs";
