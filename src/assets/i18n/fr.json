@@ -2589,9 +2589,10 @@
       },
       "VESSEL": {
         "TITLE": "Navires observés",
-        "NAME": "Nom",
+        "NAME": "Navires observés",
+        "VESSEL_NAME": "Nom du navire",
         "SHEET": {
-          "VE": "Navires observés"
+          "VE": "Navires"
         }
       },
       "AGG_FREE": {

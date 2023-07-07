@@ -2520,6 +2520,14 @@
           "SM": "Strategy monitoring"
         }
       },
+      "VESSEL": {
+        "TITLE": "Observed vessels",
+        "NAME": "Observed vessels",
+        "VESSEL_NAME": "Vessel name",
+        "SHEET": {
+          "VE": "Vessels"
+        }
+      },
       "AGG_FREE": {
         "FISHING_TIME": "Time",
         "FISHING_DURATION": "Fishing duration (min)"
