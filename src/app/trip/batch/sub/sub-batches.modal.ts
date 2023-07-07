@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
-import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
@@ -107,6 +107,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() maxItemCountForButtons: number;
   @Input() mobile: boolean;
   @Input() playSound: boolean;
+  @Input() showBluetoothIcon = false;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -124,6 +125,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected viewCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected audio: AudioProvider,
+    protected platform: PlatformService,
     protected context: ContextService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
@@ -150,6 +152,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     if (this.disabled) {
       this.showForm = false;
+      this.showBluetoothIcon = false;
       this.disable();
     }
 
@@ -161,6 +164,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showParentGroup = toBoolean(this.showParentGroup, true);
     this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
     this.showForm = this.showForm && (this.form && !this.disabled);
+    this.showBluetoothIcon = this.showForm && this.mobile && this.platform.isApp();
 
     this.markAsReady();
 
