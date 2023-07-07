@@ -332,6 +332,12 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: undefined
   },
+  TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.ichthyometer.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',

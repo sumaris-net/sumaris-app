@@ -35,6 +35,7 @@ export interface ISubBatchesModalOptions {
   maxItemCountForButtons: number;
   i18nSuffix: string;
   mobile: boolean;
+  showBluetoothIcon: boolean;
 
   programLabel: string;
   parentGroup: BatchGroup;
@@ -152,19 +153,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     if (this.disabled) {
       this.showForm = false;
-      this.showBluetoothIcon = false;
       this.disable();
     }
 
     super.ngOnInit();
 
     // default values
+    this.mobile = toBoolean(this.mobile, this.platform.mobile);
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.showIndividualCount = !this._isOnFieldMode; // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
-    this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
-    this.showForm = this.showForm && (this.form && !this.disabled);
-    this.showBluetoothIcon = this.showForm && this.mobile && this.platform.isApp();
+    this.showForm = this._enabled && this.showForm && this.form && true;
+    this.playSound = toBoolean(this.playSound, this.mobile);
+    this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
 
     this.markAsReady();
 

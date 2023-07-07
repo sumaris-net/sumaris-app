@@ -1989,6 +1989,7 @@
       "TRIP_BATCH_MEASURE_ENABLE": "Catch > Species batch: Enable individual measures?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Species batch: Enter weight?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Catch > Individual measure: Sort items on save?",
+      "TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE": "Catch > Individual measure: Bluetooth icon?",
       "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter nb indiv?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
