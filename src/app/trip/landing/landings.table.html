@@ -105,6 +105,16 @@
           [class.ion-padding-start]="!canEdit || mobile">{{ row.currentData?.rankOrder || row.currentData.id | mathAbs }}</td>
     </ng-container>
 
+    <!-- Quality Column -->
+    <ng-container matColumnDef="quality">
+      <th mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
+        <ion-label translate>LANDING.TABLE.QUALITY</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <app-entity-quality-icon [value]="row.currentData"></app-entity-quality-icon>
+      </td>
+    </ng-container>
+
     <!-- Vessel Column -->
     <ng-container matColumnDef="vessel">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>

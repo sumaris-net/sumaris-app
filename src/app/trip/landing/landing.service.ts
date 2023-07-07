@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import {
-  BaseEntityGraphqlMutations,
+  AppFormUtils,
   BaseEntityGraphqlSubscriptions,
   chainPromises,
   DateUtils,
@@ -8,10 +8,10 @@ import {
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions, EntityServiceWatchOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
-  FormErrors,
+  FormErrors, FormErrorTranslator, FormErrorTranslatorOptions,
   fromDateISOString,
   IEntitiesService,
   IEntityService,
@@ -19,12 +19,12 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   JobUtils,
-  LoadResult,
+  LoadResult, LocalSettingsService,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person,
+  Person, ProgressBarService,
   toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
@@ -33,7 +33,7 @@ import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
-import { BaseRootDataService } from '@app/data/services/root-data-service.class';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { Sample } from '../sample/sample.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -53,11 +53,17 @@ import { TripFilter } from '@app/trip/trip/trip.filter';
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '@app/trip/observedlocation/observed-location.filter';
-import { ObservedLocationServiceLoadOptions } from '@app/trip/observedlocation/observed-location.service';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import {LandingValidatorOptions, LandingValidatorService} from '@app/trip/landing/landing.validator';
+import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgressionModel} from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -67,8 +73,6 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
 }
 
 export interface LandingServiceLoadOptions extends EntityServiceLoadOptions {
-  // FIXME not used
-  //withObservedLocation?: boolean;
 }
 
 export declare interface LandingServiceWatchOptions
@@ -78,9 +82,11 @@ export declare interface LandingServiceWatchOptions
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
+}
 
-  // FIXME not used
-  //withObservedLocation?: boolean;
+export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
+  translatorOptions?: FormErrorTranslatorOptions;
+  initialPmfms?: DenormalizedPmfmStrategy[];
 }
 
 export const LandingFragments = {
@@ -214,7 +220,7 @@ const LandingQueries = {
   }`,
 };
 
-const LandingMutations: BaseEntityGraphqlMutations = {
+const LandingMutations:BaseRootEntityGraphqlMutations = {
   save: gql`mutation SaveLanding($data:LandingVOInput!){
     data: saveLanding(landing: $data){
       ...LandingFragment
@@ -240,6 +246,13 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.embeddedLandedTrip}`,
+
+  terminate: gql`mutation TerminateLanding($data: LandingVOInput!){
+    data: controlLanding(landing: $data){
+      ...LightLandingFragment
+    }
+  }
+  ${LandingFragments.lightLanding}`,
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
@@ -283,7 +296,6 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
 
 @Injectable({providedIn: 'root'})
 export class LandingService
-  //extends BaseRootDataService<Landing, LandingFilter>
   extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
@@ -295,7 +307,12 @@ export class LandingService
     protected network: NetworkService,
     protected entities: EntitiesStorage,
     protected programRefService: ProgramRefService,
-    protected tripService: TripService
+    protected strategyRefService: StrategyRefService,
+    protected tripService: TripService,
+    protected validatorService: LandingValidatorService,
+    protected progressBarService: ProgressBarService,
+    protected formErrorTranslator: FormErrorTranslator,
+    protected settings: LocalSettingsService,
   ) {
     super(injector,
       Landing, LandingFilter,
@@ -788,6 +805,18 @@ export class LandingService
       );
   }
 
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = { i18nPrefix: 'LANDING.EDIT.', ...opts };
+    // Translate PMFM field
+    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
+  }
+
   async synchronizeById(id: number): Promise<Landing> {
     const entity = await this.load(id);
 
@@ -853,15 +882,137 @@ export class LandingService
       await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
 
     } catch (err) {
-      console.error(`[observed-location-service] Failed to locally delete landing {${entity.id}}`, err);
+      console.error(`[landing-service] Failed to locally delete landing {${entity.id}}`, err);
       // Continue
     }
     return entity;
   }
 
-  async control(data: Landing): Promise<FormErrors> {
-    console.warn('Not implemented', new Error());
-    return undefined;
+  async control(entity: Landing, opts?: LandingControlOptions): Promise<FormErrors> {
+    const now = this._debug && Date.now();
+
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {...opts, maxProgression};
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+
+    const progressionStep = maxProgression / 3;
+
+    if (this._debug)
+      console.debug(`[landing-service] Control {${entity.id}} ...`);
+
+    opts = await this.fillControlOptions(entity, opts);
+
+    const form = this.validatorService.getFormGroup(entity, {...opts, withMeasurements: true});
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors: FormErrors = AppFormUtils.getFormErrors(form);
+
+        if (this._debug) console.debug(`[landing-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
+    }
+
+    if (this._debug)
+      console.debug(`[landing-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
+
+    if (opts?.progression) opts.progression.increment(progressionStep);
+
+    // Also control trip
+    if (isNotNil(entity.tripId)) {
+      const trip = await this.tripService.load(entity.tripId, {isLandedTrip: true});
+
+      // Should never occur
+      if (isNil(trip)) return undefined;
+
+      // control the trip
+      const errors = await this.tripService.control(trip, {
+        progression: opts?.progression,
+        maxProgression: opts?.maxProgression - progressionStep,
+      });
+
+      if (errors) {
+        return {
+          trip: errors?.details?.errors
+        }
+      }
+
+      // terminate the trip
+      if (isNil(trip.controlDate)) await this.tripService.terminate(trip);
+    }
+    else if (opts?.progression) opts.progression.increment(progressionStep);
+
+    return undefined; // No error
+  }
+
+  async controlAllByObservedLocation(observedLocation: ObservedLocation, opts?: LandingControlOptions) {
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression
+    };
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+    const endProgression = opts.progression.current + maxProgression;
+
+    // Increment
+    this.progressBarService.increase();
+
+    try {
+      const { data } = await this.loadAllByObservedLocation(LandingFilter.fromObject({
+        observedLocationId: observedLocation.id,
+      }));
+
+      if (isEmptyArray(data)) return undefined;
+      const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
+
+      let errorsById: FormErrors = null;
+
+      for (let entity of data) {
+
+        opts = await this.fillControlOptions(entity, opts);
+
+        const errors = await this.control(entity, {...opts, maxProgression: progressionStep});
+        if (errors) {
+          errorsById = errorsById || {};
+          errorsById[entity.id] = errors;
+
+          const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+          entity.controlDate = null;
+          entity.qualificationComments = errorMessage;
+
+          if (opts.progression?.cancelled) return; // Cancel
+
+          // Save entity
+          await this.save(entity);
+        }
+        else {
+          if (opts.progression?.cancelled) return; // Cancel
+          // Need to exclude data that already validated (else got exception when pod control already validated data)
+          if (isNil(entity.validationDate)) await this.terminate(entity);
+        }
+
+        // increment, after save/terminate
+        opts.progression.increment(progressionStep);
+      }
+
+      return errorsById;
+    }
+    catch (err) {
+      console.error(err && err.message || err);
+      throw err;
+    }
+    finally {
+      this.progressBarService.decrease();
+      if (opts.progression.current < endProgression) {
+        opts.progression.current = endProgression;
+      }
+    }
+
   }
 
   async executeImport(filter?: Partial<LandingFilter>,
@@ -1139,6 +1290,41 @@ export class LandingService
     await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
   }
 
+  protected async fillControlOptions(entity: Landing, opts?: LandingControlOptions): Promise<LandingControlOptions> {
+    opts = opts || {strategy: null};
+
+    // If program is not filled by a parent (an ObservedLocation)
+    const programLabel = entity.program && entity.program.label || null;
+    if (opts.program?.label !== programLabel) {
+      opts.program = await this.programRefService.loadByLabel(programLabel);
+    }
+
+    // Load the strategy from measurementValues (if exists)
+    if (!opts.strategy) {
+      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+      opts.strategy = isNotNilOrBlank(strategyLabel)
+        && (await this.strategyRefService.loadByLabel(strategyLabel, {programId: opts.program?.id}))
+        || null;
+      if (opts.strategy) {
+        // TODO check this
+        //opts.withStrategy = true;
+      }
+      else {
+        opts.withStrategy = false;
+        console.debug(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
+      }
+    }
+
+    if (!opts?.translatorOptions) {
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, {pmfms: opts.strategy?.denormalizedPmfms})
+        }
+      };
+    }
+
+    return opts as LandingControlOptions;
+  }
 
   /**
    * Copy Id and update, in sample tree (recursively)

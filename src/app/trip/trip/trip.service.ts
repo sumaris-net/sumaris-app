@@ -1702,7 +1702,7 @@ export class TripService
 
   translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
     opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
-    // Translate PMFM field
+    // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
       const pmfm = opts.pmfms.find(p => p.id === pmfmId);

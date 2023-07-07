@@ -1263,6 +1263,7 @@
       "OBSERVERS": "Observers:",
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
+      "LANDINGS": "Landings",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Control of {{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"
@@ -1315,7 +1316,8 @@
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
       "COUNT_SAMPLES_ERROR": "Error in counting observation samples.",
-      "START_DATE_INVALID": "Must start a {{day}}"
+      "START_DATE_INVALID": "Must start a {{day}}",
+      "INVALID_LANDING": "Invalid landing"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
@@ -1391,7 +1393,6 @@
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Base port",
       "DATE_TIME": "Date/Time",
-      "QUALITY": "State",
       "PROGRAM": "Program",
       "STRATEGY": "Strategy",
       "LOCATION": "Landing site",
@@ -1400,6 +1401,7 @@
       "CREATION_DATE": "Creation date",
       "RECORDER_PERSON" : "Recorder",
       "SAMPLES_COUNT": "Measurement count",
+      "QUALITY": "State",
       "SAMPLING": {
         "STRATEGY": "Sampling plan row",
         "SAMPLES_COUNT": "Samples count",
@@ -2042,6 +2044,7 @@
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Occasion > Location level(s)",
+      "OBSERVED_LOCATION_CONTROL_ENABLE": "Occasion: Enable control when entry is terminated ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Occasion > Weekly activity calendar?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Occasion > Weekly activity calendar > Target program",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",

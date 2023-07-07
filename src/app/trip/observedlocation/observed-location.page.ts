@@ -172,6 +172,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
+
+    if (this.aggregatedLandingsTable) this.aggregatedLandingsTable.updateCanEditDelete(isNotNil(data.validationDate));
   }
 
   updateTabsState(data: ObservedLocation) {

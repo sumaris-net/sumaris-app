@@ -45,7 +45,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   get canValidate(): boolean {
-    return !this.loading && !this.disabled;
+    return !this.loading && !this.disabled && !this.options?.readonly;
   }
 
   get dirty(): boolean {
