@@ -1,5 +1,5 @@
-import {DataEntityAsObjectOptions} from './model/data-entity.model';
-import {Directive, Injector} from '@angular/core';
+import { DataEntityAsObjectOptions } from './model/data-entity.model';
+import { Directive, Injector } from '@angular/core';
 import {
   AccountService,
   AppErrorWithDetails,
@@ -10,6 +10,7 @@ import {
   BaseEntityServiceOptions,
   Department,
   EntitiesServiceWatchOptions,
+  EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
@@ -20,13 +21,12 @@ import {
   PlatformService
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions } from './data-quality-service.class';
-import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { RootDataEntity, RootDataEntityUtils } from './model/root-data-entity.model';
 import { DataErrorCodes } from './errors';
 import { IWithRecorderDepartmentEntity } from './model/model.utils';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { Observable, of } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 
