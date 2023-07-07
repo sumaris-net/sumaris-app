@@ -272,16 +272,14 @@ export abstract class MeasurementValuesForm<
     }
 
     // Wait form ready, before mark as ready
-    this._state.hold(firstTrue(this.ready$),
-      () => super.markAsReady(opts));
+    this.doWhenReady(() => super.markAsReady(opts));
   }
 
   markAsLoaded(opts?: {
     emitEvent?: boolean;
   }) {
     // Wait form loaded, before mark as loaded
-    this._state.hold(firstTrue(this.ready$, {stop: this.destroySubject}),
-      () => super.markAsLoaded(opts));
+    this.doWhenReady(() => super.markAsLoaded(opts));
   }
 
   trackPmfmFn(index: number, pmfm: IPmfm): any {
@@ -290,6 +288,11 @@ export abstract class MeasurementValuesForm<
   }
 
   /* -- protected methods -- */
+
+  protected doWhenReady(runnable: () => void) {
+    // Wait form ready, before executing
+    this._state.hold(firstTrue(this.ready$), runnable);
+  }
 
   /**
    * Wait form is ready, before setting the value to form
