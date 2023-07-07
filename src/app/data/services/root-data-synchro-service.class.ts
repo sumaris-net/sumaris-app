@@ -166,7 +166,7 @@ export abstract class RootDataSynchroService<
   }
 
   runImport(filter?: Partial<F>,
-                opts?: { maxProgression?: number; }
+            opts?: { maxProgression?: number; }
   ): Observable<number>{
     if (this.importationProgress$) return this.importationProgress$; // Avoid many call
 
@@ -186,30 +186,30 @@ export abstract class RootDataSynchroService<
           .then(() => jobOpts.maxProgression as number))
     ];
     const jobCount = jobs.length;
-    const jobMaxProgression = Math.trunc(totalProgression / jobCount);
-    jobOpts.maxProgression = jobMaxProgression;
+    const progressionStep = Math.trunc(totalProgression / jobCount);
+    jobOpts.maxProgression = progressionStep;
 
     const now = Date.now();
     console.info(`[root-data-service] Starting ${this.featureName} importation (${jobs.length} jobs)...`);
 
     // Execute all jobs, one by one
-    let jobIndex = 0;
+    let currentJobIndex = 0;
     this.importationProgress$ = concat(
       ...jobs.map((job: Observable<number>, index) => {
         return job
           .pipe(
             map(jobProgression => {
-              jobIndex = index;
+              currentJobIndex = index;
               if (isNilOrNaN(jobProgression) || jobProgression < 0) {
-                if (this._debug) console.warn(`[root-data-service] WARN job #${jobIndex} sent invalid progression ${jobProgression}`);
+                if (this._debug) console.warn(`[root-data-service] WARN job #${currentJobIndex} sent invalid progression ${jobProgression}`);
                 jobProgression = 0;
               }
-              else if (jobProgression > jobMaxProgression) {
-                if (this._debug) console.warn(`[root-data-service] WARN job #${jobIndex} sent invalid progression ${jobProgression} > ${jobMaxProgression}`);
-                jobProgression = jobMaxProgression;
+              else if (jobProgression > progressionStep) {
+                if (this._debug) console.warn(`[root-data-service] WARN job #${currentJobIndex} sent invalid progression ${jobProgression} > ${progressionStep}`);
+                jobProgression = progressionStep;
               }
               // Compute total progression (= job offset + job progression)
-              return (index * jobMaxProgression) + jobProgression;
+              return (index * progressionStep) + jobProgression;
             })
           );
       }),
@@ -228,7 +228,7 @@ export abstract class RootDataSynchroService<
       .pipe(
         catchError((err) => {
           this.importationProgress$ = null;
-          console.error(`[root-data-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
+          console.error(`[root-data-service] Error during importation (job #${currentJobIndex + 1}): ${err && err.message || err}`, err);
           throw err;
         }),
         map((progression) =>  Math.min(progression, totalProgression))
