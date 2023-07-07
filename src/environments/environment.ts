@@ -35,7 +35,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   //checkAppVersionIntervalInSeconds: 0,
 
   defaultPeer: {
-    host: 'adap.pecheursdebretagne.eu',
+    host: 'test.sumaris.net',
     port: 443
   },
 
@@ -115,8 +115,7 @@ export const environment = Object.freeze(<AppEnvironment>{
     // username: 'admq2', password: 'q22006'
 
     // Token auth (using Person.pubkey)
-    //username: 'admin@sumaris.net', password: 'admin'
-    username: 'benoit.lavenier@e-is.pro', password: 'NM79HhYdnvGJ5STF64'
+    username: 'admin@sumaris.net', password: 'admin'
 
     //username: 'admsih@sfa.sc', password: 'admsih321'
     //username: 'lpecquot', token: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA=='
