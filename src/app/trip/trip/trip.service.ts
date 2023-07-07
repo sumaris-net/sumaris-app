@@ -19,7 +19,7 @@ import {
   IEntitiesService,
   IEntityService,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -31,7 +31,7 @@ import {
   PersonService,
   ShowToastOptions,
   splitById,
-  splitByProperty,
+  splitByProperty, StatusIds,
   Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
@@ -56,7 +56,7 @@ import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
-import { TRIP_FEATURE_NAME } from '../trip.config';
+import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { DataSynchroImportFilter, IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
@@ -81,6 +81,10 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 import moment from 'moment';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+
+
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -1799,58 +1803,88 @@ export class TripService
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
     filter = this.asFilter(filter);
 
-    const programLabel = filter && filter.program?.label;
-    if (isNotNilOrBlank(programLabel)) {
+    let programLabel = filter?.program?.label;
 
-      return [
-        // Store program to opts, for other services (e.g. used by OperationService)
-        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
-            .then(program => {
-              opts.program = program;
-              opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+    return [
+      // Store program to opts, for other services (e.g. used by OperationService)
+      JobUtils.defer(async (o) => {
+        // No program: Try to find one (and only one) for this user
+        if (isNilOrBlank(programLabel)) {
+          console.warn('[trip-service] [import] Trying to find a unique program to configure the import...');
+          const {
+            data: programs,
+            total: programCount
+          } = await this.programRefService.loadAll(0, 1, null, null,
+            TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, { fetchPolicy: 'no-cache', withTotal: true });
+          if (programCount === 1) {
+            programLabel = programs[0]?.label;
+          } else {
+            console.warn(`[trip-service] [import] No unique program found, but found ${programCount} program(s)`);
+          }
+        }
 
-              // Import weight conversion entities, if enable on program
-              const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
-              if (enableWeightConversion) {
-                console.info('[trip-service] WeightLengthConversion import: enabled by program ' + programLabel);
-                opts.entityNames = [
-                  ...IMPORT_REFERENTIAL_ENTITIES,
-                  ...WEIGHT_CONVERSION_ENTITIES
-                ];
+        // No program
+        if (isNilOrBlank(programLabel)) {
+          console.warn('[trip-service] [import] Cannot reducing importation (no program): can be long!');
+          opts.entityNames = [
+            ...IMPORT_REFERENTIAL_ENTITIES,
+            ...WEIGHT_CONVERSION_ENTITIES
+          ];
+        }
 
-                // Limit round weight, to the default country location id
-                const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
-                if (isNotNilOrBlank(countryId)) {
-                  opts.countryIds = opts.countryIds || [];
-                  if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
-                }
-              }
+        // Fill options using program
+        else {
+          console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
+          const program = await this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+          opts.program = program;
+          opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
-              // Limit locations (e.g. rectangle)
-              opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
-              opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
+          // Import weight conversion entities, if enable on program
+          const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+          if (enableWeightConversion) {
+            console.debug('[trip-service] [import] WeightLengthConversion - import enabled (by program)');
+            opts.entityNames = [
+              ...IMPORT_REFERENTIAL_ENTITIES,
+              ...WEIGHT_CONVERSION_ENTITIES
+            ];
 
-              // TODO limit vessels (e.g. for OBSBIO)
+            // Limit round weight, to the default country location id
+            const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+            if (isNotNilOrBlank(countryId)) {
+              console.debug('[trip-service] [import] WeightLengthConversion - country id: ' + countryId);
+              opts.countryIds = opts.countryIds || [];
+              if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
+            }
+          }
 
-            })),
+          // Limit locations (e.g. rectangle)
+          opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+          if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
 
-        ...super.getImportJobs(filter, opts),
+          opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
+          if (Geometries.isNotNilBBox(opts.boundingBox)) console.debug('[trip-service] [import] Bounding box: ' + opts.boundingBox.join(','));
 
-        // Import pending operations
-        JobUtils.defer(o => {
-          const operationFilter = TripFilter.toOperationFilter(filter);
-          return this.operationService.executeImport(operationFilter, o);
-        }, opts),
+          // TODO limit vessels (e.g. for OBSBIO, OBSMER)
 
-        // Import physical gears
-        JobUtils.defer(o => {
-          const gearFilter = TripFilter.toPhysicalGearFilter(filter);
-          return this.physicalGearService.executeImport(gearFilter, o);
-        }, opts)
-      ];
-    } else {
-      return super.getImportJobs(null, opts);
-    }
+        }
+      }),
+
+      ...super.getImportJobs(filter, opts),
+
+      // Import pending operations
+      JobUtils.defer(o => {
+        const operationFilter = TripFilter.toOperationFilter(filter);
+        if (isNil(operationFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
+        return this.operationService.executeImport(operationFilter, o);
+      }, opts),
+
+      // Import physical gears
+      JobUtils.defer(o => {
+        const gearFilter = TripFilter.toPhysicalGearFilter(filter);
+        if (isNil(gearFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
+        return this.physicalGearService.executeImport(gearFilter, o);
+      }, opts)
+    ];
   }
 
   /**

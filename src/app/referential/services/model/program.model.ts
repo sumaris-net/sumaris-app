@@ -3,7 +3,7 @@ import {
   Entity,
   EntityClass,
   EntityUtils,
-  FormFieldDefinition,
+  FormFieldDefinition, isNotEmptyArray,
   isNotNil, ObjectMap,
   Person,
   PropertiesMap,
@@ -191,19 +191,29 @@ export class ProgramUtils {
 
   static getAcquisitionLevels(program: Program): string[] {
 
-    const acquisitionLevels = (program.strategies || []).flatMap(strategy => ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm|PmfmStrategy)[])
-      .map(pmfm => {
-        if (pmfm && pmfm instanceof PmfmStrategy) {
-          return (typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label);
-        }
-        if (pmfm && pmfm instanceof DenormalizedPmfmStrategy) {
-          return pmfm.acquisitionLevel;
-        }
-      })
-      .filter(isNotNil)
-    );
+    // If has been filled directly in the program: use it
+    if (isNotEmptyArray(program.acquisitionLevelLabels)) return program.acquisitionLevelLabels;
 
-    return removeDuplicatesFromArray(acquisitionLevels);
+    // No strategies (e.g. may be not fetched) - should never occur
+    if (isNotEmptyArray(program.strategies)) {
+      console.warn('[program-utils] Cannot get acquisition levels from the given program: missing attributes \'acquisitionLevelLabels\' or \'strategies\'');
+      return [];
+    }
+    // Or get list from strategie
+    const acquisitionLevelLabels = program.strategies
+      .flatMap(strategy => ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm|PmfmStrategy)[])
+        .map(pmfm => {
+          if (pmfm && pmfm instanceof PmfmStrategy) {
+            return (typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label);
+          }
+          if (pmfm && pmfm instanceof DenormalizedPmfmStrategy) {
+            return pmfm.acquisitionLevel;
+          }
+        })
+        .filter(isNotNil)
+      );
+
+    return removeDuplicatesFromArray(acquisitionLevelLabels);
   }
 
   static getLocationLevelIds(program) {

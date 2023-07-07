@@ -130,6 +130,10 @@ export class Geometries {
       && bbox[1] >= upperBBox[1] && bbox[lastOffset+1] <= upperBBox[lastOffset+1]
   }
 
+  static isNotNilBBox(coords: BBox|number[]): boolean {
+    return this.checkBBox(coords);
+  }
+
   /**
    * @return true if the first object is entirely within the second object and the object boundaries do not touch; otherwise, returns FALSE.
    */

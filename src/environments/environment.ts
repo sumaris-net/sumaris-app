@@ -35,7 +35,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   //checkAppVersionIntervalInSeconds: 0,
 
   defaultPeer: {
-    host: 'test.sumaris.net',
+    host: 'adap.pecheursdebretagne.eu',
     port: 443
   },
 

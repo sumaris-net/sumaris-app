@@ -749,7 +749,7 @@ export class LandingService
       update: (proxy) => {
 
         // Remove from cache
-        this.removeFromMutableCachedQueriesByIds(proxy, {queryName: 'LoadAll', ids});
+        this.removeFromMutableCachedQueriesByIds(proxy, {queries: this.getLoadQueries(), ids});
 
         if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
       }

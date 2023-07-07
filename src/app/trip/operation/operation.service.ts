@@ -931,7 +931,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           // Remove from cached queries
           if (this._watchQueriesUpdatePolicy === 'update-cache') {
             this.removeFromMutableCachedQueriesByIds(cache, {
-              queryNames: this.getLoadQueryNames(),
+              queryNames: this.getLoadQueryNames(), // Use query names, because query instance can have been overrided in loadAll()
               ids
             });
           }
@@ -1246,7 +1246,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: 'no-cache',
+          fetchPolicy: 'no-cache', // Not need to keep result in the cache
           withTotal: (offset === 0), // Compute total only once
           toEntity: false,
           computeRankOrder: false,

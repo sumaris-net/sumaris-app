@@ -709,9 +709,8 @@ export class ObservedLocationService
 
     try {
       // Load children
-      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id},
-        {fullLoad: true, computeRankOrder: false});
-      const landings = res && res.data;
+      const { data: landings } = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id},
+        {fullLoad: true /*need to keep content in trash*/, computeRankOrder: false});
 
       await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
       this.onDelete.next([entity]);
@@ -998,7 +997,7 @@ export class ObservedLocationService
       let offset = 0;
       const size = 10; // Use paging, to avoid loading ALL landings once
       do {
-        res = await this.landingService.loadAll(offset, size, null, null, {observedLocationId: entity.id}, {fullLoad: true});
+        res = await this.landingService.loadAll(offset, size, null, null, {observedLocationId: entity.id}, {fullLoad: true, fetchPolicy: 'no-cache'});
 
         const updatedLandings = (res.data || []).map(l => {
           if (!l.dateTime || !l.dateTime.isSame(entity.startDateTime)) {
