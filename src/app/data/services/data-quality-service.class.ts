@@ -2,6 +2,7 @@ import { DataEntity } from './model/data-entity.model';
 import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import {Program} from '@app/referential/services/model/program.model';
 
 
 export interface IProgressionOptions {
@@ -26,14 +27,27 @@ export function isDataQualityService(object: any): object is IDataEntityQualityS
     .length === DataQualityServiceFnName.length || false;
 }
 
+export interface IRootDataTerminateOptions {
+  program?: Program;
+  withChildren?: boolean; // false by default
+}
+export interface IRootDataValidateOptions {
+  program?: Program;
+  withChildren?: boolean; // false by default
+}
+
 export interface IRootDataEntityQualityService<
   T extends RootDataEntity<T, ID>,
   ID = number,
-  O = any> extends IDataEntityQualityService<T, ID, O> {
+  CO extends IProgressionOptions = IProgressionOptions,
+  TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
+  VO extends IRootDataValidateOptions = IRootDataValidateOptions
+>
+  extends IDataEntityQualityService<T, ID, CO> {
 
-  terminate(data: T): Promise<T>;
-  validate(data: T): Promise<T>;
-  unvalidate(data: T): Promise<T>;
+  terminate(data: T, opts?: TO): Promise<T>;
+  validate(data: T, opts?: VO): Promise<T>;
+  unvalidate(data: T, opts?: VO): Promise<T>;
 }
 
 const RootDataQualityServiceFnName: (keyof IRootDataEntityQualityService<any>)[] = [...DataQualityServiceFnName, 'terminate', 'validate', 'unvalidate'];

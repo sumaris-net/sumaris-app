@@ -1,6 +1,6 @@
 import {Injectable, Injector, Optional} from '@angular/core';
 import {
-  AccountService,
+  AccountService, AppErrorWithDetails,
   AppFormUtils,
   arrayDistinct, BaseEntityGraphqlQueries,
   chainPromises,
@@ -9,33 +9,33 @@ import {
   Entity,
   EntityServiceLoadOptions,
   EntityUtils,
-  FormErrors,
+  FormErrors, FormErrorTranslator, FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   JobUtils,
   LoadResult,
-  NetworkService, ShowToastOptions, Toasts,
+  NetworkService, ProgressBarService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { EMPTY, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
-import { FetchPolicy, gql } from '@apollo/client/core';
+import {  gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
 import {COPY_LOCALLY_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
 import { ObservedLocation } from './observed-location.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import {IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions} from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from '../landing/landing.service';
 import {IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from '../landing/landing.model';
-import { ObservedLocationValidatorService } from './observed-location.validator';
+import {ObservedLocationValidatorOptions, ObservedLocationValidatorService} from './observed-location.validator';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
@@ -60,6 +60,9 @@ import {OverlayEventDetail} from '@ionic/core';
 import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import {ProgressionModel} from '@app/shared/progression/progression.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';
 
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
@@ -69,6 +72,11 @@ export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
 
 export interface ObservedLocationServiceLoadOptions extends EntityServiceLoadOptions {
   withLanding?: boolean;
+}
+
+export interface ObservedLocationControlOptions extends ObservedLocationValidatorOptions, IProgressionOptions {
+  enable?: boolean; // true by default
+  translatorOptions?: FormErrorTranslatorOptions;
 }
 
 export const ObservedLocationFragments = {
@@ -199,8 +207,8 @@ const ObservedLocationMutations = {
     deleteObservedLocations(ids: $ids)
   }`,
 
-  terminate: gql`mutation TerminateObservedLocation($data: ObservedLocationVOInput!){
-    data: controlObservedLocation(observedLocation: $data){
+  terminate: gql`mutation TerminateObservedLocation($data: ObservedLocationVOInput!, $options: DataControlOptionsInput){
+    data: controlObservedLocation(observedLocation: $data, options: $options) {
       ...ObservedLocationFragment
     }
   }
@@ -209,8 +217,8 @@ const ObservedLocationMutations = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}`,
 
-  validate: gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
-    data: validateObservedLocation(observedLocation: $data){
+  validate: gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!, $options: DataValidateOptionsInput) {
+    data: validateObservedLocation(observedLocation: $data, options: $options) {
       ...ObservedLocationFragment
     }
   }
@@ -219,8 +227,8 @@ const ObservedLocationMutations = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}`,
 
-  unvalidate: gql`mutation UnvalidateObservedLocation($data: ObservedLocationVOInput!){
-    data: unvalidateObservedLocation(observedLocation: $data){
+  unvalidate: gql`mutation UnvalidateObservedLocation($data: ObservedLocationVOInput!, $options: DataValidateOptionsInput) {
+    data: unvalidateObservedLocation(observedLocation: $data, options: $options) {
       ...ObservedLocationFragment
     }
   }
@@ -271,6 +279,8 @@ export class ObservedLocationService
     protected landingService: LandingService,
     protected aggregatedLandingService: AggregatedLandingService,
     protected trashRemoteService: TrashRemoteService,
+    protected progressBarService: ProgressBarService,
+    protected formErrorTranslator: FormErrorTranslator,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
@@ -454,6 +464,19 @@ export class ObservedLocationService
           return entity;
         })
       );
+  }
+
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts };
+    // Translate PMFM fields
+    console.debug('MYTEST', path);
+    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -737,19 +760,28 @@ export class ObservedLocationService
     this.onDelete.next([entity]);
   }
 
-  async control(entity: ObservedLocation): Promise<FormErrors> {
+  async control(entity: ObservedLocation, opts?: ObservedLocationControlOptions): Promise<AppErrorWithDetails> {
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}}...`, entity);
 
-    const programLabel = entity.program && entity.program.label || null;
-    if (!programLabel) throw new Error('Missing entity\'s program. Unable to control the entity');
-    const program = await this.programRefService.loadByLabel(programLabel);
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {...opts, maxProgression};
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
 
-    const form = this.validatorService.getFormGroup(entity, {
-      program,
-      withMeasurements: true // Need by full validation
-    });
+    const progressionStep = maxProgression / 20;
+
+    if (this._debug)
+      console.debug(`[observed-location-service] Control {${entity.id}} ...`);
+
+    opts = await this.fillControlOptions(entity, opts);
+
+    // If control has been disabled (in program's option)
+    if (!opts.enable) {
+      console.info(`[observed-location-service] Skip control {${entity.id}} (disabled by program option)...`);
+      return undefined;
+    } // Skip
+
+    const form = this.validatorService.getFormGroup(entity, opts);
 
     if (!form.valid) {
       // Wait end of validation (e.g. async validators)
@@ -761,12 +793,134 @@ export class ObservedLocationService
 
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        return errors;
+        return {
+          message: 'QUALITY.ERROR.INVALID_FORM',
+          details: {
+            errors,
+          },
+        };
       }
     }
 
-    if (this._debug) console.debug(`[observed-location-service] Control ${entity.id}} [OK] in ${Date.now() - now}ms`);
+    if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    if (opts?.progression) opts.progression.increment(progressionStep);
+
+    // Get if meta operation and the program label for sub operations
+    const subProgramLabel = opts.program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+
+    // If meta, control sub observed location
+    if (isNotNilOrBlank(subProgramLabel)) {
+      const nbDays = opts.program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
+      const childrenFilter = ObservedLocationFilter.fromObject({
+        programLabel: subProgramLabel,
+        startDate: entity.startDateTime,
+        endDate: entity.endDateTime || entity.startDateTime.clone().add(nbDays, 'day'),
+      });
+      const errors = await this.controlAllByFilter(childrenFilter, {
+        progression: opts?.progression,
+        maxProgression:  maxProgression - progressionStep,
+      });
+      if (errors) {
+        return {
+          message: 'OBSERVED_LOCATION.ERROR.INVALID_SUB',
+          details: {
+            errors: {
+              // TODO Rename sub
+              sub: errors
+            }
+          }
+        };
+      }
+    }
+    // Else control landings
+    else {
+      const errors = await this.landingService.controlAllByObservedLocation(entity, {
+        program: opts?.program,
+        strategy: null, // Will be load by landingService.fillControlOptions()
+        progression: opts?.progression,
+        maxProgression: opts?.maxProgression - progressionStep
+      });
+      if (errors) {
+        return {
+          message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDING',
+          details: {
+            errors: {
+              landings: errors
+            }
+          }
+        };
+      }
+
+      if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    }
+
+    // TODO Mark local as controlled ?
+
     return undefined;
+  }
+
+  protected async controlAllByFilter(filter: ObservedLocationFilter, opts?: ObservedLocationControlOptions): Promise<FormErrors> {
+
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression
+    };
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+    const endProgression = opts.progression.current + maxProgression;
+
+    // Increment
+    this.progressBarService.increase();
+
+    try {
+      const {data} = await this.loadAll(0, 1000, undefined, undefined, filter, {});
+
+      if (isEmptyArray(data)) return undefined;
+      const progressionStep = maxProgression / data.length / 2; // 2 steps by observed location: control, then save
+
+      let errorsById: FormErrors = null;
+
+      for (let entity of data) {
+
+        const errors = await this.control(entity, {...opts, maxProgression: progressionStep});
+
+        // Control failed: save error
+        if (errors) {
+          errorsById = errorsById || {};
+          errorsById[entity.id] = errors;
+
+          // translate, then save normally
+          const errorMessage = this.formErrorTranslator.translateErrors(errors.details.errors, opts.translatorOptions);
+          // const errorMessage = errors.message;
+          entity.controlDate = null;
+          entity.qualificationComments = errorMessage;
+
+          if (opts.progression?.cancelled) return; // Cancel
+
+          // Save entity
+          await this.save(entity);
+        }
+        // OK succeed: terminate
+        else {
+          if (opts.progression?.cancelled) return; // Cancel
+          // Need to exclude data that already validated (else got exception when pod control already validated data)
+          if (isNil(entity.validationDate)) await this.terminate(entity);
+        }
+
+        // increament, after save/terminate
+        opts.progression.increment(progressionStep);
+      }
+
+      return errorsById;
+    } catch (err) {
+      console.error(err && err.message || err);
+      throw err;
+    } finally {
+      this.progressBarService.decrease();
+      if (opts.progression.current < endProgression) {
+        opts.progression.current = endProgression;
+      }
+    }
   }
 
   async synchronize(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -1029,7 +1183,44 @@ export class ObservedLocationService
     }
   }
 
-  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+  protected async fillControlOptions(entity: ObservedLocation, opts?: ObservedLocationControlOptions): Promise<ObservedLocationControlOptions> {
+    opts = await this.fillProgramOptions(entity, opts);
+
+    opts = {
+      ...opts,
+      enable: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
+      withMeasurements: true, // Need by full validation
+    }
+
+    if (!opts.translatorOptions) {
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, {})
+        }
+      };
+    }
+    return opts;
+  }
+
+  protected async fillTerminateOption(entity: ObservedLocation, opts?: IRootDataTerminateOptions): Promise<IRootDataTerminateOptions> {
+    opts = await super.fillTerminateOption(entity, opts);
+
+    return {
+      withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
+      ...opts,
+    }
+  }
+  protected async fillValidateOption(entity: ObservedLocation, opts?: IRootDataValidateOptions): Promise<IRootDataValidateOptions> {
+    opts = await super.fillValidateOption(entity, opts);
+
+    return {
+      withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
+      ...opts,
+    }
+  }
+
+
+  protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
   }
 
