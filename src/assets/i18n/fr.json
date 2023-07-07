@@ -2052,7 +2052,7 @@
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
-      "OBSERVED_LOCATION_CONTROL_ENABLE": "Sortie: Activer le controle à la terminaision de la saisie ?",
+      "OBSERVED_LOCATION_CONTROL_ENABLE": "Sortie: Activer le contrôle à la terminaison de la saisie ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",

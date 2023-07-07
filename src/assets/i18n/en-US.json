@@ -1263,7 +1263,7 @@
       "OBSERVERS": "Observers:",
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
-      "LANDINGS": "Landings",
+      "LANDINGS": "Landing(s)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Control of {{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"
@@ -2044,7 +2044,7 @@
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Occasion > Location level(s)",
-      "OBSERVED_LOCATION_CONTROL_ENABLE": "Occasion: Enable control when entry is terminated ?",
+      "OBSERVED_LOCATION_CONTROL_ENABLE": "Occasion: Enable control at end of data entry?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Occasion > Weekly activity calendar?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Occasion > Weekly activity calendar > Target program",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
