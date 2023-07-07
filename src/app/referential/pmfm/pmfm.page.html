@@ -158,7 +158,8 @@
     </mat-tab>
 
     <!-- TAB: Qualitative value -->
-    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE'|translate}}">
+    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE'|translate}}"
+             [disabled]="($parameter | async)?.isQualitative !== true">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
