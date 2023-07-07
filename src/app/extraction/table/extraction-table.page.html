@@ -391,7 +391,7 @@
   </ion-item>
 
   <div #tableContainer class="table-container"
-       [class.has-nav-link]="type?.sheetNames|isArrayLength:{greaterThan: 1}"
+       [class.has-nav-bar]="type?.sheetNames|isArrayLength:{greaterThan: 1}"
        [class.has-toolbar]="embedded && showToolbar">
     <table mat-table
            [dataSource]="dataSource"
