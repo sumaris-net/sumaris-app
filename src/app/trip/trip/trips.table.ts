@@ -10,7 +10,7 @@ import {
   ConfigService,
   FilesUtils,
   HammerSwipeEvent,
-  isEmptyArray,
+  isEmptyArray, isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
@@ -290,16 +290,18 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   }): Promise<undefined | boolean> {
     if (this.importing) return; // Skip
 
-    if (event) {
-      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
-        name: this._dataService.featureName
-      };
-      const filter = this.asFilter(this.filterForm.value);
-      let synchroFilter = <TripSynchroImportFilter>{
-        vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
-        programLabel: filter.program && filter.program.label || undefined,
-        ...feature.filter
-      };
+    const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
+      name: this._dataService.featureName
+    };
+    const filter = this.asFilter(this.filterForm.value);
+    let synchroFilter = <TripSynchroImportFilter>{
+      vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
+      programLabel: filter.program && filter.program.label || undefined,
+      ...feature.filter
+    };
+
+    // Open offline, if missing program or vesselId
+    if (event || isNilOrBlank(synchroFilter?.programLabel) || isNil(synchroFilter?.vesselId)) {
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
         componentProps: <TripOfflineModalOptions>{
@@ -316,12 +318,16 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       if (!data || role === 'cancel') return; // User cancelled
 
       // Update feature filter, and save it into settings
-      synchroFilter = TripSynchroImportFilter.fromObject(data);
-      feature.filter = synchroFilter.asObject();
+      feature.filter = TripSynchroImportFilter.fromObject(data).asObject();
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG
       console.debug('[trip-table] Will prepare offline mode, using filter:', feature.filter);
+    }
+    else {
+      // Saving feature's filter, to order to use it in TripService.runImport()
+      feature.filter = TripSynchroImportFilter.fromObject(synchroFilter).asObject();
+      this.settings.saveOfflineFeature(feature);
     }
 
     return super.prepareOfflineMode(event, opts);
