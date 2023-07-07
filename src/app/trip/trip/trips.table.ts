@@ -27,7 +27,7 @@ import { Operation, Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
-import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../trip.config';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '../trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
@@ -150,10 +150,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
-      },
+      filter: TRIP_FEATURE_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile
     });
 
