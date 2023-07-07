@@ -670,7 +670,7 @@ export class ObservedLocationService
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
-          queryName: 'LoadAll',
+          queries: this.getLoadQueries(), // Remove from all queries - fix #437
           ids
         });
 
