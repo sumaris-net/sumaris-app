@@ -59,9 +59,9 @@ export class BatchRules {
       }),
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-discard-weight-pmfm',
-        controlledAttribute: `${pmfmPath}label`,
+        controlledAttribute: `${pmfmPath}id`,
         operator: '!=',
-        value: 'DISCARD_WEIGHT',
+        value: PmfmIds.DISCARD_WEIGHT.toString(),
         message: 'Discard weight pmfm not allowed'
       })
     ];

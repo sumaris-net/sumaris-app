@@ -59,7 +59,6 @@ export const PmfmIds = {
   SEA_STATE: 33,
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
-  DISCARD_WEIGHT: 56,
   TAG_ID: 82,
   DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,
@@ -126,7 +125,8 @@ export const PmfmIds = {
   BATCH_GEAR_POSITION: 411,
   TRAWL_SIZE_CAT: 418,
   BATCH_SORTING: 176, // Vrac/Hors Vrac
-
+  DISCARD_WEIGHT: 56,
+  CATCH_WEIGHT: 57,
   HULL_MATERIAL: 433
 };
 export const QualitativeLabels = {
