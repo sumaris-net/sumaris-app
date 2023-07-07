@@ -701,6 +701,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     // Force taxon name in sub batches, if not filled in root batch
     const subBatchesTaxonName = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
     this.batchGroupsTable.setSubBatchesModalOption('showTaxonNameColumn', subBatchesTaxonName);
+    this.batchGroupsTable.setSubBatchesModalOption('showBluetoothIcon', program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE));
     if (this.subBatchesTable) {
       this.subBatchesTable.showTaxonNameColumn = subBatchesTaxonName;
       this.subBatchesTable.showTaxonNameInParentAutocomplete = !subBatchesTaxonName && this.batchGroupsTable.showTaxonNameColumn;
