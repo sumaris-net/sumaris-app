@@ -638,7 +638,7 @@ export const ProgramProperties = Object.freeze({
   OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.control.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CONTROL_ENABLE',
-    defaultValue: 'true',
+    defaultValue: 'false', // FIXME: should be enable by default, when error translations will be OK
     type: 'boolean'
   },
 
