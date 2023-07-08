@@ -344,6 +344,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.CHILD_GEAR
   },
+  PMFM_CATCH_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.CATCH_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CATCH_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.CATCH_WEIGHT
+  },
+  PMFM_DISCARD_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_WEIGHT
+  },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',

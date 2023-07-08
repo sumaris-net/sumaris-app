@@ -79,7 +79,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';

@@ -59,7 +59,7 @@ import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {OverlayEventDetail} from '@ionic/core';
 import {ToastController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components';
 import {ProgressionModel} from '@app/shared/progression/progression.model';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';

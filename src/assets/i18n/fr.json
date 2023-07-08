@@ -261,6 +261,8 @@
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Référentiel > PSFM > Capture accidentelle",
         "PMFM_HULL_MATERIAL_ID": "Référentiel > PSFM > Matériaux de la coque (navire)",
         "PMFM_BATCH_SORTING_ID": "Référentiel > PSFM > Vrac/Hors vrac",
+        "PMFM_DISCARD_WEIGHT_ID": "Référentiel > PSFM > Poids du rejet",
+        "PMFM_CATCH_WEIGHT_ID": "Référentiel > PSFM > Poids total de la capture",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > PSFM > Poids du lot calculé par RTP",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > PSFM > Sommes de poids RTP des lots fils",
         "PMFM_SELECTIVITY_DEVICE_ID": "Référentiel > PSFM > Dispositif sélectif engin",
@@ -2441,6 +2443,7 @@
       "PROJECT": "Programme de collecte",
       "TRIP_CODE": "Code marée",
       "STATION_NUMBER": "Numéro de station",
+      "SAMPLING_TYPE": "Type d'échantillonnage",
       "YEAR": "Année",
       "QUARTER": "Trimestre",
       "MONTH": "Mois",
@@ -2505,7 +2508,10 @@
       "COMMENTS": "Commentaires",
       "MEASURE_TIME": "Date de la mesure",
       "GPS_USED": "Utilisation d'un GPS?",
-      "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP"
+      "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP",
+      "CATCH_WEIGHT": "Poids total capture",
+      "DISCARD_WEIGHT": "Poids total rejet",
+      "LENGTH_CODE": "Précision taille"
     },
     "SHEET": {
       "TR": "Marées",
@@ -2541,7 +2547,12 @@
     "FORMAT": {
       "APASE": {
         "TITLE": "Marées brutes (APASE v{{version}})",
-        "NAME": "Sélectivity châlut"
+        "NAME": "Sélectivité châlut",
+        "SUB_GEAR_POSITION": "Position du sous-engin",
+        "SUB_GEAR_IDENTIFIER": "Identifiant du sous-engin",
+        "CATCH_WEIGHT": "Poids total capture (g)",
+        "DISCARD_WEIGHT": "Poids total rejet (g)",
+        "ELEVATED_NUMBER_AT_LENGTH": "Nombre d'individu élevé"
       },
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})",
