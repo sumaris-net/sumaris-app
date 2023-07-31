@@ -411,7 +411,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Existing data
     return titlePrefix + this.translate.instant('AUCTION_CONTROL.EDIT.TITLE', {
-      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
+      vessel: data.vesselSnapshot && (`${data.vesselSnapshot.exteriorMarking} - ${data.vesselSnapshot.name}` || data.vesselSnapshot.name)
     });
   }
 
