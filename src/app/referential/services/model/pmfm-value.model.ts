@@ -136,17 +136,17 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static fromModelValue(value: any, pmfm: IPmfm): PmfmValue | PmfmValue[] {
+  static fromModelValue(value: any, pmfm: IPmfm, opts?:{doNotSplitValue:boolean}): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
 
     // If many values
-    if (typeof value === 'string' && value.indexOf(PMFM_VALUE_SEPARATOR) !== -1) {
+    if (typeof value === 'string' && !opts?.doNotSplitValue && (pmfm.isMultiple || value.indexOf(PMFM_VALUE_SEPARATOR) !== -1)) {
       value = value.split(PMFM_VALUE_SEPARATOR);
     }
     if (Array.isArray(value)) {
-      return value.map(v => this.fromModelValue(v, pmfm) as PmfmValue);
+      return value.map(v => this.fromModelValue(v, pmfm, {doNotSplitValue : true}) as PmfmValue);
     }
 
     // Simple value
