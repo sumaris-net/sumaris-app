@@ -37,6 +37,7 @@ export interface IPmfm<
 
   unitLabel: string;
   rankOrder?: number;
+  acquisitionNumber?: number;
 
   isQualitative: boolean;
   isComputed: boolean;

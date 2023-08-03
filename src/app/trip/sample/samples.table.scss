@@ -45,8 +45,13 @@
       }
 
       .mat-column-pmfm {
-        min-width: calc(min(80px, 50vw / var(--pmfm-count)));
+        --column-pmfm-min-width: calc(max(50px, min(160px, 50vw / var(--pmfm-count))));
+        min-width: var(--column-pmfm-min-width);
         max-width: calc(70vw / var(--pmfm-count));
+
+        &.mat-column-pmfm-multiple {
+          min-width: calc(var(--column-pmfm-min-width) * var(--pmfm-acquisitionNumber, 1));
+        }
       }
 
       .mat-column-images {
@@ -81,6 +86,7 @@
       .mat-column-81 {
         max-width: 100px;
       }
+
     }
 
     /* First header row (group) */

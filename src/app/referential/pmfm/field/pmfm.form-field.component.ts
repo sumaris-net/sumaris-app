@@ -1,14 +1,44 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { FloatLabelType } from '@angular/material/form-field';
-import { filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
-import { PmfmValidators } from '../../services/validator/pmfm.validators';
-import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
-import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
-import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { Subscription } from 'rxjs';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output, QueryList,
+  ViewChild, ViewChildren, ViewEncapsulation
+} from '@angular/core';
+import {
+  AbstractControl,
+  ControlValueAccessor, FormGroup,
+  FormGroupDirective,
+  NG_VALUE_ACCESSOR,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl
+} from '@angular/forms';
+import {FloatLabelType} from '@angular/material/form-field';
+import {
+  AppFormArray,
+  filterNumberInput,
+  focusInput,
+  InputElement,
+  isNil, isNilOrBlank,
+  LocalSettingsService,
+  setTabIndex,
+  toBoolean,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import {IPmfm, PmfmUtils} from '../../services/model/pmfm.model';
+import {PmfmValidators} from '../../services/validator/pmfm.validators';
+import {PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from '../../services/model/model.enum';
+import {PmfmQvFormFieldStyle} from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {Subscription} from 'rxjs';
 
 const noop = () => {
 };
@@ -36,12 +66,12 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
 
   protected type: string;
   protected numberInputStep: string;
-  protected formArrayHelper: FormArrayHelper<PmfmValue>;
+  protected arrayEditingIndex: number = undefined;
 
   /**
    * Same as `formControl`, but avoid to activate the Angular directive
    */
-  @Input() control: UntypedFormControl|UntypedFormArray;
+  @Input() control: AbstractControl;
 
   /**
    * Same as `formControlName`, but avoid to activate the Angular directive
@@ -61,22 +91,6 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   }
 
   get formControlName(): string {
-    return this.controlName;
-  }
-
-  @Input() set formArray(value: UntypedFormArray) {
-    this.control = value;
-  }
-
-  get formArray(): UntypedFormArray {
-    return this.control as UntypedFormArray;
-  }
-
-  @Input() set formArrayName(value: string) {
-    this.controlName = value;
-  }
-
-  get formArrayName(): string {
     return this.controlName;
   }
 
@@ -119,6 +133,10 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     return this.control?.disabled;
   }
 
+  get formArray(): AppFormArray<any, UntypedFormControl> {
+    return this.control as AppFormArray<any, UntypedFormControl>;
+  }
+
   @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
@@ -137,23 +155,20 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
     this.controlName = this.controlName || this.pmfm.id?.toString();
 
-    const control = this.control || (this.controlName && this.formGroupDir?.form.get(this.controlName));
+    let control = this.control || (this.controlName && this.formGroupDir?.form.get(this.controlName));
     if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
+    this.required = toBoolean(this.required, this.pmfm.required);
 
     if (control instanceof UntypedFormArray) {
       this.control = control;
       this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
-      this.formArrayHelper = new FormArrayHelper<PmfmValue>(
-        control,
-        (value) => this.formBuilder.control(value || null),
-        PmfmValueUtils.equals,
-        PmfmValueUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        });
-
       this.type = 'array';
+
+      // Make sure to get an App form array (that can be resized)
+      if (!(control instanceof AppFormArray)) throw new Error('Please use AppFormArray instead of UntypedFormArray - check the validator service');
+
+      if (control.length === 0) control.resize(1);
     }
     else if (control instanceof UntypedFormControl) {
       this.control = control;
@@ -173,8 +188,6 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
         i18nPrefix: this.i18nPrefix,
         i18nContext: this.i18nSuffix
       });
-
-      this.required = toBoolean(this.required, this.pmfm.required);
 
       this.updateTabIndex();
 
@@ -285,5 +298,40 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected formArrayAdd(event: UIEvent) {
+    const autofocus = this.autofocus;
+    this.autofocus = false;
+
+    event.stopImmediatePropagation();
+
+    this.formArray.add(null, {emitEvent: false});
+    this.arrayEditingIndex = this.formArray.length - 1;
+
+    // Let the time for fields validation
+    setTimeout(() => {
+        this.autofocus = autofocus;
+        this.markForCheck();
+    });
+
+  }
+
+  protected formArrayRemoveAt(index: number, opts?: {markAsDirty :boolean}) {
+    this.formArray.removeAt(index);
+    if (!opts || opts.markAsDirty !== false) this.formArray.markAsDirty();
+    this.markForCheck();
+  }
+
+  protected formArrayRemoveEmptyOnFocusLost(event: UIEvent, index: number) {
+    event.stopPropagation();
+    setTimeout(() => {
+      const control = this.formArray.at(index);
+      // If empty: remove it
+      if (isNilOrBlank(control.value)) {
+        this.formArray.removeAt(index);
+        this.markForCheck();
+      }
+    }, 250);
   }
 }

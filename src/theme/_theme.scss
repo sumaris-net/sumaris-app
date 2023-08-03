@@ -137,6 +137,14 @@ mat-form-field {
   .fab-button-small {
     margin: 0 5px;
   }
+
+  .mat-form-field-suffix:has(.mat-form-field-suffix-container) {
+    display: inline;
+  }
+  .mat-form-field-suffix-container {
+    @extend .mat-form-field-suffix;
+    display: inline;
+  }
 }
 
 .mat-toolbar, .mat-toolbar-single-row {

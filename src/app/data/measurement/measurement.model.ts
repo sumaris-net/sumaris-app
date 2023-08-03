@@ -375,6 +375,14 @@ export class MeasurementValuesUtils {
           if (isNil(value) && isNotNil(pmfm.defaultValue)) {
             value = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm);
           }
+          if (pmfm.isMultiple) {
+            if (!Array.isArray(value)) {
+              value = [value];
+            }
+            else if (value.length === 0) {
+              value = [null];
+            }
+          }
           target[pmfmId.toString()] = value;
         });
       }

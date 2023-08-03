@@ -322,6 +322,8 @@
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
+          [class.mat-column-pmfm-multiple]="pmfm|isMultiplePmfm"
+          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber||1"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
           [class.mat-cell-content-start-padding]="showGroupHeader">
@@ -329,6 +331,8 @@
       </th>
       <td mat-cell *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
+          [class.mat-column-pmfm-multiple]="pmfm|isMultiplePmfm"
+          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber||1"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
@@ -340,11 +344,10 @@
                         [pmfm]="pmfm"
                         [i18nPrefix]="i18nPmfmPrefix"
                         [i18nSuffix]="i18nColumnSuffix"
-                        [control]="row.validator|formGetControl: ['measurementValues', pmfm.id]"
+                        [control]="row.validator|formGetControl:['measurementValues', + pmfm.id]"
                         [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
                         [compact]="compactFields">
         </app-pmfm-field>
-
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
           <span [innerHTML]="row.validator|formGetValue: ['measurementValues', pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></span>
