@@ -1,11 +1,12 @@
 import {UntypedFormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
 import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
-import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import {PmfmIds} from "@app/referential/services/model/model.enum";
+import {AppFormUtils, isNil} from "@sumaris-net/ngx-components";
 import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {IPmfm} from "@app/referential/services/model/pmfm.model";
+import {PmfmValueUtils} from "@app/referential/services/model/pmfm-value.model";
 
 export class AuctionControlValidators {
 
@@ -190,6 +191,55 @@ export class AuctionControlValidators {
       else {
         SharedValidators.clearError(dirtyCountControl, 'max');
       }
+    }
+
+    // Compliant: disable some pmfms if compliant, and manage some default value
+    const compliantProductControl = measFormGroup.controls[PmfmIds.COMPLIANT_PRODUCT];
+    if (compliantProductControl) {
+
+      const controlCorrectiveActionPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.CONTROL_CORRECTIVE_ACTION);
+      const controlCorrectiveActionControl = controlCorrectiveActionPmfm && measFormGroup.controls[PmfmIds.CONTROL_CORRECTIVE_ACTION];
+      if (controlCorrectiveActionControl) {
+
+        const defaultValue = PmfmValueUtils.fromModelValue(controlCorrectiveActionPmfm.defaultValue, controlCorrectiveActionPmfm)
+          || controlCorrectiveActionPmfm.qualitativeValues?.find(qv => qv.label === 'NSP');
+
+        if (compliantProductControl.value) {
+          controlCorrectiveActionControl.setValue(null);
+          controlCorrectiveActionControl.disable();
+          controlCorrectiveActionControl.setValidators(null);
+        }
+        else {
+          if (compliantProductControl.value === false && isNil(controlCorrectiveActionControl.value)) controlCorrectiveActionControl.setValue(defaultValue);
+          if (controlCorrectiveActionPmfm.required) {
+            controlCorrectiveActionControl.setValidators(Validators.required);
+          }
+          controlCorrectiveActionControl.enable();
+        }
+
+      }
+
+      const productDestinationPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PRODUCT_DESTINATION);
+      const productDestinationControl = productDestinationPmfm && measFormGroup.controls[PmfmIds.PRODUCT_DESTINATION];
+      if (productDestinationControl) {
+
+        const defaultValue = PmfmValueUtils.fromModelValue(productDestinationPmfm.defaultValue, productDestinationPmfm)
+            || productDestinationPmfm.qualitativeValues?.find(qv => qv.label === 'NSP');
+
+        if (compliantProductControl.value) {
+          productDestinationControl.setValue(null);
+          productDestinationControl.disable();
+          productDestinationControl.setValidators(null);
+        }
+        else {
+          if (compliantProductControl.value === false && isNil(productDestinationControl.value)) productDestinationControl.setValue(defaultValue);
+          productDestinationControl.enable();
+          if (productDestinationPmfm.required) {
+            productDestinationControl.setValidators(Validators.required);
+          }
+        }
+      }
+
     }
 
     if (opts && opts.markForCheck) {

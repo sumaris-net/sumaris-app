@@ -4,7 +4,6 @@ import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFor
 
 import {
   AppFormArray,
-  EntityUtils,
   LocalSettingsService,
   toBoolean
 } from '@sumaris-net/ngx-components';

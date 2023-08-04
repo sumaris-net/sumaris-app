@@ -9,12 +9,12 @@ import {
   OnDestroy,
   OnInit,
   Optional,
-  Output, QueryList,
-  ViewChild, ViewChildren, ViewEncapsulation
+  Output,
+  ViewChild,
 } from '@angular/core';
 import {
   AbstractControl,
-  ControlValueAccessor, FormGroup,
+  ControlValueAccessor,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
   UntypedFormArray,
