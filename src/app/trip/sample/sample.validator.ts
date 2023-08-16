@@ -108,5 +108,6 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
 export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
   missingWeightOrSize: 'TRIP.SAMPLE.ERROR.WEIGHT_OR_LENGTH_REQUIRED',
-  tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH'
+  tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH',
+  outOfRange: 'TRIP.SAMPLE.ERROR.OUT_OF_RANGE',
 }

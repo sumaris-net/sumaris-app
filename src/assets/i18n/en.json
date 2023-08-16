@@ -1110,7 +1110,8 @@
           "TAG_ID": "Tag-ID"
         },
         "AUCTION_CONTROL": {
-          "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)"
+          "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)",
+          "INDIVIDUALS_DENSITY_PER_KG": "Individuals density (nb ind/kg)"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Release date",
@@ -1129,7 +1130,8 @@
       },
       "ERROR": {
         "INVALID_TAG_ID_LENGTH": "Tag length must have {{length}} characters",
-        "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required"
+        "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
+        "ERROR.OUT_OF_RANGE": "Out of range"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"

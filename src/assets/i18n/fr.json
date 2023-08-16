@@ -1116,7 +1116,8 @@
           "TAG_ID": "Référence de la marque"
         },
         "AUCTION_CONTROL": {
-          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon"
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",
+          "INDIVIDUALS_DENSITY_PER_KG": "Moule (nb ind/kg)"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
@@ -1135,7 +1136,8 @@
       },
       "ERROR": {
         "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
-        "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
+        "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
+        "OUT_OF_RANGE": "Hors fourchette"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"

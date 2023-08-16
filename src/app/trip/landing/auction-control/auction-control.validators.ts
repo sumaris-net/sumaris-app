@@ -1,11 +1,11 @@
 import {UntypedFormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
 import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
-import {PmfmIds} from "@app/referential/services/model/model.enum";
-import {AppFormUtils, isNil} from "@sumaris-net/ngx-components";
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {AppFormUtils, isNil, isNumber} from '@sumaris-net/ngx-components';
 import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from "@app/referential/services/model/pmfm.model";
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from "@app/referential/services/model/pmfm-value.model";
 
 export class AuctionControlValidators {
@@ -81,7 +81,7 @@ export class AuctionControlValidators {
     let errors: any;
 
     // Read pmfms
-    const weightPmfm = pmfms.find(p => p.label.endsWith('_WEIGHT') || p.label === 'SAMPLE_INDIV_COUNT');
+    const weightPmfm = pmfms.find(p => p.label.endsWith('_WEIGHT'));
     const indivCountPmfm = pmfms.find(p => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
 
     // Get controls
@@ -191,6 +191,51 @@ export class AuctionControlValidators {
       else {
         SharedValidators.clearError(dirtyCountControl, 'max');
       }
+    }
+
+    // Density per kg (indiv/kg)
+    const numberDensityPerKgControl = measFormGroup.controls[PmfmIds.INDIVIDUALS_DENSITY_PER_KG];
+    if (numberDensityPerKgControl) {
+
+      if ((isNotNilOrBlank(indivCount) && isNotNilOrBlank(weight)) && (indivCount != 0 && weight != 0)) {
+
+        // compute (truncate the value to the hundredth)
+        const numberDensityPerKgValue = Math.trunc((indivCount / PmfmValueUtils.toModelValueAsNumber(weight, weightPmfm)) * 100) / 100;
+        numberDensityPerKgControl.setValue(numberDensityPerKgValue);
+
+        // check density category
+        const auctionDensityCategoryControl = measFormGroup.controls[PmfmIds.AUCTION_DENSITY_CATEGORY];
+        if (auctionDensityCategoryControl && isNotNilOrBlank(auctionDensityCategoryControl.value)) {
+
+          let split = auctionDensityCategoryControl.value.label.split(/[\\/|-]/);
+
+          if (split.length === 2 && isNumber(split[0]) && isNumber(split[1])) {
+
+            const min = +split[0];
+            const max = +split[1];
+
+            // Must be greater than the min and strictly lesser than the max
+            if (numberDensityPerKgValue < min || numberDensityPerKgValue >= max) {
+              const error = {
+                outOfRange: {actual: numberDensityPerKgValue, min, max},
+              };
+              auctionDensityCategoryControl.setErrors(error, opts);
+              errors = {...errors, ...error};
+            }
+            else {
+              SharedValidators.clearError(auctionDensityCategoryControl, 'outOfRange')
+            }
+          }
+
+          else {
+            console.warn("[auction-control-validator] Bad AUCTION_DENSITY_CATEGORY value format : can not compute min/max");
+          }
+        }
+
+      }
+
+
+
     }
 
     // Compliant: disable some pmfms if compliant, and manage some default value
