@@ -363,7 +363,6 @@ export class LandingsPage extends AppRootDataTable<
     // Clear the context
     this.resetContext();
 
-    console.debug('MYTEST', this.dataSource);
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
