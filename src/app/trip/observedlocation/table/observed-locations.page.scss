@@ -10,6 +10,10 @@
   --expansion-panel-padding: 0;
 }
 
+.filter-panel-pinned {
+  overflow-y: scroll;
+}
+
 .mat-expansion-panel {
   margin-bottom: 5px;
 

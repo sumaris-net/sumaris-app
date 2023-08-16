@@ -190,7 +190,8 @@
   <mat-expansion-panel #filterExpansionPanel
                        class="filter-panel"
                        [class.cdk-visually-hidden]="enableFilterPanelCompact"
-                       [class.filter-panel-floating]="filterPanelFloating">
+                       [class.filter-panel-floating]="filterPanelFloating"
+                       [class.filter-panel-pinned]="!filterPanelFloating">
     <form class="form-container ion-padding-top" *ngIf="!enableFilterPanelCompact"
           [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
