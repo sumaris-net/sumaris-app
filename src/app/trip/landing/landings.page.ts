@@ -62,7 +62,7 @@ export const LandingsPageSettingsEnum = {
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
 };
 
-export const LANDING_PAGE_RESERVED_START_COLUMNS = ['quality', 'program', ...LANDING_RESERVED_START_COLUMNS];
+export const LANDING_PAGE_RESERVED_START_COLUMNS = ['program', ...LANDING_RESERVED_START_COLUMNS];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
 export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingServiceWatchOptions> {
@@ -362,6 +362,8 @@ export class LandingsPage extends AppRootDataTable<
 
     // Clear the context
     this.resetContext();
+
+    console.debug('MYTEST', this.dataSource);
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
