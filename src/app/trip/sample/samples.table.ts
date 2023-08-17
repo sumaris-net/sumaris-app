@@ -328,6 +328,12 @@ export class SamplesTable
     this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
   }
 
+  deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
+    // FIXME -cf issue #454
+    //console.debug('FIXME check deleteSelection')
+    return super.deleteSelection(event, opts);
+  }
+
   /**
    * Use in ngFor, for trackBy
    * @param index

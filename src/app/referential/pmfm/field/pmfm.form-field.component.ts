@@ -283,7 +283,9 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   /* -- protected method -- */
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
-    return PmfmUtils.getOrComputePrecision(pmfm, 1)
+    // FIXME: choisir la valeur min, ou vide ? - cf issue #554
+    // return PmfmUtils.getOrComputePrecision(pmfm, 1)
+    return PmfmUtils.getOrComputePrecision(pmfm, null)
       .toString();
   }
 

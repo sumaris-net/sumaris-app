@@ -260,7 +260,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.TAG_ID},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-        isMandatory: true,
+        isMandatory: false,
         acquisitionNumber: 1,
         rankOrder: 1 // Should be the only one PmfmStrategy on Landing
       }));
@@ -274,7 +274,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         isMandatory: true,
         acquisitionNumber : 1,
-        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
+        rankOrder: 2 // Should be the only one PmfmStrategy on Landing
       }));
     }
 
