@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppTable,
+  AppTable, changeCaseToUnderscore,
   EntitiesServiceWatchOptions,
   EntitiesTableDataSource,
   EntitiesTableDataSourceConfig,
@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, toBoolean
+  RESERVED_START_COLUMNS, toBoolean, TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -59,6 +59,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   private _canEdit: boolean;
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
+  protected translateContext: TranslateContextService;
   protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
@@ -131,6 +132,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     this.hotkeys = injector.get(Hotkeys);
     this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
+    this.translateContext =  injector.get(TranslateContextService);
     this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
@@ -626,4 +628,14 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected getI18nColumnName(columnName: string): string {
+    if (this.i18nColumnSuffix) {
+      return this.translateContext.instant((this.i18nColumnPrefix || '') + changeCaseToUnderscore(columnName).toUpperCase(), this.i18nColumnSuffix);
+    }
+    else {
+      return super.getI18nColumnName(columnName);
+    }
+  }
+
 }
