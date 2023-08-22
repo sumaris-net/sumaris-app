@@ -1213,11 +1213,6 @@
           "AVG_VARIATION_DISCARD": "Taux de variation moyen<br/>Rejet<br/><small>(%)</small>"
         }
       }
-    },
-    "LANDING": {
-      "ERROR": {
-        "DUPLICATED_SAMPLE_TAG_ID": "Certains code de prélèvement sont déjà utilisés"
-      }
     }
   },
   "EXPECTED_SALE": {
@@ -1463,7 +1458,8 @@
     },
     "ERROR": {
       "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+      "DUPLICATED_SAMPLE_TAG_ID": "Certains code de prélèvement sont déjà utilisés"
     }
   },
   "AGGREGATED_LANDING": {

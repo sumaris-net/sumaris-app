@@ -1207,11 +1207,6 @@
           "AVG_VARIATION_DISCARD": "Average rate of change<br/>Discard<br/><small>(%)</small>"
         }
       }
-    },
-    "LANDING": {
-      "ERROR": {
-        "DUPLICATED_SAMPLE_TAG_ID": "Some Tag-ID are aready used"
-      }
     }
   },
   "EXPECTED_SALE": {
@@ -1457,7 +1452,8 @@
     },
     "ERROR": {
       "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0"
+      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0",
+      "DUPLICATED_SAMPLE_TAG_ID": "Some Tag-ID are already used"
     }
   },
   "AGGREGATED_LANDING": {
@@ -2412,9 +2408,12 @@
       "LANDING_COUNTRY": "Landing country",
       "RECORD_TYPE": "Type",
       "HARBOUR": "Harbour",
+      "HARBOUR_LABEL": "Harbour code",
+      "HARBOUR_NAME": "Harbour name",
       "PROJECT": "Project",
       "TRIP_CODE": "Trip code",
       "STATION_NUMBER": "Station number",
+      "SAMPLING_TYPE": "Sampling type",
       "YEAR": "Year",
       "QUARTER": "Quarter",
       "MONTH": "Month",
@@ -2486,7 +2485,12 @@
     "FORMAT": {
       "APASE": {
         "TITLE": "Raw trips (APASE v{{version}})",
-        "NAME": "Trawl selectivity"
+        "NAME": "Trawl selectivity",
+        "SUB_GEAR_POSITION": "Sub-gear position",
+        "SUB_GEAR_IDENTIFIER": "Sub-gear identifier",
+        "CATCH_WEIGHT": "Total catch weight (g)",
+        "DISCARD_WEIGHT": "Total discard weight (g)",
+        "ELEVATED_NUMBER_AT_LENGTH": "Elevated individual count"
       },
       "RDB": {
         "TITLE": "Raw trips (RDB v{{version}})",

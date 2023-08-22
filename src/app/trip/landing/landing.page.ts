@@ -207,7 +207,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       && err.details.hasOwnProperty('duplicatedValues')
     ) {
       const details = err.details as any;
-      this.samplesTable.setError('TRIP.LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', {duplicatedValues: details.duplicatedValues});
+      this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', {duplicatedValues: details.duplicatedValues});
       super.setError(undefined, opts);
       this.selectedTabIndex = this.getFirstInvalidTabIndex();
     }
