@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 
 import {
-  AppEditorOptions,
+  AppEditorOptions, AppErrorWithDetails,
   EntityServiceLoadOptions,
   EntityUtils, equals,
   fadeInOutAnimation,
@@ -19,7 +19,7 @@ import {
   LocalSettingsService,
   NetworkService,
   ReferentialUtils,
-  removeDuplicatesFromArray,
+  removeDuplicatesFromArray, ServerErrorCodes,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
@@ -52,7 +52,6 @@ import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
-import { PredefinedColors } from '@ionic/core';
 
 export class LandingEditorOptions extends AppEditorOptions {
 }
@@ -194,6 +193,29 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Add computation and validation
     this._rowValidatorSubscription?.unsubscribe();
     this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
+  }
+
+  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+
+    // cast err to solve type error : detail is not a property of AppErrorWithDetails, property detail is on AppErrorWithDetails.error.detail
+    err = err as any;
+    if (err
+      && typeof err !== "string"
+      && err?.code === ServerErrorCodes.DATA_NOT_UNIQUE
+      && err?.details
+      && typeof err.details === 'object'
+      && err.details.hasOwnProperty('duplicatedValues')
+    ) {
+      const details = err.details as any;
+      this.samplesTable.setError('TRIP.LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', {duplicatedValues: details.duplicatedValues});
+      super.setError(undefined, opts);
+      this.selectedTabIndex = this.getFirstInvalidTabIndex();
+    }
+    else {
+      this.samplesTable.setError(undefined);
+      super.setError(err, opts);
+    }
+
   }
 
   async updateView(data: Landing | null, opts?: {
@@ -653,7 +675,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected getFirstInvalidTabIndex(): number {
     if (this.landingForm.invalid) return 0;
-    if (this.samplesTable.invalid) return 1;
+    if (this.samplesTable.invalid || this.samplesTable.error) return 1;
     return -1;
   }
 

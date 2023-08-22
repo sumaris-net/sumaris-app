@@ -1131,7 +1131,8 @@
       "ERROR": {
         "INVALID_TAG_ID_LENGTH": "Tag length must have {{length}} characters",
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
-        "ERROR.OUT_OF_RANGE": "Out of range"
+        "OUT_OF_RANGE": "Out of range",
+        "DUPLICATED_TAG_ID": "Duplication of {{name}}"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
@@ -1205,6 +1206,11 @@
           "AVG_VARIATION_LANDING": "Average rate of change<br/>Landing<br/><small>(%)</small>",
           "AVG_VARIATION_DISCARD": "Average rate of change<br/>Discard<br/><small>(%)</small>"
         }
+      }
+    },
+    "LANDING": {
+      "ERROR": {
+        "DUPLICATED_SAMPLE_TAG_ID": "Some Tag-ID are aready used"
       }
     }
   },
