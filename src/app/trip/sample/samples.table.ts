@@ -61,6 +61,7 @@ import {AppImageAttachmentsModal, IImageModalOptions} from '@app/data/image/imag
 import {MeasurementsTableValidatorOptions} from '@app/data/measurement/measurements-table.validator';
 import {PmfmValueColorFn} from '@app/referential/pipes/pmfms.pipe';
 import {DataEntityUtils} from "@app/data/services/model/data-entity.model";
+import {UntypedFormGroup} from "@angular/forms";
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -228,7 +229,7 @@ export class SamplesTable
     return this.enableTagIdGeneration ? (this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode) : 'none';
   }
 
-  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('prepareRowForm') prepareRowFormEventEmitter = new EventEmitter<IPmfmForm>();
   @Output('weightUnitChanges') onWeightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
   constructor(
@@ -251,7 +252,7 @@ export class SamplesTable
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -319,8 +320,8 @@ export class SamplesTable
     super.ngOnDestroy();
 
     this.memoryDataService?.stop();
-    this.onPrepareRowForm.complete();
-    this.onPrepareRowForm.unsubscribe();
+    this.prepareRowFormEventEmitter.complete();
+    this.prepareRowFormEventEmitter.unsubscribe();
     this.$pmfmGroups.complete();
     this.$pmfmGroups.unsubscribe();
     this.pmfmGroupColumns$.complete();
@@ -332,6 +333,20 @@ export class SamplesTable
     super.configureValidator(opts);
 
     this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
+  }
+
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: {pmfms?: IPmfm[]; markForCheck?: () => void;}) {
+
+    if (this.validatorService) {
+      this.validatorService.updateFormGroup(form);
+    }
+
+    this.prepareRowFormEventEmitter.emit({
+      form: form,
+      pmfms: this.pmfms,
+      markForCheck: () => this.markForCheck(),
+      ...opts
+    });
   }
 
   deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
@@ -432,10 +447,10 @@ export class SamplesTable
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       showPictures: this.showImagesColumn,
       onReady: (modal) => {
-        this.onPrepareRowForm.emit({
-          form: modal.form.form,
+        this.onPrepareRowForm(modal.form.form, {
           pmfms,
-          markForCheck: () => modal.markForCheck()});
+          markForCheck: () => modal.markForCheck()
+        });
       },
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
