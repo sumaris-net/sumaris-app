@@ -25,7 +25,7 @@ import {
   toBoolean
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
@@ -527,9 +527,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   async onSave(data: BatchGroup[]): Promise<BatchGroup[]> {
 
     if (this.debug) console.debug('[batch-group-table] Preparing data to be saved...');
-    data = data.map(batch => {
-      this.prepareEntityToSave(batch);
-      return batch;
+    data = data.map(entity => {
+      this.prepareEntityToSave(entity);
+      return entity;
     });
 
     return data;

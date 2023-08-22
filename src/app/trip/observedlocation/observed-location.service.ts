@@ -469,7 +469,6 @@ export class ObservedLocationService
   translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
     opts = { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts };
     // Translate PMFM fields
-    console.debug('MYTEST', path);
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
       const pmfm = opts.pmfms.find(p => p.id === pmfmId);

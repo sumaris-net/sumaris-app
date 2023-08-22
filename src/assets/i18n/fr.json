@@ -1137,7 +1137,8 @@
       "ERROR": {
         "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
-        "OUT_OF_RANGE": "Hors fourchette"
+        "OUT_OF_RANGE": "Hors fourchette",
+        "DUPLICATED_TAG_ID": "Duplication de {{name}}"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
@@ -1211,6 +1212,11 @@
           "AVG_VARIATION_LANDING": "Taux de variation moyen<br/>Débarquement<br/><small>(%)</small>",
           "AVG_VARIATION_DISCARD": "Taux de variation moyen<br/>Rejet<br/><small>(%)</small>"
         }
+      }
+    },
+    "LANDING": {
+      "ERROR": {
+        "DUPLICATED_SAMPLE_TAG_ID": "Certains code de prélèvement sont déjà utilisés"
       }
     }
   },

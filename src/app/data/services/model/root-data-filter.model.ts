@@ -40,15 +40,17 @@ export abstract class RootDataEntityFilter<
     this.strategy = ReferentialRef.fromObject(source.strategy);
     this.recorderPerson = Person.fromObject(source.recorderPerson)
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
+
+    this.startDate = fromDateISOString(source.startDate)?.startOf('day');
+    this.endDate = fromDateISOString(source.endDate)?.endOf('day');
   }
 
   asObject(opts?: AS): any {
     const target = super.asObject(opts);
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
+      target.startDate = toDateISOString(this.startDate?.clone().startOf('day'));
+      target.endDate = toDateISOString(this.endDate?.clone().endOf('day'));
+
       target.programLabel = this.program?.label || undefined;
       delete target.program;
 
@@ -62,6 +64,9 @@ export abstract class RootDataEntityFilter<
       delete target.synchronizationStatus;
     }
     else {
+      target.startDate = toDateISOString(this.startDate);
+      target.endDate = toDateISOString(this.endDate);
+
       target.program = this.program?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.strategy = this.strategy?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.recorderPerson = this.recorderPerson?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
