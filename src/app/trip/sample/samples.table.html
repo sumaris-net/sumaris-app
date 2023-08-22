@@ -229,11 +229,11 @@
       </th>
       <ng-container *matCellDef="let row">
         <td mat-cell *ngVar="{
-          validator: row.validator.enabled && (row.validator | translateFormError: errorTranslatorOptions),
-          control: DataEntityUtils.isInvalid(row.currentData)
-        } as error"
-            [title]="error.validator||'' + row.currentData.qualificationComments||''">
-          <ion-icon *ngIf="error.validator || error.control" color="danger" slot="start" name="alert-circle">
+              formError: row.validator.enabled && (row.validator | translateFormError: errorTranslatorOptions),
+              entityError: row.currentData | dataEntityError
+            } as vars"
+            [title]="vars.formError || vars.entityError || ''">
+          <ion-icon *ngIf="vars.formError || vars.entityError" color="danger" slot="start" name="alert-circle">
           </ion-icon>
         </td>
       </ng-container>
@@ -681,6 +681,7 @@
           class="mat-row-disabled"
           [class.mat-row-dirty]="!row.currentData.id"
           [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+          [class.mat-row-error]="row.currentData|dataEntityIsInvalid"
           (click)="clickRow($event, row)"
           (press)="pressRow($event, row)"></tr>
     </table>

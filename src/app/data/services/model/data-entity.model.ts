@@ -168,7 +168,8 @@ export abstract class DataEntityUtils {
    * Check if an entity has been mark as invalid
    * @param entity
    */
-  static isInvalid(entity: Batch) {
+  static isInvalid(entity: DataEntity<any, any>|undefined) {
+    if (!entity) return false; // skip
     return isNil(entity.controlDate) && isNil(entity.qualificationDate) && entity.qualityFlagId === QualityFlagIds.BAD;
   }
 
