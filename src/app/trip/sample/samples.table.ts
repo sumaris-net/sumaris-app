@@ -1136,5 +1136,4 @@ export class SamplesTable
     this.cd.markForCheck();
   }
 
-  protected readonly DataEntityUtils = DataEntityUtils;
 }
