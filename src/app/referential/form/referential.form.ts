@@ -41,14 +41,14 @@ export class ReferentialForm<T extends BaseReferential<any> = Referential> exten
   constructor(
     injector: Injector,
     @Optional() protected validatorService: ValidatorService,
-    @Optional() protected formGroupDirective: FormGroupDirective
+    @Optional() protected formGroupDir: FormGroupDirective
   ) {
-    super(injector,formGroupDirective?.form || validatorService?.getRowValidator());
+    super(injector,formGroupDir?.form || validatorService?.getRowValidator());
     this.cd = injector.get(ChangeDetectorRef);
   }
 
   ngOnInit() {
-    this.setForm(this.form || this.formGroupDirective?.form || this.validatorService?.getRowValidator());
+    this.setForm(this.form || this.formGroupDir?.form || this.validatorService?.getRowValidator());
 
     super.ngOnInit();
 
