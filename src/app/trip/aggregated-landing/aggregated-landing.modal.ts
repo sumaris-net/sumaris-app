@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -9,7 +8,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";

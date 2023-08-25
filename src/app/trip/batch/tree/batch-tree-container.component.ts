@@ -96,6 +96,11 @@ interface ComponentState {
   treePanelFloating: boolean;
 }
 
+export const BatchTreeContainerSettingsEnum = {
+  PAGE_ID: "batch-tree-container",
+  TREE_PANEL_FLOATING_KEY: "treePanelFloating"
+};
+
 @Component({
   selector: 'app-batch-tree-container',
   templateUrl: './batch-tree-container.component.html',
@@ -333,6 +338,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected context: TripContextService,
               protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef,
+              protected settings: LocalSettingsService,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(route, router, injector.get(NavController), alertCtrl, translate);
@@ -345,7 +351,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
-      treePanelFloating: this.mobile, // On desktop, panel is pinned by default
+      treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
 
     // Watch program, to configure tables from program properties
@@ -555,6 +561,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   toggleTreePanelFloating() {
     const previousFloating = this.treePanelFloating;
     this.treePanelFloating = !previousFloating;
+    this.settings.savePageSetting(BatchTreeContainerSettingsEnum.PAGE_ID, this.treePanelFloating, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY);
     if (!previousFloating) this.sidenav?.close();
   }
 
