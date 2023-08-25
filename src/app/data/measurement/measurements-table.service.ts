@@ -1,5 +1,5 @@
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {distinctUntilChanged, filter, map, mergeMap, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {distinctUntilChanged, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from './measurement.model';
 import {
   EntityUtils,
@@ -215,9 +215,8 @@ export class MeasurementsTableEntitiesService<
 
     return this._$pmfms
       .pipe(
-        takeUntil(this.stopSubject),
         filter(isNotNil),
-        mergeMap(pmfms => {
+        switchMap(pmfms => {
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm
@@ -230,7 +229,6 @@ export class MeasurementsTableEntitiesService<
 
           return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
             .pipe(
-              takeUntil(this.stopSubject),
               map((res) => {
 
                 // Prepare measurement values for reactive form

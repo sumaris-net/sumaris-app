@@ -1,19 +1,40 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
-import { filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppFormArray,
+  filterNumberInput,
+  focusInput,
+  InputElement,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService, MatDateTime,
+  setTabIndex,
+  toBoolean,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { PmfmValidators } from '../../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
-import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { Subscription } from 'rxjs';
+import { debounceTime, Subscription } from 'rxjs';
+import { RxState } from '@rx-angular/state';
+import { filter, map } from 'rxjs/operators';
 
 const noop = () => {
 };
 
 export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' ;
+
+export interface PmfmFormFieldState {
+  type: string;
+  pmfm: IPmfm;
+  controlName: string;
+  control: AbstractControl
+}
 
 @Component({
   selector: 'app-pmfm-field',
@@ -28,25 +49,47 @@ export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'check
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
+export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  private _subscription = new Subscription();
+  private _statusChangesSubscription: Subscription;
 
-  protected type: string;
+  protected type$ = this.select('type');
+  protected control$ = this.select('control');
   protected numberInputStep: string;
-  protected formArrayHelper: FormArrayHelper<PmfmValue>;
+  protected arrayEditingIndex: number = undefined;
+  @ViewChild(MatDateTime) matDateTime: MatDateTime;
 
   /**
    * Same as `formControl`, but avoid to activate the Angular directive
    */
-  @Input() control: UntypedFormControl|UntypedFormArray;
+  @Input() set control(value: AbstractControl) {
+    this.set('control', _ => value);
+  }
+
+  get control(): AbstractControl {
+    return this.get('control');
+  }
 
   /**
    * Same as `formControlName`, but avoid to activate the Angular directive
    */
-  @Input() controlName: string;
+  @Input() set controlName(value: string) {
+    this.set('controlName', _ => value);
+  }
+
+  get controlName(): string {
+    return this.get('controlName');
+  }
+
+  @Input() set pmfm(value: IPmfm) {
+    this.set('pmfm', _ => value);
+  }
+
+  get pmfm(): IPmfm {
+    return this.get('pmfm');
+  }
 
   @Input() set formControl(value: UntypedFormControl) {
     this.control = value;
@@ -64,24 +107,7 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     return this.controlName;
   }
 
-  @Input() set formArray(value: UntypedFormArray) {
-    this.control = value;
-  }
-
-  get formArray(): UntypedFormArray {
-    return this.control as UntypedFormArray;
-  }
-
-  @Input() set formArrayName(value: string) {
-    this.controlName = value;
-  }
-
-  get formArrayName(): string {
-    return this.controlName;
-  }
-
   @Input() mobile: boolean;
-  @Input() pmfm: IPmfm;
   @Input() required: boolean;
   @Input() readonly = false;
   @Input() hidden = false;
@@ -102,6 +128,14 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges = false;
 
+  protected set type(value: string) {
+    this.set('type', _ => value);
+  }
+
+  protected get type(): string {
+    return this.get('type');
+  }
+
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
@@ -119,6 +153,10 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     return this.control?.disabled;
   }
 
+  get formArray(): AppFormArray<any, UntypedFormControl> {
+    return this.control as AppFormArray<any, UntypedFormControl>;
+  }
+
   @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
@@ -128,88 +166,110 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     protected pmfmNamePipe: PmfmNamePipe,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
+    super();
     this.mobile = settings.mobile;
+
+    // Fill controlName using the pmfm
+    this.connect('controlName', this.select('pmfm').pipe(
+      filter(isNotNil),
+      map(pmfm => pmfm.id?.toString()),
+      filter(isNotNilOrBlank)
+    ));
+
+    // get control from controlName
+    if (this.formGroupDir) {
+      this.connect('control', this.select('controlName').pipe(
+        filter(isNotNilOrBlank),
+        map(controlName => this.formGroupDir.form.get(controlName)),
+        filter(isNotNil)
+      ));
+    }
+
   }
 
   ngOnInit() {
 
-    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
-    if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
-    this.controlName = this.controlName || this.pmfm.id?.toString();
+    this.connect('type', this.select(['control', 'pmfm'], _ => _)
+      .pipe(
+        //debounceTime(1000),
+        map(({pmfm, control}) => {
+        if (!pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
+        if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
-    const control = this.control || (this.controlName && this.formGroupDir?.form.get(this.controlName));
-    if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
+        this._statusChangesSubscription?.unsubscribe();
 
+        // Default values
+        this.required = toBoolean(this.required, pmfm.required);
 
-    if (control instanceof UntypedFormArray) {
-      this.control = control;
-      this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
-      this.formArrayHelper = new FormArrayHelper<PmfmValue>(
-        control,
-        (value) => this.formBuilder.control(value || null),
-        PmfmValueUtils.equals,
-        PmfmValueUtils.isEmpty,
-        {
-          allowEmptyArray: false
-        });
+        if (control instanceof UntypedFormArray) {
+          // Make sure to get an App form array (that can be resized)
+          if (!(control instanceof AppFormArray)) throw new Error('Please use AppFormArray instead of UntypedFormArray - check the validator service');
 
-      this.type = 'array';
-    }
-    else if (control instanceof UntypedFormControl) {
-      this.control = control;
-      this.acquisitionNumber = 1; // Force to 1
-      control.setValidators(PmfmValidators.create(this.pmfm));
+          this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
+          if (control.length === 0) control.resize(1);
 
-      // Force a refresh, when control status changed (useful in some case - e.g. in BatchForm, weight pmfms can be updated with `opts={emitEvent: false}` )
-      if (this.listenStatusChanges) {
-        this._subscription.add(
-          control.statusChanges
-            .subscribe((_) => this.markForCheck())
-          );
-      }
-
-      this.placeholder = this.placeholder || this.pmfmNamePipe.transform(this.pmfm, {
-        withUnit: !this.compact,
-        i18nPrefix: this.i18nPrefix,
-        i18nContext: this.i18nSuffix
-      });
-
-      this.required = toBoolean(this.required, this.pmfm.required);
-
-      this.updateTabIndex();
-
-      // Compute the field type (use special case for Latitude/Longitude)
-      let type = this.pmfm.type;
-      if (this.hidden || this.pmfm.hidden) {
-        type = "hidden";
-      }
-      else if (type === "double") {
-        if (PmfmLabelPatterns.LATITUDE.test(this.pmfm.label) ) {
-          type = "latitude";
-        } else if (PmfmLabelPatterns.LONGITUDE.test(this.pmfm.label)) {
-          type = "longitude";
+          return 'array';
         }
-        else if (this.pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(this.pmfm.unitLabel)) {
-          type = "duration";
+        else if (control instanceof UntypedFormControl) {
+          // DEBUG
+          //if (PmfmUtils.isWeight(pmfm))console.debug('[pmfm-form-field] Configuring for the pmfm: ' + pmfm.label);
+
+          this.acquisitionNumber = 1; // Force to 1
+
+          control.setValidators(PmfmValidators.create(pmfm));
+
+          // Force a refresh, when control status changed (useful in some case - e.g. in BatchForm, weight pmfms can be updated with `opts={emitEvent: false}` )
+          if (this.listenStatusChanges) {
+            this._statusChangesSubscription = control.statusChanges.subscribe((_) => this.markForCheck());
+          }
+
+          // Default values
+          this.placeholder = this.placeholder || this.pmfmNamePipe.transform(pmfm, {
+            withUnit: !this.compact,
+            i18nPrefix: this.i18nPrefix,
+            i18nContext: this.i18nSuffix
+          });
+
+          // Compute the field type (use special case for Latitude/Longitude)
+          let type = pmfm.type;
+          if (this.hidden || pmfm.hidden) {
+            type = "hidden";
+          }
+          else if (type === "double") {
+            if (PmfmLabelPatterns.LATITUDE.test(pmfm.label) ) {
+              type = "latitude";
+            } else if (PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) {
+              type = "longitude";
+            }
+            else if (pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(pmfm.unitLabel)) {
+              type = "duration";
+            }
+            else {
+              this.numberInputStep = this.computeNumberInputStep(pmfm);
+            }
+          }
+          else if (type === "date") {
+            if (pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(pmfm.unitLabel)) {
+              type = 'dateTime';
+            }
+          }
+
+          // Update tab index
+          this.updateTabIndex();
+
+          this.cd.detectChanges();
+
+          return type;
         }
         else {
-          this.numberInputStep = this.computeNumberInputStep(this.pmfm);
+          throw new Error('Unknown control type: ' + control.constructor.name);
         }
-      }
-      else if (type === "date") {
-        if (this.pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(this.pmfm.unitLabel)) {
-           type = 'dateTime';
-        }
-      }
-      this.type = type;
-    }
-    else {
-      throw new Error('Unknown control type: ' + control.constructor.name);
-    }
+      }))
+    );
   }
 
   ngOnDestroy() {
-    this._subscription.unsubscribe();
+    this._statusChangesSubscription?.unsubscribe();
   }
 
   writeValue(value: any): void {
@@ -270,8 +330,9 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
   /* -- protected method -- */
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
-    return PmfmUtils.getOrComputePrecision(pmfm, 1)
-      .toString();
+    // FIXME: choisir la valeur min, ou vide ? - cf issue #554
+    // return PmfmUtils.getOrComputePrecision(pmfm, 1)
+    return PmfmUtils.getOrComputePrecision(pmfm, null)?.toString() || '';
   }
 
   protected updateTabIndex() {
@@ -279,11 +340,46 @@ export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, I
     setTimeout(() => {
       if (!this.matInput) return;
       setTabIndex(this.matInput, this.tabindex);
-      this.cd.markForCheck();
+      this.markForCheck();
     });
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected formArrayAdd(event: UIEvent) {
+    const autofocus = this.autofocus;
+    this.autofocus = false;
+
+    event.stopImmediatePropagation();
+
+    this.formArray.add(null, {emitEvent: false});
+    this.arrayEditingIndex = this.formArray.length - 1;
+
+    // Let the time for fields validation
+    setTimeout(() => {
+        this.autofocus = autofocus;
+        this.markForCheck();
+    });
+
+  }
+
+  protected formArrayRemoveAt(index: number, opts?: {markAsDirty :boolean}) {
+    this.formArray.removeAt(index);
+    if (!opts || opts.markAsDirty !== false) this.formArray.markAsDirty();
+    this.markForCheck();
+  }
+
+  protected formArrayRemoveEmptyOnFocusLost(event: UIEvent, index: number) {
+    event.stopPropagation();
+    setTimeout(() => {
+      const control = this.formArray.at(index);
+      // If empty: remove it
+      if (isNilOrBlank(control.value)) {
+        this.formArray.removeAt(index);
+        this.markForCheck();
+      }
+    }, 250);
   }
 }

@@ -148,7 +148,8 @@
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel
                        class="filter-panel"
-                       [class.filter-panel-floating]="filterPanelFloating">
+                       [class.filter-panel-floating]="filterPanelFloating"
+                       [class.filter-panel-pinned]="!filterPanelFloating">
     <form class="form-container ion-padding-top" [formGroup]="filterForm"
           (ngSubmit)="onRefresh.emit()"
           (keyup.enter)="applyFilterAndClosePanel($event)">

@@ -2,7 +2,11 @@ import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
-import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {
+  AppFormArray,
+  LocalSettingsService,
+  toBoolean
+} from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from './measurement.model';
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
@@ -56,13 +60,30 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
               keepSourceObject: true,
               onlyExistingPmfms: false
             })) || undefined;
-
     const config = opts.pmfms.reduce((res, pmfm) => {
+        const value = measurementValues ? measurementValues[pmfm.id] : null;
         const validator = PmfmValidators.create(pmfm, null, opts);
-        if (validator) {
-          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
-        } else {
-          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
+
+        // If pmfm is multiple, then use a AppFormArray
+        if (pmfm.isMultiple) {
+          const formArray = new AppFormArray(
+              (value) => this.formBuilder.control(value, validator),
+              PmfmValueUtils.equals,
+              PmfmValueUtils.isEmpty,
+              {
+                allowEmptyArray: false
+              }
+          )
+          if (Array.isArray(value)) {
+            formArray.setValue(value, {emitEvent: false});
+          }
+          else {
+            formArray.setValue([null], {emitEvent: false});
+          }
+          res[pmfm.id] = formArray;
+        }
+        else {
+          res[pmfm.id] = validator ? [value, validator] : [value];
         }
         return res;
       }, {});
@@ -88,24 +109,32 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
+      const validator = PmfmValidators.create(pmfm, null, opts);
+      const defaultValue = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null;
+
+      // Multiple acquisition: use form array
+      if (pmfm.isMultiple) {
+        const formArray = new AppFormArray(
+            (value) => this.formBuilder.control(value, validator),
+            PmfmValueUtils.equals,
+            PmfmValueUtils.isEmpty,
+            {
+              allowEmptyArray: false
+            }
+        );
+        // TODO set defaultValue
+
+        form.addControl(controlName, formArray, {emitEvent: opts?.emitEvent});
+      }
 
       // Only one acquisition
-      if (!pmfm.isMultiple) {
+      else {
         let formControl: AbstractControl = form.get(controlName);
         // If new pmfm: add as control
         if (!formControl) {
-          formControl = this.formBuilder.control(PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null, PmfmValidators.create(pmfm, null, opts));
+          formControl = this.formBuilder.control(defaultValue, validator);
           form.addControl(controlName, formControl, {emitEvent: opts?.emitEvent});
         }
-      }
-
-      // Multiple acquisition: use form array
-      else {
-        const formArray = this.formBuilder.array([pmfm.defaultValue].map(value => {
-          this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));
-        }), SharedFormArrayValidators.requiredArrayMinLength(pmfm.required ? 1 : 0));
-
-        form.addControl(controlName, formArray, {emitEvent: opts?.emitEvent});
       }
 
       // Remove from the remove list

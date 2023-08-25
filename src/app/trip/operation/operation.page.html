@@ -158,7 +158,7 @@
             *ngIf="mobile && enabled && canDuplicate"
             (click)="duplicate($event)">
       <ion-label>
-        <mat-icon>content_copy</mat-icon>&nbsp;
+        <mat-icon>content_copy</mat-icon>
         <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
       </ion-label>
     </button>
@@ -167,15 +167,24 @@
     <button mat-menu-item *ngIf="enabled"
                 (click)="saveAndControl($event)">
       <ion-label>
-        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>&nbsp;
+        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
         <span translate>QUALITY.BTN_CONTROL</span>
       </ion-label>
     </button>
 
+    <!-- download button -->
+    <app-extraction-button
+      *ngIf="canDownload"
+      [style]="'mat-menu-item'"
+      [programLabel]="programLabel$|push"
+      (onDownloadAsJson)="downloadAsJson($event)"
+      (onDownloadAsType)="openDownloadPage($event)">
+    </app-extraction-button>
+
     <!-- online help -->
-    <!-- TODO: enable this -->
     <button mat-menu-item
-            *ngIf="!mobile && debug"
+            *ngIf="!mobile"
+            [disabled]="!helpUrl"
             (click)="openHelpModal($event)">
       <ion-label>
         <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>&nbsp;

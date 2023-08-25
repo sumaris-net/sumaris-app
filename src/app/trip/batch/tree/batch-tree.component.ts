@@ -47,6 +47,7 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -139,6 +140,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() usageMode: UsageMode;
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
+  @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
   @Input() debug: boolean;
   @Input() set physicalGear(value: PhysicalGear) {
     this._state.set({

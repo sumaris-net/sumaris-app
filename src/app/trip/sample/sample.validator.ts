@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -87,6 +87,33 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     };
   }
 
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
+    console.debug('[sample-validator] Updating form group...', opts);
+
+    // Label required validator
+    const labelControl = form.get('label');
+    if ((!opts || opts.requiredLabel !== false)) {
+      if (labelControl && !labelControl.hasValidator(Validators.required)) {
+        labelControl.setValidators(Validators.required);
+      }
+    }
+    else if (labelControl && labelControl.hasValidator(Validators.required)) {
+        labelControl.removeValidators(Validators.required);
+    }
+
+    // Add image attachments
+    let imageFormArray = form.get('images');
+    if (this.imageAttachmentValidator && (opts?.withImages === true)) {
+      if (!imageFormArray) {
+        imageFormArray = this.getImagesFormArray();
+        form.addControl('images', imageFormArray);
+      }
+    }
+    else if (imageFormArray) {
+        form.removeControl('images');
+    }
+  }
+
   getI18nError(errorKey: string, errorContent?: any): any {
     if (SAMPLE_VALIDATOR_I18N_ERROR_KEYS[errorKey]) return this.translate.instant(SAMPLE_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
     return super.getI18nError(errorKey, errorContent);
@@ -108,5 +135,6 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
 export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
   missingWeightOrSize: 'TRIP.SAMPLE.ERROR.WEIGHT_OR_LENGTH_REQUIRED',
-  tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH'
+  tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH',
+  outOfRange: 'TRIP.SAMPLE.ERROR.OUT_OF_RANGE',
 }

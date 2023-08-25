@@ -1,4 +1,4 @@
-import { FormBuilder, FormGroup, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, UntypedFormGroup} from '@angular/forms';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues } from './measurement.model';
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -6,7 +6,7 @@ import { Injector } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TranslateService } from '@ngx-translate/core';
-import { isNotNil, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
+import {AppFormArray, isNotNil, WaitForOptions, waitForTrue} from '@sumaris-net/ngx-components';
 
 export interface MeasurementsTableValidatorOptions extends MeasurementsValidatorOptions {
   pmfms: IPmfm[]; // Required pmfms
@@ -100,11 +100,36 @@ export class MeasurementsTableValidatorService<
     if (!controlsConfig) {
       // Compute the form group
       controlsConfig = this.measurementsValidatorService.getFormGroupConfig(null, opts);
-
       // Fill the cache
       this._measurementsConfigCache = controlsConfig;
+
+      return this.formBuilder.group(controlsConfig);
     }
 
-    return this.formBuilder.group(controlsConfig);
+    // Use cahce if exists
+    else {
+      const form = this.formBuilder.group(controlsConfig);
+
+      // Re-create new instance for each array control
+      Object.entries(controlsConfig)
+          .filter(([key,  cachedControl]) => cachedControl instanceof AppFormArray)
+          .forEach(([pmfmId,  cachedControl]) => {
+            const control = new AppFormArray(cachedControl.createControl,
+                cachedControl.equals,
+                cachedControl.isEmpty,
+                cachedControl.options
+            );
+            const value = data ? data[pmfmId] : null;
+            if (Array.isArray(value)) {
+              control.setValue(value, {emitEvent: false});
+            }
+            else {
+              control.setValue([null], {emitEvent: false});
+            }
+            form.setControl(pmfmId, control, {emitEvent: false});
+          });
+
+      return form;
+    }
   }
 }

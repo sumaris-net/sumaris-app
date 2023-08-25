@@ -6,7 +6,7 @@
 
 <ng-container *ngIf="!useModal; else withModal">
   <mat-sidenav-container>
-    <mat-sidenav #sidenav [mode]="'side'"
+    <mat-sidenav #sidenav [mode]="treePanelFloating ? 'over' : 'side'"
                  [class.has-footer]="!mobile">
 
         <!-- model tree -->
@@ -47,10 +47,8 @@
                   matBadgeColor="accent"
                   matBadgeSize="small"
                   matBadgePosition="above after">
-            <mat-icon>account_tree</mat-icon>
+            <ion-icon slot="icon-only" name="menu"></ion-icon>
           </button>
-
-          <span class="breadcrumb-separator"> / </span>
         </ng-container>
 
         <div *ngIf="editingBatch$|async; let node; else helpMessage">
@@ -263,10 +261,10 @@
 <ng-template #batchTreePanel>
   <app-batch-tree #batchTree
                   (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!(editingBatch$|push:'userBlocking')"
+                  [class.cdk-visually-hidden]="!(editingBatch$|push:rxStrategy)"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [allowSpeciesSampling]="allowSamplingBatches$|push:'userBlocking'"
-                  [allowSubBatches]="allowSubBatches$|push:'userBlocking'"
+                  [allowSpeciesSampling]="allowSamplingBatches$|push:rxStrategy"
+                  [allowSubBatches]="allowSubBatches$|push:rxStrategy"
                   [defaultHasSubBatches]="defaultHasSubBatches"
                   [availableTaxonGroups]="availableTaxonGroups"
                   [usageMode]="usageMode"
@@ -276,6 +274,7 @@
                   [mobile]="mobile"
                   [disabled]="disabled"
                   [filter]="filter"
+                  [rxStrategy]="rxStrategy"
                   [debug]="debug">
 
   </app-batch-tree>

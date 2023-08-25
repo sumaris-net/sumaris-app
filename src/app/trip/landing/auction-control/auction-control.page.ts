@@ -321,7 +321,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     switch (pmfm.id) {
       case PmfmIds.OUT_OF_SIZE_PCT:
-        if (isNotNil(pmfmValue) && data.taxonGroup?.label === 'NEP') {
+        if (isNotNil(pmfmValue)) {
             if (+pmfmValue >= 15) return 'danger';
             if (+pmfmValue >= 10) return 'warning';
             if (+pmfmValue >= 5) return 'secondary100';
@@ -411,7 +411,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     // Existing data
     return titlePrefix + this.translate.instant('AUCTION_CONTROL.EDIT.TITLE', {
-      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
+      vessel: data.vesselSnapshot && (`${data.vesselSnapshot.exteriorMarking} - ${data.vesselSnapshot.name}` || data.vesselSnapshot.name)
     });
   }
 

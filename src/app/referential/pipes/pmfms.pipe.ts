@@ -91,9 +91,13 @@ export class PmfmValuePipe implements PipeTransform {
   }
 
   transform(value: any, opts: PmfmValueOptions & {separator?: string}): any {
+    return this.format(value, opts);
+  }
+
+  format(value: PmfmValue|any, opts: PmfmValueOptions & {separator?: string}): any {
     // Multiple values
     if (Array.isArray(value)) {
-      return value.map(v => this.transform(v, opts)).join(opts?.separator || ', ');
+      return value.map(v => this.format(v, opts)).join(opts?.separator || ', ');
     }
 
     const type = PmfmUtils.getExtendedType(opts?.pmfm);

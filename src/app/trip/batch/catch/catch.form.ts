@@ -6,12 +6,13 @@ import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import {AcquisitionLevelCodes, MatrixIds, PmfmIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MatrixIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
-import { combineLatest, Observable, Subject } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
 export declare type CatchBatchFormLayout = 'CATCH' | 'SORTING_BATCH';
 
@@ -44,15 +45,23 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   readonly catchPmfms$ = this._state.select('catchPmfms');
   readonly otherPmfms$ = this._state.select('otherPmfms');
   readonly gridColCount$ = this._state.select('gridColCount');
-  readonly catchPmfmsRendered = new Subject<IPmfm[]>();
 
   @Input() labelColSize = 1;
+  @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 
   @Input() set layout(value: CatchBatchFormLayout) {
     this._state.set('layout', () => value);
   }
   get layout(): CatchBatchFormLayout {
     return this._state.get('layout');
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+  }
+
+  get otherPmfms(): IPmfm[] {
+    return this._state.get('otherPmfms');
   }
 
   constructor(

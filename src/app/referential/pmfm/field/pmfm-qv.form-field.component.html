@@ -11,7 +11,14 @@
     <ng-container *ngSwitchCase="'autocomplete'">
       <mat-form-field [floatLabel]="floatLabel"
                       [appearance]="appearance"
+                      [class.mat-form-field-disabled]="disabled"
                       [title]="_displayValue">
+
+        <mat-label>{{placeholder}}</mat-label>
+
+        <div matPrefix>
+          <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+        </div>
 
         <input matInput #matInput type="text"
                [formControl]="formControl"
@@ -25,21 +32,21 @@
                [tabindex]="_tabindex"
                (keyup.enter)="this.onPressEnter.emit($event)">
 
-        <button mat-button matSuffix mat-icon-button tabindex="-1"
+        <button matSuffix  mat-icon-button tabindex="-1"
+                type="button"
+                (click)="onShowDropdown.emit($event)"
+                [hidden]="disabled">
+          <mat-icon class="large select-arrow">arrow_drop_down</mat-icon>
+        </button>
+        <button matSuffix mat-icon-button tabindex="-1"
                 type="button"
                 *ngIf="clearable"
                 (click)="clear()"
-                [hidden]="formControl.disabled || !formControl.value">
+                [hidden]="disabled || !formControl.value">
           <mat-icon>close</mat-icon>
         </button>
-        <button mat-button matSuffix  mat-icon-button tabindex="-1"
-                type="button"
-                (click)="onShowDropdown.emit($event)"
-                [hidden]="formControl.disabled">
-          <mat-icon>arrow_drop_down</mat-icon>
-        </button>
 
-        <div matSuffix>
+        <div matSuffix class="mat-form-field-suffix-container">
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
@@ -48,6 +55,8 @@
           <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
           <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
         </mat-error>
+        <ng-content select="[matError]"></ng-content>
+
       </mat-form-field>
 
       <!-- combo -->
@@ -184,6 +193,10 @@
     </mat-form-field>
   </ng-container>
 
+</ng-template>
+
+<ng-template #matPrefixTemplate>
+  <ng-content select="[matPrefix]"></ng-content>
 </ng-template>
 
 <ng-template #matSuffixTemplate>

@@ -18,6 +18,7 @@ import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.modu
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
 import { OperationsMapModal } from '@app/trip/operation/map/operations-map.modal';
+import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import { OperationsMapModal } from '@app/trip/operation/map/operations-map.modal
     AppReferentialModule,
     AppDataModule,
     VesselModule,
+    AppExtractionButtonModule,
 
     // Functional modules
     AppMeasurementModule,

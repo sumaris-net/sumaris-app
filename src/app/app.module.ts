@@ -398,7 +398,7 @@ import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/valida
           siteUrl: 'https://www.aglia.fr', logo: 'assets/img/logo/logo-aglia.png'
         },
         {
-          siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.jpg'
+          siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.png'
         },
         {
           siteUrl: 'https://www.comite-peches.fr/', logo: 'assets/img/logo/logo-cnpmem.png'

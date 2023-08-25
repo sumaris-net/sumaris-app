@@ -32,8 +32,9 @@ export class MeasurementValueGetPipe extends PmfmValuePipe {
     showLabelForPmfmIds?: number[];
     separator?: string;
   }): any {
+
     if (!entity.measurementValues || !opts?.pmfm) return undefined;
-    return super.transform(entity.measurementValues[opts.pmfm.id], {
+    return this.format(entity.measurementValues[opts.pmfm.id], {
       applyDisplayConversion: opts.pmfm.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),
       ...opts
     });

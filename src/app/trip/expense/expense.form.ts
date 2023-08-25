@@ -1,10 +1,10 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
-import { Measurement, MeasurementUtils } from '../../data/measurement/measurement.model';
+import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ExpenseValidatorService } from './expense.validator';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { TypedExpenseForm } from './typed-expense.form';
@@ -39,7 +39,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   $miscPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   totalPmfms: IPmfm[];
   calculating = false;
-
+  baitEditedIndex = -1;
 
   baitMeasurements: Measurement[];
   applyingBaitMeasurements = false;

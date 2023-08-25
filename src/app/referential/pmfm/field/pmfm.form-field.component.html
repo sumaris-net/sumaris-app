@@ -1,47 +1,90 @@
-<ng-container [ngSwitch]="type">
+<ng-container *ngVar="{control: control$|async|formGetControl, type: type$|async} as vars"
+              [ngSwitch]="vars.type">
 
   <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
     <!-- nothing to display (hidden) -->
   </div>
 
   <div *ngSwitchCase="'array'">
-    <ion-grid class="ion-no-padding" *ngVar="control|formGetArray as formArray">
-      <ion-row>
-        <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
-          <ion-col [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
-            <app-pmfm-field [pmfm]="pmfm" #pmfmField
-                            [control]="childControl|formGetControl"
-                            [required]="required && j === 0"
-                            [readonly]="readonly"
-                            [tabindex]="tabindex+j"
-                            [floatLabel]="floatLabel"
-                            [autofocus]="autofocus"
-                            [placeholder]="placeholder"
-                            [mobile]="mobile"
-                            [style]="style"
-                            (click)="clicked.emit($event)">
-            </app-pmfm-field>
-          </ion-col>
 
-          <ion-col [size]="style !== 'button' ? 'auto' : 2" class="ion-align-self-center">
-            <button type="button" mat-icon-button
-                    [title]="'COMMON.BTN_ADD'|translate"
-                    [disabled]="disabled"
-                    *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
-                    (click)="formArrayHelper.add()">
-              <mat-icon>add</mat-icon>
-            </button>
-            <button type="button" mat-icon-button
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    [disabled]="disabled"
-                    (click)="formArrayHelper.removeAt(j)"
-                    tabindex="-1">
-              <mat-icon>close</mat-icon>
-            </button>
-          </ion-col>
-        </ng-container>
-      </ion-row>
-    </ion-grid>
+    <!-- Compact mode -->
+    <ng-container *ngIf="compact; else defaultArray">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ng-container *ngFor="let childControl of formArray.controls; index as j; first as first; last as last">
+            <ion-col (focusin)="arrayEditingIndex=j" (focusout)="formArrayRemoveEmptyOnFocusLost($event, j)">
+              <app-pmfm-field
+                      [pmfm]="pmfm" #pmfmField
+                      [control]="childControl"
+                      [required]="required && j === 0"
+                      [readonly]="readonly"
+                      [tabindex]="tabindex+j"
+                      [floatLabel]="floatLabel"
+                      [placeholder]="placeholder"
+                      [mobile]="mobile"
+                      [style]="style"
+                      [compact]="compact"
+                      [autofocus]="autofocus && (arrayEditingIndex === j || (arrayEditingIndex === undefined && first))"
+                      (click)="clicked.emit($event)">
+                <button *ngIf="last && (childControl.value|isNotNilOrBlank) && formArray.length < pmfm.acquisitionNumber"
+                        matSuffix mat-icon-button tabindex="-1"
+                        type="button"
+                        (click)="formArrayAdd($event)"
+                        [hidden]="disabled">
+                  <mat-icon>add</mat-icon>
+                </button>
+                <button matSuffix mat-icon-button tabindex="-1"
+                        type="button"
+                        (click)="formArrayRemoveAt(j)"
+                        [hidden]="disabled || (first && formArray.length === 1) || (childControl.value|isNilOrBlank) || arrayEditingIndex !== j">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+    <ng-template #defaultArray>
+      <ion-grid class="ion-no-padding">
+
+        <ion-row>
+          <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
+            <ion-col [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
+              <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                              [control]="childControl|formGetControl"
+                              [required]="required && j === 0"
+                              [readonly]="readonly"
+                              [tabindex]="tabindex+j"
+                              [floatLabel]="floatLabel"
+                              [autofocus]="autofocus"
+                              [placeholder]="placeholder"
+                              [mobile]="mobile"
+                              [style]="style"
+                              (click)="clicked.emit($event)">
+              </app-pmfm-field>
+            </ion-col>
+
+            <ion-col [size]="style !== 'button' ? 'auto' : 2" class="ion-align-self-center">
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_ADD'|translate"
+                      [disabled]="disabled"
+                      *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
+                      (click)="formArray.add()">
+                <mat-icon>add</mat-icon>
+              </button>
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_DELETE'|translate"
+                      [disabled]="disabled"
+                      (click)="formArray.removeAt(j)"
+                      tabindex="-1">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ion-grid>
+    </ng-template>
 
   </div>
 
@@ -57,7 +100,7 @@
            [max]="pmfm.maxValue"
            [appAutofocus]="autofocus"
            [placeholder]="placeholder"
-           [formControl]="control|formGetControl"
+           [formControl]="vars.control"
            (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
            (focus)="focused.emit($event)"
@@ -91,6 +134,7 @@
            type="number"
            decimal="true"
            autocomplete="off"
+           [formControl]="vars.control"
            [readonly]="readonly"
            [min]="pmfm.minValue"
            [max]="pmfm.maxValue"
@@ -102,7 +146,6 @@
            (blur)="blurred.emit($event)"
            (focus)="focused.emit($event)"
            (click)="clicked.emit($event)"
-           [formControl]="control|formGetControl"
            [required]="required"
            [tabIndex]="tabindex">
 
@@ -130,7 +173,7 @@
 
   <!-- duration -->
   <mat-duration-field *ngSwitchCase="'duration'" #matInput
-                      [formControl]="control|formGetControl"
+                      [formControl]="vars.control"
                       [placeholder]="placeholder"
                       [floatLabel]="floatLabel"
                       [required]="required"
@@ -145,7 +188,7 @@
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
                      [style]="style"
-                     [formControl]="control|formGetControl"
+                     [formControl]="vars.control"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
@@ -165,7 +208,7 @@
 
   <!-- date -->
   <mat-date-field *ngSwitchCase="'date'" #matInput
-                  [formControl]="control|formGetControl"
+                  [formControl]="vars.control"
                   [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                   [floatLabel]="floatLabel"
                   [required]="required"
@@ -180,7 +223,7 @@
   </mat-date-field>
 
   <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
-                       [formControl]="control|formGetControl"
+                       [control]="vars.control"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"
@@ -212,7 +255,7 @@
                      (keyup.enter)="onPressEnter.emit($event)"
                      (click)="clicked.emit($event)"
                      [mobile]="mobile">
-    <div matSuffix>
+    <div matSuffix class="mat-form-field-suffix-container">
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </app-pmfm-qv-field>
@@ -279,8 +322,8 @@
 
   <!-- other -->
   <div *ngSwitchDefault>
-    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
-    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
+    <mat-error *ngIf="vars.type">Unknown type {{vars.type}} for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!vars.type">Error on field for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>

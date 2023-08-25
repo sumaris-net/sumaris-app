@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {SampleValidatorOptions, SampleValidatorService} from './sample.validator';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
   DateUtils,
   firstNotNilPromise,
+  getPropertyByPath,
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
@@ -17,7 +18,8 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   LoadResult,
-  LocalSettingsService, NetworkService,
+  LocalSettingsService,
+  NetworkService,
   ObjectMap,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -26,32 +28,40 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { Moment } from 'moment';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../data/measurement/measurements-table.class';
-import { ISampleModalOptions, SampleModal } from './sample.modal';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample, SampleUtils } from './sample.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { debounceTime } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from './sample.filter';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
-import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
-import { OverlayEventDetail } from '@ionic/core';
-import { IPmfmForm } from '@app/trip/operation/operation.validator';
-import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
-import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
-import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
+import {Moment} from 'moment';
+import {BaseMeasurementsTable, BaseMeasurementsTableConfig} from '@app/data/measurement/measurements-table.class';
+import {ISampleModalOptions, SampleModal} from './sample.modal';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {Sample, SampleUtils} from './sample.model';
+import {
+  AcquisitionLevelCodes,
+  AcquisitionLevelType,
+  ParameterGroups,
+  PmfmIds,
+  WeightUnitSymbol
+} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {debounceTime} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from './sample.filter';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {ISelectPmfmModalOptions, SelectPmfmModal} from '@app/referential/pmfm/table/select-pmfm.modal';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {arrayPluck} from '@app/shared/functions';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
+import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import {OverlayEventDetail} from '@ionic/core';
+import {IPmfmForm} from '@app/trip/operation/operation.validator';
+import {PmfmFilter} from '@app/referential/services/filter/pmfm.filter';
+import {MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
+import {AppImageAttachmentsModal, IImageModalOptions} from '@app/data/image/image-attachment.modal';
+import {MeasurementsTableValidatorOptions} from '@app/data/measurement/measurements-table.validator';
+import {PmfmValueColorFn} from '@app/referential/pipes/pmfms.pipe';
+import {DataEntityUtils} from "@app/data/services/model/data-entity.model";
+import {UntypedFormGroup} from "@angular/forms";
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -72,13 +82,7 @@ export declare type TagIdGenerationMode = 'none' | 'previousRow' | 'remote';
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService},
-    {provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Sample, SampleFilter, {
-          equals: Sample.equals,
-          sortByReplacement: {'id': 'rankOrder'}
-        })
-    }
+    {provide: AppValidatorService, useExisting: SampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -225,17 +229,20 @@ export class SamplesTable
     return this.enableTagIdGeneration ? (this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode) : 'none';
   }
 
-  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('prepareRowForm') prepareRowFormEventEmitter = new EventEmitter<IPmfmForm>();
   @Output('weightUnitChanges') onWeightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
   constructor(
     injector: Injector,
-    protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>,
     protected samplingStrategyService: SamplingStrategyService,
   ) {
     super(injector,
       Sample, SampleFilter,
-      memoryDataService,
+      new InMemoryEntitiesService(Sample, SampleFilter, {
+        onSave: (data) => this.onSave(data),
+        equals: Sample.equals,
+        sortByReplacement: {'id': 'rankOrder'}
+      }),
       injector.get(LocalSettingsService).mobile ? null : injector.get(SampleValidatorService),
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
@@ -245,7 +252,7 @@ export class SamplesTable
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -313,8 +320,8 @@ export class SamplesTable
     super.ngOnDestroy();
 
     this.memoryDataService?.stop();
-    this.onPrepareRowForm.complete();
-    this.onPrepareRowForm.unsubscribe();
+    this.prepareRowFormEventEmitter.complete();
+    this.prepareRowFormEventEmitter.unsubscribe();
     this.$pmfmGroups.complete();
     this.$pmfmGroups.unsubscribe();
     this.pmfmGroupColumns$.complete();
@@ -326,6 +333,26 @@ export class SamplesTable
     super.configureValidator(opts);
 
     this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
+  }
+
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: {pmfms?: IPmfm[]; markForCheck?: () => void;}) {
+
+    if (this.validatorService) {
+      this.validatorService.updateFormGroup(form);
+    }
+
+    this.prepareRowFormEventEmitter.emit({
+      form: form,
+      pmfms: this.pmfms,
+      markForCheck: () => this.markForCheck(),
+      ...opts
+    });
+  }
+
+  deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
+    // FIXME -cf issue #454
+    //console.debug('FIXME check deleteSelection')
+    return super.deleteSelection(event, opts);
   }
 
   /**
@@ -340,6 +367,52 @@ export class SamplesTable
   setSubSampleModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
     this.subSampleModalOptions = this.subSampleModalOptions || {};
     this.subSampleModalOptions[key as any] = value;
+  }
+
+  async onSave(data: Sample[]): Promise<Sample[]> {
+
+    if (this.debug) console.debug('[samples-table] Preparing data to be saved...');
+    data = data.map(entity => {
+      this.prepareEntityToSave(entity);
+      return entity;
+    });
+
+    return data;
+  }
+
+  // Change visibility to public
+  setError(error: string, opts?: {emitEvent?: boolean; duplicatedValues?: string[]; duplicatedValuePath?: string}) {
+
+    // if duplicated error
+    if (error && isNotEmptyArray(opts?.duplicatedValues)) {
+
+      const duplicatedValuePath = opts.duplicatedValuePath || this.tagIdPmfm && `measurementValues.${this.tagIdPmfm.id}`;
+      const rowsWithDuplicatedValue = this.dataSource.getRows()
+          .filter(row => {
+            const value = getPropertyByPath(row.currentData, duplicatedValuePath);
+            return opts.duplicatedValues.includes(value);
+          });
+
+      if (isNotEmptyArray(rowsWithDuplicatedValue)) {
+        const tagIdPmfmName = this.getI18nPmfmName(this.tagIdPmfm);
+        const errorMessage = this.translate.instant('TRIP.SAMPLE.ERROR.DUPLICATED_TAG_ID', {name: tagIdPmfmName?.toLowerCase()});
+        // For each rows, test if has duplicated tag id and mark it if so
+        Promise.all(rowsWithDuplicatedValue.map(row => {
+            const entity = row.currentData;
+            DataEntityUtils.markAsInvalid(entity, errorMessage);
+            return this.updateEntityToTable(entity, row, {confirmEdit: !row.editing});
+          }))
+          .then(() => {
+            this.showError = true;
+          });
+        super.setError(error, opts);
+        return;
+      }
+    }
+    else {
+      this.showError = false;
+      super.setError(error, opts);
+    }
   }
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
@@ -374,10 +447,10 @@ export class SamplesTable
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       showPictures: this.showImagesColumn,
       onReady: (modal) => {
-        this.onPrepareRowForm.emit({
-          form: modal.form.form,
+        this.onPrepareRowForm(modal.form.form, {
           pmfms,
-          markForCheck: () => modal.markForCheck()});
+          markForCheck: () => modal.markForCheck()
+        });
       },
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
@@ -824,7 +897,8 @@ export class SamplesTable
   }
 
   protected prepareEntityToSave(data: Sample) {
-    // Override by subclasses
+    // Mark as controlled (should remove the duplicated tag id error - see issue #454)
+    DataEntityUtils.markAsControlled(data);
   }
 
   async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {

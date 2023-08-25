@@ -1,6 +1,6 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
@@ -13,11 +13,11 @@ import {
   IEntitiesService,
   isEmptyArray,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
   referentialToString,
-  StatusIds,
   toBoolean,
   toDateISOString,
   UsageMode
@@ -36,8 +36,6 @@ import { BaseValidatorService } from '@app/shared/service/base.validator.service
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { isNonEmptyArray } from '@apollo/client/utilities';
-import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
@@ -76,6 +74,7 @@ export abstract class AppRootDataTable<
   protected readonly popoverController: PopoverController;
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
+  protected readonly selectedProgramLabels$: Observable<string[]>;
 
   canDelete: boolean;
   isAdmin: boolean;
@@ -111,13 +110,6 @@ export abstract class AppRootDataTable<
     return this.accountService.isLogin();
   }
 
-  get selectionExtractionTypes$() {
-    if (this._selectionExtractionTypes$ == null) {
-      this._selectionExtractionTypes$ = this.watchSelectionExtractionTypes();
-    }
-    return this._selectionExtractionTypes$;
-  }
-
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   protected constructor(
@@ -148,6 +140,23 @@ export abstract class AppRootDataTable<
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
+
+    this.selectedProgramLabels$ = this.selection.changed
+      .pipe(
+        debounceTime(650),
+        map(_ => this.selection.selected)
+      )
+      .pipe(
+        // Get program labels, from selected rows
+        startWith(this.selection.selected),
+
+        map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
+        filter(isNotEmptyArray),
+        map(labels => arrayDistinct(labels)),
+
+        // DEBUG
+        tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+      );
   }
 
   ngOnInit() {
@@ -721,52 +730,6 @@ export abstract class AppRootDataTable<
           }
         }),
         filter(isNotNil)
-      );
-  }
-
-  /**
-   * Watch programs of selected rows
-   * @protected
-   */
-  protected watchSelectedDataProgramLabels(debounceTimeMs = 650): Observable<string[]> {
-    // @ts-ignore
-    return this.selection.changed
-      .pipe(
-        map(_ => this.selection.selected)
-      )
-      .pipe(
-
-        // Get program labels, from selected rows
-        startWith(this.selection.selected),
-        debounceTime(debounceTimeMs),
-        map(rows => arrayDistinct((rows || []).map(row => row.currentData?.program?.label))),
-        filter(isNonEmptyArray),
-        distinctUntilChanged(),
-
-        // DEBUG
-        tap(programLabels => console.debug(this.logPrefix + `Loading programs [${programLabels.join(', ')}] ...`))
-      );
-  }
-
-  /**
-   * Watch extraction types from programs found in the selected rows
-   * @protected
-   */
-  protected watchSelectionExtractionTypes(): Observable<ExtractionType[]> {
-    // @ts-ignore
-    return this.watchSelectedDataProgramLabels(450)
-      .pipe(
-
-        // DEBUG
-        tap(programLabels => console.debug(this.logPrefix + `Watching extraction types with programs {${programLabels.join(', ')}} ...`)),
-
-        // Load extraction types, from program's formats
-        switchMap(programLabels => this.extractionTypeService.watchAllByProgramLabels(programLabels, <ExtractionTypeFilter>{
-            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-            isSpatial: false,
-            category: 'LIVE'
-          }, {fetchPolicy: 'cache-first'})
-        )
       );
   }
 }

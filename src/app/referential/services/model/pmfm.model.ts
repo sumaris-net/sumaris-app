@@ -37,6 +37,7 @@ export interface IPmfm<
 
   unitLabel: string;
   rankOrder?: number;
+  acquisitionNumber?: number;
 
   isQualitative: boolean;
   isComputed: boolean;
@@ -530,7 +531,7 @@ export abstract class PmfmUtils {
 
     target.displayConversion = conversion;
 
-    return this.applyConversion(source, conversion);
+    return this.applyConversion(target, conversion);
   }
 
   static applyConversion<P extends IPmfm>(target: P, conversion: UnitConversion, opts?: {markAsConverted: boolean}): P {

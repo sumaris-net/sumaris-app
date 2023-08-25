@@ -122,6 +122,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     console.info(this.logPrefix + `Download ${ids.length} strategies as JSON file...`);
 
     await this.strategyService.downloadAsJsonByIds(ids, {...opts, program: this._program});
+
+    this.selection.clear();
   }
 
   protected async importFromJson(event?: Event) {

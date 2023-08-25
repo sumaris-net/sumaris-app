@@ -94,6 +94,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_HELP_URL: <FormFieldDefinition>{
+    key: 'sumaris.trip.help.url',
+    label: 'PROGRAM.OPTIONS.TRIP_HELP_URL',
+    type: 'string'
+  },
   TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.gears.columns.pmfmIds',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS',
@@ -181,6 +186,11 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_OPERATION_HELP_URL: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.help.url',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_HELP_URL',
+    type: 'string'
   },
   TRIP_POSITION_BOUNDING_BOX: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.boundingBox',

@@ -42,7 +42,7 @@
       </button>
 
       <!-- reset filter -->
-      <button mat-icon-button (click)="resetFilter()"
+      <button mat-icon-button (click)="resetFilter(undefined, {emitEvent: true})"
               *ngIf="filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
@@ -190,7 +190,8 @@
   <mat-expansion-panel #filterExpansionPanel
                        class="filter-panel"
                        [class.cdk-visually-hidden]="enableFilterPanelCompact"
-                       [class.filter-panel-floating]="filterPanelFloating">
+                       [class.filter-panel-floating]="filterPanelFloating"
+                       [class.filter-panel-pinned]="!filterPanelFloating">
     <form class="form-container ion-padding-top" *ngIf="!enableFilterPanelCompact"
           [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 

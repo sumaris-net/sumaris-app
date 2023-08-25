@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -250,11 +250,22 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL];
     if (isNotNilOrBlank(strategyLabel)) {
       const sampleLabelPrefix = strategyLabel + '-';
-      (data.samples || []).forEach(sample => {
+      data.samples = (data.samples || []).map(sample => {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];
         if (tagId && !tagId.startsWith(sampleLabelPrefix)) {
+          // Clone to keep existing data unchanged.
+          // This is required by the samples-table in the readonly/mobile mode,
+          // because the table has no validator service (row.currentData will be a Sample entity):
+          // and when an error occur during save() this entities will be restore, and the sampleLabelPrefix will be shown
+          // -> see issue #455 for details
+          // TODO : Add the prefix to the TAG_ID a the last moment when the landing service save the data.
+          //        Manage this beahviours by creating specific save option.
+          sample = sample.clone();
+
+          // Add the sample prefix
           sample.measurementValues[PmfmIds.TAG_ID] = sampleLabelPrefix + tagId;
         }
+        return sample;
       });
     }
 

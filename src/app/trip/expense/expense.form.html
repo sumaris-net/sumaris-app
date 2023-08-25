@@ -129,43 +129,51 @@
     <!-- SUB-TAB: bait -->
     <mat-tab label="{{'EXPENSE.TAB_BAIT'|translate}}"
              [disabled]="!baitsFormArray?.length">
-      <ion-grid class="form-container">
-        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
-                 class="typed-expense-row"
-                 [class.odd]="odd">
-          <ion-col class="ion-padding-top">
-            <div class="ion-padding">
-              <app-typed-expense-form #baitExpenseForm
-                                      expenseType="BAIT"
-                                      [rankOrder]="i + 1"
-                                      entityName="VesselUseMeasurement"
-                                      [programLabel]="programLabel"
-                                      acquisitionLevel="BAIT_EXPENSE"
-                                      [forceOptional]="forceOptional"
-                                      [compact]="compact"
-                                      [debug]="debug"
-                                      [tabindex]="tabindex+50+i*3">
-              </app-typed-expense-form>
-            </div>
-          </ion-col>
-          <!-- buttons -->
-          <ion-col size="1" class="ion-align-self-center ion-text-end ion-no-padding">
-            <button type="button" mat-icon-button
-                    *ngIf="last"
-                    [tabindex]="tabindex+4+i*3+1" [disabled]="disabled"
-                    [title]="'COMMON.BTN_ADD'|translate"
-                    (click)="addBait()">
-              <mat-icon>add</mat-icon>
-            </button>
-            <button type="button" mat-icon-button [tabindex]="tabindex+4+i*3+2" [disabled]="disabled"
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removeBait(i)">
-              <mat-icon>delete_outline</mat-icon>
-            </button>
-          </ion-col>
-        </ion-row>
+        <ion-grid class="form-container ion-no-padding" (focusout)="baitEditedIndex=-1">
+          <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
+                   class="typed-expense-row ion-padding-bottom"
+                   [class.mat-row-selected]="baitEditedIndex===i"
+                   [class.odd]="odd"
+                   (focusin)="baitEditedIndex=i">
+            <ion-col>
+              <div class="ion-padding">
+                <app-typed-expense-form #baitExpenseForm
+                                        expenseType="BAIT"
+                                        [rankOrder]="i + 1"
+                                        entityName="VesselUseMeasurement"
+                                        [programLabel]="programLabel"
+                                        acquisitionLevel="BAIT_EXPENSE"
+                                        [forceOptional]="forceOptional"
+                                        [compact]="compact"
+                                        [debug]="debug && false"
+                                        [tabindex]="tabindex+50+i*3">
+                </app-typed-expense-form>
+              </div>
+            </ion-col>
+            <!-- buttons -->
+            <ion-col size="1" class="ion-align-self-center ion-text-end">
+              <ion-buttons>
+                <button type="button" mat-icon-button
+                        [style.visibility]="last ? 'visible' : 'hidden'"
+                        [tabindex]="tabindex+4+i*3+1"
+                        [disabled]="disabled"
+                        [title]="'COMMON.BTN_ADD'|translate"
+                        (click)="addBait()">
+                  <mat-icon>add</mat-icon>
+                </button>
+                <button type="button" mat-icon-button
+                        [tabindex]="tabindex+4+i*3+2"
+                        [class.visible-hover-row]="!mobile"
+                        [disabled]="disabled"
+                        [title]="'COMMON.BTN_DELETE'|translate"
+                        (click)="removeBait(i)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </ion-buttons>
+            </ion-col>
+          </ion-row>
 
-      </ion-grid>
+        </ion-grid>
     </mat-tab>
 
     <!-- SUB-TAB: misc -->

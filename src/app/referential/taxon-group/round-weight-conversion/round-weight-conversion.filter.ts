@@ -1,7 +1,6 @@
-import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { isMoment, Moment } from 'moment';
 import { RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
-import { isNonEmptyArray } from '@apollo/client/utilities';
 import { StoreObject } from '@apollo/client/core';
 
 @EntityClass({typename: 'RoundWeightConversionFilterVO'})
@@ -78,7 +77,7 @@ export class RoundWeightConversionFilter
 
     // Status
     const statusIds = this.statusIds;
-    if (isNonEmptyArray(statusIds)) {
+    if (isNotEmptyArray(statusIds)) {
       filterFns.push(t => statusIds.includes(t.statusId));
     }
 

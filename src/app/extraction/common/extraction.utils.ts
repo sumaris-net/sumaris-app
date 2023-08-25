@@ -154,7 +154,7 @@ export class ExtractionUtils {
       || arraySize(c.values) >= minSize);
   }
 
-  static createTripFilter(programLabel: string, tripIds?: number[]): ExtractionFilter {
+  static createTripFilter(programLabel: string, tripIds?: number[], operationIds?: number[]): ExtractionFilter {
     const filter = new ExtractionFilter();
     filter.sheetName = 'TR';
     const criteria: Partial<ExtractionFilterCriterion>[] = [
@@ -177,6 +177,19 @@ export class ExtractionUtils {
           value: tripIdsStr.length == 1 ? tripIdsStr[0] : undefined,
           values: tripIdsStr.length > 1 ? tripIdsStr : undefined
         });
+    }
+
+    const operationIdsStr = (operationIds || [])
+      .filter(isNotNil)
+      .map(id => id.toString());
+    if (isNotEmptyArray(operationIdsStr)) {
+      criteria.push({
+        sheetName: 'HH',
+        name: 'station_id',
+        operator: '=',
+        value: operationIdsStr.length == 1 ? operationIdsStr[0] : undefined,
+        values: operationIdsStr.length > 1 ? operationIdsStr : undefined
+      });
     }
 
     filter.criteria = criteria.map(ExtractionFilterCriterion.fromObject);

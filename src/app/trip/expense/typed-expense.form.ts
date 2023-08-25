@@ -1,13 +1,22 @@
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, WaitForOptions } from '@sumaris-net/ngx-components';
+import {
+  filterNotNil,
+  firstTruePromise,
+  FormFieldDefinition,
+  isNotEmptyArray,
+  isNotNilOrNaN,
+  remove,
+  removeAll,
+  WaitForOptions
+} from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from './typed-expense.validator';
-import { BehaviorSubject } from 'rxjs';
-import { Measurement } from '../../data/measurement/measurement.model';
+import {BehaviorSubject} from 'rxjs';
+import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { IPmfm } from '../../referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-typed-expense-form',
@@ -18,6 +27,7 @@ import { IPmfm } from '../../referential/services/model/pmfm.model';
 export class TypedExpenseForm extends MeasurementsForm {
 
   mobile: boolean;
+  $pmfmReady = new BehaviorSubject<boolean>(false);
   $typePmfm = new BehaviorSubject<IPmfm>(undefined);
   $totalPmfm = new BehaviorSubject<IPmfm>(undefined);
   $packagingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -116,7 +126,7 @@ export class TypedExpenseForm extends MeasurementsForm {
     }
 
     await super.updateView(data, opts);
-    await this.readyPmfms();
+    await this.readyPmfms({stop: this.destroySubject});
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])
@@ -126,12 +136,8 @@ export class TypedExpenseForm extends MeasurementsForm {
 
   }
 
-  async readyPmfms(): Promise<void> {
-     await Promise.all([
-       firstNotNilPromise(this.$typePmfm),
-       firstNotNilPromise(this.$totalPmfm),
-       firstNotNilPromise(this.$packagingPmfms),
-     ]);
+  readyPmfms(opts: WaitForOptions): Promise<void> {
+    return firstTruePromise(this.$pmfmReady, opts);
   }
 
   parsePmfms(pmfms: IPmfm[]) {
@@ -148,9 +154,10 @@ export class TypedExpenseForm extends MeasurementsForm {
       this.validatorService.updateFormGroup(this.form, {
         pmfms,
         typePmfm: this.$typePmfm.getValue(),
-        totalPmfm: this.$totalPmfm.getValue()
+        totalPmfm: this.$totalPmfm.getValue(),
       });
 
+      this.$pmfmReady.next(true);
     }
   }
 

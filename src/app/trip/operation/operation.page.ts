@@ -14,6 +14,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
+  FilesUtils,
   firstNotNilPromise,
   fromDateISOString,
   HistoryPageReference,
@@ -23,6 +24,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   ReferentialUtils,
   sleep,
   toBoolean,
@@ -58,7 +60,9 @@ import { RxState } from '@rx-angular/state';
 import { TripPageTabs } from '@app/trip/trip/trip.page';
 import { PredefinedColors } from '@ionic/core';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
-import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
@@ -131,6 +135,7 @@ export class OperationPage<S extends OperationState = OperationState>
     [key:string]: string[]
   } = {};
   toolbarColor:PredefinedColors = 'primary';
+  canDownload = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -140,6 +145,7 @@ export class OperationPage<S extends OperationState = OperationState>
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
   operationPasteFlags: number;
+  helpUrl: string;
   _defaultIsParentOperation: boolean = true;
   newOperationUrl: string = null;
   readonly forceOptionalExcludedPmfmIds: number[];
@@ -424,13 +430,14 @@ export class OperationPage<S extends OperationState = OperationState>
 
   async openHelpModal(event) {
     if (event) event.preventDefault();
+    if (!this.helpUrl) return;
 
-    console.debug('[operation-page] Open help page...');
+    console.debug(`[operation-page] Open help page {${this.helpUrl}}...`);
     const modal = await this.modalCtrl.create({
       component: AppHelpModal,
       componentProps: <AppHelpModalOptions>{
         title: this.translate.instant('COMMON.HELP.TITLE'),
-        markdownUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/raw/master/user-manual/index_fr'
+        markdownUrl: this.helpUrl
       },
       backdropDismiss: true
     });
@@ -766,6 +773,9 @@ export class OperationPage<S extends OperationState = OperationState>
     if (this.debug && this.operationPasteFlags !== 0) {
       console.debug(`[operation-page] Enable duplication with paste flags: ${flagsToString(this.operationPasteFlags, OperationPasteFlags)}`);
     }
+    this.helpUrl = program.getProperty(ProgramProperties.TRIP_OPERATION_HELP_URL)
+      || program.getProperty(ProgramProperties.TRIP_HELP_URL);
+
 
     this.measurementsForm.i18nSuffix = i18nSuffix;
     this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
@@ -896,6 +906,8 @@ export class OperationPage<S extends OperationState = OperationState>
     if (data.physicalGear) this.physicalGear = data.physicalGear;
 
     this.opeForm.showComment = !this.mobile || isNotNilOrBlank(data.comments);
+
+    this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
   }
 
   onNewFabButtonClick(event: Event) {
@@ -1676,5 +1688,42 @@ export class OperationPage<S extends OperationState = OperationState>
       // Open, and replace the current OP
       return this.navigateTo(parent.id);
     }
+  }
+
+  protected async downloadAsJson(event?: UIEvent) {
+    const confirmed = await this.saveIfDirtyAndConfirm(event);
+    if (confirmed === false) return;
+
+    if (!EntityUtils.isRemoteId(this.data?.id)) return; // Skip
+
+    // Create file content
+    const data = await this.dataService.load(this.data.id, {fullLoad: true});
+    const json = data.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE);
+    const content = JSON.stringify([json]);
+
+    // Write to file
+    FilesUtils.writeTextToFile(content, {
+      filename: this.translate.instant("TRIP.OPERATION.LIST.DOWNLOAD_JSON_FILENAME"),
+      type: 'application/json'
+    });
+  }
+
+  protected async openDownloadPage(type: ExtractionType) {
+    const confirmed = await this.saveIfDirtyAndConfirm();
+    if (confirmed === false) return;
+
+    const trip = this.trip;
+    if (!EntityUtils.isRemoteId(trip?.id) || !EntityUtils.isRemoteId(this.data?.id)) return; // Skip
+
+    // Create extraction type and filter
+    type = type || ExtractionType.fromLiveLabel('PMFM_TRIP');
+    const programLabel = trip.program?.label;
+    const tripId = trip.id;
+    const operationId = this.data.id;
+    const filter = ExtractionUtils.createTripFilter(programLabel, [tripId], [operationId]);
+    const queryParams = ExtractionUtils.asQueryParams(type, filter);
+
+    // Open extraction
+    await this.router.navigate(['extraction', 'data'], {queryParams});
   }
 }
