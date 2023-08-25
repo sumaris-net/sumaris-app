@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, Optional, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  Optional,
+  ViewChild
+} from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -11,49 +20,54 @@ import {
   filterTrue,
   firstNotNilPromise,
   FormErrorTranslatorOptions,
-  getPropertyByPath, ILogger, ILoggingService,
+  getPropertyByPath,
+  ILogger,
+  ILoggingService,
   isEmptyArray,
   isNil,
-  isNotEmptyArray, isNotNil,
+  isNotEmptyArray,
+  isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   toBoolean,
   toNumber,
-  UsageMode, waitFor,
+  UsageMode,
+  waitFor,
   WaitForOptions,
   waitForTrue
 } from '@sumaris-net/ngx-components';
-import { AlertController, IonModal, NavController } from '@ionic/angular';
-import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
-import { Batch } from '@app/trip/batch/common/batch.model';
-import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
-import { Program } from '@app/referential/services/model/program.model';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { merge, Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
-import { UntypedFormGroup } from '@angular/forms';
-import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { TripContextService } from '@app/trip/trip-context.service';
-import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
-import { RxState } from '@rx-angular/state';
-import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
-import { MatSidenav } from '@angular/material/sidenav';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { ContextService } from '@app/shared/context.service';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {AlertController, IonModal, NavController} from '@ionic/angular';
+import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
+import {Batch} from '@app/trip/batch/common/batch.model';
+import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
+import {Program} from '@app/referential/services/model/program.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {merge, Observable, Subject, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap} from 'rxjs/operators';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BatchFilter} from '@app/trip/batch/common/batch.filter';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
+import {UntypedFormGroup} from '@angular/forms';
+import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {PhysicalGearService} from '@app/trip/physicalgear/physicalgear.service';
+import {TripContextService} from '@app/trip/trip-context.service';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
+import {TreeItemEntityUtils} from '@app/shared/tree-item-entity.utils';
+import {RxState} from '@rx-angular/state';
+import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
+import {MatSidenav} from '@angular/material/sidenav';
+import {MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
+import {ContextService} from '@app/shared/context.service';
+import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {MatTab, MatTabGroup} from "@angular/material/tabs";
 
 
 interface BadgeState {
@@ -320,7 +334,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
-              ) {
+  ) {
     super(route, router, injector.get(NavController), alertCtrl, translate);
 
     // Defaults
@@ -393,9 +407,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Reload data, when form (or model) changed
     this._state.hold(this.form$
-      .pipe(
-        filter(form => !this.loading && !!form)
-      ),
+        .pipe(
+          filter(form => !this.loading && !!form)
+        ),
       (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
 
     this._state.hold(filterTrue(this.readySubject)
@@ -426,6 +440,23 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
       return badge;
     });
+
+    // Workaround need by the sidenav, when included inside a MatTabGroup
+    const parentTabGroup = injector.get(MatTabGroup);
+    if (parentTabGroup) {
+      const parentTab = injector.get(MatTab);
+      this._state.hold(parentTabGroup.animationDone, (event) => {
+        // Visible
+        if (parentTab.isActive) {
+          if (!this.treePanelFloating || !this.editingBatch) {
+            this.openTreePanel();
+          }
+        }
+        else {
+          this.closeTreePanel();
+        }
+      });
+    }
 
     // DEBUG
     this._logger = loggingService.getLogger('batch-tree-container');
@@ -536,10 +567,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     if (!this.useModal) {
-      // Wait side nav to be carted
-      if (this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
-      // open it
-      await this.sidenav.open();
+      // Wait side nav to be created
+      if (!this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
+     // open it, if need
+      if (!this.sidenav.opened) await this.sidenav.open();
     }
 
     this.markForCheck();
@@ -801,9 +832,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     else {
       // Stop editing batch (not found)
       await this.stopEditBatch();
-
-      // Open filter panel
-      await this.openTreePanel();
     }
 
     if (!opts || opts.markAsPristine !== false) {
