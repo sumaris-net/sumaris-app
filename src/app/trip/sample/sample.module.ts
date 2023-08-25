@@ -17,6 +17,7 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { SamplesModal } from '@app/trip/sample/samples.modal';
 import { ImageGalleryModule } from '@sumaris-net/ngx-components';
 import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmfm.module';
+import {AppEntityQualityModule} from '@app/data/quality/entity-quality.module';
 
 @NgModule({
   imports: [
@@ -31,7 +32,9 @@ import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmf
     // Functional modules
     AppMeasurementModule,
     AppPmfmSelectModalModule,
-    ImageGalleryModule
+    ImageGalleryModule,
+    AppEntityQualityModule,
+
   ],
   declarations: [
     SamplesTable,

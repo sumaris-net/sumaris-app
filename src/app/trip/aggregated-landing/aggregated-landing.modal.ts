@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -9,7 +8,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
@@ -111,8 +110,8 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
         tripToOpen: undefined
       };
       this.disable();
-      await this.viewCtrl.dismiss(value);
       this.form.error = null;
+      await this.viewCtrl.dismiss(value);
     } catch (err) {
       this.form.error = err && err.message || err;
       this.enable();

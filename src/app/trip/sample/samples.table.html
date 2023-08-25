@@ -533,7 +533,18 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
           <ion-label>#</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">{{ row.currentData?.rankOrder }}</td>
+        <ng-container *matCellDef="let row">
+          <td  [class.ion-padding-start]="mobile" mat-cell>
+            <ion-text
+              matBadge="!"
+              [matBadgeHidden]="row.currentData.qualityFlagId|qualityFlagValid"
+              matBadgeOverlap="false"
+              matBadgeColor="accent"
+              matBadgeSize="small">
+              {{ row.currentData.rankOrder }}
+            </ion-text>
+          </td>
+        </ng-container>
       </ng-container>
 
       <!-- label Column -->
@@ -681,7 +692,7 @@
           class="mat-row-disabled"
           [class.mat-row-dirty]="!row.currentData.id"
           [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
-          [class.mat-row-error]="row.currentData|dataEntityIsInvalid"
+          [class.mat-row-error]="row.currentData.qualityFlagId|qualityFlagInvalid"
           (click)="clickRow($event, row)"
           (press)="pressRow($event, row)"></tr>
     </table>

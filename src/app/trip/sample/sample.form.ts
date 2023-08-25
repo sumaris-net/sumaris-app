@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {MeasurementValuesForm} from '@app/data/measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '@app/data/measurement/measurement.validator';
+import {UntypedFormArray, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 import {
   AppFormUtils,
   FormArrayHelper,
@@ -15,14 +15,14 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
-import { SampleValidatorService } from './sample.validator';
-import { Sample } from './sample.model';
-import { environment } from '../../../environments/environment';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {SampleValidatorService} from './sample.validator';
+import {Sample} from './sample.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SubSampleValidatorService} from '@app/trip/sample/sub-sample.validator';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 
 @Component({
   selector: 'app-sample-form',
@@ -63,7 +63,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       validatorService.getFormGroup(),
       {
         skipDisabledPmfmControl: false,
-        skipComputedPmfmControl: false
+        skipComputedPmfmControl: false,
+        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       }
     );
 
@@ -89,10 +90,12 @@ export class SampleForm extends MeasurementValuesForm<Sample>
         items: this.availableTaxonGroups,
         mobile: this.mobile
       });
-    }
-    else {
+    } else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, options?: any) => this.programRefService.suggestTaxonGroups(value, {...options, program: this.programLabel}),
+        suggestFn: (value: any, options?: any) => this.programRefService.suggestTaxonGroups(value, {
+          ...options,
+          program: this.programLabel
+        }),
         mobile: this.mobile
       });
     }
@@ -129,6 +132,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   /* -- protected methods -- */
 
+  protected onUpdateFormGroup(form: UntypedFormGroup) {
+
+    this.validatorService.updateFormGroup(form, {
+      requiredLabel: this.requiredLabel
+    });
+  }
+
   protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
     super.onApplyingEntity(data, opts);
 
@@ -143,7 +153,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   protected getValue(): Sample {
     const value = super.getValue();
-    // Reset comment, when hidden
+// Reset comment, when hidden
     if (!this.showComment) value.comments = undefined;
     return value;
   }
@@ -151,7 +161,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.form.get('taxonGroup').value;
 
-    // IF taxonGroup column exists: taxon group must be filled first
+// IF taxonGroup column exists: taxon group must be filled first
     if (this.showTaxonGroup && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
     return this.programRefService.suggestTaxonNames(value,

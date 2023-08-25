@@ -11,15 +11,19 @@ import {
   filterTrue,
   firstNotNilPromise,
   FormErrorTranslatorOptions,
-  getPropertyByPath, ILogger, ILoggingService,
+  getPropertyByPath,
+  ILogger,
+  ILoggingService,
   isEmptyArray,
   isNil,
-  isNotEmptyArray, isNotNil,
+  isNotEmptyArray,
+  isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   toBoolean,
   toNumber,
-  UsageMode, waitFor,
+  UsageMode,
+  waitFor,
   WaitForOptions,
   waitForTrue
 } from '@sumaris-net/ngx-components';
@@ -54,6 +58,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ContextService } from '@app/shared/context.service';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
 
@@ -82,6 +87,11 @@ interface ComponentState {
   currentBadge: BadgeState;
   treePanelFloating: boolean;
 }
+
+export const BatchTreeContainerSettingsEnum = {
+  PAGE_ID: "batch-tree-container",
+  TREE_PANEL_FLOATING_KEY: "treePanelFloating"
+};
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -321,8 +331,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected context: TripContextService,
               protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef,
+              protected settings: LocalSettingsService,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
-              ) {
+  ) {
     super(route, router, injector.get(NavController), alertCtrl, translate);
 
     // Defaults
@@ -333,7 +344,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
-      treePanelFloating: this.mobile, // On desktop, panel is pinned by default
+      treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
 
     // Watch program, to configure tables from program properties
@@ -395,9 +406,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Reload data, when form (or model) changed
     this._state.hold(this.form$
-      .pipe(
-        filter(form => !this.loading && !!form)
-      ),
+        .pipe(
+          filter(form => !this.loading && !!form)
+        ),
       (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
 
     this._state.hold(filterTrue(this.readySubject)
@@ -428,6 +439,23 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
       return badge;
     });
+
+    // Workaround need by the sidenav, when included inside a MatTabGroup
+    const parentTabGroup = injector.get(MatTabGroup);
+    if (parentTabGroup) {
+      const parentTab = injector.get(MatTab);
+      this._state.hold(parentTabGroup.animationDone, (event) => {
+        // Visible
+        if (parentTab.isActive) {
+          if (!this.treePanelFloating || !this.editingBatch) {
+            this.openTreePanel();
+          }
+        }
+        else {
+          this.closeTreePanel();
+        }
+      });
+    }
 
     // DEBUG
     this._logger = loggingService.getLogger('batch-tree-container');
@@ -526,6 +554,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   toggleTreePanelFloating() {
     const previousFloating = this.treePanelFloating;
     this.treePanelFloating = !previousFloating;
+    this.settings.savePageSetting(BatchTreeContainerSettingsEnum.PAGE_ID, this.treePanelFloating, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY);
     if (!previousFloating) this.sidenav?.close();
   }
 
@@ -538,10 +567,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     if (!this.useModal) {
-      // Wait side nav to be carted
-      if (this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
-      // open it
-      await this.sidenav.open();
+      // Wait side nav to be created
+      if (!this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
+     // open it, if need
+      if (!this.sidenav.opened) await this.sidenav.open();
     }
 
     this.markForCheck();
@@ -803,9 +832,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     else {
       // Stop editing batch (not found)
       await this.stopEditBatch();
-
-      // Open filter panel
-      await this.openTreePanel();
     }
 
     if (!opts || opts.markAsPristine !== false) {
