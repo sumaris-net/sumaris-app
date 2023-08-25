@@ -51,7 +51,7 @@ ion-content {
   --table-toolbar-height: 0px;
   --table-tab-link-height: 0px;
 
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-tab-link-height, 0px) - 1px);
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-tab-link-height, 0px) - 2px);
 
   &.has-nav-bar {
     --table-tab-link-height: var(--mat-tab-link-height);

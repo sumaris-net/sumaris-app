@@ -16,6 +16,8 @@
 // --------------------------------------------------
 @import "mixins";
 
+/* -- mat-tab -- */
+
 .mat-tab-fixed-content {
   .mat-tab-body-content {
     height: var(--mat-tab-body-content-height, 100%) !important;
@@ -323,3 +325,30 @@ app-toolbar ion-segment-button {
     }
   }
 }
+
+/* -- table container -- */
+
+.table-container {
+  --overflow: auto;
+  overflow-x: var(--overflow);
+  overflow-y: var(--overflow);
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: contain;
+  //will-change: scroll-position;
+  //box-sizing: border-box;
+}
+
+// In mobile, force to display a small vertical scrollbar
+@media (pointer: coarse) {
+  .table-container::-webkit-scrollbar {
+    height: 0px;
+    width: 3px;
+    background-color: transparent;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background-color: lightgrey;
+    border-radius: 1px;
+  }
+}
+
