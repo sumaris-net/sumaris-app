@@ -15,6 +15,6 @@ import { DataEntityErrorPipe, DataEntityIsInvalidPipe } from './data-entity.pipe
     DataEntityErrorPipe
   ]
 })
-export class AppDataPipesModule {
+export class AppDataEntityPipesModule {
 
 }

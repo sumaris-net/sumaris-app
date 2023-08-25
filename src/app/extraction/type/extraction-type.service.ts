@@ -26,7 +26,6 @@ import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { isNonEmptyArray } from '@apollo/client/utilities';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -191,7 +190,7 @@ export class ExtractionTypeService
     // @ts-ignore
     return of(programs)
       .pipe(
-        filter(isNonEmptyArray),
+        filter(isNotEmptyArray),
         // Get extraction formats of selected programs (apply an intersection)
         map(programs => {
           const formatArrays = programs.map(program => {

@@ -629,6 +629,9 @@
       "INVALID_GEARS": "Veuillez corriger les engins invalides ci-dessous",
       "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
+    "WARNING": {
+      "NO_HELP_URL": "Il semble que le programme de collecte {{programLabel}} <b>n'a pas encore d'aide en ligne</b> spécifique mise à disposition.<br/><small><br/>Si le problème persiste, veuillez <b>contacter votre administrateur</b>.</small>"
+    },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER": "Caractéristique #{{rankOrder}}",
       "ERROR": {
@@ -821,7 +824,8 @@
         "FISHING_AREA": "Zone de pêche",
         "COMMENTS": "Commentaires",
         "QUALITY": "État",
-        "QUALITY_FILTER": "Filtrer par état :"
+        "QUALITY_FILTER": "Filtrer par état :",
+        "DOWNLOAD_JSON_FILENAME": "Opérations.json"
       },
       "FILTER": {
         "GEAR" : "Engin",
@@ -1982,6 +1986,7 @@
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
+      "TRIP_HELP_URL": "Marée: Aide en ligne (URL)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s) (PSFM)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
@@ -2047,6 +2052,7 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Engin, Métier, Position/Zone de pêche",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
+      "TRIP_OPERATION_HELP_URL": "Marée > Opération : Aide en ligne (URL)",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
@@ -2985,6 +2991,8 @@
     "TEXT_PROGRESS": "{{current}} sur {{max}}"
   },
   "WARNING": {
+    "ALERT_HEADER": "Avertissement",
+    "OOPS_DOTS": "Oups...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
   }
 }

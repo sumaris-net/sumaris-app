@@ -1,7 +1,5 @@
-import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNotNil } from '@sumaris-net/ngx-components';
-import { Moment } from 'moment';
+import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, IEntityFilter, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { WeightLengthConversionRef } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
-import { isNonEmptyArray } from '@apollo/client/utilities';
 import { StoreObject } from '@apollo/client/core';
 
 @EntityClass({typename: 'WeightLengthConversionFilterVO'})
@@ -95,7 +93,7 @@ export class WeightLengthConversionFilter
 
     // Status
     const statusIds = this.statusIds;
-    if (isNonEmptyArray(statusIds)) {
+    if (isNotEmptyArray(statusIds)) {
       filterFns.push(t => statusIds.includes(t.statusId));
     }
 

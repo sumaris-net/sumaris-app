@@ -7,7 +7,7 @@ import { AppImageAttachmentModule } from '@app/data/image/image-attachment.modul
 import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
-import { AppDataPipesModule } from '@app/data/pipes/pipes.module';
+import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
 
 @NgModule({
   imports: [
@@ -18,7 +18,7 @@ import { AppDataPipesModule } from '@app/data/pipes/pipes.module';
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppDataPipesModule
+    AppDataEntityPipesModule
   ],
   declarations: [
     // Pipes
@@ -34,7 +34,7 @@ import { AppDataPipesModule } from '@app/data/pipes/pipes.module';
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppDataPipesModule,
+    AppDataEntityPipesModule,
 
     // Pipes
     IsMeasurementFormValuesPipe,

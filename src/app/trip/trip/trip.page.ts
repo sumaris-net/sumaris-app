@@ -14,11 +14,14 @@ import {
   AccountService,
   Alerts,
   AppErrorWithDetails,
+  AppHelpModal,
+  AppHelpModalOptions,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
+  FilesUtils,
   HistoryPageReference,
   InMemoryEntitiesService,
   isNil,
@@ -26,9 +29,11 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   NetworkService,
   PromiseEvent,
-  ReferentialRef, sleep,
+  ReferentialRef,
+  sleep,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -54,6 +59,8 @@ import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physica
 
 import moment from 'moment';
 import { PredefinedColors } from '@ionic/core';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 
 export const TripPageTabs = {
   GENERAL: 0,
@@ -100,6 +107,8 @@ export class TripPage
   operationEditor: OperationEditor;
   operationPasteFlags: number;
   canCopyLocally = false;
+  canDownload = false;
+  helpUrl: string;
 
   @Input() toolbarColor: PredefinedColors = 'primary';
 
@@ -333,6 +342,7 @@ export class TripPage
     this.operationsTable.i18nColumnSuffix = i18nSuffix;
     this.operationsTable.detailEditor = this.operationEditor;
     this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
+    this.helpUrl = program.getProperty(ProgramProperties.TRIP_HELP_URL);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -434,6 +444,7 @@ export class TripPage
     const programLabel =  data.program?.label;
     if (programLabel) this.$programLabel.next(programLabel);
 
+    this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
     this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
@@ -809,6 +820,65 @@ export class TripPage
           })
       );
     }
+  }
+
+  protected async downloadAsJson(event?: UIEvent) {
+    const confirmed = await this.saveIfDirtyAndConfirm(event);
+    if (confirmed === false) return;
+
+    if (!EntityUtils.isRemoteId(this.data?.id)) return; // Skip
+
+    // Create file content
+    const data = await this.dataService.load(this.data.id, {fullLoad: true, withOperation: true});
+    const json = data.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE);
+    const content = JSON.stringify([json]);
+
+    // Write to file
+    FilesUtils.writeTextToFile(content, {
+      filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
+      type: 'application/json'
+    });
+  }
+
+  protected async openDownloadPage(type: ExtractionType) {
+    const confirmed = await this.saveIfDirtyAndConfirm();
+    if (confirmed === false) return;
+
+    if (!EntityUtils.isRemoteId(this.data?.id)) return; // Skip
+
+    // Create extraction type and filter
+    type = type || ExtractionType.fromLiveLabel('PMFM_TRIP');
+    const programLabel = this.data.program?.label;
+    const tripId = this.data.id;
+    const filter = ExtractionUtils.createTripFilter(programLabel, [tripId]);
+    const queryParams = ExtractionUtils.asQueryParams(type, filter);
+
+    // Open extraction
+    await this.router.navigate(['extraction', 'data'], {queryParams});
+  }
+
+  async openHelpModal(event) {
+    if (event) event.preventDefault();
+
+    if (!this.helpUrl) {
+      await Alerts.showError('TRIP.WARNING.NO_HELP_URL', this.alertCtrl, this.translate, {
+        titleKey: 'WARNING.OOPS_DOTS'
+      }, {
+        programLabel: this.$programLabel.getValue()
+      });
+      return;
+    }
+
+    console.debug(`[trip-page] Open help page {${this.helpUrl}}...`);
+    const modal = await this.modalCtrl.create({
+      component: AppHelpModal,
+      componentProps: <AppHelpModalOptions>{
+        title: this.translate.instant('COMMON.HELP.TITLE'),
+        markdownUrl: this.helpUrl
+      },
+      backdropDismiss: true
+    });
+    return modal.present();
   }
 
   protected markForCheck() {

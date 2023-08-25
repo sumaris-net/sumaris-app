@@ -45,26 +45,12 @@
       <mat-icon>delete</mat-icon>
     </button>
 
-
-    <!-- download button -->
-    <button mat-icon-button
-            *ngIf="canDownload"
-            [title]="'COMMON.BTN_DOWNLOAD'|translate"
-            [matMenuTriggerFor]="downloadMenu">
-      <mat-icon>download</mat-icon>
-    </button>
-
-    <!-- Download menu -->
-    <mat-menu #downloadMenu="matMenu" xPosition="after">
-
-      <!-- JSON -->
-      <button mat-menu-item
-              (click)="downloadSelectionAsJson($event)">
-        <mat-icon>download</mat-icon>
-        <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
-      </button>
-
-    </mat-menu>
+    <!-- Download button -->
+    <app-extraction-button
+      *ngIf="canDownload"
+      [programLabel]="filter?.levelLabel"
+      (onDownloadAsJson)="downloadSelectionAsJson($event)">
+    </app-extraction-button>
   </ng-template>
 
 

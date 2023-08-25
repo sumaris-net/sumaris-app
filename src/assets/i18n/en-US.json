@@ -604,7 +604,7 @@
         "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
       },
       "WARNING": {
-        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first."
+        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first.",
       },
       "ERROR": {
         "IMPORT_FILE_FAILED" : "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
@@ -628,6 +628,9 @@
       "ADD_GEAR": "Error while adding new physical gear to the trip",
       "INVALID_GEARS": "Please correct invalid gears below",
       "INVALID_OPERATIONS": "Please correct invalid operations below"
+    },
+    "WARNING": {
+      "NO_HELP_URL": "It seems that the data collection program {{programLabel}} <b>does not yet have specific online help</b> available.<br/><small><br/>If the issue persists, please <b>contact your administrator</b>.</small>"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER": "Feature #{{rankOrder}}",
@@ -1976,6 +1979,7 @@
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
+      "TRIP_HELP_URL": "Trip: Online help (URL)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
@@ -2041,6 +2045,7 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Gear, Metier, Position/Fishing area",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area, Features"
       },
+      "TRIP_OPERATION_HELP_URL": "Trip > Operation: Online helper (URL)",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Trips: Column 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
@@ -2919,6 +2924,8 @@
     "TEXT_PROGRESS": "{{current}} of {{max}}"
   },
   "WARNING": {
+    "ALERT_HEADER": "Warning",
+    "OOPS_DOTS": "Oops...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>"
   }
 }

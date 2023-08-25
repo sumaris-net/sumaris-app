@@ -19,6 +19,7 @@ import { AppReferentialFormModule } from '@app/referential/form/referential-form
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
+import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 
 @NgModule({
   imports: [
@@ -32,7 +33,8 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
     AppReferentialFormModule,
     AppReferentialPipesModule,
     AppPmfmFormFieldModule,
-    AppTranscribingModule
+    AppTranscribingModule,
+    AppExtractionButtonModule,
   ],
   declarations: [
     // Pipes

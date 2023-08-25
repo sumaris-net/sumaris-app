@@ -1,7 +1,6 @@
 import { EntityAsObjectOptions, EntityClass, FilterFn, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { ExtractionCategoryType, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { isNonEmptyArray } from '@apollo/client/utilities';
 
 @EntityClass({typename: 'ExtractionTypeFilterVO'})
 export class ExtractionTypeFilter extends BaseReferentialFilter<ExtractionTypeFilter, ExtractionType> {
@@ -50,7 +49,7 @@ export class ExtractionTypeFilter extends BaseReferentialFilter<ExtractionTypeFi
       filterFns.push(entity => this.format === entity.format);
     }
     // Filter by formats
-    else if (isNonEmptyArray(this.formats)) {
+    else if (isNotEmptyArray(this.formats)) {
       const formats = this.formats;
       filterFns.push(entity => formats.includes(entity.format));
     }

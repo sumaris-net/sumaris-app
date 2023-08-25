@@ -378,7 +378,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return this.downloadAsJson(ids);
   }
 
-  async openDownloadPage(event?: Event, type?: ExtractionType) {
+  async openDownloadPage(type?: ExtractionType) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
