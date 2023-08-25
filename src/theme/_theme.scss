@@ -340,10 +340,14 @@ app-toolbar ion-segment-button {
 
 // In mobile, force to display a small vertical scrollbar
 @media (pointer: coarse) {
-  .table-container::-webkit-scrollbar {
-    height: 0px;
-    width: 3px;
+  ::-webkit-scrollbar {
+    height: 0;
+    width: 0;
     background-color: transparent;
+  }
+
+  .table-container::-webkit-scrollbar {
+    width: 3px;
   }
 
   .table-container::-webkit-scrollbar-thumb {
