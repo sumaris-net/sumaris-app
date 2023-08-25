@@ -67,7 +67,7 @@
                  [sizeMd]="1"
                  [class.cdk-visually-hidden]="pmfm.hidden">
           <app-pmfm-field [pmfm]="pmfm"
-                          [control]="_form.controls.measurementValues.controls[pmfm.id]"
+                          [control]="form.controls.measurementValues.get(pmfm.id)"
                           [i18nPrefix]="i18nPmfmPrefix"
                           [i18nSuffix]="i18nSuffix"
                           [tabindex]="tabindex + i * 3">
