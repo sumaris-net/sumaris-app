@@ -54,6 +54,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ContextService } from '@app/shared/context.service';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
 
 interface BadgeState {
@@ -152,6 +153,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() useModal = false;
+  @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
 
   @Input() set allowSpeciesSampling(value: boolean) {
     this._state.set('allowSpeciesSampling', (_) => value);

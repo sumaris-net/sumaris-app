@@ -89,7 +89,7 @@
 
 <!-- catch batch form -->
 <div class="ion-padding"
-     [class.cdk-visually-hidden]="!(showCatchForm$|push:'userBlocking')">
+     [class.cdk-visually-hidden]="!(showCatchForm$|push:rxStrategy)">
   <form-catch-batch #catchBatchForm
                     [programLabel]="programLabel$|async"
                     [acquisitionLevel]="rootAcquisitionLevel"
@@ -98,13 +98,14 @@
                     [showError]="false"
                     [i18nPmfmPrefix]="i18nPmfmPrefix"
                     [i18nSuffix]="i18nContext?.suffix"
+                    [rxStrategy]="rxStrategy"
                     [debug]="debug">
   </form-catch-batch>
 </div>
 
 <mat-tab-group #tabGroup
                class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"
-               [class.cdk-visually-hidden]="!(showBatchTables$|push:'userBlocking')"
+               [class.cdk-visually-hidden]="!(showBatchTables$|push:rxStrategy)"
                [class.mat-tab-group-header-hidden]="mobile"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"

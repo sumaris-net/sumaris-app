@@ -263,10 +263,10 @@
 <ng-template #batchTreePanel>
   <app-batch-tree #batchTree
                   (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!(editingBatch$|push:'userBlocking')"
+                  [class.cdk-visually-hidden]="!(editingBatch$|push:rxStrategy)"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [allowSpeciesSampling]="allowSamplingBatches$|push:'userBlocking'"
-                  [allowSubBatches]="allowSubBatches$|push:'userBlocking'"
+                  [allowSpeciesSampling]="allowSamplingBatches$|push:rxStrategy"
+                  [allowSubBatches]="allowSubBatches$|push:rxStrategy"
                   [defaultHasSubBatches]="defaultHasSubBatches"
                   [availableTaxonGroups]="availableTaxonGroups"
                   [usageMode]="usageMode"
@@ -276,6 +276,7 @@
                   [mobile]="mobile"
                   [disabled]="disabled"
                   [filter]="filter"
+                  [rxStrategy]="rxStrategy"
                   [debug]="debug">
 
   </app-batch-tree>
