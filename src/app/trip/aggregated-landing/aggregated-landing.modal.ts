@@ -111,8 +111,8 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
         tripToOpen: undefined
       };
       this.disable();
-      await this.viewCtrl.dismiss(value);
       this.form.error = null;
+      await this.viewCtrl.dismiss(value);
     } catch (err) {
       this.form.error = err && err.message || err;
       this.enable();
