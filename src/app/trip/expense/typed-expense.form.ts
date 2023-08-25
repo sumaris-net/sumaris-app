@@ -1,4 +1,4 @@
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
@@ -13,10 +13,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from './typed-expense.validator';
 import {BehaviorSubject} from 'rxjs';
-import { Measurement } from '../../data/measurement/measurement.model';
+import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { IPmfm } from '../../referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-typed-expense-form',
