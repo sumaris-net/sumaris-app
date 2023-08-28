@@ -130,8 +130,8 @@ export class PmfmValuePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsDatePmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-    return pmfm && pmfm.type === 'date';
+  transform(pmfm: IPmfm): boolean {
+    return pmfm && PmfmUtils.isDate(pmfm) || false;
   }
 }
 
@@ -155,6 +155,18 @@ export class IsMultiplePmfmPipe implements PipeTransform {
 
   transform(pmfm: IPmfm): boolean {
     return pmfm?.isMultiple || false;
+  }
+}
+
+
+@Pipe({
+  name: 'isWeightPmfm'
+})
+@Injectable({providedIn: 'root'})
+export class IsWeightPmfmPipe implements PipeTransform {
+
+  transform(pmfm: IPmfm): boolean {
+    return pmfm && PmfmUtils.isWeight(pmfm) || false;
   }
 }
 

@@ -223,7 +223,7 @@
   </mat-date-field>
 
   <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
-                       [control]="vars.control"
+                       [formControl]="vars.control"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"

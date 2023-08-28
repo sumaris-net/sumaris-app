@@ -103,6 +103,9 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   updateFormGroup(form: UntypedFormGroup, opts?: O & {emitEvent?: boolean}) {
     opts = this.fillDefaultOptions(opts);
 
+    // DEBUG
+    //console.debug(`[measurement-validator] (${opts?.pmfms?.[0]?.['acquisitionLevel']}) updateFormGroup()`)
+
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
       // Excluded protected attributes
       .filter(controlName => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
@@ -129,11 +132,14 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
       // Only one acquisition
       else {
-        let formControl: AbstractControl = form.get(controlName);
+        let control: AbstractControl = form.get(controlName);
         // If new pmfm: add as control
-        if (!formControl) {
-          formControl = this.formBuilder.control(defaultValue, validator);
-          form.addControl(controlName, formControl, {emitEvent: opts?.emitEvent});
+        if (!control) {
+          control = this.formBuilder.control(defaultValue, validator);
+          form.addControl(controlName, control, {emitEvent: opts?.emitEvent});
+        }
+        else {
+          control.setValidators(validator);
         }
       }
 

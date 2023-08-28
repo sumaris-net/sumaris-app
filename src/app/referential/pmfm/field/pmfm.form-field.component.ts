@@ -212,7 +212,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
         }
         else if (control instanceof UntypedFormControl) {
           // DEBUG
-          //if (PmfmUtils.isWeight(pmfm))console.debug('[pmfm-form-field] Configuring for the pmfm: ' + pmfm.label);
+          //if (PmfmUtils.isWeight(pmfm)) console.debug('[pmfm-form-field] Configuring for the pmfm: ' + pmfm.label);
 
           this.acquisitionNumber = 1; // Force to 1
 

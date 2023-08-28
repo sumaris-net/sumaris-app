@@ -63,13 +63,12 @@
 
     </ion-row>
 
-    <!-- Measurements -->
+    <!-- Pmfm measurements -->
     <ion-row class="ion-no-padding" [formGroup]="delegate.measurementValuesForm">
-      <ng-container *rxFor="let pmfm of delegate.pmfms$; trackBy: delegate.trackPmfmFn; index as i;">
+      <ng-container *ngFor="let pmfm of delegate.pmfms$|push:delegate.rxStrategy |arrayFilter: delegate.isVisibleNotWeightPmfm; trackBy: delegate.trackPmfmFn; index as i;">
         <ion-col *ngVar="pmfm|pmfmFieldStyle:delegate.maxItemCountForButtons as style"
-                 class="ion-no-padding"
-                 [class.cdk-visually-hidden]="pmfm.hidden"
-                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
+                   class="ion-no-padding"
+                   size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
                           [formControlName]="pmfm|pmfmIdString"
@@ -82,7 +81,6 @@
           </app-pmfm-field>
         </ion-col>
       </ng-container>
-
     </ion-row>
 
     <!-- Total weight -->
@@ -95,7 +93,7 @@
                 weightEstimated: weightForm|formGetControl: 'estimated'
                } as controls">
         <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
+                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:(controls.weightMethodId.value||delegate.defaultWeightPmfm.methodId)|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
                         [control]="controls.weightValue"
                         [class.computed]="controls.weightComputed.value"
                         [readonly]="controls.weightComputed.value"

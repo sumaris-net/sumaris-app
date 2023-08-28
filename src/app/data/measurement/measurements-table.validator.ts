@@ -106,14 +106,14 @@ export class MeasurementsTableValidatorService<
       return this.formBuilder.group(controlsConfig);
     }
 
-    // Use cahce if exists
+    // Use cache if exists
     else {
       const form = this.formBuilder.group(controlsConfig);
 
       // Re-create new instance for each array control
       Object.entries(controlsConfig)
-          .filter(([key,  cachedControl]) => cachedControl instanceof AppFormArray)
-          .forEach(([pmfmId,  cachedControl]) => {
+          .filter(([key, cachedControl]) => cachedControl instanceof AppFormArray)
+          .forEach(([pmfmId, cachedControl]) => {
             const control = new AppFormArray(cachedControl.createControl,
                 cachedControl.equals,
                 cachedControl.isEmpty,

@@ -1,8 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { WeightUnitSymbol } from '../services/model/model.enum';
-import { isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { isNil } from '@sumaris-net/ngx-components';
 import { WeightUtils } from '@app/referential/services/model/model.utils';
-import { roundHalfUp } from '@app/shared/functions';
 
 @Pipe({
   name: 'weightFormat'

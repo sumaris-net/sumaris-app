@@ -90,6 +90,7 @@ export interface BatchTreeState {
   programLabel: string;
   program: Program;
   physicalGear: PhysicalGear;
+  requiredGear: boolean;
   gearId: number;
 
   samplingRatioFormat: SamplingRatioFormat;
@@ -126,6 +127,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   readonly showCatchForm$ = this._state.select('showCatchForm');
   readonly showBatchTables$ = this._state.select('showBatchTables');
   readonly allowSubBatches$ = this._state.select('allowSubBatches');
+  readonly requiredGear$ = this._state.select('requiredGear');
+  readonly gearId$ = this._state.select('gearId');
+
 
   protected set showSubBatchesTable(value: boolean) {
     this._state.set('showSubBatchesTable', _ => value);
@@ -246,6 +250,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   get program(): Program {
     return this._state.get('program');
+  }
+
+  @Input() set requiredGear(value: boolean) {
+    this._state.set('requiredGear', _ => value);
+  }
+  get requiredGear(): boolean {
+    return this._state.get('requiredGear');
   }
 
   @Input()
