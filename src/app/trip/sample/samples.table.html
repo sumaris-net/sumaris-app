@@ -336,6 +336,7 @@
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-column-pmfm-multiple]="pmfm|isMultiplePmfm"
           [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber||1"
+          [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}:row.currentData"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
