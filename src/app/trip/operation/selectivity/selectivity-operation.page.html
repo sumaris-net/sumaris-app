@@ -291,7 +291,9 @@
                                 [defaultHasSubBatches]="hasIndividualMeasures$|push"
                                 [allowSubBatches]="hasIndividualMeasures$|push"
                                 [usageMode]="usageMode"
-                                [physicalGear]="physicalGear$|push:'userBlocking'"
+                                [requiredGear]="gearId$|async|isNotNilOrNaN"
+                                [gearId]="gearId$|async"
+                                [physicalGear]="physicalGear$|async"
                                 [useSticky]="mobile"
                                 [mobile]="mobile"
                                 [debug]="debug">
