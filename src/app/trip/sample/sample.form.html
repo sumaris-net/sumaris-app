@@ -84,7 +84,7 @@
         </ion-col>-->
         <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
                  class="ion-no-padding"
-                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+                 [class.cdk-visually-hidden]="enabled && matInput.disabled"
                  size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
                  class="pmfm-{{pmfm.id}}">
           <app-pmfm-field #matInput

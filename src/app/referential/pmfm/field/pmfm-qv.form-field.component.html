@@ -155,11 +155,12 @@
              [placeholder]="placeholder"
              [required]="required">
       <div class="mat-form-field-buttons"
-           [style.--buttons-col-count]="buttonsColCount"
-           *ngIf="!formControl.disabled; else disabledLabel">
+           *ngIf="formControl.enabled || (formControl.value != null); else emptyLabel"
+           [style.--buttons-col-count]="buttonsColCount">
         <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId;">
           <ion-button #button
                       *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
+                      [disabled]="disabled"
                       [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId===0"
                       class="mat-form-field-button"
                       [tabindex]="_tabindex && (_tabindex + i)"
@@ -170,16 +171,17 @@
           </ion-button>
         </ng-container>
       </div>
-      <ng-template #disabledLabel>
-        <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+      <ng-template #emptyLabel>
+        <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
       </ng-template>
 
       <div matSuffix>
         <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
       </div>
 
-      <ion-fab-button matSuffix color="light" size="small" *ngIf="!compact && maxVisibleButtons !== 999"
-                      [class.hidden]="maxVisibleButtons === 999"
+      <ion-fab-button matSuffix color="light" size="small"
+                      *ngIf="!compact && maxVisibleButtons !== 999"
+                      [class.hidden]="disabled"
                       (click)="showAllButtons=!showAllButtons">
         <ion-icon [name]="showAllButtons && 'chevron-up-outline' || 'chevron-down-outline'"></ion-icon>
       </ion-fab-button>
