@@ -123,6 +123,7 @@
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
       </ng-container>
     </mat-error>
+
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -197,11 +198,11 @@
                      [tabindex]="tabindex"
                      [buttonsColCount]="maxVisibleButtons"
                      [showButtonIcons]="showButtonIcons">
-    <div matSuffix>
-      <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
+    <div matSuffix class="mat-form-field-suffix-container">
+      <!-- Add a fake fab button, to have same alignment as a pmfm QV field
       <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
                       style="visibility: hidden;">
-      </ion-fab-button>
+      </ion-fab-button> -->
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-boolean-field>
@@ -223,7 +224,7 @@
   </mat-date-field>
 
   <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
-                       [control]="vars.control"
+                       [formControl]="vars.control"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"

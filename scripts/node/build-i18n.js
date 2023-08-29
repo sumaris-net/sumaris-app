@@ -1,24 +1,45 @@
 'use strict';
 
 const { join } = require('path');
-const { readdirSync, renameSync, readFileSync, copyFileSync } = require('fs');
+const { readdirSync, readFileSync, copyFileSync, existsSync, rmSync } = require('fs');
 
-const i18nDir = './www/assets/i18n/';
 let pkgStr = readFileSync('./package.json', {encoding: 'UTF-8'});
 const pkg = JSON.parse(pkgStr);
 
-console.debug('Insert version into I18n files...');
-// For each files
-readdirSync(i18nDir)
-  // Filter in src i18n files (skip renamed files)
-  .filter(file => file.match(/^[a-z]{2}(-[A-Z]{2})?\.json$/))
-  .forEach(file => {
-    const filePath = join(i18nDir, file);
-    const newFilePath = join(i18nDir, file.replace(/([a-z]{2}(:?-[A-Z]{2})?)\.json/, '$1-' + pkg.version + '.json'));
+const sourceI18nDir = './src/assets/i18n/';
+let targetI18nDir = './www/assets/i18n/';
+if (!existsSync(targetI18nDir)) {
+  targetI18nDir = sourceI18nDir;
+}
+else {
+  console.debug('Clean old I18n version files... ' + sourceI18nDir);
+  // For each files
+  readdirSync(sourceI18nDir)
+    // Filter in src i18n files (skip renamed files)
+    .filter(file => file.match(/^[a-z]{2}(-[A-Z]{2})?-\d+\.\d+\.\d+.*\.json$/))
+    .forEach(file => {
+      const filePath = join(sourceI18nDir, file);
+      console.debug(' - Deleting ' + filePath);
+      rmSync(filePath);
+    });
+}
 
-    console.debug(' - ' + filePath + ' -> ' + newFilePath);
+if (existsSync(targetI18nDir)) {
+  console.debug('Insert version into I18n files... ' + targetI18nDir);
 
-    copyFileSync(filePath, newFilePath, );
-  });
+  // For each files
+  readdirSync(targetI18nDir)
+    // Filter in src i18n files (skip renamed files)
+    .filter(file => file.match(/^[a-z]{2}(-[A-Z]{2})?\.json$/))
+    .forEach(file => {
+      const filePath = join(targetI18nDir, file);
+      const newFilePath = join(targetI18nDir, file.replace(/([a-z]{2}(:?-[A-Z]{2})?)\.json/, '$1-' + pkg.version + '.json'));
 
-console.debug('Insert version into I18n files [OK]');
+      console.debug(' - Copying ' + filePath + ' -> ' + newFilePath);
+
+      copyFileSync(filePath, newFilePath);
+    });
+
+  console.debug('Insert version into I18n files [OK]');
+
+}

@@ -446,6 +446,7 @@ export class SamplesTable
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       showPictures: this.showImagesColumn,
+      pmfmValueColor: this.pmfmValueColorFn,
       onReady: (modal) => {
         this.onPrepareRowForm(modal.form.form, {
           pmfms,

@@ -1,7 +1,18 @@
 import { NgModule } from '@angular/core';
 import { ReferentialToStringPipe } from './referential-to-string.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmFieldStylePipe, PmfmIdStringPipe, PmfmNamePipe, PmfmValueColorPipe, PmfmValuePipe } from './pmfms.pipe';
+import {
+  IsComputedPmfmPipe,
+  IsDatePmfmPipe,
+  IsMultiplePmfmPipe,
+  IsWeightPmfmPipe,
+  PmfmFieldStylePipe,
+  PmfmIdStringPipe,
+  PmfmNamePipe,
+  PmfmValueColorPipe,
+  PmfmValueIconPipe,
+  PmfmValuePipe
+} from './pmfms.pipe';
 
 import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
@@ -23,7 +34,9 @@ import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
     PmfmNamePipe,
     PmfmValuePipe,
     PmfmValueColorPipe,
+    PmfmValueIconPipe,
     IsDatePmfmPipe,
+    IsWeightPmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     PmfmFieldStylePipe,
@@ -38,7 +51,9 @@ import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
     PmfmNamePipe,
     PmfmValuePipe,
     PmfmValueColorPipe,
+    PmfmValueIconPipe,
     IsDatePmfmPipe,
+    IsWeightPmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     PmfmFieldStylePipe,

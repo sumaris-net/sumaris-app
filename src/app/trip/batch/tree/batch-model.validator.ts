@@ -370,7 +370,7 @@ export class BatchModelValidatorService<
 
       if (isNotEmptyArray(opts.childrenPmfms)) {
         // DEBUG
-        console.debug(`[batch-model-validator] ${data?.label} Creating children form array, with pmfms: `, opts.childrenPmfms);
+        //console.debug(`[batch-model-validator] ${data?.label} Creating children form array, with pmfms: `, opts.childrenPmfms);
 
         config['children'] = this.getChildrenFormArray(data?.children, {
           withWeight: true,

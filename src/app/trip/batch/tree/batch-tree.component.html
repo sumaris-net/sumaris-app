@@ -93,6 +93,8 @@
   <form-catch-batch #catchBatchForm
                     [programLabel]="programLabel$|async"
                     [acquisitionLevel]="rootAcquisitionLevel"
+                    [requiredGear]="requiredGear$|async"
+                    [gearId]="gearId$|async"
                     (onSubmit)="save($event)"
                     [tabindex]="200"
                     [showError]="false"

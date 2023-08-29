@@ -29,7 +29,7 @@ export interface MeasurementValuesState {
   gearId: number;
   requiredGear: boolean;
   forceOptional: boolean;
-  pmfms: IPmfm[];
+  pmfms: IPmfm[]; // All pmfms used to initialize the formGroup (visible or not)
 }
 
 export const PmfmFormReadySteps = Object.freeze({
@@ -58,6 +58,7 @@ export abstract class MeasurementValuesForm<
   protected options: IMeasurementValuesFormOptions;
   protected cd: ChangeDetectorRef = null;
 
+  readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
   readonly programLabel$ = this._state.select('programLabel');
   readonly strategyLabel$ = this._state.select('strategyLabel');
   readonly pmfms$ = this._state.select('pmfms');
@@ -285,6 +286,10 @@ export abstract class MeasurementValuesForm<
   trackPmfmFn(index: number, pmfm: IPmfm): any {
     // Add properties that can be changed
     return `${pmfm.id}-${pmfm.required}-${pmfm.hidden}`;
+  }
+
+  isVisiblePmfm(pmfm: IPmfm): boolean {
+    return !pmfm.hidden;
   }
 
   /* -- protected methods -- */

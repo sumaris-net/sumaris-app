@@ -29,4 +29,5 @@ export class BatchFormContent implements OnInit {
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
+
 }

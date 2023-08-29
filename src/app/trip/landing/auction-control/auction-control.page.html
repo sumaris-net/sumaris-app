@@ -229,7 +229,7 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+         *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1"
          @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>

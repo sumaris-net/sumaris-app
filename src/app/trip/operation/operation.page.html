@@ -26,7 +26,7 @@
     <!-- New operation -->
     <ion-button fill="solid" color="tertiary" *ngIf="mobile"
                 hidden-xxs hidden-xs
-                [disabled]="vars.loading || vars.saving"
+                [disabled]="disabled || vars.loading || vars.saving"
                 (click)="saveAndNew($event)">
       <ion-icon slot="start" name="add-circle"></ion-icon>
       {{'TRIP.OPERATION.EDIT.BTN_NEW'|translate}}
@@ -323,6 +323,7 @@
                       [showBatchTables]="showBatchTables"
                       [selectedTabIndex]="selectedSubTabIndex"
                       [usageMode]="usageMode"
+                      [requiredGear]="gearId$|async|isNotNilOrNaN"
                       [gearId]="gearId$|async"
                       [physicalGear]="physicalGear$|async"
                       [useSticky]="mobile"
@@ -381,8 +382,9 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="mobile && showFabButton" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+         *ngIf="mobile && showFabButton"
+         visible-xs visible-sm visible-mobile
+         @fadeInOutAnimation>
 
   <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
     <ion-icon name="add"></ion-icon>

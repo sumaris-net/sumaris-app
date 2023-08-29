@@ -1121,7 +1121,7 @@
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",
-          "INDIVIDUALS_DENSITY_PER_KG": "Moule (nb ind/kg)"
+          "INDIVIDUALS_DENSITY_PER_KG": "Moule (Nb ind/kg)"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",

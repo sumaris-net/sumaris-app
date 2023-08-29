@@ -389,11 +389,11 @@
   <div #tableContainer class="table-container">
 
     <table mat-table [dataSource]="dataSource"
-               matSort
-               matSortDisableClear
-               [matSortActive]="defaultSortBy"
-               [matSortDirection]="defaultSortDirection"
-               [trackBy]="trackByFn">
+           matSort
+           matSortDisableClear
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">

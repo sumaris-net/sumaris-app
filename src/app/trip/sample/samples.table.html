@@ -321,7 +321,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; index as index; trackBy: trackPmfmFn" [matColumnDef]="(pmfm.id || index)|toString">
+    <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index" [matColumnDef]="(pmfm.id || index)|toString">
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -336,6 +336,7 @@
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-column-pmfm-multiple]="pmfm|isMultiplePmfm"
           [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber||1"
+          [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}:row.currentData"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
@@ -479,6 +480,7 @@
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
            [class.compact]="compact"
+           [class.mat-table-hide-sort-arrow]="mobile"
            [dataSource]="dataSource"
            [matSortActive]="defaultSortBy"
            [matSortDirection]="defaultSortDirection"
@@ -498,7 +500,7 @@
               class="mat-column-pmfm-group"
               [class]="item.cssClass"
               [attr.colspan]="item.colSpan">
-            <ion-label>{{item.name|translate}}</ion-label>
+            <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">{{item.name|translate}}</ion-label>
           </th>
         </ng-container>
       </ng-container>
@@ -588,22 +590,22 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="(pmfm.id || index)|toString">
+      <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index; " [matColumnDef]="(pmfm.id || index)|toString">
         <th mat-header-cell *matHeaderCellDef mat-sort-header
-            class="mat-column-pmfm mat-column-{{pmfm.label}}"
+            class="mat-column-pmfm mat-column-{{pmfm.label}} mat-cell-content-start-padding"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
-            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-            [class.mat-cell-content-start-padding]="showGroupHeader">
-          <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
+            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0">
+          <ion-label
+            [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
-            class="mat-column-pmfm mat-column-{{pmfm.label}}"
+            class="mat-column-pmfm mat-column-{{pmfm.label}} mat-cell-content-start-padding"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
-            [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
             [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorFn}:row.currentData">
-          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
+          <ion-text
+            [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>
 

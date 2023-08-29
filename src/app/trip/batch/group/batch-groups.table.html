@@ -388,7 +388,7 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; let index;"
+      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; index as index;"
                     [matColumnDef]="col.key">
         <th mat-header-cell *matHeaderCellDef
             [class]="col.classList"

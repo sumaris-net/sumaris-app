@@ -6,13 +6,13 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } fro
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormArray,
-  changeCaseToUnderscore,
   firstArrayValue,
   firstTruePromise,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   ReferentialUtils,
   splitByProperty,
   toBoolean,
@@ -32,9 +32,9 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
+import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
 
 export interface BatchFormState extends MeasurementValuesState {
@@ -93,7 +93,6 @@ export class BatchForm<
 
   protected readonly _afterViewInitialized$ = this._state.select('afterViewInitialized');
   protected _initialPmfms: IPmfm[];
-  protected _formPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
 
   readonly hasContent$ = this._state.select('hasContent');
@@ -112,6 +111,7 @@ export class BatchForm<
   @Input() maxItemCountForButtons: number;
   @Input() i18nSuffix: string;
   @Input() showComment = false;
+  @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 
   @Input() set samplingRatioFormat(value: SamplingRatioFormat) {
     this._state.set('samplingRatioFormat', _ => value);
@@ -476,6 +476,14 @@ export class BatchForm<
     super.ngOnDestroy();
   }
 
+  isVisiblePmfm(pmfm: IPmfm) {
+    return !pmfm.hidden;
+  }
+
+  isVisibleNotWeightPmfm(pmfm: IPmfm) {
+    return !pmfm.hidden && !PmfmUtils.isWeight(pmfm);
+  }
+
   applyState(state: Partial<S>) {
     this._state.set(oldState => ({
       ...oldState,
@@ -603,7 +611,7 @@ export class BatchForm<
     if (!opts || opts.normalizeEntityToForm !== false) {
       // IMPORTANT: applying normalisation of measurement values on ALL pmfms (not only displayed pmfms)
       // This is required by the batch-group-form component, to keep the value of hidden PMFM, such as Landing/Discard Pmfm
-      MeasurementValuesUtils.normalizeEntityToForm(data, this._formPmfms, this.form);
+      MeasurementValuesUtils.normalizeEntityToForm(data, this.pmfms, this.form);
     }
 
     if (this.showSamplingBatch) {
@@ -740,7 +748,7 @@ export class BatchForm<
       'showIndividualCount', 'showSampleIndividualCount',
       'showSamplingBatch',
     ], state => (state.showWeight && isNotEmptyArray(state.weightPmfms))
-          || isNotEmptyArray(state.pmfms)
+          || (state.pmfms && state.pmfms.some(this.isVisibleNotWeightPmfm))
           || state.showIndividualCount || state.showSampleIndividualCount
           || state.showSamplingBatch || this.showTaxonGroup || this.showTaxonName);
   }
@@ -859,7 +867,6 @@ export class BatchForm<
     // Exclude weight (because we use special fields for weights)
     // or hidden PMFMs
     const notWeightPmfms = pmfms.filter(p => !weightPmfms.includes(p));
-    const visiblePmfms = notWeightPmfms.filter(p => !p.hidden);
 
     // Fix weight pmfms
     weightPmfms = weightPmfms.map(p => {
@@ -875,10 +882,11 @@ export class BatchForm<
     const defaultWeightPmfm = firstArrayValue(weightPmfms);
     const weightPmfmsByMethod = splitByProperty(weightPmfms, 'methodId');
 
+    // All pmfms to keep (visible or not)
+    pmfms = notWeightPmfms.concat(weightPmfms);
+
     // Hide sampling batch, if no weight pmfm
     const showSamplingBatch = toBoolean(this.showSamplingBatch, isNotNil(defaultWeightPmfm));
-
-    this._formPmfms = weightPmfms.concat(notWeightPmfms);
 
     return <Partial<S>>{
       showSamplingBatch,
@@ -887,8 +895,7 @@ export class BatchForm<
       showWeight: !!defaultWeightPmfm,
       showEstimatedWeight: !!weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER],
       weightPmfmsByMethod,
-      //hasContent: pmfms.length > 0 || weightPmfms.length > 0,
-      pmfms: visiblePmfms
+      pmfms
     };
   }
 
@@ -904,7 +911,7 @@ export class BatchForm<
       // Add pmfms to form
       const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       if (measFormGroup) {
-        this.measurementsValidatorService.updateFormGroup(measFormGroup, {pmfms: this._formPmfms, emitEvent: false});
+        this.measurementsValidatorService.updateFormGroup(measFormGroup, {pmfms: this.pmfms, emitEvent: false});
       }
 
       const childrenFormArray = this.childrenFormArray;

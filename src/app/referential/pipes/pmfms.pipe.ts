@@ -1,10 +1,9 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { ColorName, DateFormatService, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
+import { ColorName, DateFormatService, formatLatitude, formatLongitude, IconRef, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 @Pipe({
   name: 'pmfmIdString'
@@ -130,8 +129,8 @@ export class PmfmValuePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsDatePmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-    return pmfm && pmfm.type === 'date';
+  transform(pmfm: IPmfm): boolean {
+    return pmfm && PmfmUtils.isDate(pmfm) || false;
   }
 }
 
@@ -155,6 +154,18 @@ export class IsMultiplePmfmPipe implements PipeTransform {
 
   transform(pmfm: IPmfm): boolean {
     return pmfm?.isMultiple || false;
+  }
+}
+
+
+@Pipe({
+  name: 'isWeightPmfm'
+})
+@Injectable({providedIn: 'root'})
+export class IsWeightPmfmPipe implements PipeTransform {
+
+  transform(pmfm: IPmfm): boolean {
+    return pmfm && PmfmUtils.isWeight(pmfm) || false;
   }
 }
 
@@ -205,5 +216,37 @@ export class PmfmValueColorPipe implements PipeTransform {
     }
 
     return color;
+  }
+}
+
+@Pipe({
+  name: 'pmfmValueIcon'
+})
+export class PmfmValueIconPipe implements PipeTransform {
+
+  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions, data: any): IconRef {
+    const pmfm = opts['pmfm'] || <IPmfm>opts;
+    const mapToColorFn = typeof opts['mapWith'] === 'function' ? opts['mapWith'] : undefined;
+    if (!pmfm || !mapToColorFn) return undefined;
+
+    // Get the color
+    const color = mapToColorFn(pmfmValue, pmfm, data);
+    if (!color) return null;
+
+    const result: IconRef = {color};
+    switch (color) {
+      case 'success':
+        result.icon = 'checkmark-circle';
+        break;
+      case 'warning':
+        result.icon = 'warning';
+        break;
+      case 'warning900':
+      case 'danger':
+        result.icon = 'alert-circle';
+        break;
+    }
+
+    return result;
   }
 }

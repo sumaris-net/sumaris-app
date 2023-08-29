@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, firstValueFrom, Observable, Subscription } from 'rxjs';
@@ -9,7 +9,6 @@ import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
   AppHelpModalOptions,
-  ColorName,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -19,7 +18,7 @@ import {
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNumber,
   LoadResult,
   LocalSettingsService,
   ReferentialUtils,
@@ -29,13 +28,14 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
-import { Program } from '../../../referential/services/model/program.model';
-import { IPmfm, PMFM_ID_REGEXP } from '../../../referential/services/model/pmfm.model';
+import { TaxonGroupLabels, TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { FormErrorTranslatorOptions } from '@sumaris-net/ngx-components';
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 @Component({
   selector: 'app-auction-control',
@@ -317,26 +317,43 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   getPmfmValueColor(pmfmValue: any, pmfm: IPmfm, data: Sample): AppColors {
 
-    let color: AppColors;
-
     switch (pmfm.id) {
       case PmfmIds.OUT_OF_SIZE_PCT:
         if (isNotNil(pmfmValue)) {
             if (+pmfmValue >= 15) return 'danger';
-            if (+pmfmValue >= 10) return 'warning';
-            if (+pmfmValue >= 5) return 'secondary100';
+            if (+pmfmValue >= 10) return 'warning900';
+            if (+pmfmValue >= 5) return 'warning';
           return 'success';
         }
         break;
+
       case PmfmIds.COMPLIANT_PRODUCT:
         if (toBoolean(pmfmValue) === false) {
-          color = 'danger';
+          return 'danger';
         } else {
-          color = 'success';
+          return 'success';
+        }
+        break;
+
+      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG:
+        const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;
+
+        if (isNotNil(pmfmValue) && auctionDensityCategory) {
+
+          let [min, max] = auctionDensityCategory.split(/[\\/|-]/, 2);
+          if (isNumber(min) && isNumber(max)) {
+            // Must be greater than the min and strictly lesser than the max
+            if (pmfmValue < min || pmfmValue >= max) {
+              return 'danger';
+            } else {
+              return 'success';
+            }
+          }
         }
         break;
     }
-    return color;
+
+    return null;
   }
 
   translateControlPath(controlPath: string): string {

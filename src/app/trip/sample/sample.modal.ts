@@ -29,6 +29,7 @@ import moment, {Moment} from 'moment';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {AppImageAttachmentGallery} from '@app/data/image/image-attachment-gallery.component';
 import {ImageAttachment} from '@app/data/image/image-attachment.model';
+import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
@@ -51,6 +52,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   maxVisibleButtons: number;
   maxItemCountForButtons: number;
   i18nSuffix?: string;
+  pmfmValueColor?: PmfmValueColorFn;
 
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -96,6 +98,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() maxItemCountForButtons: number;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
+  @Input() pmfmValueColor: PmfmValueColorFn;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -333,12 +336,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       // Set form value
       await this.form.setValue(this.data);
 
+      // DEBUG
       // Set gallery's images
       // this.gallery.value =
       //   [
       //     {id: 0, url: 'https://test.sumaris.net/assets/img/bg/ray-1.jpg', title: 'ray #1'},
       //     {id: 1, url: 'https://test.sumaris.net/assets/img/bg/ray-2.jpg', title: 'ray #2'}
       //   ].map(ImageAttachment.fromObject);
+
       this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
       this.gallery.value = this.showPictures && this.data.images || [];
 

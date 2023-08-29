@@ -68,12 +68,13 @@ interface BadgeState {
   color: 'primary'|'accent';
 }
 
-interface ComponentState {
+interface BatchTreeContainerState {
   programAllowMeasure: boolean;
   showBatchTables: boolean;
   allowDiscard: boolean;
   allowSpeciesSampling: boolean;
   allowSubBatches: boolean;
+  requiredGear: boolean;
   gearId: number;
   physicalGear: PhysicalGear;
   programLabel: string;
@@ -117,6 +118,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected readonly allowSubBatches$ = this._state.select('allowSubBatches');
   protected readonly programLabel$ = this._state.select('programLabel');
   protected readonly program$ = this._state.select('program');
+  protected readonly requiredGear$ = this._state.select('requiredGear');
+  protected readonly gearId$ = this._state.select('gearId');
   protected readonly form$ = this._state.select('form');
   protected readonly editingBatch$ = this._state.select('editingBatch');
   protected readonly currentBadge$ = this._state.select('currentBadge');
@@ -211,6 +214,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   get program(): Program {
     return this._state.get('program');
+  }
+
+  @Input() set requiredGear(value: boolean) {
+    this._state.set('requiredGear', (_) => value);
+  }
+
+  get requiredGear(): boolean {
+    return this._state.get('requiredGear');
   }
 
   @Input() set gearId(value: number) {
@@ -329,7 +340,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected pmfmNamePipe: PmfmNamePipe,
               protected physicalGearService: PhysicalGearService,
               protected context: TripContextService,
-              protected _state: RxState<ComponentState>,
+              protected _state: RxState<BatchTreeContainerState>,
               protected cd: ChangeDetectorRef,
               protected settings: LocalSettingsService,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService

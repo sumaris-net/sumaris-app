@@ -14,8 +14,6 @@ import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
-export declare type CatchBatchFormLayout = 'CATCH' | 'SORTING_BATCH';
-
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
   onDeckPmfms: IPmfm[];
@@ -23,7 +21,6 @@ export interface CatchBatchFormState extends BatchFormState {
   catchPmfms: IPmfm[];
   otherPmfms: IPmfm[];
   gridColCount: number;
-  layout: CatchBatchFormLayout;
 }
 
 @Component({
@@ -47,14 +44,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   readonly gridColCount$ = this._state.select('gridColCount');
 
   @Input() labelColSize = 1;
-  @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
-
-  @Input() set layout(value: CatchBatchFormLayout) {
-    this._state.set('layout', () => value);
-  }
-  get layout(): CatchBatchFormLayout {
-    return this._state.get('layout');
-  }
+  @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
@@ -96,11 +86,10 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
 
     if (!pmfms) return; // Skip
 
-    // If a catch batch layout
-    const layout: CatchBatchFormLayout = this.layout || (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH ? 'CATCH' : 'SORTING_BATCH');
-    if (layout === 'CATCH') {
+    // If a catch batch (root)
+    if (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
 
-      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
+      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod, pmfms: updatedPmfms } = await super.dispatchPmfms(pmfms);
 
       const onDeckPmfms = pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0);
       const sortingPmfms = pmfms.filter(p => p.label?.indexOf('SORTING_') === 0);
@@ -133,7 +122,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         catchPmfms,
         gearPmfms,
         otherPmfms,
-        pmfms: [],
+        pmfms: updatedPmfms,
         hasContent: pmfms.length > 0,
         gridColCount,
         showWeight: false,

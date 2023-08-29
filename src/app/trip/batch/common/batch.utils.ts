@@ -468,11 +468,12 @@ export class BatchUtils {
     return weightPmfms
       .map(pmfm => {
         const value = source.measurementValues[pmfm.id];
+
         return isNotNilOrNaN(value) ? {
           value: +value,
           estimated: pmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
           computed: pmfm.isComputed || pmfm.methodId === MethodIds.CALCULATED,
-          methodId: pmfm.methodId
+          methodId: toNumber(pmfm.methodId, MethodIds.OBSERVED_BY_OBSERVER) // Need by BatchForm - see dispatchPmfms()
         }: undefined;
       })
       .filter(isNotNil)
