@@ -197,11 +197,11 @@
                      [tabindex]="tabindex"
                      [buttonsColCount]="maxVisibleButtons"
                      [showButtonIcons]="showButtonIcons">
-    <div matSuffix>
-      <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
+    <div matSuffix class="mat-form-field-suffix-container">
+      <!-- Add a fake fab button, to have same alignment as a pmfm QV field
       <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
                       style="visibility: hidden;">
-      </ion-fab-button>
+      </ion-fab-button> -->
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-boolean-field>

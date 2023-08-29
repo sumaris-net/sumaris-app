@@ -82,7 +82,11 @@
         <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
           <mat-icon svgIcon="dolphin-damage"></mat-icon>
         </ion-col>-->
-        <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
+        <ion-col *ngVar="{
+          computed: pmfm|isComputedPmfm,
+          style: pmfm|pmfmFieldStyle:10,
+          icon: pmfmValueColorFn && form.valueChanges|push|propertyGet:'measurementValues.' + pmfm.id.toString() | pmfmValueIcon: {pmfm: pmfm, mapWith: pmfmValueColorFn}:value
+        } as vars"
                  class="ion-no-padding"
                  [class.cdk-visually-hidden]="enabled && matInput.disabled"
                  size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
@@ -97,6 +101,10 @@
                           [maxVisibleButtons]="maxVisibleButtons"
                           [tabindex]="vars.computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
                           (keyup.enter)="last && onSubmit.emit($event)">
+
+            <!-- Computed icon -->
+            <app-icon matSuffix *ngIf="vars.computed && vars.icon" [ref]="vars.icon">
+            </app-icon>
           </app-pmfm-field>
         </ion-col>
       </ng-container>

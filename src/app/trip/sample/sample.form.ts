@@ -23,6 +23,7 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SubSampleValidatorService} from '@app/trip/sample/sub-sample.validator';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 @Component({
   selector: 'app-sample-form',
@@ -50,6 +51,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
+  @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn;
 
   constructor(
     injector: Injector,
