@@ -11,18 +11,6 @@ let targetI18nDir = './www/assets/i18n/';
 if (!existsSync(targetI18nDir)) {
   targetI18nDir = sourceI18nDir;
 }
-else {
-  console.debug('Clean old I18n version files... ' + sourceI18nDir);
-  // For each files
-  readdirSync(sourceI18nDir)
-    // Filter in src i18n files (skip renamed files)
-    .filter(file => file.match(/^[a-z]{2}(-[A-Z]{2})?-\d+\.\d+\.\d+.*\.json$/))
-    .forEach(file => {
-      const filePath = join(sourceI18nDir, file);
-      console.debug(' - Deleting ' + filePath);
-      rmSync(filePath);
-    });
-}
 
 if (existsSync(targetI18nDir)) {
   console.debug('Insert version into I18n files... ' + targetI18nDir);
