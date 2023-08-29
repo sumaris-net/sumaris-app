@@ -47,6 +47,7 @@ export abstract class AppRootDataEditor<
   protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
 
+  protected programChangesSubscription: Subscription;
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
 
@@ -248,8 +249,9 @@ export abstract class AppRootDataEditor<
    * @protected
    */
   private startListenProgramChanges() {
-    this.registerSubscription(
-      this.programControl.valueChanges
+    if (this.programChangesSubscription) return ; // Already listening: skip
+
+    const subscription = this.programControl.valueChanges
         .pipe(
           startWith<Program>(this.programControl.value as Program)
         )
@@ -258,7 +260,11 @@ export abstract class AppRootDataEditor<
             console.debug("[root-data-editor] Propagate program change: " + program.label);
             this.$programLabel.next(program.label);
           }
-        }));
+        });
+
+    subscription.add(() => this.unregisterSubscription(subscription));
+    this.registerSubscription(subscription);
+    this.programChangesSubscription = subscription;
   }
 
   protected startListenProgramRemoteChanges(program: Program) {
