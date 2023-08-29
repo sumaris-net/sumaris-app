@@ -336,12 +336,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       // Set form value
       await this.form.setValue(this.data);
 
+      // DEBUG
       // Set gallery's images
       // this.gallery.value =
       //   [
       //     {id: 0, url: 'https://test.sumaris.net/assets/img/bg/ray-1.jpg', title: 'ray #1'},
       //     {id: 1, url: 'https://test.sumaris.net/assets/img/bg/ray-2.jpg', title: 'ray #2'}
       //   ].map(ImageAttachment.fromObject);
+
       this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
       this.gallery.value = this.showPictures && this.data.images || [];
 

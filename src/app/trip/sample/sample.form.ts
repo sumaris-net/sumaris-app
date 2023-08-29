@@ -155,7 +155,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   protected getValue(): Sample {
     const value = super.getValue();
-// Reset comment, when hidden
+    // Reset comment, when hidden
     if (!this.showComment) value.comments = undefined;
     return value;
   }

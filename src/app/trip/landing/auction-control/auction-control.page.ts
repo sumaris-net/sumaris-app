@@ -317,8 +317,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   getPmfmValueColor(pmfmValue: any, pmfm: IPmfm, data: Sample): AppColors {
 
-    let color: AppColors;
-
     switch (pmfm.id) {
       case PmfmIds.OUT_OF_SIZE_PCT:
         if (isNotNil(pmfmValue)) {
@@ -328,39 +326,34 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           return 'success';
         }
         break;
+
       case PmfmIds.COMPLIANT_PRODUCT:
         if (toBoolean(pmfmValue) === false) {
-          color = 'danger';
+          return 'danger';
         } else {
-          color = 'success';
+          return 'success';
         }
         break;
-      case PmfmIds.SAMPLE_MEASURED_WEIGHT:
-        const indivCount = data.measurementValues[PmfmIds.SAMPLE_INDIV_COUNT];
+
+      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG:
         const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;
 
-        if (indivCount && auctionDensityCategory) {
+        if (isNotNil(pmfmValue) && auctionDensityCategory) {
 
-          let split = auctionDensityCategory.split(/[\\/|-]/);
-          if (split.length === 2 && isNumber(split[0]) && isNumber(split[1])) {
-
-            const min = +split[0];
-            const max = +split[1];
-            // compute (truncate the value to the hundredth)
-            const numberDensityPerKgValue = Math.trunc((indivCount / PmfmValueUtils.toModelValueAsNumber(pmfmValue, pmfm)) * 100) / 100;
-
+          let [min, max] = auctionDensityCategory.split(/[\\/|-]/, 2);
+          if (isNumber(min) && isNumber(max)) {
             // Must be greater than the min and strictly lesser than the max
-            if (numberDensityPerKgValue < min || numberDensityPerKgValue >= max) {
-              color = 'danger';
+            if (pmfmValue < min || pmfmValue >= max) {
+              return 'danger';
             } else {
-              color = 'success';
+              return 'success';
             }
           }
         }
         break;
     }
 
-    return color;
+    return null;
   }
 
   translateControlPath(controlPath: string): string {

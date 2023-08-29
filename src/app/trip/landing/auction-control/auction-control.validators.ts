@@ -199,7 +199,10 @@ export class AuctionControlValidators {
       if ((isNotNilOrBlank(indivCount) && isNotNilOrBlank(weight)) && (indivCount != 0 && weight != 0)) {
         // compute (truncate the value to the hundredth)
         const numberDensityPerKgValue = Math.trunc((indivCount / PmfmValueUtils.toModelValueAsNumber(weight, weightPmfm)) * 100) / 100;
-        numberDensityPerKgControl.setValue(numberDensityPerKgValue);
+        numberDensityPerKgControl.setValue(numberDensityPerKgValue, opts);
+      }
+      else {
+        numberDensityPerKgControl.setValue(null, opts); // Reset
       }
     }
 
