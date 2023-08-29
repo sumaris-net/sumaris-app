@@ -19,20 +19,20 @@
                 [style.--ion-grid-columns]="gridColCount">
 
         <!-- gear pmfms  -->
-        <ng-container *ngTemplateOutlet="pmfmsRow; context: {$implicit: gearPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.ON_DECK', tabindex: tabindex+10}">
+        <ng-container *ngTemplateOutlet="pmfmsRow; context: {pmfms: gearPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.ON_DECK', tabindex: tabindex+10}">
         </ng-container>
 
         <!-- on deck pmfms  -->
-        <ng-container *ngTemplateOutlet="pmfmsRow; context: {$implicit: onDeckPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.ON_DECK', tabindex: tabindex+10}">
+        <ng-container *ngTemplateOutlet="pmfmsRow; context: {pmfms: onDeckPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.ON_DECK', tabindex: tabindex+10}">
         </ng-container>
 
         <!-- Sorting pmfms -->
-        <ng-container *ngTemplateOutlet="pmfmsRow; context: {$implicit: sortingPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.SORTING', tabindex: tabindex+20}">
+        <ng-container *ngTemplateOutlet="pmfmsRow; context: {pmfms: sortingPmfms$, gridColCount: gridColCount, title: 'TRIP.CATCH.FORM.SORTING', tabindex: tabindex+20}">
         </ng-container>
 
         <!-- Catch weight pmfms -->
         <ng-container *ngTemplateOutlet="pmfmsRow; context: {
-            $implicit: catchPmfms$,
+            pmfms: catchPmfms$,
             gridColCount: gridColCount,
             title: 'TRIP.CATCH.FORM.TOTAL_CATCH',
             tabindex: tabindex+30
@@ -41,7 +41,7 @@
 
         <!-- Other features -->
         <ng-container *ngTemplateOutlet="pmfmsRow; context: {
-              $implicit: otherPmfms$,
+              pmfms: otherPmfms$,
               gridColCount: gridColCount,
               title: '',
               tabindex: tabindex+40
@@ -51,14 +51,15 @@
       </ion-grid>
     </ng-container>
 
-    <ng-template #pmfmsRow let-pmfms let-title="title" let-tabindex="tabindex" let-gridColCount="gridColCount">
-      <ng-container *ngIf="pmfms|async|arrayFilter: isVisiblePmfm; let pmfms">
-        <ion-row *ngIf="pmfms|isNotEmptyArray">
+    <ng-template #pmfmsRow let-pmfms="pmfms" let-title="title" let-tabindex="tabindex" let-gridColCount="gridColCount">
+      <!-- error ci-dessous : -->
+      <ng-container *ngIf="pmfms|asObservable|async|arrayFilter: isVisiblePmfm; let filteredPmfms">
+        <ion-row *ngIf="filteredPmfms|isNotEmptyArray">
           <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
             <ion-label class="ion-float-end"><span translate>{{title}}</span>
             </ion-label>
           </ion-col>
-          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i; strategy: rxStrategy">
+          <ng-container *rxFor="let pmfm of filteredPmfms; trackBy: trackPmfmFn; index as i; strategy: rxStrategy">
             <ion-col *ngVar="pmfm|pmfmFieldStyle:maxItemCountForButtons as style"
                      [size]="gridColCount"
                      [offsetMd]="pmfm.isQualitative && style === 'button' ? labelColSize : undefined"
