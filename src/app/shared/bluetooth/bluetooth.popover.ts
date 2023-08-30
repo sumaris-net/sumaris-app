@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { PopoverController } from '@ionic/angular';
 import { BluetoothDevice } from '@e-is/capacitor-bluetooth-serial';
-import { BluetoothDeviceCheckFn, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { FilterFn, IconRef, isEmptyArray, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, sleep } from '@sumaris-net/ngx-components';
+import { BluetoothDeviceCheckFn, BluetoothDeviceWithMeta, BluetoothService, removeByAddress } from '@app/shared/bluetooth/bluetooth.service';
+import { chainPromises, FilterFn, IconRef, isEmptyArray, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, sleep } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { bluetoothClassToMatIcon } from '@app/shared/bluetooth/bluetooth.utils';
 import { map } from 'rxjs/operators';
@@ -116,12 +116,12 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
         this.markAsConnecting();
         const connectedDevices = (await Promise.all(selectedDevices
           .map(d => this.connect(null, d, {dismiss: false})
-          .catch(_ => false)
-          .then(connected => {
-            if (connected) return d;
-            notConnectedDevices.push(d)
-            return null; // Will be excluded in the next filter()
-          })
+            .catch(_ => false)
+            .then(connected => {
+              if (connected) return d;
+              notConnectedDevices.push(d)
+              return null; // Will be excluded in the next filter()
+            })
         ))).filter(isNotNil);
         this.state.set(s => ({
           selectedDevices: connectedDevices,
@@ -238,11 +238,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
               this.state.set('selectedDevices', s => removeDuplicatesFromArray([deviceOrConnected, ...s.selectedDevices], 'address'));
             }
             // Remove from available devices
-            this.state.set('devices', s => {
-              const index = s.devices.findIndex(d => d.address === device.address);
-              if (index !== -1) s.devices.splice(index, 1);
-              return s.devices;
-            });
+            this.state.set('devices', s => removeByAddress(s.devices, device));
           }
         }
         catch (e) {
@@ -276,10 +272,14 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   }
 
   async disconnectAll(opts?: {addToDevices: boolean}) {
-    const selectedDevices = this.selectedDevices || [];
-    await Promise.all(selectedDevices.map(device => this.service.disconnect(device)));
+    const selectedDevices = this.selectedDevices?.slice();
+    if (isEmptyArray(selectedDevices)) return; // Skip if empty
 
-    if (isEmptyArray(this.devices) && opts?.addToDevices !== false) {
+    await chainPromises(selectedDevices.map(d => () => this.disconnect(d, {addToDevices: false})
+      .catch(_ => {/*continue*/})
+    ));
+
+    if (opts?.addToDevices !== false) {
       this.devices = selectedDevices;
     }
   }
@@ -291,20 +291,13 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
     await this.service.disconnect(device);
 
-    this.state.set('selectedDevices', s => {
-      let index = (s.selectedDevices || []).findIndex(d => d.address === device.address);
-      if (index !== -1) {
-        const result = s.selectedDevices.slice();
-        result.splice(index, 1);
-        return result;
-      }
-      return s.selectedDevices || [];
-    });
-    this.markAsConnecting();
+    this.state.set('selectedDevices', s => removeByAddress(s.selectedDevices, device));
 
-    if (isEmptyArray(this.devices) && opts?.addToDevices !== false) {
-      this.devices = [device];
+    if (opts?.addToDevices !== false) {
+      this.state.set('devices', s => removeDuplicatesFromArray([device, ...s.devices], 'address'));
     }
+
+    this.markAsConnecting();
   }
 
   dismiss(data?: any, role?: string) {

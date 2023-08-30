@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceCheckFn, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { FilterFn, IconRef, isNotEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
 import { PopoverController } from '@ionic/angular';
@@ -127,18 +127,31 @@ export class AppBluetoothIcon<
     this.autoConnect = toBoolean(this.autoConnect, false);
     this.deviceFilter = this.deviceFilter || ((device) => !!device.address);
 
+    // Enabled state
     this.state.connect('enabled', from(this.bluetoothService.ready())
       .pipe(switchMap(() => this.bluetoothService.enabled$)));
+
+    // scanned devices
     this.state.connect('devices', this.bluetoothService.connectedDevices$.pipe(
       map(devices => (devices || []).map(d => this.asDevice(d)))));
+
+    // Connected devices
     this.state.connect('connectedDevices', this.state.select(['enabled', 'devices', 'deviceFilter'], s => s)
       .pipe(
-        map(({enabled, devices}) => {
-          const connectedDevices = enabled ? (devices || []).filter(d => this.deviceFilter(d)) : null;
-          console.info(`[bluetooth-icon] Connected devices changes to: ${connectedDevices?.map(d => d.address).join(', ')}`);
-          return connectedDevices;
+        map(({enabled, devices, deviceFilter}) => {
+          // DEBUG
+          //console.debug(`[bluetooth-icon] Received {enabled: ${enabled}, devices: [${devices?.map(d => d.address).join(', ')}]}`);
+
+          if (!enabled) return [];
+          if (typeof deviceFilter !== 'function') return devices || [];
+          return (devices || []).filter(d => deviceFilter(d));
+        }),
+        tap(connectedDevices => {
+          console.info(`[bluetooth-icon] State changes to: {connectedDevices: [${(connectedDevices || []).map(d => d.address).join(', ')}]}`);
         })
       ));
+
+    // Refresh icon, when enabled or connected devices changed
     this.state.hold(this.state.select(['enabled', 'connectedDevices'], s => s),
       state => this.updateView(state)
     );

@@ -3,10 +3,12 @@ import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/gwaleen/ichthyometer.gwaleen';
 import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
-import { APP_LOGGING_SERVICE, ILogger, ILoggingService, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, sleep, StartableService } from '@sumaris-net/ngx-components';
+import { APP_LOGGING_SERVICE, AudioProvider, ILogger, ILoggingService, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, sleep, StartableService } from '@sumaris-net/ngx-components';
 import { catchError, debounceTime, filter, finalize, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AudioManagement } from '@ionic-native/audio-management/ngx';
+import AudioMode = AudioManagement.AudioMode;
 
 
 export declare type IchthyometerType = 'gwaleen';
@@ -55,6 +57,7 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   constructor(private injector: Injector,
               private settings: LocalSettingsService,
               private bluetoothService: BluetoothService,
+              private audioProvider: AudioProvider,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService) {
     super(bluetoothService);
     this._logger = loggingService.getLogger('ichthyometer')
@@ -100,9 +103,20 @@ export class IchthyometerService extends StartableService implements OnDestroy {
     return isNotEmptyArray(this.ichthyometers);
   }
 
+  async enableSound() {
+    try {
+      await this.audioProvider.setAudioMode(AudioMode.NORMAL);
+    }
+    catch(err) {
+      /// Continue
+    }
+  }
+
   watchLength(): Observable<{value: number; unit: LengthUnitSymbol}> {
 
     if (!this.started) this.start();
+
+    this.enableSound();
 
     const stopSubject = new Subject<void>();
     console.info('[ichthyometer] Start watching length values...');
