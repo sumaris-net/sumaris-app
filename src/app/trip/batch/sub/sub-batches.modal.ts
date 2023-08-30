@@ -461,7 +461,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected async onRowChanged(row: TableElement<SubBatch>) {
 
     // Play a beep
-    if (this.playSound) await this.audio.playBeepConfirm();
+    if (this.playSound) this.audio.playBeepConfirm();
 
     // Selection the animated row (this will apply CSS class mat-row-animated)
     this.animationSelection.select(row);
