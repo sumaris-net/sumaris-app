@@ -16,7 +16,7 @@
 
       <!-- Selected devices -->
       <ng-container *ngIf="enabled">
-        <ion-item *ngFor="let device of selectedDevices$|async">
+        <ion-item *ngFor="let device of connectedDevices$|async">
           <app-icon [ref]="selectedDevicesIcon" slot="start"></app-icon>
           <ion-label>
             <h2>{{ device.name }}</h2>

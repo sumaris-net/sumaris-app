@@ -8,9 +8,6 @@ import { BluetoothDevice } from '@e-is/capacitor-bluetooth-serial';
 @Component({
   selector: 'app-ichthyometer-icon',
   templateUrl: './ichthyometer.icon.html',
-  styleUrls: [
-    './ichthyometer.icon.scss'
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppIchthyometerIcon implements OnInit {

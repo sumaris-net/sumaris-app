@@ -224,7 +224,7 @@ export class AppComponent {
     if (this.platform.mobile) {
       console.debug('[app] Add additional local settings options...');
 
-      const ichthyometerOption = {
+      const ichthyometerOption: FormFieldDefinition = {
         ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS,
         autocomplete: {
           ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS.autocomplete,
