@@ -12,12 +12,13 @@ import {
   notNilOrDefault,
   referentialToString,
   ReferentialUtils,
-  toDateISOString, toNumber
+  toDateISOString,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
 import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
-import { map } from 'rxjs/dist/types/operators';
+import { MathUtils } from '@app/shared/math.utils';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 
@@ -241,7 +242,8 @@ export abstract class PmfmValueUtils {
     // DEBUG
     console.debug(`[pmfm-value] Applying conversion: ${value} * ${conversionCoefficient}`);
 
-    const target: any = new Number(parseFloat(value) * conversionCoefficient);
+    // Workaround because of float, in javascript (see issue #458)
+    const target: any = new Number(MathUtils.multiply(parseFloat(value), conversionCoefficient));
 
     // Storage conversion coefficient (need by inverse conversion)
     if (!opts || opts.markAsConverted !== false) {

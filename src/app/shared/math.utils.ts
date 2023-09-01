@@ -1,5 +1,5 @@
 import { isNotNilOrNaN, toNumber } from '@sumaris-net/ngx-components';
-
+import { Decimal } from 'decimal.js';
 export interface AverageDetails {
   avg: number;
   stdDev: number;
@@ -78,5 +78,13 @@ export class MathUtils {
     const stdError = stdDev /  Math.sqrt(n);
     const confidenceInterval95 = this.confidenceInterval95(numbers, avg, stdDev);
     return { avg, stdDev, stdDevPct, stdError, confidenceInterval95};
+  }
+
+  /**
+   * Allow to multiply to number, without floating point error (.e.g 1.00055 * 1000 = 1000.55)
+   */
+  static multiply(a: number | string | Decimal, b: number | string | Decimal): number {
+    const result = new Decimal(a).times(new Decimal(b));
+    return result.toNumber();
   }
 }
