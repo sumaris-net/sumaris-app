@@ -59,7 +59,7 @@ import {LandingValidatorOptions, LandingValidatorService} from '@app/trip/landin
 import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import {ProgressionModel} from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import {PmfmIds} from '@app/referential/services/model/model.enum';

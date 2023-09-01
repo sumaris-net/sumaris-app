@@ -20,8 +20,7 @@ import {
   slideUpDownAnimation,
   StatusIds,
   toBoolean,
-  toNumber,
-  TranslateContextService
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
@@ -45,7 +44,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ISelectProgramModalOptions, SelectProgramModal } from '@app/referential/program/select-program.modal';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_RESERVED_START_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { BaseTableConfig } from '@app/shared/table/base.table';
@@ -54,7 +53,7 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
-import {PmfmNamePipe} from "@app/referential/pipes/pmfms.pipe";
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 
 export const LandingsPageSettingsEnum = {
@@ -212,7 +211,7 @@ export class LandingsPage extends AppRootDataTable<
 
   constructor(
     injector: Injector,
-    protected _dataService: LandingService,
+    dataService: LandingService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -229,7 +228,7 @@ export class LandingsPage extends AppRootDataTable<
     super(injector,
       Landing, LandingFilter,
       [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS],
-      _dataService,
+      dataService,
       null,
       {
         reservedStartColumns:  LANDING_PAGE_RESERVED_START_COLUMNS,
@@ -237,7 +236,7 @@ export class LandingsPage extends AppRootDataTable<
         i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
         i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
         watchAllOptions: <LandingServiceWatchOptions>{
-          computeRankOrder: false, // Not need, because we use id instead
+          computeRankOrder: false, // Not need, because this table use the landing 'id'
           //withObservedLocation: true, // Need to get observers
         }
       }

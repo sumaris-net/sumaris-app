@@ -104,6 +104,9 @@
                 form.startDateTime: {{observedLocationForm.form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
                 form.endDateTime: {{observedLocationForm.form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
                 form.program: {{observedLocationForm.form|formGetValue:'program' | propertyGet: 'label' }}<br/>
+                <br/>
+                showLandingTab: {{showLandingTab}}<br/>
+                landingTableType: {{$landingTableType|async}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -137,8 +140,9 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix"
-             [disabled]="!showLandingTab" #landingsTab>
+    <mat-tab #landingsTab
+             [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix"
+             [disabled]="!showLandingTab" >
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <ng-container *rxIf="$table; let table; suspense: suspense">

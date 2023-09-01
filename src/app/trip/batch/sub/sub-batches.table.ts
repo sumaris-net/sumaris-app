@@ -871,10 +871,7 @@ export class SubBatchesTable
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
-        markForCheck: () => {
-          console.log('TODO end');
-          this.markForCheck()
-        }
+        markForCheck: () => this.markForCheck()
       });
       if (subscription) {
         this._rowValidatorSubscription = subscription;

@@ -72,7 +72,6 @@ export abstract class BaseMeasurementsTable<
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: UntypedFormBuilder;
 
-  //protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;

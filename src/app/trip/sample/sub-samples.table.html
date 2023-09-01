@@ -43,10 +43,11 @@
 </ion-text>-->
 
 <div #tableContainer class="table-container"
+     *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
      [class.has-pmfm-header-details]="showPmfmDetails"
-     *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms" [style.--pmfm-count]="pmfms?.length">
+     [style.--pmfm-count]="pmfms?.length">
 
   <!-- ********************************************************** -->
   <!-- ***********  Writable table (e.g. for desktop) *********** -->
@@ -119,7 +120,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms" [matColumnDef]="pmfm.id|toString">
+    <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn" [matColumnDef]="pmfm|pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header
           [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
@@ -240,8 +241,7 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms"
-                    [matColumnDef]="pmfm.id|toString">
+      <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn" [matColumnDef]="pmfm|pmfmIdString">
         <th mat-header-cell *matHeaderCellDef
             mat-sort-header
             class="mat-column-pmfm mat-column-{{pmfm.label}}"

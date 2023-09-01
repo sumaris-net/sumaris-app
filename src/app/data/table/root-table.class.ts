@@ -64,8 +64,6 @@ export abstract class AppRootDataTable<
   >
   extends AppBaseTable<T, F, S, V, ID, O> {
 
-  private _selectionExtractionTypes$: Observable<ExtractionType[]>;
-
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly userEventService: UserEventService;

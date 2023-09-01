@@ -17,6 +17,7 @@ import { environment } from '@environments/environment';
 import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['quality', 'vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -189,7 +190,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       {
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.required),
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         requiredStrategy: false,
         i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
         i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX
@@ -248,6 +249,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     super.ngOnDestroy();
     this.onOpenTrip.unsubscribe();
     this.onNewTrip.unsubscribe();
+  }
+
+  mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+    return pmfms?.filter(p => p.required);
   }
 
   setParent(data: ObservedLocation | Trip | undefined) {
