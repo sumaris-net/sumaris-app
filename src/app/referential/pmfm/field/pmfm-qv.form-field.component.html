@@ -162,7 +162,7 @@
                       *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
                       [disabled]="disabled"
                       [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId===0"
-                      class="mat-form-field-button"
+                      class="mat-form-field-button ion-text-wrap"
                       [tabindex]="_tabindex && (_tabindex + i)"
                       [color]="selectedIndex === -1 ? 'tertiary': (selectedIndex === i ? 'accent' : 'light')"
                       (click)="writeValue(item)"
