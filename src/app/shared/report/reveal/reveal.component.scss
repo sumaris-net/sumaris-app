@@ -1,4 +1,7 @@
 .reveal {
+  .pdf-page {
+    page-break-after: unset !important;
+  }
 }
 @media print {
   /*.reveal {

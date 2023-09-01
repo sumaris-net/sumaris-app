@@ -49,7 +49,6 @@ export class TripReportService<
                  }): Promise<R> {
 
     opts = {
-      formatLabel: 'pmfm_trip',
       sheetNames: ['TR', 'HH', 'SL', 'HL'],
       dataTypes: {
         TR: RdbPmfmTrip as unknown as new () => TR,
@@ -71,7 +70,7 @@ export class TripReportService<
 
     const variables = {
       filter: podFilter,
-      formatLabel: opts.formatLabel,
+      formatLabel: opts.formatLabel || 'pmfm_trip',
       offset: 0,
       size: 10000, // All rows
       sortDirection: 'asc',

@@ -720,7 +720,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
-
     // Excluded existing locations, BUT keep the current control value
     const excludedIds = (this.fishingAreasForm.value || [])
       .map(fa => fa.location)

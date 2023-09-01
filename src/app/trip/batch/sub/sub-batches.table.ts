@@ -20,11 +20,11 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
-import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ISubBatchModalOptions, SubBatchModal } from './sub-batch.modal';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -867,7 +867,6 @@ export class SubBatchesTable
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
-      console.log('TODO enableWeightConversion');
       const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,

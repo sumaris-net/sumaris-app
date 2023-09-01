@@ -56,7 +56,6 @@ const routes: Routes = [
   // Trips
   {
     path: 'trips',
-    canActivate: [AuthGuardService],
     data: {
       profile: 'USER'
     },
@@ -66,10 +65,6 @@ const routes: Routes = [
   // Observations
   {
     path: 'observations',
-    canActivate: [AuthGuardService],
-    data: {
-      profile: 'USER'
-    },
     loadChildren: () => import('./trip/observedlocation/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
   },
 
@@ -102,6 +97,15 @@ const routes: Routes = [
       profile: 'USER'
     },
     loadChildren: () => import('./social/message/inbox-message-routing.module').then(m => m.AppInboxMessageRoutingModule)
+  },
+
+  // Shared page
+  {
+    path: 'share',
+    loadChildren: () => import('./social/social-routing.module').then(m => m.SocialRoutingModule),
+    data: {
+      preload: false
+    }
   },
 
   // Test module (disable in menu, by default - can be enabled by the Pod configuration page)

@@ -604,7 +604,7 @@
         "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
       },
       "WARNING": {
-        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first.",
+        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first."
       },
       "ERROR": {
         "IMPORT_FILE_FAILED" : "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
@@ -1436,7 +1436,8 @@
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
-        "SAMPLES_TITLE": "Samples"
+        "SAMPLES_TITLE": "Samples",
+        "TAXON_NAME": "Scientific species"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Control <b>{{species}}</b>",
@@ -2889,7 +2890,8 @@
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
     "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
     "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategy not allowed or not found",
-    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label"
+    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label",
+    "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

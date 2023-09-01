@@ -1,11 +1,43 @@
 <ng-container *ngIf="!embedded">
-  <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+  <app-toolbar [defaultBackHref]="$defaultBackHref|async" [canGoBack]="false">
     <ion-title [innerHTML]="$title|async"></ion-title>
+
     <ion-buttons slot="end">
-      <ion-button (click)="reveal.print($event)" >
+
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid|isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
         <ion-icon name="print"></ion-icon>
       </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.SHARE.BTN_SHARE'|translate"
+              [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
     </ion-buttons>
+
+    <mat-menu #shareMenu="matMenu" xPosition="after">
+
+      <!-- Share popover -->
+      <button mat-menu-item
+              (click)="showSharePopover($event)"
+              [disabled]="(loadingSubject|async) || network.offline">
+        <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
+      </button>
+    </mat-menu>
+
   </app-toolbar>
 
   <ion-content>
@@ -16,25 +48,31 @@
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-    <app-reveal #reveal [class.cdk-visually-hidden]="error"
-                [options]="revealOptions">
-      <section *ngIf="loaded; else loadingTemplate">
-        <section markdown ngPreserveWhitespaces>
-          ## {{'LANDING.REPORT.TITLE_SHORT'|translate}}
-          - {{'LANDING.EDIT.LANDING'|translate}} {{data.location?.name}}
-          - {{'LANDING.EDIT.DATE'|translate}} : {{data.dateTime|dateFormat: {time: false} }}
-          - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{parent.observers|personToString}}
-          - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.name}}**
+    <!-- loading -->
+    <div class="loader" *rxIf="loadingSubject">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
 
+    <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+
+        <section *sectionDef>
+          <section class="summary">
+            <h2>{{'LANDING.REPORT.TITLE_SHORT'|translate}}</h2>
+            <ul>
+              <li><ion-icon name="location"></ion-icon> {{'LANDING.EDIT.LANDING'|translate}} {{data.location?.name}}</li>
+              <li><ion-icon name="calendar"></ion-icon> {{'LANDING.EDIT.DATE'|translate}} : {{data.dateTime|dateFormat: {time: false} }}</li>
+              <li><ion-icon name="people"></ion-icon> {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{data.observedLocation['observers']|personToString}}</li>
+              <li><ion-icon name="boat"></ion-icon> {{'LANDING.REPORT.VESSEL'|translate}} <strong>{{data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.name}}</strong></li>
+            </ul>
+          </section>
         </section>
-      </section>
-      <section *ngIf="loaded; else loadingTemplate">
-        <section markdown ngPreserveWhitespaces
-                 *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
-          ### {{'LANDING.REPORT.TITLE'|translate}} {{index|paginationToString:count}}
-          <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+        <section *sectionDef>
+          <section markdown ngPreserveWhitespaces
+                   *ngFor="let samples of (data.samples | splitArrayInChunks: 14); index as index; count as count">
+            ### {{'LANDING.REPORT.TITLE'|translate}} {{index|paginationToString:count}}
+            <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
+          </section>
         </section>
-      </section>
     </app-reveal>
 
     <ng-template #loadingTemplate>
@@ -42,14 +80,15 @@
         <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
       </div>
     </ng-template>
+
   </ion-content>
 </ng-container>
 
 <ng-container *ngIf="embedded && loaded">
   <section markdown ngPreserveWhitespaces
-    *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
+    *ngFor="let samples of (data.samples | splitArrayInChunks: 14); index as index; count as count">
     ## {{data.vesselSnapshot?.name}} {{data.dateTime|dateFormat: {time: true} }} {{index|paginationToString:count:true}}
-    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: stats.pmfms}"></ng-container>
   </section>
 </ng-container>
 
@@ -58,7 +97,7 @@
     <thead>
       <tr>
         <th *ngFor="let pmfm of pmfms"
-            [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true}"></th>
+            [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true}"></th>
       </tr>
     </thead>
     <tbody>
