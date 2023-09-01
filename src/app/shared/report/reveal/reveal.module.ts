@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '@sumaris-net/ngx-components';
-import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import {RevealComponent, RevealSectionDef, RevealSectionOutlet} from '@app/shared/report/reveal/reveal.component';
 import { RevealSectionDirective } from '@app/shared/report/reveal/reveal-section.directive';
 
 @NgModule({
@@ -9,11 +9,17 @@ import { RevealSectionDirective } from '@app/shared/report/reveal/reveal-section
   ],
   declarations: [
     RevealComponent,
-    RevealSectionDirective
+    RevealSectionDirective,
+
+    RevealSectionDef,
+    RevealSectionOutlet,
   ],
   exports: [
     RevealComponent,
-    RevealSectionDirective
+    RevealSectionDirective,
+
+    RevealSectionDef,
+    RevealSectionOutlet
   ]
 })
 export class RevealModule {

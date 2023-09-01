@@ -6,9 +6,11 @@ import {TranslateModule} from '@ngx-translate/core';
 import {AppSharedReportModule} from '@app/shared/report/report.module';
 import {ReportTestPage} from '@app/shared/report/testing/report.testing';
 import {NgChartsModule} from 'ng2-charts';
+import {ReportEmbeddedTestPage, ReportEmbeddedChildTestPage} from '@app/shared/report/testing/report-embedded.testing';
 
 export const REPORT_TESTING_PAGES: TestingPage[] = [
-  {label: 'Report', page: '/testing/shared/report'}
+  {label: 'Report', page: '/testing/shared/report'},
+  {label: 'Report embedded', page: '/testing/shared/report/embedded'}
 ];
 
 const routes: Routes = [
@@ -16,7 +18,12 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: ReportTestPage
-  }
+  },
+  {
+    path: 'embedded',
+    pathMatch: 'full',
+    component: ReportEmbeddedTestPage,
+  },
 ];
 
 @NgModule({
@@ -32,10 +39,13 @@ const routes: Routes = [
     AppSharedReportModule,
   ],
   declarations: [
-    ReportTestPage
+    ReportTestPage,
+    ReportEmbeddedTestPage,
+    ReportEmbeddedChildTestPage
   ],
   exports: [
-    ReportTestPage
+    ReportTestPage,
+    ReportEmbeddedTestPage,
   ]
 })
 export class AppSharedReportTestingModule {

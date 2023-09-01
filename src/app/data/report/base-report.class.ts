@@ -1,76 +1,164 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {AfterViewInit, ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  AccountService,
   AppErrorWithDetails,
-  DateFormatService,
-  firstFalsePromise, isNil,
+  DateFormatService, DateUtils, EntityAsObjectOptions,
+  firstFalsePromise, isNil, isNilOrBlank,
   isNotNil,
   isNotNilOrBlank, isNumber,
   LatLongPattern,
-  LocalSettingsService,
-  PlatformService,
-  WaitForOptions
+  LocalSettingsService, MenuService, NetworkService,
+  PlatformService, Toasts, toDateISOString, TranslateContextService,
+  WaitForOptions, waitForTrue
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { ModalController } from '@ionic/angular';
+import {BehaviorSubject, lastValueFrom, Subject} from 'rxjs';
+import {ModalController, PopoverController, ToastController} from '@ionic/angular';
+import {Share} from '@capacitor/share';
+import {Popovers} from '@app/shared/popover/popover.utils';
+import {SharedElement} from '@app/social/share/shared-page.model';
+import {v4 as uuidv4} from 'uuid';
+import {filter, first, map, takeUntil} from 'rxjs/operators';
+import {HttpClient, HttpEventType} from '@angular/common/http';
+import {FileTransferService} from '@app/shared/service/file-transfer.service';
+import { APP_BASE_HREF } from '@angular/common';
+import {Clipboard, ContextService} from '@app/shared/context.service';
+import {instanceOf} from 'graphql/jsutils/instanceOf';
+import {Function} from '@app/shared/functions';
+import {hasFlag} from '@app/shared/flags.utils';
+import {decodeUTF8} from 'tweetnacl-util';
+import {downloadSharedRessource} from "@app/social/share/shared-page.utils";
+import {Program} from "@app/referential/services/model/program.model";
+import {ProgramProperties} from "@app/referential/services/config/program.config";
+
+export const ReportDataPasteFlags = Object.freeze({
+  NONE: 0,
+  DATA: 1,
+  STATS: 2,
+  I18N_CONTEXT: 4,
+
+  // ALL FLAGS
+  ALL: (1+2+4),
+});
 
 export interface BaseReportOptions {
   pathIdAttribute?: string;
   pathParentIdAttribute?: string;
+  i18nPrefix?: string;
+  i18nPmfmPrefix?: string;
+}
+
+export interface IReportData {
+  fromObject?: (source:any) => void;
+  asObject?: (opts?: EntityAsObjectOptions) => any;
+}
+
+export class BaseReportStats {
+  program: Program;
+
+  fromObject(source: any) {
+    this.program = Program.fromObject(source.program);
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return  {
+      program: this.program?.asObject(opts),
+    };
+  }
+
+}
+
+export interface IReportI18nContext {
+  prefix:string;
+  suffix:string;
+  pmfmPrefix?:string;
+}
+
+export interface IComputeStatsOpts<S> {
+  getSubCategory?: Function<any, string>;
+  stats?: S;
+  cache?: boolean;
 }
 
 @Directive()
 export abstract class AppBaseReport<
-  T = any,
+  T extends IReportData,
   ID = number,
-  S = any>
+  S extends BaseReportStats = BaseReportStats,
+  O extends BaseReportOptions = BaseReportOptions>
   implements OnInit, AfterViewInit, OnDestroy {
 
+  private _printing = false;
+
+  protected logPrefix = 'base-report';
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
   protected readonly dateFormat: DateFormatService;
   protected readonly settings: LocalSettingsService;
   protected readonly modalCtrl: ModalController;
 
+  protected readonly injector: Injector;
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
   protected readonly programRefService: ProgramRefService;
+  protected readonly fileTransferService: FileTransferService;
+  protected readonly baseHref: string;
+  protected readonly translateContext: TranslateContextService;
+  protected readonly context: ContextService;
 
+  protected readonly router: Router;
   protected readonly destroySubject = new Subject<void>();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
+  protected readonly toastController: ToastController;
+  protected readonly network: NetworkService;
 
   protected _autoLoad = true;
   protected _autoLoadDelay = 0;
   protected _pathIdAttribute: string;
   protected _pathParentIdAttribute: string;
+  protected _stats:S = null;
+  protected uuid: string = null;
+
+  protected onRefresh = new EventEmitter<void>();
 
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
-  // NOTE: Interface for this ?
-  i18nContext = {
-    prefix: '',
-    suffix: '',
-  }
+  i18nContext:IReportI18nContext = null;
 
-  $defaultBackHref = new Subject<string>();
-  $title = new Subject<string>();
+  $defaultBackHref = new BehaviorSubject<string>('');
+  $title = new BehaviorSubject<string>('');
 
+  @Input() mobile: boolean;
   @Input() modal: boolean;
   @Input() showError = true;
   @Input() showToolbar = true;
   @Input() debug = !environment.production;
 
   @Input() data: T;
-  @Input() stats: S = <S>{};
+  @Input() set stats(value) {
+    if (isNil(value)) return;
+    if (instanceOf(value, this.statsType)) this._stats = value;
+    else this._stats = this.statsFromObject(value);
+  };
+  get stats(): S {
+    return this._stats;
+  }
 
-  @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;
+  get embedded(): boolean {
+    return this.reveal?.embedded || false;
+  }
+
+  @Input() i18nContextSuffix: string;
+
+  @ViewChild(RevealComponent, {static: false}) protected reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
+  get loading(): boolean { return this.loadingSubject.value; }
 
   get modalName(): string {
     return this.constructor.name;
@@ -80,51 +168,87 @@ export abstract class AppBaseReport<
     return this.settings?.latLongFormat;
   }
 
+  get shareUrlBase(): String {
+    return `${this.baseHref.replace(/\/$/, '')}/share/`;
+  }
+
+  private location: Location;
+
   protected constructor(
     injector: Injector,
-    @Optional() options?: BaseReportOptions,
+    protected dataType: new() => T,
+    protected statsType: new() => S,
+    @Optional() protected options?: O,
+    @Optional() parent?: AppBaseReport<any>,
   ) {
-    console.debug(`[${this.constructor.name}.constructor]`, arguments);
-
+    this.injector = injector;
+    this.baseHref = injector.get(APP_BASE_HREF);
+    this.translateContext = injector.get(TranslateContextService);
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
+    this.router = injector.get(Router);
     this.dateFormat = injector.get(DateFormatService);
     this.settings = injector.get(LocalSettingsService);
     this.modalCtrl = injector.get(ModalController);
+    this.toastController = injector.get(ToastController);
+    this.fileTransferService = injector.get(FileTransferService);
+    this.context = injector.get(ContextService);
+    this.network = injector.get(NetworkService);
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
     this.programRefService = injector.get(ProgramRefService);
 
+    this.mobile = this.settings.mobile;
+    this.uuid = this.route.snapshot.queryParamMap.get('uuid');
+
     this._pathParentIdAttribute = options?.pathParentIdAttribute;
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
+
+    this.onRefresh
+      .pipe(filter(_ => this.loaded))
+      .subscribe(() => this.reload({cache: false}));
+
+    this.debug = !environment.production;
   }
 
-  async ngOnInit() {
-    this.modal = isNotNil(this.modal) ? this.modal : !!(await this.modalCtrl.getTop());
+  ngOnInit() {
+    // TODO : FIXME
+    // this.modal = isNotNil(this.modal) ? this.modal : !!(await this.modalCtrl.getTop());
+    if (this.embedded) {
+      this.showToolbar = false;
+    }
   }
 
   ngAfterViewInit() {
-    console.debug(`[${this.constructor.name}.ngAfterViewInit]`);
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
   }
 
   ngOnDestroy() {
-    console.debug(`[${this.constructor.name}.ngOnDestroy]`);
     this.destroySubject.next();
   }
 
   async start(opts?: any) {
-    console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
-    try {
-      // Load data
-      this.data = await this.ngOnStart(opts);
 
-      this.$defaultBackHref.next(this.computeDefaultBackHref(this.data, this.stats));
+    // Disable the menu if user is not authenticated (public shared report)
+    const accountService = this.injector.get(AccountService);
+    await accountService.ready();
+    if (!accountService.isAuth()) {
+      const menu = this.injector.get(MenuService);
+      menu.enable(false);
+    }
+
+    this.markAsReady();
+    try {
+
+      // Load or fill this.data, this.stats and this.i18nContext
+      await this.ngOnStart(opts);
+
+      if (isNilOrBlank(this.uuid)) this.$defaultBackHref.next(this.computeDefaultBackHref(this.data, this.stats));
       this.$title.next(await this.computeTitle(this.data, this.stats));
       this.revealOptions = this.computeSlidesOptions(this.data, this.stats);
 
@@ -136,15 +260,23 @@ export abstract class AppBaseReport<
     } catch (err) {
       console.error(err);
       this.setError(err);
+      this.markAsLoaded();
     }
   };
 
   async reload(opts?: any) {
     if (!this.loaded) return; // skip
 
-    console.debug(`[${this.constructor.name}.reload]`);
     this.markAsLoading();
-    return this.start(opts);
+    this.cd.detectChanges();
+
+    setTimeout(() => {
+      this.data = undefined;
+      this.stats = undefined;
+      this.i18nContext = undefined;
+
+      this.start(opts);
+    }, 500);
   }
 
   cancel() {
@@ -153,15 +285,108 @@ export abstract class AppBaseReport<
     }
   }
 
-  protected abstract ngOnStart(opts: any): Promise<T>;
+  async ngOnStart(opts?: any) {
+    if (this.debug) {
+      if (isNotNil(this.data)) console.debug(`[${this.logPrefix}] data present on starting`, this.data);
+      if (isNotNil(this.stats)) console.debug(`[${this.logPrefix}] stats present on starting`, this.stats);
+      if (isNotNil(this.i18nContext)) console.debug(`[${this.logPrefix}] i18nContext present on starting`, this.i18nContext);
+    }
+
+    // If data is not filled by input, fill it with the clipboard
+    let clipboard: Clipboard<any>;
+    if (isNotNil(this.context.clipboard)) {
+      clipboard = this.context.clipboard;
+    }
+    else if (isNotNilOrBlank(this.uuid)) {
+      if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared ressource`);
+      const http = this.injector.get(HttpClient);
+      const peerUrl = this.settings.settings.peerUrl;
+      const sharedElement = await downloadSharedRessource(http, peerUrl, this.uuid);
+
+      clipboard = sharedElement.content;
+    }
+
+    if (hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.DATA) && isNotNil(clipboard?.data?.data)) {
+      const consumed = await this.loadFromClipboard(clipboard);
+      if (consumed) this.context.resetValue('clipboard');
+    }
+  }
+
+  protected abstract loadFromRoute(opts?: any): Promise<T>;
+
+  protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<boolean> {
+    if (this.debug) console.debug(`[${this.logPrefix}] loadFromClipboard`, clipboard);
+
+    let consumed = false;
+
+    if (isNil(this.data) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.DATA) && isNotNil(clipboard.data.data)) {
+      this.data = this.dataFromObject(clipboard.data.data);
+      consumed = true;
+      if (this.debug) console.debug(`[${this.logPrefix}] data loaded from clipboard`, this.data);
+    }
+
+    if (isNotNil(this.data) && isNil(this.stats) && hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.STATS) && isNotNil(clipboard.data.stats)) {
+      this.stats = this.statsFromObject(clipboard.data.stats);
+      consumed = true;
+      if (this.debug) console.debug(`[${this.logPrefix}] stats loaded from clipboard`, this.stats);
+    }
+
+    if (hasFlag(clipboard.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT) && isNotNil(clipboard.data.i18nContext)) {
+      this.i18nContext = {
+        ...this.i18nContext,
+        ...clipboard.data.i18nContext,
+        pmfmPrefix: this.options?.i18nPmfmPrefix
+      };
+      consumed = true;
+      if (this.debug) console.debug(`[${this.logPrefix}] i18nContext loaded from clipboard`, this.i18nContext);
+    }
+
+    return consumed;
+  }
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeTitle(data: T, stats: S): Promise<string>;
 
+  protected abstract computeStats(data: T, opts?: IComputeStatsOpts<S>): Promise<S>;
+
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T, stats: S): string;
 
-  protected abstract computePrintHref(data: T, stats: S): string;
+
+  protected computeI18nContext(stats:BaseReportStats):IReportI18nContext {
+    if (this.debug) console.debug(`[${this.logPrefix}] computeI18nContext]`);
+    const suffix = isNilOrBlank(this.i18nContextSuffix)
+      ? stats.program?.getProperty(ProgramProperties.I18N_SUFFIX) || ''
+      : this.i18nContextSuffix;
+
+    return  {
+      prefix: this.options?.i18nPrefix || '',
+      suffix: suffix === 'legacy' ? '' : suffix,
+      pmfmPrefix: this.options?.i18nPmfmPrefix || '',
+    }
+  }
+
+  computePrintHref(data: T, stats: S): URL {
+    if (this.uuid) return new URL(`${this.baseHref}/${this.computeShareBasePath()}?uuid=${this.uuid}`);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report');
+  };
+
+  protected abstract computeShareBasePath(): string;
+
+  protected computeSlidesOptions(data: T, stats: S): Partial<IRevealExtendedOptions> {
+    if (this.debug) console.debug(`[${this.logPrefix}] computeSlidesOptions`);
+    const mobile = this.settings.mobile;
+    return {
+      // Custom reveal options
+      autoInitialize: false,
+      autoPrint: false,
+      // Reveal options
+      pdfMaxPagesPerSlide: 1,
+      disableLayout: mobile,
+      touch: mobile,
+      printUrl: this.computePrintHref(data, stats)
+    };
+  }
 
   protected getIdFromPathIdAttribute<ID>(pathIdAttribute: string): ID {
     const route = this.route.snapshot;
@@ -175,58 +400,45 @@ export abstract class AppBaseReport<
     return undefined;
   }
 
-  protected computeSlidesOptions(data: T, stats: S): Partial<IRevealExtendedOptions> {
-    console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
-    const mobile = this.settings.mobile;
-    return {
-      // Custom reveal options
-      autoInitialize: false,
-      autoPrint: false,
-      // Reveal options
-      pdfMaxPagesPerSlide: 1,
-      disableLayout: mobile,
-      touch: mobile,
-      printHref: this.computePrintHref(this.data, this.stats)
-    };
-  }
-
   async updateView() {
-    console.debug(`[${this.constructor.name}.updateView]`);
-
     this.cd.detectChanges();
-    await this.reveal.initialize();
+    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject});
+    if (!this.embedded) await this.reveal.initialize();
   }
 
   markAsReady() {
-    console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
     if (!this.readySubject.value) {
       this.readySubject.next(true);
     }
   }
 
   protected markForCheck() {
-    console.debug(`[${this.constructor.name}.markForCheck]`);
     this.cd.markForCheck();
   }
 
-  protected markAsLoading() {
-    console.debug(`[${this.constructor.name}.markAsLoading]`);
+  protected markAsLoading(opts = {emitEvent: true}) {
     if (!this.loadingSubject.value) {
       this.loadingSubject.next(true);
+      if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
-  protected markAsLoaded() {
-    console.debug(`[${this.constructor.name}.markAsLoaded]`);
+  protected markAsLoaded(opts = {emitEvent: true}) {
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
+      if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
-  protected async waitIdle(opts: WaitForOptions) {
-    console.debug(`[${this.constructor.name}.waitIdle]`);
+  async waitIdle(opts: WaitForOptions) {
+    console.debug(`[${this.constructor.name}]`);
     if (this.loaded) return;
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
+  }
+
+  async ready(opts?: WaitForOptions): Promise<void> {
+    if (this.readySubject.value) return;
+    await waitForTrue(this.readySubject, opts);
   }
 
   setError(err: string | AppErrorWithDetails, opts?: {
@@ -257,4 +469,149 @@ export abstract class AppBaseReport<
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
   }
+
+  abstract dataAsObject(source: T, opts?: EntityAsObjectOptions): any;
+
+  dataFromObject(source: any): T {
+   if (this.dataType) {
+     const data = new this.dataType();
+     data.fromObject(source);
+     return data;
+   }
+   return source as T;
+  };
+
+
+  statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
+    return source.asObject(opts);
+  }
+
+  statsFromObject(source:any): S {
+    const stats = new this.statsType();
+    stats.fromObject(source);
+    return stats;
+  }
+
+  protected async showSharePopover(event?: UIEvent) {
+
+    if (isNilOrBlank(this.uuid)) {
+      try {
+        this.uuid = await this.uploadReportFile();
+      } catch (err) {
+        console.error(err);
+        await Toasts.show(this.toastController, this.translate, {
+          message: err.message,
+          type: 'error',
+        });
+        return;
+      }
+    }
+
+    // Use Capacitor plugin
+    if (this.mobile && this.platform.isCapacitor()) {
+      await Share.share({
+        title: this.$title.value,
+        text: 'Really awesome thing you need to see right meow',
+        url: this.uuid,
+        dialogTitle: this.translate.instant('COMMON.SHARE.DIALOG_TITLE'),
+      });
+    }
+    else {
+      await Popovers.showText(
+        this.injector.get(PopoverController),
+        event,
+        {
+          text: `${this.shareUrlBase}${this.uuid}`,
+          editing: false,
+          autofocus: false,
+          multiline: false
+        }
+      )
+    }
+  }
+
+  protected async uploadReportFile(): Promise<string> {
+    // Wait data loaded
+    await this.waitIdle({timeout: 5000});
+
+    const uploadFileName = this.getExportFileName('json');
+
+    const sharedElement:SharedElement = {
+      uuid: uuidv4(),
+      shareLink: '',
+      path: this.computeShareBasePath(),
+      queryParams: {},
+      creationDate: toDateISOString(DateUtils.moment()),
+      content: {
+        // TODO Type data ?
+        data: {
+          data: this.dataAsObject(this.data),
+          stats: this.statsAsObject(this.stats),
+          i18nContext: this.i18nContext,
+        },
+        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT
+      }
+    }
+
+    const arrayUt8 = decodeUTF8(JSON.stringify(sharedElement));
+    const blob = new Blob([arrayUt8], {type: "application/json"});
+    blob['lastModifiedDate'] = (new Date()).toISOString();
+    blob['name'] = uploadFileName;
+
+    const { fileName, message } = await lastValueFrom(this.fileTransferService.uploadResource(<File>blob, {
+      resourceType: 'report',
+      resourceId: sharedElement.uuid + '.json',
+      reportProgress: false
+    }).pipe(
+      map(event => {
+        if (event.type === HttpEventType.Response) {
+          return event.body;
+        }
+      }),
+      filter(body => !!body),
+      first(),
+      takeUntil(this.destroySubject)
+    ));
+
+    if (message !== "OK" || !fileName) {
+      throw new Error('Failed to upload report data!');
+    }
+
+    await this.fileTransferService.shareAsPublic(fileName).then();
+
+    return `${fileName.replace(/\.json$/, '')}`;
+  }
+
+  protected getExportEncoding(format = 'json'): string {
+    const key = `FILE.${format.toUpperCase()}.ENCODING`;
+    const encoding = this.translate.instant(key);
+    if (encoding !== key) return encoding;
+    return 'UTF-8'; // Default encoding
+  }
+
+  protected getExportFileName(format = 'json', params?: any): string {
+    const key = `${this.i18nContext.prefix}EXPORT_${format.toUpperCase()}_FILENAME`;
+    const filename = this.translateContext.instant(
+      key,
+      this.i18nContext.suffix,
+      params || {title: this.$title.value})
+    if (filename !== key) return filename;
+    return `export.${format}`; // Default filename
+  }
+
+
+  private isPrintingPDF(): boolean {
+    if (this._printing) return true;
+    const query = window.location.search || '?';
+    return query.indexOf('print-pdf') !== -1;
+  }
+
+  private async print() {
+    if (this._printing) return true; // Skip is already printing
+    this._printing = true;
+    await this.ready();
+    this.reveal?.print();
+  }
+
+
 }

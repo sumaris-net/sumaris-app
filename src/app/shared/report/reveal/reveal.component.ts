@@ -1,49 +1,85 @@
 import {
   AfterViewInit,
   ApplicationRef,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ContentChildren,
+  Directive,
   ElementRef,
   EmbeddedViewRef,
   EventEmitter,
   HostListener,
   Inject,
+  InjectionToken,
   Input,
   OnDestroy,
+  Optional,
   Output,
   QueryList,
+  SkipSelf,
+  TemplateRef,
   ViewChild,
+  ViewContainerRef,
+  ViewEncapsulation,
   ViewRef
 } from '@angular/core';
-import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
-import { MarkdownComponent } from 'ngx-markdown';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { DOCUMENT } from '@angular/common';
-import { OverlayEventDetail } from '@ionic/core';
-import { ToastController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-
+import {ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions} from '@sumaris-net/ngx-components';
+import {IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent} from './reveal.utils';
+import {MarkdownComponent} from 'ngx-markdown';
+import {BehaviorSubject, lastValueFrom, Subscription} from 'rxjs';
+import {DOCUMENT} from '@angular/common';
+import {OverlayEventDetail} from '@ionic/core';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
   autoPrint: boolean;
-  printHref: string;
+  printUrl: URL;
+}
+
+export const REVEAL_COMPONENT = new InjectionToken<any>('REVEAL_COMPONENT');
+
+@Directive({selector: '[sectionOutlet]'})
+export class RevealSectionOutlet  {
+  constructor(public viewContainer: ViewContainerRef, public elementRef: ElementRef) {
+  }
+}
+
+@Directive({
+  selector: '[sectionDef]'
+})
+export class RevealSectionDef {
+
+  constructor(
+    public template: TemplateRef<any>,
+    //@Inject(REVEAL_COMPONENT) @Optional() public _reveal?: RevealComponent
+  ) {
+  }
 }
 
 @Component({
   selector: 'app-reveal',
   templateUrl: './reveal.component.html',
-  styleUrls: ['./reveal.component.scss']
+  styleUrls: ['./reveal.component.scss'],
+  providers: [
+    //{provide: RevealComponent, useExisting: RevealComponent},
+    {provide: REVEAL_COMPONENT, useExisting: RevealComponent}
+  ],
+  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class RevealComponent implements AfterViewInit, OnDestroy
 {
   private _reveal: IReveal;
+  private _embedded = false;
+  private _parent: RevealComponent;
   private loadingSubject = new BehaviorSubject(true);
   private _subscription = new Subscription();
   private _printing = false;
   private _printIframe: HTMLIFrameElement;
+  private _registeredSections: RevealSectionDef[] = [];
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -51,6 +87,14 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
   get loaded(): boolean {
     return !this.loadingSubject.value;
+  }
+
+  get embedded(): boolean {
+    return this._embedded;
+  }
+
+  @Input() set embedded(value: boolean) {
+    this._embedded = value;
   }
 
   get printing(): boolean {
@@ -64,6 +108,9 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   @Output('slideChanged') onSlideChanged = new EventEmitter<RevealSlideChangedEvent>();
 
   @ViewChild('main') _revealDiv!: ElementRef;
+
+  @ViewChild(RevealSectionOutlet, {static: true}) _sectionOutlet: RevealSectionOutlet;
+  @ContentChildren(RevealSectionDef, {descendants: true}) _sectionDefs: QueryList<RevealSectionDef>;
   @ContentChildren('[markdown]') markdownList: QueryList<MarkdownComponent>;
 
   constructor(
@@ -71,8 +118,13 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     @Inject(ChangeDetectorRef) private viewRef: ViewRef,
     @Inject(DOCUMENT) private _document: Document,
     private toastController: ToastController,
-    private translate: TranslateService
-    ) {
+    private cd: ChangeDetectorRef,
+    private translate: TranslateService,
+    @SkipSelf() @Optional() @Inject(REVEAL_COMPONENT) parent?: RevealComponent
+  ) {
+
+    this._parent = parent !== this ? parent : undefined;
+    this._embedded = !!this._parent;
 
     if (this.isPrintingPDF()) {
       this.configurePrintPdfCss();
@@ -85,9 +137,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   @HostListener('window:beforeprint')
-  onbeforeprint(event: Event) {
+  onbeforeprint(event?: Event) {
+    console.debug('[reveal] Received before print event');
     if (!this.isPrintingPDF()) {
-      event?.preventDefault();
+      //event?.preventDefault();
       this.print();
     }
   }
@@ -100,19 +153,44 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit() {
-    if (this.options.autoInitialize !== false) {
-      setTimeout(() => this.initialize(), 100);
+    // Root component
+    if (!this._embedded) {
+      if (this.options && this.options.autoInitialize !== false) {
+        setTimeout(() => this.initialize(), 100);
+      }
+
+      if (this.isPrintingPDF() && this.options.autoPrint !== false) {
+        this.waitIdle()
+          .then(() => this.print());
+      }
+    }
+    // Embedded component
+    else {
+      this._sectionDefs.forEach(section => {
+        this._parent.registerSection(section);
+      });
     }
 
-    if (this.isPrintingPDF() && this.options.autoPrint !== false) {
-      this.waitIdle()
-        .then(() => this.print());
-    }
-
+    console.log('[reveal] ngAfterViewInit finished')
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
+  }
+
+  registerSection(section:RevealSectionDef) {
+    if (!this._embedded) {
+      const exists = this._sectionDefs.some(s => s === section)
+        || this._registeredSections.includes(section);
+
+      if (exists) return; // Skip if already registered (e.g. see testing embedded page)
+
+      console.debug(`[reveal] registerSection`, section);
+      this._registeredSections.push(section);
+    }
+    else {
+      this._parent.registerSection(section);
+    }
   }
 
   moveToBody(): void {
@@ -127,12 +205,15 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
   async initialize() {
 
-    // wait markdown rendered
-    await Promise.all(this.markdownList
-      .map(md => md.ready.toPromise()));
-
     const now = Date.now();
     console.debug(`[reveal] Initialize Reveal.js ... {printing: ${this._printing}}`);
+
+    await this.renderSections();
+
+    // wait markdown rendered
+    await Promise.all(this.markdownList
+      .map(md => lastValueFrom(md.ready)));
+
 
     // Move content to body
     if (this.isPrintingPDF()) {
@@ -175,6 +256,17 @@ export class RevealComponent implements AfterViewInit, OnDestroy
       this._reveal.destroy();
       this._revealDiv.nativeElement.innerHTML = '';
     });
+  }
+
+  protected async renderSections() {
+    if (this.embedded) return; // Skip
+    const viewContainer = this._sectionOutlet.viewContainer;
+    let indexSection = 0;
+    this._sectionDefs.forEach((section, index) =>
+      viewContainer.createEmbeddedView(section.template,  {}, indexSection++));
+    this._registeredSections.forEach((section, index) =>
+      viewContainer.createEmbeddedView(section.template,  {}, indexSection++));
+    this.cd.detectChanges();
   }
 
   configure(options: Partial<IRevealOptions>){
@@ -269,20 +361,13 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   private getPrintPdfUrl() {
-    let href = this.options.printHref || window.location.href;
-    let query = !this.options.printHref && window.location.search || '?';
-    let hash = !this.options.printHref && window.location.hash || '';
-    if (href.lastIndexOf('#') !== -1) {
-      href = href.substring(0, href.lastIndexOf('#'));
+    let printUrl = this.options.printUrl || new URL(window.location.href);
+
+    if (! printUrl.searchParams.has('print-pdf')) {
+      printUrl.searchParams.append('print-pdf', '1');
     }
-    if (href.indexOf('?') !== -1) {
-      href = href.substring(0, href.indexOf('?'));
-    }
-    // Set query
-    if (query.indexOf('print-pdf') !== -1) return; // not need
-    query += 'print-pdf';
-    // Compute final URL
-    return href + query + hash;
+
+    return printUrl.href;
   }
 
   private isPrintingPDF(): boolean {

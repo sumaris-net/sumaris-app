@@ -1443,7 +1443,8 @@
       "SAMPLING": {
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Rapport d'échantillonnage",
-        "SAMPLES_TITLE": "Mesures individuelles"
+        "SAMPLES_TITLE": "Mesures individuelles",
+        "TAXON_NAME": "Espèce cible"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>",
@@ -2956,7 +2957,8 @@
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
     "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategie non autorisée ou non trouvée.",
-    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie"
+    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie",
+    "SHARE_AS_PUBLIC_FAIL": "Échec du partage pulic"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

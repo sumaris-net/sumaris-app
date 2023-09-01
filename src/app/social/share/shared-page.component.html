@@ -1,0 +1,12 @@
+<ion-content no-padding-xs>
+  <!-- loading spinner -->
+  <div class="loading-page" [class.cdk-visually-hidden]="!loading">
+    <div class="spinner" *ngIf="loading">
+      <p [innerHTML]="'COMMON.LOADING_DOTS'|translate"></p>
+      <div class="sk-cube1 sk-cube"></div>
+      <div class="sk-cube2 sk-cube"></div>
+      <div class="sk-cube4 sk-cube"></div>
+      <div class="sk-cube3 sk-cube"></div>
+    </div>
+  </div>
+</ion-content>

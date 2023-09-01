@@ -31,15 +31,4 @@ export abstract class DataContextService<S extends DataContext = DataContext> ex
     super(defaultState || <S>{});
   }
 
-  get clipboard(): DataClipboard|undefined {
-    return this.get('clipboard') as DataClipboard;
-  }
-
-  get program(): Program|undefined {
-    return this.get('program');
-  }
-
-  get strategy(): Strategy|undefined {
-    return this.get('strategy');
-  }
 }

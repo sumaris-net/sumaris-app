@@ -8,6 +8,7 @@ import { Subject } from 'rxjs';
 })
 export class RevealSectionDirective implements OnInit, OnDestroy{
 
+  private logPrefix = 'reveal-section-directive';
   private _destroySubject = new Subject<void>();
 
   @Output('entered') onEntered = new EventEmitter<{ currentSlide: HTMLElement }>();
@@ -21,7 +22,7 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
 
   ngOnInit() {
     // DEBUG
-    //console.debug(`[${this.constructor.name}.ngOnInit]`, arguments);
+    // console.debug(`[${this.logPrefix} ngOnInit]`, arguments);
 
     if (this._reveal) {
       this.startWorkflow(this._reveal);

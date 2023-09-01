@@ -1,28 +1,67 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
+import {AuthGuardService, ComponentDirtyGuard} from '@sumaris-net/ngx-components';
 import { ObservedLocationsPage } from './table/observed-locations.page';
 import { ObservedLocationPage } from './observed-location.page';
 import { LandedTripPage } from '../landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
 
 const routes: Routes = [
+  // table
   {
     path: '',
     pathMatch: 'full',
-    component: ObservedLocationsPage
+    component: ObservedLocationsPage,
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'USER'
+    },
   },
+
+  // Shared report
+  {
+    path: 'report',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadChildren: () => import('./report/observed-location-report-routing.module').then(m => m.AppObservedLocationReportRoutingModule),
+      },
+      {
+        path: 'landing',
+        pathMatch: 'full',
+        loadChildren: () => import('@app/trip/landing/report/landing-report-routing.module').then(m => m.LandingReportRoutingModule),
+      },
+      {
+        path: 'control',
+        pathMatch: 'full',
+        loadChildren: () => import('@app/trip/landing/auction-control/report/auction-control-report-routing.module').then(m => m.AuctionControlReportRoutingModule),
+      },
+      {
+        path: 'sampling',
+        pathMatch: 'full',
+        loadChildren: () => import('@app/trip/landing/sampling/report/sampling-landing-report-routing.module').then(m => m.SamplingReportRoutingModule),
+      },
+    ],
+  },
+
 
   // Landings
   {
     path: 'landings',
-    loadChildren: () => import('../landing/landings-routing.module').then(m => m.AppLandingsRoutingModule)
+    loadChildren: () => import('../landing/landings-routing.module').then(m => m.AppLandingsRoutingModule),
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'USER'
+    },
   },
 
   {
     path: ':observedLocationId',
     runGuardsAndResolvers: 'pathParamsChange',
+    canActivate: [AuthGuardService],
     data: {
+      profile: 'USER',
       pathIdParam: 'observedLocationId'
     },
     children: [
@@ -62,7 +101,7 @@ const routes: Routes = [
       {
         path: 'report',
         loadChildren: () => import('./report/observed-location-report-routing.module').then(m => m.AppObservedLocationReportRoutingModule)
-      }
+      },
     ]
   }
 ];

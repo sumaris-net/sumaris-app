@@ -1,25 +1,43 @@
 <ng-container *ngIf="showToolbar">
   <app-toolbar *ngIf="!modal; else modalToolbar"
-    [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+    [defaultBackHref]="$defaultBackHref|async" canGoBack="false">
 
     <ion-title [innerHTML]="$title|async"></ion-title>
 
-    <!-- Refresh -->
-    <ion-button slot="end" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
-      <mat-icon slot="icon-only">refresh</mat-icon>
-    </ion-button>
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid|isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
 
-    <!-- Help button -->
-    <ion-button slot="end" (click)="reveal.toggleHelp()">
-      <mat-icon slot="icon-only">help_outline</mat-icon>
-    </ion-button>
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon slot="icon-only">help_outline</mat-icon>
+      </ion-button>
 
-    <!-- Print button -->
-    <ion-button slot="end" (click)="reveal.print($event)">
-      <ion-icon slot="icon-only" name="print"></ion-icon>
-    </ion-button>
+      <!-- Print button -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <ion-icon slot="icon-only" name="print"></ion-icon>
+      </ion-button>
 
+      <button mat-icon-button matHeader
+              [title]="'COMMON.SHARE.BTN_SHARE'|translate"
+              [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
   </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+
+    <!-- Share popover -->
+    <button mat-menu-item
+            (click)="showSharePopover($event)"
+            [disabled]="(loadingSubject|async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
+    </button>
+  </mat-menu>
 
   <ng-template #modalToolbar>
     <app-modal-toolbar *ngIf="showToolbar"
@@ -53,22 +71,27 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+  <div class="loader" *rxIf="loadingSubject">
+    <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+  </div>
+
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
-    <section>
+
+    <section *sectionDef>
       <!-- summary -->
-      <section class="summary">
+      <section class="summary" *ngIf="stats; let stats">
         <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
         <ul *ngVar="{
-        startDate: stats.startDate|dateFormat:{time: false},
-        endDate: stats.endDate|dateFormat:{time: false}
-      } as vars">
+      startDate: stats.startDate|dateFormat:{time: false},
+      endDate: stats.endDate|dateFormat:{time: false}
+    } as vars">
           <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
           <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString: ['exteriorMarking'] }}</li>
           <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
           <li><mat-icon>straighten</mat-icon> {{ 'TRIP.REPORT.VESSEL_LENGTH'|translateContext: i18nContext.suffix }}
             <span *ngIf="stats.vesselLength.min !== stats.vesselLength.max; else avgLengthOnly"
                   [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_STATS'|translateContext: i18nContext.suffix: stats.vesselLength">
-            </span>
+          </span>
             <ng-template #avgLengthOnly>
               <span [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_AVG'|translateContext: i18nContext.suffix: stats.vesselLength"></span>
             </ng-template>
@@ -78,7 +101,7 @@
       </section>
 
       <!-- Operations map -->
-      <section *ngIf="stats.operations|isNotEmptyArray"
+      <section *ngIf="stats?.operations|isNotEmptyArray"
                (entered)="!reveal.printing && showMap()" >
         <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
         <div style="height: 550px;">
@@ -87,16 +110,18 @@
       </section>
     </section>
 
-    <section *ngFor="let s of stats.species | arrayFilter: isNotEmptySpecies">
-      <section *ngFor="let chart of s.charts | mapValues">
-        <div class="chart-container">
-          <canvas baseChart
-                  [type]="chart.type"
-                  [data]="chart.data"
-                  [options]="chart.options">
-          </canvas>
-        </div>
-      </section>
+    <section *sectionDef>
+      <ng-container *ngFor="let s of stats?.species | arrayFilter: isNotEmptySpecies">
+        <section *ngFor="let chart of s.charts | mapValues">
+          <div class="chart-container">
+            <canvas baseChart
+                    [type]="chart.type"
+                    [data]="chart.data"
+                    [options]="chart.options">
+            </canvas>
+          </div>
+        </section>
+      </ng-container>
     </section>
 
   </app-reveal>

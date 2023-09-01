@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Slides Reveal.js</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="reveal.print()" >
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <app-reveal [options]="revealOptions" #reveal>
+    <section *sectionDef>
+      <section>
+        <h1>Diapo 1</h1>
+      </section>
+    </section>
+
+    <app-reveal [options]="revealOptions" [embedded]="true">
+        <section *sectionDef>
+          <section>
+            <h1>Diapo 2 a</h1>
+          </section>
+          <section markdown ngPreserveWhitespaces>
+              # Diapo 2 b
+              Test [link](www.sumaris.net)
+          </section>
+        </section>
+    </app-reveal>
+
+    <app-report-embedded-child-test-page></app-report-embedded-child-test-page>
+  </app-reveal>
+
+</ion-content>

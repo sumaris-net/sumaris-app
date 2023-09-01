@@ -22,4 +22,5 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class TripReportRoutingModule { }
+export class TripReportRoutingModule {
+}
