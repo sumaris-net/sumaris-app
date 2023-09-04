@@ -1434,11 +1434,13 @@
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
       "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
+      "TAXON_NAME": "Scientific species",
+      "METIERS": "Metiers",
+      "FISHING_AREA": "Fishing area",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
-        "SAMPLES_TITLE": "Samples",
-        "TAXON_NAME": "Scientific species"
+        "SAMPLES_TITLE": "Samples"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Control <b>{{species}}</b>",

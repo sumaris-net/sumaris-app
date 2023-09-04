@@ -63,7 +63,23 @@
             <li><ion-icon name="calendar"></ion-icon> {{'LANDING.EDIT.SAMPLING.DATE'|translate}} : {{data.dateTime|dateFormat: {time: false} }}</li>
             <li *ngIf="!reveal?.embedded"><ion-icon name="people"></ion-icon> {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{data.observedLocation['observers']|personToString}}</li>
             <li><ion-icon name="boat"></ion-icon> {{'LANDING.REPORT.VESSEL'|translate}} <strong>{{data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.name}}</strong></li>
-            <li><ion-icon name="fish"></ion-icon> {{ 'LANDING.REPORT.SAMPLING.TAXON_NAME'|translate }}: <strong>{{ stats.taxonName.name }}</strong></li>
+            <li><ion-icon name="fish"></ion-icon> {{ 'LANDING.REPORT.TAXON_NAME'|translate }}: <strong>{{ stats.taxonName.name }}</strong></li>
+            <li *ngIf="stats.metiers|isNotEmptyArray">
+              <ion-icon name="cube"></ion-icon> {{ 'LANDING.REPORT.METIERS'|translate }} :
+              <ul class="inline-list">
+                <ng-container  *ngFor="let metier of stats.metiers; index as i">
+                  <li><strong>{{ stats.metiers[i].label }}</strong></li>
+                </ng-container>
+              </ul>
+            </li>
+            <li *ngIf="stats.fishingAreas|isNotEmptyArray">
+              <ion-icon name="scan"></ion-icon> {{ 'LANDING.REPORT.FISHING_AREA'|translate }} :
+              <ul class="inline-list">
+                <ng-container  *ngFor="let metier of stats.fishingAreas; index as i">
+                  <li><strong>{{ stats.fishingAreas[i].location.label }}</strong></li>
+                </ng-container>
+              </ul>
+            </li>
           </ul>
         </section>
 

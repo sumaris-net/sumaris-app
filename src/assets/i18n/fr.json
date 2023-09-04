@@ -1440,12 +1440,14 @@
       "DATE_TIME": "Date/Heure :",
       "VESSEL": "Navire :",
       "RECORDER_PERSON": "Saisisseur : ",
+      "TAXON_NAME": "Espèce cible",
+      "METIERS": "Métiers",
+      "FISHING_AREA": "Zone de pêche",
       "EXPORT_JSON_FILENAME": "Rapport-de-débarquement-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Rapport d'échantillonnage",
-        "SAMPLES_TITLE": "Mesures individuelles",
-        "TAXON_NAME": "Espèce cible"
+        "SAMPLES_TITLE": "Mesures individuelles"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>",

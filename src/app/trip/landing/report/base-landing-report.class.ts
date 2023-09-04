@@ -6,7 +6,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrNaN,
+  isNotNilOrNaN, ReferentialRef,
 } from '@sumaris-net/ngx-components';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
@@ -27,6 +27,8 @@ import {ObservedLocation} from '@app/trip/observedlocation/observed-location.mod
 import {TRIP_LOCAL_SETTINGS_OPTIONS} from "@app/trip/trip.config";
 import {DenormalizedPmfmStrategy} from "@app/referential/services/model/pmfm-strategy.model";
 import {TaxonNameRef} from "@app/referential/services/model/taxon-name.model";
+import {Trip} from '@app/trip/trip/trip.model';
+import {FishingArea} from '@app/data/fishing-area/fishing-area.model';
 
 export class LandingStats extends DataReportStats {
 
@@ -38,6 +40,8 @@ export class LandingStats extends DataReportStats {
   taxonGroup: TaxonGroupRef;
   taxonName: TaxonNameRef;
   strategyLabel: string;
+  metiers: ReferentialRef[];
+  fishingAreas: FishingArea[];
 
   fromObject(source: any){
     super.fromObject(source);
@@ -90,7 +94,7 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
   }
 
   async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<Landing> {
-    console.log(`[${this.logPrefix}.loadData]`);
+    console.log(`[${this.logPrefix}] loadData`);
     const data = await this.landingService.load(id);
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
@@ -131,6 +135,9 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
     // Compute agg data
     stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     stats.taxonName = (data.samples || []).find(s => isNotNil(s.taxonName?.referenceTaxonId))?.taxonName;
+    stats.metiers = ((data.trip as Trip)?.metiers || []);
+    stats.fishingAreas = ((data.trip as Trip)?.fishingAreas || []);
+
     stats.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT, stats.program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT));
 
     const pmfms = stats.pmfms || await this.programRefService.loadProgramPmfms(stats.program.label, {
