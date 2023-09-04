@@ -147,7 +147,8 @@
     "SHARE": {
       "BTN_SHARE": "Share",
       "BTN_SHARE_DOTS": "Share...",
-      "DIALOG_TITLE": "Share"
+      "DIALOG_TITLE": "Share",
+      "LINK": "Share link"
     },
     "HELP": {
       "TITLE": "Online help"
@@ -1432,12 +1433,14 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
+      "TAXON_NAME": "Scientific species",
+      "METIERS": "Metiers",
+      "FISHING_AREA": "Fishing area",
       "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
-        "SAMPLES_TITLE": "Samples",
-        "TAXON_NAME": "Scientific species"
+        "SAMPLES_TITLE": "Samples"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Control <b>{{species}}</b>",

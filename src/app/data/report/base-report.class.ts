@@ -34,6 +34,7 @@ import {decodeUTF8} from 'tweetnacl-util';
 import {downloadSharedRessource} from "@app/social/share/shared-page.utils";
 import {Program} from "@app/referential/services/model/program.model";
 import {ProgramProperties} from "@app/referential/services/config/program.config";
+import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -522,9 +523,31 @@ export abstract class AppBaseReport<
         event,
         {
           text: `${this.shareUrlBase}${this.uuid}`,
+          title: 'COMMON.SHARE.LINK',
           editing: false,
           autofocus: false,
-          multiline: false
+          multiline: true,
+          maxLength: null,
+          headerColor: 'primary',
+          headerButtons: [
+            {
+              icon: 'copy',
+              text: 'COMMON.BTN_COPY',
+              fill: 'outline',
+              side: 'end',
+              handler: async (value: string) => {
+                await CapacitorClipboard.write({
+                  string: value,
+                });
+
+                await Toasts.show(this.toastController, this.translate, {
+                  type: 'info', message: 'INFO.COPY_SUCCEED'
+                });
+
+                return false; // Avoid dismiss
+              }
+            }
+          ]
         }
       )
     }
