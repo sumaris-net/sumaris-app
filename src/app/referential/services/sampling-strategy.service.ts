@@ -330,7 +330,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     const parameterListKeys = Object.keys(ParameterLabelGroups)
       // Exclude some special groups (DRESSING, TAG_ID) but  keep other (e.g. AGE, SEX, MATURITY, etc)
       .filter(p => !ParameterLabelGroups.TAG_ID.includes(p)
-        && !ParameterLabelGroups.DRESSING.includes(p));
+        && !ParameterLabelGroups.DRESSING.includes(p)
+        && !ParameterLabelGroups.PRESERVATION.includes(p));
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
     entities.forEach(s => {
