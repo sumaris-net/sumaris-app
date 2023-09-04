@@ -33,7 +33,7 @@ echo ""
 echo "--- Building Capacitor App..."
 echo ""
 cd ${PROJECT_DIR}
-npm run android-build
+npm run android-build.prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "--- Building Capacitor App [OK]"

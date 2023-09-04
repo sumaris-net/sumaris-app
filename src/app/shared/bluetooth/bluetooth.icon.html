@@ -1,9 +1,9 @@
 
 <button mat-icon-button
-        *rxLet="icon$ as icon"
+        *ngVar="icon$|async; let icon"
         [title]="title | translate"
         [color]="icon.color"
-        [disabled]="disabled"
+        [disabled]="!(enabled$|async)"
         (click)="openPopover($event)">
   <mat-icon>{{icon.matIcon}}</mat-icon>
 </button>

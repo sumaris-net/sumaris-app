@@ -40,12 +40,12 @@ interface BluetoothServiceState extends BluetoothState {
   connectedDevices: BluetoothDevice[];
 }
 
-export const removeByAddress = (devices: {address: string}[], device: {address: string}) => {
+export function removeByAddress<T extends {address: string}>(devices: T[], device: T): T[] {
   if (!device?.address) return devices; // skip
   return devices?.reduce((res, d) => {
     return (d.address !== device.address) ? res.concat(d) : res;
   }, []);
-};
+}
 
 @Injectable({providedIn: 'root'})
 export class BluetoothService extends StartableService implements OnDestroy, SuggestService<BluetoothDevice, any> {
@@ -64,20 +64,20 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
               ) {
     super(platform);
-    this._state.set({connectedDevices: [], enabled: false});
+    this._state.set({connectedDevices: []});
     this._logger = loggingService?.getLogger('bluetooth');
   }
 
   protected async ngOnStart(opts?: any): Promise<any> {
 
     console.debug('[bluetooth] Starting service...');
-
     const enabled = await this.isEnabled();
     if (enabled) {
-      console.info(`[bluetooth] State changed to: ${enabled ? 'Enabled' : 'Disabled'}`)
+      console.info(`[bluetooth] Enabled changed: {enabled: ${enabled}}`)
       this._state.set('enabled', _ => enabled);
     }
 
+    try {
     await BluetoothSerial.startEnabledNotifications();
 
     this._state.connect('enabled', this.on<BluetoothState>('onEnabledChanged')
@@ -85,15 +85,23 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
         finalize(() => BluetoothSerial.stopEnabledNotifications())
       ),
       (_, {enabled}) => {
-        console.info(`[bluetooth] State changed to: ${enabled ? 'Enabled' : 'Disabled'}`)
-        if (!enabled) this.disconnectAll();
+        console.info(`[bluetooth] State changed: {enabled: ${enabled}}`)
+        if (!enabled) {
+          this.disconnectAll();
+        }
         return enabled;
       });
+    }
+    catch(err) {
+      console.error(`[bluetooth] Cannot start enable notifications: ${err?.message || err}`, err);
+      // Continue, because if Android API <= 28, it can fail
+    }
 
+    // Because a pause will disconnect all devices, we should reconnect on resume
     this.registerSubscription(
       this.platform.resume.subscribe(async ()  => {
         if (await this.isEnabled()) {
-          this.reconnectAll();
+          await this.reconnectAll();
         }
       })
     );
@@ -102,15 +110,16 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
   }
 
   protected ngOnStop() {
-    this._state.set({connectedDevices: [], enabled: false});
+    this._state.set({connectedDevices: [], enabled: null});
 
     return super.ngOnStop();
   }
 
   async ngOnDestroy() {
     console.debug('[bluetooth] Destroying...');
+
+    // Will stop listeners (see use of stopSubject in the on() function)
     if (this.started) {
-      // Will stop listeners (see use of stopSubject in the on() function)
       await this.stop();
     }
 
@@ -169,6 +178,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
       console.debug(`[bluetooth] Enabling ...`);
       enabled = (await BluetoothSerial.enable()).enabled;
       console.debug(`[bluetooth] ${enabled ? 'Enabled' : 'Disabled'}`);
+      if (enabled) this._state.set('enabled', () => enabled);
     }
 
     return enabled;
@@ -180,6 +190,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
       console.debug(`[bluetooth] Disabling ...`);
       enabled = (await BluetoothSerial.disable()).enabled;
       console.debug(`[bluetooth] ${enabled ? 'Enabled' : 'Disabled'}`);
+      if (!enabled) this._state.set('enabled', () => enabled);
     }
 
     return !enabled;
@@ -340,7 +351,6 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
     await chainPromises(devices.map(d => () =>
       this.disconnect(d).catch(err => {/* continue */})
     ));
-    //this._state.set('connectedDevices', _ => []); // Clear devices list
   }
 
   async reconnectAll() {
@@ -358,7 +368,20 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
   private registerDevice(device: BluetoothDevice) {
     if (!device.address) throw new Error('Missing device with address');
     // Add to list, if not exists yet
-    this._state.set('connectedDevices', s => removeDuplicatesFromArray([device, ...s.connectedDevices], 'address'));
+    this._state.set('connectedDevices', s => {
+      const index = s.connectedDevices.findIndex(d => d.address === device.address);
+      // Already exists: update
+      if (index !== -1) {
+        console.debug(`[bluetooth] Updating connected device {${device.address}}`);
+        const connectedDevices = s.connectedDevices.slice(); // Copy
+        connectedDevices[index] = device;
+        return connectedDevices;
+      }
+
+      // Add to list
+      console.debug(`[bluetooth] Register new connected device {${device.address}}`);
+      return (s.connectedDevices||[]).concat(device);
+    });
   }
 
   private unregisterDevice(device: BluetoothDevice) {

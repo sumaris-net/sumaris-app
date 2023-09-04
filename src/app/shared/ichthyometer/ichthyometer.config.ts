@@ -7,8 +7,9 @@ export const ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS = {
     type: 'entities',
     autocomplete: {
       attributes: ['name', 'address'],
-      columnNames: ['SHARED.BLUETOOTH.NAME', 'SHARED.BLUETOOTH.ADDRESS']
-      //suggestFn - this is filled in app.components
+      columnNames: ['SHARED.BLUETOOTH.NAME', 'SHARED.BLUETOOTH.ADDRESS'],
+      displayWith: device => device?.name || device?.address || ''
+      //suggestFn: /!\ suggest function set inside the app.components.ts, to be able to use the ichthyometer service
     },
     defaultValue: []
   }
