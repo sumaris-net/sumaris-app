@@ -147,7 +147,8 @@
     "SHARE": {
       "BTN_SHARE": "Partager",
       "BTN_SHARE_DOTS": "Partager...",
-      "DIALOG_TITLE": "Partager"
+      "DIALOG_TITLE": "Partager",
+      "LINK": "Lien de partage"
     },
     "HELP": {
       "TITLE": "Aide en ligne"
