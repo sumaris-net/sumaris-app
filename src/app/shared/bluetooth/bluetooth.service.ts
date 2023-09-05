@@ -8,7 +8,6 @@ import {
   isEmptyArray,
   isNotNilOrBlank,
   LoadResult,
-  removeDuplicatesFromArray,
   StartableService,
   suggestFromArray,
   SuggestService
@@ -52,6 +51,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
 
   private readonly _logger: ILogger;
   private readonly _state = new RxState<BluetoothServiceState>();
+  private readonly _listenEnableChanges: boolean;
 
   readonly enabled$ = this._state.select('enabled');
   readonly connectedDevices$ = this._state.select('connectedDevices');
@@ -66,6 +66,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
     super(platform);
     this._state.set({connectedDevices: []});
     this._logger = loggingService?.getLogger('bluetooth');
+    this._listenEnableChanges = platform.is('ios') || platform.is('android');
   }
 
   protected async ngOnStart(opts?: any): Promise<any> {
@@ -77,24 +78,27 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
       this._state.set('enabled', _ => enabled);
     }
 
-    try {
-    await BluetoothSerial.startEnabledNotifications();
+    // Listen enabled state
+    if (this._listenEnableChanges) {
+      try {
+        await BluetoothSerial.startEnabledNotifications();
 
-    this._state.connect('enabled', this.on<BluetoothState>('onEnabledChanged')
-      .pipe(
-        finalize(() => BluetoothSerial.stopEnabledNotifications())
-      ),
-      (_, {enabled}) => {
-        console.info(`[bluetooth] State changed: {enabled: ${enabled}}`)
-        if (!enabled) {
-          this.disconnectAll();
-        }
-        return enabled;
-      });
-    }
-    catch(err) {
-      console.error(`[bluetooth] Cannot start enable notifications: ${err?.message || err}`, err);
-      // Continue, because if Android API <= 28, it can fail
+        this._state.connect('enabled', this.on<BluetoothState>('onEnabledChanged')
+          .pipe(
+            finalize(() => BluetoothSerial.stopEnabledNotifications())
+          ),
+          (_, {enabled}) => {
+            console.info(`[bluetooth] State changed: {enabled: ${enabled}}`)
+            if (!enabled) {
+              this.disconnectAll();
+            }
+            return enabled;
+          });
+      }
+      catch(err) {
+        console.error(`[bluetooth] Cannot start enable notifications: ${err?.message || err}`, err);
+        // Continue, because if Android API <= 28, it can fail
+      }
     }
 
     // Because a pause will disconnect all devices, we should reconnect on resume
@@ -129,7 +133,8 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
   async suggest(value: any, filter: any): Promise<LoadResult<BluetoothDevice>> {
     console.info('[bluetooth] call suggest() with value: ' + value);
 
-    if (typeof value === 'object') return {data: [value]};
+    if (Array.isArray(value)) return {data: value};
+    if (typeof value === 'object' && isNotNilOrBlank(value.address)) return {data: [value]};
 
     try {
       if (!this.started) await this.ready();
@@ -142,6 +147,7 @@ export class BluetoothService extends StartableService implements OnDestroy, Sug
       if (err?.code === BluetoothErrorCodes.BLUETOOTH_DISABLED) {
         return {data: [], total: 0};
       }
+      console.error('[bluetooth] Failed to scan devices: ' + (err?.message || err), err);
       throw err;
     }
   }

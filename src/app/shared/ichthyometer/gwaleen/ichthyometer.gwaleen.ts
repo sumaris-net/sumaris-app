@@ -136,7 +136,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
   watch(): Observable<string> {
 
-    console.info(`[gwaleen] Start watching values from device '${this.address}'...`);
+    console.info(`[gwaleen] Start watching values from device {${this.address}}...`);
 
     return this.bluetoothService.watch(this.device, {delimiter: '#'})
       .pipe(
@@ -157,7 +157,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         }),
         filter(isNotNilOrBlank),
         finalize(() => {
-          console.info(`[gwaleen] Stop watching values from device '${this.address}'`);
+          console.info(`[gwaleen] Stop watching values from device {${this.address}}`);
         })
       );
   }
@@ -178,8 +178,11 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   private async doPing(): Promise<boolean> {
 
     const now = Date.now();
-    console.debug(`[gwaleen] Sending ping to {${this.device.address}}...`);
-    this._logger?.debug('ping', `Sending ping to {${this.device.address}}...`);
+    {
+      const logMessage = `Sending ping to {${this.address}}...`;
+      console.debug('[gwaleen] ' + logMessage);
+      this._logger?.debug('ping', logMessage);
+    }
 
     try {
       await this.write(GwaleenIchthyometer.PING_COMMAND);
@@ -192,17 +195,20 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
       }
 
       if (!acknowledge) {
-        console.warn(`[gwaleen] Ping failed: timeout reached after ${GwaleenIchthyometer.PING_TIMEOUT_MS}ms`);
-        this._logger?.debug('ping', `Ping failed: timeout reached after ${GwaleenIchthyometer.PING_TIMEOUT_MS}ms`);
+        const logMessage = `Ping failed: timeout reached after ${GwaleenIchthyometer.PING_TIMEOUT_MS}ms`;
+        console.warn('[gwaleen] ' + logMessage);
+        this._logger?.debug('ping', logMessage);
       } else {
-        console.info(`[gwaleen] Sending ping to {${this.device.address}} [OK] in ${Date.now() - now}ms`);
-        this._logger?.debug('ping', `Sending ping to {${this.device.address}} [OK] in ${Date.now() - now}ms`);
+        const logMessage = `Sending ping to {${this.address}} [OK] in ${Date.now() - now}ms`;
+        console.info('[gwaleen] ' + logMessage);
+        this._logger?.debug('ping', logMessage);
       }
 
       return acknowledge;
     } catch (err) {
-      console.error(`[gwaleen] Failed send ping to {${this.device.address}}: ${err?.message||''}`, err);
-      this._logger?.debug('ping', `Failed send ping to {${this.device.address}}: ${err?.message||''}`);
+      const logMessage = `Failed send ping to {${this.device.address}}: ${err?.message||''}`;
+      console.error('[gwaleen] ' + logMessage, err);
+      this._logger?.debug('ping', logMessage);
       throw err;
     }
   }

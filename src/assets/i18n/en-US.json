@@ -819,7 +819,8 @@
         "FISHING_AREA": "Fishing Area",
         "COMMENTS": "Comments",
         "QUALITY": "State",
-        "QUALITY_FILTER": "Filter by state:"
+        "QUALITY_FILTER": "Filter by state:",
+        "DOWNLOAD_JSON_FILENAME": "Operations.json"
       },
       "FILTER": {
         "GEAR" : "Gear",
@@ -1433,10 +1434,10 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
-      "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "TAXON_NAME": "Scientific species",
       "METIERS": "Metiers",
       "FISHING_AREA": "Fishing area",
+      "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",

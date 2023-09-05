@@ -1,12 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceCheckFn, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { equals, FilterFn, IconRef, isEmptyArray, isNotEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
+import { distinctUntilKeyChanged, map } from 'rxjs/operators';
+import { equals, FilterFn, IconRef, isEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
 import { PopoverController } from '@ionic/angular';
 import { BluetoothPopover, BluetoothPopoverOptions } from '@app/shared/bluetooth/bluetooth.popover';
-import { from } from 'rxjs';
 
 export declare type BluetoothIconType = 'bluetooth'|'bluetooth_connected'|'bluetooth_disabled' | string;
 
@@ -145,7 +144,7 @@ export class AppBluetoothIcon<
           if (typeof deviceFilter !== 'function') return devices || [];
 
           // Filtering devices
-          console.debug(`[bluetooth-icon] Filtering devices: [${devices?.map(d => d.address).join(', ')}]}`);
+          console.debug(`[bluetooth-icon] Filtering devices: [${devices?.map(d => d.address).join(', ')}]`);
           return (devices || []).filter(d => deviceFilter(d));
         })
       ));

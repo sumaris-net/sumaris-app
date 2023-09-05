@@ -465,6 +465,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Selection the animated row (this will apply CSS class mat-row-animated)
     this.animationSelection.select(row);
+    this.markForCheck();
     this.cd.detectChanges();
 
     this.createRowAnimation(document.querySelector('.mat-row-animated'))
@@ -495,22 +496,31 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     const rowAnimation = createAnimation()
       .addElement(rowElement)
-      .beforeStyles({ 'transition-timing-function': 'ease-in-out' })
+      .beforeStyles({ 'transition-timing-function': 'ease-in-out', background: 'var(--ion-color-accent)' })
       .keyframes([
         { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)'},
-        { offset: 0.5, opacity: '0.9', transform: 'translateX(2%)'},
+        { offset: 0.5, opacity: '0.9', transform: 'translateX(2%)', background: 'var(--ion-color-accent)'},
         { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)'}
-      ]);
+      ])
+      .afterStyles({
+        background: 'rgba(var(--ion-color-accent-rgb), 0.8)'
+      });
 
     const cellAnimation =  createAnimation()
       .addElement(cellElements)
       .beforeStyles({
-        color: 'var(--ion-color-accent-contrast)'
+        'transition-timing-function': 'ease-in-out',
+        color: 'var(--ion-color-accent-contrast)',
+        'font-weight': 'bold'
       })
       .keyframes([
-        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
-        { offset: 1, color: 'var(--ion-color-base)'}
-      ]);
+        { offset: 0, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold'},
+        { offset: 0.5, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold'},
+        { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal'}
+      ])
+      .afterStyles({
+        'font-weight': ''
+      });
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
   }

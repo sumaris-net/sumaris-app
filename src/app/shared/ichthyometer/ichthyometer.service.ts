@@ -21,6 +21,7 @@ import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ic
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import AudioMode = AudioManagement.AudioMode;
+import { Platform } from '@ionic/angular';
 
 
 export declare type IchthyometerType = 'gwaleen';
@@ -57,6 +58,7 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   private readonly _ichthyometers = new Map<string, Ichthyometer>();
   private readonly _ichthyometerSubscriptions = new Map<string, Subscription>();
   private readonly _state = new RxState<IchthyometerServiceState>();
+  private readonly _cordova: boolean;
   private _restoring = false;
 
   readonly enabled$ = this.bluetoothService.enabled$;
@@ -67,12 +69,14 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   }
 
   constructor(private injector: Injector,
+              private platform: Platform,
               private settings: LocalSettingsService,
               private bluetoothService: BluetoothService,
               private audioProvider: AudioProvider,
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService) {
     super(bluetoothService);
-    this._logger = loggingService.getLogger('ichthyometer')
+    this._logger = loggingService.getLogger('ichthyometer');
+    this._cordova = platform.is('cordova');
 
   }
 
@@ -116,11 +120,13 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   }
 
   async enableSound() {
+    if (!this._cordova) return; // Skip
+
     try {
       await this.audioProvider.setAudioMode(AudioMode.NORMAL);
     }
     catch(err) {
-      /// Continue
+      // Continue
     }
   }
 
@@ -171,19 +177,19 @@ export class IchthyometerService extends StartableService implements OnDestroy {
   async getAll(devices: IchthyometerDevice[]): Promise<Ichthyometer[]> {
     if (isEmptyArray(devices)) return [];
 
-    console.debug(`[ichthyometer] Getting ichthyometers from devices: ${devices.map(d => d.address).join(', ')}`);
+    console.debug(`[ichthyometer] Trying to find ichthyometers, from device(s): ${JSON.stringify(devices.map(d => d.address))}`);
     const instances = (await Promise.all(devices.map(async (device) => {
       try {
         return this.get(device);
       }
       catch (err) {
-        console.error(`[ichthyometer] Cannot create ichthyometer from device {${device?.address}}: ${err?.message || err}`);
+        console.error(`[ichthyometer] Cannot find an ichthyometer from device {${device?.address}}: ${err?.message || err}`);
         return null; // Skip
       }
     })))
     .filter(isNotNil);
 
-    console.debug(`[ichthyometer] ${instances.length} ichthyometers found: ${instances.map(d => d.address).join(', ')}`);
+    console.debug(`[ichthyometer] ${instances.length} ichthyometer(s) - device(s): ${JSON.stringify(instances.map(d => d.address))}`);
 
     return instances;
   }
@@ -255,7 +261,10 @@ export class IchthyometerService extends StartableService implements OnDestroy {
 
       console.info('[ichthyometer] Restoring ichthyometers from settings ...');
       const devicesStr = this.settings.getProperty(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS);
-      console.info('[ichthyometer] Settings=' + devicesStr);
+
+      // DEBUG
+      //console.debug('[ichthyometer] Settings=' + devicesStr);
+
       const devices = devicesStr && (typeof devicesStr === 'string') ? JSON.parse(devicesStr) : devicesStr;
 
       if (isEmptyArray(devices)) {
@@ -263,7 +272,7 @@ export class IchthyometerService extends StartableService implements OnDestroy {
       } else {
         const now = Date.now();
         console.info(`[ichthyometer] Restoring ${devices.length} ichthyometers...`);
-        const count = (await chainPromises(devices.map(d => (d) => this.bluetoothService.connect(d)
+        const count = (await chainPromises(devices.map(d => () => this.bluetoothService.connect(d)
             .catch(_ => false /*continue*/)
           )))
           .filter(connected => connected)

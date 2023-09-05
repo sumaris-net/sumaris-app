@@ -175,7 +175,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
       // Apply filter
       if (this.deviceFilter) {
-        devices = devices.filter(this.deviceFilter);
+        devices = (devices || []).filter(this.deviceFilter);
       }
 
       // Apply result
