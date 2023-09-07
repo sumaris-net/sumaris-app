@@ -145,7 +145,8 @@ export class SamplesTable
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() allowSubSamples = false;
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
-  @Input() computedPmfmGroups: string[];
+  @Input() readonlyPmfmGroups: string[];
+  @Input() showReadonlyPmfms = true;
   @Input() pmfmIdsToCopy: number[];
   @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn = null;
 
@@ -995,25 +996,29 @@ export class SamplesTable
           groupPmfms = isNotEmptyArray(groupPmfmIds) ? pmfms.filter(p => groupPmfmIds.includes(p.id)) : [];
         }
 
-        const groupPmfmCount = groupPmfms.length;
-        if (groupPmfmCount) {
-          ++groupIndex;
-        }
-        const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
+        let groupPmfmCount = groupPmfms.length;
 
-        const computedGroup = this.computedPmfmGroups?.includes(group) || false;
+
+        const readonlyGroup = this.readonlyPmfmGroups?.includes(group) || false;
 
         groupPmfms.forEach(pmfm => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
-          // Force as computed
-          if (computedGroup && !pmfm.isComputed) {
+          // If readonly
+          if (readonlyGroup) {
+            // Force as computed
             pmfm.isComputed = true;
+            // Force as hidden, if not shown
+            if (!this.showReadonlyPmfms && this._enabled) {
+              pmfm.hidden = true;
+              groupPmfmCount--;
+              console.log('TODO HIDE pmfm ', pmfm)
+            }
           }
 
           // Use rankOrder as a group index (will be used in template, to computed column class)
           if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
-            pmfm.rankOrder = groupIndex;
+            pmfm.rankOrder = groupIndex + 1;
           }
 
           // Apply weight conversion, if need
@@ -1025,13 +1030,18 @@ export class SamplesTable
           if (!orderedPmfms.includes(pmfm)) orderedPmfms.push(pmfm);
         });
 
+        if (groupPmfmCount) {
+          ++groupIndex;
+        }
+        const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
+
         return pmfmGroups.concat(
           ...groupPmfms.reduce((res, pmfm, index) => {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
-            const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
+            const visible = group !== 'TAG_ID';
             const key = 'group-' + group;
-            return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
+            return index !== 0 || groupPmfmCount === 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
               label: group,
               name: visible && ('TRIP.SAMPLE.PMFM_GROUP.' + group) || '',
