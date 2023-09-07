@@ -126,7 +126,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
             return this.watchCount$
               .pipe(
                 // DEBUG
-                tap(watchCount => watchCount === 0 && this.started && console.debug('[gwaleen] Waiting idle time...')),
+                tap(watchCount => watchCount === 0 && this.started && console.debug(`[gwaleen] Start idle - Waiting ${autoDisconnectIdleTime}ms...`)),
                 debounceTime(autoDisconnectIdleTime),
                 filter(watchCount => watchCount === 0 && this.started),
                 map(_ => {
@@ -138,7 +138,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         ),
       async ({usageDuration, autoDisconnectIdleTime}) => {
         // DEBUG
-        const logMessage = `Silently disconnecting device after ${autoDisconnectIdleTime}ms of inactivity (Usage duration: ${usageDuration}ms)`;
+        const logMessage = `Silently disconnecting device after ${autoDisconnectIdleTime}ms of inactivity - last usage duration: ${usageDuration}ms`;
         console.debug('[gwaleen] ' + logMessage);
         this._logger?.debug(logMessage);
 
