@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import {TableElement, TableElementReactiveForms, ValidatorService} from '@e-is/ngx-material-table';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
 import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
@@ -32,7 +32,6 @@ export class OperationsTable
   displayAttributes: {
     [key: string]: string[]
   };
-  highlightedRow: TableElement<Operation>;
   statusList = DataQualityStatusList
     .filter(s => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
@@ -308,11 +307,6 @@ export class OperationsTable
       }
     }
 
-  }
-
-  clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
-    this.highlightedRow = row;
-    return super.clickRow(event, row);
   }
 
   async duplicateRow(event?: Event, row?: TableElement<Operation>) {

@@ -4,6 +4,7 @@ import { Platform } from '@ionic/angular';
 import { Ichthyometer, IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
+import { sleep } from '@sumaris-net/ngx-components';
 
 interface IchthyometerTestingState {
   loading: boolean;
@@ -42,6 +43,10 @@ export class IchthyometerTestingPage {
 
   async disconnectAll() {
     await this.ichthyometerService.disconnectAll();
+
+    await sleep(1000);
+
+    await this.ichthyometerService.restart();
   }
 
   async disconnect(item: Ichthyometer) {

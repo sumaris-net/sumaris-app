@@ -136,6 +136,8 @@ export class AppBluetoothIcon<
     this._state.connect('connectedDevices', this._state.select(['enabled', 'devices', 'deviceFilter'], s => s)
       .pipe(
         map(({enabled, devices, deviceFilter}) => {
+          // DEBUG
+          //console.debug(`[bluetooth-icon] Receiving state changes: ${JSON.stringify({enabled, devices})}`);
 
           // If disabled: no devices
           if (!enabled) return [];

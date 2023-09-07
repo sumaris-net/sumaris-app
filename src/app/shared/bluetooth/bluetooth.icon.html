@@ -3,7 +3,7 @@
         *ngVar="icon$|async; let icon"
         [title]="title | translate"
         [color]="icon.color"
-        [disabled]="!(enabled$|async)"
+        [disabled]="disabled"
         (click)="openPopover($event)">
   <mat-icon>{{icon.matIcon}}</mat-icon>
 </button>

@@ -3,7 +3,7 @@ import { BluetoothDeviceCheckFn } from '@app/shared/bluetooth/bluetooth.service'
 import { IchthyometerService, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
 import { IconRef } from '@sumaris-net/ngx-components';
 import { BluetoothDevice } from '@e-is/capacitor-bluetooth-serial';
-import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -13,7 +13,6 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class AppIchthyometerIcon implements OnInit {
 
-
   @Input() title = 'SHARED.ICHTHYOMETER.TITLE';
   @Input() type: IchthyometerType
   @Input() selectedDeviceIcon: IconRef = {matIcon: 'straighten'};
@@ -21,7 +20,6 @@ export class AppIchthyometerIcon implements OnInit {
 
   constructor(
     injector: Injector,
-    private translate: TranslateService,
     private ichthyometerService: IchthyometerService
   ) {
     this.ichthyometerService.start();
@@ -31,11 +29,9 @@ export class AppIchthyometerIcon implements OnInit {
     const ichthyometerService = this.ichthyometerService;
 
     this.checkAfterConnect = this.checkAfterConnect || ((device) => ichthyometerService.checkAfterConnect(device));
-
   }
 
   deviceFilter(device: BluetoothDevice): boolean {
     return !!device.address;
   }
-
 }

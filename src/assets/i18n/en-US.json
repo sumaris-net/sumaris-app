@@ -2795,7 +2795,17 @@
     "ICHTHYOMETER": {
       "TITLE": "Bluetooth ichthyometer",
       "SETTINGS": {
-        "DEVICES": "Ichthyometer: Device(s)"
+        "DEVICES": "Ichthyometer > Known device(s)",
+        "AUTO_DISCONNECT": "Ichthyometer: Auto disconnect?",
+        "AUTO_DISCONNECT_ENUM": {
+          "-1": "Never",
+          "60000": "After 1 min",
+          "300000": "After 5 min",
+          "600000": "After 10 min"
+        }
+      },
+      "ERROR": {
+        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
       }
     }
   },

@@ -97,6 +97,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
     // If enabled
     if (enabled) {
+      this.state.set('enabled', _ => enabled);
       let connectedDevices = this.connectedDevices || [];
       let devices = this.devices || [];
 
@@ -115,7 +116,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
               return null; // Will be excluded in the next filter()
             })
           ))).filter(isNotNil);
-        this.state.set({devices, connectedDevices});
+        this.state.set({enabled, devices, connectedDevices});
         this.markAsConnected();
         this.markAsLoaded();
       }

@@ -85,6 +85,7 @@ import { DevicePositionService } from '@app/data/position/device/device-position
 import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
+import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 
 @NgModule({
   declarations: [
@@ -232,6 +233,9 @@ import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/valida
 
     // Device position
     {provide: DevicePositionService, useClass: DevicePositionService},
+
+    // Ichthyometer
+    {provide: IchthyometerService, useClass: IchthyometerService},
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {

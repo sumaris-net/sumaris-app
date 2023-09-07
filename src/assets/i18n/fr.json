@@ -2861,7 +2861,17 @@
     "ICHTHYOMETER": {
       "TITLE": "Ichtyomètre Bluetooth",
       "SETTINGS": {
-        "DEVICES": "Ichtyomètre(s) Bluetooth"
+        "DEVICES": "Ichtyomètre > Appareil(s) connu(s)",
+        "AUTO_DISCONNECT": "Ichtyomètre: Déconnection auto ?",
+        "AUTO_DISCONNECT_ENUM": {
+          "-1": "Jamais",
+          "60000": "Après 1 min",
+          "300000": "Après 5 min",
+          "600000": "Après 10 min"
+        }
+      },
+      "ERROR": {
+        "CONNECTION_ERROR": "Échec de la connection à l'ichtyomètre '{{name}}'"
       }
     }
   },
