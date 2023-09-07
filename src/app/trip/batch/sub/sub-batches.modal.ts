@@ -235,7 +235,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
-    console.debug('[sub-batches-modal] Applying value to table...', data);
+    // DEBUG
+    //console.debug('[sub-batches-modal] Applying value to table...', data);
 
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
