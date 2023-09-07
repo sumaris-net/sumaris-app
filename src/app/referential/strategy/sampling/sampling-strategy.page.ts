@@ -235,7 +235,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     const pmfmIds: number[] = [];
     target.pmfms.forEach(pmfmStrategy => {
       // Keep only pmfmId
-      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
+      pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm?.id, pmfmStrategy.pmfmId);
       // delete pmfmStrategy.pmfm;
 
       // Remember PMFM Ids
@@ -246,6 +246,8 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     if (!pmfmIds.includes(PmfmIds.STRATEGY_LABEL)) {
       console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
       target.pmfms.push(PmfmStrategy.fromObject({
+        // Restore existing id
+        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.STRATEGY_LABEL && ps.acquisitionLevel === AcquisitionLevelCodes.LANDING)?.id || undefined,
         pmfm: {id: PmfmIds.STRATEGY_LABEL},
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
         isMandatory: true,
@@ -258,6 +260,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     if (!pmfmIds.includes(PmfmIds.TAG_ID)) {
       console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the tag id, on ${AcquisitionLevelCodes.SAMPLE}`);
       target.pmfms.push(PmfmStrategy.fromObject({
+        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.TAG_ID && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
         pmfm: {id: PmfmIds.TAG_ID},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         isMandatory: false,
@@ -270,6 +273,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     if (!pmfmIds.includes(PmfmIds.DRESSING)) {
       console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the dressing, on ${AcquisitionLevelCodes.SAMPLE}`);
       target.pmfms.push(PmfmStrategy.fromObject({
+        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.DRESSING && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
         pmfm: {id: PmfmIds.DRESSING},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         isMandatory: true,

@@ -49,7 +49,7 @@ import {ProgramProperties} from '../../services/config/program.config';
 import {BehaviorSubject, merge} from 'rxjs';
 import {PmfmService} from '../../services/pmfm.service';
 import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
-import {TaxonName, TaxonNameRef, TaxonUtils} from '@app/referential/services/model/taxon-name.model';
+import {TaxonNameRef, TaxonUtils} from '@app/referential/services/model/taxon-name.model';
 import {TaxonNameService} from '@app/referential/services/taxon-name.service';
 import {PmfmStrategyValidatorService} from '@app/referential/services/validator/pmfm-strategy.validator';
 import {Pmfm} from '@app/referential/services/model/pmfm.model';
@@ -1094,9 +1094,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     let pmfmStrategies: Partial<PmfmStrategy>[] = [
       // Add tag id Pmfm
-      {pmfmId: PmfmIds.TAG_ID, isMandatory: false},
+      {pmfmId: PmfmIds.TAG_ID, isMandatory: false, id: this.getPmfmStrategyIdByPmfmId(PmfmIds.TAG_ID)},
       // Add dressing Pmfm
-      {pmfmId: PmfmIds.DRESSING, isMandatory: true},
+      {pmfmId: PmfmIds.DRESSING, isMandatory: true, id: this.getPmfmStrategyIdByPmfmId(PmfmIds.DRESSING)},
       // Weight
       ...target.weightPmfms,
       // Length
@@ -1106,7 +1106,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Add SEX Pmfm
     if (target.sex) {
       pmfmStrategies = pmfmStrategies.concat([
-        { pmfmId: PmfmIds.SEX },
+        { pmfmId: PmfmIds.SEX, id: this.getPmfmStrategyIdByPmfmId(PmfmIds.SEX) },
         ...target.maturityPmfms
       ]);
     }
@@ -1138,6 +1138,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
     return target;
+  }
+
+  protected getPmfmStrategyIdByPmfmId(pmfmId: number): number {
+    return this.data?.pmfms.find(ps  => ps.pmfmId === pmfmId)?.id || undefined;
   }
 
   protected async onStrategyLabelChanged(label: string) {
