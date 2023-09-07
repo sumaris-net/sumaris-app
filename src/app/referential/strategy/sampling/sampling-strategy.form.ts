@@ -63,8 +63,6 @@ import moment from 'moment';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 
-const MIN_PMFM_COUNT = 2;
-
 const STRATEGY_LABEL_UI_PREFIX_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
 const STRATEGY_LABEL_UI_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
 
@@ -173,7 +171,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get minPmfmCount(): number {
-    return MIN_PMFM_COUNT;
+    return this.weightPmfmsForm.value.length
+      + this.lengthPmfmsForm.value.length
+      + (this.hasSex ? this.maturityPmfmsForm.value.length : 0)
+      + (this.hasAge ? this.fractionPmfmsForm.value.length : 0)
   }
 
   get lengthPmfmsForm(): UntypedFormArray {
@@ -349,6 +350,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.lengthPmfmsForm.setAsyncValidators(pmfmValidator);
     this.weightPmfmsForm.setAsyncValidators(pmfmValidator);
     this.maturityPmfmsForm.setAsyncValidators(pmfmValidator);
+    this.fractionPmfmsForm.setAsyncValidators(pmfmValidator);
 
     // Force pmfms validation, when sex/age changes
     this.registerSubscription(
@@ -1555,6 +1557,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const lengthPmfmsCount = (this.lengthPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
     const maturityPmfmsCount = (this.maturityPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
 
+    const fractionPmfmCount = (this.fractionPmfmsForm.value || []).filter(value => value?.fraction && value.fraction?.id).length;
+
     let errors: ValidationErrors;
 
     // Check weight OR length is present
@@ -1567,8 +1571,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       SharedValidators.clearError(pmfmsForm, 'weightOrSize');
     }
 
-    let length = (this.hasAge ? 1 : 0)
-      + (this.hasSex ? (1 + maturityPmfmsCount) : 0)
+    // Add one to min count to ingore fraction and maturity if they control are set to false
+    let length = (this.hasAge ? fractionPmfmCount : 1)
+      + (this.hasSex ? maturityPmfmsCount : 1)
       + weightPmfmsCount
       + lengthPmfmsCount;
 
