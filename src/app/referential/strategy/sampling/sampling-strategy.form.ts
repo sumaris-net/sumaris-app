@@ -60,6 +60,7 @@ import {environment} from '@environments/environment';
 import {TaxonNameRefService} from '@app/referential/services/taxon-name-ref.service';
 import {PmfmFilter} from '@app/referential/services/filter/pmfm.filter';
 import moment from 'moment';
+import {Parameter} from '@app/referential/services/model/parameter.model';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 
@@ -986,10 +987,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         data.sex = null;
         data.age = null;
       } else {
-        data.age = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1;
-        data.sex = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1;
+        data.label = data.label?.length === 12
+          ? data.label.substring(0, 2).concat(' ').concat(data.label.substring(2, 9)).concat(' ').concat(data.label.substring(9, 12))
+          : data.label;
+        data.age = data.pmfms.some(p => p.parameter?.label && ParameterLabelGroups.AGE.includes(p.parameter.label));
+        data.sex = data.pmfms.some(p => p.pmfmId && p.pmfmId === PmfmIds.SEX);
         console.debug("[sampling-strategy-form] Has sex ?", data.sex, PmfmIds.SEX);
-        data.label = data.label && data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
       }
 
       const pmfmGroups = await firstNotNilPromise(this._$pmfmGroups, {stop: this.destroySubject});
@@ -1108,12 +1111,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       ]);
     }
 
-    // Add AGE Pmfm
+    // Add AGE + fraction Pmfms
     if (target.age) {
-      pmfmStrategies = pmfmStrategies.concat([
-        { pmfmId: PmfmIds.AGE },
-        ...target.fractionPmfms
-      ]);
+      // Load AGE parameter
+      const ageParameter = await this.referentialRefService.loadByLabel(
+        ParameterLabelGroups.AGE[0], Parameter.ENTITY_NAME);
+      target.fractionPmfms.forEach(ps => ps.parameter = ageParameter);
+      pmfmStrategies = pmfmStrategies.concat(...target.fractionPmfms);
     }
 
     // Fill PmfmStrategy defaults
