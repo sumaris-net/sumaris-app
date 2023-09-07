@@ -18,7 +18,7 @@ import {
   PlatformService,
   Referential
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
 import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/position/device/device-position.config';
 import { environment } from '@environments/environment';
 import { DevicePosition, DevicePositionFilter, IPositionWithDate } from '@app/data/position/device/device-position.model';
@@ -133,7 +133,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     protected entities: EntitiesStorage,
     protected alertController: AlertController,
     protected translate: TranslateService,
-    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[],
+    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices: RootDataSynchroService<any, any>[],
     @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(
@@ -206,14 +206,17 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
 
   protected async ngOnStart(): Promise<void> {
 
-    // Wait settings (e.g. mobile)
-    await this.settings.ready();
+    // Wait platform to be ready (e.g. on mobile, need Capacitor plugin)
     await this.platform.ready();
 
     console.info(`${this._logPrefix}Starting service...`)
 
     this.registerSubscription(
-      this.settings.onChange.subscribe(_ => this.onSettingsChanged())
+      merge(
+        from(this.settings.ready()),
+        this.settings.onChange
+      )
+      .subscribe(_ => this.onSettingsChanged())
     );
 
     this.registerSubscription(
