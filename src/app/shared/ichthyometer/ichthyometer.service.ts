@@ -86,12 +86,11 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
               @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService) {
     super(bluetoothService);
 
-    if (!this.isApp()) {
+    if (this.isApp()) {
       this._logger = loggingService?.getLogger('ichthyometer');
       this.registerSettingsOptions();
     }
   }
-
 
   protected async ngOnStart(opts?: any): Promise<any> {
     if (!this.isApp()) throw new Error('Ichthyometer service cannot start: no web implementation');
