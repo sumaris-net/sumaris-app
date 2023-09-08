@@ -519,7 +519,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: MatrixIds.INDIVIDUAL
   },
   PARAMETER_GROUP_TAG_ID_LABELS: <FormFieldDefinition>{
-    key: 'sumaris.list.parameter.age.labels',
+    key: 'sumaris.list.parameter.tagId.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_TAG_ID_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.TAG_ID.join(',')
