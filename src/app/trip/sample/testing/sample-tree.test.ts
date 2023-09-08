@@ -10,7 +10,7 @@ import { getExampleTree, SAMPLE_TREE_EXAMPLES } from '@app/trip/sample/testing/s
 import { MatTabGroup } from '@angular/material/tabs';
 import { Program } from '@app/referential/services/model/program.model';
 import { filter, mergeMap } from 'rxjs/operators';
-import { ParameterLabelGroups, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
+import { Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 
@@ -154,8 +154,10 @@ export class SampleTreeTestPage implements OnInit {
       sampleTree.program = program;
 
       // Load Pmfm groups
-      const pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups);
-
+      const parameterLabelGroups = Parameters.getSampleParameterLabelGroups({
+        excludedParameterLabels: ['PRESERVATION']
+      });
+      const pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(parameterLabelGroups);
 
       // Configure sample table
       const samplesTable = sampleTree.samplesTable;
