@@ -140,6 +140,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   ngOnInit() {
     super.ngOnInit();
 
+    // In modal mode: hide update card
+    if (this.inModal) {
+      this.showInstallUpgradeCard = false;
+      this.showUpdateOfflineFeature = false;
+    }
+
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
@@ -434,10 +440,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     // Title
     const landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
     this.$landingsTitle.next(landingsTitle);
-
-    // Hide program column
-    this.showProgramColumn = false;
-    //this.showObservers
   }
 
   protected async resetProgram() {
@@ -448,9 +450,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     // Title
     this.$landingsTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
-
-    // Show program column
-    this.showProgramColumn = true;
   }
 
   protected markForCheck() {

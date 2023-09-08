@@ -11,7 +11,7 @@ import { map } from 'rxjs/operators';
 export interface BluetoothPopoverOptions {
   debug?: boolean;
   titleI18n?: string;
-  selectedDevices?: BluetoothDeviceWithMeta[];
+  connectedDevices?: BluetoothDeviceWithMeta[];
   deviceFilter?: FilterFn<BluetoothDevice>;
   selectedDevicesIcon?: IconRef;
   checkAfterConnect?: BluetoothDeviceCheckFn;
@@ -21,7 +21,7 @@ interface BluetoothPopoverState {
   loading: boolean;
   enabled: boolean;
   devices: BluetoothDeviceWithMeta[];
-  selectedDevices: BluetoothDeviceWithMeta[];
+  connectedDevices: BluetoothDeviceWithMeta[];
   connecting: boolean;
 }
 
@@ -34,11 +34,11 @@ interface BluetoothPopoverState {
 })
 export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
-  readonly enabled$ = this.state.select('enabled');
+  readonly enabled$ = this.service.enabled$;
   readonly loading$ = this.state.select('loading');
   readonly devices$ = this.state.select('devices');
   readonly deviceCount$ = this.devices$.pipe(map(v => v.length));
-  readonly selectedDevices$ = this.state.select('selectedDevices');
+  readonly connectedDevices$ = this.state.select('connectedDevices');
   readonly connecting$ = this.state.select('connecting');
 
   @Input() checkAfterConnect: BluetoothDeviceCheckFn;
@@ -51,23 +51,12 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
     return this.state.get('devices');
   }
 
-  @Input() set selectedDevices(value: BluetoothDevice[]) {
-    this.state.set('selectedDevices', _ => value);
+  @Input() set connectedDevices(value: BluetoothDevice[]) {
+    this.state.set('connectedDevices', _ => value);
   }
 
-  get selectedDevices(): BluetoothDevice[] {
-    return this.state.get('selectedDevices');
-  }
-
-  get enabled(): boolean {
-    return this.state.get('enabled');
-  }
-
-  get disabled(): boolean {
-    return !this.enabled;
-  }
-  get connected(): boolean {
-    return !!this.selectedDevices;
+  get connectedDevices(): BluetoothDevice[] {
+    return this.state.get('connectedDevices');
   }
 
   @Input() set connecting(value: boolean) {
@@ -99,39 +88,40 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
     let enabled: boolean;
     try {
       await this.service.ready();
-      enabled = await this.service.isEnabled();
+      enabled = await this.service.enable();
     }
     catch (err) {
-      console.error(`[bluetooth-popover] Error while getting if bluetooth is enabled: ${err?.message||err}`, err);
+      console.error(`[bluetooth-popover] Error trying to enable bluetooth: ${err?.message||err}`, err);
       enabled = false; // Continue
     }
-    this.state.set('enabled', _ => enabled);
 
     // If enabled
     if (enabled) {
-      // Try to connect the selected device (if not already done)
-      let selectedDevices = this.selectedDevices;
-      if (isNotEmptyArray(selectedDevices)) {
-        let notConnectedDevices = [];
+      this.state.set('enabled', _ => enabled);
+      let connectedDevices = this.connectedDevices || [];
+      let devices = this.devices || [];
+
+      // Try to reconnect all connected devices
+      if (isNotEmptyArray(connectedDevices)) {
         this.markAsConnecting();
-        const connectedDevices = (await Promise.all(selectedDevices
-          .map(d => this.connect(null, d, {dismiss: false})
+        connectedDevices = (await chainPromises(
+          connectedDevices.map(d => () => this.connect(null, d, {dismiss: false})
             .catch(_ => false)
             .then(connected => {
-              if (connected) return d;
-              notConnectedDevices.push(d)
+              if (connected) {
+                devices = removeByAddress(devices, d);
+                return d;
+              }
+              devices = removeDuplicatesFromArray([d, ...devices], 'address');
               return null; // Will be excluded in the next filter()
             })
-        ))).filter(isNotNil);
-        this.state.set(s => ({
-          selectedDevices: connectedDevices,
-          devices: notConnectedDevices
-        }));
+          ))).filter(isNotNil);
+        this.state.set({enabled, devices, connectedDevices});
         this.markAsConnected();
         this.markAsLoaded();
       }
       else {
-        this.state.set('selectedDevices', _ => []);
+        this.connectedDevices = [];
         await this.scan();
         this.markAsConnecting();
       }
@@ -143,7 +133,8 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   }
 
   async toggleBluetooth() {
-    if (this.enabled) {
+    const enabled = await this.service.isEnabled();
+    if (enabled) {
       await this.disable();
     }
     else {
@@ -185,7 +176,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
       // Apply filter
       if (this.deviceFilter) {
-        devices = devices.filter(this.deviceFilter);
+        devices = (devices || []).filter(this.deviceFilter);
       }
 
       // Apply result
@@ -203,12 +194,12 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
     if (event?.defaultPrevented) return false;
     event?.preventDefault();
 
-    console.info(`[bluetooth-popover] New device selected: {${device.address}}`);
+    console.info(`[bluetooth-popover] Connecting to: {${device.address}}`);
 
     let connected = false;
     try {
-      // Add to selected devices
-      this.state.set('selectedDevices', s => removeDuplicatesFromArray([...s.selectedDevices, device], 'address'));
+      // Add to connectedDevices
+      this.state.set('connectedDevices', s => removeDuplicatesFromArray([...s.connectedDevices, device], 'address'));
 
       connected = await this.service.isConnected(device);
       if (connected) return true; // Already connected
@@ -235,7 +226,8 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
           else {
             if (typeof deviceOrConnected === 'object') {
               // Update device (with updated device received)
-              this.state.set('selectedDevices', s => removeDuplicatesFromArray([deviceOrConnected, ...s.selectedDevices], 'address'));
+              const device: BluetoothDevice = deviceOrConnected;
+              this.state.set('connectedDevices', s => removeDuplicatesFromArray([device, ...s.connectedDevices], 'address'));
             }
             // Remove from available devices
             this.state.set('devices', s => removeByAddress(s.devices, device));
@@ -252,7 +244,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
       // Dismiss, if connected
       if (!opts || opts.dismiss !== false) {
         await sleep(500);
-        this.dismiss(this.selectedDevices);
+        this.dismiss(this.connectedDevices);
       }
 
       return true;
@@ -272,7 +264,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   }
 
   async disconnectAll(opts?: {addToDevices: boolean}) {
-    const selectedDevices = this.selectedDevices?.slice();
+    const selectedDevices = this.connectedDevices?.slice();
     if (isEmptyArray(selectedDevices)) return; // Skip if empty
 
     await chainPromises(selectedDevices.map(d => () => this.disconnect(d, {addToDevices: false})
@@ -291,7 +283,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
 
     await this.service.disconnect(device);
 
-    this.state.set('selectedDevices', s => removeByAddress(s.selectedDevices, device));
+    this.state.set('connectedDevices', s => removeByAddress(s.connectedDevices, device));
 
     if (opts?.addToDevices !== false) {
       this.state.set('devices', s => removeDuplicatesFromArray([device, ...s.devices], 'address'));

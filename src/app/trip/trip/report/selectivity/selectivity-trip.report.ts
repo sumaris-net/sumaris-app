@@ -1,15 +1,24 @@
-import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
-import { collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
-import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
-import { DOCUMENT } from '@angular/common';
-import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { Function } from '@app/shared/functions';
-import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
-import { SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
-import { BaseNumericStats, SpeciesChart, TripReport, TripReportStats } from '@app/trip/trip/report/trip.report';
+import {Component, Injector, ViewEncapsulation} from '@angular/core';
+import {
+  collectByProperty,
+  Color,
+  EntityAsObjectOptions,
+  FilterFn,
+  IReferentialRef,
+  isEmptyArray,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  ReferentialRef,
+  removeDuplicatesFromArray
+} from '@sumaris-net/ngx-components';
+import {ChartJsUtils, ChartJsUtilsColor} from '@app/shared/chartsjs.utils';
+import {TripReportService} from '@app/trip/trip/report/trip-report.service';
+import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {Function} from '@app/shared/functions';
+import {CatchCategoryType} from '@app/trip/trip/report/trip-report.model';
+import {SelectivityTripReportService} from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
 import {
   SelectivityExtractionData,
   SelectivityGear,
@@ -18,9 +27,11 @@ import {
   SelectivityStation,
   SelectivityTrip
 } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
-import { AverageDetails, MathUtils } from '@app/shared/math.utils';
-import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
-import { environment } from '@environments/environment';
+import {AverageDetails, MathUtils} from '@app/shared/math.utils';
+import {ExtractionFilter} from '@app/extraction/type/extraction-type.model';
+import {environment} from '@environments/environment';
+import {BaseNumericStats, BaseTripReport, SpeciesChart, BaseTripReportStats} from "@app/trip/trip/report/base-trip.report";
+import {IComputeStatsOpts} from "@app/data/report/base-report.class";
 
 
 export interface SubCategoryWeightStats {
@@ -37,7 +48,6 @@ export interface SpeciesWeightStats {
     [subCategory: string]: SubCategoryWeightStats;
   }
 }
-
 export interface WeightStats {
   catchCategories: {
     [catchCategory: string]: {
@@ -48,8 +58,8 @@ export interface WeightStats {
     };
   }
 }
-export declare interface SelectivityTripReportStats extends TripReportStats {
-  gearIdentifierByOperationId: {[key: string]: PhysicalGear};
+export class SelectivityTripReportStats extends BaseTripReportStats {
+  gearIdentifierByOperationId: {[key: string]: number};
   selectivityDeviceMap: {[key: string]: IReferentialRef};
   selectivityDevices: string[];
   seaStates: string[];
@@ -57,6 +67,33 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   gearSpeed: BaseNumericStats;
   subCategories: string[];
   weights: WeightStats;
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.gearIdentifierByOperationId = source.gearIdentifierByOperationId;
+    this.selectivityDeviceMap = source.selectivityDeviceMap;
+    this.selectivityDevices = source.selectivityDevices;
+    this.seaStates = source.seaStates;
+    this.seabedFeatures = source.seabedFeatures;
+    this.gearSpeed = source.gearSpeed;
+    this.subCategories = source.subCategories;
+    this.weights = source.weights;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      ...super.asObject(opts),
+      gearIdentifierByOperationId: this.gearIdentifierByOperationId,
+      selectivityDeviceMap: this.gearIdentifierByOperationId,
+      selectivityDevices: this.selectivityDevices,
+      seaStates: this.seaStates,
+      seabedFeatures: this.seabedFeatures,
+      gearSpeed: this.gearSpeed,
+      subCategories: this.subCategories,
+      weights: this.weights,
+    };
+  }
+
 }
 
 @Component({
@@ -64,25 +101,27 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   templateUrl: './selectivity-trip.report.html',
   styleUrls: [
     '../trip.report.scss',
-    './selectivity-trip.report.scss'
+    './selectivity-trip.report.scss',
+    '../../../../data/report/base-report.scss',
   ],
   providers: [
     {provide: TripReportService, useClass: SelectivityTripReportService}
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class SelectivityTripReport extends TripReport<SelectivityExtractionData, SelectivityTripReportStats> {
-
+export class SelectivityTripReport extends BaseTripReport<SelectivityExtractionData, SelectivityTripReportStats> {
 
   constructor(injector: Injector,
-              tripReportService: TripReportService<SelectivityExtractionData>,
-              @Inject(DOCUMENT) document: Document) {
-    super(injector, tripReportService, document);
-    this.i18nContext = {
-      ...this.i18nContext,
-      suffix: 'TRAWL_SELECTIVITY.'
-    }
+              tripReportService: TripReportService<SelectivityExtractionData>) {
+    super(injector, tripReportService, SelectivityTripReportStats);
   }
+
+  dataAsObject(source: SelectivityExtractionData, opts?: EntityAsObjectOptions):any {
+    return {
+      ...super.dataAsObject(source, opts),
+      FG: source.FG.map(item => item.asObject(opts)),
+    }
+  };
 
   protected loadData(filter: ExtractionFilter,
                  opts?: {
@@ -101,10 +140,10 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     });
   }
 
-
-  protected async computeStats(data: SelectivityExtractionData, opts?: { cache?: boolean; stats?: SelectivityTripReportStats }): Promise<SelectivityTripReportStats> {
-    const stats = opts?.stats || <SelectivityTripReportStats>{};
+  protected async computeStats(data: SelectivityExtractionData, opts?: IComputeStatsOpts<SelectivityTripReportStats>): Promise<SelectivityTripReportStats> {
+    const stats = opts?.stats || new this.statsType();
     const programLabel = (data.TR || []).map(t => t.project).find(isNotNil);
+    stats.program = stats.programLabel && (await this.programRefService.loadByLabel(stats.programLabel));
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
 
@@ -142,18 +181,19 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       return res;
     }, {});
 
-    const getSubCategory = (sl: any) => {
-      const gearRankOrder = stats.gearIdentifierByOperationId[+sl.stationNumber];
-      const gearKey = isNotNil(sl.subGearIdentifier) ? `${gearRankOrder}|${sl.subGearIdentifier}` : `${gearRankOrder}`;
-      const selectiveDevice: IReferentialRef = stats.selectivityDeviceMap[gearKey];
-      return selectiveDevice && selectiveDevice.name;
-    };
-
     // Compute sub categories (and store result in meta)
+    const getSubCategory = this.createGetSubCategory(stats);
     stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, firstSubCategory: standardSubCategory});
     stats.weights = this.computeWeightStats(data.SL, {getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
 
     return super.computeStats(data, {...opts, stats, getSubCategory});
+  }
+
+  protected async computeSpecies(data: SelectivityExtractionData, stats: SelectivityTripReportStats, opts: IComputeStatsOpts<SelectivityTripReportStats>): Promise<SelectivityTripReportStats["species"]> {
+    // Make sure to have opts.getSubCategory, in shared report
+    const getSubCategory = opts?.getSubCategory || this.createGetSubCategory(stats);
+
+    return super.computeSpecies(data, stats, {...opts, getSubCategory});
   }
 
   protected computeWeightStats(data: SelectivitySpeciesList[], opts: {
@@ -330,7 +370,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     if (opts?.getSubCategory) {
       // Add bubble charts, by category (= selective device)
       const bubbleCharts = this.computeSpeciesBubbleChart(species, data.SL, {
-        subCategories: this.stats.subCategories,
+        subCategories: opts.stats.subCategories,
         getSubCategory: opts.getSubCategory,
         catchCategories: ['LAN', 'DIS']
       });
@@ -578,12 +618,17 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     return chart;
   }
 
-  protected computePrintHref(data: SelectivityExtractionData, stats: SelectivityTripReportStats): string {
-    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
-    if (stats.trips?.length === 1) {
-      const baseTripPath = `/trips/${stats.trips[0].id}`;
-      return `${baseTripPath}/report/selectivity`;
-    }
-    // TODO: create a URL with query parameters
+  protected createGetSubCategory(stats: SelectivityTripReportStats): (sl: any) => string {
+    return (sl: any) => {
+      const gearRankOrder = stats.gearIdentifierByOperationId[+sl.stationNumber];
+      const gearKey = isNotNil(sl.subGearIdentifier) ? `${gearRankOrder}|${sl.subGearIdentifier}` : `${gearRankOrder}`;
+      const selectiveDevice: IReferentialRef = stats.selectivityDeviceMap[gearKey];
+      return selectiveDevice && selectiveDevice.name;
+    };
   }
+
+  protected computeShareBasePath(): string {
+    return 'trips/report/selectivity';
+  }
+
 }

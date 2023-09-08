@@ -163,7 +163,7 @@ export class SampleTreeTestPage implements OnInit {
       samplesTable.tagIdPmfm = <IPmfm>{id: PmfmIds.TAG_ID};
       samplesTable.showPmfmDetails = true;
       samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
-      samplesTable.computedPmfmGroups = ['AGE'];
+      samplesTable.readonlyPmfmGroups = ['AGE'];
       samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
       samplesTable.showTaxonGroupColumn = false;
       samplesTable.showTaxonNameColumn = false;

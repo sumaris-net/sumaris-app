@@ -1,76 +1,41 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  Input,
+  OnDestroy,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
-import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
-import { TranslateService } from '@ngx-translate/core';
 import {
-  AppErrorWithDetails,
-  arrayDistinct,
-  DateFormatService,
-  firstFalsePromise,
-  isNil,
-  isNilOrBlank, isNilOrNaN,
-  isNotEmptyArray,
-  isNotNilOrBlank,
-  LocalSettingsService,
-  PlatformService, toNumber,
+  arrayDistinct, EntityAsObjectOptions,
+  EntityServiceLoadOptions,
+  isNotEmptyArray, isNotNil,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { LandingReport } from '@app/trip/landing/report/landing.report';
-import { LandingService } from '@app/trip/landing/landing.service';
-import { Landing } from '@app/trip/landing/landing.model';
-import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
-import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import {LandingReport} from '@app/trip/landing/report/landing.report';
+import {AppDataEntityReport, DataReportStats} from '@app/data/report/data-entity-report.class';
+import {LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX} from '@app/trip/landing/landings.table';
+import {AuctionControlReport} from '@app/trip/landing/auction-control/report/auction-control.report';
+import {SamplingLandingReport} from '../../landing/sampling/report/sampling-landing.report';
+import {IComputeStatsOpts, IReportI18nContext} from '@app/data/report/base-report.class';
+import {LandingStats} from '@app/trip/landing/report/base-landing-report.class';
+import {ObservedLocation} from "@app/trip/observedlocation/observed-location.model";
+import {ObservedLocationService} from "@app/trip/observedlocation/observed-location.service";
+import {LandingService} from "@app/trip/landing/landing.service";
+import {lastValueFrom} from "rxjs";
+import {Landing} from "@app/trip/landing/landing.model";
 
-
-@Component({
-  selector: 'app-observed-location',
-  templateUrl: './observed-location.report.html',
-  styleUrls: ['../../landing/report/landing.report.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class ObservedLocationReport<T extends ObservedLocation = ObservedLocation> implements AfterViewInit {
-
-  private readonly route: ActivatedRoute;
-  private readonly platform: PlatformService;
-  private readonly dateFormat: DateFormatService;
-  private readonly cd: ChangeDetectorRef;
-  private readonly translate: TranslateService;
-  private readonly observedLocationService: ObservedLocationService;
-  private readonly settings: LocalSettingsService;
-  private readonly programRefService: ProgramRefService;
-  private readonly landingService: LandingService;
-
-  protected readonly destroySubject = new Subject<void>();
-  protected readonly readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
-
-  private readonly _pathIdAttribute: string;
-  private readonly _autoLoad = true;
-  private readonly _autoLoadDelay = 0;
-
-  error: string;
-  $title = new Subject<void>();
-  $defaultBackHref = new Subject<string>();
-  revealOptions: Partial<IRevealOptions>;
-  i18nContext = {
-    prefix: '',
-    suffix: ''
-  };
-
-  // Data and Co.
-  data: T;
-  stats: {
-    vesselCount?: number;
-  } = {}
+export class ObservedLocationStats extends DataReportStats {
+  vesselCount: number;
   pmfms: IPmfm[];
   landingPmfms: IPmfm[];
   landingEditor: LandingEditor;
@@ -78,194 +43,187 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   landingI18nColumnPrefix: string;
   landingShowSampleCount: boolean;
   landingSamplesPmfms: IPmfm[][];
+  landingsStats?: LandingStats[];
 
+  fromObject(source: any) {
+    this.vesselCount = source.vesselCount;
+    this.pmfms = source.pmfms.map(item => Pmfm.fromObject(item));
+    this.landingPmfms = source.landingPmfms.map(item => Pmfm.fromObject(item));
+    this.landingEditor = source.landingEditor; // TODO : make it from object
+    this.landingI18nPmfmPrefix = source.landingI18nPmfmPrefix;
+    this.landingI18nColumnPrefix = source.landingI18nColumnPrefix;
+    this.landingShowSampleCount = source.landingShowSampleCount;
+    this.landingSamplesPmfms = source.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => Pmfm.fromObject(lv2)));
+    this.landingsStats = source.landingsStats.map(s => {
+      const stats = new LandingStats();
+      stats.fromObject(s);
+      return stats;
+    });
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    let target = super.asObject(opts);
+    // TODO
+    target = {
+      ...target,
+      vesselCount: this.vesselCount,
+      pmfms: this.pmfms.map(item => item.asObject()),
+      landingPmfms: this.landingPmfms.map(item => item.asObject()),
+      landingEditor: this.landingEditor, // TODO : make it as object
+      landingI18nPmfmPrefix: this.landingI18nPmfmPrefix,
+      landingI18nColumnPrefix: this.landingI18nColumnPrefix,
+      landingShowSampleCount: this.landingShowSampleCount,
+      landingSamplesPmfms: this.landingSamplesPmfms.map(lv1 => lv1.map(lv2 => lv2.asObject())),
+      // NOTE : can not be sure that landing stats are present at this moment because they are not computed in ObservedLocationReport:computeStats
+      //        see ObservedLocationReport:statsAsObject
+      landingsStats: this.landingsStats.map(s => s.asObject(opts)),
+    };
+    return target;
+  }
+
+}
+
+@Component({
+  selector: 'app-observed-location',
+  templateUrl: './observed-location.report.html',
+  styleUrls: [
+    '../../landing/report/landing.report.scss',
+    '../../../data/report/base-report.scss',
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation, number, ObservedLocationStats> implements AfterViewInit, OnDestroy {
+
+  protected logPrefix = 'observed-location-report';
+
+  protected readonly isNotEmptyArray = isNotEmptyArray;
+  protected readonly isNotNil = isNotNil;
+  protected readonly AuctionControlReport = AuctionControlReport;
+  protected readonly SamplingLandingReport = SamplingLandingReport;
+  protected readonly LandingReport = LandingReport;
+
+  private readonly observedLocationService: ObservedLocationService;
+  private readonly landingService: LandingService;
 
   @Input() showToolbar = true;
   @Input() showError = true;
 
   @ViewChild(RevealComponent) reveal!: RevealComponent;
-  @ViewChildren("landingReport") children!: QueryList<LandingReport>;
+  @ViewChildren('landingReport') children!: QueryList<LandingReport>;
 
-  get loading(): boolean {
-    return this.loadingSubject.value || this.children.some(c => c.loading);
-  }
-  get loaded(): boolean {return !this.loading && !this.children.some(c => c.loading);}
+  constructor(
+    injector: Injector,
+  ) {
+    super(injector, ObservedLocation, ObservedLocationStats, {pathIdAttribute: 'observedLocationId'});
 
-  constructor(injector: Injector) {
-    this.route = injector.get(ActivatedRoute);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.dateFormat = injector.get(DateFormatService);
-
-    this.platform = injector.get(PlatformService);
-    this.translate = injector.get(TranslateService);
     this.observedLocationService = injector.get(ObservedLocationService);
-    this.settings = injector.get(LocalSettingsService);
-    this.programRefService = injector.get(ProgramRefService);
     this.landingService = injector.get(LandingService);
-
-    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
-    this.landingI18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
-    this.landingI18nPmfmPrefix = LANDING_I18N_PMFM_PREFIX;
-
-    this.computeSlidesOptions();
-
-    if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
-      throw new Error('Unable to load from route: missing \'route\'.');
-    }
   }
 
-  ngAfterViewInit() {
-    if (this._autoLoad) {
-      setTimeout(() => this.start(), this._autoLoadDelay);
-    }
-  }
-
-  setError(err: string | AppErrorWithDetails, opts?: {
-    emitEvent?: boolean;
-    detailsCssClass?: string;
-  }) {
-    if (!err) {
-      this.error = undefined;
-    } else if (typeof err === 'string') {
-      console.error(`[${this.constructor.name}] Error: ${err}`);
-      this.error = err as string;
-    } else {
-      console.error(`[${this.constructor.name}] Error: ${err.message}`, err);
-      let userMessage: string = err.message && this.translate.instant(err.message) || err;
-      const detailMessage: string = (!err.details || typeof(err.details) === 'string')
-        ? err.details as string
-        : err.details.message;
-      if (isNotNilOrBlank(detailMessage)) {
-        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
-        userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
-        userMessage += detailMessage.length < 70
-          ? detailMessage
-          : detailMessage.substring(0, 67) + '...';
-        userMessage += '</small>';
-      }
-      this.error = userMessage;
-    }
-    if (!opts || opts.emitEvent !== false) this.markForCheck();
-  }
-
-  async start() {
-    await this.platform.ready();
-    try {
-      await this.loadFromRoute();
-    } catch (err) {
-      this.setError(err);
-    } finally {
-      this.markAsLoaded();
-    }
-  }
-
-  protected async loadFromRoute() {
-    const route = this.route.snapshot;
-    let id = toNumber(route?.params[this._pathIdAttribute]);
-    if (isNilOrNaN(id)) throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
-
-    await this.load(id);
-
-    await this.updateView();
-  }
-
-  async load(id: number) {
+  async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<ObservedLocation> {
+    if (this.debug) console.log(`[${this.logPrefix}] load data...`);
     const data = await this.observedLocationService.load(id, {withLanding: true});
     if (!data) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
 
-    // Compute title and back
-    await this.computeTitle(data);
-    this.computeDefaultBackHref(data);
-
-    const program = await this.programRefService.loadByLabel(data.program.label);
-    this.i18nContext.prefix = 'OBSERVED_LOCATION.PMFM.';
-    this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
-    this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
-    // Force landing editor to default for testing
-    //this.landingEditor = 'landing'
-    this.landingShowSampleCount = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-
     // Load full landings
     data.landings = await Promise.all(data.landings.map(landing => this.landingService.load(landing.id)));
 
-    // Load pmfms
-    const pmfms = await this.programRefService.loadProgramPmfms(
-      program.label, {acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION}
-    );
-    const landingPmfms = await this.programRefService.loadProgramPmfms(
-      program.label, {acquisitionLevel: AcquisitionLevelCodes.LANDING}
-    );
+    // Inject the parent on all landing // TODO put a copy of the parent that have embeded landing removed
+    //                                     Or manage this when we serialize/deserialize the object
+    //                                     (we do not want embeded parent parent when we serialise landing)
+    data.landings.forEach(landing => landing.observedLocation = data);
 
-    // Apply data
-    this.pmfms = pmfms;
-    this.landingPmfms = landingPmfms;
-    this.landingSamplesPmfms = await this.loadLandingsPmfms(data.landings, program);
-    this.data = await this.onDataLoaded(data as T);
-
-    this.markAsReady();
-    this.markAsLoaded();
-
-    // Wait all sections loaded
-    await this.waitIdle({stop: this.destroySubject});
-  }
-
-  async updateView() {
-
-    // Make sure all sections has been rendered
-    this.cd.detectChanges();
-
-    // Run reveal
-    await this.reveal.initialize();
-  }
-
-  protected async onDataLoaded(data: T): Promise<T> {
-    this.stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
     return data;
   }
 
-  protected markAsReady() {
-    if (!this.readySubject.value) {
-      this.readySubject.next(true);
-    }
+  dataFromObject(source:any): ObservedLocation {
+    const result = ObservedLocation.fromObject(source);
+    result.landings.forEach(l => l.observedLocation = result);
+    return result;
+  }
+
+  dataAsObject(source: ObservedLocation, opts?: EntityAsObjectOptions): any {
+    const copySource = source.clone();
+    // Clean observed location from exported data
+    // (this is redundant because observed location is the root of data itself)
+    copySource.landings.forEach(l => delete l.observedLocation);
+    return copySource.asObject();
+  }
+
+  markAsReady() {
+    super.markAsReady();
     if (!this.children.length && isNotEmptyArray(this.data?.landings)) {
       this.cd.detectChanges();
     }
     this.children.map(c => c.markAsReady());
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
+  async updateView() {
+    if (this.debug) console.debug(`${this.logPrefix}updateView`);
+
+    this.cd.detectChanges();
+    await this.waitIdle({stop: this.destroySubject});
+
+    this.reveal.initialize();
   }
 
-  protected markAsLoaded(opts = {emitEvent: true}) {
-    if(this.loadingSubject.value) {
-      this.loadingSubject.next(false);
-      if (opts.emitEvent !== false) this.markForCheck();
-    }
+  statsAsObject(source: ObservedLocationStats, opts?: EntityAsObjectOptions): any {
+    // TODO This is not really the place and the moment for push children stats in this stats, try to find a better way to do this
+    //      (can not be done in computeStats because children was not available at this moment)
+    source.landingsStats = this.children.map(c => c.stats);
+    return source.asObject(opts);
   }
 
-  protected async computeTitle(data: ObservedLocation) {
-    const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
+  protected async computeTitle(data: ObservedLocation, stats: ObservedLocationStats): Promise<string> {
+    return await lastValueFrom(this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
       location: data.location.name,
       dateTime: this.dateFormat.transform(data.startDateTime, {time: true}),
-    }).toPromise();
-    this.$title.next(title)
+    }));
   }
 
-  protected computeDefaultBackHref(data: ObservedLocation) {
-    this.$defaultBackHref.next(`/observations/${data.id}?tab=1`);
+  protected computeDefaultBackHref(data: ObservedLocation): string {
+    return `/observations/${data.id}?tab=1`;
+  }
+  protected async computeStats(data: ObservedLocation, opts?: IComputeStatsOpts<ObservedLocationStats>): Promise<ObservedLocationStats> {
+
+    if (this.debug) console.log(`[${this.logPrefix}.computeStats]`);
+    const stats:ObservedLocationStats = opts?.stats || new this.statsType();
+    stats.program = await this.programRefService.loadByLabel(data.program.label);
+
+    stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
+
+    stats.landingEditor = stats.program.getProperty(ProgramProperties.LANDING_EDITOR);
+    // Force landing editor to default for testing
+    //this.landingEditor = 'landing'
+    stats.landingShowSampleCount = stats.program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+
+    stats.pmfms = await this.programRefService.loadProgramPmfms(
+      stats.program.label, {acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION}
+    );
+
+    stats.landingSamplesPmfms = await this.loadLandingsPmfms(this.data.landings, stats.program);
+
+    stats.landingPmfms = await this.programRefService.loadProgramPmfms(
+      stats.program.label, {acquisitionLevel: AcquisitionLevelCodes.LANDING}
+    );
+
+    stats.landingI18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
+    stats.landingI18nPmfmPrefix = LANDING_I18N_PMFM_PREFIX;
+
+    return stats;
   }
 
-  protected computeSlidesOptions() {
-    const mobile = this.settings.mobile;
-    this.revealOptions = {
-      autoInitialize: false,
-      disableLayout: mobile,
-      touch: mobile,
+  protected computeI18nContext(stats: ObservedLocationStats): IReportI18nContext {
+    return {
+      ...super.computeI18nContext(stats),
+      pmfmPrefix: 'OBSERVED_LOCATION.PMFM.',
     };
+  }
+
+  protected computeShareBasePath(): string {
+    return 'observations/report';
   }
 
   protected async loadLandingsPmfms(landings: Landing[], program: Program): Promise<IPmfm[][]> {
@@ -283,15 +241,18 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
         }
         return pmfms;
       })
-    );
-  }
+    ); }
 
-  protected async waitIdle(opts: WaitForOptions) {
-    if (this.loaded) return; // skip
-    await firstFalsePromise(this.loadingSubject, opts);
+  async waitIdle(opts: WaitForOptions) {
+    await super.waitIdle(opts);
+
+    // this.cd.detectChanges();
     await Promise.all(
-      this.children.map(c => c.waitIdle(opts))
-    );
+      this.children.map(c => {
+        console.debug(`[${this.logPrefix}] Waiting for child`);
+        return c.waitIdle(opts);
+      })
+    )
   }
 
   isQualitativePmfm(pmfm: IPmfm) {
@@ -305,4 +266,5 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   hasSamples(landing: Landing): boolean {
     return isNotEmptyArray(landing?.samples);
   }
+
 }

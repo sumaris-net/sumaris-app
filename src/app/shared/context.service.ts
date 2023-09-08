@@ -1,12 +1,18 @@
-import {BehaviorSubject, Observable} from 'rxjs';
-import {Program} from '@app/referential/services/model/program.model';
-import {Strategy} from '@app/referential/services/model/strategy.model';
+import {Observable} from 'rxjs';
 import {Inject, Injectable, InjectionToken, Optional} from '@angular/core';
 import {Moment} from 'moment';
-import {fromDateISOString} from '@sumaris-net/ngx-components';
+import {DateUtils, fromDateISOString} from '@sumaris-net/ngx-components';
 import {RxState} from '@rx-angular/state';
+import {Program} from '@app/referential/services/model/program.model';
+import {Strategy} from '@app/referential/services/model/strategy.model';
 
-export type Context = {
+export interface Clipboard<T = any> {
+  data?: T;
+  pasteFlags?: number;
+  updateDate?: Moment;
+}
+export interface Context<T = any> {
+  clipboard?: Clipboard<T>;
   program?: Program;
   strategy?: Strategy;
 }
@@ -15,7 +21,7 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 
 
 @Injectable()
-export class ContextService<S extends object = Context> extends RxState<S> {
+export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
     super()
@@ -50,4 +56,19 @@ export class ContextService<S extends object = Context> extends RxState<S> {
     return fromDateISOString(this.getValue(key));
   }
 
+  get clipboard(): Clipboard<T> | undefined {
+    return this.get('clipboard') as Clipboard<T>;
+  }
+
+  set clipboard(value: Clipboard<T> | undefined) {
+    this.set('clipboard', _ => ({...value, updateDate: DateUtils.moment()}));
+  }
+
+  get program(): Program|undefined {
+    return this.get('program');
+  }
+
+  get strategy(): Strategy|undefined {
+    return this.get('strategy');
+  }
 }

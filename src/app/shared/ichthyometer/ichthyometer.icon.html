@@ -3,5 +3,6 @@
   [checkAfterConnect]="checkAfterConnect"
   [deviceFilter]="deviceFilter"
   [selectedDeviceIcon]="selectedDeviceIcon"
+  (connectedDevicesChanges)="onConnectedDevicesChanges($event)"
 >
 </app-bluetooth-icon>

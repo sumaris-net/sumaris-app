@@ -1,11 +1,24 @@
 <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
 
-<ion-title [innerHTML]="$title|async"></ion-title>
-<ion-buttons slot="end">
-  <ion-button (click)="reveal.print($event)">
-    <ion-icon name="print"></ion-icon>
-  </ion-button>
-</ion-buttons>
+  <ion-title [innerHTML]="$title|async"></ion-title>
+  <ion-buttons slot="end">
+
+    <!-- Refresh -->
+    <ion-button *ngIf="uuid|isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+      <mat-icon>refresh</mat-icon>
+    </ion-button>
+
+    <!-- Help button -->
+    <ion-button slot="end" (click)="reveal.toggleHelp()">
+      <mat-icon>help_outline</mat-icon>
+    </ion-button>
+
+    <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+    <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-icon name="print"></ion-icon>
+    </ion-button>
+
+  </ion-buttons>
 </app-toolbar>
 
 <ion-content>
@@ -15,15 +28,13 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-reveal #reveal *ngIf="!error" [options]="revealOptions">
-    <section>
-      <ng-container *ngIf="loaded; else loadingTemplate">
-        <section>
-          <h1>{{ 'TRIP.OPERATION.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-          <h2>Working progress....</h2>
-        </section>
-      </ng-container>
-    </section>
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+      <section *sectionDef>
+          <section>
+            <h1>{{ 'TRIP.OPERATION.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
+            <h2>Working progress....</h2>
+          </section>
+      </section>
   </app-reveal>
 
   <ng-template #loadingTemplate>

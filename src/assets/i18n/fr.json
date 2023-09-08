@@ -147,7 +147,8 @@
     "SHARE": {
       "BTN_SHARE": "Partager",
       "BTN_SHARE_DOTS": "Partager...",
-      "DIALOG_TITLE": "Partager"
+      "DIALOG_TITLE": "Partager",
+      "LINK": "Lien de partage"
     },
     "HELP": {
       "TITLE": "Aide en ligne"
@@ -281,12 +282,13 @@
         "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > Méthode > Calcul de la somme des poids RTP",
         "METHOD_UNKNOWN_ID": "Référentiel > Méthode > Inconnue",
         "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
-        "PARAMETER_GROUP_AGE_LABELS": "Stratégie > Paramètre > Code âge",
-        "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
-        "PARAMETER_GROUP_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
-        "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
-        "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
-        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
+        "PARAMETER_GROUP_TAG_ID_LABELS": "Référentiel > Group de paramètre > Étiquetage (codes)",
+        "PARAMETER_GROUP_AGE_LABELS": "Référentiel > Ensemble de paramètre > Âge (codes)",
+        "PARAMETER_GROUP_SEX_LABELS": "Référentiel > Ensemble de paramètre > Sexe (codes)",
+        "PARAMETER_GROUP_WEIGHT_LABELS": "Référentiel > Ensemble de paramètre > Poids (codes)",
+        "PARAMETER_GROUP_LENGTH_LABELS": "Référentiel > Ensemble de paramètre > Longueur (codes)",
+        "PARAMETER_GROUP_MATURITY_LABELS": "Référentiel > Ensemble de paramètre > Maturité (codes)",
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Référentiel > Fraction > Pièces calcifiées (ids)",
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
         "QUALITY_FLAG_NOT_COMPLETED_ID": "Référentiel > Flag qualité > Incomplet",
         "QUALITY_FLAG_MISSING_ID": "Référentiel > Flag qualité > Manquant",
@@ -1439,6 +1441,9 @@
       "DATE_TIME": "Date/Heure :",
       "VESSEL": "Navire :",
       "RECORDER_PERSON": "Saisisseur : ",
+      "TAXON_NAME": "Espèce cible",
+      "METIERS": "Métiers",
+      "FISHING_AREA": "Zone de pêche",
       "EXPORT_JSON_FILENAME": "Rapport-de-débarquement-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
@@ -2844,10 +2849,10 @@
       "ENABLED": "Activé",
       "DISABLED": "Désactivé",
       "SCANNING_DOTS": "Analyse en cours...",
-      "AVAILABLE_DEVICES": "Périphériques disponibles :",
+      "AVAILABLE_DEVICES": "Appareils disponibles :",
       "ADDRESS": "Adresse (MAC)",
       "NAME": "Nom",
-      "NO_DEVICE": "Aucun périphérique trouvé",
+      "NO_DEVICE": "Aucun appareil trouvé",
       "BTN_SCAN": "Analyser",
       "BTN_DISCONNECT": "Déconnecter",
       "ERROR": {
@@ -2857,7 +2862,17 @@
     "ICHTHYOMETER": {
       "TITLE": "Ichtyomètre Bluetooth",
       "SETTINGS": {
-        "DEVICES": "Ichthyomètre: Périphérique(s)"
+        "DEVICES": "Ichtyomètre > Appareil(s) connu(s)",
+        "AUTO_DISCONNECT": "Ichtyomètre: Déconnection auto ?",
+        "AUTO_DISCONNECT_ENUM": {
+          "-1": "Jamais",
+          "60000": "Après 1 min",
+          "300000": "Après 5 min",
+          "600000": "Après 10 min"
+        }
+      },
+      "ERROR": {
+        "CONNECTION_ERROR": "Échec de la connection à l'ichtyomètre '{{name}}'"
       }
     }
   },
@@ -2956,7 +2971,8 @@
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
     "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategie non autorisée ou non trouvée.",
-    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie"
+    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie",
+    "SHARE_AS_PUBLIC_FAIL": "Échec du partage pulic"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

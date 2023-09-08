@@ -23,9 +23,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
-import { BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
-import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
-
+import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 
 
 @Component({
@@ -48,7 +46,7 @@ export class AppComponent {
     private configService: ConfigService,
     private settings: LocalSettingsService,
     private devicePositionService: DevicePositionService,
-    private bluetoothService: BluetoothService,
+    private ichthyometerService: IchthyometerService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private cd: ChangeDetectorRef
@@ -65,9 +63,6 @@ export class AppComponent {
 
     // Add additional account fields
     this.addAccountFields();
-
-    // Add additional settings fields
-    this.addLocalSettingFields();
 
     // Add custom icons
     this.addCustomSVGIcons();
@@ -218,21 +213,6 @@ export class AppComponent {
         departmentDefinition.autocomplete.attributes = attributes;
         departmentDefinition.autocomplete.displayWith = (value) => value && joinPropertiesPath(value, attributes) || undefined;
       });
-  }
-
-  protected addLocalSettingFields() {
-    if (this.platform.mobile) {
-      console.debug('[app] Add additional local settings options...');
-
-      const ichthyometerOption = {
-        ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS,
-        autocomplete: {
-          ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.ICHTHYOMETERS.autocomplete,
-          suggestFn: (value, filter) => this.bluetoothService.suggest(value, filter)
-        }
-      }
-      this.settings.registerOption(ichthyometerOption);
-    }
   }
 
   protected addCustomSVGIcons() {

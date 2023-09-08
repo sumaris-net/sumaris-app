@@ -3,13 +3,14 @@ import { Operation, Trip } from '@app/trip/trip/trip.model';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Moment } from 'moment';
+import {IReportData} from '@app/data/report/base-report.class';
 
 export interface RdbExtractionData<
   TR extends RdbTrip = RdbTrip,
   HH extends RdbStation = RdbStation,
   SL extends RdbSpeciesList = RdbSpeciesList,
   HL extends RdbSpeciesLength = RdbSpeciesLength
-> {
+> extends IReportData {
   TR: TR[];
   HH: HH[];
   SL: SL[];
@@ -79,8 +80,10 @@ export class RdbStation<S = any> extends Entity<RdbStation<S>> {
     const target = new Operation();
     target.id = this.stationNumber;
     target.tripId = this.tripCode;
-    target.fishingStartDateTime = fromDateISOString(`${this.date}T${this.time}:00.000Z`);
-    target.fishingEndDateTime = target.fishingStartDateTime.clone().add(this.fishingTime, 'minutes');
+    target.startDateTime = fromDateISOString(`${this.date}T${this.time}:00.000Z`);
+    target.fishingStartDateTime = target.startDateTime;
+    target.endDateTime = fromDateISOString(target.fishingStartDateTime.clone().add(this.fishingTime, 'minutes'));
+    target.fishingEndDateTime = target.endDateTime;
     target.startPosition = VesselPosition.fromObject(<VesselPosition>{latitude: this.posStartLat, longitude: this.posStartLon, dateTime: target.fishingStartDateTime, operationId: target.id});
     target.endPosition = VesselPosition.fromObject(<VesselPosition>{latitude: this.posEndLat, longitude: this.posEndLon, dateTime: target.fishingEndDateTime, operationId: target.id});
     target.positions = [target.startPosition, target.endPosition];

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, Optional, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -105,7 +105,8 @@ export const BatchTreeContainerSettingsEnum = {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchTreeContainerComponent extends AppEditor<Batch>
+export class BatchTreeContainerComponent
+  extends AppEditor<Batch>
   implements IBatchTreeComponent {
 
   private _listenStatusChangesSubscription: Subscription;

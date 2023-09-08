@@ -373,7 +373,7 @@ export class DenormalizedPmfmStrategy
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.acquisitionNumber = source.acquisitionNumber;
-    this.displayConversion = source.displayConversion;
+    this.displayConversion = UnitConversion.fromObject(source.displayConversion);
     this.defaultValue = source.defaultValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;
     this.signifFiguresNumber = source.signifFiguresNumber;

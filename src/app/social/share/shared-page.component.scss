@@ -1,0 +1,43 @@
+@import 'theme.globals';
+
+$card-background: rgba(255, 255, 255, .7) !default;
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  white-space: normal;
+}
+
+.center {
+  text-align: center;
+  display: inline-block;
+}
+
+ion-content {
+  --background: transparent;
+  background-size: cover;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  display: inline-block;
+  padding: 15px;
+  background-color: var(--ion-color-primary);
+
+  .loading-page {
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    background-color: var(--ion-color-primary);
+    z-index: 5;
+    transition: background 0.5s linear;
+    -webkit-transition: background 1.5s linear;
+  }
+
+  .loading-page.hidden {
+    background-color: rgba(var(--ion-color-primary), 0);
+  }
+}
+

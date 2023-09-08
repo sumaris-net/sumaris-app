@@ -212,7 +212,10 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING', 'PRESERVATION'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */,
+    'DRESSING', // Use by Imagine (SIH-OBSBIO)
+    'PRESERVATION'
+  ],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
@@ -224,24 +227,26 @@ export const ParameterLabelGroups = {
 };
 
 // Remove duplication in label
-export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
-  const labels = ParameterLabelGroups[key]
-    // Exclude label already in another previous group
-    .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label)));
-  // Add to result, only if not empty
-  if (labels.length) res[key] = labels;
-  return res;
-}, {});
+export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups)
+  // Exclude some group, used elsewhere
+  .filter(group => group !== 'DRESSING' && group !== 'PRESERVATION')
+  .reduce((res, key) => {
+    const labels = ParameterLabelGroups[key]
+      // Exclude label already in another previous group
+      .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label))
+        // See issue #458
+        && label !== 'PRESERVATION');
+    // Add to result, only if not empty
+    if (labels.length) res[key] = labels;
+    return res;
+  }, {});
 
 export const FractionIdGroups = {
-  CALCIFIED_STRUCTURE: [10, 11, 12, 13]
+  CALCIFIED_STRUCTURE: [10, 11, 12, 13] // Pièces calcifiées (need by SIH-OBSBIO)
 };
 
 export const FractionId = {
-  ALL: 1,
-
-  // Babord
-
+  ALL: 1
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));

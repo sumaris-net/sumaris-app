@@ -148,10 +148,10 @@
     <!-- Landing location Column -->
     <ng-container matColumnDef="location">
       <th mat-header-cell *matHeaderCellDef>
-        <span translate>LANDING.TABLE.LOCATION</span>
+        <ion-label translate>LANDING.TABLE.LOCATION</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData?.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
+        <ion-label>{{row.currentData.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
       </td>
     </ng-container>
 
@@ -169,7 +169,7 @@
 
     <!-- Observers -->
     <ng-container matColumnDef="observers">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell *matHeaderCellDef>
         <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
@@ -198,7 +198,7 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
+    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm|pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
       </th>

@@ -518,17 +518,23 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MatrixIds.INDIVIDUAL
   },
+  PARAMETER_GROUP_TAG_ID_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.tagId.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_TAG_ID_LABELS',
+    type: 'string',
+    defaultValue: ParameterLabelGroups.TAG_ID.join(',')
+  },
   PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.age.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.AGE[0]
+    defaultValue: ParameterLabelGroups.AGE.join(',')
   },
   PARAMETER_GROUP_SEX_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.sex.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SEX_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.SEX[0]
+    defaultValue: ParameterLabelGroups.SEX.join(',')
   },
   PARAMETER_GROUP_WEIGHT_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.weight.labels',

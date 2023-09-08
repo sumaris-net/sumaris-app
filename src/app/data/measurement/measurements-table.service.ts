@@ -1,4 +1,4 @@
-import {BehaviorSubject, isObservable, Observable} from 'rxjs';
+import { BehaviorSubject, isObservable, mergeMap, Observable } from 'rxjs';
 import {distinctUntilChanged, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from './measurement.model';
 import {

@@ -64,8 +64,6 @@ export abstract class AppRootDataTable<
   >
   extends AppBaseTable<T, F, S, V, ID, O> {
 
-  private _selectionExtractionTypes$: Observable<ExtractionType[]>;
-
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly userEventService: UserEventService;
@@ -81,7 +79,7 @@ export abstract class AppRootDataTable<
   filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
-  showUpdateOfflineFeature = false;
+  needUpdateOfflineFeature = false;
   offline = false;
   logPrefix = '[root-data-table] ';
 
@@ -109,6 +107,9 @@ export abstract class AppRootDataTable<
   get isLogin(): boolean {
     return this.accountService.isLogin();
   }
+
+  @Input() showUpdateOfflineFeature = true;
+  @Input() showInstallUpgradeCard = true;
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
@@ -194,7 +195,9 @@ export abstract class AppRootDataTable<
         this.filterForm.markAsPristine();
 
         // Check if update offline mode is need
-        this.checkUpdateOfflineNeed();
+        if (this.showUpdateOfflineFeature) {
+          this.checkUpdateOfflineNeed();
+        }
       }));
 
     // Update filter when changes
@@ -311,7 +314,7 @@ export abstract class AppRootDataTable<
       success = true;
 
       // Hide the warning message
-      this.showUpdateOfflineFeature = false;
+      this.needUpdateOfflineFeature = false;
       return success;
     }
     catch (err) {
@@ -685,8 +688,8 @@ export abstract class AppRootDataTable<
     }
 
     // Update the view
-    if (this.showUpdateOfflineFeature !== needUpdate) {
-      this.showUpdateOfflineFeature = needUpdate;
+    if (this.needUpdateOfflineFeature !== needUpdate) {
+      this.needUpdateOfflineFeature = needUpdate;
 
       this.markForCheck();
     }

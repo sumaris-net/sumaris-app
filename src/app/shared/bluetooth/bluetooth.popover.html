@@ -16,7 +16,7 @@
 
       <!-- Selected devices -->
       <ng-container *ngIf="enabled">
-        <ion-item *ngFor="let device of selectedDevices$|async">
+        <ion-item *ngFor="let device of connectedDevices$|async">
           <app-icon [ref]="selectedDevicesIcon" slot="start"></app-icon>
           <ion-label>
             <h2>{{ device.name }}</h2>
@@ -55,24 +55,26 @@
 
       <ng-template #loaded>
 
-        <ion-item *ngFor="let device of devices$|async; trackBy: trackByFn; last as last"
-          [lines]="last ? 'none' : undefined"
-          tappable
-          [disabled]="!enabled"
-          (click)="connect($event, device, {dismiss: true})">
+        <ng-container *ngVar="devices$|async; let devices">
+          <ion-item *ngFor="let device of devices; trackBy: trackByFn; last as last"
+            [lines]="last ? 'none' : undefined"
+            tappable
+            [disabled]="!enabled"
+            (click)="connect($event, device, {dismiss: true})">
 
-          <mat-icon slot="start">{{getDeviceMatIcon(device)}}</mat-icon>
+            <mat-icon slot="start">{{getDeviceMatIcon(device)}}</mat-icon>
 
-          <ion-label>
-            <h2>{{ device.name }}</h2>
-            <p>{{ device.address }}</p>
-          </ion-label>
-        </ion-item>
+            <ion-label>
+              <h2>{{ device.name }}</h2>
+              <p>{{ device.address }}</p>
+            </ion-label>
+          </ion-item>
 
-        <!-- no result -->
-        <ion-item *ngIf="devices$|async|isEmptyArray" lines="none">
-          <ion-text color="danger" class="text-italic">{{'SHARED.BLUETOOTH.NO_DEVICE' | translate}}</ion-text>
-        </ion-item>
+          <!-- no result -->
+          <ion-item *ngIf="devices && devices.length === 0" lines="none">
+            <ion-text color="danger" class="text-italic">{{'SHARED.BLUETOOTH.NO_DEVICE' | translate}}</ion-text>
+          </ion-item>
+        </ng-container>
       </ng-template>
 
       <!-- footer -->

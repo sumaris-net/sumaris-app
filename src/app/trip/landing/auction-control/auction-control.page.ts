@@ -320,9 +320,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     switch (pmfm.id) {
       case PmfmIds.OUT_OF_SIZE_PCT:
         if (isNotNil(pmfmValue)) {
-            if (+pmfmValue >= 15) return 'danger';
-            if (+pmfmValue >= 10) return 'warning900';
-            if (+pmfmValue >= 5) return 'warning';
+          if (+pmfmValue >= 15) return 'danger';
+          if (+pmfmValue >= 10) return 'warning900';
+          if (+pmfmValue >= 5) return 'warning';
           return 'success';
         }
         break;

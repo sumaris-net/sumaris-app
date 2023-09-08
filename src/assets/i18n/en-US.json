@@ -147,7 +147,8 @@
     "SHARE": {
       "BTN_SHARE": "Share",
       "BTN_SHARE_DOTS": "Share...",
-      "DIALOG_TITLE": "Share"
+      "DIALOG_TITLE": "Share",
+      "LINK": "Share link"
     },
     "HELP": {
       "TITLE": "Online help"
@@ -604,7 +605,7 @@
         "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
       },
       "WARNING": {
-        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first.",
+        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first."
       },
       "ERROR": {
         "IMPORT_FILE_FAILED" : "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
@@ -818,7 +819,8 @@
         "FISHING_AREA": "Fishing Area",
         "COMMENTS": "Comments",
         "QUALITY": "State",
-        "QUALITY_FILTER": "Filter by state:"
+        "QUALITY_FILTER": "Filter by state:",
+        "DOWNLOAD_JSON_FILENAME": "Operations.json"
       },
       "FILTER": {
         "GEAR" : "Gear",
@@ -1432,6 +1434,9 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
+      "TAXON_NAME": "Scientific species",
+      "METIERS": "Metiers",
+      "FISHING_AREA": "Fishing area",
       "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
@@ -2790,7 +2795,17 @@
     "ICHTHYOMETER": {
       "TITLE": "Bluetooth ichthyometer",
       "SETTINGS": {
-        "DEVICES": "Ichthyometer: Device(s)"
+        "DEVICES": "Ichthyometer > Known device(s)",
+        "AUTO_DISCONNECT": "Ichthyometer: Auto disconnect?",
+        "AUTO_DISCONNECT_ENUM": {
+          "-1": "Never",
+          "60000": "After 1 min",
+          "300000": "After 5 min",
+          "600000": "After 10 min"
+        }
+      },
+      "ERROR": {
+        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
       }
     }
   },
@@ -2889,7 +2904,8 @@
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
     "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
     "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategy not allowed or not found",
-    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label"
+    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label",
+    "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

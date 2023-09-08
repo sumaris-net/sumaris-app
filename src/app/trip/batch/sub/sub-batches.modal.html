@@ -12,7 +12,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <!-- bluetooth ichthyometer -->
+      <!-- bluetooth ichthyometer icon -->
       <app-ichthyometer-icon *ngIf="showBluetoothIcon"></app-ichthyometer-icon>
 
       <ion-spinner *ngIf="loadingSubject|async; else closeButton"></ion-spinner>
@@ -135,7 +135,7 @@
 
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
-            <ng-container [matColumnDef]="pmfm.id.toString()">
+            <ng-container [matColumnDef]="pmfm|pmfmIdString">
               <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
               </th>

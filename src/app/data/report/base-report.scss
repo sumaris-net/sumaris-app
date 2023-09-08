@@ -1,0 +1,46 @@
+section.summary {
+  li {
+    list-style-type: none;
+
+    ion-icon, mat-icon {
+      height: 24px;
+      width: 24px;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      display: inline-block;
+      line-height: 1;
+    }
+  }
+
+  li.no-icon {
+    padding-left: 31px;
+  }
+
+  .inline-list {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    li {
+      display: inline-block;
+      padding-inline-start: 0;
+      list-style: none;
+      &::before {
+        content: ', ';
+      };
+      &:first-child::before {
+        content: none;
+      }
+    }
+  }
+}
+
+.loader {
+  height: 100%;
+  width: 100%;
+  ion-spinner {
+    position: relative;
+    top: 50%;
+    left: 50%;
+  }
+}

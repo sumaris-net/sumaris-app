@@ -359,14 +359,15 @@
 
 
   <!-- Network status (+ Install and upgrade link)  -->
-  <app-install-upgrade-card [isLogin]="isLogin"
+  <app-install-upgrade-card *ngIf="showInstallUpgradeCard"
+                            [isLogin]="isLogin"
                             [showInstallButton]="false"
                             [showUpgradeWarning]="true"
                             [showOfflineWarning]="false">
   </app-install-upgrade-card>
 
   <!-- Update offline mode -->
-  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature && (needUpdateOfflineFeature||importing)"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
                                 [progressionValue]="$progression | push: 'low'">
@@ -434,7 +435,7 @@
       <!-- Quality Column -->
       <ng-container matColumnDef="quality">
         <th mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
-          <ion-label translate>OBSERVED_LOCATION.TABLE.QUALITY</ion-label>
+          <ion-label translate>LANDING.TABLE.QUALITY</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <app-entity-quality-icon [value]="row.currentData"></app-entity-quality-icon>
@@ -482,7 +483,7 @@
         </td>
       </ng-container>
 
-      <!-- location -->
+    <!-- Landing location Column -->
       <ng-container matColumnDef="location">
         <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>LANDING.TABLE.LOCATION</ion-label>
@@ -506,11 +507,14 @@
 
       <!-- Observers -->
       <ng-container matColumnDef="observers">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <th mat-header-cell *matHeaderCellDef>
           <ion-label>{{'LANDING.TABLE.OBSERVERS' | translateContext: i18nColumnSuffix }}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text>{{ (row.currentData?.observers || row.currentData.observedLocation?.observers ) | personToString }}</ion-text>
+          <ion-text *ngIf="row.currentData.observers|isNotEmptyArray; else parentObservers">{{row.currentData.observers | personToString}}</ion-text>
+          <ng-template #parentObservers>
+            <ion-text>{{row.currentData.observedLocation?.observers | personToString}}</ion-text>
+          </ng-template>
         </td>
       </ng-container>
 
@@ -542,8 +546,9 @@
       </ng-container>
 
       <!-- Pmfm columns -->
-      <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+      <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm|pmfmIdString">
+        <th mat-header-cell *matHeaderCellDef
+            [class.mat-cell-date-time]="pmfm|isDatePmfm">
           <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
