@@ -242,14 +242,11 @@ export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups)
   }, {});
 
 export const FractionIdGroups = {
-  CALCIFIED_STRUCTURE: [10, 11, 12, 13]
+  CALCIFIED_STRUCTURE: [10, 11, 12, 13] // Pièces calcifiées (need by SIH-OBSBIO)
 };
 
 export const FractionId = {
-  ALL: 1,
-
-  // Babord
-
+  ALL: 1
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));

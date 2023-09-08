@@ -140,6 +140,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   ngOnInit() {
     super.ngOnInit();
 
+    // In modal mode: hide update card
+    if (this.inModal) {
+      this.showInstallUpgradeCard = false;
+      this.showUpdateOfflineFeature = false;
+    }
+
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,

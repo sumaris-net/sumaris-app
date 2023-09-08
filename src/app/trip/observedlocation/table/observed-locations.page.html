@@ -3,7 +3,6 @@
              [canGoBack]="false"
              [canShowMenu]="true">
 
-
   <div *rxIf="$title; let title" slot="start">
     <!-- simple title -->
     <ion-title *ngIf="!showTitleSegment; else titleSegment">{{title|translate}}</ion-title>
@@ -97,47 +96,47 @@
     </ng-template>
 
   </ion-buttons>
+
+  <!-- Table options menu -->
+  <mat-menu #optionsMenu="matMenu" xPosition="after">
+
+    <!-- Update offline mode -->
+    <button mat-menu-item
+            *ngIf="hasOfflineMode"
+            [disabled]="offline"
+            (click)="prepareOfflineMode($event)">
+      <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
+      <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
+    </button>
+
+    <!-- Init offline mode -->
+    <button mat-menu-item
+            *ngIf="!hasOfflineMode"
+            [disabled]="offline"
+            (click)="prepareOfflineMode($event)">
+      <mat-icon>cloud_off</mat-icon>
+      <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+    </button>
+
+    <mat-divider></mat-divider>
+
+    <!-- trash
+    <button mat-menu-item
+            *ngIf="isAdmin || synchronizationStatus !== 'SYNC'"
+            (click)="openTrashModal($event)">
+      <mat-icon>delete_sweep</mat-icon>
+      <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
+    </button> -->
+
+    <!-- Force offline (DEV ONLY) -->
+    <button mat-menu-item *ngIf="debug && !offline"
+            (click)="toggleOfflineMode($event)">
+      <mat-icon>signal_wifi_off</mat-icon>
+      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+    </button>
+
+  </mat-menu>
 </app-toolbar>
-
-<!-- Table options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
-
-  <!-- Update offline mode -->
-  <button mat-menu-item
-          *ngIf="hasOfflineMode"
-          [disabled]="offline"
-          (click)="prepareOfflineMode($event)">
-    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
-    <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
-  </button>
-
-  <!-- Init offline mode -->
-  <button mat-menu-item
-          *ngIf="!hasOfflineMode"
-          [disabled]="offline"
-          (click)="prepareOfflineMode($event)">
-    <mat-icon>cloud_off</mat-icon>
-    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
-
-  <!-- trash
-  <button mat-menu-item
-          *ngIf="isAdmin || synchronizationStatus !== 'SYNC'"
-          (click)="openTrashModal($event)">
-    <mat-icon>delete_sweep</mat-icon>
-    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
-  </button> -->
-
-  <!-- Force offline (DEV ONLY) -->
-  <button mat-menu-item *ngIf="debug && !offline"
-          (click)="toggleOfflineMode($event)">
-    <mat-icon>signal_wifi_off</mat-icon>
-    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-  </button>
-
-</mat-menu>
 
 <ion-content class="ion-no-padding ion-flex-direction-column"
              [scrollY]="!inModal"
@@ -192,8 +191,9 @@
                        [class.cdk-visually-hidden]="enableFilterPanelCompact"
                        [class.filter-panel-floating]="filterPanelFloating"
                        [class.filter-panel-pinned]="!filterPanelFloating">
-    <form class="form-container ion-padding-top" *ngIf="!enableFilterPanelCompact"
-          [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+    <form *ngIf="!enableFilterPanelCompact" [formGroup]="filterForm"
+          class="form-container ion-padding-top"
+          (ngSubmit)="onRefresh.emit()" >
 
       <ion-grid>
         <ion-row *ngIf="showFilterProgram" >
@@ -342,7 +342,7 @@
   </mat-expansion-panel>
 
   <!-- Network status (+ Install and upgrade link)  -->
-  <app-install-upgrade-card *ngIf="!enableFilterPanelCompact"
+  <app-install-upgrade-card *ngIf="showInstallUpgradeCard"
                             [isLogin]="isLogin"
                             [showInstallButton]="false"
                             [showUpgradeWarning]="true"
@@ -350,7 +350,7 @@
   </app-install-upgrade-card>
 
   <!-- Update offline mode -->
-  <app-update-offline-mode-card *ngIf="!enableFilterPanelCompact && (showUpdateOfflineFeature||importing)"
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature && (needUpdateOfflineFeature||importing)"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
                                 [progressionValue]="$progression | push: 'low'">
