@@ -346,15 +346,15 @@
 
 
   <!-- Network status (+ Install and upgrade link) -->
-  <app-install-upgrade-card
-    [isLogin]="isLogin"
-    showInstallButton="false"
-    showUpgradeWarning="true"
-    showOfflineWarning="false">
+  <app-install-upgrade-card *ngIf="showInstallUpgradeCard"
+                            [isLogin]="isLogin"
+                            [showInstallButton]="false"
+                            [showUpgradeWarning]="true"
+                            [showOfflineWarning]="false">
   </app-install-upgrade-card>
 
   <!-- Update offline mode -->
-  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature && (needUpdateOfflineFeature||importing)"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
                                 [progressionValue]="$progression | push: 'low'">
