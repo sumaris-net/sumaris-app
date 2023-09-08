@@ -170,7 +170,19 @@ export abstract class AppBaseReport<
   }
 
   get shareUrlBase(): String {
-    return `${this.baseHref.replace(/\/$/, '')}/share/`;
+    let peerUrl = this.settings.settings?.peerUrl;
+
+    if (isNilOrBlank(peerUrl)) {
+      // Fallback to current web site (but NOT if in App)
+      if (this.isApp()) {
+        throw new Error('Cannot shared report when not connected to any node. Please check your settings');
+      }
+
+      // Fallback to the current web site
+      peerUrl = this.baseHref;
+    }
+
+    return `${peerUrl.replace(/\/$/, '')}/share/`;
   }
 
   private location: Location;
@@ -413,6 +425,10 @@ export abstract class AppBaseReport<
     }
   }
 
+  protected isApp() {
+    return this.mobile && this.platform.isApp();
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
@@ -508,13 +524,15 @@ export abstract class AppBaseReport<
       }
     }
 
+    const shareUrl = this.shareUrlBase + this.uuid;
+
     // Use Capacitor plugin
-    if (this.mobile && this.platform.isCapacitor()) {
+    if (this.isApp()) {
       await Share.share({
-        title: this.$title.value,
-        text: 'Really awesome thing you need to see right meow',
-        url: this.uuid,
         dialogTitle: this.translate.instant('COMMON.SHARE.DIALOG_TITLE'),
+        title: this.$title.value,
+        text: this.translate.instant('COMMON.SHARE.LINK'),
+        url: shareUrl
       });
     }
     else {
@@ -522,13 +540,13 @@ export abstract class AppBaseReport<
         this.injector.get(PopoverController),
         event,
         {
-          text: `${this.shareUrlBase}${this.uuid}`,
+          text: shareUrl,
           title: 'COMMON.SHARE.LINK',
           editing: false,
           autofocus: false,
           multiline: true,
           maxLength: null,
-          headerColor: 'primary',
+          headerColor: 'secondary',
           headerButtons: [
             {
               icon: 'copy',
