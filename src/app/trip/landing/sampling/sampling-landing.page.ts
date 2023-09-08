@@ -1,9 +1,9 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector} from '@angular/core';
-import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector } from '@angular/core';
+import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
 import {
   AccountService,
   EntityServiceLoadOptions,
@@ -13,20 +13,21 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService, ReferentialUtils,
+  LocalSettingsService,
+  ReferentialUtils,
   SharedValidators
 } from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from './biological-sampling.validators';
-import {LandingPage} from '../landing.page';
-import {Landing} from '../landing.model';
-import {ObservedLocation} from '../../observedlocation/observed-location.model';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {LandingService} from '@app/trip/landing/landing.service';
-import {Trip} from '@app/trip/trip/trip.model';
-import {Program} from '@app/referential/services/model/program.model';
-import {debounceTime} from 'rxjs/operators';
+import { BiologicalSamplingValidators } from './biological-sampling.validators';
+import { LandingPage } from '../landing.page';
+import { Landing } from '../landing.model';
+import { ObservedLocation } from '../../observedlocation/observed-location.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { Trip } from '@app/trip/trip/trip.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { debounceTime } from 'rxjs/operators';
 
 
 @Component({
@@ -84,7 +85,13 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     // Wait referential ready (before reading enumerations)
     this.referentialRefService.ready()
       // Load Pmfm groups
-      .then(() => this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups))
+      .then(() => {
+        const parameterLabelsGroups = Parameters.getSampleParameterLabelGroups({
+          // Exclude the parameter PRESERVATION (=Etat) - Need by IMAGINE (see issue #458)
+          excludedParameterLabels: ['PRESERVATION']
+        });
+        return this.pmfmService.loadIdsGroupByParameterLabels(parameterLabelsGroups);
+      })
       .then(pmfmGroups => {
         // Configure sample table
         this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();

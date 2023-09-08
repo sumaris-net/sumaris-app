@@ -18,7 +18,7 @@ export const LocationLevelIds = {
 };
 
 
-export class LocationLevels {
+export abstract class LocationLevels {
   static getFishingAreaLevelIds() {
     return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE, LocationLevelIds.ICES_DIVISION];
   }
@@ -184,7 +184,7 @@ export const MethodIds = {
   CALCULATED_WEIGHT_LENGTH: 47,
   CALCULATED_WEIGHT_LENGTH_SUM: 283
 };
-export class Methods {
+export abstract class Methods {
   static getCalculatedIds() {
     return [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
   }
@@ -222,24 +222,41 @@ export const ParameterLabelGroups = {
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
   AGE: ['AGE'],
 
-  DRESSING: ['DRESSING'],
+  DRESSING: ['DRESSING'], // USe by round weight conversion
   PRESERVATION: ['PRESERVATION']
 };
 
-// Remove duplication in label
-export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups)
-  // Exclude some group, used elsewhere
-  .filter(group => group !== 'DRESSING' && group !== 'PRESERVATION')
-  .reduce((res, key) => {
-    const labels = ParameterLabelGroups[key]
-      // Exclude label already in another previous group
-      .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label))
-        // See issue #458
-        && label !== 'PRESERVATION');
-    // Add to result, only if not empty
-    if (labels.length) res[key] = labels;
-    return res;
-  }, {});
+export abstract class Parameters {
+
+  // Remove duplication in label
+  static getSampleParameterLabelGroups(opts?: {excludedGroups?: string[]; excludedParameterLabels?: string[]}) {
+    return Parameters.getParameterLabelGroups({
+      // Exclude special groups 'DRESSING' and 'PRESERVATION', used by round weight conversion
+      excludedGroups: ['DRESSING', 'PRESERVATION'],
+      ...opts
+    });
+  }
+
+  static getParameterLabelGroups(opts?: {excludedGroups?: string[]; excludedParameterLabels?: string[]}) {
+    opts = opts || {};
+    return Object.keys(ParameterLabelGroups)
+      // Keep not excluded groups
+      .filter(group => !(opts.excludedGroups?.includes(group)))
+      .reduce((res, key) => {
+        const labels = ParameterLabelGroups[key]
+          // Remove duplication in label
+          // Exclude label already in another previous group
+          .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label))
+            // Keep not excluded label
+            && !(opts.excludedParameterLabels?.includes(label)));
+        // Add to result, only if not empty
+        if (labels.length) res[key] = labels;
+        return res;
+      }, {});
+  }
+
+}
+
 
 export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13] // Pièces calcifiées (need by SIH-OBSBIO)
