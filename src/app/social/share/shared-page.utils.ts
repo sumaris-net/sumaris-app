@@ -5,11 +5,8 @@ import {lastValueFrom} from 'rxjs';
 export async function downloadSharedRessource(http:HttpClient, peerUrl:string, uuid:string, opts?:{param:any}): Promise<SharedElement> {
   console.debug(`Downloading shared ressource from ${peerUrl} {${uuid}}...`);
 
-  const fileName = `${uuid}.json`;
-
-  const res = await lastValueFrom(http.get<SharedElement>(
-    `${peerUrl}/download/public/${fileName}`,
-    {
+  const url = `${peerUrl.replace(/\/$/, '')}/download/public/${uuid}.json`;
+  const res = await lastValueFrom(http.get<SharedElement>(url, {
       params: opts?.param ? opts.param : {},
     }
   ));
