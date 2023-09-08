@@ -13,7 +13,7 @@
     "build": "ng build",
     "build.dev": "ng build --configuration development",
     "build.ci": "ng build --configuration ci",
-    "build.prod": "ng build --configuration production --release && npm run build.i18n",
+    "build.prod": "ng build --configuration production && npm run build.i18n",
     "build.i18n": "node scripts/node/build-i18n.js",
     "android-sync": "npx jetifier && npx cap sync android",
     "android-start": "ionic capacitor run android -l --external",
