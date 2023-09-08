@@ -2,7 +2,7 @@ import { Inject, Injectable, Injector, OnDestroy, Optional } from '@angular/core
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/gwaleen/ichthyometer.gwaleen';
-import { EMPTY, merge, Observable, Subject } from 'rxjs';
+import { EMPTY, from, merge, Observable, Subject } from 'rxjs';
 import {
   APP_LOGGING_SERVICE,
   AudioProvider,
@@ -25,6 +25,7 @@ import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ic
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { Platform } from '@ionic/angular';
+import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
 
 
 export declare type IchthyometerType = 'gwaleen';
@@ -108,12 +109,15 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
           mergeMap(devices => this.getAll(devices))
         )
         .subscribe(ichthyometers => {
+          // DEBUG
+          //console.debug('[ichthyometer] Updated ichthyometers: ' + ichthyometers.map(d => d?.address).join(','));
+
           this._state.set('ichthyometers', _ => ichthyometers);
           if (isNotEmptyArray(ichthyometers)) {
             canAutoStop = true;
           }
           else if (canAutoStop) {
-            console.debug('[ichthyometer-service] Not more ichthyometers: will stop...');
+            console.debug('[ichthyometer] Not more ichthyometers: will stop...');
             this.stop();
           }
         })
@@ -168,8 +172,11 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
   watchLength(): Observable<{value: number; unit: LengthUnitSymbol}> {
 
-    // Start the service (e.g. if all ichthyometer has been disconnected)
-    if (!this.started) this.ready();
+    // Wait service to be started (e.g. if all ichthyometer has been disconnected, then we should restart the service)
+    if (!this.started) {
+      return from(this.ready())
+        .pipe(switchMap(() => this.watchLength())); // Loop
+    }
 
     const stopSubject = new Subject<void>();
     console.info('[ichthyometer] Watching length values...');
@@ -185,7 +192,13 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
               takeUntil(stopSubject),
               tap(({value, unit}) => console.info(`[ichthyometer] Received value '${value} ${unit}' from device '${ichthyometer.address}'`)),
               catchError(err => {
-                console.error(`[ichthyometer] Error while watching values from device '${ichthyometer.address}': ${err?.message||''}`);
+                console.error(`[ichthyometer] Error while watching length values from device '${ichthyometer.address}': ${err?.message||''}`);
+                if (err?.code === BluetoothErrorCodes.BLUETOOTH_CONNECTION_ERROR) {
+                  this.bluetoothService.disconnect(ichthyometer);
+                }
+                else if (err?.code === BluetoothErrorCodes.BLUETOOTH_DISABLED) {
+                  this.stop();
+                }
                 return EMPTY;
               })
             )))

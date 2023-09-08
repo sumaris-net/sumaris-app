@@ -2848,10 +2848,10 @@
       "ENABLED": "Activé",
       "DISABLED": "Désactivé",
       "SCANNING_DOTS": "Analyse en cours...",
-      "AVAILABLE_DEVICES": "Périphériques disponibles :",
+      "AVAILABLE_DEVICES": "Appareils disponibles :",
       "ADDRESS": "Adresse (MAC)",
       "NAME": "Nom",
-      "NO_DEVICE": "Aucun périphérique trouvé",
+      "NO_DEVICE": "Aucun appareil trouvé",
       "BTN_SCAN": "Analyser",
       "BTN_DISCONNECT": "Déconnecter",
       "ERROR": {

@@ -2,23 +2,34 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injectio
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceCheckFn, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { distinctUntilKeyChanged, map } from 'rxjs/operators';
-import { equals, FilterFn, IconRef, isEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
-import { PredefinedColors } from '@ionic/core';
+import { equals, FilterFn, IconRef, isEmptyArray, isNil, MatBadgeFill, toBoolean } from '@sumaris-net/ngx-components';
 import { PopoverController } from '@ionic/angular';
 import { BluetoothPopover, BluetoothPopoverOptions } from '@app/shared/bluetooth/bluetooth.popover';
+import { MatBadgePosition, MatBadgeSize } from '@angular/material/badge';
+import { AppColors } from '@app/shared/colors.utils';
+import { Subscription, timer } from 'rxjs';
 
 export declare type BluetoothIconType = 'bluetooth'|'bluetooth_connected'|'bluetooth_disabled' | string;
+
+export class BluetoothMatIconRef {
+  color: AppColors;
+  matIcon: string;
+  badge?: string|number;
+  badgeIcon?: string;
+  badgeMatIcon?: string;
+  badgeColor?: AppColors;
+  badgeFill?: MatBadgeFill;
+}
 
 export interface BluetoothIconState<D extends BluetoothDevice = BluetoothDevice> {
   id: string;
   enabled: boolean;
-  loading: boolean;
+  connecting: boolean;
   deviceFilter: FilterFn<D>;
   deviceCheck: BluetoothDeviceCheckFn;
   devices: D[];
   connectedDevices: D[];
-  icon: IconRef;
-  color: PredefinedColors;
+  icon: BluetoothMatIconRef;
   autoConnect: boolean;
 }
 
@@ -42,21 +53,21 @@ export class AppBluetoothIcon<
 
   private _popoverOpened = false;
   private _forceDisabled = false;
+  private _blinkSubscription: Subscription;
 
   protected readonly cd: ChangeDetectorRef;
   protected readonly popoverController: PopoverController;
   protected readonly icon$ = this._state.select('icon');
-  protected readonly enabled$ = this._state.select('enabled');
 
   @Input() title: string = 'SHARED.BLUETOOTH.TITLE';
   @Input() selectedDeviceIcon: IconRef = {icon: 'information-circle'};
   @Input() checkAfterConnect: BluetoothDeviceCheckFn;
 
-  @Input() set icon(value: IconRef) {
+  @Input() set icon(value: BluetoothMatIconRef) {
     this._state.set('icon', _ => value);
   }
 
-  get icon(): IconRef {
+  get icon(): BluetoothMatIconRef {
     return this._state.get('icon');
   }
 
@@ -105,6 +116,15 @@ export class AppBluetoothIcon<
     return this._state.get('enabled');
   }
 
+  @Output('connectedDevicesChanges') connectedDevicesChanges = this._state.$.pipe(
+    distinctUntilKeyChanged('connectedDevices'),
+    map(s => s.connectedDevices)
+  );
+
+  @Input() badgeSize: MatBadgeSize = 'small';
+  @Input() badgePosition: MatBadgePosition = 'above after';
+  @Input() badgeHidden: boolean = false;
+
   constructor(
     injector: Injector,
     protected bluetoothService: BluetoothService,
@@ -114,7 +134,7 @@ export class AppBluetoothIcon<
     this.cd = injector.get(ChangeDetectorRef)
     this.popoverController = injector.get(PopoverController);
     this._state.set(<Partial<S>>{
-      icon: {matIcon: 'bluetooth'},
+      icon: {matIcon: 'bluetooth', badge: null},
       ...state
     });
   }
@@ -126,11 +146,12 @@ export class AppBluetoothIcon<
 
     // Enabled state
     this._state.connect('enabled', this.bluetoothService.enabled$);
+    this._state.connect('connecting', this.bluetoothService.connecting$);
 
     // Devices
     this._state.connect('devices', this.bluetoothService.connectedDevices$.pipe(
-      map(devices => (devices || []).map(d => this.asDevice(d))))
-    );
+      map(devices => devices === null ? null : devices.map(d => this.asDevice(d)))
+    ));
 
     // Connected devices
     this._state.connect('connectedDevices', this._state.select(['enabled', 'devices', 'deviceFilter'], s => s)
@@ -140,54 +161,101 @@ export class AppBluetoothIcon<
           //console.debug(`[bluetooth-icon] Receiving state changes: ${JSON.stringify({enabled, devices})}`);
 
           // If disabled: no devices
-          if (!enabled) return [];
+          if (!enabled || !devices) return null;
 
           // No filter function: all devices
-          if (typeof deviceFilter !== 'function') return devices || [];
+          if (typeof deviceFilter !== 'function') return devices;
+
+          // DEBUG
+          //console.debug(`[bluetooth-icon] Filtering devices: [${devices?.map(d => d.address).join(', ')}]`);
 
           // Filtering devices
-          console.debug(`[bluetooth-icon] Filtering devices: [${devices?.map(d => d.address).join(', ')}]`);
-          return (devices || []).filter(d => deviceFilter(d));
+          return devices.filter(d => deviceFilter(d));
         })
       ));
 
     // Refresh icon, when enabled or connected devices changed
-    this._state.hold(this._state.select(['enabled', 'connectedDevices'], s => s),
-      state => this.updateView(state)
+    this._state.hold(this._state.select(['enabled', 'connectedDevices', 'connecting'], s => s),
+      s => this.updateView(s)
     );
   }
 
-  updateView(state: {enabled: boolean, connectedDevices: D[]}) {
-    console.debug('[bluetooth-icon] Updating view: ' + JSON.stringify(state));
-    let oldIcon = this.icon;
+  updateView(state: {enabled: boolean|null, connectedDevices: D[]|null, connecting: boolean|null}) {
+    state = state || {enabled: null, connectedDevices: null, connecting: null};
+
+    // DEBUG
+    //console.debug('[bluetooth-icon] Updating view: ' + JSON.stringify(state));
 
     let matIcon: BluetoothIconType;
-    let color:PredefinedColors;
+    let color:AppColors;
+    let badge: string|number;
+    let badgeIcon: string;
+    let badgeMatIcon: string;
+    let badgeColor: AppColors;
+    let badgeBlink = false;
+    let badgeFill: MatBadgeFill = 'solid';
+
+    // Starting
+    if (isNil(state.enabled)) {
+      matIcon = 'bluetooth_disabled';
+      color = 'light';
+      badge = '…';
+      badgeColor = 'accent';
+      badgeBlink = true;
+    }
 
     // Disabled
-    if (!state?.enabled) {
+    else if (state.enabled !== true) {
       matIcon = 'bluetooth_disabled';
-      color = 'medium';
+      color = 'light';
+      badge = '';
     }
 
-    // Enabled, no devices
-    else if (isEmptyArray(state?.connectedDevices)) {
+    // Enabled, connecting (or waiting devices)
+    else if (this.bluetoothService.starting || state.connecting) {
       matIcon = 'bluetooth';
-      color = 'primary';
+      color = 'tertiary';
+      badge = '…';
+      badgeColor = 'accent';
+      badgeBlink = true;
     }
 
-    // Enabled + connected
+    // Enabled, never had a devices
+    else if (isNil(state.connectedDevices)) {
+      matIcon = 'bluetooth';
+      color = 'tertiary';
+    }
+
+    // Enabled, no devices anymore (but had some)
+    else if (isEmptyArray(state.connectedDevices)) {
+      matIcon = 'bluetooth';
+      color = 'tertiary';
+      badgeIcon = 'alert';
+      badgeColor = 'danger';
+      badgeFill = 'clear';
+    }
+
+    // Enabled, has connected devices
     else {
       matIcon = 'bluetooth_connected';
-      color = 'primary';
+      color = 'tertiary';
+      badgeColor='success';
+      badge = state.connectedDevices.length;
     }
 
-    const newIcon = {color, matIcon};
 
-    if (!equals(oldIcon, newIcon)) {
-      console.debug('[bluetooth-icon] Changing icon to: ' + JSON.stringify(newIcon));
-      this._state.set('icon', () => newIcon);
+    // Set icon
+    const icon = {color, matIcon, badge, badgeIcon, badgeColor, badgeFill, badgeMatIcon};
+    if (!equals(this.icon, icon)) {
+      // DEBUG
+      //console.debug('[bluetooth-icon] Changing icon to: ' + JSON.stringify(icon));
+
+      this._state.set('icon', () => icon);
     }
+
+    // Blink animation
+    if (badgeBlink) this.startBlinkAnimation();
+    else this.stopBlinkAnimation();
   }
 
   asDevice(device: BluetoothDevice): D {
@@ -230,4 +298,25 @@ export class AppBluetoothIcon<
     }
   }
 
+  private startBlinkAnimation() {
+    if (!this._blinkSubscription && !this.badgeHidden) {
+      this._blinkSubscription = timer(500, 500)
+        .subscribe(() => {
+          this.badgeHidden = !this.badgeHidden;
+          this.cd.markForCheck();
+        });
+      this._blinkSubscription.add(() => {
+        this._blinkSubscription = null;
+        // Restore initial value (before timer)
+        if (this.badgeHidden) {
+          this.badgeHidden = false;
+          this.cd.markForCheck();
+        }
+      });
+    }
+  }
+
+  private stopBlinkAnimation() {
+    this._blinkSubscription?.unsubscribe();
+  }
 }

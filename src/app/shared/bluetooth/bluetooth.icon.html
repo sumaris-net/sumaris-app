@@ -1,9 +1,18 @@
 
 <button mat-icon-button
-        *ngVar="icon$|async; let icon"
+        *ngVar="icon$|async as icon"
         [title]="title | translate"
-        [color]="icon.color"
+        [color]="icon.color|matColor"
         [disabled]="disabled"
         (click)="openPopover($event)">
-  <mat-icon>{{icon.matIcon}}</mat-icon>
+  <mat-icon
+    [appBadge]="icon.badge"
+    [appBadgeIcon]="icon.badgeIcon"
+    [appBadgeMatIcon]="icon.badgeMatIcon"
+    [appBadgeHidden]="badgeHidden"
+    [appBadgeColor]="icon.badgeColor"
+    [appBadgeSize]="badgeSize"
+    [appBadgePosition]="badgePosition"
+    [appBadgeFill]="icon.badgeFill"
+    >{{icon.matIcon}}</mat-icon>
 </button>

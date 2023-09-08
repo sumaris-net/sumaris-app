@@ -4,27 +4,17 @@ import { BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '
 import { Ichthyometer, IchthyometerDevice, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
 import { debounceTime, filter, finalize, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { BluetoothSerial } from '@e-is/capacitor-bluetooth-serial';
-import {
-  APP_LOGGING_SERVICE,
-  ConfigService,
-  firstNotNilPromise,
-  ILogger,
-  isNil,
-  isNilOrBlank,
-  isNotNilOrBlank,
-  LocalSettingsService,
-  StartableService,
-  WaitForOptions
-} from '@sumaris-net/ngx-components';
+import { APP_LOGGING_SERVICE, firstNotNilPromise, ILogger, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, StartableService, WaitForOptions } from '@sumaris-net/ngx-components';
 import { combineLatest, EMPTY, from, merge, Observable, race, Subject, timer } from 'rxjs';
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
+import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
 
 interface GwaleenIchthyometerState {
   startTime: number;
   connected: boolean;
   enabled: boolean;
-  watchCount: number;
+  usageCount: number;
 }
 export const APP_ICHTYOMETER_DEVICE = new InjectionToken<IchthyometerDevice>('IchthyometerDevice');
 
@@ -52,7 +42,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
   readonly enabled$ = this._state.select('enabled')
   readonly connected$ = this._state.select('connected');
-  readonly watchCount$ = this._state.select('watchCount');
+  readonly usageCount$ = this._state.select('usageCount');
   readonly device: Partial<BluetoothDeviceWithMeta> & IchthyometerDevice;
 
 
@@ -78,8 +68,8 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     return this.device.meta;
   }
 
-  get watchCount(): number {
-    return this._state.get('watchCount');
+  get usageCount(): number {
+    return this._state.get('usageCount');
   }
 
   get startTime(): number {
@@ -115,20 +105,20 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         this.settings.onChange
       )
         .pipe(
-          // Read config auto disconnect idle time
+          // Get auto disconnect idle time, from local settings
           map(_ => this.settings.getPropertyAsInt(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.AUTO_DISCONNECT_IDLE_TIME)),
           switchMap(autoDisconnectIdleTime => {
             if (autoDisconnectIdleTime <= 0) return EMPTY; // Auto-disconnect has been disabled
 
-            // DEBUG
-            //console.debug('[gwaleen] ' + JSON.stringify({autoDisconnectIdleTime}));
-
-            return this.watchCount$
+            // Watch the usage count
+            return this.usageCount$
               .pipe(
                 // DEBUG
-                tap(watchCount => watchCount === 0 && this.started && console.debug(`[gwaleen] Start idle - Waiting ${autoDisconnectIdleTime}ms...`)),
+                tap(usageCount => usageCount === 0 && this.started && console.debug(`[gwaleen] Start idle - Waiting ${autoDisconnectIdleTime}ms...`)),
+                // Wait the idle time
                 debounceTime(autoDisconnectIdleTime),
-                filter(watchCount => watchCount === 0 && this.started),
+                // Then recheck usage
+                filter(usageCount => usageCount === 0 && this.started),
                 map(_ => {
                   const usageDuration = Date.now() - (this.startTime || 0) - autoDisconnectIdleTime;
                   return {usageDuration, autoDisconnectIdleTime};
@@ -165,7 +155,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
     await this.disconnect();
 
-    this._state.set({enabled: null, connected: null, watchCount: null, startTime: null});
+    this._state.set({enabled: null, connected: null, usageCount: null, startTime: null});
 
     return super.ngOnStop();
   }
@@ -219,17 +209,39 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     return acknowledge;
   }
 
-  watch(): Observable<string> {
+  watch(opts?: {checkConnection?: boolean}): Observable<string> {
 
     // Start if need
     if (!this.started) {
-      console.info(`[gwaleen] Waiting to be started on device {${this.address}}...`)
-      return from(this.start())
-        .pipe(switchMap(() => this.watch()));
+      // DEBUG
+      //console.debug(`[gwaleen] Waiting to be started on device {${this.address}}...`)
+
+      return from(this.ready())
+        .pipe(switchMap(() => this.watch({...opts, checkConnection: false /*already checked*/})));
+    }
+
+    // Make sure the device is still connected (e.g. if disconnected on the device)
+    if (!opts || opts.checkConnection !== false) {
+      return from(this.connectIfNeed())
+        .pipe(
+          map((connected) => {
+            if (!connected) {
+              console.error('[gwaleen] Failed to connect to the device');
+
+              // Stop the ichthyometer
+              this.stop();
+
+              // Propage a connection error to observable
+              throw {code: BluetoothErrorCodes.BLUETOOTH_CONNECTION_ERROR, message: 'Failed to connect to the device'};
+            }
+            return connected;
+          }),
+          switchMap(() => this.watch({...opts, checkConnection: false /*avoid infinite loop*/}))
+        );
     }
 
     this.incrementUsage();
-    console.info(`[gwaleen] Watching values from device {${this.address}} (watchCount: ${this.watchCount})...`)
+    console.info(`[gwaleen] Watching values from device {${this.address}} (usageCount: ${this.usageCount})...`);
 
     return this.bluetoothService.watch(this.device, { delimiter: '#' })
       .pipe(
@@ -251,7 +263,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         filter(isNotNilOrBlank),
         finalize(() => {
           this.decrementUsage();
-          console.info(`[gwaleen] Stop watching values from device {${this.address}}. (watchCount: ${this.watchCount})`);
+          console.info(`[gwaleen] Stop watching values from device {${this.address}}. (usageCount: ${this.usageCount})`);
         })
       );
   }
@@ -348,35 +360,22 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   /* -- internal functions -- */
 
   private async connectIfNeed(opts?: {emitEvent?: boolean}): Promise<boolean> {
-    let connected = await this.bluetoothService.isConnected(this.device);
-
-    if (!connected) {
-      connected = await this.bluetoothService.connect(this.device);
-      if (!connected) return false;
-
-      // Wait device is really connected (isConnected() should return true)
-      connected = await this.bluetoothService.waitIsConnected(this.device, {timeout: GwaleenIchthyometer.CONNECTION_TIMEOUT_MS});
-    }
+    let connected = await this.bluetoothService.connectIfNeed(this.device, {...opts, timeout: GwaleenIchthyometer.CONNECTION_TIMEOUT_MS});
 
     // Update connected state
     if (!opts || opts.emitEvent !== false) {
-      this.markAsConnected();
+      this._state.set('connected', _ => connected);
     }
 
     return connected;
   }
 
   private async disconnectIfNeed(opts?: {emitEvent?: boolean}): Promise<void> {
-    let connected = await this.bluetoothService.isConnected(this.device);
-
-    if (connected) {
-      await this.bluetoothService.disconnect(this.device);
-      connected = false;
-    }
+    await this.bluetoothService.disconnect(this.device, opts);
 
     // Update connected state
     if (!opts || opts.emitEvent !== false) {
-      this._state.set('connected', _ => connected);
+      this._state.set('connected', _ => false);
     }
   }
 
@@ -404,11 +403,15 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     this._state.set('connected', _ => true);
   }
 
+  protected markAsDisconnected() {
+    this._state.set('connected', _ => false);
+  }
+
   protected incrementUsage() {
-    this._state.set('watchCount', s => isNil(s.watchCount) ? 1 : s.watchCount + 1);
+    this._state.set('usageCount', s => isNil(s.usageCount) ? 1 : s.usageCount + 1);
   }
 
   protected decrementUsage() {
-    this._state.set('watchCount', s => Math.max(0, s.watchCount - 1));
+    this._state.set('usageCount', s => Math.max(0, s.usageCount - 1));
   }
 }
