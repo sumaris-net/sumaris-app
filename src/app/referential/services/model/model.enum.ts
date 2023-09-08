@@ -231,7 +231,7 @@ export abstract class Parameters {
   // Remove duplication in label
   static getSampleParameterLabelGroups(opts?: {excludedGroups?: string[]; excludedParameterLabels?: string[]}) {
     return Parameters.getParameterLabelGroups({
-      // Exclude DRESSING and PRESERVATION, because only used elsewhere, not in sample table (e.g. for RTP weights)
+      // Exclude special groups 'DRESSING' and 'PRESERVATION', used by round weight conversion
       excludedGroups: ['DRESSING', 'PRESERVATION'],
       ...opts
     });
