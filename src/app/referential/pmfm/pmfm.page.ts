@@ -16,7 +16,6 @@ import {
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   Referential,
-  ReferentialFilter,
   ReferentialRef,
   referentialToString,
   ReferentialUtils
@@ -35,7 +34,7 @@ import { ISelectReferentialModalOptions, SelectReferentialModal } from '@app/ref
 import { IonCheckbox, ModalController } from '@ionic/angular';
 import { SimpleReferentialTable } from '@app/referential/table/referential-simple.table';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { UnitIds, UnitLabel } from '@app/referential/services/model/model.enum';
+import { UnitIds } from '@app/referential/services/model/model.enum';
 
 @Component({
   selector: 'app-pmfm',
@@ -193,12 +192,13 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
       }
     };
 
+    // TODO : See #450 (need to implement `levelIds[]` to get "n to n" relation between Fraction and Matrix)
     // Check fraction
-    this.form.get('fraction')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const value = control.enabled && control.value;
-        return value && (!this.matrix || value.levelId !== this.matrix.id) ? {entity: true} : null;
-      });
+    // this.form.get('fraction')
+    //   .setAsyncValidators(async (control: AbstractControl) => {
+    //     const value = control.enabled && control.value;
+    //     return value && (!this.matrix || value.levelId !== this.matrix.id) ? {entity: true} : null;
+    //   });
 
     // Listen for parameter
     this.registerSubscription(
