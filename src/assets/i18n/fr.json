@@ -2863,7 +2863,7 @@
       "TITLE": "Ichtyomètre Bluetooth",
       "SETTINGS": {
         "DEVICES": "Ichtyomètre > Appareil(s) connu(s)",
-        "AUTO_DISCONNECT": "Ichtyomètre: Déconnection auto ?",
+        "AUTO_DISCONNECT": "Ichtyomètre > Déconnexion auto ?",
         "AUTO_DISCONNECT_ENUM": {
           "-1": "Jamais",
           "60000": "Après 1 min",
