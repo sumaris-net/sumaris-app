@@ -27,8 +27,8 @@ variables:
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
   ENV_FILE: variables.env
   NPM_VERSION: 9.6.6
-  IONIC_CLI_VERSION: ~7.1.1
-  ANGULAR_CLI_VERSION: ~14.2.12
+  IONIC_CLI_VERSION: 7.1.1
+  ANGULAR_CLI_VERSION: 14.2.12
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
