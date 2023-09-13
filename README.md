@@ -32,7 +32,11 @@ wget -qO- https://raw.githubusercontent.com/sumaris-net/sumaris-app/master/insta
 
 ## Contribute
 
-See the [developer guide](./doc/build.md)
+See our documentation :
+- [How-to build](doc/build.md)
+- [Environment setup](doc/setup.md)
+- [Developer guide](doc/developer_guide.md)
+- Full documentation (functional and technical) : https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc
 
 ## License
 
