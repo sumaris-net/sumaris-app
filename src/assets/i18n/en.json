@@ -189,6 +189,8 @@
       "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
+      "ADAGIO_OPTIMIZATION": "Persistence > Oracle: Optimize queries for SIH-Adagio",
+      "ADAGIO_SCHEMA": "Persistence > Oracle: SIH-Adagio Schema",
       "SAMPLE_UNIQUE_TAG": "Persistence > Sample: Check if TAG_ID is unique",
       "SAMPLE_HASH_OPTIMIZATION": "Persistence > Sample: Optimize save (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistence > Batch: Optimize save (hash)",
