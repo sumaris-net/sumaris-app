@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { ErrorCodes } from './errors';
 import { AccountService, BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
+import { ServerErrorCodes } from '../../../../ngx-sumaris-components/src/app/core/services/errors';
 
 /* ------------------------------------
  * GraphQL queries
@@ -135,16 +136,24 @@ export class SoftwareService<T extends Software = Software>
     const now = Date.now();
     console.debug("[software-service] Loading software ...");
 
-    const res = await this.graphql.query<{ software: Software<T> }>({
-      query,
-      variables,
-      error: {code: ErrorCodes.LOAD_SOFTWARE_ERROR, message: "ERROR.LOAD_SOFTWARE_ERROR"},
-      fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
-    });
+    try {
+      const res = await this.graphql.query<{ software: Software<T> }>({
+        query,
+        variables,
+        error: {code: ErrorCodes.LOAD_SOFTWARE_ERROR, message: "ERROR.LOAD_SOFTWARE_ERROR"},
+        fetchPolicy: opts && opts.fetchPolicy || undefined/*default*/
+      });
 
-    const data = res && res.software ? Software.fromObject(res.software) : undefined;
-    console.debug(`[software-service] Software loaded in ${Date.now() - now}ms:`, data);
-    return data as T;
+      const data = res && res.software ? Software.fromObject(res.software) : undefined;
+      console.debug(`[software-service] Software loaded in ${Date.now() - now}ms:`, data);
+      return data as T;
+    }
+    catch(err) {
+      if (err?.code === ServerErrorCodes.NOT_FOUND) {
+        return null;
+      }
+      throw err;
+    }
   }
 }
 

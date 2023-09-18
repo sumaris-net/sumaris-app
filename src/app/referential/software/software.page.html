@@ -5,6 +5,13 @@
 
 <ion-content>
 
+  <app-debug *ngIf="debug">
+    enabled: {{enabled}}<br/>
+    ready: {{readySubject|async}}<br/>
+    dirty: {{dirtySubject|async}}<br/>
+    valid: {{valid}}<br/>
+  </app-debug>
+
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->

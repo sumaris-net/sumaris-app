@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from "@angular/core";
-import {Software} from "@sumaris-net/ngx-components";
+import { EntityServiceLoadOptions, Software } from '@sumaris-net/ngx-components';
 import {FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {SoftwareService} from "../services/software.service";
 import {SoftwareValidatorService} from "../services/validator/software.validator";
@@ -31,12 +31,22 @@ export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService
     // default values
     this.defaultBackHref = "/referential/list?entity=Software";
 
-    //this.debug = !environment.production;
+    this.debug = !this.environment.production;
+  }
+
+  ngOnInit() {
+    super.ngOnInit()
+  }
+
+  protected onNewEntity(data: Software, options?: EntityServiceLoadOptions): Promise<void> {
+    this.markAsReady();
+    return super.onNewEntity(data, options);
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ...(await super.computePageHistory(title)),
+      path: `referential/software/${this.data?.id || 'new'}`,
       subtitle: 'REFERENTIAL.ENTITY.SOFTWARE',
       icon: 'server'
     };
