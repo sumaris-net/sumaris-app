@@ -284,7 +284,7 @@
         "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > Méthode > Calcul de la somme des poids RTP",
         "METHOD_UNKNOWN_ID": "Référentiel > Méthode > Inconnue",
         "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
-        "PARAMETER_GROUP_TAG_ID_LABELS": "Référentiel > Group de paramètre > Étiquetage (codes)",
+        "PARAMETER_GROUP_TAG_ID_LABELS": "Référentiel > Ensemble de paramètre > Étiquetage (codes)",
         "PARAMETER_GROUP_AGE_LABELS": "Référentiel > Ensemble de paramètre > Âge (codes)",
         "PARAMETER_GROUP_SEX_LABELS": "Référentiel > Ensemble de paramètre > Sexe (codes)",
         "PARAMETER_GROUP_WEIGHT_LABELS": "Référentiel > Ensemble de paramètre > Poids (codes)",
