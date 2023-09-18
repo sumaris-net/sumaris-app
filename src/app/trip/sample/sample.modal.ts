@@ -155,11 +155,13 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // Show/Hide individual release button
     if (this.showIndividualReleaseButton) {
       this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
-      if (this.tagIdPmfm) {
 
+      if (this.tagIdPmfm) {
         this.form.ready().then(() => {
+          const tagIdControl = this.form.form.get('measurementValues.' + this.tagIdPmfm.id);
+
           this.registerSubscription(
-            this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
+            tagIdControl
               .valueChanges
               .subscribe(tagId => {
                 this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
@@ -280,7 +282,10 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       if (!data) return; // invalid
 
       this.markAsLoading();
-      await this.modalCtrl.dismiss(data);
+
+      // Clone is required to detect images changes (workaround)
+      // Fix issue #464 (images was not saved)
+      await this.modalCtrl.dismiss(data.clone());
     }
   }
 
