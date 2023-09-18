@@ -24,6 +24,18 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: true
   },
+  ADAGIO_OPTIMIZATION: <FormFieldDefinition> {
+    key: 'sumaris.persistence.adagio.optimization',
+    label: 'CONFIGURATION.OPTIONS.ADAGIO_OPTIMIZATION',
+    type: 'boolean',
+    defaultValue: false
+  },
+  ADAGIO_SCHEMA: <FormFieldDefinition> {
+    key: 'sumaris.persistence.adagio.schema',
+    label: 'CONFIGURATION.OPTIONS.ADAGIO_SCHEMA',
+    type: 'string',
+    defaultValue: ''
+  },
   SAMPLE_HASH_OPTIMIZATION: <FormFieldDefinition> {
     key: 'sumaris.persistence.sample.hashOptimization',
     label: 'CONFIGURATION.OPTIONS.SAMPLE_HASH_OPTIMIZATION',

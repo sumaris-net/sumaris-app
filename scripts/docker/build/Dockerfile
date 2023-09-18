@@ -1,6 +1,8 @@
 # PREPARE STAGE
 ARG IMAGE_REGISTRY
 ARG DOCKER_IMAGE="node:16-slim"
+ARG IONIC_CLI_VERSION="7.1.1"
+ARG ANGULAR_CLI_VERSION="14.2.12"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
 FROM $DOCKER_IMAGE AS prepare
 ARG CACHE_DIR=/tmp/.build-cache
@@ -20,7 +22,7 @@ WORKDIR $CACHE_DIR
 # Caching npm depedencies
 COPY --from=prepare $CACHE_DIR/package.json .
 # Install global dependencies
-RUN npm install -g npm @ionic/cli @angular/cli
+RUN npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
 # Install project dependencies
 RUN npm install --unsafe-perm --force
 

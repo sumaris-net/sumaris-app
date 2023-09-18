@@ -26,7 +26,8 @@ variables:
   DOCKER_BUILDKIT: 1
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
   ENV_FILE: variables.env
-
+  IONIC_CLI_VERSION: 7.1.1
+  ANGULAR_CLI_VERSION: 14.2.12
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
@@ -63,7 +64,7 @@ build:env:
     - mkdir -p target/docker
     - cp -rf scripts/docker/build/* target/docker
     # Build and push the CI image
-    - docker build --cache-from ${CI_BUILD_IMAGE} -t ${CI_BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg="CACHE_DIR=${BUILD_CACHE_DIR}" --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
+    - docker build --cache-from ${CI_BUILD_IMAGE} -t ${CI_BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg="CACHE_DIR=${BUILD_CACHE_DIR}" --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" --build-arg="IONIC_CLI_VERSION=${IONIC_CLI_VERSION}" --build-arg="ANGULAR_CLI_VERSION=${ANGULAR_CLI_VERSION}" -f target/docker/Dockerfile .
     - docker push ${CI_BUILD_IMAGE}
   except:
     - tags
