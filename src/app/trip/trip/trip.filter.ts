@@ -10,6 +10,7 @@ import {
   Person,
   ReferentialRef,
   ReferentialUtils,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Trip } from './trip.model';
@@ -19,8 +20,10 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
 import { BBox } from 'geojson';
 
-@EntityClass({ typename: 'TripFilterVO' })
+
+@EntityClass({typename: 'TripFilterVO'})
 export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
+
   static fromObject: (source: any, opts?: any) => TripFilter;
 
   static toPhysicalGearFilter(f: Partial<TripFilter>): PhysicalGearFilter {
@@ -29,7 +32,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       program: f.program,
       vesselId: f.vesselId,
       startDate: f.startDate,
-      endDate: f.endDate,
+      endDate: f.endDate
     });
   }
 
@@ -40,7 +43,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       vesselId: f.vesselId,
       startDate: f.startDate,
       endDate: f.endDate,
-      boundingBox: f.boundingBox,
+      boundingBox: f.boundingBox
     });
   }
 
@@ -69,7 +72,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.location = ReferentialRef.fromObject(source.location);
-    this.observers = (source.observers && source.observers.map(Person.fromObject).filter(isNotNil)) || [];
+    this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
     this.boundingBox = source.boundingBox;
@@ -87,21 +90,22 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       delete target.vesselSnapshot;
 
       // Location
-      target.locationId = (this.location && this.location.id) || undefined;
+      target.locationId = this.location && this.location.id || undefined;
       delete target.location;
 
       // Observers
-      target.observerPersonIds = (isNotEmptyArray(this.observers) && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      target.observerPersonIds = isNotEmptyArray(this.observers) && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
       delete target.observers;
 
       // Exclude scientific cruise by default
       if (isNil(target.hasScientificCruise)) {
         target.hasScientificCruise = false;
       }
-    } else {
-      target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
-      target.location = (this.location && this.location.asObject(opts)) || undefined;
-      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || [];
+    }
+    else {
+      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;
+      target.location = this.location && this.location.asObject(opts) || undefined;
+      target.observers = this.observers && this.observers.map(o => o && o.asObject(opts)).filter(isNotNil) || [];
     }
     return target;
   }
@@ -111,60 +115,49 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
     // Filter excluded ids
     if (isNotEmptyArray(this.excludedIds)) {
-      filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
+      filterFns.push(t => isNil(t.id) || !this.excludedIds.includes(t.id));
     }
 
     // Filter included ids
     if (isNotEmptyArray(this.includedIds)) {
-      filterFns.push((t) => isNotNil(t.id) && this.includedIds.includes(t.id));
+      filterFns.push(t => isNotNil(t.id) && this.includedIds.includes(t.id));
     }
 
     // Vessel
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
-      filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+      filterFns.push(t => t.vesselSnapshot?.id === vesselId);
     }
 
     // Location
     if (ReferentialUtils.isNotEmpty(this.location)) {
       const locationId = this.location.id;
-      filterFns.push(
-        (t) => (t.departureLocation && t.departureLocation.id === locationId) || (t.returnLocation && t.returnLocation.id === locationId)
+      filterFns.push(t => (
+        (t.departureLocation && t.departureLocation.id === locationId)
+        || (t.returnLocation && t.returnLocation.id === locationId))
       );
     }
 
     // Start/end period
     if (this.startDate) {
       const startDate = this.startDate.clone();
-      filterFns.push((t) => (t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime)));
+      filterFns.push(t => t.returnDateTime ? startDate.isSameOrBefore(t.returnDateTime) : startDate.isSameOrBefore(t.departureDateTime));
     }
     if (this.endDate) {
       const endDate = this.endDate.clone().add(1, 'day').startOf('day');
-      filterFns.push((t) => t.departureDateTime && endDate.isAfter(t.departureDateTime));
+      filterFns.push(t => t.departureDateTime && endDate.isAfter(t.departureDateTime));
     }
 
     // Observers
-    const observerIds = this.observers?.map((o) => o.id).filter(isNotNil);
+    const observerIds = this.observers?.map(o => o.id).filter(isNotNil);
     if (isNotEmptyArray(observerIds)) {
-      filterFns.push((t) => t.observers?.some((o) => o && observerIds.includes(o.id)));
+      filterFns.push(t => t.observers?.some(o => o && observerIds.includes(o.id)));
     }
 
     // has scientific cruise
-    if (isNotNil(this.hasScientificCruise)) {
-      filterFns.push((t) => isNotNil(t.scientificCruiseId) === this.hasScientificCruise);
-    }
-
-    // has observed location
-    if (isNotNil(this.hasObservedLocation)) {
-      filterFns.push((t) => isNotNil(t.landing?.id) === this.hasObservedLocation);
-    }
+    // TODO
 
     return filterFns;
-  }
-
-  protected isCriteriaNotEmpty(key: string, value: any): boolean {
-    if (key === 'hasScientificCruise') return false; // Do not count hasScientificCruise
-    return super.isCriteriaNotEmpty(key, value);
   }
 }
 

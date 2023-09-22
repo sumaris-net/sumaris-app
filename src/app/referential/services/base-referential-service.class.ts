@@ -7,7 +7,7 @@ import {
   BaseEntityService,
   BaseEntityServiceOptions,
   EntitiesServiceLoadOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityServiceWatchOptions,
   GraphqlService,
   IEntityService,
   IReferentialRef,
@@ -69,8 +69,7 @@ export abstract class BaseReferentialService<
       });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: {
-    fetchPolicy?: WatchQueryFetchPolicy; withTotal?: boolean; toEntity?: boolean; }): Observable<LoadResult<T>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: EntityServiceWatchOptions): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter && filter.searchAttribute;
     // Call inherited function
