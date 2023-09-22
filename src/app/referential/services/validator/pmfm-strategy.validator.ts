@@ -57,7 +57,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
     };
     if (opts.withDetails) {
       config.acquisitionLevel = [data && data.acquisitionLevel || null, Validators.required];
-      config.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
+      config.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(0)])];
       config.isMandatory = [data && data.isMandatory || false, Validators.required];
       config.acquisitionNumber = [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
       config.minValue = [data && data.minValue || null, SharedValidators.decimal()];

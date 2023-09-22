@@ -38,14 +38,6 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import {
-  DataCommonFragments,
-  DataFragments,
-  ExpectedSaleFragments,
-  OperationGroupFragment,
-  PhysicalGearFragments,
-  SaleFragments,
-} from './trip.queries';
-import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
@@ -94,6 +86,8 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 
 import moment from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from '@app/trip/common/data.fragments';
+
 
 export const TripFragments = {
   lightTrip: gql`

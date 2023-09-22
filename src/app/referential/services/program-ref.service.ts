@@ -626,8 +626,12 @@ export class ProgramRefService
         );
     }
 
-    // Watch the program
     const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
+
+    // DEBUG
+    //console.debug(`[program-ref-service] Watching '${programLabel}' pmfms...`, acquisitionLevels);
+
+    // Watch the program
     return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
         label: opts?.strategyLabel,
         acquisitionLevels

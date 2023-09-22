@@ -2,7 +2,6 @@ import { Injectable, Optional } from '@angular/core';
 import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, combineLatest, EMPTY, from, Observable } from 'rxjs';
 import { filter, first, map, mergeMap } from 'rxjs/operators';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import {
   AccountService,
   AppFormUtils,
@@ -87,6 +86,7 @@ import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { PositionOptions } from '@capacitor/geolocation';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { DataCommonFragments, DataFragments } from "@app/trip/common/data.fragments";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

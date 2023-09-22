@@ -57,6 +57,7 @@ import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export class LandingEditorOptions extends AppEditorOptions {}
 
@@ -609,24 +610,20 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
-      const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
-        const pmfmIds = Object.keys(sample.measurementValues || {})
-          .map(id => +id)
-          .filter(isNotNilOrNaN); // Exclude technical properties (e.g. __typename)
-        const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
-        return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
-      }, []);
+      const additionalPmfmIds = (!this.isNewData && this.data?.samples || [])
+        .reduce((res, sample) => MeasurementValuesUtils.getPmfmIds(sample.measurementValues || {})
+          .reduce((res, pmfmId) => !strategyPmfmIds.includes(pmfmId) ? res.concat(pmfmId) : res, res), []);
 
       // Override samples table pmfm, if need
       if (isNotEmptyArray(additionalPmfmIds)) {
 
         // Load additional pmfms, from ids
-        const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-        const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+        const additionalPmfms = (await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id))))
+          .map(DenormalizedPmfmStrategy.fromFullPmfm);
 
         // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
         // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-        samplesPmfms = samplesPmfms.concat(additionalFullPmfms);
+        samplesPmfms = samplesPmfms.concat(additionalPmfms);
       }
 
       // Give it to samples table (but exclude STRATEGY_LABEL)

@@ -31,6 +31,7 @@ import {
 } from "@sumaris-net/ngx-components";
 import { ReferentialService } from "./referential.service";
 import {
+  AcquisitionLevelCodes,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
@@ -711,14 +712,25 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     ProgramPrivilegeIds.OBSERVER = ...
     */
 
+    // Acquisition levels
+    AcquisitionLevelCodes.TRIP = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_TRIP_LABEL);
+    AcquisitionLevelCodes.PHYSICAL_GEAR = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL);
+    AcquisitionLevelCodes.OPERATION = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_OPERATION_LABEL);
+
     // Location Levels
-    LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
-    LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
-    LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
-    LocationLevelIds.ICES_SUB_AREA = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_SUB_AREA_ID);
-    LocationLevelIds.GFCM_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_GFCM_RECTANGLE_ID);
+    LocationLevelIds.COUNTRY = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    // Location Levels > ICES
+    LocationLevelIds.SUB_AREA_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_AREA_ICES_ID);
+    LocationLevelIds.DIVISION_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_DIVISION_ICES_ID);
+    LocationLevelIds.SUB_DIVISION_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_DIVISION_ICES_ID);
+    LocationLevelIds.RECTANGLE_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_RECTANGLE_ICES_ID);
+    // Location Levels > GFCM
+    LocationLevelIds.SUB_AREA_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_AREA_GFCM_ID);
+    LocationLevelIds.DIVISION_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_DIVISION_GFCM_ID);
+    LocationLevelIds.SUB_DIVISION_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_DIVISION_GFCM_ID);
+    LocationLevelIds.RECTANGLE_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_RECTANGLE_GFCM_ID);
 
     // Taxonomic Levels
     TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);

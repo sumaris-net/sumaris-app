@@ -122,7 +122,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
-      qualityFlagId: [null, SharedValidators.integer]
+      qualityFlagId: [null, SharedValidators.integer],
+      hasScientificCruise: [null],
+      hasObservedLocation: [null]
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

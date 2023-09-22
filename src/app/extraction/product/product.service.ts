@@ -23,7 +23,6 @@ import {
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { DataCommonFragments } from '../../trip/trip/trip.queries';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { ExtractionProduct } from './product.model';
 import { ExtractionFragments } from '../common/extraction.service';
@@ -33,6 +32,7 @@ import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { TranslateService } from '@ngx-translate/core';
+import { DataCommonFragments } from '@app/trip/common/data.fragments';
 
 export const ExtractionProductFragments = {
   product: gql`

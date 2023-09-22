@@ -23,7 +23,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   @Input() showDistanceToCoastGradient = true;
   @Input() showDepthGradient = true;
   @Input() showNearbySpecificArea = true;
-  @Input() locationLevelIds = [LocationLevelIds.ICES_RECTANGLE];
+  @Input() locationLevelIds = [LocationLevelIds.RECTANGLE_ICES];
 
   get empty(): boolean {
     return FishingArea.isEmpty(this.value);

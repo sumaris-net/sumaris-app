@@ -36,7 +36,6 @@ import {
 import { BehaviorSubject, EMPTY, firstValueFrom, Observable } from 'rxjs';
 import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { Sample } from '../sample/sample.model';
@@ -74,6 +73,7 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {

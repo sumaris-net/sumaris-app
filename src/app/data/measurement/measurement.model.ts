@@ -244,9 +244,9 @@ export class MeasurementUtils {
 export class MeasurementValuesUtils {
 
   /**
-   * Extract pmfm id, used in a measurementValues object
-   *
-   * @param m
+   * Extract pmfm id, used in a measurementValues object.
+   * Will exclude technical properties (e.g. __typename)
+   * @param source
    */
   static getPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
     return Object.getOwnPropertyNames(source || {})

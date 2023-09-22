@@ -227,10 +227,10 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     // Existing data
     const program = await firstNotNilPromise(this.$program);
-    return this.translate.get('PROGRAM.STRATEGY.EDIT.TITLE', {
+    return this.translate.instant('PROGRAM.STRATEGY.EDIT.TITLE', {
       program: program.label,
-      label: data.label
-    }).toPromise();
+      label: data.label || ('#' + data.id)
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

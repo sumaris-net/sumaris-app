@@ -11,22 +11,26 @@ export const LocationLevelIds = {
   AUCTION: 3,
 
   // At sea
-  ICES_RECTANGLE: 4,
-  GFCM_RECTANGLE: 5,
-  ICES_SUB_AREA: 110,
-  ICES_DIVISION: 111
+  SUB_AREA_ICES: 110,
+  RECTANGLE_ICES: 4,
+  RECTANGLE_GFCM: 5,
+  DIVISION_ICES: 111,
+  SUB_DIVISION_ICES: 112,
+  SUB_AREA_GFCM: 140,
+  DIVISION_GFCM: 141,
+  SUB_DIVISION_GFCM: 142
 };
 
 
 export abstract class LocationLevels {
   static getFishingAreaLevelIds() {
-    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE, LocationLevelIds.ICES_DIVISION];
+    return [LocationLevelIds.RECTANGLE_ICES, LocationLevelIds.RECTANGLE_GFCM, LocationLevelIds.DIVISION_ICES];
   }
   static getWeightLengthConversionAreaLevelIds() {
-    return [LocationLevelIds.ICES_SUB_AREA, LocationLevelIds.ICES_DIVISION];
+    return [LocationLevelIds.SUB_AREA_ICES, LocationLevelIds.DIVISION_ICES];
   }
   static getStatisticalRectangleLevelIds() {
-    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE];
+    return [LocationLevelIds.RECTANGLE_ICES, LocationLevelIds.RECTANGLE_GFCM];
   }
 }
 export const LocationLevelGroups = {

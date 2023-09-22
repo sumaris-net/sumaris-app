@@ -242,7 +242,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
       const rectangle = (fishingAreas || [])
           .map(fa => fa.location)
           .filter(isNotNil)
-          .find(location => isNil(location.levelId) || (location.levelId === LocationLevelIds.ICES_RECTANGLE || location.levelId === LocationLevelIds.GFCM_RECTANGLE));
+          .find(location => isNil(location.levelId) || (location.levelId === LocationLevelIds.RECTANGLE_ICES || location.levelId === LocationLevelIds.RECTANGLE_GFCM));
       if (isNotNilOrBlank(rectangle?.label)) {
         console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangle.label);
         return rectangle.label;

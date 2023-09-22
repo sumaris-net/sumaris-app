@@ -34,7 +34,6 @@ import {
 import { Observable } from 'rxjs';
 
 import { gql } from '@apollo/client/core';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
@@ -80,6 +79,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { DataCommonFragments, DataFragments } from "@app/trip/common/data.fragments";
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;

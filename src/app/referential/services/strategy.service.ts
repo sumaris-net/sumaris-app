@@ -86,7 +86,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.lightReferential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadAllFullWithTotal: any; count: any } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -113,6 +113,27 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
   ${StrategyFragments.lightStrategy}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
+  ${ReferentialFragments.lightReferential}`,
+
+  loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightStrategyFragment
+    }
+    total: strategiesCount(filter: $filter)
+  }
+  ${StrategyFragments.lightStrategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${ReferentialFragments.lightReferential}`,
+
+  loadAllFull: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightStrategyFragment
+    }
+  }
+  ${StrategyFragments.lightStrategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
@@ -121,7 +142,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
-  loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllFullWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightStrategyFragment
     }
@@ -576,16 +597,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
 
     // Load entities
-    const { data } = await this.loadAll(
-      0,
-      999,
-      'creationDate',
-      'asc',
-      <Partial<StrategyFilter>>{
-        includedIds: ids,
-      },
-      { withTotal: false }
-    );
+    const { data } = await this.loadAll(0, ids.length, 'creationDate', 'asc', <Partial<StrategyFilter>>{
+      includedIds: ids
+    }, {withTotal: false});
 
     if (!data.length) throw Error('COMMON.NO_RESULT');
 

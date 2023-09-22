@@ -152,7 +152,7 @@ export class TripPage
     this.acquisitionLevel = AcquisitionLevelCodes.TRIP;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
     // eslint-disable-next-line eqeqeq
     this.devAutoFillData = this.debug && (this.settings.getPageSettings(this.settingsId, 'devAutoFillData') == true) || false;
   }

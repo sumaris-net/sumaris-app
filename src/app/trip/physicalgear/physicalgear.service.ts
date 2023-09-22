@@ -29,8 +29,7 @@ import { environment } from '@environments/environment';
 import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, throttleTime } from 'rxjs/operators';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { PhysicalGearFragments } from '../trip/trip.queries';
-import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import {  ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { PhysicalGearFilter } from './physical-gear.filter';
 import moment from 'moment';
@@ -50,6 +49,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { PhysicalGearFragments } from "@app/trip/common/data.fragments";
 
 const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
   loadAll: gql`

@@ -1,6 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
 import {
+  AcquisitionLevelCodes,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
@@ -101,6 +102,27 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: ProgramLabel.SIH
   },
+  /* -- Acquisition levels -- */
+  ACQUISITION_LEVEL_TRIP_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.TRIP.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_TRIP_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.TRIP
+  },
+  ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.PHYSICAL_GEAR.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.PHYSICAL_GEAR
+  },
+  ACQUISITION_LEVEL_OPERATION_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.OPERATION.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_OPERATION_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.OPERATION
+  },
+
+  /* -- Location levels -- */
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
@@ -122,34 +144,68 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.AUCTION
   },
-  LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
+
+  // CIEM/ICES levels
+  LOCATION_LEVEL_SUB_AREA_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_AREA_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_AREA_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.SUB_AREA_ICES
+  },
+  LOCATION_LEVEL_DIVISION_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.DIVISION_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_DIVISION_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.DIVISION_ICES
+  },
+  LOCATION_LEVEL_SUB_DIVISION_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_DIVISION_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_DIVISION_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.SUB_DIVISION_ICES
+  },
+  LOCATION_LEVEL_RECTANGLE_ICES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_RECTANGLE_ICES_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_RECTANGLE
+    defaultValue: LocationLevelIds.RECTANGLE_ICES
   },
-  LOCATION_LEVEL_GFCM_RECTANGLE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_GFCM_RECTANGLE_ID',
+
+  // CGPM/GFCM levels
+  LOCATION_LEVEL_SUB_AREA_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_AREA_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_AREA_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.GFCM_RECTANGLE
+    defaultValue: LocationLevelIds.SUB_AREA_GFCM
   },
-  LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
+  LOCATION_LEVEL_DIVISION_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.DIVISION_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_DIVISION_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_DIVISION
+    defaultValue: LocationLevelIds.DIVISION_GFCM
   },
-  LOCATION_LEVEL_ICES_SUB_AREA_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_SUB_AREA_ID',
+  LOCATION_LEVEL_SUB_DIVISION_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_DIVISION_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_DIVISION_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_SUB_AREA
+    defaultValue: LocationLevelIds.SUB_DIVISION_GFCM
   },
+  LOCATION_LEVEL_RECTANGLE_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.RECTANGLE_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_RECTANGLE_GFCM_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.RECTANGLE_GFCM
+  },
+
+  // Fishing Areas
   LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_IDS',

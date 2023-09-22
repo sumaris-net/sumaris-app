@@ -11,24 +11,9 @@ export const StrategyFragments = {
     updateDate
     creationDate
     statusId
-    programId
-    gears {
-      ...LightReferentialFragment
-    }
-    taxonGroups {
-      ...TaxonGroupStrategyFragment
-    }
-    taxonNames {
-      ...TaxonNameStrategyFragment
-    }
-    pmfms {
-      ...LightPmfmStrategyFragment
-    }
+    programId,
     appliedStrategies {
       ...AppliedStrategyFragment
-    }
-    departments {
-      ...StrategyDepartmentFragment
     }
   }`,
 

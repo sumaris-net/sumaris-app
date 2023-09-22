@@ -57,6 +57,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   excludedIds: number[];
   boundingBox?: BBox;
   observedLocationId: number;
+  hasScientificCruise: boolean;
+  hasObservedLocation: boolean;
 
   constructor() {
     super();
@@ -75,6 +77,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.excludedIds = source.excludedIds;
     this.boundingBox = source.boundingBox;
     this.observedLocationId = source.observedLocationId;
+    this.hasScientificCruise = source.hasScientificCruise;
+    this.hasObservedLocation = source.hasObservedLocation;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -92,6 +96,11 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // Observers
       target.observerPersonIds = isNotEmptyArray(this.observers) && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
       delete target.observers;
+
+      // Exclude scientific cruise by default
+      if (isNil(target.hasScientificCruise)) {
+        target.hasScientificCruise = false;
+      }
     }
     else {
       target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;
@@ -144,6 +153,9 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     if (isNotEmptyArray(observerIds)) {
       filterFns.push(t => t.observers?.some(o => o && observerIds.includes(o.id)));
     }
+
+    // has scientific cruise
+    // TODO
 
     return filterFns;
   }

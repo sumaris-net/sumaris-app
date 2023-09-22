@@ -778,7 +778,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     filter = {
-      levelIds: this.locationLevelIds || [LocationLevelIds.ICES_DIVISION],
+      levelIds: this.locationLevelIds || [LocationLevelIds.DIVISION_ICES],
       ...filter
     };
     // DEBUG

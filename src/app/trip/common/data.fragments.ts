@@ -1,7 +1,6 @@
-import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { gql } from '@apollo/client/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
-
 
 export const DataCommonFragments = {
   referential: ReferentialFragments.lightReferential,
@@ -78,7 +77,6 @@ export const DataCommonFragments = {
     __typename
   }`
 };
-
 export const DataFragments = {
   sample: gql`fragment SampleFragment on SampleVO {
     id
@@ -206,7 +204,6 @@ export const DataFragments = {
   ${DataCommonFragments.referential}
   `
 };
-
 export const PhysicalGearFragments = {
   physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -225,8 +222,6 @@ export const PhysicalGearFragments = {
     measurementValues
   }`
 };
-
-
 export const OperationGroupFragment = {
   operationGroup: gql`fragment OperationGroupFragment on OperationGroupVO {
     id
@@ -270,7 +265,6 @@ export const OperationGroupFragment = {
   ${DataCommonFragments.measurement}
   `
 };
-
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
     id
@@ -313,7 +307,6 @@ export const SaleFragments = {
   ${DataFragments.product}
   `
 };
-
 export const ExpectedSaleFragments = {
   lightExpectedSale: gql`fragment LightExpectedSaleFragment on ExpectedSaleVO {
     id
@@ -350,4 +343,3 @@ export const ExpectedSaleFragments = {
   ${DataFragments.product}
   `
 };
-

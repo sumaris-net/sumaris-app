@@ -520,7 +520,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name']
     },
-    defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString()
   },
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
@@ -837,7 +837,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name']
     },
-    defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString()
   },
 
 
@@ -908,7 +908,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name']
     },
-    defaultValue: LocationLevelIds.ICES_DIVISION.toString()
+    defaultValue: LocationLevelIds.DIVISION_ICES.toString()
   },
   STRATEGY_DEPARTMENT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.department.enable',
@@ -979,10 +979,10 @@ export class ProgramPropertiesUtils {
 
     ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_DIVISION.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
-    ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
-    ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
   }
