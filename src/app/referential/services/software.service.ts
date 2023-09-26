@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { gql } from '@apollo/client/core';
 import { Observable, of } from 'rxjs';
 import { ErrorCodes } from './errors';
-import { AccountService, BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software } from '@sumaris-net/ngx-components';
+import { AccountService, BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, ServerErrorCodes, Software } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import { ServerErrorCodes } from '../../../../ngx-sumaris-components/src/app/core/services/errors';
 
 /* ------------------------------------
  * GraphQL queries
