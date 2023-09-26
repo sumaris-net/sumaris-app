@@ -77,10 +77,11 @@
       <!-- Biological sampling strategy table -->
       <app-sampling-strategies-table #samplingTable *ngSwitchCase="'sampling'"
                                      [program]="data"
-                                     [showToolbar]="false"
                                      [canEdit]="canEdit"
                                      [canDelete]="canDelete"
+                                     [canOpenRealizedLandings]="true"
                                      [showError]="false"
+                                     [showToolbar]="false"
                                      [showPaginator]="false"
                                      [paginator]="paginator"
                                      (onOpenRow)="onOpenRow($event)"

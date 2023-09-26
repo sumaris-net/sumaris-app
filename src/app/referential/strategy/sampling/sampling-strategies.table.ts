@@ -99,6 +99,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   get canDelete(): boolean {
     return this._state.get('canDelete');
   }
+  @Input() canOpenRealizedLandings = false;
   @Input() showError = true;
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
@@ -538,7 +539,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   protected openLandingsByQuarter(event: UIEvent, strategy: SamplingStrategy, quarter: number) {
     const effort : StrategyEffort = strategy?.effortByQuarter?.[quarter];
-    if (!effort?.realizedEffort) return;  // Skip if nothing to show (no realized effort)
+    if (!this.canOpenRealizedLandings || !effort?.realizedEffort) return;  // Skip if nothing to show (no realized effort)
 
     // Prevent row click action
     event.preventDefault();

@@ -57,14 +57,22 @@
     max-width: 80px;
     padding-left: 5px;
 
+
     ion-text {
       width: 100%;
     }
-    ion-text .mouseover {
-      visibility: hidden;
-    }
-    ion-text:hover .mouseover {
-      visibility: visible;
+    ion-text.has-realized {
+      .mouseover {
+        visibility: hidden;
+      }
+
+      &:hover {
+        color: var(--ion-color-primary);
+
+        .mouseover {
+          visibility: visible;
+        }
+      }
     }
   }
 
