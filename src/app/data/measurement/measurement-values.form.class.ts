@@ -261,7 +261,8 @@ export abstract class MeasurementValuesForm<
   }
 
   reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}) {
-    return this.applyValue(data, opts);
+    // Applying value to form (that should be ready).
+    return this.updateView(data, opts);
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -320,7 +321,7 @@ export abstract class MeasurementValuesForm<
       await this.ready({stop: this.destroySubject});
 
       // Data is still the same (not changed : applying)
-      if (data === this.data) {
+      if (data && data === this.data) {
         // Applying value to form (that should be ready).
         await this.updateView(data, opts);
         this.markAsLoaded();
