@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -45,7 +45,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
-  protected locationAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
   @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();

@@ -514,7 +514,13 @@ export class LandingsPage extends AppRootDataTable<
       return;
     }
 
-    // Reload last filter
+    // For to use queryParams, if any
+    const {q} = this.route.snapshot.queryParams;
+    if (isNotNilOrBlank(q)) {
+      return super.restoreFilterOrLoad({...opts, sources:['queryParams']});
+    }
+
+    // Default implementation
     return super.restoreFilterOrLoad(opts);
   }
 

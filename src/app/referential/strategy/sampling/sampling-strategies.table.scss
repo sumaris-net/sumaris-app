@@ -50,18 +50,27 @@
   }
 
   .mat-column-effortQ1,
-  .mat-column-effortQ3 {
-    min-width: 80px;
-    max-width: 80px;
-    background-color: lightgray;
-    padding-left: 5px;
-  }
-
   .mat-column-effortQ2,
+  .mat-column-effortQ3,
   .mat-column-effortQ4 {
     min-width: 80px;
     max-width: 80px;
     padding-left: 5px;
+
+    ion-text {
+      width: 100%;
+    }
+    ion-text .mouseover {
+      visibility: hidden;
+    }
+    ion-text:hover .mouseover {
+      visibility: visible;
+    }
+  }
+
+  .mat-column-effortQ1,
+  .mat-column-effortQ3 {
+    background-color: lightgray;
   }
 
   .mat-column-comment {

@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppTable, changeCaseToUnderscore,
+  AppTable,
+  changeCaseToUnderscore,
   EntitiesServiceWatchOptions,
   EntitiesTableDataSource,
   EntitiesTableDataSourceConfig,
@@ -11,9 +12,13 @@ import {
   IEntitiesService,
   InMemoryEntitiesService,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
+  isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, toBoolean, TranslateContextService
+  RESERVED_START_COLUMNS,
+  toBoolean,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -21,13 +26,11 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import {filter, first, map, mergeMap, switchMap, takeUntil} from 'rxjs/operators';
+import { filter, first, map, switchMap, takeUntil } from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
-import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { timer } from 'rxjs';
-import { subscribe } from 'graphql/execution';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -504,20 +507,31 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean }) {
+  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: ('settings'|'queryParams')[] }) {
     this.markAsLoading();
 
-    let json = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
-    if (json) {
-      console.debug(this.logPrefix + 'Restoring filter from settings...', json);
-    }
-    else {
-      const {q} = this.route.snapshot.queryParams;
-      if (q) {
-        console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
-        json = JSON.parse(q);
+    const sources = opts?.sources || ['settings', 'queryParams'];
+    const json = sources.map(source => {
+      switch (source) {
+        case 'settings':
+          if (isNilOrBlank(this.settingsId)) return;
+          console.debug(this.logPrefix + 'Restoring filter from settings...');
+          return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
+        case 'queryParams':
+          let {q} = this.route.snapshot.queryParams;
+          if (q) {
+            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+            try {
+              return JSON.parse(q);
+            }
+            catch(err) {
+              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+            }
+          }
+          break;
       }
-    }
+      return null;
+    }).find(isNotNil);
 
     if (json) {
       this.setFilter(json, opts);

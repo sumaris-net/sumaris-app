@@ -21,11 +21,11 @@ import {
   toBoolean
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
-import { LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
 import { environment } from '@environments/environment';
-import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import { SamplingStrategy, StrategyEffort } from '../../services/model/sampling-strategy.model';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { StrategyService } from '../../services/strategy.service';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -44,6 +44,7 @@ import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-
 
 import moment from 'moment';
 import {RxState} from '@rx-angular/state';
+import { LandingFilter } from '@app/trip/landing/landing.filter';
 
 
 export const SamplingStrategiesPageSettingsEnum = {
@@ -533,6 +534,29 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     finally {
       this.markAsLoaded();
     }
+  }
+
+  protected openLandingsByQuarter(event: UIEvent, strategy: SamplingStrategy, quarter: number) {
+    const effort : StrategyEffort = strategy?.effortByQuarter?.[quarter];
+    if (!effort?.realizedEffort) return;  // Skip if nothing to show (no realized effort)
+
+    // Prevent row click action
+    event.preventDefault();
+
+    const filter = LandingFilter.fromObject(<Partial<LandingFilter>>{
+      program: {id: this.program.id, label: this.program.label},
+      startDate: effort.startDate?.clone().startOf('day'),
+      endDate: effort.endDate?.clone().endOf('day'),
+      strategy: {id: strategy.id, label: strategy.label}
+    });
+    const filterString= JSON.stringify(filter.asObject());
+    console.info(`[sampling-strategies-table] Opening landings for quarter ${quarter} and strategy '${strategy.label}'`, effort);
+    return this.navController.navigateForward(`/observations/landings`, {
+      queryParams: {
+        q: filterString
+      }
+    });
+
   }
 }
 

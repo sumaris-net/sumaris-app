@@ -620,7 +620,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // open the map
       return this.router.navigate(['extraction', 'map'],
         {
-          // TODO replace by ExtractinUtils.asQueryParams(this.type, this.getFilterValue())
+          // TODO replace by ExtractionUtils.asQueryParams(this.type, this.getFilterValue())
           queryParams: {
             category: this.type.category,
             label: this.type.label,

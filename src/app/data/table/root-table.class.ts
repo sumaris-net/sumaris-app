@@ -642,22 +642,42 @@ export abstract class AppRootDataTable<
     return source as F;
   }
 
-  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; }) {
-    if (isNilOrBlank(this.settingsId)) return;
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: ('settings'|'queryParams')[] }) {
     this.markAsLoading();
 
-    console.debug("[root-table] Restoring filter from settings...", opts);
+    const json = (opts?.sources || ['settings', 'queryParams']).map(source => {
+      switch (source) {
+        case 'settings':
+          if (isNilOrBlank(this.settingsId)) return;
+          console.debug(this.logPrefix + 'Restoring filter from settings...');
+          return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+        case 'queryParams':
+          const {q} = this.route.snapshot.queryParams;
+          if (q) {
+            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+            try {
+              return JSON.parse(q);
+            } catch (err) {
+              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+            }
+          }
+      }
 
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+      return null;
+    }).find(isNotNil);
 
-    this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this._dataService.hasOfflineData());
+    if (json) {
+      // Force offline, if no network AND has offline feature
+      this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this._dataService.hasOfflineData());
+      if (this.network.offline && this.hasOfflineMode) {
+        json.synchronizationStatus = 'DIRTY';
+      }
 
-    // Force offline, if no network AND has offline feature
-    if (this.network.offline && this.hasOfflineMode) {
-      json.synchronizationStatus = 'DIRTY';
+      this.setFilter(json, {emitEvent: true, ...opts});
     }
-
-    this.setFilter(json, {emitEvent: true, ...opts});
+    else if (!opts || opts.emitEvent !== false){
+      this.onRefresh.emit();
+    }
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
