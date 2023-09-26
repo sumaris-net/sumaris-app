@@ -292,19 +292,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    const loadedTest = () => !this.loading;
     this.registerSubscription(
       this.form.get('age').valueChanges
-        .pipe(filter(loadedTest))
+        .pipe(filter(() => this.loaded))
         .subscribe(hasAge => {
-        if (hasAge) {
-          this.loadFraction();
-          this.fractionPmfmsForm.enable();
-        }
-        else {
-          this.fractionPmfmsForm.disable();
-        }
-      }));
+          if (hasAge) {
+            this.loadFraction();
+            this.fractionPmfmsForm.enable();
+          }
+          else {
+            this.fractionPmfmsForm.disable();
+          }
+        }));
     this.taxonNamesFormArray.setAsyncValidators(async (_) => {
         this.loadFraction();
         return null;
