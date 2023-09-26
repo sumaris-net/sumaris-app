@@ -10,6 +10,8 @@ import {
   Configuration,
   CORE_CONFIG_OPTIONS,
   DateUtils,
+  EntitiesServiceLoadOptions,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityAsObjectOptions,
   EntitySaveOptions,
@@ -197,8 +199,14 @@ const StrategySubscriptions: BaseEntityGraphqlSubscriptions = {
   ${ReferentialFragments.lightReferential}`
 };
 
+export interface StrategyServiceWatchOptions extends EntitiesServiceWatchOptions {
+}
+export interface StrategyServiceLoadOptions extends EntitiesServiceLoadOptions {
+}
+
 @Injectable({ providedIn: 'root' })
-export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
+export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter, number,
+  StrategyServiceWatchOptions, StrategyServiceLoadOptions> {
   $dbTimeZone = new BehaviorSubject<string>(null);
 
   get dbTimeZone(): string {
@@ -599,7 +607,10 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     // Load entities
     const { data } = await this.loadAll(0, ids.length, 'creationDate', 'asc', <Partial<StrategyFilter>>{
       includedIds: ids
-    }, {withTotal: false});
+    }, {
+      withTotal: false,
+      query: StrategyQueries.loadAllFull
+    });
 
     if (!data.length) throw Error('COMMON.NO_RESULT');
 
