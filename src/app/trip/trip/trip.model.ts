@@ -617,6 +617,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   fishingAreas?: FishingArea[] = null;
   landing?: Landing = null;
   observedLocationId?: number = null;
+  scientificCruiseId?: number = null;
 
   constructor() {
     super(Trip.TYPENAME);
@@ -659,6 +660,11 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Landing
     target.landing = this.landing && this.landing.asObject(opts) || undefined;
+
+    if (opts?.minify) {
+      // TODO add TripVO.scientificCruiseId in Pod
+      delete target.scientificCruiseId;
+    }
 
     return target;
   }
@@ -720,6 +726,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
     this.observedLocationId = source.observedLocationId;
+    this.scientificCruiseId = source.scientificCruiseId;
 
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot) || undefined;
 

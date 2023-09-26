@@ -1,17 +1,5 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
-import {
-  EntityAsObjectOptions,
-  EntityClass,
-  FilterFn,
-  fromDateISOString,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  Person,
-  ReferentialRef,
-  ReferentialUtils,
-  toDateISOString
-} from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNil, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Trip } from './trip.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -155,9 +143,21 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     }
 
     // has scientific cruise
-    // TODO
+    if (isNotNil(this.hasScientificCruise)) {
+      filterFns.push(t => isNotNil(t.scientificCruiseId) === this.hasScientificCruise);
+    }
+
+    // has observed location
+    if (isNotNil(this.hasObservedLocation)) {
+      filterFns.push(t => isNotNil(t.landing?.id) === this.hasObservedLocation);
+    }
 
     return filterFns;
+  }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    if (key === 'hasScientificCruise') return false; // Do not count hasScientificCruise
+    return super.isCriteriaNotEmpty(key, value);
   }
 }
 
