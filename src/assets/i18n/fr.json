@@ -2795,6 +2795,7 @@
           "WARNINGS": "Avertissement(s) : {{warnings}}",
           "ERRORS": "Erreur(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
+          "VESSEL_COUNT": "Nombre de navires: {{vesselCount}}",
           "VESSELS": "Navire(s): {{vessels}}"
         },
         "ERROR": {
