@@ -6,13 +6,11 @@ import {
   AccountService,
   Alerts,
   AppEntityEditor,
-  EntityServiceLoadOptions, FilesUtils,
+  EntityServiceLoadOptions,
   firstNotNilPromise,
   HistoryPageReference,
-  isEmptyArray,
   isNil,
   isNotNil,
-  MINIFY_ENTITY_FOR_LOCAL_STORAGE
 } from '@sumaris-net/ngx-components';
 import {ReferentialRefService} from '../services/referential-ref.service';
 import {ModalController} from '@ionic/angular';
@@ -23,9 +21,8 @@ import {BehaviorSubject} from 'rxjs';
 import {Program} from '../services/model/program.model';
 import {ReferentialForm} from '../form/referential.form';
 import {debounceTime, filter, tap} from 'rxjs/operators';
-import {environment} from '../../../environments/environment';
+import {environment} from '@environments/environment';
 import {ProgramRefService} from '../services/program-ref.service';
-import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
 
 

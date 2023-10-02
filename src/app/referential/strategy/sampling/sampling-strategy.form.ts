@@ -1136,7 +1136,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // Remove if empty
       .filter(p => isNotNil(p.pmfmId) || isNotNil(p.pmfm) || isNotNil(p.parameter) || isNotNil(p.matrix) || isNotNil(p.fraction) || isNotNil(p.method));
 
-
     return target;
   }
 
@@ -1543,8 +1542,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected getPmfmStrategiesByGroup(pmfms: PmfmStrategy[], pmfmIds: number[], parameterLabels: string[]) {
     return (pmfms || []).filter(p => {
       if (p) {
-        const pmfmId = toNumber(p.pmfmId, p.pmfm && p.pmfm.id);
-        const hasParameterId = p.parameter && p.parameter.label && parameterLabels.includes(p.parameter.label);
+        const pmfm = p.pmfm;
+        const pmfmId = toNumber(p.pmfmId, pmfm?.id);
+        const parameter = (pmfm as any)?.parameter || p.parameter;
+        const hasParameterId = parameter?.label && parameterLabels.includes(parameter.label);
         return pmfmIds.includes(pmfmId) || hasParameterId;
       }
       return false;
