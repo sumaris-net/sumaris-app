@@ -206,11 +206,11 @@ export class StrategyEffort {
   }
 
   get realized(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort));
+    return !this.expectedEffort || (this.realizedEffort || 0) >= this.expectedEffort;
   }
 
   get realizedMore(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort > this.expectedEffort));
+    return (this.realizedEffort || 0) > (this.expectedEffort || 0);
   }
 
   get missingEffort(): number {
@@ -220,11 +220,11 @@ export class StrategyEffort {
   }
 
   get hasRealizedEffort(): boolean {
-    return (this.realizedEffort && this.realizedEffort > 0);
+    return (this.realizedEffort || 0) > 0;
   }
 
   get hasExpectedEffort(): boolean {
-    return (this.expectedEffort && this.expectedEffort > 0);
+    return (this.expectedEffort || 0) > 0;
   }
 
   get hasLanding(): boolean {
