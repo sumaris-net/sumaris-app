@@ -221,7 +221,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     super.enable(opts);
 
-    if (this.hasLanding) {
+    if (this.hasEffort) {
       this.taxonNamesFormArray.disable();
       this.appliedStrategiesForm.disable();
       this.lengthPmfmsForm.disable();

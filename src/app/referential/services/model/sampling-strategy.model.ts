@@ -228,6 +228,6 @@ export class StrategyEffort {
   }
 
   get hasLanding(): boolean {
-    return (this.landingCount && this.landingCount > 0);
+    return (this.landingCount || 0) > 0;
   }
 }
