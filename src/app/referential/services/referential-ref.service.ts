@@ -779,7 +779,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Force an update default values (e.g. when using LocationLevelId)
     ModelEnumUtils.refreshDefaultValues();
-    ProgramPropertiesUtils.refreshDefaultValues();
 
     // Location level groups
     //  /!\ should be call AFTER ModelEnumUtils.refreshDefaultValues()
@@ -789,6 +788,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (config.hasProperty(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS)) {
       LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
     }
+
+    // Force update ProgramProperties default
+    //  /!\ should be call AFTER overrides from config (e.g. in case an option use LocationLevelGroups.FISHING_AREA)
+    ProgramPropertiesUtils.refreshDefaultValues();
   }
 
 }

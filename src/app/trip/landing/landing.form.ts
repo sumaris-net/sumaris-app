@@ -160,7 +160,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   @Input() allowAddNewVessel: boolean;
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
-  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
+  @Input() fishingAreaLocationLevelIds: number[] = null;
 
   @Input() set showStrategy(value: boolean) {
     this._state.set('showStrategy', (_) => value);
@@ -261,6 +261,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       this.locationLevelIds = [LocationLevelIds.PORT];
       console.debug("[landing-form] Location level ids:", this.locationLevelIds);
     }
+    if (isNil(this.fishingAreaLocationLevelIds) && this.showFishingArea) {
+      this.fishingAreaLocationLevelIds = LocationLevelGroups.FISHING_AREA;
+      console.debug("[landing-form] Fishing area location level ids:", this.fishingAreaLocationLevelIds);
+    }
+
 
     // Combo: programs
     this.registerAutocompleteField('program', {
