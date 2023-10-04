@@ -699,10 +699,6 @@ export class TripPage
     }
   }
 
-  canUserWrite(data: Trip, opts?: any): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
-  }
-
   async save(event?: Event, opts?: any): Promise<boolean> {
     if (this.saving || this.loading) return false;
 

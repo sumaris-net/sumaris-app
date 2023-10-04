@@ -683,6 +683,12 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // Program
     ProgramLabel.SIH = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_SIH_LABEL);
 
+    // Program privilege
+    /* TODO add enumeration options
+    ProgramPrivilegeIds.MANAGER = ...
+    ProgramPrivilegeIds.OBSERVER = ...
+    */
+
     // Location Levels
     LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);

@@ -175,9 +175,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   canUserWrite(data: Landing, opts?: any): boolean {
-    return isNil(data.validationDate)
-      && isNil(this.parent?.validationDate)
-      && this.dataService.canUserWrite(data, opts);
+    return isNil(this.parent?.validationDate)
+      && super.canUserWrite(data, opts);
   }
 
   async reload(): Promise<void> {

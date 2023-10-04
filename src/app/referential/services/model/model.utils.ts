@@ -1,5 +1,5 @@
 import { isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { LengthUnitSymbol, UnitLabelGroups, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import {LengthUnitSymbol, ProgramPrivilege, ProgramPrivilegeHierarchy, ProgramPrivilegeEnum, UnitLabelGroups, WeightKgConversion, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 import { roundHalfUp } from '@app/shared/functions';
 
 export function isLengthUnitSymbol(label: any): label is LengthUnitSymbol {
@@ -36,5 +36,18 @@ export class WeightUtils {
       return withUnit ? `${value.toFixed(opts.maxDecimals)} ${opts.unit}` : value.toFixed(opts.maxDecimals);
     }
     return withUnit ? `${value} ${opts.unit}` : value.toString();
+  }
+}
+
+export class ProgramPrivilegeUtils {
+
+  static hasExactPrivilege(actualPrivileges: ProgramPrivilege[], expectedPrivilege: ProgramPrivilege): boolean {
+    if (!expectedPrivilege) return false;
+    return actualPrivileges?.includes(expectedPrivilege) || false;
+  }
+
+  static hasUpperOrEqualsPrivilege(actualPrivileges: ProgramPrivilege[], expectedPrivilege: ProgramPrivilege): boolean {
+    if (!expectedPrivilege) return false;
+    return actualPrivileges?.some(p => ProgramPrivilegeHierarchy[p]?.includes(expectedPrivilege)) || false;
   }
 }

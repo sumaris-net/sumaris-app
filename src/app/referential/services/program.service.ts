@@ -249,10 +249,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   async save(entity: Program, opts?: ProgramSaveOptions): Promise<Program> {
 
-    const isSamplingStrategyEditor = 'sampling' === entity?.properties[ProgramProperties.STRATEGY_EDITOR.key];
     opts = {
       withStrategies: false,
-      withDepartmentsAndPersons: isSamplingStrategyEditor ? false : true,
       ...opts
     };
 

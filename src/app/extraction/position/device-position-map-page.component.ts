@@ -23,7 +23,7 @@ import { RxState } from '@rx-angular/state';
 import { L } from '@app/shared/map/leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
 import { Feature, Point } from 'geojson';
-import { ObjectTypeEnum } from '@app/referential/services/model/model.enum';
+import { ObjectTypeLabels } from '@app/referential/services/model/model.enum';
 import { NavController } from '@ionic/angular';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
@@ -410,9 +410,9 @@ export class DevicePositionMapPage
     const objectType = position.objectType?.label;
     if (objectType) {
       switch (objectType) {
-        case ObjectTypeEnum.TRIP:
+        case ObjectTypeLabels.TRIP:
           return this.translate.instant('TRIP.TITLE')
-        case ObjectTypeEnum.OBSERVED_LOCATION:
+        case ObjectTypeLabels.OBSERVED_LOCATION:
           return this.translate.instant('OBSERVED_LOCATION.TITLE')
       }
       return objectType.split('_').map(capitalizeFirstLetter).join(' ');
@@ -477,10 +477,10 @@ export class DevicePositionMapPage
     }
     let path: string;
     switch (objectType) {
-      case ObjectTypeEnum.TRIP:
+      case ObjectTypeLabels.TRIP:
         path = `/trips/${objectId}`
         break;
-      case ObjectTypeEnum.OBSERVED_LOCATION:
+      case ObjectTypeLabels.OBSERVED_LOCATION:
         path = `/observations/${objectId}`
         break;
     }

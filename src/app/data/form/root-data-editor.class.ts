@@ -30,12 +30,13 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
+import {BaseRootDataService} from '@app/data/services/root-data-service.class';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataEditor<
   T extends RootDataEntity<T, ID>,
-  S extends IEntityService<T, ID> = IEntityService<T, any>,
+  S extends BaseRootDataService<T, any, ID> = BaseRootDataService<T, any, any>,
   ID = number
   >
   extends AppEntityEditor<T, S, ID> {
@@ -46,6 +47,7 @@ export abstract class AppRootDataEditor<
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
+  protected canDelete: boolean = null;
 
   protected programChangesSubscription: Subscription;
   protected remoteProgramSubscription: Subscription;
@@ -176,6 +178,21 @@ export abstract class AppRootDataEditor<
     this._reloadProgram$.unsubscribe();
     this._reloadStrategy$.complete();
     this._reloadStrategy$.unsubscribe();
+  }
+
+  canUserWrite(data: T, opts?: any): boolean {
+    return isNil(data.validationDate)
+      && this.dataService.canUserWrite(data, {program: this.program, ...opts} );
+  }
+
+  canUserDelete(data: T, opts?: any): boolean {
+    return !this.isNewData && this.dataService.canUserWrite(data, {program: this.program, ...opts} );
+  }
+
+  updateViewState(data: T, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.updateViewState(data, opts);
+
+    this.canDelete = this.enabled || this.canUserDelete(data);
   }
 
   async load(id?: ID, options?: EntityServiceLoadOptions) {

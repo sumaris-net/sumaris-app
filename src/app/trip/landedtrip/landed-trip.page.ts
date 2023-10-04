@@ -518,9 +518,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   }
 
   canUserWrite(data: Trip, opts?: any): boolean {
-    return isNil(data.validationDate)
-      // TODO: check observedLocation validationDate ?
-      && this.dataService.canUserWrite(data, opts);
+    // TODO: check observedLocation validationDate ?
+    return super.canUserWrite(data, opts);
   }
 
   /* -- protected methods -- */

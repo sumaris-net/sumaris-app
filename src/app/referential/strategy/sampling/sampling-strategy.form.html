@@ -1,13 +1,14 @@
 <app-debug *ngIf="debug">
   touched ? {{form.touched}}<br/>
   appliedPeriodsForm.touched ? {{appliedPeriodsForm.touched}}<br/>
+  hasEffort ? {{hasEffort}}<br/>
 </app-debug>
 
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <ion-grid>
 
     <!-- year + label -->
-    <ion-row *ngIf="form.controls.label; let labelControl">
+    <ion-row *ngIf="form|formGetControl:'label'; let labelControl">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>

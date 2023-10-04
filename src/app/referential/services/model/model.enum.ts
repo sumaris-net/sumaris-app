@@ -384,6 +384,11 @@ export const SaleTypeIds = {
   OTHER: 4
 };
 
+export type ProgramPrivilege = 'MANAGER'|'OBSERVER'|'VIEWER'|'VALIDATOR'|'QUALIFIER';
+export const ProgramPrivilegeEnum = Object.freeze({
+  MANAGER: <ProgramPrivilege>'MANAGER',
+  OBSERVER: <ProgramPrivilege>'OBSERVER'
+})
 export const ProgramPrivilegeIds = {
   MANAGER: 1,
   OBSERVER: 2,
@@ -392,9 +397,17 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
-export enum ObjectTypeEnum {
-  TRIP = 'FISHING_TRIP',
-  OBSERVED_LOCATION = 'OBSERVED_LOCATION',
+export const ProgramPrivilegeHierarchy = Object.freeze({
+  MANAGER: <ProgramPrivilege[]>['MANAGER', 'OBSERVER', 'VIEWER', 'VALIDATOR', 'QUALIFIER'],
+  OBSERVER: <ProgramPrivilege[]>['OBSERVER', 'VIEWER'],
+  VIEWER: <ProgramPrivilege[]>['VIEWER'],
+  VALIDATOR: <ProgramPrivilege[]>['VALIDATOR', 'VIEWER'],
+  QUALIFIER: <ProgramPrivilege[]>['QUALIFIER', 'VIEWER'],
+});
+
+export const ObjectTypeLabels = {
+  TRIP: 'FISHING_TRIP',
+  OBSERVED_LOCATION: 'OBSERVED_LOCATION',
 }
 
 export class ModelEnumUtils {
@@ -405,10 +418,10 @@ export class ModelEnumUtils {
     LocationLevelGroups.STATISTICAL_RECTANGLE = LocationLevels.getStatisticalRectangleLevelIds();
   }
 
-  static getObjectTypeByEntityName(entityName: string): ObjectTypeEnum {
+  static getObjectTypeByEntityName(entityName: string): string {
     if (!entityName) throw new Error('Missing argument \'entityName\'');
     const label = changeCaseToUnderscore(entityName).toUpperCase();
-    const value = ObjectTypeEnum[label];
+    const value = ObjectTypeLabels[label];
     if (value) return value;
     throw new Error('Missing an ObjectType for entityName: ' + entityName);
   }

@@ -1,9 +1,9 @@
-import { Injectable, Injector } from '@angular/core';
-import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map } from 'rxjs/operators';
-import { ErrorCodes } from './errors';
-import { ReferentialFragments } from './referential.fragments';
+import {Injectable, Injector} from '@angular/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {BehaviorSubject, defer, merge, Observable, Subject, Subscription} from 'rxjs';
+import {distinctUntilChanged, filter, finalize, map} from 'rxjs/operators';
+import {ErrorCodes} from './errors';
+import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
   arrayDistinct,
@@ -15,13 +15,14 @@ import {
   firstNotNilPromise,
   IEntitiesService,
   IEntityService,
-  IReferentialRef, isNil,
+  IReferentialRef,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, Person,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -31,30 +32,32 @@ import {
   SuggestService,
   Toasts
 } from '@sumaris-net/ngx-components';
-import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
-import { CacheService } from 'ionic-cache';
-import { ReferentialRefService } from './referential-ref.service';
-import { Program } from './model/program.model';
+import {TaxonGroupRef, TaxonGroupTypeIds} from './model/taxon-group.model';
+import {CacheService} from 'ionic-cache';
+import {ReferentialRefService} from './referential-ref.service';
+import {Program} from './model/program.model';
 
-import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
-import { IWithProgramEntity } from '@app/data/services/model/model.utils';
+import {DenormalizedPmfmStrategy} from './model/pmfm-strategy.model';
+import {IWithProgramEntity} from '@app/data/services/model/model.utils';
 
-import { StrategyFragments } from './strategy.fragments';
-import { ProgramFragments } from './program.fragments';
-import { PmfmService } from './pmfm.service';
-import { BaseReferentialService } from './base-referential-service.class';
-import { ProgramFilter } from './filter/program.filter';
-import { ReferentialRefFilter } from './filter/referential-ref.filter';
-import { environment } from '@environments/environment';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { ToastController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-import { OverlayEventDetail } from '@ionic/core';
-import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { SortDirection } from '@angular/material/sort';
-import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
-import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
-import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import {StrategyFragments} from './strategy.fragments';
+import {ProgramFragments} from './program.fragments';
+import {PmfmService} from './pmfm.service';
+import {BaseReferentialService} from './base-referential-service.class';
+import {ProgramFilter} from './filter/program.filter';
+import {ReferentialRefFilter} from './filter/referential-ref.filter';
+import {environment} from '@environments/environment';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {OverlayEventDetail} from '@ionic/core';
+import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
+import {SortDirection} from '@angular/material/sort';
+import {TaxonNameRefService} from '@app/referential/services/taxon-name-ref.service';
+import {DenormalizedPmfmStrategyFilter} from '@app/referential/services/filter/pmfm-strategy.filter';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {ProgramPrivilege, ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
+import {ProgramPrivilegeUtils} from '@app/referential/services/model/model.utils';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -264,13 +267,14 @@ export class ProgramRefService
       return true;
     }
 
-    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
-    // const program = opts?.program || load()
-    // See http://youtrack.ifremer.fr/issue/Obsbio-92
-    console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
+    // Manager can write data (IMAGINE - issue #465)
+    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.MANAGER)) {
+      return true;
+    }
 
     // Check same department
-    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment)
+      && this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER);
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -889,6 +893,18 @@ export class ProgramRefService
   async clearCache() {
     console.info("[program-ref-service] Clearing program cache...");
     await this.cache.clearGroup(ProgramRefCacheKeys.CACHE_GROUP);
+  }
+
+  hasExactPrivilege(program: Program, privilege: ProgramPrivilege): boolean {
+    // Lookup on person's privileges
+    return ProgramPrivilegeUtils.hasExactPrivilege(program?.privileges, privilege);
+    // TODO check program department privileges ? Or fill privileges on POD, with Program2Department
+  }
+
+  hasUpperOrEqualPrivilege(program: Program, privilege: ProgramPrivilege): boolean {
+    // Lookup on person's privileges
+    return ProgramPrivilegeUtils.hasUpperOrEqualsPrivilege(program?.privileges, privilege);
+    // TODO check program department privileges ? Or fill privileges on POD, with Program2Department
   }
 
   /* -- protected methods -- */

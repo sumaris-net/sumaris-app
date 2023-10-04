@@ -45,6 +45,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
+import {ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
 
 
 const ObservedLocationPageTabs = {
@@ -155,11 +156,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       })
     );
 
-  }
-
-  canUserWrite(data: ObservedLocation, opts?: any): boolean {
-    return isNil(data.validationDate)
-      && this.dataService.canUserWrite(data, opts);
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
@@ -378,30 +374,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-
-    // When connected user is an admin
-    if (this.accountService.isAdmin()) {
-      return true;
-    }
-
-    const entity = this.data;
-
-    // When observed location has been recorded by connected user
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
-
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
-    return false;
+  canUserDelete(data: ObservedLocation): boolean {
+    return super.canUserDelete(data)
+      // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+      || (data.observers?.some(o => ReferentialUtils.equals(o, this.accountService.person))
+        // Check also if has right on the data program (see issue #465 - IMAGINE)
+        && this.programRefService.hasExactPrivilege(this.program, ProgramPrivilegeEnum.OBSERVER));
   }
 
   async openReport(event?: Event) {
