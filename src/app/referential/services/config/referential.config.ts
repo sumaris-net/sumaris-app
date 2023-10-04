@@ -90,6 +90,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false'
   },
+
   ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.analyticReferences.enable',
     label: 'CONFIGURATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',

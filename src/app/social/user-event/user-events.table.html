@@ -135,12 +135,12 @@
               *ngIf="action.iconRef; else buttonLabel"
               [title]="action.title || action.name | translate"
               [color]="action.color | matColor"
-              (click)="doAction(action, row)"
+              (click)="doAction($event, action, row)"
             >
-              <app-icon slot="start" [ref]="action.iconRef"></app-icon>
+              <mat-icon>{{action.iconRef.matIcon}}<ion-icon *ngIf="action.iconRef.icon; let name" [name]="name"></ion-icon></mat-icon>
             </button>
             <ng-template #buttonLabel>
-              <button mat-button [color]="action.color | matColor" (click)="doAction(action, row)">
+              <button mat-button [color]="action.color | matColor" (click)="doAction($event, action, row)">
                 <mat-label>{{ action.title || action.name | translate }}</mat-label>
               </button>
             </ng-template>

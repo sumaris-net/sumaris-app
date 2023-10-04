@@ -2,17 +2,67 @@ import { Entity, EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fro
 import { Moment } from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 
-export type JobTypeEnum = 'IMPORT_ORDER_ITEM_SHAPE' | 'IMPORT_MONITORING_LOCATION_SHAPE';
-export type JobStatusEnum = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'FATAL' | 'CANCELLED';
-
+export type JobTypeLabel = 'VESSEL_SNAPSHOT_INDEXATION' | string;
+export type JobStatusLabel = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'FATAL' | 'CANCELLED';
+export const JobStatusLabels = {
+  PENDING: <JobStatusLabel>'PENDING',
+  RUNNING: <JobStatusLabel>'RUNNING',
+  SUCCESS: <JobStatusLabel>'SUCCESS',
+  WARNING: <JobStatusLabel>'WARNING',
+  ERROR: <JobStatusLabel>'ERROR',
+  FATAL: <JobStatusLabel>'FATAL',
+  CANCELLED: <JobStatusLabel>'CANCELLED'
+};
+export declare interface IJobStatus {
+  label: JobStatusLabel;
+  matIcon?: string;
+  name: string;
+}
+export const JobStatusList: Readonly<IJobStatus[]> = Object.freeze([
+  {
+    label: JobStatusLabels.PENDING,
+    matIcon: 'schedule',
+    name: 'SOCIAL.JOB.STATUS_ENUM.PENDING'
+  },
+  {
+    label: JobStatusLabels.RUNNING,
+    matIcon: 'pending',
+    name: 'SOCIAL.JOB.STATUS_ENUM.RUNNING'
+  },
+  {
+    label: JobStatusLabels.SUCCESS,
+    matIcon: 'check_circle',
+    name: 'SOCIAL.JOB.STATUS_ENUM.SUCCESS'
+  },
+  {
+    label: JobStatusLabels.WARNING,
+    icon: 'warning',
+    name: 'SOCIAL.JOB.STATUS_ENUM.WARNING'
+  },
+  {
+    label: JobStatusLabels.CANCELLED,
+    icon: 'cancel',
+    name: 'SOCIAL.JOB.STATUS_ENUM.CANCELLED'
+  },
+  {
+    label: JobStatusLabels.ERROR,
+    icon: 'error',
+    name: 'SOCIAL.JOB.STATUS_ENUM.ERROR'
+  },
+  {
+    label: JobStatusLabels.FATAL,
+    icon: 'error',
+    name: 'SOCIAL.JOB.STATUS_ENUM.FATAL'
+  }
+]);
 
 @EntityClass({ typename: 'JobVO' })
 export class Job extends Entity<Job> {
   static fromObject: (source: any, opts?: any) => Job;
 
   name: string;
-  type: JobTypeEnum;
-  status: JobStatusEnum;
+  type: JobTypeLabel;
+  status: JobStatusLabel;
   issuer: string;
   startDate: Moment;
   endDate: Moment;
@@ -71,8 +121,8 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
   static fromObject: (source: any, opts?: any) => JobFilter;
 
   issuer: string;
-  types: JobTypeEnum[];
-  status: JobStatusEnum[];
+  types: JobTypeLabel[];
+  status: JobStatusLabel[];
   lastUpdateDate: Moment;
   includedIds: number[];
   excludedIds: number[];
@@ -114,7 +164,7 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
 }
 
 export class JobStatusUtils {
-  static isFinished(status: JobStatusEnum) {
+  static isFinished(status: JobStatusLabel) {
     switch (status) {
       case 'PENDING':
       case 'RUNNING':
@@ -123,4 +173,5 @@ export class JobStatusUtils {
         return true;
     }
   }
+
 }

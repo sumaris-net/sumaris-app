@@ -2795,13 +2795,20 @@
           "WARNINGS": "Avertissement(s) : {{warnings}}",
           "ERRORS": "Erreur(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
-          "VESSEL_COUNT": "Nombre de navires: {{vesselCount}}",
+          "VESSELS": "Navire(s): {{vessels}}",
           "VESSELS": "Navire(s): {{vessels}}"
         },
         "ERROR": {
           "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",
           "RUN_JOB_ERROR": "Erreur lors du lancement du traitement"
         }
+      },
+      "TYPE_ENUM": {
+        "VESSEL_SNAPSHOTS_INDEXATION": "Indexation des navires dans ElasticSearch"
+      },
+      "ERROR": {
+        "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",
+        "RUN_JOB_ERROR": "Erreur lors du lancement du traitement"
       }
     },
     "MESSAGE": {

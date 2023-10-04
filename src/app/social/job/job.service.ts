@@ -4,11 +4,12 @@ import gql from 'graphql-tag';
 import { ErrorCodes } from '@app/referential/services/errors';
 import { Observable, Subject } from 'rxjs';
 import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { Job, JobFilter } from '@app/social/job/job.model';
 import { ModalController } from '@ionic/angular';
 import { JobReportModal, JobReportModalOptions } from '@app/social/job/report/job.report.modal';
 import { Page } from '@app/shared/service/page.model';
+import { AppJobErrorCodes } from '@app/social/job/job.errors';
 
 export const JobFragments = {
   light: gql`fragment LightJobFragment on JobVO {
@@ -48,12 +49,25 @@ const JobQueries = {
       }
     }
     ${JobFragments.full}`,
+
+  loadTypes: gql`
+    query JobTypes {
+      data: jobTypes
+    }`,
 };
 
 const JobMutations = {
   cancel: gql`
     mutation CancelJob($id: Int!) {
       data: cancelJob(id: $id) {
+        ...JobFragment
+      }
+    }
+    ${JobFragments.full}`,
+
+  run: gql`
+    mutation RunJob($type: String!, $issuer: String, $params: Map_String_ObjectScalar) {
+      data: runJob(type: $type, issuer: $issuer, params: $params) {
         ...JobFragment
       }
     }
@@ -244,6 +258,50 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
     });
 
     this.onCancel.next(job);
+
+    return job;
+  }
+
+  async loadTypes(opts?: {fetchPolicy?: FetchPolicy}): Promise<string[]> {
+    const { data } = await this.graphql.query<{ data: string[] }>({
+      query: JobQueries.loadTypes,
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
+      fetchPolicy: opts?.fetchPolicy || 'cache-first'
+    });
+
+    return data;
+  }
+
+  watchTypes(opts?: {fetchPolicy?: FetchPolicy}): Observable<string[]> {
+    return this.graphql.watchQuery<{ data: string[] }>({
+      query: JobQueries.loadTypes,
+      error: { code: AppJobErrorCodes.LOAD_TYPES_ERROR, message: 'SOCIAL.JOB.ERROR.LOAD_TYPES_ERROR' },
+      fetchPolicy: opts?.fetchPolicy || 'cache-and-network'
+    }).pipe(
+      map(({data}) => data),
+      distinctUntilChanged()
+    );
+  }
+
+
+  async runJob(type: string, params?: any, issuer?: string): Promise<Job> {
+
+    let job: Job;
+    await this.graphql.mutate<{data: Job}>({
+      mutation: JobMutations.run,
+      error: {code: AppJobErrorCodes.RUN_JOB_ERROR, message: "SOCIAL.JOB.ERROR.RUN_JOB_ERROR"},
+      variables: {
+        type,
+        params,
+        issuer
+      },
+      update:  (proxy, {data}) => {
+        if (data.data) {
+          job = Job.fromObject(data.data);
+          this.addJob(job.id, job);
+        }
+      }
+    });
 
     return job;
   }
