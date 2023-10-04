@@ -85,6 +85,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   hasEffort = false;
   hasLanding = false;
+  hasScientificCruise = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy, UntypedFormGroup>;
   departmentsHelper: FormArrayHelper<StrategyDepartment, UntypedFormGroup>;
@@ -931,6 +932,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // Fill efforts (need by validator)
       this.hasEffort = this.data.hasRealizedEffort;
       this.hasLanding = this.data.hasLanding;
+      this.hasScientificCruise = this.data.hasScientificCruise;
 
       // Make sure to have (at least) one department
       data.departments = data.departments && data.departments.length ? data.departments : [null];

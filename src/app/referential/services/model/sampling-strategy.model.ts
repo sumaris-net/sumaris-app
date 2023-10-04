@@ -146,6 +146,10 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
   get hasLanding(): boolean {
     return (this.efforts || []).findIndex(e => e.hasLanding) !== -1;
   }
+
+  get hasScientificCruise(): boolean {
+    return (this.efforts || []).findIndex(e => e.hasScientificCruise) !== -1;
+  }
 }
 
 
@@ -172,6 +176,7 @@ export class StrategyEffort {
   expectedEffort: number;
   realizedEffort: number;
   landingCount: number;
+  scientificCruise: number;
 
   constructor() {
   }
@@ -191,6 +196,7 @@ export class StrategyEffort {
     this.expectedEffort = toNumber(source.expectedEffort);
     this.realizedEffort = toNumber(source.realizedEffort);
     this.landingCount = toNumber(source.landingCount);
+    this.scientificCruise = toNumber(source.scientificCruise);
 
     // Compute quarter (if possible = is same between start/end date)
     const startQuarter = this.startDate && this.startDate.quarter();
@@ -229,5 +235,9 @@ export class StrategyEffort {
 
   get hasLanding(): boolean {
     return (this.landingCount || 0) > 0;
+  }
+
+  get hasScientificCruise(): boolean {
+    return (this.scientificCruise || 0) > 0;
   }
 }
