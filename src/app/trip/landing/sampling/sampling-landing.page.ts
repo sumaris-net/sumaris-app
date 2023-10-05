@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Inject
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds, ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import {
   AccountService,
@@ -117,7 +117,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   }
 
   updateTabsState(data: Landing) {
-    // Enable landings tab
+    // Enable landings ta
     this.showSamplesTable = this.showSamplesTable || !this.isNewData || this.isOnFieldMode;
 
     // confirmation pop-up on quite form if form not touch
@@ -134,19 +134,14 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   }
 
   canUserDelete(data: Landing, opts?: any): boolean {
-    const canWrite = this.canUserWrite(data);
-    if (canWrite) return true;
-
-    // Observers can delete - https://youtrack.ifremer.fr/issue/IMAGINE-632
-    const currentPerson = this.accountService.person;
-    if (isNil(this.data.validationDate) && isNil(this.parent?.validationDate)) {
-      const isObserver = (data?.observers || [])
-        .concat(this.parent?.observers || [])
-        .some(observer => ReferentialUtils.equals(currentPerson, observer))
-      if (isObserver) return true;
-    }
-
-    return false;
+    return this.canUserWrite(data, opts)
+    || (!this.isNewData && isNil(this.data.validationDate) && isNil(this.parent?.validationDate)
+        // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+        && (data?.observers || []).concat(this.parent?.observers || [])
+          .some(o => ReferentialUtils.equals(o, this.accountService.person))
+        // Check also if has right on the data program (see issue #465 - IMAGINE)
+        && this.programRefService.hasExactPrivilege(this.program, ProgramPrivilegeEnum.OBSERVER)
+      );
   }
 
   protected async setStrategy(strategy: Strategy) {
