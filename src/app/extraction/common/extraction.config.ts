@@ -76,7 +76,7 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       },
       columnSizes: [2, 4, 6],
-      displayWith: (p) => p?.label || joinProperties(p, ['id', 'name'])
+      displayWith: (p) => p?.label || (p && joinProperties(p, ['id', 'name'])) || null
     }
   },
 
