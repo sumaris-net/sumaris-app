@@ -35,6 +35,7 @@ import { filter, map } from 'rxjs/operators';
 import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
+import { isNonEmptyArray } from '@apollo/client/utilities';
 
 const queries: IUserEventQueries & { loadContent: any }= {
   loadContent: gql`query UserEventContent($id: Int!) {
@@ -301,16 +302,20 @@ export class UserEventService extends
 
   async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
 
-    if (pubkey === 'SYSTEM') return null;
+    if (!pubkey || pubkey === 'SYSTEM') return null;
 
     if (!opts || opts.cache !== false) {
       const cacheKey = [CacheKeys.PERSON_BY_PUBKEY, pubkey].join('|');
       return this.cache.getOrSetItem(cacheKey, () => this.getPersonByPubkey(pubkey, {cache: false, toEntity: false}), CacheKeys.CACHE_GROUP)
-        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data) : data);
+        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data || {}) : (data || <Person>{pubkey}));
     }
 
+    // TODO use this.personService.loadByPubkey() instead
     const {data} = await this.personService.loadAll(0, 1, null,  null, {pubkey}, {withTotal: false, ...opts});
-    return data && data[0] as Person;
+    const entity = isNonEmptyArray(data)
+      ? data[0]
+      : opts?.toEntity !== false ? Person.fromObject({pubkey}) : {pubkey} as Person;
+    return entity;
   }
 
 
@@ -466,7 +471,9 @@ export class UserEventService extends
   }
 
   protected personToString(obj: Person, opts?: {withDepartment: boolean}): string {
-    if (!obj || !obj.id) return undefined;
+    if (!obj || !obj.id) {
+      return obj?.pubkey?.substring(0,8) || '?';
+    }
     if (opts?.withDepartment && obj.department?.label) {
       return obj.firstName + ' ' + obj.lastName + ' (' + obj.department?.label + ')';
     }
