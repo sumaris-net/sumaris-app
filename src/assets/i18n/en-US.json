@@ -2484,7 +2484,8 @@
       "MAP_CENTER_ZOOM": "Extraction > Map: Default zoom (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions",
-      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?"
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
+      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Trips > Individual length (HL): Length PMFM(s)"
     },
     "PRODUCT": {
       "NEW": {

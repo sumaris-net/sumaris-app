@@ -2550,7 +2550,8 @@
       "MAP_CENTER_ZOOM": "Extraction > Cartes : Zoom par défaut (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
-      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?"
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?",
+      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Mensurations (HL) : PSFM(s) de longueur"
     },
     "PRODUCT": {
       "NEW": {

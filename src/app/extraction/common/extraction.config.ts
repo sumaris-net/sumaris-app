@@ -1,5 +1,5 @@
 import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, joinProperties, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   /*'ExtractionTypeVO': {
@@ -62,6 +62,22 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     label: "EXTRACTION.OPTIONS.BATCH_DENORMALIZATION_ENABLE",
     type: 'boolean',
     defaultValue: 'false'
+  },
+
+  EXTRACTION_SPECIES_LENGTH_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.extraction.rdb.speciesLength.pmfm.ids',
+    label: "EXTRACTION.OPTIONS.SPECIES_LENGTH_PMFM_IDS",
+    type: 'entities',
+    defaultValue: null,
+    autocomplete: {
+      attributes: ['id', 'label', 'name'],
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      columnSizes: [2, 4, 6],
+      displayWith: (p) => p?.label || joinProperties(p, ['id', 'name'])
+    }
   },
 
 });
