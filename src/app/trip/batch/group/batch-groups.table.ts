@@ -24,7 +24,7 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
@@ -147,6 +147,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       key: 'totalWeight',
       path: 'weight.value',
       label: 'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
+      unitLabel: UnitLabel.KG,
       minValue: 0,
       maxValue: 10000,
       maximumNumberDecimals: 3,
@@ -184,6 +185,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       key: 'samplingWeight',
       path: 'children.0.weight.value',
       label: 'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
+      unitLabel: UnitLabel.KG,
       minValue: 0,
       maxValue: 1000,
       maximumNumberDecimals: 3,
