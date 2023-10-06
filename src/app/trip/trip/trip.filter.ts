@@ -88,6 +88,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // Exclude scientific cruise by default
       if (isNil(target.hasScientificCruise)) {
         target.hasScientificCruise = false;
+//        target.hasScientificCruise = true;
       }
     }
     else {
