@@ -72,7 +72,7 @@ export abstract class AppRootDataTable<
   protected readonly popoverController: PopoverController;
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
-  protected readonly selectedProgramLabels$: Observable<string[]>;
+  protected readonly $selectedProgramLabels = new BehaviorSubject<string[]>([]);
 
   canDelete: boolean;
   isAdmin: boolean;
@@ -142,21 +142,20 @@ export abstract class AppRootDataTable<
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
 
-    this.selectedProgramLabels$ = this.selection.changed
-      .pipe(
-        debounceTime(650),
-        map(_ => this.selection.selected)
-      )
-      .pipe(
-        // Get program labels, from selected rows
-        startWith(this.selection.selected),
-
-        map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
-        filter(isNotEmptyArray),
-        map(labels => arrayDistinct(labels)),
-
-        // DEBUG
-        tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+    this.registerSubscription(
+      this.selection.changed
+        .pipe(
+          debounceTime(650)
+        )
+        .pipe(
+          map(_ => this.selection.selected),
+          map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
+          filter(isNotEmptyArray),
+          map(programLabels => arrayDistinct(programLabels)),
+          // DEBUG
+          tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+        )
+        .subscribe(programLabels => this.$selectedProgramLabels.next(programLabels))
       );
   }
 

@@ -4,7 +4,7 @@ import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
 import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
