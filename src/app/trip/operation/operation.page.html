@@ -26,6 +26,7 @@
     <!-- New operation -->
     <ion-button fill="solid" color="tertiary" *ngIf="mobile"
                 hidden-xxs hidden-xs
+                class="ion-margin-end"
                 [disabled]="disabled || vars.loading || vars.saving"
                 (click)="saveAndNew($event)">
       <ion-icon slot="start" name="add-circle"></ion-icon>
@@ -187,20 +188,19 @@
             [disabled]="!helpUrl"
             (click)="openHelpModal($event)">
       <ion-label>
-        <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>&nbsp;
+        <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_SHOW_HELP</span>
       </ion-label>
     </button>
 
     <mat-divider *ngIf="mobile && enabled"></mat-divider>
 
-
     <!-- reset -->
     <button mat-menu-item
             [disabled]="!dirty"
             (click)="cancel($event)">
       <ion-label>
-        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>&nbsp;
+        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_RESET</span>
       </ion-label>
     </button>
@@ -210,7 +210,7 @@
             [disabled]="isNewData || disabled"
             (click)="delete($event)">
       <ion-label>
-        <mat-icon>delete</mat-icon>&nbsp;
+        <mat-icon>delete</mat-icon>
         <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
       </ion-label>
     </button>
