@@ -18,23 +18,10 @@ import {BaseTripReport} from '@app/trip/trip/report/base-trip.report';
 })
 export class TripReport extends BaseTripReport<RdbPmfmExtractionData> {
 
-  protected logPrefix = 'trip-report ';
-
   constructor(injector: Injector,
               tripReportService: TripReportService<RdbPmfmExtractionData>) {
     super(injector, tripReportService);
-  }
-
-  protected loadData(filter: ExtractionFilter,
-                     opts?: {
-                       type?: ExtractionType;
-                       cache?: boolean;
-                     }): Promise<RdbPmfmExtractionData> {
-    return this.tripReportService.loadAll(filter, {
-      ...opts,
-      formatLabel: this.type?.label || undefined,
-      fetchPolicy: 'no-cache'
-    });
+    this.logPrefix = 'trip-report ';
   }
 
 }

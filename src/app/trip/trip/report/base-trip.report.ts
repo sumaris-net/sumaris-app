@@ -219,8 +219,17 @@ export abstract class BaseTripReport<
     stats.program = stats.programLabel && (await this.programRefService.loadByLabel(stats.programLabel));
     stats.vesselSnapshots = await this.computeVesselSnapshots(data.TR);
 
-    stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime), DateUtils.moment());
-    stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.departureDateTime), DateUtils.moment(0));
+    // Compute startDate (from trips or from operations)
+    stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime?.isValid() && t.departureDateTime), undefined as Moment);
+    if (!stats.startDate || !stats.startDate.isValid()) {
+      stats.startDate = stats.operations.reduce((date, o) => DateUtils.min(date, o.startDateTime?.isValid() && o.startDateTime), undefined as Moment);
+    }
+
+    // Compute endDate (from trips or from operations)
+    stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.returnDateTime?.isValid() && t.returnDateTime), undefined as Moment);
+    if (!stats.endDate || !stats.endDate.isValid()) {
+      stats.endDate = stats.operations.reduce((date, o) => DateUtils.max(date, o.endDateTime?.isValid() && o.endDateTime), undefined as Moment);
+    }
     stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
 
     stats.species = await this.computeSpecies(data, stats, opts);
@@ -559,11 +568,19 @@ export abstract class BaseTripReport<
       const baseTripPath = `/trips/${stats.trips[0].id}`;
       return `${baseTripPath}?tab=1`;
     }
+    // Back to extraction
+    else {
+      const queryString = Object.entries(this.route.snapshot.queryParams || {})
+        .map(([key, value]) => {
+        return `${key}=${value}`;
+      }).join('&');
+      return `/extraction/data?${queryString}`;
+    }
   }
 
   protected async computeTitle(data: T, stats: S): Promise<string> {
 
-    if (stats.vesselSnapshots?.length === 1) {
+    if (stats.vesselSnapshots?.length === 1 && stats.startDate?.isValid()) {
       return this.translate.instant('TRIP.REPORT.TITLE', {
         departureDate: this.dateFormat.transform(stats.startDate, {time: false}),
         vessel: stats.vesselSnapshots[0].exteriorMarking

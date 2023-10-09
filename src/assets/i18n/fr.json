@@ -150,6 +150,9 @@
       "DIALOG_TITLE": "Partager",
       "LINK": "Lien de partage"
     },
+    "REPORT": {
+      "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :"
+    },
     "HELP": {
       "TITLE": "Aide en ligne"
     }
