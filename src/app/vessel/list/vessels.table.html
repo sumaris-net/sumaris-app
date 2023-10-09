@@ -319,12 +319,17 @@
 
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
-      <th mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef>
       </th>
-      <td mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-icon class="comment"
-                  *ngIf="row.currentData.vesselFeatures?.comments"
-                  [title]="row.currentData.vesselFeatures?.comments">chat_bubble</mat-icon>
+      <td mat-cell *matCellDef="let row">
+        <span *ngIf="row.currentData.vesselFeatures?.comments as comments"
+              [title]="comments">
+          <ion-icon
+            color="tertiary"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
+        </span>
       </td>
     </ng-container>
 
