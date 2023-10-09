@@ -2062,6 +2062,7 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
+      "TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS": "Extraction > Trips: Locations level(s) for column 'AREA'",
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Occasion > Start date: Time ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Occasion > End date?",
@@ -2498,6 +2499,9 @@
       },
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
+      },
+      "INFO": {
+        "UPDATED_SUCCEED": "Execution <b>completed</b> successfully!"
       }
     },
     "FORMAT": {

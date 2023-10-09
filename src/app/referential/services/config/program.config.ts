@@ -578,6 +578,20 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'Observer' // See RDB/COST extraction specification
   },
+  TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.area.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
+    defaultValue: null
+  },
+
   TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.extraction.batch.denormalization.enable',
     label: "PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE",
