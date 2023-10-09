@@ -2068,6 +2068,7 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
+      "TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS": "Extraction > Marées: Niveau(x) de lieux pour la colonne 'AREA'",
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
@@ -2563,6 +2564,9 @@
       },
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
+      },
+      "INFO": {
+        "UPDATED_SUCCEED": "Éxecution <b>terminée</b> avec succès !"
       }
     },
     "FORMAT": {
