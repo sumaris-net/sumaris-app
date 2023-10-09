@@ -31,10 +31,11 @@
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
       <section *sectionDef>
           <section>
-            <h1>{{ 'TRIP.OPERATION.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-            <h2>Working progress....</h2>
+            <h2>{{ 'TRIP.OPERATION.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
+            <p [innerHTML]="'ERROR.FEATURE_NOT_IMPLEMENTED'|translate"></p>
           </section>
       </section>
+
   </app-reveal>
 
   <ng-template #loadingTemplate>

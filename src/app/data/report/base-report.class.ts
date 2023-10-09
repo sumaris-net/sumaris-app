@@ -185,14 +185,11 @@ export abstract class AppBaseReport<
     return `${peerUrl.replace(/\/$/, '')}/share/`;
   }
 
-  private location: Location;
-
   protected constructor(
     injector: Injector,
     protected dataType: new() => T,
     protected statsType: new() => S,
-    @Optional() protected options?: O,
-    @Optional() parent?: AppBaseReport<any>,
+    @Optional() protected options?: O
   ) {
     this.injector = injector;
     this.baseHref = injector.get(APP_BASE_HREF);
@@ -541,12 +538,16 @@ export abstract class AppBaseReport<
         event,
         {
           text: shareUrl,
-          title: 'COMMON.SHARE.LINK',
+          title: '',
           editing: false,
           autofocus: false,
           multiline: true,
+          autoHeight: true,
+          placeholder: this.translate.instant('COMMON.REPORT.SHARE_LINK_PLACEHOLDER'),
           maxLength: null,
+          showFooter: false,
           headerColor: 'secondary',
+
           headerButtons: [
             {
               icon: 'copy',
@@ -566,7 +567,10 @@ export abstract class AppBaseReport<
               }
             }
           ]
-        }
+        } as any,
+        {
+          backdropDismiss: true
+        } as any
       )
     }
   }
