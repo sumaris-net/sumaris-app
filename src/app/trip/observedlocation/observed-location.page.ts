@@ -14,8 +14,7 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
-  isNil,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
   LocalSettingsService,
   NetworkService,
   ReferentialRef,
@@ -45,7 +44,6 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
-import {ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
 
 
 const ObservedLocationPageTabs = {
@@ -374,14 +372,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  canUserDelete(data: ObservedLocation): boolean {
-    return super.canUserDelete(data)
-      // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-      || (data.observers?.some(o => ReferentialUtils.equals(o, this.accountService.person))
-        // Check also if has right on the data program (see issue #465 - IMAGINE)
-        && this.programRefService.hasExactPrivilege(this.program, ProgramPrivilegeEnum.OBSERVER));
-  }
-
   async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
@@ -575,8 +565,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async getValue(): Promise<ObservedLocation> {
-    const data = await super.getValue();
-    return data;
+    return await super.getValue();
   }
 
   protected get form(): UntypedFormGroup {

@@ -11,7 +11,6 @@ import {
   EntityServiceLoadOptions,
   fromDateISOString,
   HistoryPageReference,
-  IEntityService,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -47,8 +46,6 @@ export abstract class AppRootDataEditor<
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
   protected autocompleteHelper: MatAutocompleteConfigHolder;
-  protected canDelete: boolean = null;
-
   protected programChangesSubscription: Subscription;
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
@@ -183,16 +180,6 @@ export abstract class AppRootDataEditor<
   canUserWrite(data: T, opts?: any): boolean {
     return isNil(data.validationDate)
       && this.dataService.canUserWrite(data, {program: this.program, ...opts} );
-  }
-
-  canUserDelete(data: T, opts?: any): boolean {
-    return !this.isNewData && this.dataService.canUserWrite(data, {program: this.program, ...opts} );
-  }
-
-  updateViewState(data: T, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.updateViewState(data, opts);
-
-    this.canDelete = this.enabled || this.canUserDelete(data);
   }
 
   async load(id?: ID, options?: EntityServiceLoadOptions) {

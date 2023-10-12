@@ -32,7 +32,7 @@
 
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled || !canDelete"
+          [disabled]="isNewData || disabled"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;

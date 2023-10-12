@@ -2101,7 +2101,8 @@
       "STRATEGY_DEPARTMENT_ENABLE": "Strategy > Enable access right by department (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
-      "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
+      "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?",
+      "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",

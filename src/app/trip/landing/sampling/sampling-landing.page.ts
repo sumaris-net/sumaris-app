@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Inject
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import {AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds, ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds} from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import {
   AccountService,
@@ -14,7 +14,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  ReferentialUtils,
   SharedValidators
 } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from './biological-sampling.validators';
@@ -44,7 +43,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
-  canDelete = false;
 
   constructor(
     injector: Injector,
@@ -112,8 +110,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
     // Update tabs state (show/hide)
     this.updateTabsState(data);
-
-    this.canDelete = this.canUserDelete(data);
   }
 
   updateTabsState(data: Landing) {
@@ -131,17 +127,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
       this.tabGroup.realignInkBar();
       this.autoOpenNextTab = false; // Should switch only once
     }
-  }
-
-  canUserDelete(data: Landing, opts?: any): boolean {
-    return this.canUserWrite(data, opts)
-    || (!this.isNewData && isNil(this.data.validationDate) && isNil(this.parent?.validationDate)
-        // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-        && (data?.observers || []).concat(this.parent?.observers || [])
-          .some(o => ReferentialUtils.equals(o, this.accountService.person))
-        // Check also if has right on the data program (see issue #465 - IMAGINE)
-        && this.programRefService.hasExactPrivilege(this.program, ProgramPrivilegeEnum.OBSERVER)
-      );
   }
 
   protected async setStrategy(strategy: Strategy) {

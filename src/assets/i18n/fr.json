@@ -2107,7 +2107,8 @@
       "STRATEGY_DEPARTMENT_ENABLE": "Stratégie > Activer les droits d'accès par département (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
-      "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
+      "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?",
+      "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",

@@ -22,7 +22,7 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService, Person,
+  NetworkService,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -58,6 +58,8 @@ import {DenormalizedPmfmStrategyFilter} from '@app/referential/services/filter/p
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {ProgramPrivilege, ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
 import {ProgramPrivilegeUtils} from '@app/referential/services/model/model.utils';
+import {DataEntityUtils} from '@app/data/services/model/data-entity.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -272,9 +274,24 @@ export class ProgramRefService
       return true;
     }
 
-    // Check same department
-    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment)
-      && this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER);
+    // If user has observer privileges and the option to allow observer to write data is enabled
+    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
+      // Check if declared as observers (in data)
+      if (
+        DataEntityUtils.isWithObservers(entity)
+        && opts?.program?.getPropertyAsBoolean(ProgramProperties.DATA_OBSERVERS_CAN_WRITE)
+        && entity.observers?.some(o => ReferentialUtils.equals(o, this.accountService.person))
+      ) {
+        return true;
+      }
+
+      // Check same department
+      if (this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,

@@ -31,6 +31,15 @@ export const OperationPasteFlags = Object.freeze({
 
 
 export const ProgramProperties = Object.freeze({
+
+  // Right
+  DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
+    key: 'sumaris.data.observers.canWrite',
+    label: 'PROGRAM.OPTIONS.DATA_OBSERVERS_CAN_WRITE',
+    type: 'boolean',
+    defaultValue: false,
+  },
+
   // Trip
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.location.level.ids',
