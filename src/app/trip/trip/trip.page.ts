@@ -523,16 +523,16 @@ export class TripPage
 
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-    this.tripContext?.setValue('usageMode', this.usageMode);
+    this.tripContext.setValue('usageMode', this.usageMode);
 
     // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
+    this.tripContext.setValue('trip', this.data.clone());
 
     // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
-    this.tripContext?.setValue('operation', row.currentData);
+    this.tripContext.setValue('operation', row.currentData);
 
     // Propagate the past flags to clipboard
-    this.tripContext?.setValue('clipboard', {
+    this.tripContext.setValue('clipboard', {
       data: null, // Reset data
       pasteFlags: this.operationPasteFlags // Keep flags
     });
@@ -557,13 +557,13 @@ export class TripPage
     this.markAsLoading();
 
     // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
+    this.tripContext.setValue('trip', this.data.clone());
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-    this.tripContext?.setValue('usageMode', this.usageMode);
+    this.tripContext.setValue('usageMode', this.usageMode);
 
     // Reset operation
-    this.tripContext?.resetValue('operation');
+    this.tripContext.resetValue('operation');
 
     // Open the operation editor
     setTimeout(async () => {
@@ -579,7 +579,7 @@ export class TripPage
     if (!event?.data) return; // Skip
 
     // Fill clipboard
-    this.tripContext?.setValue('clipboard', {
+    this.tripContext.setValue('clipboard', {
       data: event.data.clone(),
       pasteFlags: this.operationPasteFlags
     });

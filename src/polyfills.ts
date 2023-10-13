@@ -49,7 +49,7 @@ import './zone-flags';
  */
 import 'zone.js/dist/zone'; // Included with Angular CLI.
 
-// Workaround - patch Zone to mute startup error message, when Promise unpacthed
+// Workaround - patch Zone to mute startup error message, when Promise unpatched
 // Disable check on Promise
 if ((window as any).__Zone_disable_ZoneAwarePromise === true) {
   window['Zone'].assertZonePatched = function () {}
@@ -58,9 +58,6 @@ if ((window as any).__Zone_disable_ZoneAwarePromise === true) {
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-
-import 'tweetnacl';
-import 'tweetnacl-util';
 
 // Import Hammer JS (need to manage 'tap' events)
 import 'hammerjs';

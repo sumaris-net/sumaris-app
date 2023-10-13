@@ -29,8 +29,8 @@
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu">
   <button mat-menu-item
-          (click)="delete($event)"
-          [disabled]="disabled">
+          [disabled]="disabled"
+          (click)="delete($event)">
     <mat-icon>delete</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>

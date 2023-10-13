@@ -204,7 +204,7 @@ export abstract class AppRootDataEditor<
   }
 
   protected async setProgram(program: Program) {
-    // Can be override by subclasses
+    // Can be overridden by subclasses
 
     // DEBUG
     if (program && this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);

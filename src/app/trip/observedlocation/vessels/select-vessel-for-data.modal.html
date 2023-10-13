@@ -1,6 +1,5 @@
 <app-modal-toolbar color="secondary"
                    (cancel)="cancel()"
-                   [showSpinner]="loading"
                    [canValidate]="canValidate"
                    (validate)="close($event)">
   <ion-title translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TITLE</ion-title>
@@ -8,14 +7,14 @@
   <ion-buttons slot="end">
     <!-- vessel table options -->
     <ng-container *ngIf="selectedTabIndex === 1">
-      <!-- reset filter -->
+      <!--&lt;!&ndash; reset filter &ndash;&gt;
       <button mat-icon-button (click)="vesselsTable.resetFilter()"
               *ngIf="vesselsTable.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
         <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
-      <!-- show filter -->
+      &lt;!&ndash; show filter &ndash;&gt;
       <button mat-icon-button (click)="vesselsTable.filterExpansionPanel.toggle()">
         <mat-icon *ngIf="vesselsTable.filterCriteriaCount; else emptyFilter"
                   [matBadge]="vesselsTable.filterCriteriaCount"
@@ -25,7 +24,7 @@
         <ng-template #emptyFilter>
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
-      </button>
+      </button>-->
     </ng-container>
   </ion-buttons>
 </app-modal-toolbar>
@@ -34,8 +33,7 @@
 
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex"
-                 dynamicHeight="false"
-                 class="">
+                 dynamicHeight="false">
 
     <!-- TAB: landings -->
     <mat-tab label="{{'OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TAB_LANDINGS'|translate}}">
@@ -76,15 +74,17 @@
       <app-vessels-table #vesselsTable
                          [canEdit]="false"
                          [canDelete]="false"
-                         [showToolbar]="false"
                          [showIdColumn]="false"
+                         [showToolbar]="true"
+                         [showSearchbar]="true"
                          [showVesselTypeColumn]="showVesselTypeColumn"
+                         [restoreFilterSources]="false"
+                         [showOfflineMode]="showOfflineVessels"
                          [showBasePortLocationColumn]="showBasePortLocationColumn"
                          [synchronizationStatus]="defaultVesselSynchronizationStatus"
                          (onOpenRow)="selectRow($event)"
                          (onNewRow)="close($event)">
       </app-vessels-table>
-
     </mat-tab>
 
     <!-- TAB: create new vessel -->

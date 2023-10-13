@@ -58,6 +58,7 @@
           *ngIf="enableReplacement"
           [disabled]="replacementDisabled"
           (click)="replace($event)">
+    <mat-icon>find_replace</mat-icon>
     <mat-label translate>VESSEL.ACTION.REPLACE_MANY</mat-label>
   </button>
 
@@ -84,7 +85,6 @@
   </app-vessels-table>
 
 </ion-content>
-
 
 <!-- paginator -->
 <ion-footer>

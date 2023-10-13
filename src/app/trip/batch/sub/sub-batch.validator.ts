@@ -51,7 +51,7 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
 }
 
 @Injectable(
-  // Canot be root, because we need to inject context dynamically
+  // Cannot be root, because we need to inject context dynamically
   //{providedIn: 'root'}
 )
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {

@@ -206,13 +206,11 @@
     </button>
 
     <!-- delete -->
-    <button mat-menu-item class="ion-color-danger"
+    <button mat-menu-item
             [disabled]="isNewData || disabled"
             (click)="delete($event)">
-      <ion-label>
-        <mat-icon>delete</mat-icon>
-        <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
-      </ion-label>
+      <mat-icon>delete</mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
   </ng-template>
 

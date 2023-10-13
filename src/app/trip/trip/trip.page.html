@@ -51,7 +51,7 @@
           (click)="openReport($event)">
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-      <span translate>TRIP.EDIT.BTN_REPORT_DOTS</span>
+      <span translate>TRIP.EDIT.BTN_REPORT</span>
     </ion-label>
   </button>
 
@@ -113,13 +113,11 @@
   <mat-divider></mat-divider>
 
   <!-- delete -->
-  <button mat-menu-item class="ion-color-danger"
+  <button mat-menu-item
           [disabled]="isNewData || disabled"
           (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>TRIP.EDIT.BTN_DELETE</span>
-    </ion-label>
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>TRIP.EDIT.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 

@@ -28,6 +28,7 @@ export interface SelectVesselsForDataModalOptions {
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
   showSamplesCountColumn: boolean;
+  showOfflineVessels: boolean;
   defaultVesselSynchronizationStatus: SynchronizationStatus;
   maxDateVesselRegistration?: Moment;
 }
@@ -62,6 +63,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @Input() defaultRegistrationLocation: ReferentialRef;
   @Input() withNameRequired: boolean;
   @Input() maxDateVesselRegistration: Moment;
+  @Input() showOfflineVessels: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -123,7 +125,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
     // Init vessel table filter
     this.vesselsTable.filter = this.vesselFilter;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // Load landings
       this.landingsTable.onRefresh.next("modal");
       this.selectedTabIndex = 0;

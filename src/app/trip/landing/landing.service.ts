@@ -28,7 +28,7 @@ import {
   toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, firstValueFrom, Observable } from 'rxjs';
 import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
@@ -64,6 +64,8 @@ import {ProgressionModel} from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
 import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -285,7 +287,8 @@ const sortByDateOrIdFn = (n1: Landing, n2: Landing) => {
 };
 
 const sortByAscRankOrder = (n1: Landing, n2: Landing) => {
-  return n1.rankOrder === n2.rankOrder ? 0 :
+  return n1.rankOrder === n2.rankOrder
+    ? 0 :
     (n1.rankOrder > n2.rankOrder ? 1 : -1);
 };
 
@@ -331,12 +334,12 @@ export class LandingService
 
   hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
     // TODO
-    console.log('TODO: implement this part');
+    console.warn('TODO: implement LandingService.hasSampleWithTagId()');
     return Promise.resolve(false);
   }
 
   async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+    return firstValueFrom(this.watchAllByObservedLocation(filter, opts));
   }
 
   watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
@@ -366,6 +369,22 @@ export class LandingService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
+
+    // Fix sortBy (id -> rankOrder)
+    let afterSortBy = sortBy;
+    sortBy =  (sortBy !== 'id' && sortBy) || 'dateTime';
+    if (sortBy === 'vessel') {
+      sortBy = 'vesselSnapshot.' + this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES)[0];
+      // If fetching all rows: do NOT sort on pod
+      if (size === -1) {
+        afterSortBy = sortBy;
+        sortBy = 'dateTime';
+      }
+      else {
+        console.warn(this._logPrefix + `Pod sorting on '${sortBy}' can be long... Please make sure you need a page size=${size}, instead of all rows (that allow to sort in App side)`);
+      }
+    }
+
     const groupByVessel = dataFilter?.groupByVessel === true;
     if (groupByVessel || size === -1) {
       // sortBy = 'dateTime';
@@ -373,11 +392,11 @@ export class LandingService
       size = 1000;
     }
 
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      // TODO : Autoriser le trie par rankOrder
-      sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
+      sortBy,
       sortDirection: sortDirection || 'asc',
       filter: dataFilter && dataFilter.asPodObject()
     };
@@ -1393,6 +1412,8 @@ export class LandingService
                                     sortDirection: string,
                                     filter?: LandingFilter) {
 
+    console.log('TODO filtering landings');
+
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
       const asc = (!sortDirection || sortDirection === 'asc');
@@ -1402,7 +1423,12 @@ export class LandingService
         .forEach(o => o.rankOrder = rankOrder++);
 
       // Sort by rankOrder (even if 'id' because never used)
-      if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id') {
+      if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id' || sortBy === 'dateTime') {
+        data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
+      }
+
+      // Sort by vessel
+      if (sortBy === 'vessel') {
         data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
     }

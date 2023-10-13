@@ -2234,6 +2234,7 @@
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Default value",
         "DEFAULT_QUALITATIVE_VALUE": "Default value",
+        "CONDITIONS": "Conditions",
         "TABLE": {
           "TITLE": "Collected parameters"
         }

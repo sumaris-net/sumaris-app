@@ -34,14 +34,13 @@
   <button mat-menu-item
           [disabled]="isNewData || disabled"
           (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>COMMON.BTN_DELETE</span>
-    </ion-label>
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 
   <!-- reset -->
   <button mat-menu-item
+          *ngIf="mobile"
           [disabled]="!dirty"
           (click)="cancel($event)">
     <ion-label>
@@ -142,7 +141,8 @@
 
                 <ion-col size="11" size-md="5" >
                   <app-pmfm-field [pmfm]="pmfm"
-                                  [controlName]="pmfm|pmfmIdString">
+                                  [controlName]="pmfm|pmfmIdString"
+                                  [compact]="true">
                   </app-pmfm-field>
                 </ion-col>
 

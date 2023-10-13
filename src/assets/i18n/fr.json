@@ -567,7 +567,7 @@
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :",
       "BTN_DELETE": "Supprimer toute la marée",
-      "BTN_REPORT_DOTS": "Éditer le rapport..."
+      "BTN_REPORT": "Éditer le rapport..."
     },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
@@ -1277,6 +1277,7 @@
       "START_DATE_TIME": "Date/heure de début",
       "END_DATE": "Date fin",
       "END_DATE_TIME": "Date/heure de fin",
+      "BTN_REPORT": "Éditer le rapport...",
       "START": "Début :",
       "END": "Fin :",
       "START_END": "Début / Fin :",
@@ -1391,7 +1392,7 @@
       "OBSERVED_LOCATION_PLACEHOLDER": "Sortie",
       "BTN_SELECT_OBSERVED_LOCATION": "Sélectionner la sortie",
       "BTN_OPEN_OBSERVED_LOCATION": "Ouvrir la sortie",
-      "BTN_REPORT": "Éditer le rapport",
+      "BTN_REPORT": "Éditer le rapport...",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
@@ -1529,7 +1530,7 @@
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
       "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
-      "BTN_REPORT": "Éditer le rapport"
+      "BTN_REPORT": "Éditer le rapport..."
     },
     "SAMPLE": {
       "NEW": {
@@ -1663,7 +1664,7 @@
       "EDIT_STATUS": "Modifier l'état de saisie",
       "REPLACE": "Remplacer ce navire temporaire...",
       "REPLACE_CONFIRMATION": "Etes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
-      "REPLACE_MANY": "Remplacer les navires temporaires sélectionnés...",
+      "REPLACE_MANY": "Remplacer ces navires par...",
       "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?",
       "IMPORT_FROM_FILE": "Importer depuis un fichier..."
     },
@@ -1926,7 +1927,7 @@
     "OPTIONS": {
       "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
       "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
-      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
+      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires: Activer le remplacement des navires temporaires ?"
     },
     "INFO": {
       "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{skipCount}} ignoré(s).",
@@ -2268,6 +2269,7 @@
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Valeur par défaut",
         "DEFAULT_QUALITATIVE_VALUE": "Valeur par défaut",
+        "CONDITIONS": "Conditions",
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
@@ -2393,7 +2395,7 @@
       "TITLE": "Extraction de données",
       "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
       "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :",
-      "BTN_REPORT": "Éditer le rapport"
+      "BTN_REPORT": "Éditer le rapport..."
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",

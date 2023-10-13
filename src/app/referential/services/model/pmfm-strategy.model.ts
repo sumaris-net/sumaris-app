@@ -73,6 +73,13 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     super(PmfmStrategy.TYPENAME);
   }
 
+  clone(opts?: any): PmfmStrategy {
+    const target = super.clone(opts);
+    // Keep acquisitionLevel as object
+    target.acquisitionLevel = EntityUtils.isEntity(this.acquisitionLevel) ? this.acquisitionLevel.clone() as IReferentialRef : this.acquisitionLevel;
+    return target;
+  }
+
   asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.acquisitionLevel = PmfmStrategy.getAcquisitionLevelLabel(target);

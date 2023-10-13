@@ -195,6 +195,10 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
+  get dataService(): S {
+    return this._dataService.delegate;
+  }
+
   get loading(): boolean {
     return super.loading || this._dataService.loading;
   }

@@ -24,6 +24,7 @@
 
   <button mat-menu-item
           *ngIf="onDelete"
+          [disabled]="disabled"
           (click)="delete($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>

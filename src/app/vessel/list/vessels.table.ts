@@ -1,13 +1,26 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { VesselValidatorService } from '../services/validator/vessel.validator';
 import { VesselService } from '../services/vessel-service';
 import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
 import { Vessel } from '../services/model/vessel.model';
-import { AccountService, isNil, isNotNil, LocalSettingsService, ReferentialRef, referentialToString, SharedValidators, StatusById, StatusIds, StatusList } from '@sumaris-net/ngx-components';
-import { Observable } from 'rxjs';
-import { UntypedFormBuilder } from '@angular/forms';
-import { statusToColor, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import {
+  AccountService,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  ReferentialRef,
+  SharedValidators,
+  StatusById,
+  StatusIds,
+  StatusList,
+  trimEmptyToNull
+} from '@sumaris-net/ngx-components';
+import { Observable, tap } from 'rxjs';
+import { FormControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
@@ -15,6 +28,8 @@ import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
 import { VesselFilter } from '../services/filter/vessel.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
+import { debounceTime, filter } from 'rxjs/operators';
 
 
 export const VesselsTableSettingsEnum = {
@@ -38,6 +53,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
+  readonly onSearchBarChanged = new EventEmitter<string>();
+  readonly searchTextControl: UntypedFormControl;
 
   @Input() canDelete: boolean;
   @Input() showFabButton = false;
@@ -46,6 +63,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() disableStatusFilter = false;
+  @Input() showSearchbar = false;
+  @Input() showToolbarFilterButton = true;
 
   @Input()
   set showIdColumn(value: boolean) {
@@ -72,6 +91,10 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   get showBasePortLocationColumn(): boolean {
     return this.getShowColumn('vesselFeatures.basePortLocation');
+  }
+
+  get searchText(): string {
+    return this.searchTextControl.value;
   }
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
@@ -130,6 +153,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       synchronizationStatus: [null],
       onlyWithRegistration: [null]
     });
+    this.searchTextControl = this.filterForm.get('searchText') as UntypedFormControl;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.autoLoad = false;
@@ -188,9 +212,24 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     this.restoreFilterOrLoad();
   }
 
+  protected ionSearchBarChanged(event: CustomEvent<ISearchbarSearchbarChangeEventDetail>) {
+    // Applying the filter, on any changes
+    if (!this.onSearchBarChanged.observed) {
+      this.registerSubscription(this.onSearchBarChanged
+        .pipe(
+          filter(_ => !this.filterExpansionPanel.expanded),
+          tap(_ => this.markAsLoading()),
+          debounceTime(650)
+        )
+        .subscribe(searchText => this.patchFilter({searchText})))
+    }
+
+    const value = trimEmptyToNull(event?.detail.value);
+    this.onSearchBarChanged.emit(value);
+  }
+
   async openNewRowDetail(): Promise<boolean> {
     if (this.loading) return Promise.resolve(false);
-
 
     const defaultStatus = this.synchronizationStatus !== 'SYNC' ? StatusIds.TEMPORARY : undefined;
     const modal = await this.modalCtrl.create({
@@ -215,9 +254,15 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   }
 
   resetFilter(event?: Event) {
-    super.resetFilter({
-      statusId: this.disableStatusFilter ? this.filter.statusId : undefined
-    })
+    const defaultFilter = <Partial<VesselFilter>>{
+      statusId: this.disableStatusFilter ? this.filter.statusId : undefined,
+      synchronizationStatus: this.synchronizationStatus
+    };
+    // Keep searchbar text
+    if (this.showSearchbar && this.showToolbar) {
+      defaultFilter.searchText = this.searchText;
+    }
+    super.resetFilter(defaultFilter);
   }
 
   clearFilterStatus(event: Event) {

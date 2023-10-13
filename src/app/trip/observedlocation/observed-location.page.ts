@@ -44,6 +44,9 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
+import {ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
+import { VesselService } from '@app/vessel/services/vessel-service';
+import { ObservedLocationContext, ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 
 
 const ObservedLocationPageTabs = {
@@ -101,8 +104,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected settings: LocalSettingsService,
     protected configService: ConfigService,
     protected accountService: AccountService,
+    protected vesselService: VesselService,
     protected translateContext: TranslateContextService,
     protected context: ContextService,
+    protected observedLocationContext: ObservedLocationContextService,
     public network: NetworkService
   ) {
     super(injector,
@@ -303,13 +308,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
-    // Prepare filter's value
-    const startDate = this.data.startDateTime.clone().add(-15, 'days');
-    const endDate = this.data.startDateTime.clone();
+    // Prepare vessel filter's value
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
-    const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
+    const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({synchronizationStatus: 'DIRTY'})) > 0;
+    const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
 
+    // Prepare landing's filter
+    const startDate = this.data.startDateTime.clone().add(-15, 'days');
+    const endDate = this.data.startDateTime.clone();
     const landingFilter = LandingFilter.fromObject({
       programLabel,
       startDate,
@@ -334,6 +341,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         showBasePortLocationColumn: this.showVesselBasePortLocation,
         showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
         defaultVesselSynchronizationStatus,
+        showOfflineVessels: showOfflineVessels,
         maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
@@ -390,8 +398,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
+    if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
 
-    await super.setProgram(program);
+    // Update the context
+    if (this.observedLocationContext.program !== program) {
+      console.debug('TODO setting context program', program.label);
+      this.observedLocationContext.setValue('program', program);
+    }
 
     try {
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -455,6 +468,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
         landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+        landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
       }
 

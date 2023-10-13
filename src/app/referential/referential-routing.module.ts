@@ -51,35 +51,45 @@ const routes: Routes = [
           },
           {
             path: 'strategies',
-            component: StrategiesPage,
             data: {
-              profile: 'SUPERVISOR',
+              profile: 'USER',
               pathIdParam: 'programId'
             },
-            runGuardsAndResolvers: 'pathParamsChange',
-            canDeactivate: [ComponentDirtyGuard]
-          },
-          {
-            path: 'strategy/legacy/:strategyId',
-            pathMatch: 'full',
-            component: StrategyPage,
-            data: {
-              profile: 'SUPERVISOR',
-              pathIdParam: 'strategyId'
-            },
-            runGuardsAndResolvers: 'pathParamsChange',
-            canDeactivate: [ComponentDirtyGuard]
-          },
-          {
-            path: 'strategy/sampling/:strategyId',
-            pathMatch: 'full',
-            component: SamplingStrategyPage,
-            data: {
-              profile: 'SUPERVISOR',
-              pathIdParam: 'strategyId'
-            },
-            runGuardsAndResolvers: 'pathParamsChange',
-            canDeactivate: [ComponentDirtyGuard]
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: StrategiesPage,
+                data: {
+                  profile: 'USER',
+                  pathIdParam: 'programId'
+                },
+                runGuardsAndResolvers: 'pathParamsChange',
+                canDeactivate: [ComponentDirtyGuard]
+              },
+              {
+                path: 'legacy/:strategyId',
+                pathMatch: 'full',
+                component: StrategyPage,
+                data: {
+                  profile: 'USER',
+                  pathIdParam: 'strategyId'
+                },
+                runGuardsAndResolvers: 'pathParamsChange',
+                canDeactivate: [ComponentDirtyGuard]
+              },
+              {
+                path: 'sampling/:strategyId',
+                pathMatch: 'full',
+                component: SamplingStrategyPage,
+                data: {
+                  profile: 'USER',
+                  pathIdParam: 'strategyId'
+                },
+                runGuardsAndResolvers: 'pathParamsChange',
+                canDeactivate: [ComponentDirtyGuard]
+              }
+            ]
           }
         ]
       }
