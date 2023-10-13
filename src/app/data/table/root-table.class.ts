@@ -35,13 +35,13 @@ import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
-import { ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter'
 };
+
+export type AppRootTableFilterRestoreSource = 'settings'|'queryParams';
 
 export interface IRootDataEntitiesService<
   T extends RootDataEntity<T, ID>,
@@ -67,7 +67,6 @@ export abstract class AppRootDataTable<
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly userEventService: UserEventService;
-  protected readonly extractionTypeService: ExtractionTypeService;
   protected readonly programRefService: ProgramRefService;
   protected readonly popoverController: PopoverController;
 
@@ -76,9 +75,6 @@ export abstract class AppRootDataTable<
 
   canDelete: boolean;
   isAdmin: boolean;
-  filterForm: UntypedFormGroup;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
   needUpdateOfflineFeature = false;
   offline = false;
   logPrefix = '[root-data-table] ';
@@ -86,12 +82,10 @@ export abstract class AppRootDataTable<
   importing = false;
   progressionMessage: string = null;
   $progression = new BehaviorSubject<number>(0);
-  hasOfflineMode = false;
   featureName: string;
-
-  get filterIsEmpty(): boolean {
-    return this.filterCriteriaCount === 0;
-  }
+  @Input() hasOfflineMode = false;
+  @Input() restoreFilterSources: false|AppRootTableFilterRestoreSource[] = ['settings', 'queryParams'];
+  @Input() showOfflineMode = true;
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
@@ -131,7 +125,6 @@ export abstract class AppRootDataTable<
     this.network = injector.get(NetworkService);
     this.accountService = injector.get(AccountService);
     this.userEventService = injector.get(UserEventService);
-    this.extractionTypeService = injector.get(ExtractionTypeService);
     this.programRefService = injector.get(ProgramRefService);
     this.popoverController = injector.get(PopoverController);
 
@@ -213,7 +206,7 @@ export abstract class AppRootDataTable<
           tap(json => this.setFilter(json, {emitEvent: false})),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          filter(() => isNotNilOrBlank(this.settingsId)),
+          filter(() => isNotNilOrBlank(this.settingsId) && this.restoreFilterSources !== false && this.restoreFilterSources.includes('settings')),
           tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
@@ -435,7 +428,10 @@ export abstract class AppRootDataTable<
 
   closeFilterPanel() {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-    this.filterPanelFloating = true;
+    if (!this.filterPanelFloating) {
+      this.filterPanelFloating = true;
+      this.markForCheck();
+    }
   }
 
   get hasReadyToSyncSelection(): boolean {
@@ -641,10 +637,12 @@ export abstract class AppRootDataTable<
     return source as F;
   }
 
-  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: ('settings'|'queryParams')[] }) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    const json = (opts?.sources || ['settings', 'queryParams']).map(source => {
+    console.log(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+
+    const json = this.restoreFilterSources !== false && (opts?.sources || this.restoreFilterSources || []).map(source => {
       switch (source) {
         case 'settings':
           if (isNilOrBlank(this.settingsId)) return;
@@ -674,13 +672,22 @@ export abstract class AppRootDataTable<
 
       this.setFilter(json, {emitEvent: true, ...opts});
     }
-    else if (!opts || opts.emitEvent !== false){
-      this.onRefresh.emit();
+    else {
+      // has offline feature
+      this.hasOfflineMode = await this._dataService.hasOfflineData();
+
+      if (!opts || opts.emitEvent !== false){
+        this.onRefresh.emit();
+      }
     }
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
     super.setFilter(filter as F, opts);
+  }
+
+  patchFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
+    super.setFilter(<F>{...this.filter, ...filter}, opts);
   }
 
   protected async checkUpdateOfflineNeed() {

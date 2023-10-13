@@ -110,7 +110,7 @@ export class StrategiesPage implements OnInit {
 
     this.markAsLoading();
     setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
+      await this.router.navigate(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
         queryParams: {}
       });
       this.markAsLoaded();

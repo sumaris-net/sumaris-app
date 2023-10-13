@@ -39,7 +39,8 @@ export class VesselsPage implements OnInit, OnDestroy {
   private _subscription = new Subscription();
 
   get replacementDisabled(): boolean {
-    return !this.canReplace && this.table.selection.isEmpty() || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
+    return (!this.canReplace && this.table.selection.isEmpty())
+      || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
   }
 
   @ViewChild('table', { static: true }) table: VesselsTable;

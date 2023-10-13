@@ -45,6 +45,34 @@ ion-content.ion-flex-direction-column::part(scroll) {
   height: calc(100% - 2px);
 }
 
+
+.mat-expansion-panel.filter-panel {
+  &.filter-panel-pinned {
+    overflow-y: scroll;
+  }
+
+  margin-bottom: 5px;
+  --expansion-panel-padding: 0 !important;
+
+  .form-container {
+    mat-form-field {
+      width: 100%;
+
+      .datetime-md {
+        padding: 0 !important;
+      }
+    }
+  }
+
+  mat-action-row {
+    height: 46px;
+
+    ion-label {
+      line-height: 36px;
+    }
+  }
+}
+
 .ion-flex-fill,
 .table-container {
   flex: 1 1 auto;

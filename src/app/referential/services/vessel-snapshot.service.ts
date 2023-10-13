@@ -6,7 +6,7 @@ import {
   BaseGraphqlService,
   ConfigService,
   EntitiesStorage,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityStorageLoadOptions,
   firstNotNilPromise,
   GraphqlService,
   isEmptyArray,
@@ -228,7 +228,8 @@ export class VesselSnapshotService
     let res: LoadResult<VesselSnapshot>;
 
     // Offline: use local store
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const forceOffline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only') || (isNotNil(filter.vesselId) && filter.vesselId < 0);
+    const offline = forceOffline ||(filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC');
     if (offline) {
       res = await this.entities.loadAll(VesselSnapshot.TYPENAME,
         {
@@ -353,7 +354,8 @@ export class VesselSnapshotService
                   size: number,
                   sortBy?: string,
                   sortDirection?: SortDirection,
-                  filter?: Partial<VesselSnapshotFilter>): Observable<LoadResult<VesselSnapshot>> {
+                  filter?: Partial<VesselSnapshotFilter>,
+                  opts?: EntityStorageLoadOptions): Observable<LoadResult<VesselSnapshot>> {
 
     filter = this.asFilter(filter);
 
@@ -367,7 +369,7 @@ export class VesselSnapshotService
 
     if (this._debug) console.debug("[vessel-snapshot-service] Loading local vessel snapshots using options:", variables);
 
-    return this.entities.watchAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables)
+    return this.entities.watchAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables, opts)
       .pipe(
         map(({data, total}) => {
           const entities = (data || []).map(VesselSnapshot.fromObject);

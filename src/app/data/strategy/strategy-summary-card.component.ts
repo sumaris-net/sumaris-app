@@ -116,7 +116,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
 
     // Open the expected editor page
-    return this.router.navigateByUrl(`/referential/programs/${programId}/strategy/${strategyEditor}/${this.data.id}`);
+    return this.router.navigateByUrl(`/referential/programs/${programId}/strategies/${strategyEditor}/${this.data.id}`);
   }
 
   protected markForCheck() {

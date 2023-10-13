@@ -20,43 +20,38 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport"
+          [disabled]="isNewData || disabled"
+          (click)="openReport($event)">
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>OBSERVED_LOCATION.EDIT.BTN_REPORT</ion-label>
+  </button>
+
   <button mat-menu-item *ngIf="canCopyLocally"
           (click)="copyLocally()">
     <mat-icon>file_copy</mat-icon>
     <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
   </button>
 
-  <!-- report -->
-  <button mat-menu-item *ngIf="enableReport"
-          [disabled]="isNewData || disabled"
-          (click)="openReport($event)">
-    <ion-label>
-      <mat-icon>description</mat-icon>&nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
-    </ion-label>
-  </button>
-
   <mat-divider></mat-divider>
+
   <!-- delete -->
   <button mat-menu-item
           [disabled]="isNewData || (disabled && !canDelete)"
           (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>COMMON.BTN_DELETE</span>
-    </ion-label>
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 
   <!-- reset -->
-  <button mat-menu-item
+  <button mat-menu-item *ngIf="mobile"
           [disabled]="!dirty"
           (click)="cancel($event)">
-    <ion-label>
-      <mat-icon>
-        <ion-icon slot="start" name="refresh"></ion-icon>
-      </mat-icon>&nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
+    <mat-icon>
+      <ion-icon slot="start" name="refresh"></ion-icon>
+    </mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
 
 </mat-menu>

@@ -133,17 +133,6 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
     }
   }
 
-  canUserDelete(data: Landing, opts?: any): boolean {
-    return this.canUserWrite(data, opts)
-    || (!this.isNewData && isNil(this.data.validationDate) && isNil(this.parent?.validationDate)
-        // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-        && (data?.observers || []).concat(this.parent?.observers || [])
-          .some(o => ReferentialUtils.equals(o, this.accountService.person))
-        // Check also if has right on the data program (see issue #465 - IMAGINE)
-        && this.programRefService.hasExactPrivilege(this.program, ProgramPrivilegeEnum.OBSERVER)
-      );
-  }
-
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
 

@@ -1,7 +1,6 @@
-
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   APP_JOB_PROGRESSION_SERVICE,
@@ -21,7 +20,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobProgression,
-  LoadResult, mergeLoadResult,
+  LoadResult,
+  mergeLoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
   StatusIds
@@ -246,6 +246,12 @@ export class VesselService
     return super.load(id, opts);
   }
 
+  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<VesselFilter>, opts?: EntityServiceLoadOptions & {
+    debug?: boolean
+  }): Promise<LoadResult<Vessel>> {
+    return firstValueFrom(this.watchAll(offset, size, sortBy, sortDirection, filter as VesselFilter, opts));
+  }
+
   /**
    * Load many vessels
    * @param offset
@@ -270,13 +276,12 @@ export class VesselService
     const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, filter, opts);
 
     // Merge local and remote
-    const res = (offline$ && online$)
+    return (offline$ && online$)
       ? combineLatest([offline$, online$])
         .pipe(
           map(([res1, res2]) => mergeLoadResult(res1, res2))
         )
       : (offline$ || online$);
-    return res;
   }
 
   watchAllRemotely(offset: number,
@@ -299,7 +304,7 @@ export class VesselService
     // Adapt filter
     const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    sortBy = sortBy?.includes('.') && sortBy.substr(sortBy.lastIndexOf('.') + 1) || sortBy;
+    sortBy = sortBy?.includes('.') && sortBy.substring(sortBy.lastIndexOf('.') + 1) || sortBy;
 
     return this.vesselSnapshotService.watchAllLocally(offset, size, sortBy, sortDirection, vesselSnapshotFilter)
       .pipe(
@@ -312,6 +317,7 @@ export class VesselService
   /**
    * Save many vessels
    * @param entities
+   * @param opts
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
 

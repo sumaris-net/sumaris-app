@@ -352,6 +352,8 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     const autofocus = this.autofocus;
     this.autofocus = false;
 
+    event.preventDefault();
+    event.stopPropagation();
     event.stopImmediatePropagation();
 
     this.formArray.add(null, {emitEvent: false});
@@ -359,10 +361,9 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
 
     // Let the time for fields validation
     setTimeout(() => {
-        this.autofocus = autofocus;
-        this.markForCheck();
-    });
-
+      this.autofocus = autofocus;
+      this.markForCheck();
+    }, 250);
   }
 
   protected formArrayRemoveAt(index: number, opts?: {markAsDirty :boolean}) {
@@ -376,10 +377,12 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     setTimeout(() => {
       const control = this.formArray.at(index);
       // If empty: remove it
-      if (isNilOrBlank(control.value)) {
+      if (control && isNilOrBlank(control.value)) {
         this.formArray.removeAt(index);
         this.markForCheck();
       }
     }, 250);
   }
+
+  protected readonly undefined = undefined;
 }

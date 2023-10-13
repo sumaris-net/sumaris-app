@@ -2,15 +2,27 @@
 
   <ng-content select="[matToolbarStart]"></ng-content>
 
-  <button mat-icon-button
-          *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
-          hidden-xs hidden-sm hidden-mobile>
-    <mat-icon>add</mat-icon>
-  </button>
-  <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-          (click)="deleteSelection($event)">
-    <mat-icon>delete</mat-icon>
-  </button>
+  <ng-container *ngIf="canEdit && enabled && selection.hasValue()">
+    <button mat-icon-button
+            [title]="'COMMON.BTN_ADD'|translate"
+            class="hidden-xs hidden-sm hidden-mobile"
+            (click)="addRow()">
+      <mat-icon>add</mat-icon>
+    </button>
+    <button mat-icon-button
+            [title]="'COMMON.BTN_DELETE'|translate"
+            (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+
+    <!-- duplicate (if desktop) -->
+    <button mat-icon-button
+            [disabled]="invalid"
+            [title]="'COMMON.BTN_DUPLICATE'|translate"
+            (click)="duplicateSelection($event)">
+      <mat-icon slot="icon-only">content_copy</mat-icon>
+    </button>
+  </ng-container>
 
   <!-- refresh (debug only) -->
   <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -28,10 +40,6 @@
     <!-- title -->
     <span *ngIf="title" [innerHTML]="title"></span>
   </ion-text>
-
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-    <mat-icon>more_vert</mat-icon>
-  </button>
 </mat-toolbar>
 
 <!-- error -->
@@ -117,14 +125,52 @@
       </td>
     </ng-container>
 
+    <!-- Conditions -->
+    <ng-container matColumnDef="conditions">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <small *ngVar="{
+          taxonGroupIds: row.validator|formGetValue: 'taxonGroupIds',
+          referenceTaxonIds: row.validator|formGetValue: 'referenceTaxonIds',
+          gearIds: row.validator|formGetValue: 'gearIds'
+        } as vars">
+          <!-- association gears -->
+          <span *ngIf="vars.gearIds|isNotEmptyArray">
+            {{vars.gearIds.length}}&nbsp;<ion-icon name="settings"></ion-icon><br/>
+          </span>
+          <!-- association species -->
+          <span *ngIf="(vars.taxonGroupIds|isNotEmptyArray) || (vars.referenceTaxonIds|isNotEmptyArray)">
+            {{(vars.taxonGroupIds.length || 0) + (vars.referenceTaxonIds?.length || 0)}}&nbsp;<ion-icon name="fish"></ion-icon>
+          </span>
+        </small>
+      </td>
+    </ng-container>
 
-    <!-- Actions buttons column (if  has toolbar) -->
+    <!-- Actions buttons column (if has toolbar) -->
     <app-actions-column *ngIf="showToolbar; else noToolbarActions"
                         (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
                         (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
                         (backward)="confirmAndBackward($event.event, $event.row)"
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
+
+      <!-- option menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+
+      <!-- Table options menu -->
+      <mat-menu #optionsMenu="matMenu" xPosition="after">
+        <!-- display columns -->
+        <button mat-menu-item
+                (click)="openSelectColumnsModal($event)">
+          <mat-icon>view_column</mat-icon>
+          <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+        </button>
+      </mat-menu>
     </app-actions-column>
 
     <!-- Actions buttons column (if NO toolbar) -->

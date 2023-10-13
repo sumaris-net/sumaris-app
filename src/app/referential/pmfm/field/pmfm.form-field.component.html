@@ -20,14 +20,14 @@
                       [readonly]="readonly"
                       [tabindex]="tabindex+j"
                       [floatLabel]="floatLabel"
-                      [placeholder]="placeholder"
+                      [placeholder]="first ? placeholder : ' '"
                       [mobile]="mobile"
                       [style]="style"
-                      [compact]="compact"
+                      compact="true"
                       [autofocus]="autofocus && (arrayEditingIndex === j || (arrayEditingIndex === undefined && first))"
                       (click)="clicked.emit($event)">
                 <button *ngIf="last && (childControl.value|isNotNilOrBlank) && formArray.length < pmfm.acquisitionNumber"
-                        matSuffix mat-icon-button tabindex="-1"
+                        matSuffix mat-icon-button
                         type="button"
                         (click)="formArrayAdd($event)"
                         [hidden]="disabled">

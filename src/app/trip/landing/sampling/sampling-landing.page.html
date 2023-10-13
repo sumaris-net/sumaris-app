@@ -34,10 +34,8 @@
   <button mat-menu-item
           [disabled]="isNewData || disabled || !canDelete"
           (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>COMMON.BTN_DELETE</span>
-    </ion-label>
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 
   <!-- reset -->

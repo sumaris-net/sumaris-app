@@ -1,5 +1,5 @@
-import {AfterViewInit, ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import { AfterViewInit, ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
@@ -7,33 +7,44 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppErrorWithDetails,
-  DateFormatService, DateUtils, EntityAsObjectOptions,
-  firstFalsePromise, isNil, isNilOrBlank,
+  DateFormatService,
+  DateUtils,
+  EntityAsObjectOptions,
+  firstFalsePromise,
+  isNil,
+  isNilOrBlank,
   isNotNil,
-  isNotNilOrBlank, isNumber,
+  isNotNilOrBlank,
+  isNumber,
+  JsonUtils,
   LatLongPattern,
-  LocalSettingsService, MenuService, NetworkService,
-  PlatformService, Toasts, toDateISOString, TranslateContextService,
-  WaitForOptions, waitForTrue
+  LocalSettingsService,
+  MenuService,
+  NetworkService,
+  PlatformService,
+  Toasts,
+  toDateISOString,
+  TranslateContextService,
+  WaitForOptions,
+  waitForTrue
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject, lastValueFrom, Subject} from 'rxjs';
-import {ModalController, PopoverController, ToastController} from '@ionic/angular';
-import {Share} from '@capacitor/share';
-import {Popovers} from '@app/shared/popover/popover.utils';
-import {SharedElement} from '@app/social/share/shared-page.model';
-import {v4 as uuidv4} from 'uuid';
-import {filter, first, map, takeUntil} from 'rxjs/operators';
-import {HttpClient, HttpEventType} from '@angular/common/http';
-import {FileTransferService} from '@app/shared/service/file-transfer.service';
+import { BehaviorSubject, lastValueFrom, Subject } from 'rxjs';
+import { ModalController, PopoverController, ToastController } from '@ionic/angular';
+import { Share } from '@capacitor/share';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { SharedElement } from '@app/social/share/shared-page.model';
+import { v4 as uuidv4 } from 'uuid';
+import { filter, first, map, takeUntil } from 'rxjs/operators';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { APP_BASE_HREF } from '@angular/common';
-import {Clipboard, ContextService} from '@app/shared/context.service';
-import {instanceOf} from 'graphql/jsutils/instanceOf';
-import {Function} from '@app/shared/functions';
-import {hasFlag} from '@app/shared/flags.utils';
-import {decodeUTF8} from 'tweetnacl-util';
-import {downloadSharedRessource} from "@app/social/share/shared-page.utils";
-import {Program} from "@app/referential/services/model/program.model";
-import {ProgramProperties} from "@app/referential/services/config/program.config";
+import { Clipboard, ContextService } from '@app/shared/context.service';
+import { instanceOf } from 'graphql/jsutils/instanceOf';
+import { Function } from '@app/shared/functions';
+import { hasFlag } from '@app/shared/flags.utils';
+import { downloadSharedRessource } from '@app/social/share/shared-page.utils';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
 
 export const ReportDataPasteFlags = Object.freeze({
@@ -598,12 +609,9 @@ export abstract class AppBaseReport<
       }
     }
 
-    const arrayUt8 = decodeUTF8(JSON.stringify(sharedElement));
-    const blob = new Blob([arrayUt8], {type: "application/json"});
-    blob['lastModifiedDate'] = (new Date()).toISOString();
-    blob['name'] = uploadFileName;
+    const file = JsonUtils.writeToFile(sharedElement, {filename: uploadFileName});
 
-    const { fileName, message } = await lastValueFrom(this.fileTransferService.uploadResource(<File>blob, {
+    const { fileName, message } = await lastValueFrom(this.fileTransferService.uploadResource(file, {
       resourceType: 'report',
       resourceId: sharedElement.uuid + '.json',
       reportProgress: false

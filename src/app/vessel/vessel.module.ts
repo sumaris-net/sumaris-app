@@ -29,7 +29,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     // App modules
     AppCoreModule,
     AppReferentialModule,
-    AppDataModule,
+    AppDataModule
   ],
   declarations: [
     // Pipes

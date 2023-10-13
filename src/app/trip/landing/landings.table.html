@@ -212,7 +212,7 @@
           floatLabel="never">
         </app-pmfm-field>
         <ng-template #readOnly>
-          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
+          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm:pmfm, html: true, propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes}"></ion-text>
         </ng-template>
       </td>
     </ng-container>
