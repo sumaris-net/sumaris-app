@@ -325,6 +325,9 @@
         <mat-error *ngIf="pmfmsForm.hasError('weightOrSize')">
           {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate }}
         </mat-error>
+        <mat-error *ngIf="pmfmsForm.hasError('missingFraction')">
+          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MISSING_FRACTION' | translate}}
+        </mat-error>
       </ion-col>
     </ion-row>
     <ion-row *ngFor="let lengthPmfmForm of lengthPmfmsForm?.controls; index as i; first as first">

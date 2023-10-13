@@ -64,6 +64,8 @@ import {Parameter} from '@app/referential/services/model/parameter.model';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 
+const MIN_PMFM_COUNT = 2;
+
 const STRATEGY_LABEL_UI_PREFIX_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
 const STRATEGY_LABEL_UI_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
 
@@ -173,10 +175,23 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get minPmfmCount(): number {
-    return this.weightPmfmsForm.value.length
-      + this.lengthPmfmsForm.value.length
-      + (this.hasSex ? this.maturityPmfmsForm.value.length : 0)
-      + (this.hasAge ? this.fractionPmfmsForm.value.length : 0);
+
+    // All of weightPmfmsCount and lengthPmfmsCount must be filled
+    const weightPmfmsCount = (this.weightPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
+    const lengthPmfmsCount = (this.lengthPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
+
+    // maturityPmfmsCount is not mandatory
+    const maturityPmfmsCount = this.maturityPmfmsForm.value.length - 1;
+
+    // At least on fractionPmfmCount must be filled if hasAge
+    const fractionPmfmCount = (this.maturityPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length || 1;
+
+    const minCount = (this.hasAge ? (1 + fractionPmfmCount) : 0)
+      + (this.hasSex ? (1 + maturityPmfmsCount) : 0)
+      + weightPmfmsCount + lengthPmfmsCount;
+
+    // Return at least the MIN_PMFM_COUNT or ensure there is no missing pmfms
+    return minCount > MIN_PMFM_COUNT ? minCount : MIN_PMFM_COUNT;
   }
 
   get lengthPmfmsForm(): UntypedFormArray {
@@ -1576,7 +1591,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     const weightPmfmsCount = (this.weightPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
     const lengthPmfmsCount = (this.lengthPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
     const maturityPmfmsCount = (this.maturityPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
-
     const fractionPmfmCount = (this.fractionPmfmsForm.value || []).filter(value => value?.fraction && value.fraction?.id).length;
 
     let errors: ValidationErrors;
@@ -1591,9 +1605,19 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       SharedValidators.clearError(pmfmsForm, 'weightOrSize');
     }
 
+    // If hasAge and no fraction set explicit error
+    if (this.hasAge && fractionPmfmCount === 0) {
+      errors = {
+        ...errors,
+        missingFraction: true,
+      };
+    } else {
+      SharedValidators.clearError(pmfmsForm, 'weightOrSize');
+    }
+
     // Add one to min count to ingore fraction and maturity if they control are set to false
-    const length = (this.hasAge ? fractionPmfmCount : 1)
-      + (this.hasSex ? maturityPmfmsCount : 1)
+    const length = (this.hasAge ? (1 + fractionPmfmCount) : 0)
+      + (this.hasSex ? (1 + maturityPmfmsCount) : 0)
       + weightPmfmsCount
       + lengthPmfmsCount;
 
