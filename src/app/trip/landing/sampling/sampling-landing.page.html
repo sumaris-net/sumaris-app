@@ -106,9 +106,10 @@
                 [showTripDepartureDateTime]="true"
                 [allowManyMetiers]="false"
                 [parentAcquisitionLevel]="parentAcquisitionLevel"
+                [disabledParent]="disabled || samplesTable.invalid"
                 (onSubmit)="save($event)"
                 (openObservedLocation)="openObservedLocation($event)"
-                (observedLocationChanges)="onRefreshEffort.emit()"
+                (observedLocationChanges)="onRefreshEffort.emit($event)"
                 (strategyChanges)="onRefreshEffort.emit($event)"
                 [debug]="debug"
               >

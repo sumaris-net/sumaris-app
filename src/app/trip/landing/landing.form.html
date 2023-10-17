@@ -61,7 +61,7 @@
         </ion-label>
       </ion-col>
       <ion-col>
-        <mat-form-field>
+        <mat-form-field [class.mat-form-field-disabled]="disabledParent">
           <ion-icon matPrefix name="location"></ion-icon>
           <input
             matInput
@@ -76,10 +76,10 @@
             type="text"
             class="cursor-pointer"
             [value]="observedLocationLabel$ | async"
-            (click)="openSelectObservedLocationModal($event)"
-            [tabindex]="tabindex"
-            readonly
-          />
+            [disabled]="disabledParent"
+                 (click)="openSelectObservedLocationModal($event)"
+                 [tabindex]="tabindex"
+                 readonly/>
 
           <button
             *ngIf="!(control | formGetValue); else otherButtons"
@@ -427,7 +427,11 @@
 <!-- Parent = options menu -->
 <mat-menu #parentFieldMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-    <button mat-menu-item type="button" tabindex="-1" (click)="openSelectObservedLocationModal($event)">
+    <button mat-menu-item type="button"
+            *ngIf="enabled"
+            tabindex="-1"
+            [disabled]="disabledParent"
+            (click)="openSelectObservedLocationModal($event)">
       <ion-label>
         <mat-icon>list</mat-icon>
         <span translate>LANDING.EDIT.BTN_SELECT_OBSERVED_LOCATION</span>

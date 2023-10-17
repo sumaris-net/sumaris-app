@@ -391,9 +391,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       if (this.loaded && !this.saving) {
         const data = await this.getValue();
         await this.fillPropertiesFromParent(data, parent);
+
         this.landingForm.markAsUntouched(); // Need to force full update of the form (otherwise it keep)
         await this.landingForm.setValue(data);
         this.landingForm.markAsDirty();
+
+        this.samplesTable.value = data.samples || [];
+        this.samplesTable.markAsDirty();
+
         this.markForCheck();
       }
     }
@@ -425,6 +430,15 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
           data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
+
+        // Copy date to samples, if not set by user
+        if (!this.samplesTable.showSampleDateColumn) {
+          console.debug(`[landing-page] Updating samples...`);
+          (data.samples || []).forEach(sample => {
+            sample.sampleDate = data.dateTime;
+          });
+        }
+
       } else if (parent instanceof Trip) {
         data.vesselSnapshot = parent.vesselSnapshot;
         data.location = parent.returnLocation || parent.departureLocation;
@@ -761,4 +775,5 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Reload data
     setTimeout(() => this.reload(), 250);
   }
+
 }
