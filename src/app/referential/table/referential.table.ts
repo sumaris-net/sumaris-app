@@ -107,6 +107,7 @@ export class ReferentialTable<
     'Method': '/referential/method/:id?label=:label',
     'TaxonName': '/referential/taxonName/:id?label=:label',
     'TaxonGroup': '/referential/taxonGroup/:id?label=:label',
+    'Metier': '/referential/metier/:id?label=:label',
     // Extraction (special case)
     'ExtractionProduct': '/extraction/product/:id?label=:label'
   };

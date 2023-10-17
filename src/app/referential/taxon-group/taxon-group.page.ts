@@ -15,10 +15,6 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 })
 export class TaxonGroupPage extends AppReferentialEditor<Referential, ReferentialService> {
 
-  get useExistingReferenceTaxon(): boolean {
-    return this.form.controls.useExistingReferenceTaxon.value;
-  }
-
   @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
   @ViewChild('rwcTable', {static: true}) rwcTable: RoundWeightConversionTable;
 

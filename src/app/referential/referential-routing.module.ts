@@ -119,7 +119,11 @@ const routes: Routes = [
   {
     path: 'taxonName',
     loadChildren: () => import('./taxon-name/taxon-name-routing.module').then(m => m.AppTaxonNameRoutingModule)
-  }
+  },
+  {
+    path: 'metier',
+    loadChildren: () => import('./metier/metier-routing.module').then(m => m.AppMetierRoutingModule)
+  },
 ];
 
 @NgModule({

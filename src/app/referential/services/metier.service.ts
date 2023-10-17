@@ -18,7 +18,7 @@ import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { MetierFilter } from './filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',

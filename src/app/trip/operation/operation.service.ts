@@ -64,7 +64,7 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { DataErrorCodes } from '@app/data/services/errors';

@@ -1847,6 +1847,14 @@
         "TITLE": "Method {{label}} - {{name}}"
       }
     },
+    "METIER": {
+      "NAME": "Metier",
+      "GEAR": "Gear",
+      "TAXON_GROUP": "Target species",
+      "EDIT": {
+        "TITLE": "Metier {{label}}"
+      }
+    },
     "TRANSCRIBING_ITEM": {
       "OBJECT": "Reference",
       "LABEL": "Transcribing code",

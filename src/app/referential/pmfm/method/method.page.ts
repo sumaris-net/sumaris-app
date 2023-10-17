@@ -14,9 +14,6 @@ import { MethodValidatorService } from '@app/referential/pmfm/method/method.vali
 })
 export class MethodPage extends AppReferentialEditor<Method, MethodService> {
 
-  get useExistingReferenceTaxon(): boolean {
-    return this.form.controls.useExistingReferenceTaxon.value;
-  }
 
   @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
 
@@ -30,7 +27,7 @@ export class MethodPage extends AppReferentialEditor<Method, MethodService> {
       dataService,
       validatorService.getFormGroup(),
       {
-        entityName: 'Method',
+        entityName: Method.ENTITY_NAME,
         uniqueLabel: true,
         withLevels: false,
         tabCount: 1

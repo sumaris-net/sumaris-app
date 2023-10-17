@@ -42,7 +42,7 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';

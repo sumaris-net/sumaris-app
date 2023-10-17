@@ -1,13 +1,13 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { MethodPage } from '@app/referential/pmfm/method/method.page';
-import { AppPmfmMethodModule } from '@app/referential/pmfm/method/method.module';
+import { MetierPage } from '@app/referential/metier/metier.page';
+import { AppMetierModule } from '@app/referential/metier/metier.module';
 
 const routes: Routes = [
   {
     path: ':id',
     pathMatch: 'full',
-    component: MethodPage,
+    component: MetierPage,
     data: {
       profile: 'ADMIN'
     }
@@ -16,9 +16,9 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    AppPmfmMethodModule,
+    AppMetierModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]
 })
-export class AppPmfmMethodRoutingModule { }
+export class AppMetierRoutingModule { }

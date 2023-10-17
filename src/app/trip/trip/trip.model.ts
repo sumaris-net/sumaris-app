@@ -26,7 +26,7 @@ import { IWithProductsEntity, Product } from '../product/product.model';
 import { IWithPacketsEntity, Packet } from '../packet/packet.model';
 import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { SortDirection } from '@angular/material/sort';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';

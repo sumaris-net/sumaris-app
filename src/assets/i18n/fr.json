@@ -1854,6 +1854,14 @@
         "TITLE": "Méthode {{label}} - {{name}}"
       }
     },
+    "METIER": {
+      "NAME": "Métier",
+      "GEAR": "Engin pratiqué",
+      "TAXON_GROUP": "Espèce cible",
+      "EDIT": {
+        "TITLE": "Métier {{label}}"
+      }
+    },
     "TRANSCRIBING_ITEM": {
       "OBJECT": "Référence",
       "LABEL": "Code transcodé",

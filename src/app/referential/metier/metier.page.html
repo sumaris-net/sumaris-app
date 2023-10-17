@@ -31,6 +31,7 @@
           <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
+
         <!-- DEBUG -->
         <app-debug *ngIf="debug">
           <ion-grid>
@@ -56,7 +57,6 @@
           </ion-grid>
         </app-debug>
 
-
         <ion-grid class="ion-no-padding">
 
           <ion-row class="ion-no-padding">
@@ -72,28 +72,24 @@
                                       [debug]="debug"
                                       (onSubmit)="save($event)">
 
-                  <!-- Other fields -->
+
                   <ion-row>
                     <ion-col>
-                      <!-- Is calculated -->
-                      <app-form-field [definition]="fieldDefinitions.isCalculated"
-                                      formControlName="isCalculated"
+                      <!-- Gear -->
+                      <app-form-field [definition]="fieldDefinitions.gear"
+                                      formControlName="gear"
                                       required="true"
                                       tabindex="10">
                       </app-form-field>
                     </ion-col>
-                  </ion-row>
-                  <ion-row>
                     <ion-col>
-                      <!-- Is estimated -->
-                      <app-form-field [definition]="fieldDefinitions.isEstimated"
-                                      formControlName="isEstimated"
+                      <app-form-field [definition]="fieldDefinitions.taxonGroup"
+                                      formControlName="taxonGroup"
                                       required="true"
                                       tabindex="11">
                       </app-form-field>
                     </ion-col>
                   </ion-row>
-
 
                </app-referential-form>
               </form>

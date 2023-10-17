@@ -46,7 +46,7 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { Trip } from '@app/trip/trip/trip.model';
 import { TripValidatorService } from '@app/trip/trip/trip.validator';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';

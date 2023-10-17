@@ -5,6 +5,7 @@ import {
   ReferentialRef,
   uncapitalizeFirstLetter
 } from "@sumaris-net/ngx-components";
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export interface MetierFromObjectOptions {
   useChildAttributes?: false | "TaxonGroup" | "Gear";

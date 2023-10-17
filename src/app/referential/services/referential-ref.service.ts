@@ -52,7 +52,7 @@ import { Moment } from 'moment';
 import { environment } from '@environments/environment';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
