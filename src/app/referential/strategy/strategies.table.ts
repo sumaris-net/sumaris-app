@@ -3,15 +3,20 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { Strategy } from '../services/model/strategy.model';
 import {
-  AppTable, chainPromises,
-  EntitiesTableDataSource, EntityUtils,
+  AppTable,
+  chainPromises,
+  EntitiesTableDataSource,
+  EntityUtils,
   FileEvent,
   FileResponse,
-  FilesUtils, IReferentialRef,
+  FilesUtils,
+  IReferentialRef,
   isEmptyArray,
   isNil,
-  isNotNil, isNotNilOrBlank,
-  JsonUtils, ReferentialUtils,
+  isNotNil,
+  isNotNilOrBlank,
+  JsonUtils,
+  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   sleep,
@@ -23,14 +28,13 @@ import { PopoverController } from '@ionic/angular';
 import { Program } from '../services/model/program.model';
 import { environment } from '@environments/environment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import {Observable, of, Subject} from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import { filter, switchMap } from 'rxjs/operators';
 import { HttpEventType } from '@angular/common/http';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {TranscribingItem, TranscribingItemType} from '@app/referential/transcribing/transcribing.model';
-import {GearIds, GearLevelIds} from '@app/referential/services/model/model.enum';
-import {TranscribingItemsModal, TranscribingItemsModalOptions} from '@app/referential/transcribing/modal/transcribing-items.modal';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { TranscribingItem, TranscribingItemType } from '@app/referential/transcribing/transcribing.model';
+import { TranscribingItemsModal, TranscribingItemsModalOptions } from '@app/referential/transcribing/modal/transcribing-items.modal';
 
 @Component({
   selector: 'app-strategy-table',

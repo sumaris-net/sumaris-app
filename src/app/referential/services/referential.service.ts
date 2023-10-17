@@ -36,7 +36,23 @@ export interface ReferentialType {
   level?: string;
 }
 
-export const ReferentialQueries: BaseEntityGraphqlQueries & {count: any; loadTypes: any; } = {
+export const ReferentialQueries: BaseEntityGraphqlQueries & {loadAllFull?: any; count: any; loadTypes: any; } = {
+  // Load
+  load: gql`query Referential($entityName: String, $id: Int){
+    data: referential(entityName: $entityName, id: $id){
+      ...FullReferentialFragment
+    }
+  }
+  ${ReferentialFragments.fullReferential}`,
+
+  // Load all full
+  loadAllFull: gql`query FullReferentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...FullReferentialFragment
+    }
+  }
+  ${ReferentialFragments.fullReferential}`,
+
   // Load all
   loadAll: gql`query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -92,6 +108,7 @@ const ReferentialSubscriptions: BaseEntityGraphqlSubscriptions = {
 
 export interface ReferentialServiceLoadOptions extends EntityServiceLoadOptions {
   entityName: string;
+  fullLoad?: boolean;
 }
 
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
@@ -295,18 +312,23 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     return entities;
   }
 
-  load(id: number, opts?: ReferentialServiceLoadOptions): Promise<T> {
-    return this.loadAll(0,1,null, null, {
-        includedIds: [id],
+  async load(id: number, opts?: ReferentialServiceLoadOptions): Promise<T> {
+    if (!opts || !opts.entityName) {
+      console.error('[referential-service] Missing opts.entityName');
+      // eslint-disable-next-line no-throw-literal
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
+    }
+
+    const { data } = await this.graphql.query<{data: any}>({
+      query: ReferentialQueries.load,
+      variables: {
         entityName: opts.entityName,
-        // Force the full status list, to make sure to load disabled entities (required to be able to export it - see ReferentialFileService)
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE]
+        id
       },
-      {withTotal: false, ...opts})
-      .then(res => {
-        if (res && res.data) return res.data[0];
-        return undefined;
-      });
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
+    });
+    const target = this.fromObject(data);
+    return target;
   }
 
   delete(data: T, opts?: any): Promise<any> {
