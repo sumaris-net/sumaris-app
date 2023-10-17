@@ -396,7 +396,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         await this.landingForm.setValue(data);
         this.landingForm.markAsDirty();
 
-        this.samplesTable.value = data.samples || [];
+        this.samplesTable.value = this.getSamplesForTable(data);
         this.samplesTable.markAsDirty();
 
         this.markForCheck();
@@ -774,6 +774,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Reload data
     setTimeout(() => this.reload(), 250);
+  }
+
+  protected getSamplesForTable(data: Landing) {
+    return data.samples || [];
   }
 
 }
