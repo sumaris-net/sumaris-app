@@ -6,7 +6,7 @@
       hidden-xs
       hidden-sm
       hidden-mobile
-      *ngIf="enabled"
+      [disabled]="disabled"
       [title]="'COMMON.BTN_ADD' | translate"
       (click)="addRow()"
     >

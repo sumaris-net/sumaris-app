@@ -61,6 +61,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   allowSpeciesSampling: boolean;
   allowSubBatches: boolean;
   availableTaxonGroups: TaxonGroupRef[];
+  showAutoFillButton: boolean;
   mobile: boolean;
   modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
@@ -130,7 +131,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   readonly requiredGear$ = this._state.select('requiredGear');
   readonly gearId$ = this._state.select('gearId');
 
-
   protected set showSubBatchesTable(value: boolean) {
     this._state.set('showSubBatchesTable', _ => value);
   }
@@ -145,7 +145,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
-  @Input() debug: boolean;
+  @Input() showAutoFillButton = true;
+  @Input() debug = false;
+
   @Input() set physicalGear(value: PhysicalGear) {
     this._state.set({
       physicalGear: value,

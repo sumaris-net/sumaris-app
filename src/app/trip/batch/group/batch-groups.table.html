@@ -34,45 +34,48 @@
     <!-- Group header: start -->
     <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
-        <button
-          mat-icon-button
-          class="ion-float-start"
-          *ngIf="!selection.hasValue()"
-          [disabled]="disabled"
-          [title]="'COMMON.BTN_ADD_ROW' | translate"
-          (click)="addRow()"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          class="ion-float-start"
-          *ngIf="selection.hasValue() && enabled"
-          [title]="'COMMON.BTN_DELETE' | translate"
-          (click)="deleteSelection($event)"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
+        <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+          <button
+            mat-icon-button
+            class="ion-float-start"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD_ROW' | translate"
+            (click)="addRow()">
+            <mat-icon>add</mat-icon>
+          </button>
 
-        <!-- refresh (debug only) -->
-        <button
-          mat-icon-button
-          *ngIf="debug && !selection.hasValue()"
-          [title]="'COMMON.BTN_REFRESH' | translate"
-          (click)="onRefresh.emit()"
-        >
-          <mat-icon>refresh</mat-icon>
-        </button>
+          <!-- refresh (debug only) -->
+          <button
+            mat-icon-button
+            *ngIf="debug"
+            [title]="'COMMON.BTN_REFRESH' | translate"
+            (click)="onRefresh.emit()">
+            <mat-icon>refresh</mat-icon>
+          </button>
 
-        <!-- Auto fill species -->
-        <button
-          mat-icon-button
-          *ngIf="enabled && selection.isEmpty() && availableTaxonGroups | isNotEmptyArray"
-          [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
-          (click)="autoFillTable()"
-        >
-          <mat-icon>control_point_duplicate</mat-icon>
-        </button>
+          <!-- Auto fill species -->
+          <button
+            mat-icon-button
+            *ngIf="showAutoFillButton && (availableTaxonGroups | isNotEmptyArray)"
+            [disabled]="disabled"
+            [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
+            (click)="autoFillTable()">
+            <mat-icon>control_point_duplicate</mat-icon>
+          </button>
+        </ng-container>
+
+        <ng-template #hasSelection>
+          <button
+            mat-icon-button
+            class="ion-float-start"
+            *ngIf="enabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="deleteSelection($event)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-template>
+
       </th>
     </ng-container>
 
@@ -272,9 +275,8 @@
           [class.visible-hover]="!row.editing && !control.value"
           (click)="openCommentPopover($event, row)"
           [disabled]="disabled"
-          [title]="control.value || ''"
-        >
-          <ion-icon [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          [title]="control.value || ''">
+          <ion-icon *ngIf="_enabled || control.value" [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
         </button>
       </td>
     </ng-container>
@@ -305,7 +307,7 @@
     </app-actions-column>
 
     <!-- first header -->
-    <ng-container *ngIf="showToolbar && groupColumnNames?.length">
+    <ng-container *ngIf="showToolbar && (groupColumnNames|isNotEmptyArray)">
       <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true" class="first-header-row"></tr>
     </ng-container>
 
@@ -342,7 +344,7 @@
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
           <button
             mat-icon-button
-            *ngIf="enabled && !selection.hasValue() && availableTaxonGroups | isNotEmptyArray"
+            *ngIf="_enabled && showAutoFillButton && availableTaxonGroups | isNotEmptyArray"
             [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
             (click)="autoFillTable()"
           >
@@ -571,7 +573,7 @@
       </ng-container>
 
       <!-- first header -->
-      <ng-container *ngIf="showToolbar && groupColumnNames?.length">
+      <ng-container *ngIf="showToolbar && (groupColumnNames|isNotEmptyArray)">
         <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true" class="first-header-row"></tr>
       </ng-container>
 

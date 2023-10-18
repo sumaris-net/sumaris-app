@@ -267,6 +267,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
+  @Input() showAutoFillButton = true;
 
   @Input() set showSamplingBatchColumns(value: boolean){
     this._state.set('showSamplingBatchColumns', (_) => value);
@@ -858,7 +859,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
       const childrenColumns = this.computeDynamicColumnsByQv();
       this.dynamicColumns = speciesColumns.concat(childrenColumns);
-      this.showToolbar = !this.mobile || isNotEmptyArray(this.availableTaxonGroups) /* show auto fill button*/;
+      this.showToolbar = !this.mobile
+        // show auto fill button
+        || this.showAutoFillButton && isNotEmptyArray(this.availableTaxonGroups) ;
     }
     else {
       const groupColumns = [];

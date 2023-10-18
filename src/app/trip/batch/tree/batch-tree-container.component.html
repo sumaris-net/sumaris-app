@@ -3,8 +3,8 @@
 </ng-container>
 
 <ng-container *ngIf="!useModal; else withModal">
-  <mat-sidenav-container>
-    <mat-sidenav #sidenav [mode]="treePanelFloating ? 'over' : 'side'" [class.has-footer]="!mobile">
+  <mat-sidenav-container *rxLet="treePanelFloating$ as floating; strategy: rxStrategy">
+    <mat-sidenav #sidenav [mode]="floating ? 'over' : 'side'" [class.has-footer]="!mobile">
       <!-- model tree -->
       <app-batch-model-tree
         #batchModelTree
@@ -19,7 +19,7 @@
         <ion-toolbar>
           <ion-buttons slot="end">
             <button
-              *rxLet="treePanelFloating$ as floating"
+
               mat-icon-button
               color="accent"
               (click)="toggleTreePanelFloating()"
@@ -38,7 +38,7 @@
       <!-- Top toolbar -->
       <mat-toolbar>
         <!-- Toggle tree panel -->
-        <ng-container *rxIf="treePanelFloating$">
+        <ng-container *ngIf="floating">
           <button
             mat-icon-button
             *rxIf="model$; let model"
@@ -55,7 +55,7 @@
           </button>
         </ng-container>
 
-        <div *ngIf="editingBatch$ | async; let node; else: helpMessage">
+        <div *rxIf="editingBatch$; let node; else: helpMessage">
           <ng-container *ngTemplateOutlet="breadcrumbButtons; context: { $implicit: node }"></ng-container>
         </div>
 
@@ -297,7 +297,8 @@
     [rxStrategy]="rxStrategy"
     [requiredGear]="requiredGear$ | async"
     [gearId]="gearId$ | async"
-    [debug]="debug"
+    [showAutoFillButton]="showAutoFillButton"
+    [debug]="debug && false"
   ></app-batch-tree>
 </ng-template>
 

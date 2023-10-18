@@ -1,35 +1,40 @@
 <mat-toolbar *ngIf="showToolbar">
-  <button
-    mat-icon-button
-    hidden-xs
-    hidden-sm
-    hidden-mobile
-    *ngIf="!selection.hasValue() && enabled"
-    [title]="'COMMON.BTN_ADD' | translate"
-    (click)="addRow()"
-  >
-    <mat-icon>add</mat-icon>
-  </button>
-  <button
-    mat-icon-button
-    color="light"
-    *ngIf="selection.hasValue() && enabled"
-    [title]="'COMMON.BTN_DELETE' | translate"
-    (click)="deleteSelection($event)"
-  >
-    <mat-icon>delete</mat-icon>
-  </button>
+  <ng-container *ngIf="selection.isEmpty(); else hasSelection">
+    <!-- add row -->
+    <button
+      mat-icon-button
+      hidden-xs
+      hidden-sm
+      hidden-mobile
+      [disabled]="disabled"
+      [title]="'COMMON.BTN_ADD' | translate"
+      (click)="addRow()">
+      <mat-icon>add</mat-icon>
+    </button>
 
-  <!-- refresh (debug only) -->
-  <button
-    mat-icon-button
-    color="light"
-    *ngIf="debug && !selection.hasValue()"
-    [title]="'COMMON.BTN_REFRESH' | translate"
-    (click)="onRefresh.emit()"
-  >
-    <mat-icon>refresh</mat-icon>
-  </button>
+    <!-- refresh (debug only) -->
+    <button
+      mat-icon-button
+      color="light"
+      *ngIf="debug && !selection.hasValue()"
+      [title]="'COMMON.BTN_REFRESH' | translate"
+      (click)="onRefresh.emit()"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </ng-container>
+
+  <ng-template #hasSelection>
+    <button
+      mat-icon-button
+      *ngIf="enabled"
+      [title]="'COMMON.BTN_DELETE' | translate"
+      (click)="deleteSelection($event)"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+  </ng-template>
+
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -67,7 +72,7 @@
     [trackBy]="trackByFn"
   >
     <ng-container matColumnDef="select" [sticky]="useSticky">
-      <th mat-header-cell *matHeaderCellDef>
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
@@ -75,7 +80,7 @@
           [tabIndex]="-1"
         ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row) : null"
@@ -105,14 +110,20 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'parentGroup'">
         <mat-autocomplete-field
+          *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
           class="min-width-medium"
-          [autofocus]="row.editing && focusColumn === 'parentGroup'"
+          [autofocus]="focusColumn === 'parentGroup'"
           [formControl]="row.validator | formGetControl : 'parentGroup'"
           [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP' | translate"
           [config]="autocompleteFields.parentGroup"
           required
         ></mat-autocomplete-field>
+
+        <!-- readonly -->
+        <ng-template #readonlyCell>
+          {{ row.validator | formGetValue : 'parentGroup' | referentialToString: autocompleteFields.parentGroup.attributes }}
+        </ng-template>
       </td>
     </ng-container>
 
@@ -123,14 +134,20 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonName'">
         <mat-autocomplete-field
+          *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
           class="min-width-medium"
-          [formControl]="row.validator.controls.taxonName"
-          [autofocus]="row.editing && focusColumn === 'taxonName'"
+          [formControl]="row.validator|formGetControl: 'taxonName'"
+          [autofocus]="focusColumn === 'taxonName'"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER' | translate"
           [config]="autocompleteFields.taxonName"
           required
         ></mat-autocomplete-field>
+
+        <!-- readonly -->
+        <ng-template #readonlyCell>
+          {{ row.validator | formGetValue : 'taxonName' | referentialToString: autocompleteFields.taxonName.attributes }}
+        </ng-template>
       </td>
     </ng-container>
 
@@ -151,13 +168,24 @@
         (click)="focusColumn = pmfm.id.toString()"
       >
         <app-pmfm-field
+          *ngIf="row.editing; else readonlyPmfmField"
           floatLabel="never"
           [control]="row.validator | formGetControl : ['measurementValues', pmfm.id]"
-          [autofocus]="row.editing && focusColumn == pmfm.id"
+          [autofocus]="focusColumn == pmfm.id"
           [pmfm]="pmfm"
-          [readonly]="!row.editing"
           [compact]="true"
         ></app-pmfm-field>
+
+        <!-- readonly value-->
+        <ng-template #readonlyPmfmField>
+          <span
+            [innerHTML]="
+              row.validator
+                | formGetValue : ['measurementValues', pmfm.id]
+                | pmfmValue : { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+            "
+          ></span>
+        </ng-template>
       </td>
     </ng-container>
 
@@ -209,9 +237,8 @@
           [class.visible-hover]="!row.editing && !control.value"
           (click)="openCommentPopover($event, row)"
           [disabled]="disabled"
-          [title]="control.value || ''"
-        >
-          <ion-icon [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          [title]="control.value || ''">
+          <ion-icon *ngIf="_enabled || control.value" [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
         </button>
       </td>
     </ng-container>

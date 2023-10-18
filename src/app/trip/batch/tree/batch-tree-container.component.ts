@@ -165,6 +165,19 @@ export class BatchTreeContainerComponent
   @Input() showCatchForm: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
+  @Input() showTaxonName: boolean;
+  @Input() showTaxonGroup: boolean;
+  @Input() showAutoFillButton: boolean;
+  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
+  @Input() selectedTabIndex: number;
+  @Input() usageMode: UsageMode;
+  @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
+  @Input() useSticky = true;
+  @Input() mobile: boolean;
+  @Input() debug: boolean;
+  @Input() filter: BatchFilter;
+  @Input() style: 'tabs'|'menu' = 'menu';
+  @Input() showToolbar = true;
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
 
@@ -182,18 +195,6 @@ export class BatchTreeContainerComponent
     return this._state.get('allowSubBatches');
   }
 
-  @Input() showTaxonName: boolean;
-  @Input() showTaxonGroup: boolean;
-  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
-  @Input() selectedTabIndex: number;
-  @Input() usageMode: UsageMode;
-  @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
-  @Input() useSticky = true;
-  @Input() mobile: boolean;
-  @Input() debug: boolean;
-  @Input() filter: BatchFilter;
-  @Input() style: 'tabs'|'menu' = 'menu';
-  @Input() showToolbar = true;
 
   @Input()
   set programLabel(value: string) {
@@ -355,6 +356,7 @@ export class BatchTreeContainerComponent
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
+      editingBatch: null,
       treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
 
