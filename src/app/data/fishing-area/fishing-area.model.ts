@@ -14,7 +14,7 @@ export class FishingArea extends DataEntity<FishingArea> {
     return !value || (!value.location || !value.location.id)
       && (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id)
       && (!value.depthGradient || !value.depthGradient.id)
-      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id)
+      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id);
   }
 
   location: ReferentialRef;

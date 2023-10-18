@@ -8,7 +8,7 @@ export interface AverageDetails {
   confidenceInterval95: {
     lowerBound: number;
     upperBound: number;
-  }
+  };
 }
 
 export class MathUtils {
@@ -44,11 +44,12 @@ export class MathUtils {
   /**
    * Calcul les bornes
    * 95% des éléments de la série statistique sont compris entre (x − 2σ) et (x + 2σ);
+   *
    * @param numbers
    * @param average
    * @param standardDerivation
    */
-  static confidenceInterval95(numbers: number[], average?: number, standardDerivation?: number): { lowerBound: number; upperBound: number; } {
+  static confidenceInterval95(numbers: number[], average?: number, standardDerivation?: number): { lowerBound: number; upperBound: number } {
     const avg = isNotNilOrNaN(average) ? average : this.average(numbers);
     const stdDev = isNotNilOrNaN(standardDerivation) ? standardDerivation : this.standardDerivation(numbers, avg);
     const n = numbers.length;

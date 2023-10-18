@@ -42,7 +42,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
       .pipe(
         startWith(this.locationControl.value),
         map(ReferentialUtils.isEmpty)
-      )
+      );
   }
 
   get value(): any {
@@ -111,11 +111,11 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
 
   private suggest(value: string, options: any, entityName: string) {
     return this.referentialRefService.suggest(value, {
-        entityName: entityName,
+        entityName,
         searchAttribute: options && options.searchAttribute
       },
-      "rankOrder",
-      "asc");
+      'rankOrder',
+      'asc');
   }
 
   protected markForCheck() {

@@ -22,7 +22,7 @@ import {
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
   TableSelectColumnsComponent,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -59,6 +59,7 @@ declare type BatchComputedFn<T extends Batch = Batch> = (batch: T, parent: T|und
  * Compose many computed functions to one function.<br/>
  * return true (=computed) when one function return true (= OR operand between functions).
  * Nil value are ignored
+ *
  * @param values
  */
 export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): BatchComputedFn|boolean {
@@ -73,7 +74,7 @@ export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): Bat
   const fns: BatchComputedFn[] = values
     .map(value => {
       if (typeof value !== 'function') return () => value;
-      return value // already a function
+      return value; // already a function
     });
 
   // Compose functions: return true (=computed) when one function return true (= OR operand between functions)
@@ -152,6 +153,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 3,
       isWeight: true,
+      // eslint-disable-next-line no-bitwise
       flags: BatchGroupColumnFlags.IS_WEIGHT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total mat-column-weight',
       computed: (batch) => batch && batch.weight?.computed || false
@@ -165,6 +167,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
+      // eslint-disable-next-line no-bitwise
       flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total'
     },
@@ -176,6 +179,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       path: 'children.0.samplingRatio',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
       unitLabel: <SamplingRatioFormat>'%',
+      // eslint-disable-next-line no-bitwise
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
       computed: (batch, parent, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch?.children?.[0]?.samplingRatioText, samplingRatioFormat) || false
@@ -191,6 +195,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maximumNumberDecimals: 3,
       isWeight: true,
       isSampling: true,
+      // eslint-disable-next-line no-bitwise
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
       computed: (batch) => batch?.children?.[0]?.weight?.computed || false
     },
@@ -201,6 +206,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
       isIndividualCount: true,
       isSampling: true,
+      // eslint-disable-next-line no-bitwise
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_ALWAYS_COMPUTED,
       computed: true
     }
@@ -221,32 +227,32 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   groupColumnStartColSpan: number;
   qvPmfm: IPmfm;
 
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);
     if (this.weightMethodForm) this.weightMethodForm.disable(opts);
   }
 
-  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
     if (this.weightMethodForm) this.weightMethodForm.enable(opts);
   }
 
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsPristine(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsPristine(opts);
   }
 
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsTouched(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsTouched(opts);
   }
 
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAllAsTouched(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAllAsTouched();
   }
 
-  markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsUntouched(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
   }
@@ -322,7 +328,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         onSave: (data) => this.onSave(data),
         equals: BatchGroup.equals,
         sortByReplacement: {
-          'id': 'rankOrder'
+          id: 'rankOrder'
         }
       }),
       // Force no validator (readonly mode, if mobile)
@@ -364,8 +370,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     super.ngOnInit();
 
     // Configure sortBy replacement
-    this.memoryDataService.addSortByReplacement('taxonGroup', `taxonGroup.${firstArrayValue(this.autocompleteFields.taxonGroup.attributes)}`)
-    this.memoryDataService.addSortByReplacement('taxonName', `taxonName.${firstArrayValue(this.autocompleteFields.taxonName.attributes)}`)
+    this.memoryDataService.addSortByReplacement('taxonGroup', `taxonGroup.${firstArrayValue(this.autocompleteFields.taxonGroup.attributes)}`);
+    this.memoryDataService.addSortByReplacement('taxonName', `taxonName.${firstArrayValue(this.autocompleteFields.taxonName.attributes)}`);
 
     // Listen showSamplingBatchColumns
     this._state.hold(this._state.select('showSamplingBatchColumns'),  async (value) => {
@@ -716,7 +722,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
       // Convert sampling ratio
       if (this.inlineEdition && isNotNil(samplingBatch.samplingRatio)) {
-        const detectedFormat = BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText, this.samplingRatioFormat)
+        const detectedFormat = BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText, this.samplingRatioFormat);
         if (detectedFormat !== this.samplingRatioFormat) {
           // TODO adapt text if format change ?
           console.warn('TODO: adapt samplingRatioText to new format=' + this.samplingRatioFormat);
@@ -735,7 +741,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
-                          opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
+                          opts?: { showParent?: boolean; emitLoaded?: boolean }) {
     event?.preventDefault();
     event?.stopPropagation(); // Avoid to send event to clicRow()
 
@@ -835,7 +841,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         }, {}));
       } else {
         // TODO create weightMethodForm when no QV Pmfm
-        console.warn('[batch-groups-table] TODO: create weightMethodForm, when no QV Pmfm')
+        console.warn('[batch-groups-table] TODO: create weightMethodForm, when no QV Pmfm');
       }
     }
 
@@ -942,25 +948,20 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
           if (def.key === 'totalIndividualCount') {
-            computed = composeBatchComputed([computed, (batch, parent) => {
-              return !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup);
-            }]);
+            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)]);
           }
           else if (hasFlag(def.flags, BatchGroupColumnFlags.IS_WEIGHT)) {
-            computed = composeBatchComputed([computed, (batch, parent) => {
-              return this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)
-            }]);
+            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)]);
           }
         }
 
         // Is Landing ?
         if (qvIndex< 0 || qvIndex === 0) {
+          // eslint-disable-next-line no-bitwise
           flags = flags | BatchGroupColumnFlags.IS_LANDING;
           // Detect computed column, when taxonGroupsNoLanding is used
           if (isNotEmptyArray(this.taxonGroupsNoLanding)) {
-            computed = composeBatchComputed([computed, (batch, parent) => {
-              return this.isTaxonGroupNoLanding(parent?.taxonGroup || batch?.taxonGroup)
-            }]);
+            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoLanding(parent?.taxonGroup || batch?.taxonGroup)]);
           }
         }
         return <BatchGroupColumnDefinition>{
@@ -986,8 +987,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     offset = offset || 0;
     // Add Pmfm columns
     return (pmfms || [])
-      .map((pmfm, index) => {
-        return <BatchGroupColumnDefinition>{
+      .map((pmfm, index) => <BatchGroupColumnDefinition>{
           type: 'pmfm',
           label: this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix}),
           key: pmfm.id.toString(),
@@ -1001,8 +1001,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           unitLabel: pmfm.unitLabel,
           path: `measurementValues.${pmfm.id}`,
           ...opts
-        };
-      });
+        });
   }
 
   protected getUserColumns(userColumns?: string[]): string[] {
@@ -1074,6 +1073,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   /**
    * Open the sub batches modal, from a parent batch group.
    * Return the updated parent, or undefined if o changes (e.g. user cancelled)
+   *
    * @param data
    * @protected
    */
@@ -1357,6 +1357,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   /**
    * Update the batch group row (e.g. observed individual count), from subbatches
+   *
    * @param row
    * @param subBatches
    * @param opts
@@ -1378,6 +1379,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   /**
    * Update the batch group row (e.g. observed individual count), from subbatches
+   *
    * @param parent
    * @param subBatches
    */
@@ -1408,7 +1410,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         individualCount: samplingBatch.individualCount,
         childrenWeight: samplingBatch.childrenWeight
       };
-    }
+    };
 
     if (this.qvPmfm) {
       const qvPmfmId = this.qvPmfm.id.toString();
@@ -1469,7 +1471,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         if (isNil(data.measurementValues[pmfmId]) && isNotNil(filterValue)) {
           data.measurementValues[pmfmId] = PmfmValueUtils.fromModelValue(filterValue, pmfm);
         }
-      })
+      });
     }
 
 
@@ -1553,6 +1555,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Default case (weight allowed)
       // - Reset totalIndividualCount
       else {
+        // eslint-disable-next-line no-bitwise
         this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL);
       }
     }
@@ -1624,7 +1627,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return this.taxonGroupsNoLanding.includes(taxonGroup.label);
   };
 
-  protected resetColumnValueByFlag(form: UntypedFormGroup, flag: number, opts? : {emitEvent?: boolean}) {
+  protected resetColumnValueByFlag(form: UntypedFormGroup, flag: number, opts?: {emitEvent?: boolean}) {
     let dirty = false;
     this.dynamicColumns
       .filter(column => hasFlag(column.flags, flag))
@@ -1655,7 +1658,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
 
 
-  getDebugData(type:'rowValidator'): any {
+  getDebugData(type: 'rowValidator'): any {
     switch (type) {
       case 'rowValidator':
         const form = this.validatorService.getRowValidator();

@@ -13,11 +13,11 @@ export class BiologicalSamplingValidators {
                              pmfmGroups: ObjectMap<number[]>,
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
-      console.warn("Argument 'form' required");
+      console.warn('Argument \'form\' required');
       return null;
     }
     if (!pmfmGroups) {
-      console.warn("Argument 'pmfmGroups' required");
+      console.warn('Argument \'pmfmGroups\' required');
       return null;
     }
 
@@ -25,7 +25,7 @@ export class BiologicalSamplingValidators {
       .filter(p => !p.isComputed)
       .forEach(p => {
         p.isComputed = true;
-      })
+      });
 
     // Disable computed pmfms
     AppFormUtils.disableControls(form,

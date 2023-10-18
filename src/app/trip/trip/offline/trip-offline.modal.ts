@@ -16,7 +16,7 @@ import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import moment from 'moment';
 
 export interface  TripOfflineModalOptions {
-  value?: TripSynchroImportFilter
+  value?: TripSynchroImportFilter;
 }
 
 @Component({
@@ -31,7 +31,7 @@ export interface  TripOfflineModalOptions {
 export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions{
 
   mobile: boolean;
-  periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
+  periodDurationLabels: { key: string; label: string; startDate: Moment }[];
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
 

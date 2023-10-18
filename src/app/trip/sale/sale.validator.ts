@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import { fromDateISOString, isNotNil, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Sale} from "./sale.model";
+import {toBoolean} from '@sumaris-net/ngx-components';
+import {LocalSettingsService}  from '@sumaris-net/ngx-components';
+import {Sale} from './sale.model';
 import {
   DataRootEntityValidatorOptions,
   DataRootEntityValidatorService
-} from "@app/data/services/validator/root-data-entity.validator";
+} from '@app/data/services/validator/root-data-entity.validator';
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';

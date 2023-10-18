@@ -1,6 +1,5 @@
 <ion-header>
   <ion-toolbar color="primary">
-
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
@@ -10,11 +9,8 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-
   <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
     <ion-grid>
-
       <ion-row>
         <!-- Format -->
         <ion-col class="ion-padding">
@@ -24,9 +20,8 @@
                 <label>Format:&nbsp;</label>
               </ion-col>
               <ion-col>
-                <mat-select (valueChange)="setFormat($event)"
-                            [value]="format">
-                  <mat-option *ngFor="let item of formats" [value]="item.key">{{item.value|translate}}</mat-option>
+                <mat-select (valueChange)="setFormat($event)" [value]="format">
+                  <mat-option *ngFor="let item of formats" [value]="item.key">{{ item.value | translate }}</mat-option>
                 </mat-select>
               </ion-col>
             </ion-row>
@@ -41,8 +36,7 @@
                 <label>Nb decimals:&nbsp;</label>
               </ion-col>
               <ion-col>
-                <mat-select (valueChange)="setMaxDecimals($event)"
-                            [value]="maxDecimals">
+                <mat-select (valueChange)="setMaxDecimals($event)" [value]="maxDecimals">
                   <mat-option [value]="0">0</mat-option>
                   <mat-option [value]="1">2</mat-option>
                   <mat-option [value]="3">3</mat-option>
@@ -55,18 +49,16 @@
           </ion-grid>
         </ion-col>
 
-
         <!-- floatLabel -->
         <ion-col class="ion-padding">
           <ion-grid>
             <ion-row>
               <ion-col class="ion-float-end" size="auto">
-                <label>floatLabel: </label>
+                <label>floatLabel:</label>
               </ion-col>
               <ion-col>
-                <mat-select (valueChange)="setFloatLabel($event)"
-                            [value]="floatLabel">
-                  <mat-option *ngFor="let item of floatLabels" [value]="item">{{item}}</mat-option>
+                <mat-select (valueChange)="setFloatLabel($event)" [value]="floatLabel">
+                  <mat-option *ngFor="let item of floatLabels" [value]="item">{{ item }}</mat-option>
                 </mat-select>
               </ion-col>
             </ion-row>
@@ -80,49 +72,50 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-label color="primary">
-                  Empty and required, with type '{{format}}'
-                </ion-label>
+                <ion-label color="primary">Empty and required, with type '{{ format }}'</ion-label>
               </ion-card-title>
               <ion-card-subtitle>
                 <ion-text color="medium">
-                  <small><pre>{{form|formGetValue:'empty'}}</pre></small>
+                  <small>
+                    <pre>{{ form | formGetValue : 'empty' }}</pre>
+                  </small>
                 </ion-text>
               </ion-card-subtitle>
             </ion-card-header>
             <ion-card-content>
-              <mat-sampling-ratio-field formControlName="empty"
-                                        [format]="format"
-                                        [maxDecimals]="maxDecimals"
-                                        [floatLabel]="floatLabel"
-                                        [required]="true">
-              </mat-sampling-ratio-field>
+              <mat-sampling-ratio-field
+                formControlName="empty"
+                [format]="format"
+                [maxDecimals]="maxDecimals"
+                [floatLabel]="floatLabel"
+                [required]="true"
+              ></mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
-
 
         <!-- Enable -->
         <ion-col>
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-label color="primary">
-                  Enable, with type '{{format}}'
-                </ion-label>
+                <ion-label color="primary">Enable, with type '{{ format }}'</ion-label>
               </ion-card-title>
               <ion-card-subtitle>
                 <ion-text color="medium">
-                  <small><pre>{{form|formGetValue:'enable'}}</pre></small>
+                  <small>
+                    <pre>{{ form | formGetValue : 'enable' }}</pre>
+                  </small>
                 </ion-text>
               </ion-card-subtitle>
             </ion-card-header>
             <ion-card-content>
-              <mat-sampling-ratio-field formControlName="enable"
-                                        [format]="format"
-                                        [maxDecimals]="maxDecimals"
-                                        [floatLabel]="floatLabel">
-              </mat-sampling-ratio-field>
+              <mat-sampling-ratio-field
+                formControlName="enable"
+                [format]="format"
+                [maxDecimals]="maxDecimals"
+                [floatLabel]="floatLabel"
+              ></mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -132,22 +125,23 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-label color="primary">
-                  Disable, with type '{{format}}'
-                </ion-label>
+                <ion-label color="primary">Disable, with type '{{ format }}'</ion-label>
               </ion-card-title>
               <ion-card-subtitle>
                 <ion-text color="medium">
-                  <small><pre>{{form|formGetValue:'disable'}}</pre></small>
+                  <small>
+                    <pre>{{ form | formGetValue : 'disable' }}</pre>
+                  </small>
                 </ion-text>
               </ion-card-subtitle>
             </ion-card-header>
             <ion-card-content>
-              <mat-sampling-ratio-field formControlName="disable"
-                                        [format]="format"
-                                        [maxDecimals]="maxDecimals"
-                                        [floatLabel]="floatLabel">
-              </mat-sampling-ratio-field>
+              <mat-sampling-ratio-field
+                formControlName="disable"
+                [format]="format"
+                [maxDecimals]="maxDecimals"
+                [floatLabel]="floatLabel"
+              ></mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -157,30 +151,29 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-label color="primary">
-                  Readonly, with class 'computed'
-                </ion-label>
+                <ion-label color="primary">Readonly, with class 'computed'</ion-label>
               </ion-card-title>
               <ion-card-subtitle>
                 <ion-text color="medium">
-                  <small><pre>{{form|formGetValue:'disable'}}</pre></small>
+                  <small>
+                    <pre>{{ form | formGetValue : 'disable' }}</pre>
+                  </small>
                 </ion-text>
               </ion-card-subtitle>
             </ion-card-header>
             <ion-card-content>
-              <mat-sampling-ratio-field formControlName="disable" class="computed"
-                                        readonly="true"
-                                        [format]="format"
-                                        placeholder="Sampling Ratio"
-                                        [floatLabel]="floatLabel">
-              </mat-sampling-ratio-field>
+              <mat-sampling-ratio-field
+                formControlName="disable"
+                class="computed"
+                readonly="true"
+                [format]="format"
+                placeholder="Sampling Ratio"
+                [floatLabel]="floatLabel"
+              ></mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
-
       </ion-row>
     </ion-grid>
-
   </form>
-
 </ion-content>

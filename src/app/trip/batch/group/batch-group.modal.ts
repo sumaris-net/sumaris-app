@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import {
   Alerts,
   AppFormUtils,
-  AudioProvider, ErrorCodes,
+  AudioProvider,
+  ErrorCodes,
   IReferentialRef,
   isNil,
   isNotNil,
@@ -12,7 +13,7 @@ import {
   PlatformService,
   ReferentialUtils,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
@@ -29,7 +30,6 @@ import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
-
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
   // Show/Hide fields
   showSamplingBatch: boolean;
@@ -44,7 +44,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   showHasSubBatchesButton: boolean;
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
-  openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup|undefined>;
+  openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup | undefined>;
 }
 
 @Component({
@@ -56,7 +56,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {
+export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatchGroupModalOptions {
 
   private _subscription = new Subscription();
   private _isOnFieldMode: boolean;
@@ -186,7 +186,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches,
       showExhaustiveInventory: false,
       showEstimatedWeight: false
-    }
+    };
 
     this.load();
   }
@@ -288,7 +288,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     await this.modalCtrl.dismiss();
   }
 
-  protected async getDataToSave(opts?: {allowInvalid?: boolean;}): Promise<BatchGroup> {
+  protected async getDataToSave(opts?: {allowInvalid?: boolean}): Promise<BatchGroup> {
     if (this.loading) return undefined; // avoid many call
 
     // Force enable form, before use value
@@ -320,7 +320,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
         // Invalid not allowed: stop
         if (!allowInvalid) {
-          if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
+          if (this.debug) this.form.logFormErrors('[batch-group-modal] ');
           this.form.markAllAsTouched();
           return undefined;
         }
@@ -348,6 +348,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   /**
    * Validate and close. If on bulk mode is enable, skip validation if form is pristine
+   *
    * @param event
    */
   async onSubmitIfDirty(event?: Event) {
@@ -360,7 +361,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
-  async onSubmit(event?: Event, opts?: {allowInvalid?: boolean; }) {
+  async onSubmit(event?: Event, opts?: {allowInvalid?: boolean }) {
     if (this.loading) return undefined; // avoid many call
 
     const data = await this.getDataToSave({allowInvalid: true, ...opts});
@@ -414,7 +415,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       await this.reset(newData);
       this.isNew = true;
       if (this.playSound) {
-        setTimeout(async() => {
+        setTimeout(async () => {
           try {
             await this.audio.playBeepConfirm();
           }

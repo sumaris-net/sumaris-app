@@ -141,7 +141,7 @@ export class BatchTreeContainerTestPage implements OnInit {
         if (location) {
           this.context.setValue('fishingAreas', [FishingArea.fromObject({
             location
-          })])
+          })]);
         }
         else {
           this.context.resetValue('fishingAreas');
@@ -235,7 +235,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     }
 
     // Get program
-    const programLabel = this.filterForm.get('program').value?.label
+    const programLabel = this.filterForm.get('program').value?.label;
 
     // Load example
     const json = getExampleTree(key, programLabel);
@@ -251,7 +251,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     });
 
     // Convert into Batch tree
-    const catchBatch = Batch.fromObjectArrayAsTree(batches)
+    const catchBatch = Batch.fromObjectArrayAsTree(batches);
 
     BatchUtils.cleanTree(catchBatch);
 
@@ -289,22 +289,22 @@ export class BatchTreeContainerTestPage implements OnInit {
     this.dumpCatchBatch(catchBatch, outputName);
 
     if (batchTree.mobile) {
-      let html = "<br/>Sub batches :<br/>";
+      let html = '<br/>Sub batches :<br/>';
       const batches = catchBatch.children;
       if (isEmptyArray(batches)) {
         html += '&nbsp;No result';
       }
       else {
-        let html = "<ul>";
+        let html = '<ul>';
         batches.forEach(b => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
-              html += "<li>" + m + "</li>";
+              html += '<li>' + m + '</li>';
             }
           });
         });
-        html += "</ul>"
+        html += '</ul>';
       }
 
       // Append to result
@@ -315,12 +315,12 @@ export class BatchTreeContainerTestPage implements OnInit {
 
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
-    let html = "";
+    let html = '';
     if (catchBatch) {
       BatchUtils.logTree(catchBatch, {
         showAll: false,
         println: (m) => {
-          html += "<br/>" + m
+          html += '<br/>' + m;
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');

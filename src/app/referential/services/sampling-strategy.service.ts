@@ -16,7 +16,7 @@ import {
   isNotNil,
   LoadResult,
   NetworkService,
-  ReferentialRef
+  ReferentialRef,
 } from '@sumaris-net/ngx-components';
 import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';
@@ -37,56 +37,55 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Program } from '@app/referential/services/model/program.model';
 
 const SamplingStrategyQueries = {
-  loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...SamplingStrategyRefFragment
-    }
-    total: strategiesCount(filter: $filter)
-  }
-  ${StrategyFragments.samplingStrategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`,
-
-  loadAllWithTotal: gql`query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...SamplingStrategyRefFragment
-    }
-    total: strategiesCount(filter: $filter)
-  }
-  ${StrategyFragments.samplingStrategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`,
-
-  loadEffort: gql`query StrategyEffort($ids: [String!]!,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
-    $cacheDuration: String) {
-    data: extraction(
-      type: {format: "strat"},
-      offset: $offset,
-      size: $size,
-      sortBy: $sortBy,
-      sortDirection: $sortDirection,
-      cacheDuration: $cacheDuration,
-      filter: {
-        sheetName: "SM",
-        criteria: [
-          {sheetName: "ST", name: "strategy_id", operator: "IN", values: $ids}
-        ]
+  loadAll: gql`
+    query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...SamplingStrategyRefFragment
       }
-    )
-  }`
+      total: strategiesCount(filter: $filter)
+    }
+    ${StrategyFragments.samplingStrategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightPmfm}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
+
+  loadAllWithTotal: gql`
+    query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...SamplingStrategyRefFragment
+      }
+      total: strategiesCount(filter: $filter)
+    }
+    ${StrategyFragments.samplingStrategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightPmfm}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
+
+  loadEffort: gql`
+    query StrategyEffort($ids: [String!]!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $cacheDuration: String) {
+      data: extraction(
+        type: { format: "strat" }
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        cacheDuration: $cacheDuration
+        filter: { sheetName: "SM", criteria: [{ sheetName: "ST", name: "strategy_id", operator: "IN", values: $ids }] }
+      )
+    }
+  `,
 };
 
 @Injectable({providedIn: 'root'})
@@ -132,7 +131,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             // DEBUG
             //tap(_ => console.debug('[sampling-strategy-service] timer reach !')),
 
-            mergeMap((_) => this.fillEfforts(res.data).then(_ => res)),
+            mergeMap((_) => this.fillEfforts(res.data).then(() => res)),
             startWith(res as LoadResult<SamplingStrategy>)
           )
         )
@@ -141,7 +140,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
                 filter?: Partial<StrategyFilter>,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal?: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
+           opts?: { fetchPolicy?: FetchPolicy; withTotal?: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
@@ -181,7 +180,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       return firstArrayValue(res && res.data || []);
     } catch (err) {
       console.error('Error while loading analyticReference by label', err);
-      return ReferentialRef.fromObject({label: label});
+      return ReferentialRef.fromObject({label});
     }
   }
 
@@ -217,7 +216,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     // Update entity effort
     if (!isNew) {
-      await this.fillEntities({data : [entity]}, opts)
+      await this.fillEntities({data : [entity]}, opts);
     }
 
     return entity;
@@ -226,7 +225,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   async duplicateAllToYear(sources: SamplingStrategy[], year: number): Promise<Strategy[]> {
 
     if (isEmptyArray(sources)) return [];
-    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
+    if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
 
     // CLear cache (only once)
     await this.strategyService.clearCache();
@@ -242,7 +241,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
       const targetAsSampling = SamplingStrategy.fromObject(target.asObject());
 
-      const savedEntity = await this.save(targetAsSampling, {clearCache: false /*already done once*/})
+      const savedEntity = await this.save(targetAsSampling, {clearCache: false /*already done once*/});
 
       savedEntities.push(savedEntity);
     }
@@ -254,14 +253,12 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   watchPmfmIdsByParameterLabels(parameterLabels: string[]): Observable<number[]> {
     return this.referentialRefService.watchAll(0, 1000, 'id', 'asc', {
-      entityName: "Pmfm",
+      entityName: 'Pmfm',
       levelLabels: parameterLabels
     }, {
       withTotal: false
     }).pipe(
-      map((res) => {
-        return (res.data || []).map(p => p.id);
-      }));
+      map((res) => (res.data || []).map(p => p.id)));
   }
 
   async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment): Promise<StrategyEffort> {
@@ -306,7 +303,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     if (!opts || opts.withEffort !== false) {
       jobs.push(this.fillEfforts(res.data, opts)
         .catch(err => {
-          console.error("Error while computing effort: " + err && err.message || err, err);
+          console.error('Error while computing effort: ' + err && err.message || err, err);
           res.errors = (res.errors || []).concat(err);
         })
       );
@@ -320,6 +317,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   /**
    * Fill parameterGroups attribute, on each denormalized strategy
+   *
    * @param entities
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]) {
@@ -329,15 +327,13 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     const parameterLabelGroups = Parameters.getSampleParameterLabelGroups({
       excludedGroups: ['TAG_ID', 'DRESSING', 'PRESERVATION']
-    })
+    });
     const groupKeys = Object.keys(parameterLabelGroups);
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(parameterLabelGroups);
 
     entities.forEach(s => {
       const pmfms = s.pmfms;
-      s.parameterGroups = (pmfms && groupKeys || []).reduce((res, groupKey) => {
-        return pmfms.some(p => pmfmIdsMap[groupKey].includes(p.pmfmId) || (p.parameter?.label && p.parameter.label.includes(groupKey))) ? res.concat(groupKey) : res;
-      }, []);
+      s.parameterGroups = (pmfms && groupKeys || []).reduce((res, groupKey) => pmfms.some(p => pmfmIdsMap[groupKey].includes(p.pmfmId) || (p.parameter?.label && p.parameter.label.includes(groupKey))) ? res.concat(groupKey) : res, []);
     });
   }
 
@@ -390,7 +386,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
           .forEach(effort => {
             effort.realizedEffort = 0;
             effort.landingCount = 0;
-          })
+          });
       }
     });
 

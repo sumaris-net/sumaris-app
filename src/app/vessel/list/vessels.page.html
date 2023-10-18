@@ -1,96 +1,115 @@
-<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate"
-             color="primary"
-             [canGoBack]="false">
+<app-toolbar [title]="'VESSEL.LIST.TITLE' | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
     <ng-container *ngIf="!table.selection.hasValue(); else hasSelection">
-      <button mat-icon-button
-              *ngIf="canEdit && !mobile"
-              [title]="'COMMON.BTN_ADD'|translate" (click)="table.addRow()">
+      <button
+        mat-icon-button
+        *ngIf="canEdit && !mobile"
+        [title]="'COMMON.BTN_ADD' | translate"
+        (click)="table.addRow()"
+      >
         <mat-icon>add</mat-icon>
       </button>
 
       <!-- Refresh -->
-      <button mat-icon-button *ngIf="!mobile"
-              [title]="'COMMON.BTN_REFRESH'|translate"
-              (click)="table.onRefresh.emit()">
+      <button
+        mat-icon-button
+        *ngIf="!mobile"
+        [title]="'COMMON.BTN_REFRESH' | translate"
+        (click)="table.onRefresh.emit()"
+      >
         <mat-icon>refresh</mat-icon>
       </button>
 
       <!-- reset filter -->
-      <button mat-icon-button (click)="table.resetFilter()"
-              *ngIf="table.filterCriteriaCount">
+      <button mat-icon-button (click)="table.resetFilter()" *ngIf="table.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
       </button>
 
       <button mat-icon-button (click)="table.filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="table.filterCriteriaCount; else emptyFilter"
-                  [matBadge]="table.filterCriteriaCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <mat-icon
+          *ngIf="table.filterCriteriaCount; else emptyFilter"
+          [matBadge]="table.filterCriteriaCount"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          filter_list_alt
+        </mat-icon>
         <ng-template #emptyFilter>
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
     </ng-container>
     <ng-template #hasSelection>
-      <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="table.deleteSelection($event)"
-              class="hidden-xs hidden-sm">
+      <button
+        mat-icon-button
+        *ngIf="canDelete"
+        [title]="'COMMON.BTN_DELETE' | translate"
+        (click)="table.deleteSelection($event)"
+        class="hidden-xs hidden-sm"
+      >
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
 
     <ion-button
-      *ngIf='enableReplacement || enableFileImport'
+      *ngIf="enableReplacement || enableFileImport"
       [matMenuTriggerFor]="optionsMenu"
-      [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+    >
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
-
   </ion-buttons>
 </app-toolbar>
 
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-
   <!-- replace -->
-  <button mat-menu-item class="ion-color-danger"
-          *ngIf="enableReplacement"
-          [disabled]="replacementDisabled"
-          (click)="replace($event)">
+  <button
+    mat-menu-item
+    class="ion-color-danger"
+    *ngIf="enableReplacement"
+    [disabled]="replacementDisabled"
+    (click)="replace($event)"
+  >
     <mat-icon>find_replace</mat-icon>
     <mat-label translate>VESSEL.ACTION.REPLACE_MANY</mat-label>
   </button>
 
   <!-- import from file -->
-  <button mat-menu-item class="ion-color-danger"
-          *ngIf="enableFileImport"
-          [disabled]="!canImportFile"
-          (click)="importFromCsv($event)">
+  <button
+    mat-menu-item
+    class="ion-color-danger"
+    *ngIf="enableFileImport"
+    [disabled]="!canImportFile"
+    (click)="importFromCsv($event)"
+  >
     <mat-icon>description</mat-icon>
     <mat-label translate>VESSEL.ACTION.IMPORT_FROM_FILE</mat-label>
   </button>
 </mat-menu>
 
 <ion-content class="ion-no-padding" scroll-y="false">
-
-  <app-vessels-table #table
-                     [canEdit]="canEdit"
-                     [showFabButton]="true"
-                     [canDelete]="canDelete"
-                     [showPaginator]="false"
-                     [showToolbar]="false"
-                     [paginator]='paginator'
-                     (onOpenRow)="onOpenRow($event)">
-  </app-vessels-table>
-
+  <app-vessels-table
+    #table
+    [canEdit]="canEdit"
+    [showFabButton]="true"
+    [canDelete]="canDelete"
+    [showPaginator]="false"
+    [showToolbar]="false"
+    [paginator]="paginator"
+    (onOpenRow)="onOpenRow($event)"
+  ></app-vessels-table>
 </ion-content>
 
 <!-- paginator -->
 <ion-footer>
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="table.totalRowCount" [pageSize]="table.defaultPageSize"
-                 [pageSizeOptions]="table.defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
+  <mat-paginator
+    #paginator
+    class="mat-paginator-footer"
+    [length]="table.totalRowCount"
+    [pageSize]="table.defaultPageSize"
+    [pageSizeOptions]="table.defaultPageSizeOptions"
+    showFirstLastButtons
+  ></mat-paginator>
 </ion-footer>
-

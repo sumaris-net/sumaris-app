@@ -20,7 +20,7 @@ export class MethodService extends ReferentialService<Method> {
     target.properties = {
       isEstimated: source.isEstimated,
       isCalculated: source.isCalculated,
-    }
+    };
     delete target.isEstimated;
     delete target.isCalculated;
 

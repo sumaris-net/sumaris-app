@@ -1,15 +1,11 @@
-
 <!-- Bottom right cards -->
 <ion-grid class="bottom-right" *ngIf="showTooltip">
-
   <ion-row>
     <ion-col></ion-col>
 
     <ion-col class="ion-align-self-end">
-
       <!-- Details card -->
       <ion-card color="light" class="details ng-hide" *ngIf="$selectedFeature | async as item" [@fadeInOutAnimation]>
-
         <ion-item color="secondary" *ngIf="item.properties.trip">
           <ion-label>{{ item.properties.trip }}</ion-label>
         </ion-item>
@@ -17,12 +13,18 @@
         <ion-card-header>
           <ion-card-title>
             <app-operation-icon [value]="item.properties.source"></app-operation-icon>
-            {{'TRIP.OPERATION.OPE_PREFIX'|translate}} #{{item.properties.rankOrder}}
+            {{ 'TRIP.OPERATION.OPE_PREFIX' | translate }} #{{ item.properties.rankOrder }}
           </ion-card-title>
           <ion-card-subtitle>
-            {{item.properties.startDateTime}}<br/>
+            {{ item.properties.startDateTime }}
+            <br />
             <!-- duration -->
-            <ion-text color="medium" *ngIf="item.properties.duration"><small><span translate>COMMON.DURATION_DOTS</span> {{ item.properties.duration }}</small></ion-text>
+            <ion-text color="medium" *ngIf="item.properties.duration">
+              <small>
+                <span translate>COMMON.DURATION_DOTS</span>
+                {{ item.properties.duration }}
+              </small>
+            </ion-text>
           </ion-card-subtitle>
         </ion-card-header>
 
@@ -31,18 +33,30 @@
           <ion-grid>
             <ion-row>
               <ion-col class="ion-text-center">
-                {{item.properties.startPosition.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                {{
+                  item.properties.startPosition.latitude
+                    | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
+                }}
               </ion-col>
               <ion-col class="ion-text-center">
-                {{item.properties.startPosition.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                {{
+                  item.properties.startPosition.longitude
+                    | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
+                }}
               </ion-col>
             </ion-row>
             <ion-row>
               <ion-col class="ion-text-center">
-                {{item.properties.endPosition?.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                {{
+                  item.properties.endPosition?.latitude
+                    | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
+                }}
               </ion-col>
               <ion-col class="ion-text-center">
-                {{item.properties.endPosition?.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                {{
+                  item.properties.endPosition?.longitude
+                    | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
+                }}
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -53,9 +67,10 @@
 </ion-grid>
 
 <!-- Leaflet map -->
-<div leaflet [attr.id]="mapId"
-     (leafletMapReady)="onMapReady($event)"
-     [leafletOptions]="options"
-     [leafletLayersControl]="layersControl">
-
-</div>
+<div
+  leaflet
+  [attr.id]="mapId"
+  (leafletMapReady)="onMapReady($event)"
+  [leafletOptions]="options"
+  [leafletLayersControl]="layersControl"
+></div>

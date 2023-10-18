@@ -197,7 +197,7 @@ export class BatchGroupFormTestPage implements OnInit {
     }
 
     // Get program
-    const programLabel = this.filterForm.get('program').value?.label
+    const programLabel = this.filterForm.get('program').value?.label;
 
     // Load example
     const json = getExampleTree(key, programLabel);

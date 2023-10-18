@@ -1,9 +1,9 @@
-import {Injectable} from "@angular/core";
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import {ReferentialValidatorService} from "./referential.validator";
-import {TaxonName} from "../model/taxon-name.model";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {ReferentialValidatorService} from './referential.validator';
+import {TaxonName} from '../model/taxon-name.model';
+import {toBoolean} from '@sumaris-net/ngx-components';
+import {SharedValidators} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class TaxonNameValidatorService extends ReferentialValidatorService<TaxonName> {

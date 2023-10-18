@@ -62,7 +62,7 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
 });
 
 export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
-export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/
+export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/;
 
 
 @EntityClass({typename: 'OperationVO'})
@@ -363,7 +363,7 @@ export class Operation
 
     // Samples
     if (!opts || opts.withSamples !== false) {
-      this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || undefined;
+      this.samples = source.samples && source.samples.map(json => Sample.fromObject(json, {withChildren: true})) || undefined;
     }
 
     // Batches
@@ -568,7 +568,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     });
 
     // Samples
-    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source, {withChildren: true})) || [];
+    this.samples = source.samples && source.samples.map(json => Sample.fromObject(json, {withChildren: true})) || [];
     // Affect parent
     this.samples.forEach(sample => {
       sample.operationId = this.id;

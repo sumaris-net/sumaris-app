@@ -1,19 +1,15 @@
 <ion-app>
-
   <app-menu [logo]="logo" [appName]="appName" contentId="menu-content">
-
     <!-- notification icons  [autoHide]="true"  -->
     <div *ngIf="enabledNotificationIcons" headerBottomRight>
       <app-job-progression-icon [autoHide]="true"></app-job-progression-icon>
       <app-user-event-notification-icon></app-user-event-notification-icon>
     </div>
 
-<!--    <div afterFirstActiveItem>-->
-<!--      <app-history-item [filter]="menu.activeItem.path"></app-history-item>-->
-<!--    </div>-->
+    <!--    <div afterFirstActiveItem>-->
+    <!--      <app-history-item [filter]="menu.activeItem.path"></app-history-item>-->
+    <!--    </div>-->
 
     <ion-router-outlet id="menu-content"></ion-router-outlet>
-
   </app-menu>
-
 </ion-app>

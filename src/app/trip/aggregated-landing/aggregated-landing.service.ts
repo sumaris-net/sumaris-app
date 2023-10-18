@@ -34,20 +34,22 @@ import { DataErrorCodes } from '@app/data/services/errors';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TripService } from '@app/trip/trip/trip.service';
 
-const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
-  __typename
-  date
-  rankOrder
-  comments
-  measurementValues
-  metiers {
-    ...LightReferentialFragment
+const VesselActivityFragment = gql`
+  fragment VesselActivityFragment on VesselActivityVO {
+    __typename
+    date
+    rankOrder
+    comments
+    measurementValues
+    metiers {
+      ...LightReferentialFragment
+    }
+    observedLocationId
+    landingId
+    tripId
   }
-  observedLocationId
-  landingId
-  tripId
-}
-${ReferentialFragments.lightReferential}`;
+  ${ReferentialFragments.lightReferential}
+`;
 
 const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on AggregatedLandingVO {
   __typename
@@ -109,11 +111,11 @@ export class AggregatedLandingService
     this._debug = !environment.production;
   }
 
-  async loadAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Promise<LoadResult<AggregatedLanding>> {
+  async loadAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number }, opts?: EntitiesServiceWatchOptions): Promise<LoadResult<AggregatedLanding>> {
     return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
   }
 
-  watchAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
+  watchAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number }, opts?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
     return this.watchAll(0, -1, null, null, filter, opts);
   }
 
@@ -284,7 +286,7 @@ export class AggregatedLandingService
                 }
                 vesselActivity.tripId = savedVesselActivity.tripId;
               }
-            })
+            });
 
           }
         });
@@ -354,11 +356,11 @@ export class AggregatedLandingService
     // console.log("Local trips to synchronize:", localTrips);
 
     let target = entities.map(source => {
-      const target = source.clone();
-      target.observedLocationId = opts?.filter?.observedLocationId;
-      target.id = undefined;
+      const copy = source.clone();
+      copy.observedLocationId = opts?.filter?.observedLocationId;
+      copy.id = undefined;
       // target.vesselActivities?.forEach(activity => activity.tripId = undefined);
-      return target;
+      return copy;
     });
 
     target = await this.saveAll(target, { filter });

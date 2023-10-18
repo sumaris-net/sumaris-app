@@ -131,7 +131,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     }
     catch (err) {
       const error = (err?.message || err);
-      this.form.error = error
+      this.form.error = error;
       console.error(error);
     }
     finally {

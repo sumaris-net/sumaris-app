@@ -22,7 +22,7 @@ export class OperationStats extends BaseTripReportStats {
   weightDisplayedUnit: WeightUnitSymbol;
   taxonGroup: TaxonGroupRef;
 
-  fromObject(source:any) {
+  fromObject(source: any) {
     this.sampleCount = source.sampleCount;
     this.pmfms = source.pmfms.map(item => Pmfm.fromObject(item));
     this.program = Program.fromObject(source.program);
@@ -72,8 +72,8 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
     return data;
   }
 
-  dataFromObject(source:object): Operation {
-    return Operation.fromObject(source)
+  dataFromObject(source: object): Operation {
+    return Operation.fromObject(source);
   }
 
   protected async fillParent(data: Operation){
@@ -141,7 +141,7 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
     return '';
   }
 
-  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[];}) {
+  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[]}) {
     return isNotEmptyArray(species?.charts);
   }
 }

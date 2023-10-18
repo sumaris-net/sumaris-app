@@ -24,13 +24,13 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   static TYPE = <IchthyometerType>'gwaleen';
 
   static READ_TIMEOUT_MS = 1000; // 1s timeout
-  static END_DELIMITER = "#";
+  static END_DELIMITER = '#';
   static PING_TIMEOUT_MS = 3000; // 3s timeout
-  static PING_COMMAND = "a#";
-  static PING_ACKNOWLEDGE = "%a:e#";
-  static INFO_COMMAND = "b#";
+  static PING_COMMAND = 'a#';
+  static PING_ACKNOWLEDGE = '%a:e#';
+  static INFO_COMMAND = 'b#';
   static INFO_TIMEOUT_MS = 4000; // 4s timeout
-  static INFO_RESULT_PREFIX = "%b:";
+  static INFO_RESULT_PREFIX = '%b:';
   static VALUE_LENGTH_PREFIX = '%l,';
   static CONNECTION_TIMEOUT_MS = 2000; // 2s timeout
 
@@ -40,29 +40,29 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   protected readonly bluetoothService: BluetoothService;
   protected readonly settings: LocalSettingsService;
 
-  readonly enabled$ = this._state.select('enabled')
+  readonly enabled$ = this._state.select('enabled');
   readonly connected$ = this._state.select('connected');
   readonly usageCount$ = this._state.select('usageCount');
   readonly device: Partial<BluetoothDeviceWithMeta> & IchthyometerDevice;
 
 
   get id() {
-    return this.device.name
+    return this.device.name;
   }
   get name() {
-    return this.device.name
+    return this.device.name;
   }
   get class() {
-    return this.device.class
+    return this.device.class;
   }
   get address() {
-    return this.device.address
+    return this.device.address;
   }
   get uuid() {
-    return this.device.uuid
+    return this.device.uuid;
   }
   get rssi() {
-    return this.device.rssi
+    return this.device.rssi;
   }
   get meta(): BluetoothDeviceMeta {
     return this.device.meta;
@@ -123,7 +123,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
                   const usageDuration = Date.now() - (this.startTime || 0) - autoDisconnectIdleTime;
                   return {usageDuration, autoDisconnectIdleTime};
                 })
-              )
+              );
           })
         ),
       async ({usageDuration, autoDisconnectIdleTime}) => {
@@ -185,7 +185,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   }
 
   async ping(): Promise<boolean|BluetoothDeviceWithMeta> {
-    let connected = await this.connectIfNeed();
+    const connected = await this.connectIfNeed();
     if (!connected) return false; // Not connected
 
     const acknowledge = await this.doPing();
@@ -203,7 +203,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
         ...meta
       };
 
-      return this.device
+      return this.device;
     }
 
     return acknowledge;
@@ -272,12 +272,10 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     return this.watch()
       .pipe(
         filter(isNotNilOrBlank),
-        map(strValue => {
-          return {
+        map(strValue => ({
             value: parseFloat(strValue),
             unit: 'mm'
-          }
-        })
+          }))
       );
   }
 
@@ -320,7 +318,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   }
 
   private async getModelAndVersion(): Promise<BluetoothDeviceMeta> {
-    let connected = await this.connectIfNeed({emitEvent: false});
+    const connected = await this.connectIfNeed({emitEvent: false});
     if (!connected) return; // Not connected
 
     const now = Date.now();
@@ -329,7 +327,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
 
     const result = {model: undefined, version: undefined};
     try {
-      await BluetoothSerial.write({address: this.device.address, value: GwaleenIchthyometer.INFO_COMMAND})
+      await BluetoothSerial.write({address: this.device.address, value: GwaleenIchthyometer.INFO_COMMAND});
 
       const value = await this.read({timeout: GwaleenIchthyometer.INFO_TIMEOUT_MS});
 
@@ -360,7 +358,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   /* -- internal functions -- */
 
   private async connectIfNeed(opts?: {emitEvent?: boolean}): Promise<boolean> {
-    let connected = await this.bluetoothService.connectIfNeed(this.device, {...opts, timeout: GwaleenIchthyometer.CONNECTION_TIMEOUT_MS});
+    const connected = await this.bluetoothService.connectIfNeed(this.device, {...opts, timeout: GwaleenIchthyometer.CONNECTION_TIMEOUT_MS});
 
     // Update connected state
     if (!opts || opts.emitEvent !== false) {

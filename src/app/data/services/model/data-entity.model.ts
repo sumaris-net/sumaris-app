@@ -114,10 +114,11 @@ export abstract class DataEntityUtils {
 
   /**
    * Reset controlDate, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
-  static markAsNotControlled(entity: DataEntity<any, any>|undefined, opts?: {keepQualityFlag?: boolean;}) {
+  static markAsNotControlled(entity: DataEntity<any, any>|undefined, opts?: {keepQualityFlag?: boolean}) {
     // Mark as controlled
     entity.controlDate = null;
     // Clean quality flag
@@ -131,6 +132,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Set controlDat, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
@@ -147,6 +149,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Mark as invalid, using qualityFlag
+   *
    * @param entity
    * @param errorMessage
    */
@@ -165,6 +168,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Check if an entity has been mark as invalid
+   *
    * @param entity
    */
   static isInvalid(entity: DataEntity<any, any>|undefined) {
@@ -174,6 +178,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Reset controlDate, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
@@ -183,6 +188,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Get entity name from the __typename of an entity
+   *
    * @param entity
    */
   static getEntityName(entity: DataEntity<any, any>|undefined): string|undefined {

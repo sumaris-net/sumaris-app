@@ -39,6 +39,10 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
     return this.vesselsTable?.loading;
   }
 
+  get canValidate(): boolean {
+    return this.hasSelection();
+  }
+
   constructor(
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
@@ -82,7 +86,7 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
             .filter(isNotNil);
       }
       if (isEmptyArray(vessels)) {
-        console.warn("[select-vessel-modal] no selection");
+        console.warn('[select-vessel-modal] no selection');
       }
       this.viewCtrl.dismiss(vessels);
       return true;
@@ -97,10 +101,6 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
 
   hasSelection(): boolean {
     return this.vesselsTable?.selection.hasValue() && this.vesselsTable?.selection.selected.length === 1;
-  }
-
-  get canValidate(): boolean {
-    return this.hasSelection();
   }
 
   protected markForCheck() {

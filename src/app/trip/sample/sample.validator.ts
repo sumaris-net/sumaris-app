@@ -55,7 +55,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
       qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
-    }
+    };
 
     // Add children form array
     if (!opts || opts.withChildren !== false) {
@@ -137,4 +137,4 @@ export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
   missingWeightOrSize: 'TRIP.SAMPLE.ERROR.WEIGHT_OR_LENGTH_REQUIRED',
   tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH',
   outOfRange: 'TRIP.SAMPLE.ERROR.OUT_OF_RANGE',
-}
+};

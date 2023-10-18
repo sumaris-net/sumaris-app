@@ -59,7 +59,7 @@ export class AppBluetoothIcon<
   protected readonly popoverController: PopoverController;
   protected readonly icon$ = this._state.select('icon');
 
-  @Input() title: string = 'SHARED.BLUETOOTH.TITLE';
+  @Input() title = 'SHARED.BLUETOOTH.TITLE';
   @Input() selectedDeviceIcon: IconRef = {icon: 'information-circle'};
   @Input() checkAfterConnect: BluetoothDeviceCheckFn;
 
@@ -116,14 +116,14 @@ export class AppBluetoothIcon<
     return this._state.get('enabled');
   }
 
-  @Output('connectedDevicesChanges') connectedDevicesChanges = this._state.$.pipe(
+  @Output() connectedDevicesChanges = this._state.$.pipe(
     distinctUntilKeyChanged('connectedDevices'),
     map(s => s.connectedDevices)
   );
 
   @Input() badgeSize: MatBadgeSize = 'small';
   @Input() badgePosition: MatBadgePosition = 'above after';
-  @Input() badgeHidden: boolean = false;
+  @Input() badgeHidden = false;
 
   constructor(
     injector: Injector,
@@ -131,7 +131,7 @@ export class AppBluetoothIcon<
     protected _state: RxState<S>,
     @Optional() @Inject(APP_BLUETOOTH_ICON_DEFAULT_STATE) state: Partial<S>
   ) {
-    this.cd = injector.get(ChangeDetectorRef)
+    this.cd = injector.get(ChangeDetectorRef);
     this.popoverController = injector.get(PopoverController);
     this._state.set(<Partial<S>>{
       icon: {matIcon: 'bluetooth', badge: null},
@@ -180,14 +180,14 @@ export class AppBluetoothIcon<
     );
   }
 
-  updateView(state: {enabled: boolean|null, connectedDevices: D[]|null, connecting: boolean|null}) {
+  updateView(state: {enabled: boolean|null; connectedDevices: D[]|null; connecting: boolean|null}) {
     state = state || {enabled: null, connectedDevices: null, connecting: null};
 
     // DEBUG
     //console.debug('[bluetooth-icon] Updating view: ' + JSON.stringify(state));
 
     let matIcon: BluetoothIconType;
-    let color:AppColors;
+    let color: AppColors;
     let badge: string|number;
     let badgeIcon: string;
     let badgeMatIcon: string;
@@ -277,7 +277,7 @@ export class AppBluetoothIcon<
         componentProps: <BluetoothPopoverOptions>{
           titleI18n: this.title,
           deviceFilter: this.deviceFilter,
-          connectedDevices: connectedDevices,
+          connectedDevices,
           selectedDevicesIcon: this.selectedDeviceIcon,
           checkAfterConnect: checkAfterConnectFn
         },

@@ -1,5 +1,15 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl, AbstractControlOptions, FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  AbstractControlOptions,
+  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import {
   AppFormArray,
   EntityUtils,
@@ -13,7 +23,7 @@ import {
   SharedValidators,
   toBoolean,
   toFloat,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Batch, BatchWeight } from './batch.model';
 import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -28,7 +38,7 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils }
 import { debounceTime } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
-export function getFormOptions<O>(form: UntypedFormGroup): O|undefined {
+export function getFormOptions<O>(form: UntypedFormGroup): O | undefined {
   return form['__options'] as O;
 }
 export function setFormOptions<O>(form: UntypedFormGroup, opts?: O) {
@@ -191,7 +201,7 @@ export class BatchValidatorService<
     {
       const individualCountControl = form.get('individualCount');
       if (opts.individualCountRequired === true) {
-        individualCountControl.setValidators(Validators.compose([Validators.required, Validators.min(0), SharedValidators.integer]))
+        individualCountControl.setValidators(Validators.compose([Validators.required, Validators.min(0), SharedValidators.integer]));
       }
       else {
         individualCountControl.setValidators(Validators.compose([Validators.min(0), SharedValidators.integer]));
@@ -229,7 +239,7 @@ export class BatchValidatorService<
 
     // Children weight (=sum of children weight)
     {
-      let childrenWeightForm = form.get('childrenWeight');
+      const childrenWeightForm = form.get('childrenWeight');
       if (opts.withChildrenWeight) {
         // Create if need
         if (!childrenWeightForm) {
@@ -305,7 +315,7 @@ export class BatchValidatorService<
     pmfm?: IPmfm;
   }) {
     const previousOptions = getFormOptions(form);
-    opts = { ...getFormOptions(form), ...opts}
+    opts = { ...getFormOptions(form), ...opts};
     if (!equals(previousOptions, opts)) {
       const control = form.get('value');
       control.setValidators(BatchWeightValidator.getValueValidator(opts));
@@ -318,7 +328,7 @@ export class BatchValidatorService<
     pmfms: IPmfm[];
     forceOptional?: boolean;
     withTypename?: boolean;
-    updateOn?: ControlUpdateOnType
+    updateOn?: ControlUpdateOnType;
   }) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
@@ -372,6 +382,7 @@ export class BatchValidators {
 
   /**
    * Check if weight > 0 when individualCount > 0
+   *
    * @param control
    */
   static weightForIndividualCount(control: AbstractControl): ValidationErrors|null {
@@ -387,13 +398,14 @@ export class BatchValidators {
 
   /**
    * Computing weight, sampling weight and/or sampling ratio
+   *
    * @param opts
    */
   static samplingRatioAndWeight(opts?: {
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
-    qvPmfm?: IPmfm
+    qvPmfm?: IPmfm;
   }): ValidatorFn {
 
     if (!opts?.qvPmfm) {
@@ -403,13 +415,11 @@ export class BatchValidators {
     return Validators.compose((opts.qvPmfm.qualitativeValues || [])
       .map((qv, qvIndex) => {
         const qvFormPath = `children.${qvIndex}`;
-        return (control) => {
-          return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath) as UntypedFormGroup,
+        return (control) => BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath) as UntypedFormGroup,
             {...opts, emitEvent: false, onlySelf: false});
-        }
       }));
 
-    return (control) => BatchValidators.computeSamplingRatioAndWeight(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false})
+    return (control) => BatchValidators.computeSamplingRatioAndWeight(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false});
   }
 
   static roundWeightConversion(opts?: {
@@ -417,7 +427,7 @@ export class BatchValidators {
     requiredWeight?: boolean;
     weightPath?: string;
   }): ValidatorFn {
-    return (control) => BatchValidators.computeRoundWeightConversion(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false})
+    return (control) => BatchValidators.computeRoundWeightConversion(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false});
   }
 
   static computeSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
@@ -467,7 +477,7 @@ export class BatchValidators {
 
     let samplingBatch = BatchUtils.getSamplingChild(batch);
     const samplingWeight: BatchWeight = samplingWeightForm?.value || samplingBatch.weight;
-    const isSamplingWeightComputed = samplingWeight.computed == true && samplingWeight.methodId !== MethodIds.CALCULATED_WEIGHT_LENGTH_SUM;
+    const isSamplingWeightComputed = samplingWeight.computed === true && samplingWeight.methodId !== MethodIds.CALCULATED_WEIGHT_LENGTH_SUM;
     if (!samplingBatch) {
       samplingBatch = samplingForm.value;
       batch.children.push(samplingBatch);
@@ -550,7 +560,7 @@ export class BatchValidators {
     // ***********
     else if (isSamplingRatioValid && isSamplingWeightValid && samplingRatio > 0) {
       if (isTotalWeightComputed || isNil(totalWeight)) {
-        const computedTotalWeight = roundHalfUp(samplingWeight.value / samplingRatio, opts.weightMaxDecimals || 3)
+        const computedTotalWeight = roundHalfUp(samplingWeight.value / samplingRatio, opts.weightMaxDecimals || 3);
         if (totalWeight !== computedTotalWeight) {
           totalWeightControl.patchValue({
             computed: true,
@@ -629,6 +639,7 @@ export class BatchValidators {
 
   /**
    * Converting length into a weight
+   *
    * @param form
    * @param opts
    */
@@ -638,7 +649,7 @@ export class BatchValidators {
     // Weight
     requiredWeight?: boolean;
     weightPath?: string;
-  }) : ValidationErrors | null {
+  }): ValidationErrors | null {
 
     const weightPath = opts?.weightPath || 'weight';
 
@@ -646,7 +657,7 @@ export class BatchValidators {
 
     // Create weight control - should not occur ??
     if (!weightControl) {
-      console.warn('Creating missing weight control - Please add it to the validator instead')
+      console.warn('Creating missing weight control - Please add it to the validator instead');
       const weightValidators = opts?.requiredWeight ? Validators.required : undefined;
       weightControl = new UntypedFormControl(null, weightValidators);
       form.addControl(weightPath, weightControl);

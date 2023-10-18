@@ -31,7 +31,7 @@ export const ImageAttachmentFragments = {
     }
     __typename
   }`
-}
+};
 
 const ImageAttachmentQueries: BaseEntityGraphqlQueries = {
   loadAll: gql`query Images($filter: ImageAttachmentVOInput) {
@@ -40,7 +40,7 @@ const ImageAttachmentQueries: BaseEntityGraphqlQueries = {
     }
   }
   ${ImageAttachmentFragments.light}` ,
-}
+};
 
 
 @Injectable({providedIn: 'root'})

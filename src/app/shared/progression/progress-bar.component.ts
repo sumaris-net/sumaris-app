@@ -6,24 +6,22 @@ import { toBoolean } from '@sumaris-net/ngx-components';
   selector: 'app-progress-bar',
   templateUrl: './progress-bar.component.html',
   styleUrls: ['./progress-bar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppProgressBarComponent implements OnInit{
-
+export class AppProgressBarComponent implements OnInit {
   @Input() progression: ProgressionModel;
   @Input() cancellable: boolean;
-  @Output('cancel') onCancel = new EventEmitter<Event>();
+  @Output() cancel = new EventEmitter<Event>();
 
-  constructor() {
-  }
+  constructor() {}
 
   ngOnInit() {
     this.progression = this.progression || new ProgressionModel();
-    this.cancellable = toBoolean(this.cancellable, this.onCancel.observers.length > 0);
+    this.cancellable = toBoolean(this.cancellable, this.cancel.observers.length > 0);
   }
 
-  protected cancel(event: Event) {
+  protected cancelClick(event: Event) {
     this.progression.cancel();
-    this.onCancel.emit(event);
+    this.cancel.emit(event);
   }
 }

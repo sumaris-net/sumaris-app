@@ -178,7 +178,7 @@ export class PmfmService
     super(graphql, environment);
   }
 
-  async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
+  async existsByLabel(label: string, opts?: { excludedId?: number }): Promise<boolean> {
     if (isNil(label)) return false;
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
   }
@@ -192,7 +192,7 @@ export class PmfmService
       variables: {
         id
       },
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
     });
     const entity = data && Pmfm.fromObject(data);
 
@@ -211,7 +211,7 @@ export class PmfmService
       variables: {
         id
       },
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"}
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
     });
     const entity = data && Pmfm.fromObject(data);
 
@@ -226,6 +226,7 @@ export class PmfmService
 
   /**
    * Save a pmfm entity
+   *
    * @param entity
    */
   async save(entity: Pmfm, options?: EntityServiceLoadOptions): Promise<Pmfm> {
@@ -251,7 +252,7 @@ export class PmfmService
       variables: {
         data: json
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
       update: (proxy, {data}) => {
         // Update entity
         const savedEntity = data && data.data;
@@ -277,7 +278,7 @@ export class PmfmService
 
   listenChanges(id: number, options?: any): Observable<Pmfm | undefined> {
     // TODO
-    console.warn("TODO: implement listen changes on pmfm");
+    console.warn('TODO: implement listen changes on pmfm');
     return of();
   }
 
@@ -304,7 +305,7 @@ export class PmfmService
       filter: filter && filter.asPodObject()
     };
     const now = Date.now();
-    if (this._debug) console.debug("[pmfm-service] Watching pmfms using options:", variables);
+    if (this._debug) console.debug('[pmfm-service] Watching pmfms using options:', variables);
 
     const query = opts.query ? opts.query : (
       opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -314,7 +315,7 @@ export class PmfmService
     return this.graphql.watchQuery<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
@@ -332,6 +333,7 @@ export class PmfmService
 
   /**
    * Load pmfms
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -345,7 +347,7 @@ export class PmfmService
                 sortDirection?: SortDirection,
                 filter?: Partial<PmfmFilter>,
                 opts?: {
-                  query?: any,
+                  query?: any;
                   fetchPolicy?: FetchPolicy;
                   withTotal?: boolean;
                   withDetails?: boolean;
@@ -363,7 +365,7 @@ export class PmfmService
     };
     const debug = this._debug && (opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[pmfm-service] Loading pmfms... using variables:", variables);
+    if (debug) console.debug('[pmfm-service] Loading pmfms... using variables:', variables);
 
     const query = opts.query ? opts.query : (
       opts.withDetails ? LoadAllWithDetailsQuery : (
@@ -373,7 +375,7 @@ export class PmfmService
     const {data, total} = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
       fetchPolicy: opts.fetchPolicy || undefined
     });
 
@@ -405,7 +407,7 @@ export class PmfmService
   }
 
   deleteAll(data: Pmfm[], options?: any): Promise<any> {
-    throw new Error("Not implemented yet");
+    throw new Error('Not implemented yet');
   }
 
   async suggest(value: any,
@@ -414,7 +416,7 @@ export class PmfmService
                 sortDirection?: SortDirection,
     ): Promise<LoadResult<Pmfm>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
       {
@@ -426,6 +428,7 @@ export class PmfmService
 
   /**
    * Get referential references, group by level labels
+   *
    * @param parameterLabelsMap
    * @param opts
    */
@@ -460,7 +463,7 @@ export class PmfmService
 
     // Keep only id
     return Object.keys(groupedPmfms).reduce((res, key) => {
-      res[key] = arrayPluck(groupedPmfms[key], 'id')
+      res[key] = arrayPluck(groupedPmfms[key], 'id');
       return res;
     }, {});
   }

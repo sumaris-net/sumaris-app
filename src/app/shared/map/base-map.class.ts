@@ -29,7 +29,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected readonly subscription = new Subscription();
   protected readonly destroySubject = new Subject<void>();
   protected readonly mobile: boolean;
-  protected settingsId:string;
+  protected settingsId: string;
   protected error: string;
 
   protected readonly center$ = this._state.select('center');
@@ -50,7 +50,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}', {
       maxZoom: MapUtils.MAX_ZOOM,
-      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+      attribution: '<a href=\'https://sextant.ifremer.fr\'>Sextant</a>'
   });
 
   protected readonly options = <MapOptions>{
@@ -88,7 +88,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   }
 
   protected constructor(
-    injector:Injector,
+    injector: Injector,
     protected _state: RxState<S>,
     @Optional() options?: {
       maxZoom: number;

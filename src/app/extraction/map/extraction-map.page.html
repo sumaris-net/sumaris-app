@@ -1,61 +1,63 @@
 <app-toolbar color="primary">
-
   <ion-title>
-    <span class="hidden-xs hidden-sm hidden-mobile"
-          [innerHTML]="$title | push"></span>
+    <span class="hidden-xs hidden-sm hidden-mobile" [innerHTML]="$title | push"></span>
   </ion-title>
 
   <ion-buttons slot="end" *rxLet="type$ as type">
     <!-- Edit button -->
-    <button mat-icon-button
-            *ngIf="!mobile && type && canEdit"
-            class="hidden-xs hidden-sm"
-            [routerLink]="'/extraction/product/' + type.id"
-            [title]="'COMMON.BTN_EDIT'|translate"
-            [disabled]="loading">
+    <button
+      mat-icon-button
+      *ngIf="!mobile && type && canEdit"
+      class="hidden-xs hidden-sm"
+      [routerLink]="'/extraction/product/' + type.id"
+      [title]="'COMMON.BTN_EDIT' | translate"
+      [disabled]="loading"
+    >
       <mat-icon>edit</mat-icon>
     </button>
 
     <!-- Help button -->
-    <button mat-icon-button
-            *ngIf="!mobile && type?.description"
-            class="hidden-xs hidden-sm"
-            [title]="'COMMON.BTN_SHOW_HELP'|translate"
-            (click)="openHelpModal($event)">
+    <button
+      mat-icon-button
+      *ngIf="!mobile && type?.description"
+      class="hidden-xs hidden-sm"
+      [title]="'COMMON.BTN_SHOW_HELP' | translate"
+      (click)="openHelpModal($event)"
+    >
       <mat-icon>help_outline</mat-icon>
     </button>
 
     <!-- select map modal -->
-    <ion-button (click)="openSelectTypeModal($event)"
-                color="accent"
-                fill="solid"
-                [title]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP'|translate">
-      <ion-icon slot="start" name="list" ></ion-icon>
+    <ion-button
+      (click)="openSelectTypeModal($event)"
+      color="accent"
+      fill="solid"
+      [title]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP' | translate"
+    >
+      <ion-icon slot="start" name="list"></ion-icon>
       <ion-label class="hidden-xs hidden-sm" translate>EXTRACTION.MAP.BTN_MAP_LIST</ion-label>
       <ion-label class="visible-xs visible-sm" translate>EXTRACTION.MAP.BTN_MAPS</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
 
     <!-- options sub menu -->
-    <ion-button *ngIf="mobile && canEdit"
-                [matMenuTriggerFor]="optionMenu">
+    <ion-button *ngIf="mobile && canEdit" [matMenuTriggerFor]="optionMenu">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
 </app-toolbar>
 
-<ion-toolbar color="secondary"
-             class="visible-xs visible-sm">
-  <ion-label class="ion-text-wrap"
-             [innerHTML]="$title | async">
-  </ion-label>
+<ion-toolbar color="secondary" class="visible-xs visible-sm">
+  <ion-label class="ion-text-wrap" [innerHTML]="$title | async"></ion-label>
 
   <ion-buttons slot="end">
     <!-- Help button -->
-    <button mat-icon-button
-            *ngIf="type?.description"
-            [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
-            (click)="openHelpModal($event)">
+    <button
+      mat-icon-button
+      *ngIf="type?.description"
+      [matTooltip]="'COMMON.BTN_SHOW_HELP' | translate"
+      (click)="openHelpModal($event)"
+    >
       <mat-icon>help_outline</mat-icon>
     </button>
   </ion-buttons>
@@ -63,22 +65,20 @@
 
 <!-- options menu -->
 <mat-menu #optionMenu="matMenu">
-  <button mat-menu-item [routerLink]="'/extraction/product/' + type?.id"
-          [disabled]="!canEdit">
+  <button mat-menu-item [routerLink]="'/extraction/product/' + type?.id" [disabled]="!canEdit">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>
 </mat-menu>
 
 <!-- Layer options menu -->
-<mat-menu #layerOptionsMenu="matMenu"
-          yPosition="above" >
+<mat-menu #layerOptionsMenu="matMenu" yPosition="above">
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
   <!-- Show countries layer -->
   <button mat-menu-item (click)="toggleShowCountriesLayer()">
     <ion-icon *ngIf="!showCountriesLayer" name="checkmark"></ion-icon>
-    <span translate> EXTRACTION.MAP.SHOW_INVALID_GEOMETRIES</span>
+    <span translate>EXTRACTION.MAP.SHOW_INVALID_GEOMETRIES</span>
   </button>
 </mat-menu>
 
@@ -86,12 +86,10 @@
 <mat-menu #techColumnMenu="matMenu" yPosition="above">
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.TECH_VALUE</mat-label>
 
-  <button mat-menu-item *ngFor="let item of $techColumns | async"
-          (click)="setTechColumn(item.columnName)">
+  <button mat-menu-item *ngFor="let item of $techColumns | async" (click)="setTechColumn(item.columnName)">
     <ion-icon *ngIf="techColumnName === item.columnName" name="checkmark"></ion-icon>
-    <ion-label>{{columnNames[item.columnName]}}</ion-label>
+    <ion-label>{{ columnNames[item.columnName] }}</ion-label>
   </button>
-
 </mat-menu>
 
 <!-- Chart options menu -->
@@ -101,23 +99,22 @@
   <!-- Type sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartTypeMenu" translate>EXTRACTION.MAP.CHART_TYPE.TITLE</button>
   <mat-menu #chartTypeMenu="matMenu">
-    <button mat-menu-item *ngFor="let value of chartTypes"
-            (click)="updateTechChart({type: value})">
-      <ion-icon *ngIf="techChartDefaults.type===value" name="checkmark"></ion-icon>
-      <ion-label>{{'EXTRACTION.MAP.CHART_TYPE.' + value | uppercase |translate}}</ion-label>
+    <button mat-menu-item *ngFor="let value of chartTypes" (click)="updateTechChart({ type: value })">
+      <ion-icon *ngIf="techChartDefaults.type === value" name="checkmark"></ion-icon>
+      <ion-label>{{ 'EXTRACTION.MAP.CHART_TYPE.' + value | uppercase | translate }}</ion-label>
     </button>
   </mat-menu>
 
   <!-- Sort by sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartSortByMenu" translate>EXTRACTION.MAP.CHART_SORT_BY.TITLE</button>
   <mat-menu #chartSortByMenu="matMenu">
-    <button mat-menu-item (click)="updateTechChart({options: {sortByLabel: true}})">
+    <button mat-menu-item (click)="updateTechChart({ options: { sortByLabel: true } })">
       <ion-icon *ngIf="techChartDefaults.options.sortByLabel" name="checkmark"></ion-icon>
-      <span translate> EXTRACTION.MAP.CHART_SORT_BY.LABEL</span>
+      <span translate>EXTRACTION.MAP.CHART_SORT_BY.LABEL</span>
     </button>
-    <button mat-menu-item (click)="updateTechChart({options: {sortByLabel: false}})" translate>
+    <button mat-menu-item (click)="updateTechChart({ options: { sortByLabel: false } })" translate>
       <ion-icon *ngIf="!techChartDefaults.options.sortByLabel" name="checkmark"></ion-icon>
-      <span translate> EXTRACTION.MAP.CHART_SORT_BY.VALUE</span>
+      <span translate>EXTRACTION.MAP.CHART_SORT_BY.VALUE</span>
     </button>
   </mat-menu>
 
@@ -125,8 +122,7 @@
   <button mat-menu-item [matMenuTriggerFor]="chartAxisXMenu" translate>EXTRACTION.MAP.CHART_AXIS_X</button>
   <mat-menu #chartAxisXMenu="matMenu">
     <!-- Freeze values -->
-    <button mat-menu-item
-            (click)="updateTechChart({options: {fixAxis: !techChartDefaults.options?.fixAxis}})">
+    <button mat-menu-item (click)="updateTechChart({ options: { fixAxis: !techChartDefaults.options?.fixAxis } })">
       <ion-icon *ngIf="techChartDefaults.options.fixAxis" name="checkmark"></ion-icon>
       <ion-label translate>EXTRACTION.MAP.FREEZE_VALUES</ion-label>
     </button>
@@ -135,35 +131,35 @@
   <!-- Axis Y sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartAxisYMenu" translate>EXTRACTION.MAP.CHART_AXIS_Y</button>
   <mat-menu #chartAxisYMenu="matMenu">
-      <button mat-menu-item (click)="techChartAxisType='linear'">
-        <ion-icon *ngIf="techChartAxisType === 'linear'" name="checkmark"></ion-icon>
-        <span translate> EXTRACTION.MAP.SCALE_LINEAR</span>
-      </button>
-      <button mat-menu-item (click)="techChartAxisType='logarithmic'" translate>
-        <ion-icon *ngIf="techChartAxisType === 'logarithmic'" name="checkmark"></ion-icon>
-        <span translate> EXTRACTION.MAP.SCALE_LOGARITHMIC</span>
-      </button>
+    <button mat-menu-item (click)="techChartAxisType = 'linear'">
+      <ion-icon *ngIf="techChartAxisType === 'linear'" name="checkmark"></ion-icon>
+      <span translate>EXTRACTION.MAP.SCALE_LINEAR</span>
+    </button>
+    <button mat-menu-item (click)="techChartAxisType = 'logarithmic'" translate>
+      <ion-icon *ngIf="techChartAxisType === 'logarithmic'" name="checkmark"></ion-icon>
+      <span translate>EXTRACTION.MAP.SCALE_LOGARITHMIC</span>
+    </button>
   </mat-menu>
-
 </mat-menu>
 
 <ion-content class="no-footer no-paginator">
-
   <!-- Leaflet map -->
-  <div leaflet
-       (leafletMapReady)="onMapReady($event)"
-       [leafletOptions]="mapOptions"
-       [leafletLayersControl]="layersControl">
-  </div>
+  <div
+    leaflet
+    (leafletMapReady)="onMapReady($event)"
+    [leafletOptions]="mapOptions"
+    [leafletLayersControl]="layersControl"
+  ></div>
 
   <!-- filter panel -->
-  <div class="filter" #filterPanel
-       [attr._leaflet_disable_click]="true"
-       [class.expanded]="filterExpansionPanel.expanded"
-       [class.cdk-visually-hidden]="!type">
-
+  <div
+    class="filter"
+    #filterPanel
+    [attr._leaflet_disable_click]="true"
+    [class.expanded]="filterExpansionPanel.expanded"
+    [class.cdk-visually-hidden]="!type"
+  >
     <mat-accordion [formGroup]="strataForm" (dblclick)="$event.stopPropagation()">
-
       <!-- sheet selector -->
       <mat-expansion-panel #sheetExpansionPanel>
         <mat-expansion-panel-header>
@@ -172,14 +168,17 @@
             <ion-label>
               <ion-text color="medium" translate>EXTRACTION.MAP.LAYER</ion-text>
               <ion-text color="primary" *ngIf="sheetName && !sheetExpansionPanel.expanded">
-                {{getI18nSheetName(sheetName)}}
+                {{ getI18nSheetName(sheetName) }}
               </ion-text>
             </ion-label>
 
             <ion-buttons slot="end">
-              <button mat-icon-button [matTooltip]="'EXTRACTION.MAP.DISPLAY_OPTIONS'|translate"
-                      (click)="$event.stopPropagation()"
-                      [matMenuTriggerFor]="layerOptionsMenu">
+              <button
+                mat-icon-button
+                [matTooltip]="'EXTRACTION.MAP.DISPLAY_OPTIONS' | translate"
+                (click)="$event.stopPropagation()"
+                [matMenuTriggerFor]="layerOptionsMenu"
+              >
                 <mat-icon>more_vert</mat-icon>
               </button>
             </ion-buttons>
@@ -187,11 +186,13 @@
         </mat-expansion-panel-header>
 
         <ion-list>
-          <ion-item *ngFor="let item of $sheetNames | async"
-                    [class.selected]="sheetName===item"
-                    tappable
-                    (click)="setSheetName(item)">
-            <ion-label>{{getI18nSheetName(item)}}</ion-label>
+          <ion-item
+            *ngFor="let item of $sheetNames | async"
+            [class.selected]="sheetName === item"
+            tappable
+            (click)="setSheetName(item)"
+          >
+            <ion-label>{{ getI18nSheetName(item) }}</ion-label>
           </ion-item>
         </ion-list>
       </mat-expansion-panel>
@@ -203,20 +204,21 @@
             <mat-icon slot="start" class="ion-color-primary">bubble_chart</mat-icon>
             <ion-label>
               <ion-text color="medium" translate>EXTRACTION.MAP.AGG_VALUE</ion-text>
-              <ion-text color="primary" *ngIf="!aggExpansionPanel.expanded && $aggColumns | async;">
-                {{columnNames[aggColumnName]}}
+              <ion-text color="primary" *ngIf="!aggExpansionPanel.expanded && $aggColumns | async">
+                {{ columnNames[aggColumnName] }}
               </ion-text>
-
             </ion-label>
           </ion-toolbar>
         </mat-expansion-panel-header>
 
-        <ion-list *ngIf="$aggColumns | async; let aggColumns; else loadingSpinner">
-          <ion-item *ngFor="let item of aggColumns"
-                    [class.selected]="aggColumnName===item.columnName"
-                    tappable
-                    (click)="setAggColumn(item.columnName)">
-            <ion-label>{{columnNames[item.columnName]}}</ion-label>
+        <ion-list *ngIf="$aggColumns | async; let aggColumns; else: loadingSpinner">
+          <ion-item
+            *ngFor="let item of aggColumns"
+            [class.selected]="aggColumnName === item.columnName"
+            tappable
+            (click)="setAggColumn(item.columnName)"
+          >
+            <ion-label>{{ columnNames[item.columnName] }}</ion-label>
           </ion-item>
           <ion-item *ngIf="aggColumns | isEmptyArray">
             <ion-label color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-label>
@@ -229,15 +231,14 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <mat-expansion-panel #yearExpansionPanel
-                           *ngIf="form.controls.year">
+      <mat-expansion-panel #yearExpansionPanel *ngIf="form.controls.year">
         <mat-expansion-panel-header>
           <ion-toolbar color="transparent">
             <mat-icon slot="start" class="ion-color-primary">date_range</mat-icon>
             <ion-label>
               <ion-text color="medium" translate>EXTRACTION.MAP.YEAR</ion-text>
               <ion-text color="primary" *ngIf="!yearExpansionPanel.expanded">
-                {{year}}
+                {{ year }}
               </ion-text>
             </ion-label>
             <ion-buttons slot="end">
@@ -248,10 +249,8 @@
 
         <div class="year-container">
           <ng-container *ngFor="let item of $years | async; index as index">
-            <button mat-stroked-button
-                    [class.selected]="item=== year"
-                    (click)="setYear(item)">
-              <ion-text>{{item}}</ion-text>
+            <button mat-stroked-button [class.selected]="item === year" (click)="setYear(item)">
+              <ion-text>{{ item }}</ion-text>
             </button>
           </ng-container>
         </div>
@@ -271,20 +270,17 @@
           </ion-toolbar>
         </mat-expansion-panel-header>
 
-        <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
-             >
-
+        <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded">
           <form [formGroup]="form" class="form-container">
-
             <ion-grid>
               <ion-row [formGroup]="strataForm" class="strata-row odd">
-
                 <!-- space -->
                 <ion-col class="ion-no-padding" *ngIf="strataForm.get('spatialColumnName') as spatialControl">
                   <mat-form-field>
-                    <mat-select [formControl]="spatialControl" [placeholder]="'EXTRACTION.MAP.SPACE'|translate">
-                      <mat-option *ngFor="let column of $spatialColumns | async"
-                                  [value]="column.columnName">{{columnNames[column.columnName]}}</mat-option>
+                    <mat-select [formControl]="spatialControl" [placeholder]="'EXTRACTION.MAP.SPACE' | translate">
+                      <mat-option *ngFor="let column of $spatialColumns | async" [value]="column.columnName">
+                        {{ columnNames[column.columnName] }}
+                      </mat-option>
                     </mat-select>
                   </mat-form-field>
                 </ion-col>
@@ -292,10 +288,10 @@
                 <!-- tech -->
                 <ion-col class="ion-no-padding" *ngIf="strataForm.controls.techColumnName as control">
                   <mat-form-field>
-                    <mat-select [formControl]="control"
-                                [placeholder]="'EXTRACTION.MAP.TECH_VALUE'|translate">
-                      <mat-option *ngFor="let column of $techColumns | async"
-                                  [value]="column.columnName">{{column.name}}</mat-option>
+                    <mat-select [formControl]="control" [placeholder]="'EXTRACTION.MAP.TECH_VALUE' | translate">
+                      <mat-option *ngFor="let column of $techColumns | async" [value]="column.columnName">
+                        {{ column.name }}
+                      </mat-option>
                     </mat-select>
                   </mat-form-field>
                 </ion-col>
@@ -303,46 +299,46 @@
             </ion-grid>
 
             <!-- filter criteria -->
-            <app-extraction-criteria-form #criteriaForm
-                                          [class.cdk-visually-hidden]="$criteriaColumns|async|isEmptyArray"
-                                          [showSheetsTab]="false"
-                                          [columns]="$criteriaColumns|async"
-                                          (onSubmit)="onRefresh.emit($event)">
-            </app-extraction-criteria-form>
+            <app-extraction-criteria-form
+              #criteriaForm
+              [class.cdk-visually-hidden]="$criteriaColumns | async | isEmptyArray"
+              [showSheetsTab]="false"
+              [columns]="$criteriaColumns | async"
+              (onSubmit)="onRefresh.emit($event)"
+            ></app-extraction-criteria-form>
           </form>
         </div>
 
         <mat-action-row class="ion-no-padding">
-
           <span class="toolbar-spacer"></span>
 
-          <ion-button mat-button
-                      [color]="dirty ? 'tertiary' : undefined"
-                      [fill]="dirty ? 'solid' : 'clear'"
-                      (click)="onRefreshClick($event)">
+          <ion-button
+            mat-button
+            [color]="dirty ? 'tertiary' : undefined"
+            [fill]="dirty ? 'solid' : 'clear'"
+            (click)="onRefreshClick($event)"
+          >
             <ion-text translate>COMMON.BTN_APPLY</ion-text>
           </ion-button>
         </mat-action-row>
       </mat-expansion-panel>
     </mat-accordion>
-
-
   </div>
 
   <!-- Details -->
-  <div class="details" #detailPanel
-       [attr._leaflet_disable_click]="true">
-    <ion-card color="light"
-              *ngIf="details$|push:'immediate'; let details"
-              @fadeInOutAnimation>
-
+  <div class="details" #detailPanel [attr._leaflet_disable_click]="true">
+    <ion-card color="light" *ngIf="details$ | push : 'immediate'; let details" @fadeInOutAnimation>
       <ion-card-header *ngIf="details.title; let title">
         <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
         <ion-card-title>
           <ion-label>
             <span [innerHTML]="details.value"></span>
             <ion-text *ngIf="details.otherValue" color="medium">
-              <small>&nbsp;(<span [innerHTML]="details.otherValue"></span>)</small>
+              <small>
+                &nbsp;(
+                <span [innerHTML]="details.otherValue"></span>
+                )
+              </small>
             </ion-text>
           </ion-label>
         </ion-card-title>
@@ -351,10 +347,12 @@
       <ion-card-content>
         <p>
           <ng-container *ngFor="let item of details.properties">
-            <ion-text color="primary100">{{item.name}}</ion-text>
+            <ion-text color="primary100">{{ item.name }}</ion-text>
             <ion-text>:&nbsp;</ion-text>
-            <ion-text color="dark"><b>{{item.value}}</b></ion-text>
-            <br/>
+            <ion-text color="dark">
+              <b>{{ item.value }}</b>
+            </ion-text>
+            <br />
           </ng-container>
         </p>
       </ion-card-content>
@@ -364,77 +362,79 @@
   <!-- Bottom right -->
   <div #bottomRightPanel [attr._leaflet_disable_click]="true">
     <ion-row class="ion-align-self-end">
-
       <ion-col class="ion-align-self-end">
-
         <!-- chart -->
-        <ion-card *rxIf="$techChart; let tech; else addChartButton"
-                  color="light"
-                  class="chart chart-{{tech.type}}"
-                  @fadeInAnimation>
-          <ion-toolbar color="transparent"
-                       [matMenuTriggerFor]="techColumnMenu"
-                       (click)="$event.stopPropagation()">
-            <ion-text color="primary" [title]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP'|translate">
+        <ion-card
+          *rxIf="$techChart; let tech; else: addChartButton"
+          color="light"
+          class="chart chart-{{ tech.type }}"
+          @fadeInAnimation
+        >
+          <ion-toolbar color="transparent" [matMenuTriggerFor]="techColumnMenu" (click)="$event.stopPropagation()">
+            <ion-text color="primary" [title]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP' | translate">
               <span [innerHTML]="tech.options.plugins.title.text"></span>
               <mat-icon class="ion-color-primary">arrow_drop_down</mat-icon>
             </ion-text>
 
             <ion-buttons slot="end">
-              <button mat-icon-button class="ion-color-dark"
-                      [title]="'EXTRACTION.MAP.DISPLAY_OPTIONS'|translate"
-                      [matMenuTriggerFor]="chartOptionsMenu"
-                      (click)="$event.stopPropagation()">
+              <button
+                mat-icon-button
+                class="ion-color-dark"
+                [title]="'EXTRACTION.MAP.DISPLAY_OPTIONS' | translate"
+                [matMenuTriggerFor]="chartOptionsMenu"
+                (click)="$event.stopPropagation()"
+              >
                 <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button
-                      [title]="'COMMON.BTN_CLOSE'|translate"
-                      (click)="hideTechChart()">
+              <button mat-icon-button [title]="'COMMON.BTN_CLOSE' | translate" (click)="hideTechChart()">
                 <mat-icon class="ion-color-medium">close</mat-icon>
               </button>
             </ion-buttons>
           </ion-toolbar>
-          <ion-card-content >
+          <ion-card-content>
             <!-- Tech graph card -->
-              <canvas baseChart
-                      [type]="tech.type"
-                      [datasets]="tech.data.datasets"
-                      [labels]="tech.data.labels"
-                      [options]="tech.options"
-                      (chartClick)="onTechChartClick($event)">
-              </canvas>
+            <canvas
+              baseChart
+              [type]="tech.type"
+              [datasets]="tech.data.datasets"
+              [labels]="tech.data.labels"
+              [options]="tech.options"
+              (chartClick)="onTechChartClick($event)"
+            ></canvas>
           </ion-card-content>
         </ion-card>
 
         <!-- add chart button -->
         <ng-template #addChartButton>
-          <ion-card *ngIf="$techColumns | async | isNotEmptyArray"
-                    [class.cdk-visually-hidden]="!data.total"
-                    color="light" class="no-margin-end"
-                    [matMenuTriggerFor]="techColumnMenu" @fadeInAnimation>
+          <ion-card
+            *ngIf="$techColumns | async | isNotEmptyArray"
+            [class.cdk-visually-hidden]="!data.total"
+            color="light"
+            class="no-margin-end"
+            [matMenuTriggerFor]="techColumnMenu"
+            @fadeInAnimation
+          >
             <ion-card-content class="ion-no-padding">
               <!-- tech column selector -->
-              <button mat-stroked-button class="ion-color-medium"
-                      [matMenuTriggerFor]="techColumnMenu"
-                      [matTooltip]="'EXTRACTION.MAP.BTN_ADD_CHART_HELP'|translate"
-                      (click)="$event.stopPropagation()">
-                <mat-icon class="ion-color-medium" >insert_chart</mat-icon>
+              <button
+                mat-stroked-button
+                class="ion-color-medium"
+                [matMenuTriggerFor]="techColumnMenu"
+                [matTooltip]="'EXTRACTION.MAP.BTN_ADD_CHART_HELP' | translate"
+                (click)="$event.stopPropagation()"
+              >
+                <mat-icon class="ion-color-medium">insert_chart</mat-icon>
                 <ion-text color="medium" translate>EXTRACTION.MAP.BTN_ADD_CHART</ion-text>
               </button>
             </ion-card-content>
           </ion-card>
         </ng-template>
-
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-end">
-
         <!-- Legend card -->
-        <ion-card color="light" class="legend"
-                  *ngIf="showLegend"
-                  [ngStyle]="legendStyle"
-                  @fadeInAnimation>
-          <ion-card-header (click)="openLegendForm($event)" [title]="'EXTRACTION.MAP.BTN_EDIT_LEGEND_HELP'|translate">
+        <ion-card color="light" class="legend" *ngIf="showLegend" [ngStyle]="legendStyle" @fadeInAnimation>
+          <ion-card-header (click)="openLegendForm($event)" [title]="'EXTRACTION.MAP.BTN_EDIT_LEGEND_HELP' | translate">
             <ion-card-subtitle>
               <ion-label>
                 <span translate>EXTRACTION.MAP.LEGEND</span>
@@ -447,27 +447,25 @@
           <ion-card-content>
             <ion-grid class="ion-no-padding">
               <ion-row *rxFor="let item of legendItems$">
-                <ion-col class="ion-no-padding" style="max-width: 10px !important;"
-                         [style.background-color]="item.color.rgba()">
-                </ion-col>
-                <ion-col size="auto" style="padding-left: 8px;">
-                  <ion-label nowrap>{{item.label}}</ion-label>
+                <ion-col
+                  class="ion-no-padding"
+                  style="max-width: 10px !important"
+                  [style.background-color]="item.color.rgba()"
+                ></ion-col>
+                <ion-col size="auto" style="padding-left: 8px">
+                  <ion-label nowrap>{{ item.label }}</ion-label>
                 </ion-col>
               </ion-row>
             </ion-grid>
           </ion-card-content>
         </ion-card>
-
       </ion-col>
     </ion-row>
 
     <!-- Legend edition form -->
     <ion-row>
       <ion-col>
-        <ion-card color="light" class="legend-form ion-margin-top"
-                  *ngIf="showLegendForm"
-                  @fadeInAnimation>
-
+        <ion-card color="light" class="legend-form ion-margin-top" *ngIf="showLegendForm" @fadeInAnimation>
           <ion-card-header>
             <ion-card-subtitle>
               <ion-label translate>EXTRACTION.MAP.LEGEND_FORM.TITLE</ion-label>
@@ -477,7 +475,6 @@
           <ion-card-content class="ion-no-padding">
             <form [formGroup]="legendForm" class="form-container">
               <ion-grid class="ion-no-padding">
-
                 <!-- Min -->
                 <ion-row>
                   <ion-col size="3">
@@ -485,20 +482,22 @@
                   </ion-col>
                   <ion-col size="4">
                     <mat-form-field>
-
                       <ion-icon name="color-fill" matPrefix></ion-icon>
 
-                      <input matInput autocomplete="off"
-                             formControlName="startColor"
-                             [style.color]="'transparent'"
-                             [style.background]="legendStartColor"
-                             [(colorPicker)]="legendStartColor"
-                             [cpPosition]="'top'"
-                             [cpSaveClickOutside]="true"
-                             [cpOutputFormat]="'rgba'"
-                             [cpOKButton]="true"
-                             [cpOKButtonText]="'COMMON.BTN_VALIDATE'|translate"
-                             required/>
+                      <input
+                        matInput
+                        autocomplete="off"
+                        formControlName="startColor"
+                        [style.color]="'transparent'"
+                        [style.background]="legendStartColor"
+                        [(colorPicker)]="legendStartColor"
+                        [cpPosition]="'top'"
+                        [cpSaveClickOutside]="true"
+                        [cpOutputFormat]="'rgba'"
+                        [cpOKButton]="true"
+                        [cpOKButtonText]="'COMMON.BTN_VALIDATE' | translate"
+                        required
+                      />
                       <mat-error *ngIf="legendForm.controls.startColor.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
@@ -507,12 +506,15 @@
                   <ion-col size="5">
                     <mat-form-field>
                       <ion-icon name="code" matPrefix></ion-icon>
-                      <input matInput type="number"
-                             autocomplete="off"
-                             min="0"
-                             placeholder="Min"
-                             step="1"
-                             formControlName="min">
+                      <input
+                        matInput
+                        type="number"
+                        autocomplete="off"
+                        min="0"
+                        placeholder="Min"
+                        step="1"
+                        formControlName="min"
+                      />
                       <mat-error *ngIf="legendForm.controls.min.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
@@ -525,18 +527,21 @@
                   <ion-col size="3">
                     <ion-label class="ion-float-end" translate>EXTRACTION.MAP.LEGEND_FORM.MAX</ion-label>
                   </ion-col>
-                  <ion-col size="4" >
+                  <ion-col size="4">
                     <mat-form-field>
                       <ion-icon margin-right name="color-fill" matPrefix></ion-icon>
-                      <input matInput autocomplete="off"
-                             formControlName="endColor"
-                             [style.color]="'transparent'"
-                             [style.background]="legendEndColor"
-                             [(colorPicker)]="legendEndColor"
-                             [cpPosition]="'top'"
-                             [cpSaveClickOutside]="true"
-                             [cpOutputFormat]="'rgba'"
-                             required/>
+                      <input
+                        matInput
+                        autocomplete="off"
+                        formControlName="endColor"
+                        [style.color]="'transparent'"
+                        [style.background]="legendEndColor"
+                        [(colorPicker)]="legendEndColor"
+                        [cpPosition]="'top'"
+                        [cpSaveClickOutside]="true"
+                        [cpOutputFormat]="'rgba'"
+                        required
+                      />
                       <mat-error *ngIf="legendForm.controls.endColor.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
@@ -545,12 +550,15 @@
                   <ion-col size="5">
                     <mat-form-field>
                       <ion-icon margin-right name="code" matPrefix></ion-icon>
-                      <input matInput type="number"
-                             autocomplete="off"
-                             min="0"
-                             placeholder="Max"
-                             step="1"
-                             formControlName="max">
+                      <input
+                        matInput
+                        type="number"
+                        autocomplete="off"
+                        min="0"
+                        placeholder="Max"
+                        step="1"
+                        formControlName="max"
+                      />
                       <mat-error *ngIf="legendForm.controls.max.hasError('required')" translate>
                         ERROR.FIELD_REQUIRED
                       </mat-error>
@@ -560,14 +568,15 @@
               </ion-grid>
 
               <mat-action-row class="ion-no-padding">
-                <ion-button mat-button fill="clear" color="dark"
-                            (click)="cancelLegendForm($event)">
+                <ion-button mat-button fill="clear" color="dark" (click)="cancelLegendForm($event)">
                   <ion-text translate>COMMON.BTN_CANCEL</ion-text>
                 </ion-button>
-                <ion-button mat-button
-                            [color]="legendForm.dirty ? 'tertiary' : undefined"
-                            [fill]="legendForm.dirty ? 'solid' : 'clear'"
-                            (click)="applyLegendForm($event)">
+                <ion-button
+                  mat-button
+                  [color]="legendForm.dirty ? 'tertiary' : undefined"
+                  [fill]="legendForm.dirty ? 'solid' : 'clear'"
+                  (click)="applyLegendForm($event)"
+                >
                   <ion-text translate>COMMON.BTN_APPLY</ion-text>
                 </ion-button>
               </mat-action-row>
@@ -577,27 +586,29 @@
       </ion-col>
     </ion-row>
   </div>
-
 </ion-content>
 
 <ng-template #animationButtons>
-  <ng-container *ngIf="$years|async | isArrayLength: {greaterThan: 1} as years">
+  <ng-container *ngIf="$years | async | isArrayLength : { greaterThan: 1 } as years">
     <!-- play button -->
-    <button mat-icon-button
-            *ngIf="!animation; else pauseButton"
-            (click)="toggleAnimation($event)"
-            [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY'|translate">
+    <button
+      mat-icon-button
+      *ngIf="!animation; else pauseButton"
+      (click)="toggleAnimation($event)"
+      [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY' | translate"
+    >
       <mat-icon>play_arrow</mat-icon>
     </button>
 
     <ng-template #pauseButton>
       <!-- pause button -->
-      <button mat-icon-button
-              (click)="toggleAnimation($event)"
-              [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE'|translate">
+      <button
+        mat-icon-button
+        (click)="toggleAnimation($event)"
+        [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE' | translate"
+      >
         <mat-icon>pause</mat-icon>
       </button>
     </ng-template>
-
   </ng-container>
 </ng-template>

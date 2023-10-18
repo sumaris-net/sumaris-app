@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
@@ -30,7 +30,7 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
@@ -90,7 +90,7 @@ export interface OperationState {
 })
 export class OperationPage<S extends OperationState = OperationState>
   extends AppEntityEditor<Operation, OperationService>
-  implements IDataEntityQualityService<Operation> {
+  implements IDataEntityQualityService<Operation>, AfterViewInit, OnInit, OnDestroy {
 
   protected static TABS = {
     GENERAL: 0,
@@ -132,9 +132,9 @@ export class OperationPage<S extends OperationState = OperationState>
   autoFillDatesFromTrip = false;
   displayAttributes: {
     gear?: string[];
-    [key:string]: string[]
+    [key: string]: string[];
   } = {};
-  toolbarColor:PredefinedColors = 'primary';
+  toolbarColor: PredefinedColors = 'primary';
   canDownload = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
@@ -146,7 +146,7 @@ export class OperationPage<S extends OperationState = OperationState>
   isDuplicatedData = false;
   operationPasteFlags: number;
   helpUrl: string;
-  _defaultIsParentOperation: boolean = true;
+  _defaultIsParentOperation = true;
   newOperationUrl: string = null;
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -286,7 +286,7 @@ export class OperationPage<S extends OperationState = OperationState>
             return of(contextualProgram);
           }
           // Load by service
-          return this.programRefService.watchByLabel(programLabel, {debug: this.debug})
+          return this.programRefService.watchByLabel(programLabel, {debug: this.debug});
         })
       )
     );
@@ -461,7 +461,7 @@ export class OperationPage<S extends OperationState = OperationState>
           throttleTime(500)
         )
         .subscribe(_ => this.updateDataContext())
-    )
+    );
 
     // Get physical gear by form
     this._state.connect('physicalGear', this.opeForm.physicalGearControl.valueChanges
@@ -469,13 +469,13 @@ export class OperationPage<S extends OperationState = OperationState>
         // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
         filter((_) => !this.loading)
       )
-    )
+    );
 
     this._state.connect('gearId', this.physicalGear$,
       (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
 
     this._state.hold(this.gearId$
-      .pipe(filter(gearId => isNotNil(gearId) && this.loaded), debounceTime(450)), () => this.markForCheck())
+      .pipe(filter(gearId => isNotNil(gearId) && this.loaded), debounceTime(450)), () => this.markForCheck());
   }
 
   ngAfterViewInit() {
@@ -563,7 +563,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
             // Force first sub tab index, if modification was done from the form
             // This condition avoid to change subtab, when reloading the page
-            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
+            if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
             this.updateTablesState();
@@ -596,7 +596,7 @@ export class OperationPage<S extends OperationState = OperationState>
             this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first tab index
-            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
+            if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
             this.updateTablesState();
@@ -608,7 +608,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (this.allowParentOperation) {
       defaultTableStates = false;
       this._measurementSubscription.add(
-        this.opeForm.onParentChanges
+        this.opeForm.parentChanges
           .pipe(
             startWith<Operation>(this.opeForm.parentControl.value as Operation),
             map(parent => !!parent), // Convert to boolean
@@ -636,7 +636,7 @@ export class OperationPage<S extends OperationState = OperationState>
             this.acquisitionLevel = acquisitionLevel;
 
             // Force first tab index
-            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
+            if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
 
@@ -669,7 +669,7 @@ export class OperationPage<S extends OperationState = OperationState>
           this.batchTree.allowSubBatches = value;
 
           // Hide button to toggle hasSubBatches (yes/no) when value if forced
-          this.batchTree.setModalOption("showHasSubBatchesButton", !value)
+          this.batchTree.setModalOption('showHasSubBatchesButton', !value);
           if (!this.allowParentOperation) {
             this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
             this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
@@ -923,6 +923,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   /**
    * Compute the title
+   *
    * @param data
    * @param opts
    */
@@ -1286,7 +1287,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.children?.forEach(c => c.markAsLoaded(opts));
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+  setError(error: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string}) {
 
     // If errors in operations
     if (typeof error === 'object' && error?.details?.errors?.catch) {
@@ -1467,7 +1468,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (tripPmfms || []).find(pmfm => pmfm.id === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const pmfm = (tripPmfms || []).find(p => p.id === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
@@ -1596,6 +1597,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   /**
    * S context, for batch validator
+   *
    * @protected
    */
   protected updateDataContext() {
@@ -1626,6 +1628,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   /**
    * Navigate to other operation
+   *
    * @param id
    * @protected
    */
@@ -1636,13 +1639,13 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotEmptyArray(commands)) {
 
       // Change the trip id in path
-      if (isNotNil(opts?.tripId) && commands[0] == 'trips' && +commands[1] === this.tripId) {
+      if (isNotNil(opts?.tripId) && commands[0] === 'trips' && +commands[1] === this.tripId) {
         commands[1] = opts.tripId;
       }
 
       // Should replace the current page in history ? (default: true)
       let replaceUrl = !opts || opts.replaceUrl !== false;
-      let queryParams = opts?.queryParams || {};
+      const queryParams = opts?.queryParams || {};
 
 
       // Workaround, to force angular to reload a new page
@@ -1703,7 +1706,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
-      filename: this.translate.instant("TRIP.OPERATION.LIST.DOWNLOAD_JSON_FILENAME"),
+      filename: this.translate.instant('TRIP.OPERATION.LIST.DOWNLOAD_JSON_FILENAME'),
       type: 'application/json'
     });
   }

@@ -14,11 +14,11 @@ import {FloatLabelType} from '@angular/material/form-field';
 export class AppSamplingRatioTestPage implements OnInit {
 
   form: UntypedFormGroup;
-  maxDecimals: number = 6;
+  maxDecimals = 6;
   format: SamplingRatioFormat = '%';
   formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
   floatLabel: FloatLabelType;
-  floatLabels = ['never', 'auto', 'always']
+  floatLabels = ['never', 'auto', 'always'];
 
 
   constructor(

@@ -45,7 +45,7 @@ export class BatchGroupValidatorService extends
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
-    qvPmfm?: IPmfm,
+    qvPmfm?: IPmfm;
     markForCheck?: () => void;
     debounceTime?: number;
   }): Subscription {
@@ -71,7 +71,7 @@ export class BatchGroupValidatorService extends
 
     if (opts.qvPmfm) {
       const childrenArray = form.get('children') as FormArray;
-      childrenArray.controls.forEach(child => this.updateFormGroup(child as FormGroup, opts.childrenOptions))
+      childrenArray.controls.forEach(child => this.updateFormGroup(child as FormGroup, opts.childrenOptions));
     }
     else {
       super.updateFormGroup(form, opts);
@@ -89,7 +89,7 @@ export class BatchGroupValidatorService extends
       opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
       const weightRequired = opts.isOnFieldMode === false && (opts.weightRequired !== false);
-      const individualCountRequired = opts.isOnFieldMode === false && (opts.individualCountRequired === true)
+      const individualCountRequired = opts.isOnFieldMode === false && (opts.individualCountRequired === true);
       const withChildrenWeight = opts.withChildrenWeight !== false;
       if (opts.qvPmfm) {
         // Disabled weight/individual required validator, on the root level
@@ -163,6 +163,7 @@ export class BatchGroupValidatorService extends
 export class BatchGroupValidators {
   /**
    * Same as BatchValidators.computeSamplingWeight() but for a batch group form
+   *
    * @param opts
    */
   static samplingRatioAndWeight(opts: {
@@ -191,7 +192,7 @@ export class BatchGroupValidators {
 
           // Start computation
           return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath), {...opts, emitEvent: false, onlySelf: false});
-        }
+        };
       }));
   }
 }

@@ -35,7 +35,7 @@ import { StrategyRefService } from './strategy-ref.service';
 import { ProgramFilter } from './filter/program.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { mergeMap } from 'rxjs/operators';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
@@ -112,6 +112,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   /**
    * Load programs
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -137,7 +138,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       filter: dataFilter
     };
     const now = Date.now();
-    if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
+    if (this._debug) console.debug('[program-service] Watching programs using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
@@ -147,7 +148,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       totalFieldName: withTotal ? 'total' : undefined,
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAMS_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(
@@ -165,6 +166,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
   /**
    * Load programs
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -178,7 +180,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
            sortDirection?: SortDirection,
            dataFilter?: Partial<ProgramFilter>,
            opts?: {
-             query?: any,
+             query?: any;
              fetchPolicy: FetchPolicy;
              withTotal?: boolean;
              toEntity?: boolean;
@@ -195,7 +197,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     };
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[program-service] Loading programs... using options:", variables);
+    if (debug) console.debug('[program-service] Loading programs... using options:', variables);
 
     let res: LoadResult<any>;
 
@@ -222,7 +224,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
           ...variables,
           filter: dataFilter && dataFilter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
+        error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAMS_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined
       });
     }

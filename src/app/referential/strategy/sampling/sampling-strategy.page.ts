@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -12,7 +12,7 @@ import {
   PlatformService,
   SharedValidators,
   StatusIds,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { ProgramProperties } from '../../services/config/program.config';
 import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
@@ -27,14 +27,12 @@ import { SamplingStrategyService } from '@app/referential/services/sampling-stra
 import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
 import moment from 'moment';
 
-
 @Component({
   selector: 'app-sampling-strategy-page',
   templateUrl: 'sampling-strategy.page.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, SamplingStrategyService> {
-
+export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, SamplingStrategyService> implements OnInit {
   $program = new BehaviorSubject<Program>(null);
 
   @ViewChild('form', { static: true }) strategyForm: SamplingStrategyForm;
@@ -52,14 +50,13 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     protected pmfmService: PmfmService,
     protected platform: PlatformService
   ) {
-    super(injector, SamplingStrategy, samplingStrategyService,
-      {
-        pathIdAttribute: 'strategyId',
-        tabCount: 1,
-        enableListenChanges: true
-      });
+    super(injector, SamplingStrategy, samplingStrategyService, {
+      pathIdAttribute: 'strategyId',
+      tabCount: 1,
+      enableListenChanges: true,
+    });
     // default values
-    this.defaultBackHref = "/referential/programs";
+    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
   }
 
@@ -67,20 +64,19 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     super.ngOnInit();
 
     // Update back href, when program changed
-    this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
-    );
+    this.registerSubscription(this.$program.subscribe((program) => this.setProgram(program)));
   }
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: "network-only"});
+    return super.load(id, { ...opts, fetchPolicy: 'network-only' });
   }
 
   canUserWrite(data: SamplingStrategy, opts?: any): boolean {
-    return super.canUserWrite(data, {...opts,
+    return super.canUserWrite(data, {
+      ...opts,
       // Important: sent the opts.program, to check if user is a program manager
-      program: this.$program.value
+      program: this.$program.value,
     });
   }
 
@@ -130,7 +126,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
     // Restore analyticReference object
     data.analyticReference = this.form.get('analyticReference').value;
-
   }
 
   protected registerForms() {
@@ -146,16 +141,19 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   /**
    * Compute the title
+   *
    * @param data
    * @param opts
    */
-  protected async computeTitle(data: Strategy, opts?: {
-    withPrefix?: boolean;
-  }): Promise<string> {
-
+  protected async computeTitle(
+    data: Strategy,
+    opts?: {
+      withPrefix?: boolean;
+    }
+  ): Promise<string> {
     const program = await firstNotNilPromise(this.$program);
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+    i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
     // new strategy
     if (!data || isNil(data.id)) {
@@ -163,10 +161,12 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     }
 
     // Existing strategy
-    return await this.translate.get(`PROGRAM.STRATEGY.EDIT.${i18nSuffix}TITLE`, {
-      program: program.label,
-      label: data && data.label
-    }).toPromise() as string;
+    return (await this.translate
+      .get(`PROGRAM.STRATEGY.EDIT.${i18nSuffix}TITLE`, {
+        program: program.label,
+        label: data && data.label,
+      })
+      .toPromise()) as string;
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -178,14 +178,12 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     return super.loadFromRoute();
   }
 
-
   protected setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
     this.strategyForm.setValue(data);
   }
 
   protected async getValue(): Promise<SamplingStrategy> {
-
     const value: SamplingStrategy = (await this.strategyForm.getValue()) as SamplingStrategy;
 
     // Add default PmfmStrategy
@@ -200,9 +198,9 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
   async clearCannotComputeTaxonBeforeSave() {
     const taxonNameControl = this.strategyForm.taxonNamesHelper.at(0);
     if (taxonNameControl.hasError('cannotComputeTaxonCode')) {
-    const labelRegex = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]\d\d\d/);
-    if (this.form.get('label').value.match(labelRegex)) {
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+      const labelRegex = new RegExp(/^\d\d[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]\d\d\d/);
+      if (this.form.get('label').value.match(labelRegex)) {
+        SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
       }
     }
   }
@@ -212,7 +210,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     this.strategyForm.setDisableEditionListeners(true);
 
     // Prepare label
-    this.form.get('label').setValue(this.form.get('label').value?.replace(/\s/g, "")); // remove whitespace
+    this.form.get('label').setValue(this.form.get('label').value?.replace(/\s/g, '')); // remove whitespace
     await this.clearCannotComputeTaxonBeforeSave();
     this.form.get('label').updateValueAndValidity();
 
@@ -227,13 +225,14 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   /**
    * Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
+   *
    * @param target
    */
   fillPmfmStrategyDefaults(target: Strategy) {
     target.pmfms = target.pmfms || [];
 
     const pmfmIds: number[] = [];
-    target.pmfms.forEach(pmfmStrategy => {
+    target.pmfms.forEach((pmfmStrategy) => {
       // Keep only pmfmId
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm?.id, pmfmStrategy.pmfmId);
       // delete pmfmStrategy.pmfm;
@@ -244,61 +243,74 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
     // Add a Pmfm for the strategy label, if missing
     if (!pmfmIds.includes(PmfmIds.STRATEGY_LABEL)) {
-      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`);
-      target.pmfms.push(PmfmStrategy.fromObject({
-        // Restore existing id
-        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.STRATEGY_LABEL && ps.acquisitionLevel === AcquisitionLevelCodes.LANDING)?.id || undefined,
-        pmfm: {id: PmfmIds.STRATEGY_LABEL},
-        acquisitionLevel: AcquisitionLevelCodes.LANDING,
-        isMandatory: true,
-        acquisitionNumber : 1,
-        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
-      }));
+      console.debug(
+        `[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.STRATEGY_LABEL}} to hold the strategy label, on ${AcquisitionLevelCodes.LANDING}`
+      );
+      target.pmfms.push(
+        PmfmStrategy.fromObject({
+          // Restore existing id
+          id:
+            this.data?.pmfms.find((ps) => ps.pmfmId === PmfmIds.STRATEGY_LABEL && ps.acquisitionLevel === AcquisitionLevelCodes.LANDING)?.id ||
+            undefined,
+          pmfm: { id: PmfmIds.STRATEGY_LABEL },
+          acquisitionLevel: AcquisitionLevelCodes.LANDING,
+          isMandatory: true,
+          acquisitionNumber: 1,
+          rankOrder: 1, // Should be the only one PmfmStrategy on Landing
+        })
+      );
     }
 
     // Add a TAG_ID Pmfm, if missing
     if (!pmfmIds.includes(PmfmIds.TAG_ID)) {
-      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the tag id, on ${AcquisitionLevelCodes.SAMPLE}`);
-      target.pmfms.push(PmfmStrategy.fromObject({
-        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.TAG_ID && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
-        pmfm: {id: PmfmIds.TAG_ID},
-        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-        isMandatory: false,
-        acquisitionNumber: 1,
-        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
-      }));
+      console.debug(
+        `[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.TAG_ID}} to hold the tag id, on ${AcquisitionLevelCodes.SAMPLE}`
+      );
+      target.pmfms.push(
+        PmfmStrategy.fromObject({
+          id: this.data?.pmfms.find((ps) => ps.pmfmId === PmfmIds.TAG_ID && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
+          pmfm: { id: PmfmIds.TAG_ID },
+          acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+          isMandatory: false,
+          acquisitionNumber: 1,
+          rankOrder: 1, // Should be the only one PmfmStrategy on Landing
+        })
+      );
     }
 
     // Add a DRESSING_ID Pmfm, if missing
     if (!pmfmIds.includes(PmfmIds.DRESSING)) {
-      console.debug(`[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the dressing, on ${AcquisitionLevelCodes.SAMPLE}`);
-      target.pmfms.push(PmfmStrategy.fromObject({
-        id: this.data?.pmfms.find(ps => ps.pmfmId === PmfmIds.DRESSING && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
-        pmfm: {id: PmfmIds.DRESSING},
-        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-        isMandatory: true,
-        acquisitionNumber : 1,
-        rankOrder: 2 // Should be the only one PmfmStrategy on Landing
-      }));
+      console.debug(
+        `[sampling-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the dressing, on ${AcquisitionLevelCodes.SAMPLE}`
+      );
+      target.pmfms.push(
+        PmfmStrategy.fromObject({
+          id: this.data?.pmfms.find((ps) => ps.pmfmId === PmfmIds.DRESSING && ps.acquisitionLevel === AcquisitionLevelCodes.SAMPLE)?.id || undefined,
+          pmfm: { id: PmfmIds.DRESSING },
+          acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+          isMandatory: true,
+          acquisitionNumber: 1,
+          rankOrder: 2, // Should be the only one PmfmStrategy on Landing
+        })
+      );
     }
 
     // Remove unused attributes
     delete target.denormalizedPmfms;
   }
 
-
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ...(await super.computePageHistory(title)),
       matIcon: 'date_range',
       title: `${this.data.label} - ${this.data.name}`,
-      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM',
     };
   }
 
   protected async updateRoute(data: Strategy, queryParams: any): Promise<boolean> {
     const path = this.computePageUrl(isNotNil(data.id) ? data.id : 'new');
-    const commands: any[] = (path && typeof path === 'string') ? path.split('/') : path as any[];
+    const commands: any[] = path && typeof path === 'string' ? path.split('/') : (path as any[]);
     if (isNotEmptyArray(commands)) {
       commands.pop();
       // commands.push('strategy');
@@ -306,10 +318,9 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       // commands.push(data.id);
       return await this.router.navigate(commands, {
         replaceUrl: true,
-        queryParams: this.queryParams
+        queryParams: this.queryParams,
       });
-    }
-    else {
+    } else {
       console.warn('Skip page route update. Invalid page path: ', path);
     }
   }

@@ -17,7 +17,7 @@ import {
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { SortDirection } from '@angular/material/sort';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselActivityVO'})
 export class VesselActivity extends Entity<VesselActivity> {

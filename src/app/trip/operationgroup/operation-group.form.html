@@ -1,27 +1,24 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="">
-
         <!-- Metier -->
-        <mat-autocomplete-field formControlName='metier'
-                                [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
-                                [required]="true"
-                                [tabindex]="tabindex"
-                                [config]="autocompleteFields.metier">
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="metier"
+          [placeholder]="'TRIP.OPERATION.LIST.METIER' | translate"
+          [required]="true"
+          [tabindex]="tabindex"
+          [config]="autocompleteFields.metier"
+        ></mat-autocomplete-field>
       </ion-col>
-
     </ion-row>
     <ion-row class="ion-no-padding">
-
       <!-- Physical gear -->
       <ion-col size="12" size-md="">
         <ion-label translate="">TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
@@ -33,50 +30,51 @@
       </ion-col>
     </ion-row>
     <ion-row>
-
       <!-- Physical gear -->
       <ion-col size="12" size-md="">
-        <ion-text>{{referentialToString(gear, displayAttributes.gear)}}</ion-text>
+        <ion-text>{{ referentialToString(gear, displayAttributes.gear) }}</ion-text>
       </ion-col>
 
       <!-- Target species (using metier) -->
       <ion-col size="12" size-md="">
-        <ion-text>{{referentialToString(metier, displayAttributes.taxonGroup)}}</ion-text>
+        <ion-text>{{ referentialToString(metier, displayAttributes.taxonGroup) }}</ion-text>
       </ion-col>
     </ion-row>
 
     <ng-content></ng-content>
 
-    <form [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else measurementsSkeleton;">
-
+    <form [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else: measurementsSkeleton">
       <!-- Measurements -->
-      <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
-                      [pmfm]="pmfm"
-                      [controlName]="pmfm|pmfmIdString"
-                      [compact]="compact"
-                      [tabindex]="tabindex+1 + i"
-                      [floatLabel]="floatLabel">
-      </app-pmfm-field>
+      <app-pmfm-field
+        *ngFor="let pmfm of pmfms; index as i"
+        [pmfm]="pmfm"
+        [controlName]="pmfm | pmfmIdString"
+        [compact]="compact"
+        [tabindex]="tabindex + 1 + i"
+        [floatLabel]="floatLabel"
+      ></app-pmfm-field>
     </form>
 
     <!-- Comments -->
     <ion-row class="ion-no-padding" *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments
-                    formControlName="comments"
-                    matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
-                    [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
-                    [tabindex]="tabindex+100">
-          </textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <textarea
+            matInput
+            #comments
+            formControlName="comments"
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            [placeholder]="'TRIP.OPERATION.LIST.COMMENTS' | translate"
+            [tabindex]="tabindex + 100"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </form>
 
 <ng-template #measurementsSkeleton>
@@ -86,7 +84,7 @@
 
 <ng-template #measurementSkeleton>
   <mat-form-field class="mat-form-field-disabled">
-    <input matInput hidden>
+    <input matInput hidden />
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>
 </ng-template>

@@ -102,13 +102,13 @@ export class UnitConversion {
     target.fromObject(this.asObject(opts), opts);
   }
 
-  asObject(opts?:EntityAsObjectOptions): any {
+  asObject(opts?: EntityAsObjectOptions): any {
     return {
       fromUnit: this.fromUnit?.asObject(opts),
       toUnit: this.toUnit?.asObject(opts),
       conversionCoefficient: this.conversionCoefficient,
       updateDate: DateUtils.toDateISOString(this.updateDate),
-    }
+    };
   }
 
   fromObject(source: any, opts?: any) {
@@ -120,6 +120,7 @@ export class UnitConversion {
 
   /**
    * Invert fromUnit and toUnit. Set the conversionCoefficient to its inverse.
+   *
    * @return self This object itself.
    */
   reverse() {
@@ -262,16 +263,16 @@ export abstract class PmfmUtils {
     if (!pmfm || !pmfm.type) return ; // Unknown
     if (pmfm.type === 'double') {
       if (PmfmLabelPatterns.LATITUDE.test(pmfm.label)) {
-        return "latitude";
+        return 'latitude';
       }
       if (PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) {
-        return "longitude";
+        return 'longitude';
       }
       if (pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(pmfm.unitLabel)) {
-        return "duration";
+        return 'duration';
       }
     }
-    else if (pmfm.type === "date") {
+    else if (pmfm.type === 'date') {
       if (pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(pmfm.unitLabel)) {
         return 'dateTime';
       }
@@ -301,16 +302,14 @@ export abstract class PmfmUtils {
   }): P {
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts)
-      .find((p, index) => {
-        return p.type === 'qualitative_value'
+      .find((p, index) => p.type === 'qualitative_value'
           && p.qualitativeValues
           // Exclude if no enough qualitative values
           && p.qualitativeValues.length >= opts.minQvCount
           // Exclude if too many qualitative values
           && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
           // Apply the first function, if any
-          && (!opts.filterFn || opts.filterFn(p, index));
-      });
+          && (!opts.filterFn || opts.filterFn(p, index)));
     return qvPmfm;
   }
 
@@ -331,9 +330,10 @@ export abstract class PmfmUtils {
   }
 
   /**
-  * Check if individual weight (e.g. for batches, products)
-  * @param pmfm
-  */
+   * Check if individual weight (e.g. for batches, products)
+   *
+   * @param pmfm
+   */
   static isWeight(pmfm: IPmfm): boolean {
     return UnitLabelGroups.WEIGHT.includes(pmfm.unitLabel)
       || PmfmLabelPatterns.WEIGHT.test(pmfm.label)
@@ -343,6 +343,7 @@ export abstract class PmfmUtils {
 
   /**
    * Check if dressing pmfms (by id or by  label like 'DRESSING_%')
+   *
    * @param pmfm
    */
   static isDressing(pmfm: IPmfm): boolean {
@@ -353,6 +354,7 @@ export abstract class PmfmUtils {
 
   /**
    * Check if individual length (e.g. for batches, products)
+   *
    * @param pmfm
    */
   static isLength(pmfm: IPmfm): boolean {
@@ -366,6 +368,7 @@ export abstract class PmfmUtils {
 
   /**
    * Check if pmfm is a selectivity device
+   *
    * @param pmfm
    */
   static isSelectivityDevice(pmfm: IPmfm): boolean {
@@ -377,6 +380,7 @@ export abstract class PmfmUtils {
 
   /**
    * Check if pmfm is a tag id
+   *
    * @param pmfm
    */
   static isTagId(pmfm: IPmfm): boolean {
@@ -411,6 +415,7 @@ export abstract class PmfmUtils {
 
   /**
    * Compute a PMFM.NAME, with the last part of the name
+   *
    * @param pmfm
    * @param opts
    */
@@ -422,7 +427,7 @@ export abstract class PmfmUtils {
   }): string {
     if (!pmfm) return undefined;
 
-    let name, details;
+    let name; let details;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
       // If withDetails = true, use complete name if exists
       if (opts?.withDetails && pmfm.completeName) {
@@ -465,7 +470,7 @@ export abstract class PmfmUtils {
     return name;
   }
 
-  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean;}): string {
+  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean}): string {
 
     // Compact mode
     if (!opts || opts.compact !== false) {
@@ -496,6 +501,7 @@ export abstract class PmfmUtils {
 
   /**
    * Add weight conversion to a list of pmfms
+   *
    * @param pmfms
    * @param expectedWeightSymbol
    * @param opts
@@ -619,6 +625,7 @@ export abstract class PmfmUtils {
    * - if maximumNumberDecimals=null and precision=null, then precision = defaultPrecision
    * - if maximumNumberDecimals=1 and precision=0.5, then precision=0.5
    * - if maximumNumberDecimals=1 and precision=null, then precision=0.1
+   *
    * @param pmfm
    */
   static getOrComputePrecision(pmfm: IPmfm, defaultPrecision?: number): number {

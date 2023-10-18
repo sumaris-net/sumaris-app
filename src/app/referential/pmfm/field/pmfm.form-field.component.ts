@@ -1,5 +1,26 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormGroupDirective,
+  NG_VALUE_ACCESSOR,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+} from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 import {
   AppFormArray,
@@ -10,22 +31,22 @@ import {
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService, MatDateTime,
+  LocalSettingsService,
+  MatDateTime,
   setTabIndex,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { PmfmValidators } from '../../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { debounceTime, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { RxState } from '@rx-angular/state';
 import { filter, map } from 'rxjs/operators';
 
-const noop = () => {
-};
+const noop = () => {};
 
 export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' ;
 
@@ -33,7 +54,7 @@ export interface PmfmFormFieldState {
   type: string;
   pmfm: IPmfm;
   controlName: string;
-  control: AbstractControl
+  control: AbstractControl;
 }
 
 @Component({
@@ -113,7 +134,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() hidden = false;
   @Input() placeholder: string;
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;
@@ -193,8 +214,8 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
       .pipe(
         //debounceTime(1000),
         map(({pmfm, control}) => {
-        if (!pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
-        if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
+        if (!pmfm) throw new Error('Missing mandatory attribute \'pmfm\' in <app-pmfm-field>.');
+        if (!control) throw new Error('Missing mandatory attribute \'formControl\' or \'formControlName\' in <app-pmfm-field>.');
 
         this._statusChangesSubscription?.unsubscribe();
 
@@ -233,22 +254,22 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
           // Compute the field type (use special case for Latitude/Longitude)
           let type = pmfm.type;
           if (this.hidden || pmfm.hidden) {
-            type = "hidden";
+            type = 'hidden';
           }
-          else if (type === "double") {
+          else if (type === 'double') {
             if (PmfmLabelPatterns.LATITUDE.test(pmfm.label) ) {
-              type = "latitude";
+              type = 'latitude';
             } else if (PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) {
-              type = "longitude";
+              type = 'longitude';
             }
             else if (pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(pmfm.unitLabel)) {
-              type = "duration";
+              type = 'duration';
             }
             else {
               this.numberInputStep = this.computeNumberInputStep(pmfm);
             }
           }
-          else if (type === "date") {
+          else if (type === 'date') {
             if (pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(pmfm.unitLabel)) {
               type = 'dateTime';
             }
@@ -269,6 +290,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   }
 
   ngOnDestroy() {
+    super.ngOnDestroy();
     this._statusChangesSubscription?.unsubscribe();
   }
 
@@ -320,7 +342,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
 
   focus() {
     if (this.hidden) {
-      console.warn("Cannot focus an hidden measurement field!")
+      console.warn('Cannot focus an hidden measurement field!');
     }
     else {
       focusInput(this.matInput);
@@ -366,7 +388,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     }, 250);
   }
 
-  protected formArrayRemoveAt(index: number, opts?: {markAsDirty :boolean}) {
+  protected formArrayRemoveAt(index: number, opts?: {markAsDirty: boolean}) {
     this.formArray.removeAt(index);
     if (!opts || opts.markAsDirty !== false) this.formArray.markAsDirty();
     this.markForCheck();

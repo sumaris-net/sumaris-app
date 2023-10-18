@@ -1,4 +1,4 @@
-import {TypePolicies} from "@apollo/client/core";
+import {TypePolicies} from '@apollo/client/core';
 import { FormFieldDefinition, joinProperties, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -50,7 +50,7 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
   },
   EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.accessNotSelfExtraction.role',
-    label: "EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE",
+    label: 'EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE',
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(label => ({
       key: 'ROLE_' + label,
@@ -59,14 +59,14 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
   },
   EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.batch.denormalization.enable',
-    label: "EXTRACTION.OPTIONS.BATCH_DENORMALIZATION_ENABLE",
+    label: 'EXTRACTION.OPTIONS.BATCH_DENORMALIZATION_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
   },
 
   EXTRACTION_SPECIES_LENGTH_PMFM_IDS: <FormFieldDefinition>{
     key: 'sumaris.extraction.rdb.speciesLength.pmfm.ids',
-    label: "EXTRACTION.OPTIONS.SPECIES_LENGTH_PMFM_IDS",
+    label: 'EXTRACTION.OPTIONS.SPECIES_LENGTH_PMFM_IDS',
     type: 'entities',
     defaultValue: null,
     autocomplete: {

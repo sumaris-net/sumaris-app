@@ -36,7 +36,7 @@ export class PhysicalGearTestUtils {
   }
 
 
-  static getMeasurementValues(values: { label?: string, meshSize: number; selectiveDevice?: 'T90'|'MACAR' }): MeasurementModelValues {
+  static getMeasurementValues(values: { label?: string; meshSize: number; selectiveDevice?: 'T90'|'MACAR' }): MeasurementModelValues {
     const result: MeasurementModelValues = {};
     result[PmfmIds.GEAR_LABEL] = values?.label || null;
     result['3'] = isNotNil(values?.meshSize) ? '' + values?.meshSize : null;

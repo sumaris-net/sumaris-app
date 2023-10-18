@@ -1,8 +1,8 @@
 
-import {RootDataEntity} from "./root-data-entity.model";
-import {DataEntityAsObjectOptions} from "./data-entity.model";
-import {IWithVesselSnapshotEntity, VesselSnapshot} from "@app/referential/services/model/vessel-snapshot.model";
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import {RootDataEntity} from './root-data-entity.model';
+import {DataEntityAsObjectOptions} from './data-entity.model';
+import {IWithVesselSnapshotEntity, VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 
 export abstract class DataRootVesselEntity<

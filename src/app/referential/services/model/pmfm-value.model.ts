@@ -13,7 +13,7 @@ import {
   referentialToString,
   ReferentialUtils,
   toDateISOString,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
@@ -24,6 +24,7 @@ export declare type PmfmValue = number | string | boolean | Moment | IReferentia
 
 export const PMFM_VALUE_SEPARATOR = '|';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export declare type ConvertedNumber = Number & {__conversionCoefficient: number};
 
 export abstract class PmfmValueUtils {
@@ -60,12 +61,12 @@ export abstract class PmfmValueUtils {
 
     // Test match
     // WARN: use '==' a NOT '===' because number can be serialized as string
-    // tslint:disable-next-line:triple-equals
+    // eslint-disable-next-line eqeqeq
     return v1 == v2;
   }
 
   static toModelValue(value: PmfmValue | PmfmValue[] | any,
-                      pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion; },
+                      pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion },
                       opts = {applyConversion: true}): string {
     if (isNil(value) || !pmfm) return undefined;
     if (Array.isArray(value)) {
@@ -137,7 +138,7 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static fromModelValue(value: any, pmfm: IPmfm, opts?:{doNotSplitValue:boolean}): PmfmValue | PmfmValue[] {
+  static fromModelValue(value: any, pmfm: IPmfm, opts?: {doNotSplitValue: boolean}): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;

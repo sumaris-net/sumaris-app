@@ -1,8 +1,8 @@
-import { EntityAsObjectOptions, EntityClass, FilterFn } from "@sumaris-net/ngx-components";
-import { BaseReferentialFilter } from "@app/referential/services/filter/referential.filter";
-import { TaxonName } from "@app/referential/services/model/taxon-name.model";
+import { EntityAsObjectOptions, EntityClass, FilterFn } from '@sumaris-net/ngx-components';
+import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
+import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 
-@EntityClass({ typename: "TaxonNameFilterVO" })
+@EntityClass({ typename: 'TaxonNameFilterVO' })
 export class TaxonNameFilter extends BaseReferentialFilter<TaxonNameFilter, TaxonName> {
   static fromObject: (source: any, opts?: any) => TaxonNameFilter;
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -25,7 +25,7 @@ import {
   UsageMode,
   waitFor,
   WaitForOptions,
-  waitForTrue
+  waitForTrue,
 } from '@sumaris-net/ngx-components';
 import { AlertController, IonModal, NavController } from '@ionic/angular';
 import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
@@ -61,11 +61,10 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
-
 interface BadgeState {
   hidden: boolean;
   text: string;
-  color: 'primary'|'accent';
+  color: 'primary' | 'accent';
 }
 
 interface BatchTreeContainerState {
@@ -90,8 +89,8 @@ interface BatchTreeContainerState {
 }
 
 export const BatchTreeContainerSettingsEnum = {
-  PAGE_ID: "batch-tree-container",
-  TREE_PANEL_FLOATING_KEY: "treePanelFloating"
+  PAGE_ID: 'batch-tree-container',
+  TREE_PANEL_FLOATING_KEY: 'treePanelFloating'
 };
 
 @Component({
@@ -107,7 +106,7 @@ export const BatchTreeContainerSettingsEnum = {
 })
 export class BatchTreeContainerComponent
   extends AppEditor<Batch>
-  implements IBatchTreeComponent {
+  implements IBatchTreeComponent, OnInit {
 
   private _listenStatusChangesSubscription: Subscription;
   private _listenProgramChanges = true;
@@ -188,7 +187,7 @@ export class BatchTreeContainerComponent
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() selectedTabIndex: number;
   @Input() usageMode: UsageMode;
-  @Input() i18nPmfmPrefix: string = 'TRIP.BATCH.PMFM.';
+  @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
   @Input() useSticky = true;
   @Input() mobile: boolean;
   @Input() debug: boolean;
@@ -261,16 +260,16 @@ export class BatchTreeContainerComponent
     this._state.set('allowDiscard', _ => value);
   }
 
+  get allowDiscard(): boolean {
+    return this._state.get('allowDiscard');
+  }
+
   get programAllowMeasure(): boolean {
     return this._state.get('programAllowMeasure');
   }
 
   set programAllowMeasure(value: boolean) {
     this._state.set('programAllowMeasure', _ => value);
-  }
-
-  get allowDiscard(): boolean {
-    return this._state.get('allowDiscard');
   }
 
   get touched(): boolean {
@@ -397,7 +396,7 @@ export class BatchTreeContainerComponent
             }
 
             // Create the model
-            return this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms, physicalGear})
+            return this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms, physicalGear});
           })
         )
     );
@@ -432,7 +431,7 @@ export class BatchTreeContainerComponent
     );
 
     // If now allowed sampling batches: remove it from data
-    this._state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
+    this._state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches());
 
     this._state.connect('currentBadge', this.watchBatchTreeState(), (state, batchTree) => {
       const badge: BadgeState = {
@@ -486,12 +485,12 @@ export class BatchTreeContainerComponent
   }
 
   // Change visibility to public
-  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean;  }) {
+  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean  }) {
     if (!error || typeof error === 'string') {
       super.setError(error as string, opts);
     }
     else {
-      console.log('TODO: apply error to rows ?', error)
+      console.log('TODO: apply error to rows ?', error);
     }
   }
 
@@ -533,7 +532,7 @@ export class BatchTreeContainerComponent
     return path;
   }
 
-  markAllAsTouched(opts?: { emitEvent?: boolean; withChildren?: boolean; }) {
+  markAllAsTouched(opts?: { emitEvent?: boolean; withChildren?: boolean }) {
     this.form?.markAllAsTouched();
     // Mark children component as touched also
     if (!opts || opts.withChildren !== false) {
@@ -553,7 +552,7 @@ export class BatchTreeContainerComponent
     super.markAsPristine(opts);
   }
 
-  async autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean; }): Promise<void> {
+  async autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean }): Promise<void> {
     await this.ready();
 
     console.warn(this._logPrefix + 'autoFill() not implemented yet!');
@@ -604,7 +603,7 @@ export class BatchTreeContainerComponent
     }
   }
 
-  async unload(opts?: { emitEvent?: boolean; }): Promise<void> {
+  async unload(opts?: { emitEvent?: boolean }): Promise<void> {
     this.resetRootForm();
     this.data = null;
     this.markAsPristine();
@@ -615,7 +614,7 @@ export class BatchTreeContainerComponent
     return 0;
   }
 
-  async setValue(data: Batch, opts?: {emitEvent?: boolean;}) {
+  async setValue(data: Batch, opts?: {emitEvent?: boolean}) {
     data = data || Batch.fromObject({
       rankOrder: 1,
       label: AcquisitionLevelCodes.CATCH_BATCH
@@ -779,7 +778,7 @@ export class BatchTreeContainerComponent
     try {
       // Save data if dirty and enabled (do not save when disabled, e.g. when reload)
       if (dirty && enabled) {
-        console.info('[batch-tree-container] Save batches... (before to reset tabs)')
+        console.info('[batch-tree-container] Save batches... (before to reset tabs)');
         try {
           await this.save();
         }
@@ -802,9 +801,7 @@ export class BatchTreeContainerComponent
       ]);
 
       // Update the state
-      this._state.set((state) => {
-        return {...state, catchPmfms, sortingPmfms};
-      });
+      this._state.set((state) => ({...state, catchPmfms, sortingPmfms}));
 
     }
     catch (err) {
@@ -975,7 +972,7 @@ export class BatchTreeContainerComponent
       subscription.add(() => {
         this.unregisterSubscription(subscription);
         if (this._listenStatusChangesSubscription === subscription) this._listenStatusChangesSubscription = null;
-      })
+      });
     }
     finally {
       // Restore previous state
@@ -1040,7 +1037,7 @@ export class BatchTreeContainerComponent
   /**
    * Save editing batch
    */
-  protected async confirmEditingBatch(opts?: {keepEditingBatch: boolean;}): Promise<boolean> {
+  protected async confirmEditingBatch(opts?: {keepEditingBatch: boolean}): Promise<boolean> {
     const model = this.editingBatch;
     if (!model) return true; // No editing batch: ok (not need to save)
 
@@ -1164,18 +1161,16 @@ export class BatchTreeContainerComponent
               this.batchTree.batchGroupsTable.dataSource.rowsSubject
             )
               .pipe(
-                map(_ => {
-                  return {
+                map(_ => ({
                     valid: !this.batchTree.invalid,
                     visibleRowCount: this.batchTree.showBatchTables
                       ? this.batchTree.batchGroupsTable.visibleRowCount
                       : undefined
-                  };
-                })
+                  }))
               )
               .subscribe(state => subscriber.next(state))
           );
-        })
+        });
       return subscription;
     });
   }

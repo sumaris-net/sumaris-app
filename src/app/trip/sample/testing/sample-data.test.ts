@@ -2,16 +2,11 @@ import { DateUtils, isNotNil, toDateISOString } from '@sumaris-net/ngx-component
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { Moment } from 'moment';
 
-export function getMeasValues(opts?: {
-  totalLength?: number;
-  sex?: 'M'|'F';
-  weight?: number;
-  tagId: string;
-}) {
+export function getMeasValues(opts?: { totalLength?: number; sex?: 'M' | 'F'; weight?: number; tagId: string }) {
   opts = {
     tagId: 'TAG-1',
-    ...opts
-  }
+    ...opts,
+  };
   const res = {};
 
   res[PmfmIds.TAG_ID] = opts.tagId;
@@ -35,7 +30,7 @@ export function getMonitoringMeasValues(opts?: {
   opts = {
     tagId: 'TAG-1',
     ...opts
-  }
+  };
   const res = {};
 
   res[PmfmIds.TAG_ID] = opts.tagId;
@@ -54,7 +49,7 @@ export function getReleaseMeasValues(opts?: {
   opts = {
     tagId: 'TAG-1',
     ...opts
-  }
+  };
   const res = {};
 
   res[PmfmIds.TAG_ID] = opts.tagId;
@@ -70,7 +65,7 @@ export function getReleaseMeasValues(opts?: {
   return res;
 }
 export const SAMPLE_TREE_EXAMPLES: {[key: string]: any} = {
-  'default': [{
+  default: [{
     label: 'SAMPLE#1', rankOrder: 1,
     sampleDate: DateUtils.moment(),
     taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
@@ -93,7 +88,7 @@ export const SAMPLE_TREE_EXAMPLES: {[key: string]: any} = {
   }],
 
   // No data
-  'empty': [{id: 100, label: 'CATCH_BATCH', rankOrder: 1}],
+  empty: [{id: 100, label: 'CATCH_BATCH', rankOrder: 1}],
 
   'SIH-OBSBIO': [{
     label: 'SAMPLE#1', rankOrder: 1,
@@ -103,7 +98,7 @@ export const SAMPLE_TREE_EXAMPLES: {[key: string]: any} = {
   }],
 };
 
-export function getExampleTree(key: string, programLabel?: string): any {
+export const getExampleTree = (key: string, programLabel?: string): any => {
   key = programLabel && Object.keys(SAMPLE_TREE_EXAMPLES).includes(programLabel) ? programLabel : key;
   return SAMPLE_TREE_EXAMPLES[key];
 }

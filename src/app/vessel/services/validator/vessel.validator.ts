@@ -41,6 +41,7 @@ export class VesselValidatorService<O extends VesselValidatorOptions = VesselVal
 
   /**
    * Update form group, with new options
+   *
    * @param form
    * @param opts
    */

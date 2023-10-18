@@ -24,7 +24,7 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
-    super()
+    super();
     this.reset();
   }
 

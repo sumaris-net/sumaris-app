@@ -1,4 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  InjectionToken,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+} from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
@@ -18,7 +29,7 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
-  waitFor
+  waitFor,
 } from '@sumaris-net/ngx-components';
 
 import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
@@ -36,12 +47,11 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 
-
 export interface BatchFormState extends MeasurementValuesState {
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
-  pmfmFilter: Partial<DenormalizedPmfmFilter>|null;
+  pmfmFilter: Partial<DenormalizedPmfmFilter> | null;
   samplingRatioFormat: SamplingRatioFormat;
 
   showExhaustiveInventory: boolean;
@@ -61,7 +71,7 @@ export interface BatchFormState extends MeasurementValuesState {
   samplingBatchEnabled: boolean;
 
   hasContent: boolean; // Has some visible content (pmfms, weight, etc.)
-  afterViewInitialized: boolean
+  afterViewInitialized: boolean;
 }
 
 export const BATCH_VALIDATOR = new InjectionToken<BatchValidatorService>('batchValidatorService');
@@ -423,7 +433,7 @@ export class BatchForm<
           distinctUntilChanged()
         ),
       samplingBatchEnabled => {
-        if (samplingBatchEnabled) this.enableSamplingBatch()
+        if (samplingBatchEnabled) this.enableSamplingBatch();
         else this.disableSamplingBatch();
       });
 
@@ -492,7 +502,6 @@ export class BatchForm<
       pmfms: oldState.pmfms
     }));
 
-    this.ready$
     // Apply pmfms
     if (state?.pmfms) {
       this.setPmfms(state?.pmfms);
@@ -740,6 +749,7 @@ export class BatchForm<
 
   /**
    * Compute 'hasContent' value, from other inputs
+   *
    * @protected
    */
   protected listenHasContent(): Observable<boolean> {
@@ -972,13 +982,13 @@ export class BatchForm<
     }
   }
 
-  protected enableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  protected enableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     const weightForm = this.weightForm;
     if (!weightForm || weightForm.enabled) return;
     weightForm.enable(opts);
   }
 
-  protected disableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  protected disableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     const weightForm = this.weightForm;
     if (!weightForm || weightForm.disabled) return;
     weightForm.disable(opts);
@@ -1036,7 +1046,7 @@ export class BatchForm<
       this.unregisterSubscription(subscription);
       this._formValidatorSubscription = null;
       this._formValidatorOpts = null;
-    })
+    });
   }
 
   protected markForCheck() {

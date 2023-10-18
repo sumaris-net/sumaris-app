@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ParameterLabelGroups } from 'src/app/referential/services/model/model.enum';
 import { PmfmStrategy } from 'src/app/referential/services/model/pmfm-strategy.model';
 import { PmfmStrategiesTable } from '../../pmfm-strategies.table';
-import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 
 @Component({
@@ -25,7 +25,7 @@ export class PmfmStrategiesTableTestPage implements OnInit {
 
   ngOnInit() {
 
-    this.table1.value = [new PmfmStrategy(), new PmfmStrategy()]
+    this.table1.value = [new PmfmStrategy(), new PmfmStrategy()];
 
   }
 

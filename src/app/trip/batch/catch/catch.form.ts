@@ -24,7 +24,7 @@ export interface CatchBatchFormState extends BatchFormState {
 }
 
 @Component({
-  selector: 'form-catch-batch',
+  selector: 'app-form-catch-batch',
   templateUrl: './catch.form.html',
   styleUrls: ['./catch.form.scss'],
   providers: [

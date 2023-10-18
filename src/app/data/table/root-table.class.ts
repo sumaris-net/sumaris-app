@@ -1,5 +1,4 @@
-import { Directive, Injector, Input, ViewChild } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Directive, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -20,7 +19,7 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
@@ -38,7 +37,7 @@ import moment from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
-  FILTER_KEY: 'filter'
+  FILTER_KEY: 'filter',
 };
 
 export type AppRootTableFilterRestoreSource = 'settings'|'queryParams';
@@ -62,7 +61,8 @@ export abstract class AppRootDataTable<
   ID = number,
   O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
   >
-  extends AppBaseTable<T, F, S, V, ID, O> {
+  extends AppBaseTable<T, F, S, V, ID, O>
+  implements OnInit, OnDestroy {
 
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
@@ -86,12 +86,11 @@ export abstract class AppRootDataTable<
   @Input() hasOfflineMode = false;
   @Input() restoreFilterSources: false|AppRootTableFilterRestoreSource[] = ['settings', 'queryParams'];
   @Input() showOfflineMode = true;
+  @Input() showQuality = true;
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
-
-  @Input() showQuality = true;
 
   @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
@@ -158,7 +157,7 @@ export abstract class AppRootDataTable<
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
     this.canDelete = toBoolean(this.canDelete, this.isAdmin);
-    if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
+    if (this.debug) console.debug('[root-table] Can user edit table ? ' + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
@@ -220,7 +219,7 @@ export abstract class AppRootDataTable<
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
-    const offline = type === "none";
+    const offline = type === 'none';
     if (this.offline !== offline) {
 
       // Update the property used in template
@@ -337,7 +336,7 @@ export abstract class AppRootDataTable<
       return false;
     }
 
-    console.debug("[trips] Applying filter to synchronization status: " + value);
+    console.debug('[trips] Applying filter to synchronization status: ' + value);
     this.resetError();
     this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus: value};
@@ -480,7 +479,7 @@ export abstract class AppRootDataTable<
   async terminateSelection(opts?: {
     showSuccessToast?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -497,7 +496,7 @@ export abstract class AppRootDataTable<
       });
     }
 
-    if (this.debug) console.debug("[root-table] Starting to terminate data...");
+    if (this.debug) console.debug('[root-table] Starting to terminate data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -550,7 +549,7 @@ export abstract class AppRootDataTable<
   async synchronizeSelection(opts?: {
     showSuccessToast?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -567,7 +566,7 @@ export abstract class AppRootDataTable<
       });
     }
 
-    if (this.debug) console.debug("[root-table] Starting to synchronize data...");
+    if (this.debug) console.debug('[root-table] Starting to synchronize data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -743,7 +742,7 @@ export abstract class AppRootDataTable<
           else if (event instanceof FileResponse){
             console.debug(this.logPrefix + 'File content: \n' + event.body);
             try {
-              let data = JSON.parse(event.body);
+              const data = JSON.parse(event.body);
               if (Array.isArray(data)) {
                 return new FileResponse<T[]>({body: data});
               }

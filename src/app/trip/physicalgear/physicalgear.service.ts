@@ -1,4 +1,4 @@
-import {Injectable, InjectionToken} from '@angular/core';
+import { Injectable, InjectionToken } from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -20,76 +20,83 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService, removeDuplicatesFromArray,
-  toNumber
+  NetworkService,
+  removeDuplicatesFromArray,
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {Trip} from '../trip/trip.model';
-import {environment} from '@environments/environment';
-import {BehaviorSubject, combineLatest, EMPTY, Observable} from 'rxjs';
-import {filter, first, map, throttleTime} from 'rxjs/operators';
-import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {PhysicalGearFragments} from '../trip/trip.queries';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {SortDirection} from '@angular/material/sort';
-import {PhysicalGearFilter} from './physical-gear.filter';
+import { Trip } from '../trip/trip.model';
+import { environment } from '@environments/environment';
+import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
+import { filter, first, map, throttleTime } from 'rxjs/operators';
+import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { PhysicalGearFragments } from '../trip/trip.queries';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { SortDirection } from '@angular/material/sort';
+import { PhysicalGearFilter } from './physical-gear.filter';
 import moment from 'moment';
-import {TripFilter} from '@app/trip/trip/trip.filter';
-import {DataErrorCodes} from '@app/data/services/errors';
-import {mergeLoadResult} from '@app/shared/functions';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
-import {ProgramFragments} from '@app/referential/services/program.fragments';
-import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {ProgressionModel} from '@app/shared/progression/progression.model';
-import {PhysicalGearValidatorOptions, PhysicalGearValidatorService} from '@app/trip/physicalgear/physicalgear.validator';
-import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {DataEntityUtils} from '@app/data/services/model/data-entity.model';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { TripFilter } from '@app/trip/trip/trip.filter';
+import { DataErrorCodes } from '@app/data/services/errors';
+import { mergeLoadResult } from '@app/shared/functions';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { ProgramFragments } from '@app/referential/services/program.fragments';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { PhysicalGearValidatorOptions, PhysicalGearValidatorService } from '@app/trip/physicalgear/physicalgear.validator';
+import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
-const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
-  loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
-    data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...PhysicalGearFragment
+const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
+  loadAll: gql`
+    query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...PhysicalGearFragment
+      }
     }
-  }
-  ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.lightDepartment}`,
+    ${PhysicalGearFragments.physicalGear}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.lightDepartment}
+  `,
 
-  load: gql`query PhysicalGear($id: Int!) {
-    data: physicalGear(id: $id){
-      ...PhysicalGearFragment
+  load: gql`
+    query PhysicalGear($id: Int!) {
+      data: physicalGear(id: $id) {
+        ...PhysicalGearFragment
+      }
     }
-  }
-  ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.lightDepartment}`,
+    ${PhysicalGearFragments.physicalGear}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.lightDepartment}
+  `,
 
-  loadAllWithTrip: gql`query PhysicalGearsWithTrip($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...PhysicalGearFragment
-      trip {
-        departureDateTime
-        returnDateTime
-        program {
-          ...ProgramRefFragment
-        }
-        vesselSnapshot {
-          ...LightVesselSnapshotFragment
+  loadAllWithTrip: gql`
+    query PhysicalGearsWithTrip($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...PhysicalGearFragment
+        trip {
+          departureDateTime
+          returnDateTime
+          program {
+            ...ProgramRefFragment
+          }
+          vesselSnapshot {
+            ...LightVesselSnapshotFragment
+          }
         }
       }
     }
-  }
-  ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.lightDepartment}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ProgramFragments.programRef}`
+    ${PhysicalGearFragments.physicalGear}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.lightDepartment}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${ProgramFragments.programRef}
+  `,
 };
 
 
@@ -241,6 +248,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
 
   /**
    * Get physical gears, from trips data, and imported gears (offline mode)
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -328,8 +336,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
         // Get trips array
         map(res => res && res.data || []),
         // Extract physical gears, from trip
-        map(trips => {
-          return trips.reduce((res, trip) => res.concat((trip.gears || [])
+        map(trips => trips.reduce((res, trip) => res.concat((trip.gears || [])
             .map(gear => ({
               ...gear,
               // Add metadata on trip, if need
@@ -340,8 +347,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
                 returnDateTime: trip.returnDateTime
               } : undefined
             }))
-          ), []);
-        }),
+          ), [])),
         // Return as load result
         map(data => ({ data, total: data.length })),
         map(res => this.applyWatchOptions(res, offset, size, sortBy, sortDirection, dataFilter, opts))
@@ -456,7 +462,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
   }
 
 
-  async loadAllByParentId(filter: {tripId?: number, parentGearId: number},
+  async loadAllByParentId(filter: {tripId?: number; parentGearId: number},
             opts?: {
               fetchPolicy?: WatchQueryFetchPolicy;
               toEntity?: boolean;
@@ -469,7 +475,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       return (trip.gears || []).find(g => g.id === filter.parentGearId)?.children;
     }
 
-    const res = await this.loadAll(0, 100, 'rankOrder', 'asc', filter, opts)
+    const res = await this.loadAll(0, 100, 'rankOrder', 'asc', filter, opts);
     return res?.data;
   }
 
@@ -495,7 +501,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       let errorsById: FormErrors = null;
 
       // For each entity
-      for (let entity of entities) {
+      for (const entity of entities) {
 
         const errors = await this.control(entity, opts);
 
@@ -600,7 +606,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return PhysicalGearFilter.fromObject(filter);
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = opts || {};
     opts.i18nPrefix = opts.i18nPrefix || 'TRIP.PHYSICAL_GEAR.EDIT.';
 
@@ -690,7 +696,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     const childrenGearIds = opts.withChildren ? removeDuplicatesFromArray((entity.children || []).map(child => child.gear?.id)) : undefined;
     if (isNotEmptyArray(childrenGearIds) && opts.initialChildrenPmfms) {
       opts.childrenPmfms = opts.initialChildrenPmfms
-        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.some(gearId => childrenGearIds.includes(gearId)));
+        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.some(id => childrenGearIds.includes(id)));
     }
     else {
       opts.childrenPmfms = (opts.initialChildrenPmfms || []);

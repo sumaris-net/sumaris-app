@@ -29,7 +29,7 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   @Output() valueChanges = new EventEmitter<BatchFilter>();
 
-  @ViewChildren('navBar') navBars : QueryList<MatTabNav>;
+  @ViewChildren('navBar') navBars: QueryList<MatTabNav>;
 
   constructor(injector: Injector,
               protected formBuilder: UntypedFormBuilder,
@@ -65,6 +65,7 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param pmfm
    */

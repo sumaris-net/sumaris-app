@@ -1,15 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
   Entity,
   EntityUtils,
   isNotEmptyArray,
-  ReferentialRef, ReferentialUtils,
+  ReferentialRef,
+  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusById,
-  StatusList
+  StatusList,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
@@ -28,7 +29,7 @@ export declare type AppTableMode = 'select' | 'edit'; // TODO more
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter>
-  extends AppTable<T, F> {
+  extends AppTable<T, F> implements OnInit {
 
   private _mode: AppTableMode = 'edit';
 
@@ -113,7 +114,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
           this.setFilter({
               ...baseFilter, // Keep previous filter
               ...json},
-            {emitEvent: this.mobile || !this.showToolbar})
+            {emitEvent: this.mobile || !this.showToolbar});
         })
     );
 
@@ -159,7 +160,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
 
     if (isNotEmptyArray(levels)) {
       const typeName = levels[0].entityName;
-      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
+      const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
       this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }

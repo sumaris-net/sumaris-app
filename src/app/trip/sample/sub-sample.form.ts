@@ -108,7 +108,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
         .pipe(
           filter(isNotEmptyArray),
         ).subscribe((pmfms) => this.updateParents(pmfms))
-    )
+    );
 
     if (!this.showParent) {
       this.form.parent?.disable();
@@ -126,7 +126,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     // DEBUG
     console.debug('[sub-sample-form] Mapping PMFMs...', pmfms);
 
-    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID);
     const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
     this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 

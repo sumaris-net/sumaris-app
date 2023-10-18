@@ -1,9 +1,8 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="showError && error; let errorMsg" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="errorMsg|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
   </ion-item>
 
   <ion-grid>
@@ -11,19 +10,25 @@
     <ion-row *ngIf="canEditStatus">
       <ion-col>
         <mat-form-field>
-          <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
-                      formControlName="statusId"
-                      (selectionChange)="markAsDirty()"
-                      required>
+          <mat-select
+            [placeholder]="'REFERENTIAL.STATUS' | translate"
+            formControlName="statusId"
+            (selectionChange)="markAsDirty()"
+            required
+          >
             <mat-select-trigger>
-              <span *ngVar="form|formGetValue: 'statusId' as statusId">{{ statusId >= 0 ? (statusById[statusId]?.label | translate) : ''}}</span>
+              <span *ngVar="form | formGetValue : 'statusId' as statusId">
+                {{ statusId >= 0 ? (statusById[statusId]?.label | translate) : '' }}
+              </span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
               <ion-icon [name]="item.icon"></ion-icon>
               {{ item.label | translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="form.controls.statusId.touched && form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.statusId.touched && form.controls.statusId.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -35,39 +40,53 @@
       </ion-col>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE'|translate"
-                 formControlName="registrationCode"
-                 autocomplete="off"
-                 required
-                 toRegistrationCode
-          >
-          <mat-error *ngIf="registrationForm.controls.registrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE' | translate"
+            formControlName="registrationCode"
+            autocomplete="off"
+            required
+            toRegistrationCode
+          />
+          <mat-error *ngIf="registrationForm.controls.registrationCode.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE'|translate"
-                 formControlName="intRegistrationCode"
-                 autocomplete="off"
-                 toRegistrationCode>
-          <mat-error *ngIf="registrationForm.controls.intRegistrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE' | translate"
+            formControlName="intRegistrationCode"
+            autocomplete="off"
+            toRegistrationCode
+          />
+          <mat-error *ngIf="registrationForm.controls.intRegistrationCode.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION'|translate"
+          [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION' | translate"
           formControlName="registrationLocation"
           [config]="autocompleteFields.registrationLocation"
-          [required]="true">
+          [required]="true"
+        >
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-field [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE'|translate"
-                        formControlName="startDate"
-                        [required]="true">
+        <mat-date-field
+          [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE' | translate"
+          formControlName="startDate"
+          [required]="true"
+        >
           <mat-error *ngIf="registrationForm.controls.startDate.hasError('dateIsAfter')">
-            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: registrationForm.controls.startDate.errors.dateIsAfter }}
+            {{
+              'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate : registrationForm.controls.startDate.errors.dateIsAfter
+            }}
           </mat-error>
         </mat-date-field>
       </ion-col>
@@ -81,29 +100,40 @@
       <!-- Exterior marking -->
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING'|translate"
-                 formControlName="exteriorMarking"
-                 autocomplete="off" required>
-          <mat-error *ngIf="featuresForm.controls.exteriorMarking.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            [placeholder]="'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING' | translate"
+            formControlName="exteriorMarking"
+            autocomplete="off"
+            required
+          />
+          <mat-error *ngIf="featuresForm.controls.exteriorMarking.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
       <!-- Name -->
       <ion-col>
         <mat-form-field>
-          <input matInput autocomplete="off"
-                 formControlName="name"
-                 [placeholder]="'VESSEL.VESSEL_FEATURES.NAME'|translate"
-                 [required]="withNameRequired">
+          <input
+            matInput
+            autocomplete="off"
+            formControlName="name"
+            [placeholder]="'VESSEL.VESSEL_FEATURES.NAME' | translate"
+            [required]="withNameRequired"
+          />
           <mat-error *ngIf="featuresForm.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
 
       <ion-col size="auto">
-        <mat-date-field [placeholder]="'VESSEL.VESSEL_FEATURES.START_DATE'|translate"
-                        formControlName="startDate"
-                        [required]="true">
+        <mat-date-field
+          [placeholder]="'VESSEL.VESSEL_FEATURES.START_DATE' | translate"
+          formControlName="startDate"
+          [required]="true"
+        >
           <mat-error *ngIf="featuresForm.controls.startDate.hasError('dateIsAfter')">
-            {{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: featuresForm.controls.startDate.errors.dateIsAfter }}
+            {{ 'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate : featuresForm.controls.startDate.errors.dateIsAfter }}
           </mat-error>
         </mat-date-field>
       </ion-col>
@@ -113,10 +143,11 @@
     <ion-row>
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.VESSEL_TYPE'|translate"
+          [placeholder]="'VESSEL.VESSEL_TYPE' | translate"
           formControlName="vesselType"
           [config]="autocompleteFields.vesselType"
-          [required]="true">
+          [required]="true"
+        >
           <ion-icon matPrefix name="bookmark"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -126,10 +157,11 @@
     <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION'|translate"
+          [placeholder]="'VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION' | translate"
           formControlName="basePortLocation"
           [config]="autocompleteFields.basePortLocation"
-          [required]="true">
+          [required]="true"
+        >
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -140,39 +172,75 @@
       <!-- length over all -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input matInput type="number" step="0.1" min="0" autocomplete="off"  [placeholder]="'VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL'|translate"
-                 formControlName="lengthOverAll" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            type="number"
+            step="0.1"
+            min="0"
+            autocomplete="off"
+            [placeholder]="'VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL' | translate"
+            formControlName="lengthOverAll"
+            (keypress)="filterNumberInput($event, true)"
+          />
+          <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS' | translate : { maxDecimals: 2 } }}
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('min')">
-            {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            {{ 'ERROR.FIELD_MIN' | translate : { min: 0 } }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
       <!-- Administrative power -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER'|translate"
-                 formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            type="number"
+            step="1"
+            min="0"
+            autocomplete="off"
+            [placeholder]="'VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER' | translate"
+            formControlName="administrativePower"
+            (keypress)="filterNumberInput($event, true)"
+          />
+          <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS' | translate : { maxDecimals: 2 } }}
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('min')">
-            {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            {{ 'ERROR.FIELD_MIN' | translate : { min: 0 } }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
       <!-- Gross tonnage (GT) -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT'|translate"
-                 formControlName="grossTonnageGt" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            autocomplete="off"
+            matInput
+            [placeholder]="'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT' | translate"
+            formControlName="grossTonnageGt"
+            (keypress)="filterNumberInput($event, true)"
+          />
+          <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS' | translate : { maxDecimals: 2 } }}
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('min')">
-            {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            {{ 'ERROR.FIELD_MIN' | translate : { min: 0 } }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
@@ -192,46 +260,68 @@
       <!-- Construction year -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="1" min="1970" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR'|translate"
-                 formControlName="constructionYear" (keypress)="filterNumberInput($event, true)">
-          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('integer')" translate>ERROR.FIELD_NOT_VALID_INTEGER</mat-error>
+          <input
+            type="number"
+            step="1"
+            min="1970"
+            autocomplete="off"
+            matInput
+            [placeholder]="'VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR' | translate"
+            formControlName="constructionYear"
+            (keypress)="filterNumberInput($event, true)"
+          />
+          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('integer')" translate>
+            ERROR.FIELD_NOT_VALID_INTEGER
+          </mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('min')">
-            {{ 'ERROR.FIELD_MIN'| translate:{min: 1970} }}</mat-error>
+            {{ 'ERROR.FIELD_MIN' | translate : { min: 1970 } }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
       <!-- IRCS -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="text" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.IRCS'|translate"
-                 formControlName="ircs"
-                 toRegistrationCode>
+          <input
+            type="text"
+            autocomplete="off"
+            matInput
+            [placeholder]="'VESSEL.VESSEL_FEATURES.IRCS' | translate"
+            formControlName="ircs"
+            toRegistrationCode
+          />
         </mat-form-field>
       </ion-col>
 
       <!-- Hull material -->
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.VESSEL_FEATURES.HULL_MATERIAL'|translate"
+          [placeholder]="'VESSEL.VESSEL_FEATURES.HULL_MATERIAL' | translate"
           formControlName="hullMaterial"
-          [config]="autocompleteFields.hullMaterial">
-        </mat-autocomplete-field>
+          [config]="autocompleteFields.hullMaterial"
+        ></mat-autocomplete-field>
       </ion-col>
     </ion-row>
-
 
     <!-- Comments -->
     <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.VESSEL_FEATURES.COMMENTS'|translate"
-            formControlName="comments">
-          </textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.get('vesselFeatures.comments').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <textarea
+            matInput
+            #comments
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            [placeholder]="'VESSEL.VESSEL_FEATURES.COMMENTS' | translate"
+            formControlName="comments"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
+          <mat-error *ngIf="form.get('vesselFeatures.comments').hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
   </ion-grid>
-
 </form>

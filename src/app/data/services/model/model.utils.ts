@@ -22,7 +22,7 @@ export const DataQualityStatusIds = Object.freeze({
   CONTROLLED: <DataQualityStatusIdType>'CONTROLLED',
   VALIDATED: <DataQualityStatusIdType>'VALIDATED',
   QUALIFIED: <DataQualityStatusIdType>'QUALIFIED',
-})
+});
 
 export declare interface IDataQualityStatus {
   id: DataQualityStatusIdType;
@@ -113,6 +113,7 @@ export function fillTreeRankOrder(values: (ITreeItemEntity<any> & { rankOrder: n
 
 /**
  * Compare unique rankOrder from values with values count
+ *
  * @param values
  * @return true if all rankOrder are unique
  */

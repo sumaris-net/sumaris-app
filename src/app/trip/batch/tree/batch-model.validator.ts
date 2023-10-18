@@ -149,7 +149,7 @@ export class BatchModelValidatorService<
 
           // Add 'discard' into the children name
           batch.children?.forEach(child => {
-            child.name = [batch.name, child.name].join(', ')
+            child.name = [batch.name, child.name].join(', ');
           });
         });
 
@@ -167,7 +167,7 @@ export class BatchModelValidatorService<
           }))
           .forEach(batch => {
 
-            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
+            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone());
             if (isNotEmptyArray(weightPmfms)) {
               // Add weights PMFM (if not found)
               const pmfms = removeDuplicatesFromArray([
@@ -202,7 +202,7 @@ export class BatchModelValidatorService<
           }
         }))
           .forEach(batch => {
-            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
+            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone());
             if (isNotEmptyArray(weightPmfms)) {
               // Add weights PMFM (if not found)
               const pmfms = removeDuplicatesFromArray([
@@ -234,7 +234,7 @@ export class BatchModelValidatorService<
             leafBatch.state = {
               ...leafBatch.state,
               showExhaustiveInventory: true
-            }
+            };
           }
         });
       }
@@ -261,7 +261,7 @@ export class BatchModelValidatorService<
   createFormGroupByModel(model: BatchModel, opts: {
     allowSpeciesSampling: boolean;
     isOnFieldMode?: boolean;
-    updateOn?: ControlUpdateOnType
+    updateOn?: ControlUpdateOnType;
   }): UntypedFormGroup {
     if (!model) throw new Error('Missing required argument \'model\'');
     if (!opts) throw new Error('Missing required argument \'opts\'');
@@ -280,7 +280,7 @@ export class BatchModelValidatorService<
       if (isNotEmptyArray(childrenWeightPmfms)) {
         model.originalData.children.forEach(batch => {
           batch.weight = BatchUtils.getWeight(batch, childrenWeightPmfms);
-          const samplingBatch = BatchUtils.getSamplingChild(batch)
+          const samplingBatch = BatchUtils.getSamplingChild(batch);
           if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch, childrenWeightPmfms);
         });
       }
@@ -301,7 +301,7 @@ export class BatchModelValidatorService<
     // Update model valid marker (check this BEFORE to add the children form array)
     model.valid = form.valid;
     if (form.invalid) {
-      AppFormUtils.logFormErrors(form, '[batch-model-validator] ' + model.name + ' > ')
+      AppFormUtils.logFormErrors(form, '[batch-model-validator] ' + model.name + ' > ');
     }
 
     // Recursive call, on each children model

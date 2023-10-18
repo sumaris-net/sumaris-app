@@ -105,7 +105,7 @@ export class ObservedLocationValidatorService
               }}};
         }
         return null;
-      })
+      });
     }
 
     return validators.length === 1 ? validators[0] : Validators.compose(validators);

@@ -2,7 +2,7 @@ import { EntityAsObjectOptions, fromDateISOString,  isNil, Person, ReferentialAs
 import {Moment} from 'moment';
 import { DataEntity, DataEntityAsObjectOptions, DataEntityUtils, IDataEntity } from './data-entity.model';
 import {IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus} from './model.utils';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 
 export interface IRootDataEntity<T = any,

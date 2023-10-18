@@ -1,83 +1,83 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="">
-
         <!-- Parent -->
-        <mat-autocomplete-field formControlName='parent'
-                                [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
-                                [required]="true"
-                                [tabindex]="tabindex"
-                                [config]="autocompleteFields.parent">
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="parent"
+          [placeholder]="'TRIP.PRODUCT.LIST.PARENT' | translate"
+          [required]="true"
+          [tabindex]="tabindex"
+          [config]="autocompleteFields.parent"
+        ></mat-autocomplete-field>
       </ion-col>
 
       <ion-col size="12" size-md="">
-
         <!-- Taxon Group -->
-        <mat-autocomplete-field formControlName='taxonGroup'
-                                [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
-                                [required]="true"
-                                [tabindex]="tabindex+1"
-                                [config]="autocompleteFields.taxonGroup">
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="taxonGroup"
+          [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP' | translate"
+          [required]="true"
+          [tabindex]="tabindex + 1"
+          [config]="autocompleteFields.taxonGroup"
+        ></mat-autocomplete-field>
       </ion-col>
     </ion-row>
 
     <ion-row class="ion-no-padding">
-
       <!-- weight -->
       <ion-col size="12" size-md="">
         <mat-form-field>
-          <input matInput
-                 autocomplete="off"
-                 formControlName="weight"
-                 type="number"
-                 decimal="true"
-                 [tabIndex]="tabindex+2"
-                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
-                 required>
+          <input
+            matInput
+            autocomplete="off"
+            formControlName="weight"
+            type="number"
+            decimal="true"
+            [tabIndex]="tabindex + 2"
+            [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT' | translate"
+            required
+          />
           <mat-error *ngIf="form.controls.weight.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-
         </mat-form-field>
       </ion-col>
 
       <!-- individualCount -->
       <ion-col size="12" size-md="">
-
         <mat-form-field>
-          <input matInput
-                 autocomplete="off"
-                 formControlName="individualCount"
-                 type="number"
-                 [tabIndex]="tabindex+3"
-                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
-                 required>
-          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input
+            matInput
+            autocomplete="off"
+            formControlName="individualCount"
+            type="number"
+            [tabIndex]="tabindex + 3"
+            [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
+            required
+          />
+          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
 
     <ng-content></ng-content>
 
-    <ion-row [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else measurementsSkeleton;">
-
+    <ion-row [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else: measurementsSkeleton">
       <!-- Measurements -->
-      <ion-col *ngFor="let pmfm of pmfms; index as i;"
-               size="12" size-md="6">
+      <ion-col *ngFor="let pmfm of pmfms; index as i" size="12" size-md="6">
         <app-pmfm-field
-                        [pmfm]="pmfm"
-                        [compact]="compact"
-                        [tabindex]="tabindex+4 + i"
-                        [floatLabel]="floatLabel">
-        </app-pmfm-field>
+          [pmfm]="pmfm"
+          [compact]="compact"
+          [tabindex]="tabindex + 4 + i"
+          [floatLabel]="floatLabel"
+        ></app-pmfm-field>
       </ion-col>
     </ion-row>
 
@@ -99,12 +99,10 @@
 
     <ion-row>
       <ion-col>
-          <ng-content select="[endButtons]"></ng-content>
+        <ng-content select="[endButtons]"></ng-content>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </form>
 
 <ng-template #measurementsSkeleton>
@@ -114,7 +112,7 @@
 
 <ng-template #measurementSkeleton>
   <mat-form-field class="mat-form-field-disabled">
-    <input matInput hidden>
+    <input matInput hidden />
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>
 </ng-template>

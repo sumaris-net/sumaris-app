@@ -37,11 +37,11 @@ export class TripReportService<
                    sheetNames?: string[];
                    query?: any;
                    dataTypes?: {
-                     TR: new () => TR,
-                     HH: new () => HH,
-                     SL: new () => SL,
-                     HL: new () => HL,
-                     [key: string]: new () => IEntity<any>
+                     TR: new () => TR;
+                     HH: new () => HH;
+                     SL: new () => SL;
+                     HL: new () => HL;
+                     [key: string]: new () => IEntity<any>;
                    };
                    fetchPolicy?: FetchPolicy;
                    cache?: boolean; // enable by default
@@ -64,7 +64,7 @@ export class TripReportService<
     filter = ExtractionFilter.fromObject(filter);
     if (filter.isEmpty()) throw new Error('Cannot load trip data: filter is empty!');
 
-    const podFilter = filter.asPodObject()
+    const podFilter = filter.asPodObject();
     podFilter.sheetNames = opts?.sheetNames;
     delete podFilter.sheetName;
 

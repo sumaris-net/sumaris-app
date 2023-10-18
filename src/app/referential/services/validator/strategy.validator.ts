@@ -1,10 +1,10 @@
-import { Injectable } from "@angular/core";
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from "@angular/forms";
-import { toNumber } from "@sumaris-net/ngx-components";
-import { SharedValidators } from "@sumaris-net/ngx-components";
-import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from "../model/strategy.model";
-import { PmfmStrategyValidatorService } from "./pmfm-strategy.validator";
-import { ReferentialValidatorService } from "./referential.validator";
+import { Injectable } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { toNumber } from '@sumaris-net/ngx-components';
+import { SharedValidators } from '@sumaris-net/ngx-components';
+import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from '../model/strategy.model';
+import { PmfmStrategyValidatorService } from './pmfm-strategy.validator';
+import { ReferentialValidatorService } from './referential.validator';
 
 @Injectable({providedIn: 'root'})
 export class StrategyValidatorService extends ReferentialValidatorService<Strategy> {
@@ -45,10 +45,10 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
   getLabel(data?: Strategy) {
     return [data && data.label || null, [Validators.required, (control)=>{
       if (control && control.value && control.value.includes('_')) {
-        return {pattern : { pattern : false}}
+        return {pattern : { pattern : false}};
       }
       return null;
-    }]]
+    }]];
   }
 
   getPmfmStrategiesFormArray(data?: Strategy) {

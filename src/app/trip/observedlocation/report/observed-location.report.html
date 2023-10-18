@@ -1,9 +1,8 @@
-<app-toolbar  *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
-  <ion-title [innerHTML]="$title|async"></ion-title>
+<app-toolbar *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="true">
+  <ion-title [innerHTML]="$title | async"></ion-title>
   <ion-buttons slot="end">
-
     <!-- Refresh -->
-    <ion-button *ngIf="uuid|isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+    <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
       <mat-icon>refresh</mat-icon>
     </ion-button>
 
@@ -19,30 +18,24 @@
     </ion-button>
 
     <!-- share menu -->
-    <button mat-icon-button matHeader
-            [title]="'COMMON.SHARE.BTN_SHARE'|translate"
-            [matMenuTriggerFor]="shareMenu">
+    <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
       <mat-icon>share</mat-icon>
     </button>
   </ion-buttons>
 
   <!-- Share menu -->
   <mat-menu #shareMenu="matMenu" xPosition="after">
-
     <!-- Share popover -->
-    <button mat-menu-item
-            (click)="showSharePopover($event)"
-            [disabled]="(loadingSubject|async) || network.offline">
-      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS'|translate }}</ion-label>
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
     </button>
   </mat-menu>
 </app-toolbar>
 
 <ion-content>
-
   <ion-item *ngIf="error && showError" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <!-- loading -->
@@ -50,99 +43,132 @@
     <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
   </div>
 
-  <app-reveal #reveal
-              [class.cdk-visually-hidden]="loading || error"
-              [options]="revealOptions">
-      <section *sectionDef>
-          <section class="summary">
-            <h2>{{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}</h2>
-            <ul>
-              <li><ion-icon name="location"></ion-icon> {{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} <b>{{ data.location?.name }}</b></li>
-              <li><ion-icon name="calendar"></ion-icon> {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} <b>{{ data.startDateTime|dateFormat:{time: true} }}</b></li>
-              <li><ion-icon name="people"></ion-icon> {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}</li>
-              <li class="no-icon" *ngFor="let pmfm of stats.pmfms">
-              {{ pmfm|pmfmName:{
-                i18nPrefix: i18nContext.pmfmPrefix,
-                i18nContext: i18nContext.suffix,
-                html: true } }} : {{ data|measurementValueGet:{pmfm: pmfm, html: true} }}
-              </li>
-              <li><ion-icon name="boat"></ion-icon> {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ stats.vesselCount }}</li>
-            </ul>
-          </section>
-          <section>
-            <h3>{{'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE'|translateContext: i18nContext.suffix }}</h3>
-
-            <table [style.--col-count]="(stats.landingPmfms|arrayPluck:{property:'qualitativeValues'}).flat().length + (stats.landingShowSampleCount ? 2 : 1)">
-              <thead>
-                <tr>
-                  <th [rowSpan]="2">{{ 'LANDING.TABLE.VESSEL'|translate }}</th>
-                  <th [rowSpan]="2" *ngIf="stats.landingShowSampleCount">{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nContext.suffix}}</th>
-                  <th *ngFor="let pmfm of stats.landingPmfms"
-                      [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
-                      [colSpan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
-                    >{{pmfm|pmfmName: {
-                    i18nPrefix: stats.landingI18nPmfmPrefix,
-                    i18nContext: i18nContext.suffix,
-                    html: true } }}</th>
-                </tr>
-                <tr>
-                  <ng-container *ngFor="let pmfm of stats.landingPmfms | arrayFilter:isQualitativePmfm">
-                    <th *ngFor="let qv of pmfm.qualitativeValues">
-                      {{qv|pmfmValue:{pmfm: pmfm, html: true} }}
-                    </th>
-                  </ng-container>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr *ngFor="let landing of data.landings">
-                  <td>{{landing.vesselSnapshot?.name}}</td>
-                  <td *ngIf="stats.landingShowSampleCount">{{landing.samplesCount}}</td>
-                  <ng-container *ngFor="let pmfm of stats.landingPmfms">
-                    <td *ngIf="isNotQualitativePmfm(pmfm); else qualitative">
-                      {{landing|measurementValueGet:{pmfm: pmfm, html: true} }}
-                    </td>
-                    <ng-template #qualitative>
-                      <td *ngFor="let qv of pmfm.qualitativeValues">
-                        <span *ngIf="landing.measurementValues[pmfm.id.toString()] == qv.id">
-                          &#x2714;
-                        </span>
-                      </td>
-                    </ng-template>
-                  </ng-container>
-                </tr>
-              </tbody>
-            </table>
-
-          </section>
+  <app-reveal #reveal [class.cdk-visually-hidden]="loading || error" [options]="revealOptions">
+    <section *sectionDef>
+      <section class="summary">
+        <h2>{{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT' | translateContext : i18nContext.suffix }}</h2>
+        <ul>
+          <li>
+            <ion-icon name="location"></ion-icon>
+            {{ 'OBSERVED_LOCATION.REPORT.LOCATION' | translate }}
+            <b>{{ data.location?.name }}</b>
+          </li>
+          <li>
+            <ion-icon name="calendar"></ion-icon>
+            {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME' | translate }}
+            <b>{{ data.startDateTime | dateFormat : { time: true } }}</b>
+          </li>
+          <li>
+            <ion-icon name="people"></ion-icon>
+            {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS' | translate }} {{ data.observers | personToString }}
+          </li>
+          <li class="no-icon" *ngFor="let pmfm of stats.pmfms">
+            {{
+              pmfm
+                | pmfmName
+                  : {
+                      i18nPrefix: i18nContext.pmfmPrefix,
+                      i18nContext: i18nContext.suffix,
+                      html: true
+                    }
+            }}
+            : {{ data | measurementValueGet : { pmfm: pmfm, html: true } }}
+          </li>
+          <li>
+            <ion-icon name="boat"></ion-icon>
+            {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT' | translateContext : i18nContext.suffix }}
+            {{ stats.vesselCount }}
+          </li>
+        </ul>
       </section>
+      <section>
+        <h3>{{ 'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE' | translateContext : i18nContext.suffix }}</h3>
 
-      <!-- landing reports -->
-      <ng-container *ngFor="let landing of data?.landings|arrayFilter: hasSamples; index as index"
-               [ngSwitch]="stats.landingEditor">
+        <table
+          [style.--col-count]="
+            (stats.landingPmfms | arrayPluck : { property: 'qualitativeValues' }).flat().length +
+            (stats.landingShowSampleCount ? 2 : 1)
+          "
+        >
+          <thead>
+            <tr>
+              <th [rowSpan]="2">{{ 'LANDING.TABLE.VESSEL' | translate }}</th>
+              <th [rowSpan]="2" *ngIf="stats.landingShowSampleCount">
+                {{ 'LANDING.TABLE.SAMPLES_COUNT' | translateContext : i18nContext.suffix }}
+              </th>
+              <th
+                *ngFor="let pmfm of stats.landingPmfms"
+                [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
+                [colSpan]="(isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length) || 1"
+              >
+                {{
+                  pmfm
+                    | pmfmName
+                      : {
+                          i18nPrefix: stats.landingI18nPmfmPrefix,
+                          i18nContext: i18nContext.suffix,
+                          html: true
+                        }
+                }}
+              </th>
+            </tr>
+            <tr>
+              <ng-container *ngFor="let pmfm of stats.landingPmfms | arrayFilter : isQualitativePmfm">
+                <th *ngFor="let qv of pmfm.qualitativeValues">
+                  {{ qv | pmfmValue : { pmfm: pmfm, html: true } }}
+                </th>
+              </ng-container>
+            </tr>
+          </thead>
 
-        <!-- auction control -->
-        <app-auction-control-report #landingReport
-                                    *ngSwitchCase="'control'"
-                                    [data]="landing"
-                                    [stats]="isNotNil(stats?.landingsStats) ? stats.landingsStats[index] : null"
-                                    ></app-auction-control-report>
-        <!-- sampling landing -->
-        <app-sampling-landing-report #landingReport
-                                    *ngSwitchCase="'sampling'"
-                                    [data]="landing"
-                                    [stats]="isNotNil(stats?.landingsStats) ? stats.landingsStats[index] : null"
-        ></app-sampling-landing-report>
+          <tbody>
+            <tr *ngFor="let landing of data.landings">
+              <td>{{ landing.vesselSnapshot?.name }}</td>
+              <td *ngIf="stats.landingShowSampleCount">{{ landing.samplesCount }}</td>
+              <ng-container *ngFor="let pmfm of stats.landingPmfms">
+                <td *ngIf="isNotQualitativePmfm(pmfm); else qualitative">
+                  {{ landing | measurementValueGet : { pmfm: pmfm, html: true } }}
+                </td>
+                <ng-template #qualitative>
+                  <td *ngFor="let qv of pmfm.qualitativeValues">
+                    <span *ngIf="landing.measurementValues[pmfm.id.toString()] == qv.id">&#x2714;</span>
+                  </td>
+                </ng-template>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
 
-        <!-- landing report by default -->
-        <app-landing-report #landingReport
-                            *ngSwitchCase="'landing'"
-                            [data]="landing"
-                            [stats]="isNotNil(stats?.landingsStats) ?  stats.landingsStats[index] : null"
-        ></app-landing-report>
+    <!-- landing reports -->
+    <ng-container
+      *ngFor="let landing of data?.landings | arrayFilter : hasSamples; index as index"
+      [ngSwitch]="stats.landingEditor"
+    >
+      <!-- auction control -->
+      <app-auction-control-report
+        #landingReport
+        *ngSwitchCase="'control'"
+        [data]="landing"
+        [stats]="isNotNil(stats?.landingsStats) ? stats.landingsStats[index] : null"
+      ></app-auction-control-report>
+      <!-- sampling landing -->
+      <app-sampling-landing-report
+        #landingReport
+        *ngSwitchCase="'sampling'"
+        [data]="landing"
+        [stats]="isNotNil(stats?.landingsStats) ? stats.landingsStats[index] : null"
+      ></app-sampling-landing-report>
 
-
-      </ng-container>
+      <!-- landing report by default -->
+      <app-landing-report
+        #landingReport
+        *ngSwitchCase="'landing'"
+        [data]="landing"
+        [stats]="isNotNil(stats?.landingsStats) ? stats.landingsStats[index] : null"
+      ></app-landing-report>
+    </ng-container>
   </app-reveal>
 
   <ng-template #loadingTemplate>
@@ -150,5 +176,4 @@
       <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
     </div>
   </ng-template>
-
 </ion-content>

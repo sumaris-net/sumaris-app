@@ -25,7 +25,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   data: T = null;
   loading = true;
-  displayAttributes: { [key: string]: string[]; } = {
+  displayAttributes: { [key: string]: string[] } = {
     location: undefined,
     taxonName: undefined,
     taxonGroup: undefined,
@@ -37,7 +37,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   @Input() calcifiedTypesDisplayed = false;
   @Input() showOpenLink = false;
 
-  @Input("value")
+  @Input()
   set value(value: T) {
     this.updateView(value);
   }
@@ -47,7 +47,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   @Input() editor: AppRootDataEditor<any, any>;
 
-  constructor (
+  constructor(
     protected router: Router,
     protected localSettings: LocalSettingsService,
     protected programRefService: ProgramRefService,
@@ -64,7 +64,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   ngOnInit(): void {
 
     // Check editor exists
-    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
+    if (!this.editor) throw new Error('Missing mandatory \'editor\' input!');
 
     this.title = this.title || (this.i18nPrefix + 'TITLE');
 

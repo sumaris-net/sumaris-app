@@ -93,7 +93,7 @@ export class Program extends BaseReferential<Program> {
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
     const value = this.getProperty(definition);
-    return isNotNil(value) ? (value && value !== "false") : undefined;
+    return isNotNil(value) ? (value && value !== 'false') : undefined;
   }
 
   getPropertyAsInt(definition: FormFieldDefinition): number {
@@ -113,7 +113,7 @@ export class Program extends BaseReferential<Program> {
   }
 
   getProperty<T = string>(definition: FormFieldDefinition): T {
-    if (!definition) throw new Error("Missing 'definition' argument");
+    if (!definition) throw new Error('Missing \'definition\' argument');
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : definition.defaultValue;
   }
 }
@@ -159,7 +159,7 @@ export class ProgramPerson extends Entity<ProgramPerson> {
       && ReferentialUtils.equals(o1.person, o2.person)
       && ReferentialUtils.equals(o1.privilege, o2.privilege)
       && ReferentialUtils.equals(o1.location, o2.location)
-    )
+    );
 
   programId: number;
   location: ReferentialRef;

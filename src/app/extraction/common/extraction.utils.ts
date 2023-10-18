@@ -2,7 +2,6 @@
 
 import { arraySize, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
-import { Moment } from 'moment';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -83,15 +82,15 @@ export class ExtractionUtils {
     return criteria.reduce((res, criterion) => {
       if (isNilOrBlank(criterion.name)) return res; // Skip if no value or no name
       let value = criterion.value || '';
-      let operator = criterion.operator || '=';
-      let sheetNamePrefix = criterion.sheetName ? `${criterion.sheetName}:` : '';
+      const operator = criterion.operator || '=';
+      const sheetNamePrefix = criterion.sheetName ? `${criterion.sheetName}:` : '';
       if (isNotNilOrBlank(criterion.endValue)) {
         value += `:${criterion.endValue}`;
       } else if (isNotEmptyArray(criterion.values)) {
         value = criterion.values.join(',');
       }
       return res.concat(`${sheetNamePrefix}${criterion.name}${operator}${value}`);
-    }, []).join(";");
+    }, []).join(';');
   }
 
   static parseCriteriaFromString(q: string, defaultSheetName?: string): ExtractionFilterCriterion[] {
@@ -174,7 +173,7 @@ export class ExtractionUtils {
           sheetName: 'TR',
           name: 'trip_code',
           operator: '=',
-          value: tripIdsStr.length == 1 ? tripIdsStr[0] : undefined,
+          value: tripIdsStr.length === 1 ? tripIdsStr[0] : undefined,
           values: tripIdsStr.length > 1 ? tripIdsStr : undefined
         });
     }
@@ -187,7 +186,7 @@ export class ExtractionUtils {
         sheetName: 'HH',
         name: 'station_id',
         operator: '=',
-        value: operationIdsStr.length == 1 ? operationIdsStr[0] : undefined,
+        value: operationIdsStr.length === 1 ? operationIdsStr[0] : undefined,
         values: operationIdsStr.length > 1 ? operationIdsStr : undefined
       });
     }

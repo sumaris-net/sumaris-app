@@ -21,7 +21,7 @@ export class JobReportModal implements OnInit{
 
   items: string[];
   message: string;
-  showLog: boolean = false;
+  showLog = false;
 
   constructor(
     protected translate: TranslateService,

@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
@@ -7,7 +18,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
   AppFormUtils,
-  EntityUtils, filterTrue,
+  EntityUtils,
   focusNextInput,
   focusPreviousInput,
   GetFocusableInputOptions,
@@ -23,11 +34,18 @@ import {
   startsWithUpperCase,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, takeUntil, tap } from 'rxjs/operators';
+import {
+  AcquisitionLevelCodes,
+  LengthUnitSymbol,
+  MethodIds,
+  PmfmIds,
+  QualitativeLabels,
+  WeightUnitSymbol,
+} from '@app/referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, from, Subject, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -42,8 +60,7 @@ import { IonButton } from '@ionic/angular';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
-
-export interface SubBatchFormState extends MeasurementValuesState{
+export interface SubBatchFormState extends MeasurementValuesState {
   computingWeight: boolean;
 }
 @Component({
@@ -171,7 +188,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @ViewChild('submitButton') submitButton: IonButton;
 
   get computingWeight(): boolean {
-    return this._state.get('computingWeight')
+    return this._state.get('computingWeight');
   }
 
   set computingWeight(value: boolean) {
@@ -299,7 +316,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
                 filter(([items, value]) => isNotNil(items))
               )
               .subscribe(([items, value]) => {
-                let newTaxonName: TaxonNameRef;
                 let index = -1;
                 // Compute index in list, and get value
                 if (items && items.length === 1) {
@@ -307,7 +323,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
                 } else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
                   index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
                 }
-                newTaxonName = (index !== -1) ? items[index] : null;
+                const newTaxonName: TaxonNameRef = (index !== -1) ? items[index] : null;
 
                 // Apply to form, if need
                 if (!ReferentialUtils.equals(lastTaxonName, newTaxonName)) {
@@ -398,7 +414,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (this.mobile) {
       this.registerSubscription(
         this.listenIchthyometer()
-      )
+      );
     }
 
     this.ngInitExtension();
@@ -428,7 +444,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     return true;
   }
 
-  protected onApplyingEntity(data: SubBatch, opts?: { linkToParent?: boolean; }) {
+  protected onApplyingEntity(data: SubBatch, opts?: { linkToParent?: boolean }) {
     super.onApplyingEntity(data);
 
     // Replace parent with value from availableParents
@@ -437,7 +453,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     }
   }
 
-  protected async updateView(data: SubBatch, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  protected async updateView(data: SubBatch, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean }) {
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
@@ -593,9 +609,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   protected async suggestParents(value: any, options?: any): Promise<Batch[]> {
     // Has select a valid parent: return the parent
     if (EntityUtils.isNotEmpty(value, 'label')) return [value];
-    value = (typeof value === "string" && value !== "*") && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     if (isNilOrBlank(value)) return this._availableParents; // All
-    const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+    const ucValueParts = value.trim().toUpperCase().split(' ', 1);
     if (this.debug) console.debug(`[sub-batch-form] Searching parent {${value || '*'}}...`);
     // Search on attributes
     return this._availableParents.filter(parent => ucValueParts
@@ -701,7 +717,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
         }
       }
       catch (err) {
-        console.error("[sub-batch-form] Failed to enable weight/length conversion:", err);
+        console.error('[sub-batch-form] Failed to enable weight/length conversion:', err);
       }
     }
 
@@ -793,7 +809,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
                 if (lengthField) {
                   // Convert value into the expected unit/precision
-                  const convertedValue = PmfmValueUtils.convertLengthValue(value, unit, lengthField.unit, lengthField.precision)
+                  const convertedValue = PmfmValueUtils.convertLengthValue(value, unit, lengthField.unit, lengthField.precision);
 
                   // Apply converted value to control
                   lengthField.control.setValue(convertedValue);
@@ -802,9 +818,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
                   this.trySubmit(null);
                 }
               })
-            )
+            );
         })
       )
-      .subscribe()
+      .subscribe();
   }
 }

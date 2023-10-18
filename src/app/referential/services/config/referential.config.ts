@@ -22,37 +22,37 @@ const mergeNotMinified: FieldMergeFunction = (existing, incoming) =>
   (incoming?.__ref?.includes('"entityName":null') ? existing : incoming);
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'MetierVO': {
+  MetierVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'PmfmVO': {
+  PmfmVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'TaxonGroupVO': {
+  TaxonGroupVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'TaxonNameVO': {
+  TaxonNameVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'LocationVO': {
+  LocationVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'ReferentialVO': {
+  ReferentialVO: {
     keyFields: ['entityName', 'id'],
     merge: mergeNotMinified
   },
-  'TaxonGroupStrategyVO': {
+  TaxonGroupStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
   },
-  'TaxonNameStrategyVO': {
+  TaxonNameStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
   },
-  'DenormalizedPmfmStrategyVO': {
+  DenormalizedPmfmStrategyVO: {
     keyFields: ['__typename', 'strategyId', 'acquisitionLevel', 'id']
   },
 };

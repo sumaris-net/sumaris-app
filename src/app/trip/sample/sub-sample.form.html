@@ -1,5 +1,4 @@
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!--<ion-text *ngIf="debug">
     showParent: {{showParent}}<br/>
     i18nFieldPrefix: {{i18nFieldPrefix}}<br/>
@@ -11,7 +10,7 @@
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding ion-padding-start">
@@ -20,59 +19,70 @@
       <ion-col *ngIf="showLabel" size="6">
         <mat-form-field floatLabel="auto">
           <ion-icon matPrefix name="pricetag"></ion-icon>
-          <input matInput autocomplete="off"
-                 formControlName="label"
-                 [appAutofocus]="enabled &&  focusFieldName === 'label'"
-                 [tabindex]="tabindex"
-                 [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nFullSuffix"
-                 (click)="selectInputContent($event)"
-                 required>
-          <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
-          </mat-error>
+          <input
+            matInput
+            autocomplete="off"
+            formControlName="label"
+            [appAutofocus]="enabled && focusFieldName === 'label'"
+            [tabindex]="tabindex"
+            [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext : i18nFullSuffix"
+            (click)="selectInputContent($event)"
+            required
+          />
+          <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <!-- Need by auction control (label as an additional validator) -->
-          <mat-error *ngIf="form.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
-          </mat-error>
+          <mat-error *ngIf="form.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN</mat-error>
         </mat-form-field>
       </ion-col>
 
       <!-- Parent -->
       <ion-col size="6" size-md="" *ngIf="!loading">
-          <mat-autocomplete-field formControlName="parent"
-                                  [autofocus]="enabled && focusFieldName === 'parent'"
-                                  [placeholder]="(displayParentPmfm | pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}) || ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)"
-                                  [config]="autocompleteFields.parent"
-                                  [tabindex]="(showLabel ? 1 : 0) + tabindex"
-                                  [readonly]="!showParent"
-                                  [showSearchBar]="false"
-                                  required>
-          </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="parent"
+          [autofocus]="enabled && focusFieldName === 'parent'"
+          [placeholder]="
+            (displayParentPmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }) ||
+            ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext : i18nFullSuffix)
+          "
+          [config]="autocompleteFields.parent"
+          [tabindex]="(showLabel ? 1 : 0) + tabindex"
+          [readonly]="!showParent"
+          [showSearchBar]="false"
+          required
+        ></mat-autocomplete-field>
       </ion-col>
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="pmfms$ | async | arrayFilter: isNotHiddenPmfm; let pmfms"
-             [formGroup]="measurementValuesForm"
-             class="ion-no-padding">
+    <ion-row
+      *ngIf="pmfms$ | async | arrayFilter : isNotHiddenPmfm; let pmfms"
+      [formGroup]="measurementValuesForm"
+      class="ion-no-padding"
+    >
       <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-        <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
-                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
-                 size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
-                 class="pmfm-{{pmfm.id}}">
-          <app-pmfm-field #matInput
-                          [pmfm]="pmfm"
-                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                          [style]="vars.style"
-                          [readonly]="vars.computed"
-                          [floatLabel]="vars.computed && 'always'"
-                          [class.computed]="vars.computed"
-                          [maxVisibleButtons]="maxVisibleButtons"
-                          [tabindex]="vars.computed ? -1 : (tabindex+2 + i*maxVisibleButtons)"
-                          [compact]="compact"
-                          [mobile]="mobile"
-                          [defaultLatitudeSign]="defaultLatitudeSign"
-                          [defaultLongitudeSign]="defaultLongitudeSign"
-                          (keyup.enter)="last && doSubmit($event)">
-          </app-pmfm-field>
+        <ion-col
+          *ngVar="{ computed: pmfm | isComputedPmfm, style: pmfm | pmfmFieldStyle : 10 } as vars"
+          [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+          size="12"
+          [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
+          class="pmfm-{{ pmfm.id }}"
+        >
+          <app-pmfm-field
+            #matInput
+            [pmfm]="pmfm"
+            [placeholder]="pmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+            [style]="vars.style"
+            [readonly]="vars.computed"
+            [floatLabel]="vars.computed && 'always'"
+            [class.computed]="vars.computed"
+            [maxVisibleButtons]="maxVisibleButtons"
+            [tabindex]="vars.computed ? -1 : tabindex + 2 + i * maxVisibleButtons"
+            [compact]="compact"
+            [mobile]="mobile"
+            [defaultLatitudeSign]="defaultLatitudeSign"
+            [defaultLongitudeSign]="defaultLongitudeSign"
+            (keyup.enter)="last && doSubmit($event)"
+          ></app-pmfm-field>
         </ion-col>
       </ng-container>
     </ion-row>
@@ -92,17 +102,20 @@
     <ion-row *ngIf="showComment">
       <ion-col size="12">
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
-                    tabindex="100"
-                    [placeholder]="'COMMON.COMMENTS'|translate"
-                    formControlName="comments"></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <textarea
+            matInput
+            #comments
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            tabindex="100"
+            [placeholder]="'COMMON.COMMENTS' | translate"
+            formControlName="comments"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
   </ion-grid>
-
-
 </form>

@@ -94,7 +94,7 @@ export abstract class BaseRootDataService<
   async terminate(entity: T, opts?: TO): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');
     if (isNil(entity.id) || +entity.id < 0) {
-      throw new Error("Entity must be saved before terminate!");
+      throw new Error('Entity must be saved before terminate!');
     }
 
     // Fill options
@@ -115,7 +115,7 @@ export abstract class BaseRootDataService<
         data: json,
         options: opts?.withChildren ? {withChildren: true} : undefined
       },
-      error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: "ERROR.TERMINATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: 'ERROR.TERMINATE_ENTITY_ERROR' },
       update: (proxy, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
@@ -128,18 +128,19 @@ export abstract class BaseRootDataService<
 
   /**
    * Validate an root entity
+   *
    * @param entity
    */
   async validate(entity: T, opts?: VO): Promise<T> {
     if (!this.mutations.validate) throw Error('Not implemented');
     if (isNil(entity.id) || EntityUtils.isLocal(entity)) {
-      throw new Error("Entity must be saved once before validate !");
+      throw new Error('Entity must be saved once before validate !');
     }
     if (isNil(entity.controlDate)) {
-      throw new Error("Entity must be controlled before validate !");
+      throw new Error('Entity must be controlled before validate !');
     }
     if (isNotNil(entity.validationDate)) {
-      throw new Error("Entity is already validated !");
+      throw new Error('Entity is already validated !');
     }
 
     // Fill options
@@ -160,12 +161,12 @@ export abstract class BaseRootDataService<
         data: json,
         options: opts?.withChildren ? {withChildren: true} : undefined,
       },
-      error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: "ERROR.VALIDATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: 'ERROR.VALIDATE_ENTITY_ERROR' },
       update: (cache, {data}) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
 
-        this.refetchMutableWatchQueries({queries: this.getLoadQueries()})
+        this.refetchMutableWatchQueries({queries: this.getLoadQueries()});
       }
     });
 
@@ -175,7 +176,7 @@ export abstract class BaseRootDataService<
   async unvalidate(entity: T, opts?: VO): Promise<T> {
     if (!this.mutations.unvalidate) throw Error('Not implemented');
     if (isNil(entity.validationDate)) {
-      throw new Error("Entity is not validated yet !");
+      throw new Error('Entity is not validated yet !');
     }
 
     // Fill options
@@ -188,7 +189,7 @@ export abstract class BaseRootDataService<
     const json = this.asObject(entity);
 
     const now = Date.now();
-    if (this._debug) console.debug(this._logPrefix + "Unvalidate entity...", json);
+    if (this._debug) console.debug(this._logPrefix + 'Unvalidate entity...', json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.unvalidate,
@@ -200,7 +201,7 @@ export abstract class BaseRootDataService<
         // TODO serializationKey:
         tracked: true
       },
-      error: { code: DataErrorCodes.UNVALIDATE_ENTITY_ERROR, message: "ERROR.UNVALIDATE_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.UNVALIDATE_ENTITY_ERROR, message: 'ERROR.UNVALIDATE_ENTITY_ERROR' },
       update: (proxy, {data}) => {
         const savedEntity = data && data.data;
         if (savedEntity) {
@@ -211,7 +212,7 @@ export abstract class BaseRootDataService<
           if (this._debug) console.debug(this._logPrefix + `Entity unvalidated in ${Date.now() - now}ms`, entity);
         }
 
-        this.refetchMutableWatchQueries({queries: this.getLoadQueries()})
+        this.refetchMutableWatchQueries({queries: this.getLoadQueries()});
       }
     });
 
@@ -222,7 +223,7 @@ export abstract class BaseRootDataService<
     if (!this.mutations.qualify) throw Error('Not implemented');
 
     if (isNil(entity.validationDate)) {
-      throw new Error("Entity is not validated yet !");
+      throw new Error('Entity is not validated yet !');
     }
 
     // Prepare to save
@@ -234,14 +235,14 @@ export abstract class BaseRootDataService<
     json.qualityFlagId = qualityFlagId;
 
     const now = Date.now();
-    if (this._debug) console.debug(this._logPrefix + "Qualifying entity...", json);
+    if (this._debug) console.debug(this._logPrefix + 'Qualifying entity...', json);
 
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.qualify,
       variables: {
         data: json
       },
-      error: { code: DataErrorCodes.QUALIFY_ENTITY_ERROR, message: "ERROR.QUALIFY_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.QUALIFY_ENTITY_ERROR, message: 'ERROR.QUALIFY_ENTITY_ERROR' },
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);

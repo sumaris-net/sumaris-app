@@ -1,4 +1,4 @@
-import {gql} from "@apollo/client/core";
+import {gql} from '@apollo/client/core';
 
 export const StrategyFragments = {
   lightStrategy: gql`fragment LightStrategyFragment on StrategyVO {

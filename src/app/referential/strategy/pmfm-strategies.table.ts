@@ -108,7 +108,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     );
   }
 
-  get loading$() : Observable<boolean> {
+  get loading$(): Observable<boolean> {
     return merge(
       this.loadingSubject,
       this.acquisitionLevels$
@@ -366,22 +366,22 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     // Add at least one item
     if (!this.allowEmpty && isEmptyArray(sources)) {
-      console.debug("[pmfm-strategy-table] Force add empty PmfmSTrategy, because allowEmpty=false");
+      console.debug('[pmfm-strategy-table] Force add empty PmfmSTrategy, because allowEmpty=false');
       sources = [new PmfmStrategy()];
     }
 
-    console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
+    console.debug('[pmfm-strategy-table] Adapt loaded data to table...');
     const entities = sources.map(source => {
       const target = PmfmStrategy.fromObject(source);
 
       // Convert acquisition level, from string to entity
-      if (typeof target.acquisitionLevel === "string"){
+      if (typeof target.acquisitionLevel === 'string'){
         target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
       }
 
       if (isNotNil(target.defaultValue) && target.pmfm) {
         target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm) as PmfmValue;
-        console.debug("[pmfm-strategy-table] Received default value: ", target.defaultValue);
+        console.debug('[pmfm-strategy-table] Received default value: ', target.defaultValue);
       }
       else {
         target.defaultValue = null;
@@ -460,7 +460,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return this.onStartEditingRow
       .pipe(
           // DEBUG
-          tap(row => console.debug("TODO Starting editing row", row.currentData)),
+          tap(row => console.debug('TODO Starting editing row', row.currentData)),
           debounceTime(200),
           mergeMap(row => {
             const control = row.validator?.get('pmfm');
@@ -492,7 +492,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     if (event?.defaultPrevented) return false;
 
-    console.debug("[pmfm-strategies-table] Resetting row");
+    console.debug('[pmfm-strategies-table] Resetting row');
     if (event) event.preventDefault(); // Avoid clickRow to be executed
 
     AppFormUtils.copyEntity2Form({}, row.validator);
@@ -533,7 +533,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         // Sort by ID desc (need to insertAt)
         .sort((r1, r2) => r1.id > r2.id ? -1 : 1);
       console.debug(`[pmfm-strategy-table] Duplicating ${rows.length} rows...`);
-      for (let sourceRow of rows) {
+      for (const sourceRow of rows) {
         const source = PmfmStrategy.fromObject(sourceRow.currentData);
         const target = source.clone();
         EntityUtils.cleanIdAndUpdateDate(target);
@@ -581,6 +581,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   /**
    * Compute a PMFM.NAME, with the last part of the name
+   *
    * @param pmfm
    * @param opts
    */

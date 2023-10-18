@@ -9,8 +9,10 @@ import {
   Alerts,
   AppTable,
   ConfigService,
-  CORE_CONFIG_OPTIONS, DateUtils,
-  EntityServiceLoadOptions, EntityUtils,
+  CORE_CONFIG_OPTIONS,
+  DateUtils,
+  EntityServiceLoadOptions,
+  EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
@@ -22,7 +24,7 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
@@ -44,14 +46,12 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
-import {ProgramPrivilegeEnum} from '@app/referential/services/model/model.enum';
 import { VesselService } from '@app/vessel/services/vessel-service';
-import { ObservedLocationContext, ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
-
+import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
-  LANDINGS: 1
+  LANDINGS: 1,
 };
 
 type LandingTableType = 'legacy' | 'aggregated';
@@ -341,7 +341,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         showBasePortLocationColumn: this.showVesselBasePortLocation,
         showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
         defaultVesselSynchronizationStatus,
-        showOfflineVessels: showOfflineVessels,
+        showOfflineVessels,
         maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
@@ -443,19 +443,19 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       // Wait the expected table (set using ngInit - see template)
       const table$ = this.$table.pipe(
-          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable));
+          filter(t => aggregatedLandings ? t instanceof AggregatedLandingsTable : t instanceof LandingsTable));
       const table = await firstNotNilPromise(table$, {stop: this.destroySubject});
 
       // Configure table
       if (aggregatedLandings) {
-        console.debug("[observed-location] Init aggregated landings table:", table);
+        console.debug('[observed-location] Init aggregated landings table:', table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
         aggregatedLandingsTable.timeZone = this.dbTimeZone;
         aggregatedLandingsTable.nbDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       }
       else {
-        console.debug("[observed-location] Init landings table:", table);
+        console.debug('[observed-location] Init landings table:', table);
         const landingsTable = table as LandingsTable;
         landingsTable.i18nColumnSuffix = i18nSuffix;
         landingsTable.detailEditor = this.landingEditor;
@@ -485,7 +485,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-    console.debug("[observed-location] New entity: applying defaults...");
+    console.debug('[observed-location] New entity: applying defaults...');
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {

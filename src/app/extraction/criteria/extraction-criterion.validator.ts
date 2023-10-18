@@ -1,7 +1,7 @@
-import {Injectable} from "@angular/core";
+import {Injectable} from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type.model";
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {ExtractionFilterCriterion, ExtractionType} from '../type/extraction-type.model';
 import { AppFormArray, arrayDistinct, isNilOrBlank, isNotEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/common/extraction.utils';
 
@@ -37,7 +37,7 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
       criterion => this.getCriterionFormGroup(criterion, sheetName),
       ExtractionFilterCriterion.equals,
       ExtractionFilterCriterion.isEmpty
-    )
+    );
     if (isNotEmptyArray(data)) {
       formArray.patchValue(data);
     }
@@ -69,7 +69,7 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
     control.setValue({
       name: data && data.name || null,
       operator: data && data.operator || DEFAULT_CRITERION_OPERATOR,
-      value: value,
+      value,
       endValue: data && data.endValue || null,
       sheetName: data && data.sheetName || sheetName || null,
       hidden: toBoolean(data?.hidden, false)

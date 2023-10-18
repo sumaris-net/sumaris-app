@@ -32,7 +32,7 @@ export class SelectivityTripReportService extends TripReportService<SelectivityE
         SL: SelectivitySpeciesList,
         HL: SelectivitySpeciesLength
       }
-    })
+    });
   }
 
 }

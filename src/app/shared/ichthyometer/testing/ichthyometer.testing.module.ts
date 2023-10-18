@@ -6,7 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { IchthyometerTestingPage } from '@app/shared/ichthyometer/testing/ichthyometer.testing';
 import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.module';
 import { AppSharedModule } from '@app/shared/shared.module';
-import { AppBluetoothModule } from "@app/shared/bluetooth/bluetooth.module";
+import { AppBluetoothModule } from '@app/shared/bluetooth/bluetooth.module';
 
 export const ICHTHYOMETER_TESTING_PAGES: TestingPage[] = [
   {label: 'Ichthyometer', page: '/testing/shared/ichthyometer'}

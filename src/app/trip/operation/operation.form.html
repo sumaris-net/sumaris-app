@@ -1,95 +1,119 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-
     <ion-row [class.has-buttons]="mobile && canEditType" *ngIf="allowParentOperation">
       <ion-col size="0" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" hidden-xs hidden-sm
-                   translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
+        <ion-label class="ion-float-end" hidden-xs hidden-sm translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
-      <ng-container *ngIf="readySubject|async; else colsSkeleton">
+      <ng-container *ngIf="readySubject | async; else colsSkeleton">
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
-
-          <mat-boolean-field [style]="mobile && 'button' || 'radio'"
-                             [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
-                             [floatLabel]="mobile ? 'always' : 'never'"
-                             [formControl]="isParentOperationControl"
-                             [yesLabel]="'TRIP.OPERATION.EDIT.TYPE.PARENT'"
-                             [noLabel]="'TRIP.OPERATION.EDIT.TYPE.CHILD'"
-                             [showButtonIcons]="false"
-                             [readonly]="!canEditType">
-          </mat-boolean-field>
+          <mat-boolean-field
+            [style]="(mobile && 'button') || 'radio'"
+            [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE' | translate"
+            [floatLabel]="mobile ? 'always' : 'never'"
+            [formControl]="isParentOperationControl"
+            [yesLabel]="'TRIP.OPERATION.EDIT.TYPE.PARENT'"
+            [noLabel]="'TRIP.OPERATION.EDIT.TYPE.CHILD'"
+            [showButtonIcons]="false"
+            [readonly]="!canEditType"
+          ></mat-boolean-field>
         </ion-col>
 
         <!-- parent operation -->
         <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
-          <mat-form-field [class.cdk-visually-hidden]="!isChildOperation"
-                          [class.mat-form-field-invalid]="control.invalid"
-                          *ngVar="parentControl as control">
-            <input matInput type="text" hidden
-                   [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION'|translate"
-                   formControlName="parentOperation">
-            <input matInput type="text" class="cursor-pointer"
-                   [value]="$parentOperationLabel|async"
-                   (click)="addParentOperation()"
-                   [tabindex]="tabindex+1"
-                   readonly>
-            <button *ngIf="!(control|formGetValue); else otherButtons"
-                    matSuffix mat-icon-button type="button" tabindex="-1"
-                    (click)="addParentOperation()">
+          <mat-form-field
+            [class.cdk-visually-hidden]="!isChildOperation"
+            [class.mat-form-field-invalid]="control.invalid"
+            *ngVar="parentControl as control"
+          >
+            <input
+              matInput
+              type="text"
+              hidden
+              [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION' | translate"
+              formControlName="parentOperation"
+            />
+            <input
+              matInput
+              type="text"
+              class="cursor-pointer"
+              [value]="$parentOperationLabel | async"
+              (click)="addParentOperation()"
+              [tabindex]="tabindex + 1"
+              readonly
+            />
+            <button
+              *ngIf="!(control | formGetValue); else otherButtons"
+              matSuffix
+              mat-icon-button
+              type="button"
+              tabindex="-1"
+              (click)="addParentOperation()"
+            >
               <mat-icon>more_horiz</mat-icon>
             </button>
             <ng-template #otherButtons>
-              <button *ngIf="control.errors|mapGet:'msg' as msg"
-                      matSuffix mat-icon-button type="button" tabindex="-1"
-                      style="color: var(--ion-color-danger)"
-                      (click)="addParentOperation()"
-                      [title]="msg|translate">
+              <button
+                *ngIf="control.errors | mapGet : 'msg' as msg"
+                matSuffix
+                mat-icon-button
+                type="button"
+                tabindex="-1"
+                style="color: var(--ion-color-danger)"
+                (click)="addParentOperation()"
+                [title]="msg | translate"
+              >
                 <mat-icon>error</mat-icon>
               </button>
-              <button matSuffix mat-icon-button type="button"
-                      [matMenuTriggerFor]="parentFieldMenu"
-                      tabindex="-1"
-                      [title]=" 'COMMON.BTN_OPTIONS'|translate">
+              <button
+                matSuffix
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="parentFieldMenu"
+                tabindex="-1"
+                [title]="'COMMON.BTN_OPTIONS' | translate"
+              >
                 <mat-icon>more_vert</mat-icon>
               </button>
 
               <!-- Parent = options menu -->
               <mat-menu #parentFieldMenu="matMenu" xPosition="after">
                 <ng-template matMenuContent>
-                  <button mat-menu-item type="button"
-                          tabindex="-1"
-                          (click)="addParentOperation()">
+                  <button mat-menu-item type="button" tabindex="-1" (click)="addParentOperation()">
                     <ion-label>
                       <mat-icon>list</mat-icon>
                       <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
                     </ion-label>
                   </button>
-                  <button mat-menu-item type="button" *ngIf="openParentOperation.observers|isNotEmptyArray"
-                          [disabled]="control.value | isNilOrBlank"
-                          tabindex="-1"
-                          (click)="openParentOperation.emit(control.value)">
+                  <button
+                    mat-menu-item
+                    type="button"
+                    *ngIf="openParentOperation.observers | isNotEmptyArray"
+                    [disabled]="control.value | isNilOrBlank"
+                    tabindex="-1"
+                    (click)="openParentOperation.emit(control.value)"
+                  >
                     <ion-label>
                       <mat-icon>open_in_new</mat-icon>
                       <span translate>TRIP.OPERATION.EDIT.BTN_OPEN_PARENT</span>
                     </ion-label>
-
                   </button>
                 </ng-template>
               </mat-menu>
             </ng-template>
 
-            <mat-error [ngSwitch]="control.errors|mapKeys|arrayFirst">
+            <mat-error [ngSwitch]="control.errors | mapKeys | arrayFirst">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
               <span *ngSwitchCase="'remoteParent'" translate>TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION</span>
               <span *ngSwitchCase="'existsParent'" translate>TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION</span>
-              <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+              <span *ngSwitchCase="'msg'">
+                {{ control.errors.msg?.key || control.errors.msg | translate : control.errors.msg?.params }}
+              </span>
             </mat-error>
           </mat-form-field>
         </ion-col>
@@ -99,11 +123,9 @@
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
           <ng-container *ngTemplateOutlet="fieldSkeleton"></ng-container>
         </ion-col>
-        <ion-col size="12" size-sm="6" size-md="" size-lg="">
-        </ion-col>
+        <ion-col size="12" size-sm="6" size-md="" size-lg=""></ion-col>
       </ng-template>
     </ion-row>
-
 
     <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
@@ -112,38 +134,46 @@
 
       <!-- Physical gear -->
       <ion-col size="12" size-sm="6" size-md="">
-        <mat-autocomplete-field formControlName="physicalGear"
-                                [placeholder]="'TRIP.OPERATION.EDIT.PHYSICAL_GEAR'|translate"
-                                [config]="autocompleteFields.physicalGear"
-                                [tabindex]="tabindex+2"
-                                [required]="true"
-                                [readonly]="isChildOperation"
-                                (click)="selectInputContent($event)"
-                                [showSearchBar]="false">
+        <mat-autocomplete-field
+          formControlName="physicalGear"
+          [placeholder]="'TRIP.OPERATION.EDIT.PHYSICAL_GEAR' | translate"
+          [config]="autocompleteFields.physicalGear"
+          [tabindex]="tabindex + 2"
+          [required]="true"
+          [readonly]="isChildOperation"
+          (click)="selectInputContent($event)"
+          [showSearchBar]="false"
+        >
           <mat-icon matPrefix *ngIf="mobile">settings</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
 
       <!-- Target species (using metier) -->
       <ion-col size="12" size-sm="6" size-md="">
-        <mat-autocomplete-field #metierField
-                                formControlName="metier"
-                                [placeholder]="'TRIP.OPERATION.EDIT.TARGET_SPECIES'|translate"
-                                [config]="autocompleteFields.taxonGroup"
-                                [tabindex]="tabindex+3"
-                                [required]="true"
-                                (click)="selectInputContent($event)"
-                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
-                                [showSearchBar]="!autocompleteFilters.metier"
-                                [readonly]="disabled || isChildOperation">
+        <mat-autocomplete-field
+          #metierField
+          formControlName="metier"
+          [placeholder]="'TRIP.OPERATION.EDIT.TARGET_SPECIES' | translate"
+          [config]="autocompleteFields.taxonGroup"
+          [tabindex]="tabindex + 3"
+          [required]="true"
+          (click)="selectInputContent($event)"
+          [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
+          [showSearchBar]="!autocompleteFilters.metier"
+          [readonly]="disabled || isChildOperation"
+        >
           <ion-icon matPrefix *ngIf="mobile" name="fish"></ion-icon>
           <!-- Reset filter -->
-          <button matAfter type="button" mat-icon-button
-                  *ngIf="enabled && showMetierFilter && !isChildOperation"
-                  tabindex="-1"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleMetierFilter($event, metierField)"
-                  [color]="autocompleteFilters.metier ? 'primary' : undefined">
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            *ngIf="enabled && showMetierFilter && !isChildOperation"
+            tabindex="-1"
+            [title]="'COMMON.BTN_FILTER' | translate"
+            (click)="toggleMetierFilter($event, metierField)"
+            [color]="autocompleteFilters.metier ? 'primary' : undefined"
+          >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -153,8 +183,9 @@
     <!-- Start -->
     <ion-row *ngIf="isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label *ngIf="allowParentOperation else startLabel"
-                   class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_PARENT_OPERATION</ion-label>
+        <ion-label *ngIf="allowParentOperation; else startLabel" class="ion-float-end" translate>
+          TRIP.OPERATION.EDIT.START_PARENT_OPERATION
+        </ion-label>
         <ng-template #startLabel>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START</ion-label>
         </ng-template>
@@ -163,51 +194,62 @@
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col size="12" [sizeLg]="showPosition ? 4 : 12">
-              <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
-                                   formControlName="startDateTime"
-                                   [required]="true"
-                                   [tabindex]="tabindex+4"
-                                   [startDate]="trip?.departureDateTime">
+              <mat-date-time-field
+                [placeholder]="'COMMON.DATE' | translate"
+                formControlName="startDateTime"
+                [required]="true"
+                [tabindex]="tabindex + 4"
+                [startDate]="trip?.departureDateTime"
+              >
                 <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
               </mat-date-time-field>
             </ion-col>
 
             <!-- lat -->
-            <ion-col size="6" size-lg="4"
-                     *ngIf="form.controls.startPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="latitude" type="latitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+6"
-                                 [required]="true"
-                                 [defaultSign]="defaultLatitudeSign">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.startPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="latitude"
+                type="latitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 6"
+                [required]="true"
+                [defaultSign]="defaultLatitudeSign"
+              >
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
 
             <!-- long -->
-            <ion-col size="6" size-lg="4"
-                     *ngIf="form.controls.startPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="longitude"
-                                 type="longitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+8"
-                                 [required]="true"
-                                 [defaultSign]="defaultLongitudeSign">
-                <button type="button" mat-icon-button matSuffix
-                        (click)="onFillPositionClick($event,'startPosition')"
-                        tabindex="-1"
-                        *ngIf="enableGeolocation">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.startPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="longitude"
+                type="longitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 8"
+                [required]="true"
+                [defaultSign]="defaultLongitudeSign"
+              >
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  (click)="onFillPositionClick($event, 'startPosition')"
+                  tabindex="-1"
+                  *ngIf="enableGeolocation"
+                >
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <button type="button" mat-icon-button matSuffix
-                        *ngIf="enableCopyPosition"
-                        [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
-                        (click)="copyPosition($event,'startPosition')"
-                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  *ngIf="enableCopyPosition"
+                  [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
+                  (click)="copyPosition($event, 'startPosition')"
+                  [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                >
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong-field>
@@ -215,7 +257,6 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-
     </ion-row>
 
     <!-- Start fishing -->
@@ -226,67 +267,77 @@
       <ion-col>
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12"
-                     *ngIf="form.controls.fishingStartDateTime as control">
-              <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
-                                   [formControl]="control"
-                                   [required]="_usageMode|isOnDesk"
-                                   [clearable]="_usageMode|isOnField"
-                                   [tabindex]="tabindex+9"
-                                   [startDate]="form.controls.startDateTime.valueChanges|async">
+            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12" *ngIf="form.controls.fishingStartDateTime as control">
+              <mat-date-time-field
+                [placeholder]="'COMMON.DATE' | translate"
+                [formControl]="control"
+                [required]="_usageMode | isOnDesk"
+                [clearable]="_usageMode | isOnField"
+                [tabindex]="tabindex + 9"
+                [startDate]="form.controls.startDateTime.valueChanges | async"
+              >
                 <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
                 <mat-hint align="end" *ngIf="control.value && control.valid">
-                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
-                  startValue: form.controls.startDateTime.value,
-                  endValue: control.value
-                } | dateDiffDuration }}
+                  <span translate>COMMON.DURATION_DOTS</span>
+                  &nbsp;{{
+                    {
+                      startValue: form.controls.startDateTime.value,
+                      endValue: control.value
+                    } | dateDiffDuration
+                  }}
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
 
             <!-- latitude / longitude -->
-            <ion-col size="6" size-lg="4"
-                     *ngIf="form.controls.fishingStartPosition as position"
-                     [formGroup]="position" >
-              <mat-latlong-field formControlName="latitude"
-                                 type="latitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+11"
-                                 [required]="_usageMode|isOnDesk"
-                                 [defaultSign]="defaultLatitudeSign">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="latitude"
+                type="latitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 11"
+                [required]="_usageMode | isOnDesk"
+                [defaultSign]="defaultLatitudeSign"
+              >
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4"
-                     *ngIf="form.controls.fishingStartPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="longitude" type="longitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+13"
-                                 [required]="_usageMode|isOnDesk"
-                                 [defaultSign]="defaultLongitudeSign">
-                <button type="button" mat-icon-button matSuffix
-                        (click)="onFillPositionClick($event, 'fishingStartPosition')"
-                        tabindex="-1"
-                        [hidden]="!enableGeolocation">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="longitude"
+                type="longitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 13"
+                [required]="_usageMode | isOnDesk"
+                [defaultSign]="defaultLongitudeSign"
+              >
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  (click)="onFillPositionClick($event, 'fishingStartPosition')"
+                  tabindex="-1"
+                  [hidden]="!enableGeolocation"
+                >
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance}}</mat-error>
+                <mat-error *ngIf="position.hasError('maxDistance')">
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : position.errors.maxDistance }}
+                </mat-error>
                 <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
                   <mat-icon color="warn">warning</mat-icon>
-                  {{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : { distance: distance } }}
                 </mat-hint>
                 <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
+                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate : { distance: distance } }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>
           </ion-row>
         </ion-grid>
       </ion-col>
-
     </ion-row>
 
     <!-- Fishing end  -->
@@ -298,50 +349,62 @@
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col size="12" [sizeLg]="showPosition ? 4 : 12">
-              <mat-date-time-field formControlName="fishingEndDateTime"
-                                   [placeholder]="'COMMON.DATE'|translate"
-                                   [tabindex]="tabindex+10"
-                                   [startDate]="previousFishingEndDateTimeControl.value"
-                                   [required]="isChildOperation"
-                                   [clearable]="false">
+              <mat-date-time-field
+                formControlName="fishingEndDateTime"
+                [placeholder]="'COMMON.DATE' | translate"
+                [tabindex]="tabindex + 10"
+                [startDate]="previousFishingEndDateTimeControl.value"
+                [required]="isChildOperation"
+                [clearable]="false"
+              >
                 <mat-icon matPrefix class="visible-xs visible-sm visible-mobile">today</mat-icon>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
-                     [formGroup]="position" >
-              <mat-latlong-field formControlName="latitude" type="latitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+4"
-                                 [required]="isChildOperation"
-                                 [defaultSign]="defaultLatitudeSign">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="latitude"
+                type="latitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 4"
+                [required]="isChildOperation"
+                [defaultSign]="defaultLatitudeSign"
+              >
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="longitude"
-                                 type="longitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+6"
-                                 [required]="isChildOperation"
-                                 [defaultSign]="defaultLongitudeSign">
-                <button type="button" mat-icon-button matSuffix
-                        (click)="onFillPositionClick($event,'fishingEndPosition')"
-                        tabindex="-1"
-                        [hidden]="!enableGeolocation">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="longitude"
+                type="longitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 6"
+                [required]="isChildOperation"
+                [defaultSign]="defaultLongitudeSign"
+              >
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  (click)="onFillPositionClick($event, 'fishingEndPosition')"
+                  tabindex="-1"
+                  [hidden]="!enableGeolocation"
+                >
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
-                        (click)="copyPosition($event,'fishingEndPosition', 'endPosition')"
-                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
+                  (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
+                  [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                >
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong-field>
             </ion-col>
-
           </ion-row>
         </ion-grid>
       </ion-col>
@@ -350,65 +413,79 @@
     <!-- End -->
     <ion-row *ngIf="endDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
-
-        <ion-label *ngIf="allowParentOperation else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
+        <ion-label *ngIf="allowParentOperation; else end" class="ion-float-end" translate>
+          TRIP.OPERATION.EDIT.END_CHILD_OPERATION
+        </ion-label>
         <ng-template #end>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END</ion-label>
         </ng-template>
       </ion-col>
-      <ion-col >
+      <ion-col>
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col size="12" [sizeLg]="showPosition ? 4 : 12" *ngVar="form.controls.endDateTime as control">
-              <mat-date-time-field [formControl]="control"
-                                   [placeholder]="'COMMON.DATE'|translate"
-                                   [tabindex]="tabindex+10"
-                                   [startDate]="previousEndDateTimeControl.value"
-                                   [required]="_usageMode|isOnDesk"
-                                   [clearable]="_usageMode|isOnField">
-
+              <mat-date-time-field
+                [formControl]="control"
+                [placeholder]="'COMMON.DATE' | translate"
+                [tabindex]="tabindex + 10"
+                [startDate]="previousEndDateTimeControl.value"
+                [required]="_usageMode | isOnDesk"
+                [clearable]="_usageMode | isOnField"
+              >
                 <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
                 <mat-hint align="end" *ngIf="control.valid && control.value as value">
-                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
-                  startValue: previousEndDateTimeControl.value,
-                  endValue: value
-                } | dateDiffDuration }}
+                  <span translate>COMMON.DURATION_DOTS</span>
+                  &nbsp;{{
+                    {
+                      startValue: previousEndDateTimeControl.value,
+                      endValue: value
+                    } | dateDiffDuration
+                  }}
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="latitude"
-                                 type="latitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+12"
-                                 [required]="_usageMode|isOnDesk"
-                                 [defaultSign]="defaultLatitudeSign">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="latitude"
+                type="latitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 12"
+                [required]="_usageMode | isOnDesk"
+                [defaultSign]="defaultLatitudeSign"
+              >
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position"
-                     [formGroup]="position">
-              <mat-latlong-field formControlName="longitude" type="longitude"
-                                 [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-                                 [latLongPattern]="latLongFormat"
-                                 [tabindex]="tabindex+15"
-                                 [required]="_usageMode|isOnDesk"
-                                 [defaultSign]="defaultLongitudeSign">
-                <button type="button" mat-icon-button matSuffix
-                        (click)="onFillPositionClick($event, 'endPosition')"
-                        tabindex="-1"
-                        [hidden]="!enableGeolocation">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position" [formGroup]="position">
+              <mat-latlong-field
+                formControlName="longitude"
+                type="longitude"
+                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                [latLongPattern]="latLongFormat"
+                [tabindex]="tabindex + 15"
+                [required]="_usageMode | isOnDesk"
+                [defaultSign]="defaultLongitudeSign"
+              >
+                <button
+                  type="button"
+                  mat-icon-button
+                  matSuffix
+                  (click)="onFillPositionClick($event, 'endPosition')"
+                  tabindex="-1"
+                  [hidden]="!enableGeolocation"
+                >
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance}}</mat-error>
+                <mat-error *ngIf="position.hasError('maxDistance')">
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : position.errors.maxDistance }}
+                </mat-error>
                 <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
                   <mat-icon color="warn">warning</mat-icon>
-                  {{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : { distance: distance } }}
                 </mat-hint>
                 <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
+                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate : { distance: distance } }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>
@@ -419,44 +496,61 @@
 
     <!-- Fishing areas -->
     <ng-container *ngIf="showFishingArea">
-      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index; first as first">
+      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first">
         <ion-col size="0" size-md="3" size-lg="3">
-          <ion-label class="ion-float-end" hidden-xs hidden-sm
-                     *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
+          <ion-label class="ion-float-end" hidden-xs hidden-sm *ngIf="first" translate>
+            TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS
+          </ion-label>
         </ion-col>
         <ion-col [formGroup]="fishingAreaForm">
-          <mat-autocomplete-field #fishingAreaField
-                                  formControlName="location"
-                                  [placeholder]="('TRIP.OPERATION.EDIT.FISHING_AREA_PLACEHOLDER'|translate) + (i+1)"
-                                  [autofocus]="fishingAreaFocusIndex === i"
-                                  [config]="autocompleteFields.fishingAreaLocation"
-                                  [tabindex]="tabindex+30+i*3"
-                                  [class]="mobile && 'min-width-80vw'"
-                                  [panelWidth]="!mobile && '500px'"
-                                  [required]="i === 0">
+          <mat-autocomplete-field
+            #fishingAreaField
+            formControlName="location"
+            [placeholder]="('TRIP.OPERATION.EDIT.FISHING_AREA_PLACEHOLDER' | translate) + (i + 1)"
+            [autofocus]="fishingAreaFocusIndex === i"
+            [config]="autocompleteFields.fishingAreaLocation"
+            [tabindex]="tabindex + 30 + i * 3"
+            [class]="mobile && 'min-width-80vw'"
+            [panelWidth]="!mobile && '500px'"
+            [required]="i === 0"
+          >
             <mat-icon matPrefix>room</mat-icon>
 
             <!-- filter button -->
-            <button matAfter type="button" mat-icon-button
-                    *ngIf="filteredFishingAreaLocations|isNotEmptyArray"
-                    tabindex="-1"
-                    [disabled]="disabled"
-                    [title]="'COMMON.BTN_FILTER'|translate"
-                    (click)="toggleFilter('fishingArea', fishingAreaField)"
-                    [color]="autocompleteFilters.fishingArea ? 'primary' : undefined">
+            <button
+              matAfter
+              type="button"
+              mat-icon-button
+              *ngIf="filteredFishingAreaLocations | isNotEmptyArray"
+              tabindex="-1"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_FILTER' | translate"
+              (click)="toggleFilter('fishingArea', fishingAreaField)"
+              [color]="autocompleteFilters.fishingArea ? 'primary' : undefined"
+            >
               <mat-icon>filter_list_alt</mat-icon>
             </button>
           </mat-autocomplete-field>
         </ion-col>
         <ion-col size="auto" class="ion-align-self-center">
-          <button type="button" mat-icon-button [tabindex]="tabindex+30+i*3+1" [disabled]="disabled"
-                  [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addFishingArea()">
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 30 + i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addFishingArea()"
+          >
             <mat-icon>add</mat-icon>
           </button>
-          <button type="button" mat-icon-button [tabindex]="tabindex+30+i*3+2" [disabled]="disabled"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="fishingAreasHelper.removeAt(i)">
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 30 + i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="fishingAreasHelper.removeAt(i)"
+          >
             <mat-icon>close</mat-icon>
           </button>
         </ion-col>
@@ -474,27 +568,28 @@
     <ion-row *ngIf="showComment">
       <ion-col size="12">
         <mat-form-field appearance="outline">
-          <textarea matInput #comments
-                    formControlName="comments"
-                    matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
-                    [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
-                    [tabindex]="tabindex+100"
-                    [required]="requiredComment">
-          </textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <textarea
+            matInput
+            #comments
+            formControlName="comments"
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            [placeholder]="'TRIP.OPERATION.LIST.COMMENTS' | translate"
+            [tabindex]="tabindex + 100"
+            [required]="requiredComment"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </form>
-
 
 <ng-template #fieldSkeleton>
   <mat-form-field class="mat-form-field-disabled">
-    <input matInput hidden disabled>
+    <input matInput hidden disabled />
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>
 </ng-template>

@@ -61,7 +61,7 @@ export const DevicePositionFragment = {
       ...LightPersonFragment
     }
   }`
-}
+};
 
 const Queries: BaseEntityGraphqlQueries = {
   loadAll: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -145,13 +145,13 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
         queries: Queries,
         mutations: Mutations,
       }
-    )
+    );
     this._logPrefix = '[device-position] ';
     this._logger = loggingService.getLogger('device-position');
     this._debug = !environment.production;
   }
 
-  async save(entity: DevicePosition, opts?:RootDataEntitySaveOptions): Promise<DevicePosition> {
+  async save(entity: DevicePosition, opts?: RootDataEntitySaveOptions): Promise<DevicePosition> {
 
     // Save locally if need
     if (this.isLocal(entity)) {
@@ -179,11 +179,11 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     }
   }
 
-  protected async saveLocally(entity: DevicePosition, opts?:EntitySaveOptions): Promise<DevicePosition> {
+  protected async saveLocally(entity: DevicePosition, opts?: EntitySaveOptions): Promise<DevicePosition> {
 
     if (!this.isLocal(entity)) throw new Error('Must be a local entity');
 
-    console.info(`${this._logPrefix} Saving current device position locally`, entity)
+    console.info(`${this._logPrefix} Saving current device position locally`, entity);
 
     this.fillDefaultProperties(entity);
     await this.fillOfflineDefaultProperties(entity);
@@ -209,7 +209,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     // Wait platform to be ready (e.g. on mobile, need Capacitor plugin)
     await this.platform.ready();
 
-    console.info(`${this._logPrefix}Starting service...`)
+    console.info(`${this._logPrefix}Starting service...`);
 
     this.registerSubscription(
       merge(
@@ -231,7 +231,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
 
 
     const enableOnSaveListeners = this.trackingSavePeriodMs > 0;
-    console.info(`${this._logPrefix}Starting tracking position...`)
+    console.info(`${this._logPrefix}Starting tracking position...`);
     const subscription = new Subscription();
 
     // Start the timer
@@ -260,7 +260,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
                   buttons: [
                     {role: 'refresh', text: this.translate.instant('COMMON.BTN_REFRESH')}
                   ]
-                })
+                });
                 await alert.present();
                 const {role} = await alert.onDidDismiss();
                 if (role === 'retry') {
@@ -355,14 +355,14 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     const filter = DevicePositionFilter.fromObject({
       objectId: source.id,
       objectType: {label: entityName},
-    })
+    });
 
     let entitiesToRemove: DevicePosition[];
     if (EntityUtils.isLocal(source)) {
       // Load positions locally
       const {data} = (await this.entities.loadAll(DevicePosition.TYPENAME, {
         filter: filter.asFilterFn()
-      }))
+      }));
       entitiesToRemove = (data || []).map(DevicePosition.fromObject);
     }
     else {
@@ -385,7 +385,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     const entityName = ModelEnumUtils.getObjectTypeByEntityName(DataEntityUtils.getEntityName(remoteEntity));
 
     // Load local data
-    let {data} = await this.entities.loadAll(DevicePosition.TYPENAME, {
+    const {data} = await this.entities.loadAll(DevicePosition.TYPENAME, {
       filter: DevicePositionFilter.fromObject({
         objectId: localId,
         objectType: Referential.fromObject({label: entityName}),
@@ -443,7 +443,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     this.settingsPositionTimeoutMs = this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
   }
 
-  protected async onConfigChanged(config:Configuration) {
+  protected async onConfigChanged(config: Configuration) {
     this.timerPeriodMs = config.getPropertyAsInt(DEVICE_POSITION_CONFIG_OPTION.TIMER_PERIOD);
 
     // Tracking position

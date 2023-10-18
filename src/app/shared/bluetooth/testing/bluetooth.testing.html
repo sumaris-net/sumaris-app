@@ -3,9 +3,7 @@
 </ion-toolbar>
 
 <ion-content class="ion-padding">
-
   <h4>Gwaleen</h4>
-
 
   <ion-grid>
     <ion-row>
@@ -16,7 +14,8 @@
 
     <ion-row>
       <ion-col>
-        Bluetooth state: {{(bluetoothService.enabled$|push) ? 'Enabled' : 'Disabled'}}<br/>
+        Bluetooth state: {{ (bluetoothService.enabled$ | push) ? 'Enabled' : 'Disabled' }}
+        <br />
       </ion-col>
     </ion-row>
 
@@ -27,18 +26,19 @@
       </ion-col>
     </ion-row>
 
-    <ng-container *ngFor="let device of bluetoothService.connectedDevices$|async; odd as odd; even as even">
+    <ng-container *ngFor="let device of bluetoothService.connectedDevices$ | async; odd as odd; even as even">
       <ion-row class="mat-row" [class.odd]="odd" [class.even]="even">
         <ion-col>
-          <ion-text>{{device.name}}</ion-text><br/>
-          <ion-text color="medium"><small>{{device.address}}</small></ion-text>
+          <ion-text>{{ device.name }}</ion-text>
+          <br />
+          <ion-text color="medium">
+            <small>{{ device.address }}</small>
+          </ion-text>
         </ion-col>
         <ion-col>
           <ion-button (click)="disconnect(device)">Disconnect</ion-button>
         </ion-col>
       </ion-row>
     </ng-container>
-
-
   </ion-grid>
 </ion-content>

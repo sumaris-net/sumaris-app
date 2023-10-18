@@ -100,7 +100,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     throw new Error('No implemented');
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[], qvPmfm?: IPmfm}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]; qvPmfm?: IPmfm}): string {
     opts = opts || {};
     opts.i18nPrefix = opts.i18nPrefix || 'TRIP.BATCH.EDIT.';
     // Translate PMFM field
@@ -118,7 +118,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // If path = the batch group form itself: return an empty string
     if (cleanPath.length === 0) return this.translate.instant(opts.i18nPrefix + 'PARENT_GROUP');
 
-    let depth = countSubString(cleanPath, 'children.');
+    const depth = countSubString(cleanPath, 'children.');
     let prefix = '';
     let isSampling: boolean;
     if (opts.qvPmfm) {
@@ -202,6 +202,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
   /**
    * Control a catch batch
+   *
    * @param entity
    * @param program
    * @param opts
@@ -212,7 +213,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const catchPmfms = await this.programRefService.loadProgramPmfms(program.label, {
       acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
       gearId: opts?.gearId
-    })
+    });
     const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
     const form = validator.getFormGroup(entity, { pmfms: catchPmfms, withChildren: false });
 
@@ -244,7 +245,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     console.debug(`[batch-service] Control catch batch {${entity.id}} [VALID]`);
 
     // Mark as controlled (e.g. reset quality flag)
-    BatchUtils.markAsControlled(entity, { withChildren: false /*will be mark later*/ })
+    BatchUtils.markAsControlled(entity, { withChildren: false /*will be mark later*/ });
 
     return null; // no errors
   }
@@ -272,7 +273,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
     // Compute species pmfms (at species batch level)
-    let speciesPmfms: IPmfm[], childrenPmfms: IPmfm[];
+    let speciesPmfms: IPmfm[]; let childrenPmfms: IPmfm[];
     if (!qvPmfm) {
       speciesPmfms = pmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
       childrenPmfms = [];
@@ -301,7 +302,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
         // Avoid error on label and rankOrder
         if (!source.label || !source.rankOrder) {
-          console.warn("[batch-service] Missing label or rankOrder in batch:", source);
+          console.warn('[batch-service] Missing label or rankOrder in batch:', source);
         }
         const target = BatchGroup.fromBatch(source);
         const isTaxonGroupNoWeight = target.taxonGroup && taxonGroupsNoWeight.includes(target.taxonGroup.label);
@@ -331,7 +332,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           individualCountRequired,
           qvPmfm,
           pmfms: speciesPmfms,
-          childrenPmfms: childrenPmfms,
+          childrenPmfms,
           enableSamplingBatch
         });
 
@@ -411,7 +412,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
   }
 
-  private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean, samplingRatioFormat: SamplingRatioFormat}) {
+  private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean; samplingRatioFormat: SamplingRatioFormat}) {
     const totalWeight = batch.weight?.value;
 
     const samplingBatch = BatchUtils.getSamplingChild(batch);
@@ -465,7 +466,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         && samplingBatch.samplingRatioComputed !== true
         && samplingBatch.samplingRatio >= 0 && samplingBatch.samplingRatio <= 1) {
 
-        const computedWeightPmfm = opts.weightPmfms?.find(pmfm => pmfm.methodId === MethodIds.CALCULATED || pmfm.isComputed)
+        const computedWeightPmfm = opts.weightPmfms?.find(pmfm => pmfm.methodId === MethodIds.CALCULATED || pmfm.isComputed);
         const defaultWeightPmfm = opts.weightPmfms?.[0];
         samplingBatch.weight = {
           value: totalWeight * samplingBatch.samplingRatio,
@@ -479,7 +480,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
   private async controlSelectivity(entity: Batch, program: Program, opts?: BatchControlOptions): Promise<FormErrors> {
     let physicalGear = opts?.physicalGear;
-    if (!physicalGear) throw new Error('Missing required \'opts.physicalGear\'')
+    if (!physicalGear) throw new Error('Missing required \'opts.physicalGear\'');
 
     // Recompute rank order
     //BatchUtils.computeRankOrder(entity);

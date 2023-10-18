@@ -23,7 +23,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
 
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   mobile: boolean;

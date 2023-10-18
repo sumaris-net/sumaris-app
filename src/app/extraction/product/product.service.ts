@@ -3,13 +3,14 @@ import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-
 import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseGraphqlService, CryptoService,
-  EntityUtils, escapeRegExp,
+  BaseGraphqlService,
+  CryptoService,
+  EntityUtils,
+  escapeRegExp,
   firstNotNilPromise,
   GraphqlService,
   IEntityService,
@@ -19,7 +20,7 @@ import {
   isNotNil,
   LoadResult,
   ReferentialUtils,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { DataCommonFragments } from '../../trip/trip/trip.queries';
@@ -30,52 +31,52 @@ import { environment } from '@environments/environment';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
-import { ExtractionTypeFragments, ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { TranslateService } from '@ngx-translate/core';
 
-
 export const ExtractionProductFragments = {
-
-  product: gql`fragment ExtractionProductFragment on ExtractionProductVO {
-    id
-    label
-    name
-    format
-    version
-    sheetNames
-    description
-    comments
-    docUrl
-    creationDate
-    updateDate
-    filterContent
-    isSpatial
-    statusId
-    parentId
-    processingFrequencyId
-    stratum {
+  product: gql`
+    fragment ExtractionProductFragment on ExtractionProductVO {
       id
+      label
+      name
+      format
+      version
+      sheetNames
+      description
+      comments
+      docUrl
+      creationDate
       updateDate
-      isDefault
-      sheetName
-      spatialColumnName
-      timeColumnName
-      aggColumnName
-      aggFunction
-      techColumnName
+      filterContent
+      isSpatial
+      statusId
+      parentId
+      processingFrequencyId
+      stratum {
+        id
+        updateDate
+        isDefault
+        sheetName
+        spatialColumnName
+        timeColumnName
+        aggColumnName
+        aggFunction
+        techColumnName
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
     }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-  }
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}`
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+  `,
 };
 
-const Queries: BaseEntityGraphqlQueries & { loadColumns: any; } = {
+const Queries: BaseEntityGraphqlQueries & { loadColumns: any } = {
   load: gql`query ExtractionProduct($id: Int!) {
       data: extractionProduct(id: $id) {
         ...ExtractionProductFragment
@@ -98,7 +99,7 @@ const Queries: BaseEntityGraphqlQueries & { loadColumns: any; } = {
       }
     }
     ${ExtractionFragments.column}`
-}
+};
 
 const Mutations: BaseEntityGraphqlMutations & { update: any } = {
   save: gql`mutation SaveExtractionProduct($product: ExtractionProductVOInput!){
@@ -121,7 +122,7 @@ const Mutations: BaseEntityGraphqlMutations & { update: any } = {
     deleteProducts(ids: $ids)
   }`
 
-}
+};
 
 @Injectable({providedIn: 'root'})
 export class ProductService
@@ -143,7 +144,7 @@ export class ProductService
   watchAll(dataFilter?: Partial<ExtractionTypeFilter>,
            options?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<LoadResult<ExtractionProduct>> {
-    if (this._debug) console.debug("[product-service] Loading products...");
+    if (this._debug) console.debug('[product-service] Loading products...');
 
     dataFilter = this.asFilter(dataFilter);
 
@@ -157,7 +158,7 @@ export class ProductService
       arrayFieldName: 'data',
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
@@ -166,20 +167,20 @@ export class ProductService
           return {
             data: entities,
             total: data.total || entities.length
-          }
+          };
         })
       );
   }
 
   async load(id: number, options?: {
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<ExtractionProduct> {
     const { data } = await this.graphql.query<{ data: ExtractionProduct }>({
       query: Queries.load,
       variables: {
         id
       },
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -192,10 +193,10 @@ export class ProductService
       const hash = CryptoService.sha512(`${format}-${Date.now()}`).substr(0, 8);
       const label = `${format}-${hash}`;
       if (types) {
-        unique = !types.some(t => label.toUpperCase() == t.label.toUpperCase());
+        unique = !types.some(t => label.toUpperCase() === t.label.toUpperCase());
       }
       else {
-        unique = !(await this.extractionTypeService.existsByLabel(label, {fetchPolicy: "no-cache"}));
+        unique = !(await this.extractionTypeService.existsByLabel(label, {fetchPolicy: 'no-cache'}));
       }
       if (unique) return label;
     }
@@ -231,6 +232,7 @@ export class ProductService
 
   /**
    * Load columns metadata
+   *
    * @param type
    * @param sheetName
    * @param options
@@ -239,7 +241,7 @@ export class ProductService
     type: ExtractionType,
     sheetName?: string,
     options?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
     }): Promise<ExtractionColumn[]> {
 
     const variables = {
@@ -248,11 +250,11 @@ export class ProductService
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[product-service] Loading columns... using options:", variables);
+    if (this._debug) console.debug('[product-service] Loading columns... using options:', variables);
     const res = await this.graphql.query<{ data: ExtractionColumn[] }>({
       query: Queries.loadColumns,
       variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.data) return null;
@@ -276,7 +278,7 @@ export class ProductService
   async save(entity: ExtractionProduct,
              filter?: ExtractionFilter): Promise<ExtractionProduct> {
     const now = Date.now();
-    if (this._debug) console.debug("[product-service] Saving product...");
+    if (this._debug) console.debug('[product-service] Saving product...');
 
     // Make sure to have entities
     entity = ExtractionProduct.fromObject(entity);
@@ -290,14 +292,14 @@ export class ProductService
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[product-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[product-service] Using minify object, to send:', json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: Mutations.save,
       variables: {
         product: json
       },
-      error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
+      error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
@@ -362,6 +364,7 @@ export class ProductService
 
   /**
    * Update data product (re-execute the extraction or the aggregation)
+   *
    * @param id the identifier of the extraction product to update
    */
   async updateProduct(id: number): Promise<ExtractionProduct> {
@@ -372,7 +375,7 @@ export class ProductService
     await this.graphql.mutate<{ data: ExtractionProduct }>({
       mutation: Mutations.update,
       variables: { id },
-      error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: "EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR"},
+      error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: 'EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR'},
       update: (cache, {data}) => {
         savedEntity = data && data.data;
         console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);

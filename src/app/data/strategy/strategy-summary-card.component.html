@@ -1,23 +1,24 @@
-
 <ion-card @fadeInAnimation *ngIf="!loading">
   <ion-card-header color="light" *ngIf="title">
-    <ion-card-title (click)="open($event)" [title]="i18nPrefix+'BTN_SHOW'|translate">
-      <ion-label color="primary" >
-        <span>{{title|translate}}</span>
-        <small class="mouseover">&nbsp;<ion-icon name="eye"></ion-icon></small>
+    <ion-card-title (click)="open($event)" [title]="i18nPrefix + 'BTN_SHOW' | translate">
+      <ion-label color="primary">
+        <span>{{ title | translate }}</span>
+        <small class="mouseover">
+          &nbsp;
+          <ion-icon name="eye"></ion-icon>
+        </small>
       </ion-label>
-
     </ion-card-title>
   </ion-card-header>
 
   <ion-card-content class="">
     <!-- locations -->
     <ng-container *ngIf="data.appliedStrategies | isNotEmptyArray">
-      <ion-label color="primary">{{i18nPrefix + 'LOCATIONS'|translate}}</ion-label>
+      <ion-label color="primary">{{ i18nPrefix + 'LOCATIONS' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let location of data.appliedStrategies | arrayPluck: {property: 'location'}">
-            <span>{{location | referentialToString: displayAttributes.location }}</span>
+          <li *ngFor="let location of data.appliedStrategies | arrayPluck : { property: 'location' }">
+            <span>{{ location | referentialToString : displayAttributes.location }}</span>
           </li>
         </ul>
       </ion-label>
@@ -25,11 +26,11 @@
 
     <!-- taxon groups -->
     <ng-container *ngIf="data.taxonGroups | isNotEmptyArray">
-      <ion-label color="primary">{{i18nPrefix + 'TAXON_GROUPS'|translate}}</ion-label>
+      <ion-label color="primary">{{ i18nPrefix + 'TAXON_GROUPS' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck: {property: 'taxonGroup'}">
-            <span>{{taxonGroup | referentialToString: displayAttributes.taxonGroup }}</span>
+          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck : { property: 'taxonGroup' }">
+            <span>{{ taxonGroup | referentialToString : displayAttributes.taxonGroup }}</span>
           </li>
         </ul>
       </ion-label>
@@ -37,18 +38,16 @@
 
     <!-- taxon names -->
     <ng-container *ngIf="data.taxonNames | isNotEmptyArray">
-      <ion-label color="primary">{{i18nPrefix + 'TAXON_NAMES'|translate}}</ion-label>
+      <ion-label color="primary">{{ i18nPrefix + 'TAXON_NAMES' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let taxonName of data.taxonNames | arrayPluck: {property: 'taxonName'}">
-            <span>{{taxonName | referentialToString: displayAttributes.taxonName }}</span>
+          <li *ngFor="let taxonName of data.taxonNames | arrayPluck : { property: 'taxonName' }">
+            <span>{{ taxonName | referentialToString : displayAttributes.taxonName }}</span>
           </li>
         </ul>
       </ion-label>
     </ng-container>
 
     <ng-content></ng-content>
-
   </ion-card-content>
-
 </ion-card>

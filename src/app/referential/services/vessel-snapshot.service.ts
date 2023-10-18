@@ -78,7 +78,7 @@ export const VesselSnapshotFragments = {
   }`
 };
 
-const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any; } = {
+const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
   // Load all
   loadAll: gql`query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     data: vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -142,7 +142,7 @@ export class VesselSnapshotService
 
   private defaultFilter: Partial<VesselSnapshotFilter> = null;
   private defaultLoadOptions: Partial<VesselServiceLoadOptions> = null;
-  private suggestLengthThreshold: number = 0;
+  private suggestLengthThreshold = 0;
   private enableSearchRegistrationByPrefix: boolean = VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_SEARCH_REGISTRATION_CODE_AS_PREFIX.defaultValue;
 
   private get onConfigOrSettingsChanges(): Observable<any> {
@@ -188,6 +188,7 @@ export class VesselSnapshotService
 
   /**
    * Load many vessels
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -324,7 +325,7 @@ export class VesselSnapshotService
   }
 
   async load(id: number, opts?: {
-    fetchPolicy?: FetchPolicy,
+    fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<VesselSnapshot | null> {
 
@@ -367,7 +368,7 @@ export class VesselSnapshotService
       filter: filter?.asFilterFn()
     };
 
-    if (this._debug) console.debug("[vessel-snapshot-service] Loading local vessel snapshots using options:", variables);
+    if (this._debug) console.debug('[vessel-snapshot-service] Loading local vessel snapshots using options:', variables);
 
     return this.entities.watchAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables, opts)
       .pipe(
@@ -379,6 +380,7 @@ export class VesselSnapshotService
 
   /**
    * Save into the local storage
+   *
    * @param entity
    */
   async saveLocally(entity: VesselSnapshot): Promise<VesselSnapshot> {
@@ -418,7 +420,7 @@ export class VesselSnapshotService
 
   async executeImport(filter: Partial<VesselSnapshotFilter>,
                       opts?: {
-                        progression?: BehaviorSubject<number>,
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                       }): Promise<void> {
 

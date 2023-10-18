@@ -67,7 +67,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       });
 
     // default values
-    this.defaultBackHref = "/referential/programs";
+    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -111,7 +111,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: "network-only"});
+    return super.load(id, {...opts, fetchPolicy: 'network-only'});
   }
 
   canUserWrite(data: Strategy, opts?: any): boolean {
@@ -121,7 +121,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     });
   }
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     if (!this.isNewData) {

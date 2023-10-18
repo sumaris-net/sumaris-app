@@ -88,7 +88,7 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
           this.table.dataSource.rowsSubject.subscribe(rows => {
             this.table.selectRowByData(ObservedLocation.fromObject({id: this.selectedId}));
           })
-        )
+        );
         // TODO use permanent selection
         //this.table.permanentSelection?.setSelection(ObservedLocation.fromObject({id: this.selectedId}));
       }

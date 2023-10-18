@@ -85,7 +85,7 @@ export class StrategiesPage implements OnInit {
   async load(id?: number, opts?: EntityServiceLoadOptions) {
     try {
       // Force the load from network
-      const program = await this.programService.load(id, { ...opts, fetchPolicy: "network-only" });
+      const program = await this.programService.load(id, { ...opts, fetchPolicy: 'network-only' });
       this.data = program;
 
       // Check user rights (always readonly if mobile)
@@ -157,7 +157,7 @@ export class StrategiesPage implements OnInit {
   }
 
   doRefresh(event?: CompletableEvent) {
-    this.table?.doRefresh(event)
+    this.table?.doRefresh(event);
   }
 
   resetFilter(event?: Event) {

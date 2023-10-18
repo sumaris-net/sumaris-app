@@ -87,7 +87,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
     job.status = job.status || 'PENDING';
     job.issuer = job.issuer || this.accountService.account?.pubkey;
 
-    const data:Job = job.asObject();
+    const data: Job = job.asObject();
     this.insertIntoMutableCachedQueries(
       this.graphql.cache,
       {queryName: 'loadAll', data});
@@ -123,7 +123,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
       sortBy: 'id',
       sortDirection: 'ASC',
       ...page
-    }
+    };
 
     const { data } = await this.graphql.query<{ data: any[] }>({
       query: JobQueries.loadAll,
@@ -157,7 +157,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
       sortBy: 'id',
       sortDirection: 'ASC',
       ...page,
-    }
+    };
 
     return this.mutableWatchQuery<LoadResult<any>>({
       queryName: 'loadAll',

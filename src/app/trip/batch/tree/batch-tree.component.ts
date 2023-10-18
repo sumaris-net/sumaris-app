@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   AppErrorWithDetails,
   AppFormUtils,
@@ -15,7 +15,7 @@ import {
   ReferentialRef,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable } from 'rxjs';
@@ -72,18 +72,18 @@ export interface IBatchTreeComponent extends IAppTabEditor {
 
   // Value
   value: Batch;
-  setValue(data: Batch, opts?: {emitEvent?: boolean}): Promise<void>;
+  setValue(data: Batch, opts?: { emitEvent?: boolean }): Promise<void>;
   getValue(): Batch;
 
   // Methods
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
-  autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
+  autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean }): Promise<void>;
   addRow(event: Event);
   getFirstInvalidTabIndex(): number;
 
-  setError(error: string, opts?: { emitEvent?: boolean; })
+  setError(error: string, opts?: { emitEvent?: boolean });
 
-  resetError(opts?: { emitEvent?: boolean; })
+  resetError(opts?: { emitEvent?: boolean });
 }
 
 export interface BatchTreeState {
@@ -113,7 +113,7 @@ export interface BatchTreeState {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeComponent extends AppTabEditor<Batch, any>
-  implements OnInit, AfterViewInit, IBatchTreeComponent {
+  implements OnInit, AfterViewInit, OnDestroy, IBatchTreeComponent {
 
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   private _listenProgramChanges = true;
@@ -377,7 +377,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this._subBatchesService = this.mobile
       ? new InMemoryEntitiesService(SubBatch, SubBatchFilter, {
         equals: Batch.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       })
       : null;
 
@@ -394,7 +394,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           tap(showCatchForm => {
             if (this._enabled) {
               if (showCatchForm && !this.catchBatchForm.enabled) {
-                this.catchBatchForm.enable()
+                this.catchBatchForm.enable();
               }
               else if (!showCatchForm && this.catchBatchForm.enabled)  {
                 this.catchBatchForm.disable();
@@ -458,7 +458,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
             map(_ => this.batchGroupsTable.dataSource.getData())
         ),
         (parents) => this.subBatchesTable.availableParents = parents
-      )
+      );
     }
   }
 
@@ -468,12 +468,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   }
 
   // Change visibility to public
-  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean;  }) {
+  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean  }) {
     if (!error || typeof error === 'string') {
       super.setError(error as string, opts);
     }
     else {
-      console.log('TODO: apply error to rows ?', error)
+      console.log('TODO: apply error to rows ?', error);
     }
   }
 
@@ -555,7 +555,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return Promise.resolve(undefined);
   }
 
-  async setValue(source: Batch, opts?: {emitEvent?: boolean;}) {
+  async setValue(source: Batch, opts?: {emitEvent?: boolean}) {
     source = source || Batch.fromObject({
       rankOrder: 1,
       label: this.rootAcquisitionLevel
@@ -763,7 +763,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
       }
     }
     catch (err) {
-      console.error(this._logPrefix + 'Error while updating sub batches', err)
+      console.error(this._logPrefix + 'Error while updating sub batches', err);
     }
   }
 
@@ -790,7 +790,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     }
   }
 
-  setSelectedTabIndex(value: number, opts?: { emitEvent?: boolean; realignInkBar?: boolean; }) {
+  setSelectedTabIndex(value: number, opts?: { emitEvent?: boolean; realignInkBar?: boolean }) {
     super.setSelectedTabIndex(value, {
       realignInkBar: !this.mobile, // Tab header are NOT visible on mobile
       ...opts
@@ -874,7 +874,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   markForCheck() {
     this.cd.markForCheck();
   }
-  dumpDebugData(type:'rowValidator'|'catchForm'): any {
+  dumpDebugData(type: 'rowValidator'|'catchForm'): any {
     switch (type) {
       case 'catchForm':
         this._debugData = AppSharedFormUtils.dumpForm(this.catchBatchForm.form);

@@ -1,41 +1,40 @@
-import {ChangeDetectionStrategy, Component, Injector, Input} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
 import {
   AppInMemoryTable,
   InMemoryEntitiesService,
   PersonFilter,
   PersonService,
   PersonUtils,
-  Referential, ReferentialRef,
+  Referential,
+  ReferentialRef,
   ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {ReferentialFilter} from '@app/referential/services/filter/referential.filter';
-import {ProgramPersonValidatorService} from '@app/referential/program/privilege/program-person.validator';
-import {ProgramPerson} from '@app/referential/services/model/program.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { ReferentialFilter } from '@app/referential/services/filter/referential.filter';
+import { ProgramPersonValidatorService } from '@app/referential/program/privilege/program-person.validator';
+import { ProgramPerson } from '@app/referential/services/model/program.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'app-person-privileges-table',
   templateUrl: 'person-privileges.table.html',
   styleUrls: ['./person-privileges.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: ProgramPersonValidatorService},
+    { provide: ValidatorService, useExisting: ProgramPersonValidatorService },
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => {
-        return new InMemoryEntitiesService(Referential, ReferentialFilter, {
-          equals: ReferentialUtils.equals
-        });
-      }
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService(Referential, ReferentialFilter, {
+          equals: ReferentialUtils.equals,
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, PersonFilter> {
-
+export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, PersonFilter> implements OnInit {
   @Input() showToolbar = true;
   @Input() showError = true;
   @Input() useSticky = false;
@@ -43,7 +42,7 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
   @Input() locationLevelIds: number[] = null;
 
   displayAttributes = {
-    department: undefined
+    department: undefined,
   };
 
   constructor(
@@ -53,22 +52,18 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector,
-      RESERVED_START_COLUMNS.concat([
-        'person',
-        'department',
-        'privilege',
-        'location'
-      ]).concat(RESERVED_END_COLUMNS),
+    super(
+      injector,
+      RESERVED_START_COLUMNS.concat(['person', 'department', 'privilege', 'location']).concat(RESERVED_END_COLUMNS),
       ProgramPerson,
       memoryDataService,
-      validatorService);
+      validatorService
+    );
 
     this.defaultSortDirection = 'asc';
     this.defaultSortBy = 'id';
     this.i18nColumnPrefix = 'PROGRAM.PRIVILEGES.';
     this.inlineEdition = true;
-
   }
 
   ngOnInit() {
@@ -79,11 +74,11 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
       showAllOnFocus: false,
       service: this.personService,
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.memoryDataService.addSortByReplacement('person', 'person.' + this.autocompleteFields.person.attributes[0]);
 
@@ -95,27 +90,26 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
       service: this.referentialRefService,
       filter: {
         entityName: 'ProgramPrivilege',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['name'],
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.memoryDataService.addSortByReplacement('privilege', 'privilege.name');
 
     this.registerAutocompleteField<ReferentialRef, ReferentialFilter>('location', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelIds: this.locationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this.locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.memoryDataService.addSortByReplacement('location', 'location.' + this.autocompleteFields.location.attributes[0]);
-
   }
-
 }

@@ -29,7 +29,7 @@ const JobProgressionQueries = {
     }
   }
   ${JobProgressionFragments.light}`
-}
+};
 
 const JobProgressionSubscriptions = {
   listenChanges: gql`subscription UpdateJobProgression($id: Int!, $interval: Int){
@@ -38,7 +38,7 @@ const JobProgressionSubscriptions = {
     }
   }
   ${JobProgressionFragments.full}`
-}
+};
 
 @Injectable()
 export class JobProgressionService extends BaseGraphqlService<JobProgression> implements IJobProgressionService {
@@ -53,9 +53,9 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
     this._logPrefix = '[job-progression-service]';
 
     // Clean data on logout
-    this.accountService.onLogout.subscribe(() => this.dataSubject.next([]))
+    this.accountService.onLogout.subscribe(() => this.dataSubject.next([]));
 
-    this.jobService.onCancel.subscribe(job => this.removeJob(job?.id))
+    this.jobService.onCancel.subscribe(job => this.removeJob(job?.id));
   }
 
   addJob(id: number, job?: JobProgression) {

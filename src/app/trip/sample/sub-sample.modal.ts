@@ -140,7 +140,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
       // Set form value
       this.data = data || new Sample();
-      let promiseOrVoid = this.form.setValue(this.data);
+      const promiseOrVoid = this.form.setValue(this.data);
       if (promiseOrVoid) await promiseOrVoid;
 
       // Call ready callback
@@ -182,6 +182,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   /**
    * Validate and close
+   *
    * @param event
    */
   async onSubmit(event?: Event) {
@@ -223,8 +224,8 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   protected getDataToSave(): Sample {
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-sample-modal] ");
-      this.form.error = "COMMON.FORM.HAS_ERROR";
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-sample-modal] ');
+      this.form.error = 'COMMON.FORM.HAS_ERROR';
       this.form.markAllAsTouched();
       this.scrollToTop();
       return undefined;

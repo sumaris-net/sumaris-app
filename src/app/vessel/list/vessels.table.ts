@@ -33,7 +33,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 
 
 export const VesselsTableSettingsEnum = {
-  TABLE_ID: "vessels",
+  TABLE_ID: 'vessels',
   FEATURE_ID: VESSEL_FEATURE_NAME
 };
 
@@ -221,7 +221,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
           tap(_ => this.markAsLoading()),
           debounceTime(650)
         )
-        .subscribe(searchText => this.patchFilter({searchText})))
+        .subscribe(searchText => this.patchFilter({searchText})));
     }
 
     const value = trimEmptyToNull(event?.detail.value);

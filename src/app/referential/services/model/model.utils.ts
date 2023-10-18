@@ -13,6 +13,7 @@ export class WeightUtils {
 
   /**
    * Apply a conversion; fromUnit -> toUnit
+   *
    * @param value
    * @param fromUnit
    * @param toUnit
@@ -28,7 +29,7 @@ export class WeightUtils {
     return +value * fromConversion / toConversion;
   }
 
-  static format(value: number|string, opts: {unit?: WeightUnitSymbol|string, withUnit?: boolean, maxDecimals?: number}): string {
+  static format(value: number|string, opts: {unit?: WeightUnitSymbol|string; withUnit?: boolean; maxDecimals?: number}): string {
     if (isNil(value)) return '';
     const withUnit = opts && opts.withUnit !== false && opts.unit;
     if (isNotNil(opts?.maxDecimals)) {

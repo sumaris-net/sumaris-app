@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { joinPropertiesPath, Referential, ReferentialFilter, StatusIds } from '@sumaris-net/ngx-components';
+import { Referential, StatusIds } from '@sumaris-net/ngx-components';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
 import { MetierValidatorService } from '@app/referential/metier/metier.validator';
@@ -13,28 +13,18 @@ import { GearLevelIds } from '@app/referential/services/model/model.enum';
   selector: 'app-metier',
   templateUrl: 'metier.page.html',
   styleUrls: ['metier.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
-  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
-
-  constructor(
-    injector: Injector,
-    dataService: MetierService,
-    validatorService: MetierValidatorService
-  ) {
-    super(injector,
-      Metier,
-      dataService,
-      validatorService.getFormGroup(),
-      {
-        entityName: Metier.ENTITY_NAME,
-        uniqueLabel: true,
-        withLevels: false,
-        tabCount: 1
-      }
-    );
+  constructor(injector: Injector, dataService: MetierService, validatorService: MetierValidatorService) {
+    super(injector, Metier, dataService, validatorService.getFormGroup(), {
+      entityName: Metier.ENTITY_NAME,
+      uniqueLabel: true,
+      withLevels: false,
+      tabCount: 1,
+    });
 
     this.registerFieldDefinition({
       key: 'gear',
@@ -45,9 +35,9 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
         filter: <ReferentialRefFilter>{
           entityName: 'Gear',
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-          levelIds: [GearLevelIds.FAO]
-        }
-      }
+          levelIds: [GearLevelIds.FAO],
+        },
+      },
     });
 
     this.registerFieldDefinition({
@@ -60,36 +50,27 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
         filter: <ReferentialRefFilter>{
           entityName: 'TaxonGroup',
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-          levelIds: [TaxonGroupTypeIds.METIER_DCF_5, TaxonGroupTypeIds.METIER_NATIONAL]
-        }
-      }
+          levelIds: [TaxonGroupTypeIds.METIER_DCF_5, TaxonGroupTypeIds.METIER_NATIONAL],
+        },
+      },
     });
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
   }
 
   /* -- protected Metiers -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm
-    ]);
+    this.addChildForms([this.referentialForm]);
   }
 
   protected setValue(data: Metier) {
     super.setValue(data);
   }
 
-  protected async onEntitySaved(data: Referential): Promise<void> {
-
-  }
+  protected async onEntitySaved(data: Referential): Promise<void> {}
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     return -1;
   }
-
 }
 

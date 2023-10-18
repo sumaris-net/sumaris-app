@@ -9,7 +9,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { SamplingRatioFormat } from "@app/shared/material/sampling-ratio/material.sampling-ratio";
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 
 export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEntityModalOptions<B> {
@@ -123,8 +123,8 @@ export class BatchModal implements OnInit, IBatchModalOptions {
     if (this.loading) return; // avoid many call
 
     if (this.invalid) {
-        if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
-        this.form.error = "COMMON.FORM.HAS_ERROR";
+        if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[batch-modal] ');
+        this.form.error = 'COMMON.FORM.HAS_ERROR';
         this.form.markAllAsTouched();
         return;
     }

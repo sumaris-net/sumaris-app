@@ -97,7 +97,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
             this.markAsDirty();
           }
         })
-    )
+    );
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -119,9 +119,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
 
-    return setTimeout(() => {
+    return setTimeout(() => 
       // open the map
-      return this.router.navigate(['../../map'],
+       this.router.navigate(['../../map'],
         {
           relativeTo: this.route,
           queryParams: {
@@ -129,8 +129,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
             label: this.data.label,
             sheet: this.data.stratum[0].sheetName
           }
-        });
-    }, 200); // Add a delay need by matTooltip to be hide
+        })
+    , 200); // Add a delay need by matTooltip to be hide
   }
 
   async updateProduct(event?: Event) {
@@ -193,12 +193,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         const types = this.datasourceTable.types;
 
         // Resolve by format + version
-        const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format
+        const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format;
         sourceTypeId = types.find(t => t.format === format && t.version === data.version)?.id;
 
         // Or resolve by format only, if not found
         if (isNil(sourceTypeId)) {
-          sourceTypeId = types.find(t => t.format === format)?.id
+          sourceTypeId = types.find(t => t.format === format)?.id;
         }
 
         // Types not found: stop here

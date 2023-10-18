@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { isNotNil, joinPropertiesPath, MatAutocompleteFieldConfig, Referential } from '@sumaris-net/ngx-components';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { RoundWeightConversionTable } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.table';
@@ -11,29 +11,19 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
   selector: 'app-taxon-group',
   templateUrl: 'taxon-group.page.html',
   styleUrls: ['taxon-group.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TaxonGroupPage extends AppReferentialEditor<Referential, ReferentialService> {
+export class TaxonGroupPage extends AppReferentialEditor<Referential, ReferentialService> implements OnInit {
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('rwcTable', { static: true }) rwcTable: RoundWeightConversionTable;
 
-  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
-  @ViewChild('rwcTable', {static: true}) rwcTable: RoundWeightConversionTable;
-
-  constructor(
-    injector: Injector,
-    dataService: ReferentialService,
-    validatorService: TaxonGroupValidatorService
-  ) {
-    super(injector,
-      Referential,
-      dataService,
-      validatorService.getFormGroup(),
-      {
-        entityName: TaxonGroupRef.ENTITY_NAME,
-        uniqueLabel: false,
-        withLevels: true,
-        tabCount: 2
-      }
-    );
+  constructor(injector: Injector, dataService: ReferentialService, validatorService: TaxonGroupValidatorService) {
+    super(injector, Referential, dataService, validatorService.getFormGroup(), {
+      entityName: TaxonGroupRef.ENTITY_NAME,
+      uniqueLabel: false,
+      withLevels: true,
+      tabCount: 2,
+    });
   }
 
   ngOnInit() {
@@ -46,7 +36,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
-      columnSizes: [6, 6]
+      columnSizes: [6, 6],
     };
 
     this.registerFieldDefinition({
@@ -57,8 +47,8 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
         items: this.$levels,
         displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
         attributes: ['label', 'name'],
-        columnSizes: [6, 6]
-      }
+        columnSizes: [6, 6],
+      },
     });
     this.registerFieldDefinition({
       key: 'parent',
@@ -66,36 +56,30 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
       type: 'entity',
       autocomplete: {
         ...autocompleteConfig,
-        filter: {entityName: 'TaxonGroup', statusIds: [0, 1]}
-      }
+        filter: { entityName: 'TaxonGroup', statusIds: [0, 1] },
+      },
     });
-
   }
 
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.rwcTable
-    ]);
+    this.addChildForms([this.referentialForm, this.rwcTable]);
   }
 
   protected setValue(data: Referential) {
-
     super.setValue(data);
 
     // Set table filter
     if (isNotNil(data?.id)) {
       this.rwcTable.setFilter({
-        taxonGroupId: data.id
+        taxonGroupId: data.id,
       });
       this.rwcTable.markAsReady();
     }
   }
 
   protected async onEntitySaved(data: Referential): Promise<void> {
-
     // Save table
     if (this.rwcTable.dirty) {
       await this.rwcTable.save();
@@ -107,6 +91,5 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     if (this.rwcTable.invalid) return 1;
     return -1;
   }
-
 }
 

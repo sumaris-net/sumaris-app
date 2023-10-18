@@ -292,7 +292,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
         await this.save();
       }
 
-      const trip: {observedLocationId: number, tripId: number} = res.data.tripToOpen;
+      const trip: {observedLocationId: number; tripId: number} = res.data.tripToOpen;
       if (trip) {
         if (isNil(trip.observedLocationId) || isNil(trip.tripId)) {
           console.warn(`Something is missing to open trip: observedLocationId=${trip.observedLocationId}, tripId=${trip.tripId}`);

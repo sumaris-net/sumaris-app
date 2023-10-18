@@ -34,7 +34,7 @@ const ShareFileMutation = {
   shareAsPublic: gql`mutation shareFile($fileName:String) {
     data: shareFile(fileName: $fileName)
   }`,
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class FileTransferService extends StartableService<void> {
@@ -111,7 +111,7 @@ export class FileTransferService extends StartableService<void> {
     console.info(`[file-transfer-service] share file ${fileName} as public`);
     return await this.graphql.mutate<{ data: string }>({
       mutation: ShareFileMutation.shareAsPublic,
-      variables: {fileName: fileName},
+      variables: {fileName},
       error: { code: ServerErrorCodes.INTERNAL_SERVER_ERROR, message: 'ERROR.SHARE_AS_PUBLIC_FAIL' },
     });
   }

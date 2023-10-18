@@ -173,7 +173,7 @@ const routes: Routes = [
 
   // Other route redirection (should at the end of the array)
   {
-    path: "**",
+    path: '**',
     redirectTo: '/'
   }
 ];

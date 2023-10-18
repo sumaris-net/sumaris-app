@@ -1,37 +1,44 @@
-
 <!-- Top toolbar -->
-<app-toolbar *ngVar="{saving: (savingSubject|push), loading: (loadingSubject|push)} as vars"
-             [color]="toolbarColor"
-             [hasValidate]="!vars.loading && (dirty || vars.saving)"
-             [hasClose]="!vars.loading && !(dirty || vars.saving)"
-             (onValidate)="save($event)"
-             (onValidateAndClose)="saveAndClose($event)"
-             (onClose)="close($event)"
-             [defaultBackHref]="defaultBackHref"
-             [canGoBack]="true">
-
-  <ion-title [innerHTML]="$title|async"></ion-title>
+<app-toolbar
+  *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
+  [color]="toolbarColor"
+  [hasValidate]="!vars.loading && (dirty || vars.saving)"
+  [hasClose]="!vars.loading && !(dirty || vars.saving)"
+  (onValidate)="save($event)"
+  (onValidateAndClose)="saveAndClose($event)"
+  (onClose)="close($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
+  <ion-title [innerHTML]="$title | async"></ion-title>
 
   <ion-buttons slot="end">
-
     <!-- New operation -->
-    <ion-button fill="solid" color="tertiary" *ngIf="mobile"
-                hidden-xxs hidden-xs
-                class="ion-margin-end"
-                [disabled]="disabled || vars.loading || vars.saving"
-                (click)="saveAndNew($event)">
+    <ion-button
+      fill="solid"
+      color="tertiary"
+      *ngIf="mobile"
+      hidden-xxs
+      hidden-xs
+      class="ion-margin-end"
+      [disabled]="disabled || vars.loading || vars.saving"
+      (click)="saveAndNew($event)"
+    >
       <ion-icon slot="start" name="add-circle"></ion-icon>
-      {{'TRIP.OPERATION.EDIT.BTN_NEW'|translate}}
+      {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
     </ion-button>
 
     <!-- last operation (history) -->
-    <ion-button *ngIf="showLastOperations"
-                color="light"
-                fill="outline" hidden-xxs
-                [disabled]="vars.loading || vars.saving"
-                [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
-                [matMenuTriggerFor]="lastOperationsMenu">
-      {{'TRIP.OPERATION.EDIT.BTN_LOG'|translate}}
+    <ion-button
+      *ngIf="showLastOperations"
+      color="light"
+      fill="outline"
+      hidden-xxs
+      [disabled]="vars.loading || vars.saving"
+      [title]="'TRIP.OPERATION.LAST_OPERATIONS' | translate"
+      [matMenuTriggerFor]="lastOperationsMenu"
+    >
+      {{ 'TRIP.OPERATION.EDIT.BTN_LOG' | translate }}
       <!--<ion-icon slot="end" name="caret-down-outline"></ion-icon>-->
       <mat-icon slot="end">expand_more</mat-icon>
     </ion-button>
@@ -40,18 +47,22 @@
     <div hidden-xxs hidden-xs class="ion-padding-start toolbar-spacer"></div>
 
     <!-- duplicate (if desktop) -->
-    <ion-button *ngIf="!mobile && canDuplicate"
-                [disabled]="disabled || invalid || vars.loading || vars.saving"
-                [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
-                (click)="duplicate($event)">
+    <ion-button
+      *ngIf="!mobile && canDuplicate"
+      [disabled]="disabled || invalid || vars.loading || vars.saving"
+      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
+      (click)="duplicate($event)"
+    >
       <mat-icon slot="icon-only">content_copy</mat-icon>
     </ion-button>
 
     <!-- option menu -->
-    <ion-button *ngIf="!isNewData || debug"
-            [disabled]="disabled || vars.loading || vars.saving"
-            [matMenuTriggerFor]="optionsMenu"
-            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <ion-button
+      *ngIf="!isNewData || debug"
+      [disabled]="disabled || vars.loading || vars.saving"
+      [matMenuTriggerFor]="optionsMenu"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+    >
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -60,7 +71,6 @@
 <!-- Last operations menu -->
 <mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
   <ng-template matMenuContent>
-
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
         <ion-label translate>TRIP.OPERATION.LAST_OPERATIONS</ion-label>
@@ -68,12 +78,14 @@
     </ion-row>
 
     <ion-list class="ion-no-padding">
-      <ng-container *rxIf="lastOperations$; let items; else noLastOperation">
-
-          <ion-item *rxFor="let item of items; strategy: 'userBlocking'"
-                  tappable class="text-1x"
-                  [color]="data?.id === item.id ? 'secondary100' : undefined"
-                  (click)="onLastOperationClick($event, item.id)">
+      <ng-container *rxIf="lastOperations$; let items; else: noLastOperation">
+        <ion-item
+          *rxFor="let item of items; strategy: 'userBlocking'"
+          tappable
+          class="text-1x"
+          [color]="data?.id === item.id ? 'secondary100' : undefined"
+          (click)="onLastOperationClick($event, item.id)"
+        >
           <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
           <ion-grid>
             <ion-row>
@@ -81,23 +93,26 @@
               <ion-col size="3">
                 <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrder}}
               </ion-col>-->
-              <ion-col style="padding-top: 8px !important;">
-                <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
+              <ion-col style="padding-top: 8px !important">
+                <ion-label>
+                  {{ item.physicalGear | referentialToString : opeForm.autocompleteFields.physicalGear.attributes }}
+                </ion-label>
               </ion-col>
               <ion-col size="auto">
-                <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
-                  <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
+                <ion-text>
+                  {{ item.startDateTime | dateFormat : { pattern: dateTimePattern } }}
+                  <ion-text color="primary">
+                    <br />
+                    <small>{{ item.startDateTime | dateFromNow }}</small>
+                  </ion-text>
                 </ion-text>
               </ion-col>
             </ion-row>
           </ion-grid>
-
         </ion-item>
 
         <!-- no result-->
-        <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation">
-        </ng-container>
-
+        <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation"></ng-container>
       </ng-container>
 
       <!-- No last operations -->
@@ -114,12 +129,14 @@
     <p visible-xs visible-sm visible-mobile>&nbsp;</p>
 
     <!-- new operation fab button (mobile) -->
-    <ion-fab-button color="tertiary"
-                    size="small"
-                    class="visible-xs visible-sm visible-mobile"
-                    [disabled]="loading"
-                    style="margin-left: calc(100% - 50px); margin-top: -46px;"
-                    (click)="saveAndNew($event)">
+    <ion-fab-button
+      color="tertiary"
+      size="small"
+      class="visible-xs visible-sm visible-mobile"
+      [disabled]="loading"
+      style="margin-left: calc(100% - 50px); margin-top: -46px"
+      (click)="saveAndNew($event)"
+    >
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
 
@@ -127,14 +144,12 @@
       <ion-toolbar>
         <div slot="end" class="ion-padding-end">
           <!-- Show all button -->
-          <ion-button fill="clear"
-                      (click)="toolbar.doBackClick($event)"
-                      routerDirection="back"
-                      translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
+          <ion-button fill="clear" (click)="toolbar.doBackClick($event)" routerDirection="back" translate>
+            TRIP.OPERATION.BTN_SHOW_ALL
+          </ion-button>
 
           <!-- New operation button -->
-          <ion-button color="tertiary" fill="solid"
-                      (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
+          <ion-button color="tertiary" fill="solid" (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
         </div>
       </ion-toolbar>
     </ion-footer>
@@ -144,11 +159,13 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-
     <!-- duplicate (if mobile) -->
-    <button mat-menu-item class="ion-color-danger"
-            *ngIf="mobile && enabled && canDuplicate"
-            (click)="duplicate($event)">
+    <button
+      mat-menu-item
+      class="ion-color-danger"
+      *ngIf="mobile && enabled && canDuplicate"
+      (click)="duplicate($event)"
+    >
       <ion-label>
         <mat-icon>content_copy</mat-icon>
         <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
@@ -156,8 +173,7 @@
     </button>
 
     <!-- Control -->
-    <button mat-menu-item *ngIf="enabled"
-            (click)="saveAndControl($event)">
+    <button mat-menu-item *ngIf="enabled" (click)="saveAndControl($event)">
       <ion-label>
         <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
         <span translate>QUALITY.BTN_CONTROL</span>
@@ -168,16 +184,13 @@
     <app-extraction-button
       *ngIf="canDownload"
       [style]="'mat-menu-item'"
-      [programLabel]="programLabel$|push"
-      (onDownloadAsJson)="downloadAsJson($event)"
-      (onDownloadAsType)="openDownloadPage($event)">
-    </app-extraction-button>
+      [programLabel]="programLabel$ | push"
+      (downloadAsJson)="downloadAsJson($event)"
+      (downloadAsType)="openDownloadPage($event)"
+    ></app-extraction-button>
 
     <!-- online help -->
-    <button mat-menu-item
-            *ngIf="!mobile"
-            [disabled]="!helpUrl"
-            (click)="openHelpModal($event)">
+    <button mat-menu-item *ngIf="!mobile" [disabled]="!helpUrl" (click)="openHelpModal($event)">
       <ion-label>
         <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_SHOW_HELP</span>
@@ -187,9 +200,7 @@
     <mat-divider *ngIf="mobile && enabled"></mat-divider>
 
     <!-- reset -->
-    <button mat-menu-item
-            [disabled]="!dirty"
-            (click)="cancel($event)">
+    <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
       <ion-label>
         <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_RESET</span>
@@ -197,40 +208,41 @@
     </button>
 
     <!-- delete -->
-    <button mat-menu-item
-            [disabled]="isNewData || disabled"
-            (click)="delete($event)">
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
       <mat-icon>delete</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
   </ng-template>
-
 </mat-menu>
 
 <ion-content>
-
-  <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
-                 [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-                 [disablePagination]="true"
-                 [dynamicHeight]="false">
-
+  <mat-tab-group
+    #tabGroup
+    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+    [disablePagination]="true"
+    [dynamicHeight]="false"
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
+        <ion-icon
+          slot="end"
+          name="alert-circle"
+          color="danger"
+          *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"
+        ></ion-icon>
       </ng-template>
 
       <div>
         <!-- error -->
-        <ion-item *ngIf="(error || opeForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="error || opeForm.error as errorMsg" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+          <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
         <ng-container *ngIf="debug">
@@ -238,39 +250,42 @@
         </ng-container>
 
         <ion-grid class="ion-no-padding">
-
           <ion-row>
             <ion-col class="ion-padding">
               <!-- form -->
-              <app-form-operation #opeForm
-                                  [programLabel]="programLabel$|async"
-                                  [showError]="false"
-                                  [usageMode]="usageMode"
-                                  [tabindex]="1"
-                                  (onSubmit)="save($event)"
-                                  (lastEndDateChanges)="lastEndDate=$event"
-                                  [debug]="debug">
-
+              <app-form-operation
+                #opeForm
+                [programLabel]="programLabel$ | async"
+                [showError]="false"
+                [usageMode]="usageMode"
+                [tabindex]="1"
+                (onSubmit)="save($event)"
+                (lastEndDateChanges)="lastEndDate = $event"
+                [debug]="debug"
+              >
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top"
-                          [class.cdk-visually-hidden]="measurementsForm.pmfms$|async|isEmptyArray">
+                <ion-grid
+                  class="ion-no-padding ion-padding-top"
+                  [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
+                >
                   <ion-row>
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
                     <ion-col>
-                      <app-form-measurements #measurementsForm
-                                             entityName="VesselUseMeasurement"
-                                             [acquisitionLevel]="acquisitionLevel$|push:'immediate'"
-                                             [gearId]="gearId$|push:'immediate'"
-                                             [forceOptional]="forceMeasurementAsOptional"
-                                             [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
-                                             (mapPmfms)="mapPmfms($event)"
-                                             [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
-                                             [i18nSuffix]="i18nContext.suffix"
-                                             [tabindex]="30"
-                                             [mobile]="mobile">
-                      </app-form-measurements>
+                      <app-form-measurements
+                        #measurementsForm
+                        entityName="VesselUseMeasurement"
+                        [acquisitionLevel]="acquisitionLevel$ | push : 'immediate'"
+                        [gearId]="gearId$ | push : 'immediate'"
+                        [forceOptional]="forceMeasurementAsOptional"
+                        [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
+                        (mapPmfms)="mapPmfms($event)"
+                        [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
+                        [i18nSuffix]="i18nContext.suffix"
+                        [tabindex]="30"
+                        [mobile]="mobile"
+                      ></app-form-measurements>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -278,9 +293,8 @@
             </ion-col>
 
             <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode|isOnDesk">
-              <app-entity-metadata [value]="data"
-                                   [showRecorder]="data?.updateDate|isNotNil">
+            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode | isOnDesk">
+              <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
                 <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
@@ -290,51 +304,56 @@
     </mat-tab>
 
     <!-- TAB: Catch -->
-    <mat-tab #catchTab
-             [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
-             [disabled]="!(physicalGear$|push)">
+    <mat-tab
+      #catchTab
+      [label]="'TRIP.OPERATION.EDIT.TAB_CATCH' | translateContext : i18nContext.suffix"
+      [disabled]="!(physicalGear$ | push)"
+    >
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
-        <ion-label>{{catchTab.textLabel}}</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="(!isNewData || submitted) && batchTree.invalid"></ion-icon>
+        <ion-label>{{ catchTab.textLabel }}</ion-label>
+        <ion-icon
+          slot="end"
+          name="alert-circle"
+          color="danger"
+          *ngIf="(!isNewData || submitted) && batchTree.invalid"
+        ></ion-icon>
       </ng-template>
 
       <!-- batch tree container -->
-      <app-batch-tree-container #batchTree
-                                queryTabIndexParamName="subtab"
-                                [showBatchTables]="showBatchTables"
-                                [selectedTabIndex]="selectedSubTabIndex"
-                                [allowDiscard]="hasIndividualMeasures$|push"
-                                [allowSpeciesSampling]="hasIndividualMeasures$|push"
-                                [defaultHasSubBatches]="hasIndividualMeasures$|push"
-                                [allowSubBatches]="hasIndividualMeasures$|push"
-                                [usageMode]="usageMode"
-                                [requiredGear]="gearId$|async|isNotNilOrNaN"
-                                [gearId]="gearId$|async"
-                                [physicalGear]="physicalGear$|async"
-                                [useSticky]="mobile"
-                                [mobile]="mobile"
-                                [debug]="debug">
-      </app-batch-tree-container>
+      <app-batch-tree-container
+        #batchTree
+        queryTabIndexParamName="subtab"
+        [showBatchTables]="showBatchTables"
+        [selectedTabIndex]="selectedSubTabIndex"
+        [allowDiscard]="hasIndividualMeasures$ | push"
+        [allowSpeciesSampling]="hasIndividualMeasures$ | push"
+        [defaultHasSubBatches]="hasIndividualMeasures$ | push"
+        [allowSubBatches]="hasIndividualMeasures$ | push"
+        [usageMode]="usageMode"
+        [requiredGear]="gearId$ | async | isNotNilOrNaN"
+        [gearId]="gearId$ | async"
+        [physicalGear]="physicalGear$ | async"
+        [useSticky]="mobile"
+        [mobile]="mobile"
+        [debug]="debug"
+      ></app-batch-tree-container>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error as errorMsg" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
 
@@ -344,34 +363,59 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          editor.ready: {{readySubject|async}}<br/>
-          editor.loading: {{loading}}<br/>
-          editor.enabled: {{enabled}}<br/>
-          editor.dirty: {{dirty}}<br/>
-          editor.valid: {{valid}}<br/>
-          editor.saving: {{saving}}<br/>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.saving: {{ saving }}
+          <br />
         </ion-col>
         <ion-col>
-          opeForm.ready: {{opeForm.readySubject|async}}<br/>
-          opeForm.loading: {{opeForm.loading}}<br/>
-          opeForm.enabled: {{opeForm.enabled}}<br/>
-          opeForm.dirty: {{opeForm.dirty}}<br/>
-          opeForm.valid: {{opeForm.valid}}<br/>
-          <br/>
-          opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
-          opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-          opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-          opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+          opeForm.ready: {{ opeForm.readySubject | async }}
+          <br />
+          opeForm.loading: {{ opeForm.loading }}
+          <br />
+          opeForm.enabled: {{ opeForm.enabled }}
+          <br />
+          opeForm.dirty: {{ opeForm.dirty }}
+          <br />
+          opeForm.valid: {{ opeForm.valid }}
+          <br />
+          <br />
+          opeForm.startDateTime: {{ form | formGetValue : 'startDateTime' | dateFormat : { time: true } }}
+          <br />
+          opeForm.fishingStartDateTime:
+          {{ form.controls.fishingStartDateTime.valueChanges | async | dateFormat : { time: true } }}
+          <br />
+          opeForm.fishingEndDateTime:
+          {{ form.controls.fishingEndDateTime.valueChanges | async | dateFormat : { time: true } }}
+          <br />
+          opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat : { time: true } }}
+          <br />
         </ion-col>
         <ion-col>
-          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-          measurementsForm.loading: {{measurementsForm.loading}}<br/>
-          measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
-          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
-          measurementsForm.valid: {{measurementsForm.valid}}<br/>
-          measurementsForm.gearId: {{measurementsForm.gearId}}<br/>
-          measurementsForm.i18nPmfmPrefix: {{measurementsForm.i18nPmfmPrefix}}<br/>
-          measurementsForm.i18nSuffix: {{measurementsForm.i18nSuffix}}<br/>
+          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
+          <br />
+          measurementsForm.loading: {{ measurementsForm.loading }}
+          <br />
+          measurementsForm.enabled: {{ measurementsForm.enabled }}
+          <br />
+          measurementsForm.dirty: {{ measurementsForm.dirty }}
+          <br />
+          measurementsForm.valid: {{ measurementsForm.valid }}
+          <br />
+          measurementsForm.gearId: {{ measurementsForm.gearId }}
+          <br />
+          measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
+          <br />
+          measurementsForm.i18nSuffix: {{ measurementsForm.i18nSuffix }}
+          <br />
         </ion-col>
       </ion-row>
     </ion-grid>

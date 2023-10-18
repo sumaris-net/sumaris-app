@@ -7,7 +7,7 @@ import { ReferentialTable } from '../table/referential.table';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
 export const ProgramsPageSettingsEnum = {
-  PAGE_ID: "programs",
+  PAGE_ID: 'programs',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY
 };
 

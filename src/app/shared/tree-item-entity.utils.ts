@@ -5,7 +5,7 @@ export class TreeItemEntityUtils {
 
     // Stop infinite loop
     if (loopCount === 100) {
-      console.error('Infinite loop detected! Make sure there is valid node in this tree!')
+      console.error('Infinite loop detected! Make sure there is valid node in this tree!');
       return undefined;
     }
 
@@ -45,7 +45,7 @@ export class TreeItemEntityUtils {
 
     // Stop infinite loop
     if (loopCount === 100) {
-      console.error('Infinite loop detected! Make sure there is valid node in this tree!')
+      console.error('Infinite loop detected! Make sure there is valid node in this tree!');
       return undefined;
     }
 
@@ -118,6 +118,7 @@ export class TreeItemEntityUtils {
 
   /**
    * Delete matches batches
+   *
    * @param node
    * @param filter
    */
@@ -129,9 +130,7 @@ export class TreeItemEntityUtils {
   }
 
   static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
-    return (node.children || []).reduce((res, child) => {
-        return res.concat(this.filterRecursively(child, filterFn));
-      },
+    return (node.children || []).reduce((res, child) => res.concat(this.filterRecursively(child, filterFn)),
       // Init result
       filterFn(node) ? [node] : []
     );
@@ -145,13 +144,12 @@ export class TreeItemEntityUtils {
     node.children = node.children.filter(c => !deletedBatches.includes(c));
 
     // Recursive call, in still existing children
-    return node.children.reduce((res, c) => {
-      return res.concat(...this.deleteRecursively(c, filterFn))
-    }, deletedBatches);
+    return node.children.reduce((res, c) => res.concat(...this.deleteRecursively(c, filterFn)), deletedBatches);
   }
 
   /**
    * Visit each node, from root to leaf
+   *
    * @param node
    * @param action
    */
@@ -165,12 +163,13 @@ export class TreeItemEntityUtils {
 
     // Parcourir les enfants
     if (node.children) {
-      node.children.forEach(child => this.visit(child, action))
+      node.children.forEach(child => this.visit(child, action));
     }
   }
 
   /**
    * Visit each node, from leaf to root
+   *
    * @param node
    * @param action
    */
@@ -181,7 +180,7 @@ export class TreeItemEntityUtils {
 
     // Parcourir les enfants
     if (node.children) {
-      node.children.forEach(child => this.visitInverse(child, action))
+      node.children.forEach(child => this.visitInverse(child, action));
     }
 
     // Appliquer l'action sur le nœud actuel

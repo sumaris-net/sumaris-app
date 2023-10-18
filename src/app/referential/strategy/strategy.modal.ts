@@ -29,7 +29,7 @@ export class StrategyModal extends AppForm<{year: Moment}> implements OnInit {
   }
 
   protected async computeTitle(): Promise<string> {
-    return "REFERENTIAL.ENTITY.DUPLICATE_STRATEGY";
+    return 'REFERENTIAL.ENTITY.DUPLICATE_STRATEGY';
   }
 
   async cancel() {

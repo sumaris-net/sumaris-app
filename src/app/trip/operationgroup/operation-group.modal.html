@@ -7,23 +7,31 @@
     </ion-buttons>
 
     <ion-title>
-      {{$title | async}}
+      {{ $title | async }}
     </ion-title>
 
     <ion-buttons slot="end">
       <!-- Options menu -->
-      <button mat-icon-button *ngIf="!isNew && mobile"
-              [title]="'COMMON.BTN_OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
+      <button
+        mat-icon-button
+        *ngIf="!isNew && mobile"
+        [title]="'COMMON.BTN_OPTIONS' | translate"
+        [matMenuTriggerFor]="optionsMenu"
+      >
         <mat-icon>more_vert</mat-icon>
       </button>
 
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading && enabled"
-                  [disabled]="!form.valid"
-                  visible-xs visible-sm visible-mobile>
+      <ion-button
+        class="back-button"
+        (click)="save($event)"
+        *ngIf="!loading && enabled"
+        [disabled]="!form.valid"
+        visible-xs
+        visible-sm
+        visible-mobile
+      >
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -32,29 +40,24 @@
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item
-          [disabled]="disabled"
-          (click)="delete($event)">
+  <button mat-menu-item [disabled]="disabled" (click)="delete($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 
 <ion-content cdkTrapFocus class="ion-padding">
-
-  <app-operation-group-form #form
-                            [programLabel]="programLabel"
-                            [acquisitionLevel]="acquisitionLevel"
-                            [metiers]="metiers"
-                            [debug]="debug">
-  </app-operation-group-form>
-
+  <app-operation-group-form
+    #form
+    [programLabel]="programLabel"
+    [acquisitionLevel]="acquisitionLevel"
+    [metiers]="metiers"
+    [debug]="debug"
+  ></app-operation-group-form>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -64,15 +67,17 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
-                    (keyup.enter)="save($event)"
-                    (click)="save($event)" color="tertiary">
+        <ion-button
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="loading || invalid"
+          (keyup.enter)="save($event)"
+          (click)="save($event)"
+          color="tertiary"
+        >
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
   </ion-toolbar>
 </ion-footer>

@@ -177,14 +177,17 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.NONE'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_GEAR_METIER'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.TIME | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.MEASUREMENT | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER'
       }
@@ -594,7 +597,7 @@ export const ProgramProperties = Object.freeze({
 
   TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.extraction.batch.denormalization.enable',
-    label: "PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE",
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
   },

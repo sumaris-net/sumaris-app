@@ -127,7 +127,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
     setTimeout(async () => {
       // Load landings
-      this.landingsTable.onRefresh.next("modal");
+      this.landingsTable.onRefresh.next('modal');
       this.selectedTabIndex = 0;
       this.tabGroup.realignInkBar();
       this.markForCheck();
@@ -205,7 +205,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
         }
       }
       if (isEmptyArray(vessels)) {
-        console.warn("[select-vessel-modal] no selection");
+        console.warn('[select-vessel-modal] no selection');
       }
       this.viewCtrl.dismiss(vessels);
       return true;
@@ -219,7 +219,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
     if (!this.vesselForm) throw Error('No Vessel Form');
 
-    console.debug("[select-vessel-modal] Saving new vessel...");
+    console.debug('[select-vessel-modal] Saving new vessel...');
 
     // Avoid multiple call
     if (this.vesselForm.disabled) return;

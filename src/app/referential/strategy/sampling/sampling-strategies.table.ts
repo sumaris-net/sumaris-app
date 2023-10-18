@@ -1,8 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, TemplateRef, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
-  AppTable, DateUtils,
+  AppTable,
+  DateUtils,
   EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
@@ -18,10 +19,10 @@ import {
   SharedValidators,
   sleep,
   StatusIds,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
-import { AcquisitionLevelCodes, LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
 import { environment } from '@environments/environment';
@@ -43,14 +44,13 @@ import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.se
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
 import moment from 'moment';
-import {RxState} from '@rx-angular/state';
+import { RxState } from '@rx-angular/state';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
-
 
 export const SamplingStrategiesPageSettingsEnum = {
   PAGE_ID: 'samplingStrategies',
   FILTER_KEY: 'filter',
-  FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
+  FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME,
 };
 
 interface SamplingStrategiesTableState {
@@ -65,7 +65,7 @@ interface SamplingStrategiesTableState {
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
+export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> implements OnInit {
 
   private _program: Program;
 
@@ -83,7 +83,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   i18nContext: {
     prefix?: string;
     suffix?: string;
-  } = {}
+  } = {};
 
   @Input() showToolbar = true;
 
@@ -104,7 +104,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
   @Input() useSticky = true;
-  @Input() cellTemplate: TemplateRef<any>
+  @Input() cellTemplate: TemplateRef<any>;
 
   @Input() set program(program: Program) {
    this.setProgram(program);
@@ -114,7 +114,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return this._program;
   }
 
-  @Output() onNewDataFromRow = new Subject<{row: TableElement<SamplingStrategy>; event: Event}>()
+  @Output() onNewDataFromRow = new Subject<{row: TableElement<SamplingStrategy>; event: Event}>();
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
@@ -204,7 +204,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     super.ngOnInit();
 
     // By default, use floating filter if toolbar not shown
-    this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
+    this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar);
 
     // Remove error after changed selection
     this.selection.changed.subscribe(() => this.resetError());
@@ -321,7 +321,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.setError(strategyLabelsWithData.length === 1
         ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
         : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
-      const message = this.translate.instant(strategyLabelsWithData.length === 1 ? "PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA" : "PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.errorDetails);
+      const message = this.translate.instant(strategyLabelsWithData.length === 1 ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA' : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA', this.errorDetails);
       await Alerts.showError(message, this.alertCtrl, this.translate);
       return 0;
     }
@@ -405,7 +405,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.parameterIdsByGroupLabel = await this.loadParameterIdsByGroupLabel();
     }
 
-    console.debug("[root-table] Restoring filter from settings...");
+    console.debug('[root-table] Restoring filter from settings...');
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
@@ -443,11 +443,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       // Filter on checked item
       .filter(label => source.parameterGroups[label] === true);
 
-    const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => {
-      return res.concat(this.parameterIdsByGroupLabel[groupLabel]);
-    }, []);
+    const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => res.concat(this.parameterIdsByGroupLabel[groupLabel]), []);
 
-    if (isEmptyArray(parameterIds)) return undefined
+    if (isEmptyArray(parameterIds)) return undefined;
 
     return removeDuplicatesFromArray(parameterIds);
   }
@@ -488,7 +486,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     await Promise.all(this.parameterGroupLabels.map(groupLabel => {
       const parameterLabels = ParameterLabelGroups[groupLabel];
       return this.parameterService.loadAllByLabels(parameterLabels, {toEntity: false, fetchPolicy: 'cache-first'})
-        .then(parameters => result[groupLabel] = parameters.map(p => p.id))
+        .then(parameters => result[groupLabel] = parameters.map(p => p.id));
     }));
     return result;
   }
@@ -538,7 +536,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   protected openLandingsByQuarter(event: UIEvent, strategy: SamplingStrategy, quarter: number) {
-    const effort : StrategyEffort = strategy?.effortByQuarter?.[quarter];
+    const effort: StrategyEffort = strategy?.effortByQuarter?.[quarter];
     if (!this.canOpenRealizedLandings || !effort?.realizedEffort) return;  // Skip if nothing to show (no realized effort)
 
     // Prevent row click action

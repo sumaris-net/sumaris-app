@@ -1,44 +1,44 @@
-<app-toolbar color="primary"
-             [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-
+<app-toolbar
+  color="primary"
+  [hasValidate]="!loading"
+  (onValidate)="save($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-title [innerHTML]="$title | async"></ion-title>
 
-  <button slot="end" mat-icon-button
-          *ngIf="enabled && !isNewData || debug"
-          [matMenuTriggerFor]="optionsMenu"
-          [title]="'COMMON.BTN_OPTIONS'|translate">
+  <button
+    slot="end"
+    mat-icon-button
+    *ngIf="(enabled && !isNewData) || debug"
+    [matMenuTriggerFor]="optionsMenu"
+    [title]="'COMMON.BTN_OPTIONS' | translate"
+  >
     <mat-icon>more_vert</mat-icon>
   </button>
-
 </app-toolbar>
-
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-
   <ng-template matMenuContent>
-
     <!-- download as JSON -->
-    <button mat-menu-item
-            [title]="'COMMON.BTN_DOWNLOAD_JSON'|translate"
-            (click)="downloadAsJson()">
+    <button mat-menu-item [title]="'COMMON.BTN_DOWNLOAD_JSON' | translate" (click)="downloadAsJson()">
       <mat-icon>download</mat-icon>
       <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
     </button>
   </ng-template>
-
 </mat-menu>
 
 <ion-content>
-
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
-
+  <mat-tab-group
+    #tabGroup
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="tabGroupAnimationDuration"
+    dynamicHeight
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
@@ -49,21 +49,22 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
 
         <!-- base form -->
-        <app-referential-form #referentialForm
-                              entityName="Strategy"
-                              [showError]="false"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
-        </app-referential-form>
+        <app-referential-form
+          #referentialForm
+          entityName="Strategy"
+          [showError]="false"
+          [debug]="debug"
+          (onSubmit)="save($event)"
+        ></app-referential-form>
       </div>
     </mat-tab>
 
     <!-- TAB: PMFM -->
-    <mat-tab label="{{'PROGRAM.STRATEGY.TAB_PMFM'|translate}}">
+    <mat-tab label="{{ 'PROGRAM.STRATEGY.TAB_PMFM' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>view_list</mat-icon>
         <ion-label translate>PROGRAM.STRATEGY.TAB_PMFM</ion-label>
@@ -74,19 +75,16 @@
         <!-- error -->
         <ion-item *ngIf="strategyForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(strategyForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="strategyForm.error || error | translate"></ion-label>
         </ion-item>
 
         <!-- strategy details-->
-        <app-strategy-form #strategyForm
-                           [showBaseForm]="false"
-                           [program]="$program|async">
-        </app-strategy-form>
+        <app-strategy-form #strategyForm [showBaseForm]="false" [program]="$program | async"></app-strategy-form>
       </div>
     </mat-tab>
 
     <!-- TAB: access rights -->
-    <mat-tab label="{{'PROGRAM.TAB_PRIVILEGES'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{ 'PROGRAM.TAB_PRIVILEGES' | translate }}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
@@ -97,14 +95,13 @@
 
       <div class="ion-padding">
         <ion-text color="danger" class="ion-text-center">
-          <p [innerHTML]="'ERROR.FEATURE_NOT_IMPLEMENTED'|translate"></p>
+          <p [innerHTML]="'ERROR.FEATURE_NOT_IMPLEMENTED' | translate"></p>
         </ion-text>
       </div>
     </mat-tab>
 
-
     <!-- TAB: transcribing -->
-    <mat-tab label="{{'PROGRAM.STRATEGY.TAB_TRANSCRIBING'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{ 'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate }}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
@@ -117,56 +114,55 @@
         <app-transcribing-item-table></app-transcribing-item-table>
       </div>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
 
-<ion-modal #importModal [isOpen]="showImportModal"
-           class="modal-large"
-           enter-animation="modal-slide-in"
-           leave-animation="modal-slide-out">
+<ion-modal
+  #importModal
+  [isOpen]="showImportModal"
+  class="modal-large"
+  enter-animation="modal-slide-in"
+  leave-animation="modal-slide-out"
+>
   <ng-template>
     <app-modal-toolbar color="secondary">
-      <ion-title>{{'PROGRAM.STRATEGY.TAB_TRANSCRIBING'|translate}}</ion-title>
+      <ion-title>{{ 'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate }}</ion-title>
     </app-modal-toolbar>
     <ion-content>
-      <app-transcribing-item-table #transcribingTable
+      <app-transcribing-item-table
+        #transcribingTable
         (ngInit)="initTranscribingItemTable(transcribingTable)"
-        [debug]="debug">
-
-      </app-transcribing-item-table>
+        [debug]="debug"
+      ></app-transcribing-item-table>
     </ion-content>
     <ion-footer>
       <ion-toolbar>
         <ion-row>
-          <ion-col>
-
-          </ion-col>
+          <ion-col></ion-col>
           <ion-col class="ion-float-end" size="auto">
-            <ion-button (click)="importModal.dismiss()"
-                        fill="clear" color="dark">
+            <ion-button (click)="importModal.dismiss()" fill="clear" color="dark">
               <ion-label translate>COMMON.BTN_CANCEL</ion-label>
             </ion-button>
-            <ion-button (click)="startImport($event)"
-                        [fill]="transcribingTable.valid ? 'solid' : 'clear'"
-                        [color]="transcribingTable.valid ? 'tertiary' : undefined">
+            <ion-button
+              (click)="startImport($event)"
+              [fill]="transcribingTable.valid ? 'solid' : 'clear'"
+              [color]="transcribingTable.valid ? 'tertiary' : undefined"
+            >
               <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
             </ion-button>
           </ion-col>

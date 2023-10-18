@@ -44,8 +44,8 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
 
   ngOnInit() {
     // Init table
-    if (!this.table) throw new Error("Missing table child component");
-    if (!this.filter) throw new Error("Missing argument 'filter'");
+    if (!this.table) throw new Error('Missing table child component');
+    if (!this.filter) throw new Error('Missing argument \'filter\'');
 
     this.filter = OperationFilter.fromObject(this.filter);
     this.table.filter = this.filter;
@@ -56,7 +56,7 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
   loadData() {
     // Load data
     setTimeout(() => {
-      this.table.onRefresh.next("modal");
+      this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
   }

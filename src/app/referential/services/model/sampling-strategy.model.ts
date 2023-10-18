@@ -56,8 +56,7 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || undefined;
 
     if (!this.efforts && this.appliedStrategies) {
-      this.efforts = this.appliedStrategies.reduce((res, as) => {
-        return res.concat(
+      this.efforts = this.appliedStrategies.reduce((res, as) => res.concat(
           (as.appliedPeriods || []).map(period => {
             const quarter = period.startDate?.quarter();
             if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
@@ -66,10 +65,9 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
               startDate: period.startDate,
               endDate: period.endDate,
               expectedEffort: period.acquisitionNumber
-            })
+            });
           }).filter(isNotNil)
-        )
-      }, []);
+        ), []);
     }
 
     this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || undefined;

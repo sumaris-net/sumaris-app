@@ -3,8 +3,10 @@ import {
   AbstractUserEventService,
   AccountService,
   Entity,
-  EntityServiceLoadOptions, ErrorCodes, fromDateISOString,
-  GraphqlService, IDebugDataService,
+  EntityServiceLoadOptions,
+  fromDateISOString,
+  GraphqlService,
+  IDebugDataService,
   IEntityService,
   isEmptyArray,
   isNotNil,
@@ -18,7 +20,7 @@ import {
   PersonService,
   ShowToastOptions,
   Toasts,
-  UserEventWatchOptions
+  UserEventWatchOptions,
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import gql from 'graphql-tag';
@@ -37,33 +39,41 @@ import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 import { isNonEmptyArray } from '@apollo/client/utilities';
 
-const queries: IUserEventQueries & { loadContent: any }= {
-  loadContent: gql`query UserEventContent($id: Int!) {
-    data: userEvents(filter: {includedIds: [$id], excludeRead: false}, page: {offset:0, size: 1}) {
-      id
-      content
+const queries: IUserEventQueries & { loadContent: any } = {
+  loadContent: gql`
+    query UserEventContent($id: Int!) {
+      data: userEvents(filter: { includedIds: [$id], excludeRead: false }, page: { offset: 0, size: 1 }) {
+        id
+        content
+      }
     }
-  }`,
+  `,
 
-  loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
-    data: userEvents(filter: $filter, page: $page) {
-      ...LightUserEventFragment
-    }
-    total: userEventsCount(filter: $filter)
-  }
-  ${UserEventFragments.lightUserEvent}`,
-
-  loadAllWithContent: gql`query UserEventsWithContent($filter: UserEventFilterVOInput, $page: PageInput) {
+  loadAll: gql`
+    query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
       data: userEvents(filter: $filter, page: $page) {
-        ...UserEventFragment
-      },
+        ...LightUserEventFragment
+      }
       total: userEventsCount(filter: $filter)
     }
-    ${UserEventFragments.userEvent}`,
+    ${UserEventFragments.lightUserEvent}
+  `,
 
-  count: gql`query UserEventsCount($filter: UserEventFilterVOInput) {
-    total: userEventsCount(filter: $filter)
-  }`
+  loadAllWithContent: gql`
+    query UserEventsWithContent($filter: UserEventFilterVOInput, $page: PageInput) {
+      data: userEvents(filter: $filter, page: $page) {
+        ...UserEventFragment
+      }
+      total: userEventsCount(filter: $filter)
+    }
+    ${UserEventFragments.userEvent}
+  `,
+
+  count: gql`
+    query UserEventsCount($filter: UserEventFilterVOInput) {
+      total: userEventsCount(filter: $filter)
+    }
+  `,
 };
 
 const mutations: IUserEventMutations = {
@@ -146,7 +156,7 @@ export class UserEventService extends
       return entity && JSON.parse(entity.content) || undefined;
     }
     catch(err) {
-      console.error("Cannot load event content:", err);
+      console.error('Cannot load event content:', err);
       return null;
     }
   }
@@ -300,14 +310,14 @@ export class UserEventService extends
     await this.sendDataAsEvent(data);
   }
 
-  async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
+  async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean; toEntity?: boolean}): Promise<Person> {
 
     if (!pubkey || pubkey === 'SYSTEM') return null;
 
     if (!opts || opts.cache !== false) {
       const cacheKey = [CacheKeys.PERSON_BY_PUBKEY, pubkey].join('|');
       return this.cache.getOrSetItem(cacheKey, () => this.getPersonByPubkey(pubkey, {cache: false, toEntity: false}), CacheKeys.CACHE_GROUP)
-        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data || {}) : (data || <Person>{pubkey}));
+        .then(json => (!opts || opts.toEntity !== false) ? Person.fromObject(json || {}) : (json || <Person>{pubkey}));
     }
 
     // TODO use this.personService.loadByPubkey() instead

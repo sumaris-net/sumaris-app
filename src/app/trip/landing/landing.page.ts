@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 
 import {
-  AppEditorOptions, AppErrorWithDetails,
+  AppEditorOptions,
+  AppErrorWithDetails,
   EntityServiceLoadOptions,
-  EntityUtils, equals,
+  EntityUtils,
+  equals,
   fadeInOutAnimation,
   firstArrayValue,
   firstNotNilPromise,
@@ -19,8 +21,9 @@ import {
   LocalSettingsService,
   NetworkService,
   ReferentialUtils,
-  removeDuplicatesFromArray, ServerErrorCodes,
-  UsageMode
+  removeDuplicatesFromArray,
+  ServerErrorCodes,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
@@ -53,8 +56,7 @@ import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 
-export class LandingEditorOptions extends AppEditorOptions {
-}
+export class LandingEditorOptions extends AppEditorOptions {}
 
 @Component({
   selector: 'app-landing-page',
@@ -71,7 +73,7 @@ export class LandingEditorOptions extends AppEditorOptions {
     }
   ]
 })
-export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit {
+export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit, AfterViewInit {
 
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
@@ -89,7 +91,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showQualityForm = false;
   context: ContextService;
   showSamplesTable = false;
-  enableReport = false
+  enableReport = false;
 
   get form(): UntypedFormGroup {
     return this.landingForm.form;
@@ -151,13 +153,13 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.landingForm.strategyLabel$
         .pipe(
           filter(value => this.$strategyLabel.value !== value),
-          tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
+          tap(strategyLabel => console.debug('[landing-page] Received strategy label: ', strategyLabel)),
           tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
         )
         .subscribe());
 
     this.registerSubscription(
-      this.landingForm.onObservedLocationChanges
+      this.landingForm.observedLocationChanges
         .pipe(filter(_ => this.showParent))
         .subscribe((parent) => this.onParentChanged(parent))
     );
@@ -194,12 +196,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
   }
 
-  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string}) {
 
     // cast err to solve type error : detail is not a property of AppErrorWithDetails, property detail is on AppErrorWithDetails.error.detail
     err = err as any;
     if (err
-      && typeof err !== "string"
+      && typeof err !== 'string'
       && err?.code === ServerErrorCodes.DATA_NOT_UNIQUE
       && err?.details
       && typeof err.details === 'object'
@@ -534,7 +536,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean; }) {
+  protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean }) {
     await super.setStrategy(strategy);
 
     const program = this.$program.value;
@@ -556,7 +558,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.showTaxonGroupColumn = false;
 
       // Load strategy's pmfms
-      await this.setTablePmfms(this.samplesTable, program.label, strategy.label)
+      await this.setTablePmfms(this.samplesTable, program.label, strategy.label);
     }
 
     this.markAsReady();
@@ -574,7 +576,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel,
         {
-          strategyLabel: strategyLabel,
+          strategyLabel,
           acquisitionLevel: table.acquisitionLevel
         });
       const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
@@ -681,7 +683,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD')
       // Force desktop mode if landing date/time is 1 day later than now
-      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), "day") <= 1) ? 'FIELD' : 'DESK';
+      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), 'day') <= 1) ? 'FIELD' : 'DESK';
   }
 
   protected async getValue(): Promise<Landing> {

@@ -7,7 +7,7 @@ const REGEXP_DOUBLE = /^[+|-]?[0-9]+(\.[0-9]+)?$/;
 
 export class PmfmValidators {
 
-  static create(pmfm: IPmfm, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean; } ): ValidatorFn {
+  static create(pmfm: IPmfm, validatorFns?: ValidatorFn[], opts?: { forceOptional?: boolean } ): ValidatorFn {
     validatorFns = validatorFns || [];
     // Add required validator (if NOT force as optional - can occur when on field mode)
     if (pmfm.required && (!opts || opts.forceOptional !== true)) {
@@ -90,11 +90,11 @@ export class PmfmValidators {
       }
 
       // Check if value has n significant figures
-      return significantFigures <= n ? null : { 'significantFiguresNumber': {significantFiguresNumber: n} };
+      return significantFigures <= n ? null : { significantFiguresNumber: {significantFiguresNumber: n} };
     };
   }
 }
 
 export const PMFM_VALIDATOR_I18N_ERROR_KEYS = {
   significantFiguresNumber: 'REFERENTIAL.PMFM.ERROR.FIELD_SIGNIF_FIGURES_NUMBER'
-}
+};

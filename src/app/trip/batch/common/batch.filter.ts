@@ -21,7 +21,7 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
     this.operationId = source.operationId;
     this.saleId = source.saleId;
     this.parentId = source.parentId;
-    this.isSamplingBatch = source.isSamplingBatch
+    this.isSamplingBatch = source.isSamplingBatch;
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
     this.parentFilter = source.parentFilter && BatchFilter.fromObject(source.parentFilter);
   }

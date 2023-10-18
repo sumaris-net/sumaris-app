@@ -12,13 +12,13 @@ export interface IRevealOptions {
   history: boolean;
   center: boolean;
   disableLayout: boolean;
-  touch: boolean
+  touch: boolean;
   embedded: boolean; // Required for multi .reveal div
   keyboardCondition: string;
   mouseWheel: boolean;
-  slideNumber: boolean, // Disable number
-  keyboard: boolean,
-  fragments: boolean,
+  slideNumber: boolean; // Disable number
+  keyboard: boolean;
+  fragments: boolean;
   controlsBackArrows: string;
   pdfMaxPagesPerSlide: number;
   hideInactiveCursor: boolean;
@@ -31,7 +31,7 @@ export declare type RevealSlideChangedEvent = Event & {
   previousSlide: HTMLElement;
   indexh: number;
   indexv: number;
-}
+};
 export declare type IReveal = Reveal & {
   initialize();
   destroy();
@@ -44,4 +44,4 @@ export declare type IReveal = Reveal & {
   isPrintingPDF(): boolean;
   configure(options: Partial<IRevealOptions>);
   on(eventType: RevealEventType, listener: (event: any) => void);
-}
+};

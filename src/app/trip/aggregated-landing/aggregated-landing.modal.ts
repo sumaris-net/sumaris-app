@@ -6,16 +6,16 @@ import {
   OnDestroy,
   OnInit,
   ViewChild
-} from "@angular/core";
-import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, Subscription} from "rxjs";
+} from '@angular/core';
+import {AlertController, ModalController} from '@ionic/angular';
+import {BehaviorSubject, Subscription} from 'rxjs';
 import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
-import {TranslateService} from "@ngx-translate/core";
-import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
-import {AggregatedLanding, VesselActivity} from "./aggregated-landing.model";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
+import {TranslateService} from '@ngx-translate/core';
+import {AggregatedLandingForm, AggregatedLandingFormOption} from './aggregated-landing.form';
+import {AggregatedLanding, VesselActivity} from './aggregated-landing.model';
+import {Alerts} from '@sumaris-net/ngx-components';
+import {referentialToString}  from '@sumaris-net/ngx-components';
+import {isNil} from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-aggregated-landing-modal',
@@ -48,7 +48,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   get dirty(): boolean {
-    return this.form ? (this.form.enabled && this.form.dirty) : false
+    return this.form ? (this.form.enabled && this.form.dirty) : false;
   }
 
   constructor(
@@ -151,7 +151,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
 
     let saveBeforeLeave: boolean;
     if (this.dirty) {
-      console.warn("The activity is dirty, must save first");
+      console.warn('The activity is dirty, must save first');
 
       saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate);
       if (isNil(saveBeforeLeave)) {

@@ -24,4 +24,4 @@ export const ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS = {
     values: [-1, 60000, 300000, 600000].map(key => ({key: ''+key, value: `SHARED.ICHTHYOMETER.SETTINGS.AUTO_DISCONNECT_ENUM.${key}`})),
     defaultValue: '60000' // 1 min, by default
   }
-}
+};

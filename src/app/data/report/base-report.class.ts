@@ -26,7 +26,7 @@ import {
   toDateISOString,
   TranslateContextService,
   WaitForOptions,
-  waitForTrue
+  waitForTrue,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, lastValueFrom, Subject } from 'rxjs';
 import { ModalController, PopoverController, ToastController } from '@ionic/angular';
@@ -42,7 +42,7 @@ import { Clipboard, ContextService } from '@app/shared/context.service';
 import { instanceOf } from 'graphql/jsutils/instanceOf';
 import { Function } from '@app/shared/functions';
 import { hasFlag } from '@app/shared/flags.utils';
-import { downloadSharedRessource } from '@app/social/share/shared-page.utils';
+import { SharedResourceUtils } from '@app/social/share/shared-resource.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
@@ -54,7 +54,7 @@ export const ReportDataPasteFlags = Object.freeze({
   I18N_CONTEXT: 4,
 
   // ALL FLAGS
-  ALL: (1+2+4),
+  ALL: 1 + 2 + 4,
 });
 
 export interface BaseReportOptions {
@@ -65,7 +65,7 @@ export interface BaseReportOptions {
 }
 
 export interface IReportData {
-  fromObject?: (source:any) => void;
+  fromObject?: (source: any) => void;
   asObject?: (opts?: EntityAsObjectOptions) => any;
 }
 
@@ -85,9 +85,9 @@ export class BaseReportStats {
 }
 
 export interface IReportI18nContext {
-  prefix:string;
-  suffix:string;
-  pmfmPrefix?:string;
+  prefix: string;
+  suffix: string;
+  pmfmPrefix?: string;
 }
 
 export interface IComputeStatsOpts<S> {
@@ -133,14 +133,14 @@ export abstract class AppBaseReport<
   protected _autoLoadDelay = 0;
   protected _pathIdAttribute: string;
   protected _pathParentIdAttribute: string;
-  protected _stats:S = null;
+  protected _stats: S = null;
   protected uuid: string = null;
 
   protected onRefresh = new EventEmitter<void>();
 
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
-  i18nContext:IReportI18nContext = null;
+  i18nContext: IReportI18nContext = null;
 
   $defaultBackHref = new BehaviorSubject<string>('');
   $title = new BehaviorSubject<string>('');
@@ -180,11 +180,11 @@ export abstract class AppBaseReport<
     return this.settings?.latLongFormat;
   }
 
-  get shareUrlBase(): String {
+  get shareUrlBase(): string {
     let peerUrl = this.settings.settings?.peerUrl;
 
     if (isNilOrBlank(peerUrl)) {
-      // Fallback to current web site (but NOT if in App)
+      // Fallback to current website (but NOT if in App)
       if (this.isApp()) {
         throw new Error('Cannot shared report when not connected to any node. Please check your settings');
       }
@@ -322,7 +322,7 @@ export abstract class AppBaseReport<
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared ressource`);
       const http = this.injector.get(HttpClient);
       const peerUrl = this.settings.settings.peerUrl;
-      const sharedElement = await downloadSharedRessource(http, peerUrl, this.uuid);
+      const sharedElement = await SharedResourceUtils.downloadByUuid(http, peerUrl, this.uuid);
 
       clipboard = sharedElement.content;
     }
@@ -374,7 +374,7 @@ export abstract class AppBaseReport<
   protected abstract computeDefaultBackHref(data: T, stats: S): string;
 
 
-  protected computeI18nContext(stats:BaseReportStats):IReportI18nContext {
+  protected computeI18nContext(stats: BaseReportStats): IReportI18nContext {
     if (this.debug) console.debug(`[${this.logPrefix}] computeI18nContext]`);
     const suffix = isNilOrBlank(this.i18nContextSuffix)
       ? stats.program?.getProperty(ProgramProperties.I18N_SUFFIX) || ''
@@ -384,7 +384,7 @@ export abstract class AppBaseReport<
       prefix: this.options?.i18nPrefix || '',
       suffix: suffix === 'legacy' ? '' : suffix,
       pmfmPrefix: this.options?.i18nPmfmPrefix || '',
-    }
+    };
   }
 
   computePrintHref(data: T, stats: S): URL {
@@ -409,12 +409,12 @@ export abstract class AppBaseReport<
     };
   }
 
-  protected getIdFromPathIdAttribute<ID>(pathIdAttribute: string): ID {
+  protected getIdFromPathIdAttribute<R>(pathIdAttribute: string): R {
     const route = this.route.snapshot;
-    const id = route.params[pathIdAttribute] as ID;
+    const id = route.params[pathIdAttribute] as R;
     if (isNotNil(id)) {
       if (typeof id === 'string' && isNumber(id)) {
-        return (+id) as any as ID;
+        return (+id) as any as R;
       }
       return id;
     }
@@ -511,7 +511,7 @@ export abstract class AppBaseReport<
     return source.asObject(opts);
   }
 
-  statsFromObject(source:any): S {
+  statsFromObject(source: any): S {
     const stats = new this.statsType();
     stats.fromObject(source);
     return stats;
@@ -582,7 +582,7 @@ export abstract class AppBaseReport<
         {
           backdropDismiss: true
         } as any
-      )
+      );
     }
   }
 
@@ -592,7 +592,7 @@ export abstract class AppBaseReport<
 
     const uploadFileName = this.getExportFileName('json');
 
-    const sharedElement:SharedElement = {
+    const sharedElement: SharedElement = {
       uuid: uuidv4(),
       shareLink: '',
       path: this.computeShareBasePath(),
@@ -605,9 +605,10 @@ export abstract class AppBaseReport<
           stats: this.statsAsObject(this.stats),
           i18nContext: this.i18nContext,
         },
+        // eslint-disable-next-line no-bitwise
         pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT
       }
-    }
+    };
 
     const file = JsonUtils.writeToFile(sharedElement, {filename: uploadFileName});
 
@@ -626,7 +627,7 @@ export abstract class AppBaseReport<
       takeUntil(this.destroySubject)
     ));
 
-    if (message !== "OK" || !fileName) {
+    if (message !== 'OK' || !fileName) {
       throw new Error('Failed to upload report data!');
     }
 
@@ -647,7 +648,7 @@ export abstract class AppBaseReport<
     const filename = this.translateContext.instant(
       key,
       this.i18nContext.suffix,
-      params || {title: this.$title.value})
+      params || {title: this.$title.value});
     if (filename !== key) return filename;
     return `export.${format}`; // Default filename
   }

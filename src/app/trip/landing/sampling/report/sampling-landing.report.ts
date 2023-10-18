@@ -5,7 +5,7 @@ import { environment } from '@environments/environment';
 import {BaseLandingReport, LandingStats} from '@app/trip/landing/report/base-landing-report.class';
 import {IComputeStatsOpts} from '@app/data/report/base-report.class';
 import {lastValueFrom} from 'rxjs';
-import {ReferentialRefService} from "@app/referential/services/referential-ref.service";
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 
 @Component({
@@ -62,7 +62,7 @@ export class SamplingLandingReport extends BaseLandingReport {
     const strategyLabel = this.stats.strategyLabel || data.measurementValues[PmfmIds.STRATEGY_LABEL] || '';
     const title = await lastValueFrom(this.translate.get('LANDING.REPORT.SAMPLING.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
-      strategyLabel: strategyLabel
+      strategyLabel
     }));
     return titlePrefix + title;
   }

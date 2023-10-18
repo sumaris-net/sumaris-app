@@ -1,210 +1,249 @@
+<!-- error -->
+<ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+  <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+</ion-item>
 
-  <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+<!-- base form -->
+<app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="doSubmit($event)">
+  <ion-row>
+    <ion-col>
+      <mat-form-field floatLabel="never">
+        <input matInput hidden />
+        <ion-label>&nbsp;</ion-label>
+        <mat-checkbox
+          matPrefix
+          [formControl]="form | formGetControl : 'isSpatial'"
+          [disabled]="true"
+          labelPosition="after"
+        >
+          <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
+        </mat-checkbox>
+      </mat-form-field>
+    </ion-col>
 
-  <!-- base form -->
-  <app-referential-form #referentialForm
-                        [form]="form"
-                        [showError]="false"
-                        [debug]="debug"
-                        (onSubmit)="doSubmit($event)">
+    <ion-col>
+      <mat-form-field>
+        <mat-select
+          [formControl]="form | formGetControl : 'processingFrequencyId'"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY' | translate"
+          required
+        >
+          <mat-select-trigger>
+            <span *ngIf="form.controls.statusId.value &gt;= 0">
+              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}
+            </span>
+          </mat-select-trigger>
+          <mat-option *ngFor="let item of frequencyItems" [value]="item.id">
+            {{ item.label | translate }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.controls.processingFrequencyId.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
+  </ion-row>
 
+  <h3 [class.cdk-visually-hidden]="!showFilter">
+    <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FILTER_DOTS</ion-text>
+  </h3>
 
+  <ion-row [class.cdk-visually-hidden]="!showFilter">
+    <ion-col>
+      <!-- filter criteria -->
+      <app-extraction-criteria-form #criteriaForm></app-extraction-criteria-form>
+    </ion-col>
+  </ion-row>
 
-    <ion-row>
-      <ion-col>
-        <mat-form-field floatLabel="never">
-          <input matInput hidden>
-          <ion-label>&nbsp;</ion-label>
-          <mat-checkbox matPrefix
-                        [formControl]="form|formGetControl:'isSpatial'"
-                        [disabled]="true"
-                        labelPosition="after">
-            <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
-          </mat-checkbox>
-        </mat-form-field>
-      </ion-col>
+  <h3 *ngIf="form | formGetValue : 'isSpatial'">
+    <ion-text translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-text>
+  </h3>
 
-      <ion-col>
-        <mat-form-field>
-          <mat-select [formControl]="form|formGetControl:'processingFrequencyId'"
-                      [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
-            <mat-select-trigger>
-              <span *ngIf="form.controls.statusId.value &gt;= 0">
-              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}</span>
-            </mat-select-trigger>
-            <mat-option *ngFor="let item of frequencyItems" [value]="item.id">
-              {{ item.label |translate }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="form.controls.processingFrequencyId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
+  <!-- stratum -->
+  <ion-row
+    *ngFor="let strataForm of strataForms; index as i; last as last; odd as odd"
+    class="strata-row"
+    [class.odd]="odd"
+    [formGroup]="strataForm"
+  >
+    <!-- sheet name -->
+    <ion-col size-md="2" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="sheetName"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME' | translate"
+          required
+        >
+          <mat-option *ngFor="let sheetName of $sheetNames | async" [value]="sheetName">
+            {{ 'EXTRACTION.SHEET.' + sheetName | translate }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.sheetName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
+    </ion-col>
 
+    <!-- time strata-->
+    <ion-col size-md="1" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="timeColumnName"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN' | translate"
+          required
+        >
+          <mat-option
+            *ngFor="let item of $timeColumns | async | mapGet : strataForm.controls.sheetName.value"
+            [value]="item.columnName"
+          >
+            {{ item.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.timeColumnName.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-    <h3 [class.cdk-visually-hidden]="!showFilter">
-      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FILTER_DOTS</ion-text>
-    </h3>
+    <!-- space strata-->
+    <ion-col size-md="2" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="spatialColumnName"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN' | translate"
+          required
+        >
+          <mat-option
+            *ngFor="let item of $spatialColumns | async | mapGet : strataForm.controls.sheetName.value"
+            [value]="item.columnName"
+          >
+            {{ item.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.spatialColumnName.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-    <ion-row [class.cdk-visually-hidden]="!showFilter">
-      <ion-col>
-        <!-- filter criteria -->
-        <app-extraction-criteria-form #criteriaForm>
-        </app-extraction-criteria-form>
-      </ion-col>
-    </ion-row>
+    <!-- agg strata-->
+    <ion-col size-md="2" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="aggColumnName"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN' | translate"
+          required
+        >
+          <mat-option
+            *ngFor="let item of $aggColumns | async | mapGet : strataForm.controls.sheetName.value"
+            [value]="item.columnName"
+          >
+            {{ item.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.aggColumnName.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-    <h3 *ngIf="form|formGetValue:'isSpatial'">
-      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-text>
-    </h3>
+    <!-- agg function -->
+    <ion-col size-md="2" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="aggFunction"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION' | translate"
+          required
+        >
+          <mat-option *ngFor="let item of aggFunctions" [value]="item.value">{{ item.name | translate }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.aggFunction.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-    <!-- stratum -->
-    <ion-row *ngFor="let strataForm of strataForms; index as i; last as last; odd as odd"
-             class="strata-row"
-             [class.odd]="odd"
-             [formGroup]="strataForm">
+    <!-- tech strata-->
+    <ion-col size-md="" size="4">
+      <mat-form-field>
+        <mat-select
+          formControlName="techColumnName"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TECH_COLUMN' | translate"
+        >
+          <mat-option
+            *ngFor="let item of $techColumns | async | mapGet : strataForm.controls.sheetName.value"
+            [value]="item.columnName"
+          >
+            {{ item.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="strataForm.controls.techColumnName.hasError('required')" translate>
+          ERROR.FIELD_REQUIRED
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-        <!-- sheet name -->
-        <ion-col size-md="2" size="4">
-          <mat-form-field>
-            <mat-select formControlName="sheetName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME'|translate"
-                        required>
-              <mat-option *ngFor="let sheetName of $sheetNames | async"
-                          [value]="sheetName">{{'EXTRACTION.SHEET.' + sheetName | translate}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.sheetName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+    <!-- actions buttons -->
+    <ion-col size-md="auto" size="12" class="ion-align-self-center">
+      <button mat-icon-button *ngIf="last" (click)="stratumFormArray.add()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button (click)="removeStrata(i)">
+        <mat-icon>close</mat-icon>
+      </button>
+    </ion-col>
+  </ion-row>
 
-        <!-- time strata-->
-        <ion-col size-md="1" size="4">
-          <mat-form-field>
-            <mat-select formControlName="timeColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN'|translate"
-                        required>
-              <mat-option *ngFor="let item of $timeColumns | async | mapGet: strataForm.controls.sheetName.value"
-                          [value]="item.columnName">{{item.name}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.timeColumnName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+  <h3>
+    <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-text>
+  </h3>
+  <ion-row style="min-height: 36px" class="ion-margin-top">
+    <ion-col size="{{ showMarkdownPreview ? 6 : 12 }}">
+      <ion-text color="primary">
+        <small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP' | translate"></small>
+      </ion-text>
+      <!-- show preview button -->
+      <ion-button
+        *ngIf="!showMarkdownPreview"
+        size="small"
+        class="ion-float-end"
+        color="light"
+        (click)="toggleDocPreview()"
+      >
+        <ion-label translate>EXTRACTION.AGGREGATION.EDIT.BTN_PREVIEW_DOC</ion-label>
+      </ion-button>
+    </ion-col>
+    <ion-col size="6" *ngIf="showMarkdownPreview" class="ion-padding-start">
+      <ion-label color="medium" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW_DOTS</ion-label>
+      <ion-button size="small" class="ion-float-end" color="light" (click)="toggleDocPreview()">
+        <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
+      </ion-button>
+    </ion-col>
+  </ion-row>
 
-        <!-- space strata-->
-        <ion-col size-md="2" size="4">
-          <mat-form-field>
-            <mat-select formControlName="spatialColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN'|translate"
-                        required>
-              <mat-option *ngFor="let item of ($spatialColumns | async | mapGet: strataForm.controls.sheetName.value)"
-                          [value]="item.columnName">{{item.name}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.spatialColumnName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+  <ion-row [formGroup]="form">
+    <!-- documentation -->
+    <ion-col class="ion-no-padding" size="{{ showMarkdownPreview ? 6 : 12 }}">
+      <mat-form-field appearance="outline">
+        <textarea
+          matInput
+          #format
+          matTextareaAutosize="true"
+          matAutosizeMinRows="5"
+          rows="20"
+          maxlength="10000"
+          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.FORMAT_PLACEHOLDER' | translate"
+          formControlName="documentation"
+        ></textarea>
+        <mat-hint align="end">{{ format.value.length }} / 10000</mat-hint>
+        <mat-error *ngIf="form.controls.documentation.hasError('maxlength')" translate>
+          ERROR.FIELD_MAX_LENGTH
+        </mat-error>
+      </mat-form-field>
+    </ion-col>
 
-        <!-- agg strata-->
-        <ion-col size-md="2" size="4">
-          <mat-form-field>
-            <mat-select formControlName="aggColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN'|translate"
-                        required>
-              <mat-option *ngFor="let item of ($aggColumns | async | mapGet: strataForm.controls.sheetName.value)"
-                          [value]="item.columnName">{{item.name}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.aggColumnName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
-
-        <!-- agg function -->
-        <ion-col size-md="2" size="4">
-          <mat-form-field>
-            <mat-select formControlName="aggFunction"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION'|translate"
-                        required>
-              <mat-option *ngFor="let item of aggFunctions"
-                          [value]="item.value">{{item.name | translate}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.aggFunction.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
-
-        <!-- tech strata-->
-        <ion-col size-md="" size="4">
-          <mat-form-field>
-            <mat-select formControlName="techColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TECH_COLUMN'|translate">
-              <mat-option *ngFor="let item of ($techColumns | async | mapGet: strataForm.controls.sheetName.value)"
-                          [value]="item.columnName">{{item.name}}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="strataForm.controls.techColumnName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
-
-        <!-- actions buttons -->
-        <ion-col size-md="auto" size="12" class="ion-align-self-center">
-
-          <button mat-icon-button
-                  *ngIf="last"
-                  (click)="stratumFormArray.add()">
-            <mat-icon>add</mat-icon>
-          </button>
-          <button mat-icon-button (click)="removeStrata(i)">
-            <mat-icon>close</mat-icon>
-          </button>
-        </ion-col>
-    </ion-row>
-
-    <h3>
-      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-text>
-    </h3>
-    <ion-row style="min-height: 36px;" class="ion-margin-top">
-      <ion-col  size="{{showMarkdownPreview ? 6 : 12}}">
-        <ion-text color="primary"><small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP'|translate"></small></ion-text>
-        <!-- show preview button -->
-        <ion-button *ngIf="!showMarkdownPreview"
-                    size="small" class="ion-float-end" color="light"
-                    (click)="toggleDocPreview()">
-          <ion-label translate>EXTRACTION.AGGREGATION.EDIT.BTN_PREVIEW_DOC</ion-label>
-        </ion-button>
-      </ion-col>
-      <ion-col size="6" *ngIf="showMarkdownPreview" class="ion-padding-start">
-        <ion-label color="medium" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_PREVIEW_DOTS</ion-label>
-        <ion-button size="small" class="ion-float-end" color="light"
-                    (click)="toggleDocPreview()">
-          <ion-label class="ion-text-wrap" translate>COMMON.BTN_HIDE</ion-label>
-        </ion-button>
-      </ion-col>
-    </ion-row>
-
-    <ion-row [formGroup]="form" >
-
-      <!-- documentation -->
-      <ion-col class="ion-no-padding" size="{{showMarkdownPreview ? 6 : 12}}">
-        <mat-form-field appearance="outline">
-          <textarea matInput #format
-                    matTextareaAutosize="true"
-                    matAutosizeMinRows="5"
-                    rows="20"
-                    maxlength="10000"
-                    [placeholder]="'EXTRACTION.AGGREGATION.EDIT.FORMAT_PLACEHOLDER'|translate"
-                    formControlName="documentation">
-          </textarea>
-          <mat-hint align="end">{{format.value.length}} / 10000</mat-hint>
-          <mat-error *ngIf="form.controls.documentation.hasError('maxlength')" translate>ERROR.FIELD_MAX_LENGTH</mat-error>
-        </mat-form-field>
-      </ion-col>
-
-      <!-- format preview -->
-      <ion-col *ngIf="showMarkdownPreview"
-               class="ion-col-documentation-preview ion-padding-start ion-no-padding-xs">
-        <markdown [data]="$markdownContent|async" emoji>
-        </markdown>
-      </ion-col>
-    </ion-row>
-
-  </app-referential-form>
+    <!-- format preview -->
+    <ion-col *ngIf="showMarkdownPreview" class="ion-col-documentation-preview ion-padding-start ion-no-padding-xs">
+      <markdown [data]="$markdownContent | async" emoji></markdown>
+    </ion-col>
+  </ion-row>
+</app-referential-form>

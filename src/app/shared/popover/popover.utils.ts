@@ -7,7 +7,7 @@ export class Popovers {
   static async showText(popoverController: PopoverController,
                         event: Event,
                         opts: TextPopoverOptions,
-                        popoverOpts?: PopoverOptions) : Promise<OverlayEventDetail> {
+                        popoverOpts?: PopoverOptions): Promise<OverlayEventDetail> {
     const popover = await popoverController.create({
       component: TextPopover,
       componentProps: opts,

@@ -115,7 +115,7 @@ export class SampleTreeTestPage implements OnInit {
           });
 
         this.applyExample();
-      })
+      });
   }
 
 
@@ -178,7 +178,7 @@ export class SampleTreeTestPage implements OnInit {
       sampleTree.program = program;
     }
 
-    this.cd.detectChanges()
+    this.cd.detectChanges();
   }
 
   markAsReady() {
@@ -202,7 +202,7 @@ export class SampleTreeTestPage implements OnInit {
     }
 
     // Get program
-    const programLabel = this.filterForm.get('program').value?.label
+    const programLabel = this.filterForm.get('program').value?.label;
 
     // Load example
     const json = getExampleTree(key, programLabel);
@@ -242,7 +242,7 @@ export class SampleTreeTestPage implements OnInit {
     this.dumpSamples(samples, outputName);
 
     if (component.mobile) {
-      let html = "<br/>Sub samples :<br/>";
+      const html = '<br/>Sub samples :<br/>';
 
       // TODO
 
@@ -255,12 +255,12 @@ export class SampleTreeTestPage implements OnInit {
 
 
   dumpSamples(samples: Sample[], outputName?: string, indent?: string): string {
-    let html = "";
+    let html = '';
     if (samples) {
       SampleUtils.logTree(samples, {
         showAll: false,
         println: (m) => {
-          html += "<br/>" + m
+          html += '<br/>' + m;
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');

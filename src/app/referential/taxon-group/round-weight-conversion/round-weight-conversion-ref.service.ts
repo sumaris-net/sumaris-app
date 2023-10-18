@@ -69,6 +69,7 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
 
   /**
    * Convert an alive weight, into the expected dressing/preservation state
+   *
    * @param conversion
    * @param value
    */
@@ -111,11 +112,11 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     }
 
     const size = 1;
-    let res = await this.loadAll(0, size, 'startDate', 'desc', filter, {withTotal: false, toEntity: false});
+    const res = await this.loadAll(0, size, 'startDate', 'desc', filter, {withTotal: false, toEntity: false});
 
     // Not found
     if (isEmptyArray(res?.data)) {
-      console.debug(this._logPrefix + 'No conversion found!')
+      console.debug(this._logPrefix + 'No conversion found!');
       return null;
     }
 
@@ -123,7 +124,7 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<RoundWeightConversionFilter>,
-          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean; }): Promise<LoadResult<RoundWeightConversionRef>> {
+          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<RoundWeightConversionRef>> {
 
     filter = this.asFilter(filter);
 
@@ -139,7 +140,7 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
   }
 
   async clearCache() {
-    console.info("[round-weight-conversion-ref-service] Clearing cache...");
+    console.info('[round-weight-conversion-ref-service] Clearing cache...');
     await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }

@@ -1,16 +1,13 @@
-<mat-icon [svgIcon]="matSvgIcon"
-          [style.pointer-events]="title ? 'auto' : 'none'"
-          [style.color]="'var(--ion-color-'+color+')'"
-          appBadge
-          [appBadgeIcon]="badgeIcon"
-          [appBadgeColor]="badgeColor"
-          [appBadgeFill]="badgeFill"
-          [appBadgeSize]="badgeSize"
-          [title]="title">
-
-  <ion-icon *ngIf="icon" slot="icon-only"
-            [color]="color"
-            [name]="icon"
-  ></ion-icon>
+<mat-icon
+  [svgIcon]="matSvgIcon"
+  [style.pointer-events]="title ? 'auto' : 'none'"
+  [style.color]="'var(--ion-color-' + color + ')'"
+  appBadge
+  [appBadgeIcon]="badgeIcon"
+  [appBadgeColor]="badgeColor"
+  [appBadgeFill]="badgeFill"
+  [appBadgeSize]="badgeSize"
+  [title]="title"
+>
+  <ion-icon *ngIf="icon" slot="icon-only" [color]="color" [name]="icon"></ion-icon>
 </mat-icon>
-

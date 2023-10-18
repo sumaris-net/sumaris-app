@@ -1,13 +1,12 @@
-import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
+import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '../common/batch.model';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { EntityClass, EntityUtils, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
-@EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
+@EntityClass({ typename: 'BatchGroupVO', fromObjectReuseStrategy: 'clone' })
 export class BatchGroup extends Batch<BatchGroup> {
-
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => BatchGroup;
 
   // Number of individual observed (by individual measure)
@@ -46,13 +45,14 @@ export class BatchGroupUtils {
     // Retrieve batch group (make sure label start with acquisition level)
     // Then convert into batch group entities
     return (catchBatch.children || [])
-      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + "#"))
+      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#'))
       // Convert to Batch Group
       .map(BatchGroup.fromBatch);
   }
 
   /**
    * Count only individual count with measure
+   *
    * @param batch
    */
   static computeObservedIndividualCount(batch: BatchGroup) {
@@ -63,6 +63,7 @@ export class BatchGroupUtils {
 
   /**
    * Check equality of BatchGroup
+   *
    * @param batchGroup1
    * @param batchGroup2
    */
@@ -80,8 +81,8 @@ export class BatchGroupUtils {
    */
   static mapChildrenPmfms(pmfms: IPmfm[], opts: {
     qvPmfm?: IPmfm;
-    qvId?: number,
-    isDiscard?: boolean
+    qvId?: number;
+    isDiscard?: boolean;
   }) {
     const isDiscard = opts.isDiscard
       || (opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
@@ -122,7 +123,7 @@ export class BatchGroupUtils {
       const qvPmfm = opts.qvPmfm.clone();
       qvPmfm.hidden = true;
       qvPmfm.required = true;
-      qvPmfm.defaultValue = opts.qvPmfm.qualitativeValues.find(qv => qv.id === opts.qvId)
+      qvPmfm.defaultValue = opts.qvPmfm.qualitativeValues.find(qv => qv.id === opts.qvId);
       return [qvPmfm, ...childrenPmfms];
     }
     else {
@@ -133,6 +134,7 @@ export class BatchGroupUtils {
 
   /**
    * Find the parent batch, of a subBatches, by the parent group
+   *
    * @param batchGroup
    * @param qvValue
    * @param qvPmfm
@@ -142,6 +144,7 @@ export class BatchGroupUtils {
     const value = PmfmValueUtils.toModelValue(qvValue, qvPmfm);
     return (batchGroup.children || []).find(parent =>
       // WARN: use '==' and NOT '===', because measurementValues can use string, for values
+      // eslint-disable-next-line eqeqeq
       value == PmfmValueUtils.toModelValue(parent.measurementValues[qvPmfmId], qvPmfm)
     );
   }

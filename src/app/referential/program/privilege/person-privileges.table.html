@@ -1,38 +1,37 @@
-
 <mat-toolbar *ngIf="showToolbar">
-
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button mat-icon-button
-            *ngIf="canEdit && !mobile && enabled"
-            [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+    <button
+      mat-icon-button
+      *ngIf="canEdit && !mobile && enabled"
+      [title]="'COMMON.BTN_ADD' | translate"
+      (click)="addRow()"
+    >
       <mat-icon>add</mat-icon>
     </button>
 
     <!-- Refresh -->
-    <button mat-icon-button *ngIf="!mobile"
-            [title]="'COMMON.BTN_REFRESH'|translate"
-            (click)="onRefresh.emit()">
+    <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
-
   </ng-container>
 
   <!-- if row selection -->
   <ng-template #hasSelection>
-
     <!-- Delete -->
-    <button mat-icon-button *ngIf="canDelete && enabled"
-            [title]="'COMMON.BTN_DELETE'|translate"
-            (click)="deleteSelection($event)">
+    <button
+      mat-icon-button
+      *ngIf="canDelete && enabled"
+      [title]="'COMMON.BTN_DELETE' | translate"
+      (click)="deleteSelection($event)"
+    >
       <mat-icon>delete</mat-icon>
     </button>
-
   </ng-template>
 
   <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <!-- separator -->
@@ -42,48 +41,49 @@
   </ion-text>
 
   <!-- options menu -->
-  <button mat-icon-button matHeader
-          [title]="'COMMON.BTN_OPTIONS'|translate"
-          [matMenuTriggerFor]="optionsMenu">
+  <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
     <mat-icon>more_vert</mat-icon>
   </button>
-
 </mat-toolbar>
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-
   <!-- display columns -->
-  <button mat-menu-item
-          (click)="openSelectColumnsModal($event)">
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
     <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
-
 </mat-menu>
 
 <!-- error -->
 <ion-item *ngIf="showError && mobile && error; let error" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
-
-  <mat-table [dataSource]="dataSource" matSort  matSortDisableClear
-             [matSortActive]="defaultSortBy"
-             [matSortDirection]="defaultSortDirection"
-             [trackBy]="trackByFn">
-
+  <mat-table
+    [dataSource]="dataSource"
+    matSort
+    matSortDisableClear
+    [matSortActive]="defaultSortBy"
+    [matSortDirection]="defaultSortDirection"
+    [trackBy]="trackByFn"
+  >
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
+        <mat-checkbox
+          (change)="$event ? masterToggle() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        ></mat-checkbox>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-        </mat-checkbox>
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
       </mat-cell>
     </ng-container>
 
@@ -101,24 +101,27 @@
         <span translate>PROGRAM.PRIVILEGES.PERSON</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-autocomplete-field [formControl]="row.validator.controls.person"
-                                [placeholder]="'PROGRAM.PRIVILEGES.PERSON'|translate"
-                                [autofocus]="row.id === -1 && row.editing"
-                                [config]="autocompleteFields.person"
-                                [i18nPrefix]="'USER.'"
-                                floatLabel="never"
-                                required>
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          [formControl]="row.validator.controls.person"
+          [placeholder]="'PROGRAM.PRIVILEGES.PERSON' | translate"
+          [autofocus]="row.id === -1 && row.editing"
+          [config]="autocompleteFields.person"
+          [i18nPrefix]="'USER.'"
+          floatLabel="never"
+          required
+        ></mat-autocomplete-field>
       </mat-cell>
     </ng-container>
 
     <!-- Person's department -->
-    <ng-container matColumnDef="department" >
+    <ng-container matColumnDef="department">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>PROGRAM.PRIVILEGES.DEPARTMENT</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.person?.department | referentialToString: displayAttributes.department}}</ion-label>
+        <ion-label>
+          {{ row.currentData.person?.department | referentialToString : displayAttributes.department }}
+        </ion-label>
       </mat-cell>
     </ng-container>
 
@@ -128,13 +131,13 @@
         <span translate>PROGRAM.PRIVILEGES.PRIVILEGE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-autocomplete-field [formControl]="row.validator.controls.privilege"
-                                [placeholder]="'PROGRAM.PRIVILEGES.PRIVILEGE'|translate"
-                                [config]="autocompleteFields.privilege"
-                                floatLabel="never"
-                                required>
-        </mat-autocomplete-field>
-
+        <mat-autocomplete-field
+          [formControl]="row.validator.controls.privilege"
+          [placeholder]="'PROGRAM.PRIVILEGES.PRIVILEGE' | translate"
+          [config]="autocompleteFields.privilege"
+          floatLabel="never"
+          required
+        ></mat-autocomplete-field>
       </mat-cell>
     </ng-container>
 
@@ -144,32 +147,33 @@
         <span translate>PROGRAM.PRIVILEGES.LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-autocomplete-field [formControl]="row.validator.controls.location"
-                                [placeholder]="'PROGRAM.PRIVILEGES.LOCATION'|translate"
-                                [config]="autocompleteFields.location"
-                                [clearable]="true"
-                                floatLabel="never">
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          [formControl]="row.validator.controls.location"
+          [placeholder]="'PROGRAM.PRIVILEGES.LOCATION' | translate"
+          [config]="autocompleteFields.location"
+          [clearable]="true"
+          floatLabel="never"
+        ></mat-autocomplete-field>
       </mat-cell>
     </ng-container>
 
     <!-- Actions buttons column -->
-    <app-actions-column [stickyEnd]="useSticky"
-                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
-                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
-                        (backward)="confirmAndBackward($event.event, $event.row)"
-                        (forward)="confirmAndForward($event.event, $event.row)"
-                        [canCancel]="false">
-
-
-    </app-actions-column>
+    <app-actions-column
+      [stickyEnd]="useSticky"
+      (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+      (backward)="confirmAndBackward($event.event, $event.row)"
+      (forward)="confirmAndForward($event.event, $event.row)"
+      [canCancel]="false"
+    ></app-actions-column>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"
-             [class.mat-row-error]="row.validator.invalid"
-             [class.mat-row-dirty]="row.validator.dirty"
-             [class.mat-row-disabled]="!row.editing"
-             (click)="clickRow($event, row)"></mat-row>
-
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      [class.mat-row-error]="row.validator.invalid"
+      [class.mat-row-dirty]="row.validator.dirty"
+      [class.mat-row-disabled]="!row.editing"
+      (click)="clickRow($event, row)"
+    ></mat-row>
   </mat-table>
 </div>

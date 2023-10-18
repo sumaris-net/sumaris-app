@@ -67,7 +67,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     this.updateTitle();
     this.packetForm.markAsReady();
     setTimeout(() => {
-      this.packetForm.setValue(this.data)
+      this.packetForm.setValue(this.data);
       if (!this.disabled) this.enable();
     });
   }

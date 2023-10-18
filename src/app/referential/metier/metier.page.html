@@ -1,23 +1,27 @@
-<app-toolbar [title]="$title | async"
-             color="primary"
-             [hasValidate]="!loading && dirty"
-             (onValidate)="save($event)"
-             (onClose)="close($event)"
-             [hasClose]="!loading && !dirty"
-             [defaultBackHref]="defaultBackHref"
-             [canGoBack]="true">
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading && dirty"
+  (onValidate)="save($event)"
+  (onClose)="close($event)"
+  [hasClose]="!loading && !dirty"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
-
-  <mat-tab-group #tabGroup
-                 class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
-                 [class.mobile]="mobile"
-                 [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
-
+  <mat-tab-group
+    #tabGroup
+    class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
+    [class.mobile]="mobile"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    dynamicHeight
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>REFERENTIAL.PMFM.TAB_GENERAL</ion-label>
@@ -28,9 +32,8 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
-
 
         <!-- DEBUG -->
         <app-debug *ngIf="debug">
@@ -41,16 +44,22 @@
               </ion-col>
               <ion-col>
                 <ion-text>
-                  editor.loading: {{loading}}<br/>
-                  editor.ready: {{readySubject|async}}<br/>
-                  editor.dirty: {{dirty}}<br/>
+                  editor.loading: {{ loading }}
+                  <br />
+                  editor.ready: {{ readySubject | async }}
+                  <br />
+                  editor.dirty: {{ dirty }}
+                  <br />
                 </ion-text>
               </ion-col>
               <ion-col>
                 <ion-text>
-                  form.loading: {{referentialForm.loading}}<br/>
-                  form.ready: {{referentialForm.readySubject|async}}<br/>
-                  form.dirty: {{referentialForm.dirty}}<br/>
+                  form.loading: {{ referentialForm.loading }}
+                  <br />
+                  form.ready: {{ referentialForm.readySubject | async }}
+                  <br />
+                  form.dirty: {{ referentialForm.dirty }}
+                  <br />
                 </ion-text>
               </ion-col>
             </ion-row>
@@ -58,40 +67,38 @@
         </app-debug>
 
         <ion-grid class="ion-no-padding">
-
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
-
               <form [formGroup]="form">
-
                 <!-- base form -->
-                <app-referential-form #referentialForm
-                                      [form]="form"
-                                      [entityName]="entityName"
-                                      [showError]="false"
-                                      [debug]="debug"
-                                      (onSubmit)="save($event)">
-
-
+                <app-referential-form
+                  #referentialForm
+                  [form]="form"
+                  [entityName]="entityName"
+                  [showError]="false"
+                  [debug]="debug"
+                  (onSubmit)="save($event)"
+                >
                   <ion-row>
                     <ion-col>
                       <!-- Gear -->
-                      <app-form-field [definition]="fieldDefinitions.gear"
-                                      formControlName="gear"
-                                      required="true"
-                                      tabindex="10">
-                      </app-form-field>
+                      <app-form-field
+                        [definition]="fieldDefinitions.gear"
+                        formControlName="gear"
+                        required="true"
+                        tabindex="10"
+                      ></app-form-field>
                     </ion-col>
                     <ion-col>
-                      <app-form-field [definition]="fieldDefinitions.taxonGroup"
-                                      formControlName="taxonGroup"
-                                      required="true"
-                                      tabindex="11">
-                      </app-form-field>
+                      <app-form-field
+                        [definition]="fieldDefinitions.taxonGroup"
+                        formControlName="taxonGroup"
+                        required="true"
+                        tabindex="11"
+                      ></app-form-field>
                     </ion-col>
                   </ion-row>
-
-               </app-referential-form>
+                </app-referential-form>
               </form>
             </ion-col>
 
@@ -101,26 +108,22 @@
             </ion-col>
           </ion-row>
         </ion-grid>
-
       </div>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>

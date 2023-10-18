@@ -1,5 +1,4 @@
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" lines="none" class="ion-padding">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -7,7 +6,6 @@
   </ion-item>
 
   <table class="mat-table" [class.mobile]="mobile">
-
     <thead>
       <!-- header row -->
       <tr class="mat-header-row">
@@ -33,55 +31,53 @@
     <tbody>
       <!-- footer -->
       <tr class="mat-footer-row mat-row-disabled">
-
         <!-- total  -->
         <td class="mat-footer-cell mat-column-saleType ion-text-end">
-          <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
+          <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>
+            TRIP.PRODUCT.SALE.TOTAL_PRODUCT
+          </ion-label>
         </td>
 
         <!--  number -->
-        <td class="mat-footer-cell mat-column-subgroupCount " >
+        <td class="mat-footer-cell mat-column-subgroupCount">
           <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
-            <input matInput
-                   [placeholder]="'PACKET.NUMBER'|translate"
-                   formControlName="number"
-                   readonly>
+            <input matInput [placeholder]="'PACKET.NUMBER' | translate" formControlName="number" readonly />
           </mat-form-field>
         </td>
 
         <!--  weight  -->
-        <td class="mat-footer-cell mat-column-weight" >
+        <td class="mat-footer-cell mat-column-weight">
           <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
-            <input matInput
-                   [placeholder]="'PACKET.WEIGHT'|translate"
-                   formControlName="weight"
-                   readonly>
+            <input matInput [placeholder]="'PACKET.WEIGHT' | translate" formControlName="weight" readonly />
           </mat-form-field>
         </td>
 
-        <td class="mat-footer-cell">
-        </td>
+        <td class="mat-footer-cell"></td>
 
-        <td class="mat-footer-cell" colspan="2">
-        </td>
+        <td class="mat-footer-cell" colspan="2"></td>
       </tr>
 
       <!-- sale row -->
-      <tr class="mat-row" *ngFor="let saleForm of saleFormArray?.controls; index as i; last as last, even as even"
-          [formGroup]="saleForm|formGetGroup"
-          [class.mat-row-disabled]="salesEditedIndex!==i"
-          [class.mat-row-selected]="salesEditedIndex===i"
-          [class.mat-row-error]="saleForm.invalid"
-          (focusin)="salesEditedIndex=i">
-
+      <tr
+        class="mat-row"
+        *ngFor="let saleForm of saleFormArray?.controls; index as i; last as last; even as even"
+        [formGroup]="saleForm | formGetGroup"
+        [class.mat-row-disabled]="salesEditedIndex !== i"
+        [class.mat-row-selected]="salesEditedIndex === i"
+        [class.mat-row-error]="saleForm.invalid"
+        (focusin)="salesEditedIndex = i"
+      >
         <!-- Sale type -->
         <td class="mat-cell mat-column-saleType">
-          <mat-autocomplete-field formControlName="saleType" floatLabel="never"
-                                  [placeholder]="'PACKET.SALE.SALE_TYPE'|translate"
-                                  [autofocus]="salesFocusIndex === i && salesEditedIndex === i"
-                                  [config]="autocompleteFields.saleType"
-                                  [tabindex]="tabindex+3+i*7"
-                                  [required]="true">
+          <mat-autocomplete-field
+            formControlName="saleType"
+            floatLabel="never"
+            [placeholder]="'PACKET.SALE.SALE_TYPE' | translate"
+            [autofocus]="salesFocusIndex === i && salesEditedIndex === i"
+            [config]="autocompleteFields.saleType"
+            [tabindex]="tabindex + 3 + i * 7"
+            [required]="true"
+          >
             <ion-icon matPrefix name="card"></ion-icon>
           </mat-autocomplete-field>
         </td>
@@ -89,18 +85,30 @@
         <!-- subgroupCount -->
         <td class="mat-cell mat-column-subgroupCount">
           <mat-form-field floatLabel="never">
-            <input matInput formControlName="subgroupCount"
-                   [placeholder]="'PACKET.NUMBER'|translate"
-                   autocomplete="off" type="number" pattern="[0-9]*" step="1"
-                   [tabIndex]="tabindex+3+i*7+1"
-                   min="1"
-                   [max]="form|formGetValue:'number'"
-                   required>
-            <mat-error *ngIf="saleForm.controls.subgroupCount.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+            <input
+              matInput
+              formControlName="subgroupCount"
+              [placeholder]="'PACKET.NUMBER' | translate"
+              autocomplete="off"
+              type="number"
+              pattern="[0-9]*"
+              step="1"
+              [tabIndex]="tabindex + 3 + i * 7 + 1"
+              min="1"
+              [max]="form | formGetValue : 'number'"
+              required
+            />
+            <mat-error
+              *ngIf="saleForm.controls.subgroupCount.errors | mapKeys | arrayFirst; let errorKey"
+              [ngSwitch]="errorKey"
+            >
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-              <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN_COMPACT' | translate: saleForm.controls.subgroupCount.errors.min }}</span>
+              <span *ngSwitchCase="'min'">
+                {{ 'ERROR.FIELD_MIN_COMPACT' | translate : saleForm.controls.subgroupCount.errors.min }}
+              </span>
               <span *ngSwitchCase="'max'">
-                        {{ 'ERROR.FIELD_MAX_COMPACT'| translate:saleForm.controls.subgroupCount.errors.max }}</span>
+                {{ 'ERROR.FIELD_MAX_COMPACT' | translate : saleForm.controls.subgroupCount.errors.max }}
+              </span>
               <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
             </mat-error>
           </mat-form-field>
@@ -108,62 +116,81 @@
 
         <!-- weight -->
         <td class="mat-cell mat-column-weight even">
-          <mat-form-field floatLabel="never"
-                          class="mat-form-field-disabled computed">
-            <input matInput formControlName="weight"
-                   [placeholder]="'PACKET.WEIGHT'|translate"
-                   autocomplete="off" type="number"
-                   [tabIndex]="tabindex+3+i*7+2"
-                   readonly>
+          <mat-form-field floatLabel="never" class="mat-form-field-disabled computed">
+            <input
+              matInput
+              formControlName="weight"
+              [placeholder]="'PACKET.WEIGHT' | translate"
+              autocomplete="off"
+              type="number"
+              [tabIndex]="tabindex + 3 + i * 7 + 2"
+              readonly
+            />
           </mat-form-field>
         </td>
 
         <!-- averagePackagingPrice -->
         <td class="mat-cell mat-column-averagePackagingPrice">
-          <mat-form-field floatLabel="never"
-                          [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
-            <input matInput formControlName="averagePackagingPrice"
-                   [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
-                   autocomplete="off" type="number" step="0.1"
-                   [tabIndex]="tabindex+3+i*7+3">
+          <mat-form-field
+            floatLabel="never"
+            [class.computed]="saleForm | formGetValue : 'averagePackagingPriceCalculated'"
+          >
+            <input
+              matInput
+              formControlName="averagePackagingPrice"
+              [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE' | translate"
+              autocomplete="off"
+              type="number"
+              step="0.1"
+              [tabIndex]="tabindex + 3 + i * 7 + 3"
+            />
           </mat-form-field>
         </td>
 
         <!-- totalPrice -->
         <td class="mat-cell mat-column-totalPrice">
-          <mat-form-field floatLabel="never"
-                          [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
-            <input matInput formControlName="totalPrice"
-                   [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
-                   autocomplete="off" type="number" step="0.1"
-                   [tabIndex]="tabindex+3+i*7+4">
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue : 'totalPriceCalculated'">
+            <input
+              matInput
+              formControlName="totalPrice"
+              [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE' | translate"
+              autocomplete="off"
+              type="number"
+              step="0.1"
+              [tabIndex]="tabindex + 3 + i * 7 + 4"
+            />
           </mat-form-field>
         </td>
 
         <!-- buttons -->
         <td class="mat-cell mat-column-actions">
           <ion-buttons>
-            <button type="button" mat-icon-button
-                    *ngIf="!mobile"
-                    [style.visibility]="last ? 'visible' : 'hidden'"
-                    [disabled]="disabled"
-                    [title]="'COMMON.BTN_ADD'|translate"
-                    (click)="addSale($event)"
-                    [tabindex]="tabindex+3+i*7+5">
+            <button
+              type="button"
+              mat-icon-button
+              *ngIf="!mobile"
+              [style.visibility]="last ? 'visible' : 'hidden'"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_ADD' | translate"
+              (click)="addSale($event)"
+              [tabindex]="tabindex + 3 + i * 7 + 5"
+            >
               <mat-icon>add</mat-icon>
             </button>
-            <button type="button" mat-icon-button
-                    *ngIf="!mobile || salesEditedIndex === i && !disabled"
-                    [class.visible-hover-row]="!mobile"
-                    [tabindex]="-1"
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removeSale(i)">
+            <button
+              type="button"
+              mat-icon-button
+              *ngIf="!mobile || (salesEditedIndex === i && !disabled)"
+              [class.visible-hover-row]="!mobile"
+              [tabindex]="-1"
+              [title]="'COMMON.BTN_DELETE' | translate"
+              (click)="removeSale(i)"
+            >
               <mat-icon>delete_outline</mat-icon>
             </button>
           </ion-buttons>
         </td>
       </tr>
     </tbody>
-
   </table>
 </form>

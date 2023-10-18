@@ -197,7 +197,7 @@ export class PhysicalGearsTestPage implements OnInit {
 
     Object.keys(modalOptions).forEach(key =>
       this.setModalOptions(key as keyof IPhysicalGearModalOptions, modalOptions[key])
-    )
+    );
   }
 
   async setModalOptions(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
@@ -215,7 +215,7 @@ export class PhysicalGearsTestPage implements OnInit {
     await sleep(200);
 
     // Open modal
-    const rows = await this.table.dataSource.getRows()
+    const rows = await this.table.dataSource.getRows();
     if (isNotEmptyArray(rows)) {
       this.table.clickRow(null, rows[0]);
     }
@@ -232,10 +232,10 @@ export class PhysicalGearsTestPage implements OnInit {
   }
 
   dumpData(data: PhysicalGear[], outputName?: string) {
-    let html = "";
+    let html = '';
     if (data) {
       data.map(gear =>  {
-        html += "<br/> - " + gear.measurementValues[PmfmIds.GEAR_LABEL];
+        html += '<br/> - ' + gear.measurementValues[PmfmIds.GEAR_LABEL];
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 

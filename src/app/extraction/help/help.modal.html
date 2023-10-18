@@ -1,29 +1,21 @@
-<app-modal-toolbar color="light"
-                   [title]="title"
-                   (cancel)="close($event)"
-                   [showSpinner]="loading">
-</app-modal-toolbar>
+<app-modal-toolbar color="light" [title]="title" (cancel)="close($event)" [showSpinner]="loading"></app-modal-toolbar>
 
 <ion-content class="ion-padding">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <markdown *ngIf="markdownContent"
-            [data]="markdownContent"
-            (ready)="markAsLoaded()"
-            emoji>
-  </markdown>
+  <markdown *ngIf="markdownContent" [data]="markdownContent" (ready)="markAsLoaded()" emoji></markdown>
 
-  <markdown *ngIf="markdownUrl"
-            [src]="markdownUrl"
-            (load)="markAsLoaded()"
-            (error)="onLoadError($event)"
-            emoji></markdown>
-
+  <markdown
+    *ngIf="markdownUrl"
+    [src]="markdownUrl"
+    (load)="markAsLoaded()"
+    (error)="onLoadError($event)"
+    emoji
+  ></markdown>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -31,10 +23,8 @@
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
       <ion-col size="auto">
-        <ion-button fill="solid" color="tertiary" (click)="close()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>
+        <ion-button fill="solid" color="tertiary" (click)="close()">{{ 'COMMON.BTN_CLOSE' | translate }}</ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>
 </ion-footer>
-
-

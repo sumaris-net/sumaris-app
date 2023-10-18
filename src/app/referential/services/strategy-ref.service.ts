@@ -96,7 +96,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   private _subscriptionCache: {[key: string]: {
       subject: Subject<any>;
       subscription: Subscription;
-    }} = {};
+    };} = {};
 
   constructor(
     injector: Injector,
@@ -113,6 +113,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
 
   /**
    * Watch strategy by label
+   *
    * @param label
    * @param opts
    */
@@ -166,7 +167,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         // Important: do NOT using cache here, as default (= 'no-cache')
         // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && opts.fetchPolicy || 'no-cache',
-        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"}
+        error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'}
       }).pipe(
         map(res => {
           if (isEmptyArray(res.data)) throw new Error('ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
@@ -204,7 +205,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   }
 
   async clearCache() {
-    console.info("[strategy-ref-service] Clearing strategy cache...");
+    console.info('[strategy-ref-service] Clearing strategy cache...');
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
 

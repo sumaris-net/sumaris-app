@@ -7,7 +7,7 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
-@EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})
+@EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: 'clone'})
 export class SubBatch extends Batch<SubBatch> {
 
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => SubBatch;
@@ -16,7 +16,7 @@ export class SubBatch extends Batch<SubBatch> {
   parentGroup: BatchGroup;
 
   static fromBatch(source: Batch, parentGroup: BatchGroup): SubBatch {
-    if (!source || !parentGroup) throw new Error("Missing argument 'source' or 'parentGroup'");
+    if (!source || !parentGroup) throw new Error('Missing argument \'source\' or \'parentGroup\'');
     const target = new SubBatch();
     Object.assign(target, source);
     // Find the group
@@ -48,15 +48,14 @@ export class SubBatchUtils {
   static fromBatchGroups(
     groups: BatchGroup[],
     opts?: {
-      groupQvPmfm?: IPmfm
+      groupQvPmfm?: IPmfm;
     }
   ): SubBatch[] {
     opts = opts || {};
 
     // If using QV pmfm
     if (opts.groupQvPmfm) {
-      return groups.reduce((res, group) => {
-        return res.concat((group.children || []).reduce((res, qvBatch) => {
+      return groups.reduce((res, group) => res.concat((group.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL);
           const qvModelValue = PmfmValueUtils.toModelValue(qvBatch.measurementValues[opts.groupQvPmfm.id], opts.groupQvPmfm);
           return res.concat(children
@@ -75,21 +74,19 @@ export class SubBatchUtils {
 
               return target;
             }));
-        }, []));
-      }, []);
+        }, [])), []);
     }
 
     // No QV pmfm
     else {
-      return groups.reduce((res, group) => {
-        return res.concat(BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
-          .map(child => SubBatch.fromBatch(child, group)));
-      }, []);
+      return groups.reduce((res, group) => res.concat(BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+          .map(child => SubBatch.fromBatch(child, group))), []);
     }
   }
 
   /**
    * Make sure each subbatch.parentGroup use a reference found inside the groups arrays
+   *
    * @param groups
    * @param subBatches
    */
@@ -98,12 +95,13 @@ export class SubBatchUtils {
 
     subBatches.forEach(s => {
       s.parentGroup = s.parentGroup && groups.find(p => Batch.equals(p, s.parentGroup)) || null;
-      if (!s.parentGroup) console.warn("linkSubBatchesToGroup() - Could not found parent group, for sub-batch:", s);
+      if (!s.parentGroup) console.warn('linkSubBatchesToGroup() - Could not found parent group, for sub-batch:', s);
     });
   }
 
   /**
    * Prepare subbatches for model (set the subbatch.parent)
+   *
    * @param batchGroups
    * @param subBatches
    * @param opts

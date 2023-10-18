@@ -1,11 +1,11 @@
-import {ChangeDetectorRef, Component, Injector, Input, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {TranslateService} from "@ngx-translate/core";
-import {ExtractionType} from "../type/extraction-type.model";
-import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {AppHelpModal} from "@sumaris-net/ngx-components";
+import {ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {PlatformService}  from '@sumaris-net/ngx-components';
+import {LocalSettingsService}  from '@sumaris-net/ngx-components';
+import {TranslateService} from '@ngx-translate/core';
+import {ExtractionType} from '../type/extraction-type.model';
+import {isNotNilOrBlank} from '@sumaris-net/ngx-components';
+import {AppHelpModal} from '@sumaris-net/ngx-components';
 
 export interface ExtractionHelpModalOptions {
   type: ExtractionType;
@@ -32,7 +32,7 @@ export class ExtractionHelpModal extends AppHelpModal implements OnInit, Extract
 
 
   ngOnInit() {
-    if (!this.type) throw new Error("Missing 'type' input");
+    if (!this.type) throw new Error('Missing \'type\' input');
     this.title = this.type.name;
 
     console.debug('[extraction-help-modal] Show help modal for type:', this.type);

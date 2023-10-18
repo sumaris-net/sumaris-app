@@ -234,7 +234,7 @@ export abstract class AbstractBatchesTable<
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroups
-      let data = this.dataSource.getData()
+      const data = this.dataSource.getData();
       const existingTaxonGroups = removeDuplicatesFromArray(
         data.map(batch => batch.taxonGroup).filter(isNotNil),
         'id');

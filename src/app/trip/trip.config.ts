@@ -126,13 +126,13 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 });
 
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'MeasurementVO': {
+  MeasurementVO: {
     keyFields: ['entityName', 'id']
   },
-  'AggregatedLandingVO': {
+  AggregatedLandingVO: {
     keyFields: ['observedLocationId', 'vesselSnapshot', ['id']]
   },
-  'VesselActivityVO': {
+  VesselActivityVO: {
     keyFields: ['date', 'rankOrder', 'observedLocationId', 'tripId'] //'landingId',
   }
 };
@@ -141,13 +141,13 @@ export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
  * Define the way the entities will be stored into the local storage
  */
 export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
-  'TripVO': <EntityStoreTypePolicy<Trip>>{
+  TripVO: <EntityStoreTypePolicy<Trip>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
     lightFieldsExcludes: ['measurements', 'sale', 'gears', 'operationGroups', 'operations']
   },
 
-  'OperationVO': <EntityStoreTypePolicy<Operation>>{
+  OperationVO: <EntityStoreTypePolicy<Operation>>{
     mode: 'by-id',
     skipNonLocalEntities: false, //
     lightFieldsExcludes: <(keyof Operation)[]>[
@@ -160,15 +160,15 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   },
 
-  'ObservedLocationVO': <EntityStoreTypePolicy<ObservedLocation>>{
+  ObservedLocationVO: <EntityStoreTypePolicy<ObservedLocation>>{
     mode: 'by-id',
     skipNonLocalEntities: true
   },
 
-  'LandingVO': <EntityStoreTypePolicy<Landing>>{
+  LandingVO: <EntityStoreTypePolicy<Landing>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
-    lightFieldsExcludes: ["samples"]
+    lightFieldsExcludes: ['samples']
   },
 
   // 'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
@@ -185,7 +185,7 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   // Entity used to to generate local ids, and store historical data
   // TODO: use 'Remote#' for historical data
-  'PhysicalGearVO': <EntityStoreTypePolicy<PhysicalGear>>{
+  PhysicalGearVO: <EntityStoreTypePolicy<PhysicalGear>>{
     skipNonLocalEntities: false // Keep remote entities
   },
 

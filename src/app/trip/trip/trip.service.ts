@@ -12,6 +12,7 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
+  EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrorTranslator,
@@ -19,7 +20,8 @@ import {
   IEntitiesService,
   IEntityService,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -31,17 +33,24 @@ import {
   PersonService,
   ShowToastOptions,
   splitById,
-  splitByProperty, StatusIds,
+  splitByProperty,
   Toasts,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import {
+  DataCommonFragments,
+  DataFragments,
+  ExpectedSaleFragments,
+  OperationGroupFragment,
+  PhysicalGearFragments,
+  SaleFragments,
+} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   SAVE_AS_OBJECT_OPTIONS,
-  SERIALIZE_FOR_OPTIMISTIC_RESPONSE
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
@@ -50,14 +59,19 @@ import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { Operation, OperationGroup, Trip } from './trip.model';
-import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import { DataSynchroImportFilter, IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import {
+  DataSynchroImportFilter,
+  IDataSynchroService,
+  RootDataEntitySaveOptions,
+  RootDataSynchroService,
+} from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -79,53 +93,50 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-
-
 
 export const TripFragments = {
-  lightTrip: gql`fragment LightTripFragment on TripVO {
-    id
-    program {
+  lightTrip: gql`
+    fragment LightTripFragment on TripVO {
       id
-      label
+      program {
+        id
+        label
+      }
+      departureDateTime
+      returnDateTime
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualityFlagId
+      comments
+      departureLocation {
+        ...LocationFragment
+      }
+      returnLocation {
+        ...LocationFragment
+      }
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      observers {
+        ...LightPersonFragment
+      }
     }
-    departureDateTime
-    returnDateTime
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualificationDate
-    qualityFlagId
-    comments
-    departureLocation {
-      ...LocationFragment
-    }
-    returnLocation {
-      ...LocationFragment
-    }
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    observers {
-      ...LightPersonFragment
-    }
-  }
-  ${DataCommonFragments.location}
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataCommonFragments.referential}`,
+    ${DataCommonFragments.location}
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataCommonFragments.referential}
+  `,
 
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -187,113 +198,117 @@ export const TripFragments = {
   ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
-  landedTrip: gql`fragment LandedTripFragment on TripVO {
-    id
-    program {
+  landedTrip: gql`
+    fragment LandedTripFragment on TripVO {
       id
-      label
+      program {
+        id
+        label
+      }
+      departureDateTime
+      returnDateTime
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualityFlagId
+      comments
+      landing {
+        id
+        rankOrder
+      }
+      observedLocationId
+      departureLocation {
+        ...LocationFragment
+      }
+      returnLocation {
+        ...LocationFragment
+      }
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      gears {
+        ...PhysicalGearFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      observers {
+        ...LightPersonFragment
+      }
+      metiers {
+        ...MetierFragment
+      }
+      operationGroups {
+        ...OperationGroupFragment
+      }
+      expectedSale {
+        ...ExpectedSaleFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
     }
-    departureDateTime
-    returnDateTime
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualificationDate
-    qualityFlagId
-    comments
-    landing {
-      id
-      rankOrder
-    }
-    observedLocationId
-    departureLocation {
-      ...LocationFragment
-    }
-    returnLocation {
-      ...LocationFragment
-    }
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    gears {
-      ...PhysicalGearFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    observers {
-      ...LightPersonFragment
-    }
-    metiers {
-      ...MetierFragment
-    }
-    operationGroups {
-      ...OperationGroupFragment
-    }
-    expectedSale {
-      ...ExpectedSaleFragment
-    }
-    fishingAreas {
-      ...FishingAreaFragment
-    }
-  }
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.measurement}
-  ${DataCommonFragments.referential}
-  ${DataCommonFragments.location}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataCommonFragments.metier}
-  ${PhysicalGearFragments.physicalGear}
-  ${OperationGroupFragment.operationGroup}
-  ${ExpectedSaleFragments.expectedSale}
-  ${DataFragments.fishingArea}`,
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${DataCommonFragments.measurement}
+    ${DataCommonFragments.referential}
+    ${DataCommonFragments.location}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataCommonFragments.metier}
+    ${PhysicalGearFragments.physicalGear}
+    ${OperationGroupFragment.operationGroup}
+    ${ExpectedSaleFragments.expectedSale}
+    ${DataFragments.fishingArea}
+  `,
 
-  embeddedLandedTrip: gql`fragment EmbeddedLandedTripFragment on TripVO {
-    id
-    program {
+  embeddedLandedTrip: gql`
+    fragment EmbeddedLandedTripFragment on TripVO {
       id
-      label
+      program {
+        id
+        label
+      }
+      departureDateTime
+      returnDateTime
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualityFlagId
+      comments
+      landing {
+        id
+        rankOrder
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      metiers {
+        ...MetierFragment
+      }
+      operationGroups {
+        ...OperationGroupFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
     }
-    departureDateTime
-    returnDateTime
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualificationDate
-    qualityFlagId
-    comments
-    landing {
-      id
-      rankOrder
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    metiers {
-      ...MetierFragment
-    }
-    operationGroups {
-      ...OperationGroupFragment
-    }
-    fishingAreas {
-      ...FishingAreaFragment
-    }
-  }
-  ${DataCommonFragments.metier}
-  ${DataFragments.fishingArea}
-  ${OperationGroupFragment.operationGroup}`
+    ${DataCommonFragments.metier}
+    ${DataFragments.fishingArea}
+    ${OperationGroupFragment.operationGroup}
+  `,
 };
 
 
@@ -360,7 +375,7 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 };
 
 // Save a trip
-const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any; }>{
+const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any }>{
   save: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
     data: saveTrip(trip: $trip, options: $options){
       ...TripFragment
@@ -1107,14 +1122,14 @@ export class TripService
         entity.operations = [
           ...entity.operations,
           ...childOperationsWithLocalParent
-        ]
+        ];
       }
 
       // If still have some parent in the map, it means that their child are local, BUT in another trip
       // => Update outdated link to parent (replace local id by the remote id)
-      const parentOperationLocalIdsWithoutChild = Object.keys(parentOperationsByLocalId).map(localId => +localId);
+      const parentOperationLocalIdsWithoutChild = Object.keys(parentOperationsByLocalId).map(id => +id);
       if (isNotEmptyArray(parentOperationLocalIdsWithoutChild)) {
-        const localChildOperations = await Promise.all(Object.keys(parentOperationsByChildLocalId).map(localId => +localId)
+        const localChildOperations = await Promise.all(Object.keys(parentOperationsByChildLocalId).map(id => +id)
           .map((childLocalId) => this.operationService.load(childLocalId, {fullLoad: true})));
         const localChildOperationsToUpdate = localChildOperations
           .map(child => {
@@ -1131,9 +1146,7 @@ export class TripService
 
     // OperationGroups: Second save is only needed when expectedSale has some products
     if (opts.withOperationGroup && expectedSaleProducts) {
-      const savedPackets = entity.operationGroups.reduce((res, operationGroup) => {
-        return res.concat(operationGroup.packets);
-      }, []);
+      const savedPackets = entity.operationGroups.reduce((res, operationGroup) => res.concat(operationGroup.packets), []);
 
       entity.expectedSale.products = expectedSaleProducts;
 
@@ -1176,10 +1189,10 @@ export class TripService
     // Importing historical data (need to get parent operation in the local storage)
     try {
 
-      let filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+      const filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
-      filter.programLabel = entity.program.label
+      filter.programLabel = entity.program.label;
       filter.program = entity.program;
 
       // Force the vessel
@@ -1189,7 +1202,7 @@ export class TripService
       if (filter.periodDuration && filter.periodDurationUnit) {
         filter.startDate = DateUtils.moment().utc(false)
           .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
-          .startOf('day') // Reset time
+          .startOf('day'); // Reset time
       }
       else {
         filter.startDate = null;
@@ -1685,7 +1698,7 @@ export class TripService
       const savedTrip = await this.save(trip);
 
       // Return the saved gear
-      const savedEntity = savedTrip.gears.find(g => g.rankOrder == entity.rankOrder);
+      const savedEntity = savedTrip.gears.find(g => g.rankOrder === entity.rankOrder);
 
       // Check that the gear has been added
       if (!savedEntity) throw new Error('Cannot find expected physical gear, in the saved trip!');
@@ -1700,7 +1713,7 @@ export class TripService
     }
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1773,9 +1786,7 @@ export class TripService
     if (isNotEmptyArray(entity.operationGroups)) {
       await EntityUtils.fillLocalIds(entity.operationGroups, (_, count) => this.entities.nextValues(OperationGroup.TYPENAME, count));
 
-      const packets = entity.operationGroups.reduce((res, operationGroup) => {
-        return res.concat(operationGroup.packets.filter(packet => !packet.id));
-      }, []);
+      const packets = entity.operationGroups.reduce((res, operationGroup) => res.concat(operationGroup.packets.filter(packet => !packet.id)), []);
 
       await EntityUtils.fillLocalIds(packets, (_, count) => this.entities.nextValues(Packet.TYPENAME, count));
     }
@@ -1800,7 +1811,7 @@ export class TripService
     [key: string]: any;
   }): Observable<number>[] {
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
     filter = this.asFilter(filter);
 
     let programLabel = filter?.program?.label;
@@ -1835,7 +1846,7 @@ export class TripService
         // Fill options using program
         else {
           console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
-          const program = await this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+          const program = await this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'});
           opts.program = program;
           opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
@@ -1889,13 +1900,14 @@ export class TripService
 
   /**
    * Reimport historical gears, or pending operations (parent OP without child)
+   *
    * @param filter
    * @param opts
    * @protected
    */
   protected async importHistoricalData(filter?: Partial<TripFilter>,
                                        opts?: {
-                                         progression?: BehaviorSubject<number>
+                                         progression?: BehaviorSubject<number>;
                                          maxProgression?: number;
                                        }): Promise<void> {
 
@@ -1906,13 +1918,13 @@ export class TripService
     };
     opts.progression = opts.progression || new BehaviorSubject<number>(0);
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
     filter = this.asFilter(filter);
 
     const programLabel = filter?.program?.label;
 
     if (isNotNilOrBlank(programLabel)) {
-      console.info("[trip-service] Importing historical data, from filter: ", filter);
+      console.info('[trip-service] Importing historical data, from filter: ', filter);
 
       // Import pending operations
       const operationFilter = TripFilter.toOperationFilter(filter);

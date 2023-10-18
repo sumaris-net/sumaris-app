@@ -74,6 +74,7 @@ export class WeightLengthConversionRefService
 
   /**
    * Apply a conversion, using this formula : weight = coefA * length ^ coefB
+   *
    * @param conversion
    * @param length
    * @param opts
@@ -115,7 +116,7 @@ export class WeightLengthConversionRefService
       const unitConversion = WeightKgConversion[opts.weightUnit];
       if (isNil(unitConversion)) {
         console.warn(`Unknown weight unit '${opts?.weightUnit}'. Will use 'kg'`);
-        return weightKg
+        return weightKg;
       }
 
       // Apply inverse conversion, from kg to expected unit
@@ -134,6 +135,7 @@ export class WeightLengthConversionRefService
    *     <li>pmfmId + month (without year)</li>
    *     <li>TODO: Loop using parameterId (without pmfmId). If found, will convert unit</li>
    * </ul>
+   *
    * @param filter
    * @param page
    * @param fetchOptions
@@ -174,23 +176,23 @@ export class WeightLengthConversionRefService
 
     if (isNotNil(filter.month) && isNotNil(filter.year)) {
       // Retry on year only (without month)
-      console.debug(this._logPrefix + 'No conversion found, for [month, year]. Retrying with year only.')
+      console.debug(this._logPrefix + 'No conversion found, for [month, year]. Retrying with year only.');
       res = await this.loadAll(0, size, sortBy, 'desc', {...filter, month: undefined}, loadOptions);
       if (isNotEmptyArray(res?.data)) return res.data[0];
 
       // Retry on month only (without year)
-      console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying without month only.')
+      console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying without month only.');
       res = await this.loadAll(0, size, 'year', 'desc', {...filter, year: undefined}, loadOptions);
       if (isNotEmptyArray(res?.data)) return res.data[0];
     }
 
     // Not found
-    console.debug(this._logPrefix + 'No conversion found!')
+    console.debug(this._logPrefix + 'No conversion found!');
     return null;
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<WeightLengthConversionFilter>,
-          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean; }): Promise<LoadResult<WeightLengthConversionRef>> {
+          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<WeightLengthConversionRef>> {
 
 
     filter = this.asFilter(filter);
@@ -207,7 +209,7 @@ export class WeightLengthConversionRefService
   }
 
   async clearCache() {
-    console.info("[weight-length-conversion-ref-service] Clearing cache...");
+    console.info('[weight-length-conversion-ref-service] Clearing cache...');
     await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }

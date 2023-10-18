@@ -6,7 +6,7 @@ function getSortingMeasValues(opts: {
   gearPosition?: 'B'|'T';
   weight?: number;
   discardOrLanding?: 'LAN'|'DIS';
-  sizeCategory?: number
+  sizeCategory?: number;
 }) {
 
   const res = {};
@@ -36,7 +36,7 @@ function getIndivMeasValues(opts?: {
   opts = {
     discardOrLanding: 'LAN',
     ...opts
-  }
+  };
   const res = {};
 
   if (isNotNil(opts.discardOrLanding)) {
@@ -184,7 +184,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                         label: 'SORTING_BATCH#B.DIS.VRAC.%',
                         rankOrder: 1,
                         samplingRatio: 0.25,
-                        samplingRatioText: "1/4",
+                        samplingRatioText: '1/4',
                         measurementValues: {
                           [PmfmIds.BATCH_MEASURED_WEIGHT]: 3
                         },

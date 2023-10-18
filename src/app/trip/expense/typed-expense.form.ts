@@ -1,5 +1,5 @@
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   filterNotNil,
@@ -9,10 +9,10 @@ import {
   isNotNilOrNaN,
   remove,
   removeAll,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from './typed-expense.validator';
-import {BehaviorSubject} from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -22,10 +22,9 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
   selector: 'app-typed-expense-form',
   templateUrl: './typed-expense.form.html',
   styleUrls: ['./typed-expense.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TypedExpenseForm extends MeasurementsForm {
-
+export class TypedExpenseForm extends MeasurementsForm implements OnInit {
   mobile: boolean;
   $pmfmReady = new BehaviorSubject<boolean>(false);
   $typePmfm = new BehaviorSubject<IPmfm>(undefined);
@@ -40,7 +39,7 @@ export class TypedExpenseForm extends MeasurementsForm {
 
   get total(): number {
     const totalPmfm = this.$totalPmfm.getValue();
-    return totalPmfm && this.form.get(totalPmfm.id.toString()).value || 0;
+    return (totalPmfm && this.form.get(totalPmfm.id.toString()).value) || 0;
   }
 
   constructor(
@@ -60,27 +59,29 @@ export class TypedExpenseForm extends MeasurementsForm {
     this.amountDefinition = {
       key: 'amount',
       label: `EXPENSE.${this.expenseType}.AMOUNT`,
-      type: "double",
+      type: 'double',
       minValue: 0,
-      maximumNumberDecimals: 2
+      maximumNumberDecimals: 2,
     };
 
     this.registerSubscription(
       this.pmfms$
         // Wait form controls ready
-        .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
-        .subscribe(pmfms => this.parsePmfms(pmfms))
-      );
+        .pipe(mergeMap((pmfms) => this.ready().then((_) => pmfms)))
+        .subscribe((pmfms) => this.parsePmfms(pmfms))
+    );
 
-    this.registerSubscription(filterNotNil(this.$totalPmfm)
-      .subscribe(totalPmfm => {
-        this.form.get(totalPmfm.id.toString()).valueChanges
-          .pipe(
+    this.registerSubscription(
+      filterNotNil(this.$totalPmfm).subscribe((totalPmfm) => {
+        this.form
+          .get(totalPmfm.id.toString())
+          .valueChanges.pipe(
             filter(() => this.totalValueChanges.observers.length > 0),
             debounceTime(250)
           )
           .subscribe(() => this.totalValueChanges.emit(this.form.get(totalPmfm.id.toString()).value));
-      }));
+      })
+    );
 
     // type
     this.registerAutocompleteField('packaging', {
@@ -88,9 +89,8 @@ export class TypedExpenseForm extends MeasurementsForm {
       items: this.$packagingPmfms,
       attributes: ['unitLabel'],
       columnNames: ['REFERENTIAL.PMFM.UNIT'],
-      mobile: this.mobile
+      mobile: this.mobile,
     });
-
   }
 
   protected getValue(): Measurement[] {
@@ -99,8 +99,8 @@ export class TypedExpenseForm extends MeasurementsForm {
     // parse values
     const packagingPmfms: IPmfm[] = this.$packagingPmfms.getValue() || [];
     if (values && packagingPmfms.length) {
-      packagingPmfms.forEach(packagingPmfm => {
-        const value = values.find(v => v.pmfmId === packagingPmfm.id);
+      packagingPmfms.forEach((packagingPmfm) => {
+        const value = values.find((v) => v.pmfmId === packagingPmfm.id);
         if (value) {
           if (this.form.value.packaging && this.form.value.packaging.pmfmId === value.pmfmId) {
             value.numericalValue = this.form.value.amount;
@@ -113,7 +113,7 @@ export class TypedExpenseForm extends MeasurementsForm {
 
     // set rank order if provided
     if (this.rankOrder) {
-      (values || []).forEach(value => value.rankOrder = this.rankOrder);
+      (values || []).forEach((value) => (value.rankOrder = this.rankOrder));
     }
 
     return values;
@@ -122,18 +122,18 @@ export class TypedExpenseForm extends MeasurementsForm {
   protected async updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // filter measurements on rank order if provided
     if (this.rankOrder) {
-      data = (data || []).filter(value => value.rankOrder === this.rankOrder);
+      data = (data || []).filter((value) => value.rankOrder === this.rankOrder);
     }
 
     await super.updateView(data, opts);
-    await this.readyPmfms({stop: this.destroySubject});
+    await this.readyPmfms({ stop: this.destroySubject });
 
     // set packaging and amount value
-    const packaging = (this.$packagingPmfms.getValue() || [])
-      .find(pmfm => this.form.get(pmfm.id.toString()) && isNotNilOrNaN(this.form.get(pmfm.id.toString()).value));
-    const amount = packaging && this.form.get(packaging.id.toString()).value || undefined;
-    this.form.patchValue({amount, packaging});
-
+    const packaging = (this.$packagingPmfms.getValue() || []).find(
+      (pmfm) => this.form.get(pmfm.id.toString()) && isNotNilOrNaN(this.form.get(pmfm.id.toString()).value)
+    );
+    const amount = (packaging && this.form.get(packaging.id.toString()).value) || undefined;
+    this.form.patchValue({ amount, packaging });
   }
 
   readyPmfms(opts: WaitForOptions): Promise<void> {
@@ -174,10 +174,7 @@ export class TypedExpenseForm extends MeasurementsForm {
   }
 
   protected markForCheck() {
-    if (this.cd)
-      this.cd.markForCheck();
-    else
-      console.warn('[typed-expense-form] ChangeDetectorRef is undefined');
+    if (this.cd) this.cd.markForCheck();
+    else console.warn('[typed-expense-form] ChangeDetectorRef is undefined');
   }
-
 }

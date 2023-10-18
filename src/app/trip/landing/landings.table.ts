@@ -20,7 +20,18 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['quality', 'vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = [
+  'quality',
+  'vessel',
+  'vesselType',
+  'vesselBasePortLocation',
+  'location',
+  'dateTime',
+  'observers',
+  'creationDate',
+  'recorderPerson',
+  'samplesCount',
+];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
@@ -48,8 +59,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
-  @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();
-  @Output() onNewTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() openTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() newTrip = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -249,8 +260,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.onOpenTrip.unsubscribe();
-    this.onNewTrip.unsubscribe();
+    this.openTrip.unsubscribe();
+    this.newTrip.unsubscribe();
   }
 
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -303,7 +314,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
-      if (this.debug) console.debug("[landings-table] Asking for new landing...");
+      if (this.debug) console.debug('[landings-table] Asking for new landing...');
 
       // Force modal
       return this.openNewRowDetail(event);
@@ -322,10 +333,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (isNotNil(row.currentData.tripId)) {
       // Edit trip
-      this.onOpenTrip.emit(row);
+      this.openTrip.emit(row);
     } else {
       // New trip
-      this.onNewTrip.emit(row);
+      this.newTrip.emit(row);
     }
   }
 

@@ -32,7 +32,7 @@ export class DebugUtils {
       else {
         message += `\n - Property ${key}: ${v1} !== ${v2}`;
       }
-    })
+    });
 
     if (isNotNilOrBlank(message)) {
       console.debug(`[diff] Entity diff: ${message}`);

@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, InjectionToken, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  InjectionToken,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output,
+} from '@angular/core';
 import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
@@ -18,9 +30,15 @@ import {
   ReferentialRef,
   ShowToastOptions,
   Toasts,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import { IDataEntityQualityService, IProgressionOptions, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
+import {
+  IDataEntityQualityService,
+  IProgressionOptions,
+  IRootDataEntityQualityService,
+  isDataQualityService,
+  isRootDataQualityService,
+} from '../services/data-quality-service.class';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { merge, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
@@ -35,7 +53,6 @@ import { debounceTime } from 'rxjs/operators';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-
 
 export const APP_ENTITY_EDITOR = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
 
@@ -74,7 +91,7 @@ export class EntityQualityFormComponent<
 
   qualityFlags: ReferentialRef[];
 
-  @Input("value")
+  @Input()
   set value(value: T) {
     this.data = value;
     this.updateView();
@@ -103,11 +120,11 @@ export class EntityQualityFormComponent<
   ngOnInit() {
 
     // Check editor exists
-    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
+    if (!this.editor) throw new Error('Missing mandatory \'editor\' input!');
 
     // Check data service exists
     this.service = this.service || (isDataQualityService(this.editor.service) ? this.editor.service : null);
-    if (!this.service) throw new Error("Missing mandatory 'service' input!");
+    if (!this.service) throw new Error('Missing mandatory \'service\' input!');
     this._isRootDataQualityService = isRootDataQualityService(this.service);
     this._isSynchroService = isDataSynchroService(this.service);
 
@@ -161,7 +178,7 @@ export class EntityQualityFormComponent<
     this._debug = !environment.production;
   }
 
-  async control(event?: Event, opts?: {emitEvent?: boolean;} & IProgressionOptions): Promise<boolean> {
+  async control(event?: Event, opts?: {emitEvent?: boolean} & IProgressionOptions): Promise<boolean> {
 
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.CONTROL_DOTS');
@@ -254,7 +271,7 @@ export class EntityQualityFormComponent<
     this.editor.disable();
 
     try {
-      console.debug("[quality] Terminate entity input...");
+      console.debug('[quality] Terminate entity input...');
       const data = await this.serviceForRootEntity.terminate(this.editor.data);
 
       if (opts?.progression) opts.progression.current = endProgression;
@@ -293,7 +310,7 @@ export class EntityQualityFormComponent<
     const path = this.router.url;
 
     opts = opts || {};
-    const progressionSubscription = this.fillProgressionOptions(opts, "QUALITY.INFO.SYNCHRONIZE_DOTS");
+    const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.SYNCHRONIZE_DOTS');
     const progressionStep = opts.maxProgression / 3; // 3 steps : control, synchronize, and terminate
 
     // Control data
@@ -312,7 +329,7 @@ export class EntityQualityFormComponent<
     this.editor.disable();
 
     try {
-      console.debug("[quality] Synchronizing entity...");
+      console.debug('[quality] Synchronizing entity...');
       const remoteData = await this.synchroService.synchronize(this.editor.data);
 
       opts.progression.increment(progressionStep);  // Increment progression
@@ -324,7 +341,7 @@ export class EntityQualityFormComponent<
       await this.settings.removePageHistory(path);
 
       // Do a ONLINE terminate
-      console.debug("[quality] Terminate entity...");
+      console.debug('[quality] Terminate entity...');
       const data = await this.serviceForRootEntity.terminate(remoteData);
 
       opts.progression.increment(progressionStep); // Increment progression
@@ -370,7 +387,7 @@ export class EntityQualityFormComponent<
     try {
       this.busy = true;
 
-      console.debug("[quality] Mark entity as validated...");
+      console.debug('[quality] Mark entity as validated...');
       const data = await this.serviceForRootEntity.validate(this.data);
       this.updateEditor(data);
     }
@@ -456,8 +473,8 @@ export class EntityQualityFormComponent<
     }
   }
 
-  protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
-    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
+  protected async showToast<R = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<R>> {
+    if (!this.toastController) throw new Error('Missing toastController in component\'s constructor');
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 
@@ -474,7 +491,7 @@ export class EntityQualityFormComponent<
   }
 
   protected fillProgressionOptions(opts: IProgressionOptions, defaultProgressionMessage: string): Subscription|undefined {
-    if (!opts) throw new Error('Argument \'opts\' is required')
+    if (!opts) throw new Error('Argument \'opts\' is required');
 
     // Init max progression
     opts.maxProgression = toNumber(opts.maxProgression, 100);

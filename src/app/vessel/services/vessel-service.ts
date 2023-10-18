@@ -239,7 +239,7 @@ export class VesselService
     // Load using vessel snapshot, if offline and has offline feature
     if (this.network.offline && EntityUtils.isRemoteId(id) && (await this.hasOfflineData())) {
       const data: VesselSnapshot = await this.entities.load(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+      if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       return VesselSnapshot.toVessel(data);
     }
 
@@ -247,13 +247,14 @@ export class VesselService
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<VesselFilter>, opts?: EntityServiceLoadOptions & {
-    debug?: boolean
+    debug?: boolean;
   }): Promise<LoadResult<Vessel>> {
     return firstValueFrom(this.watchAll(offset, size, sortBy, sortDirection, filter as VesselFilter, opts));
   }
 
   /**
    * Load many vessels
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -289,7 +290,7 @@ export class VesselService
                   sortBy?: string,
                   sortDirection?: SortDirection,
                   filter?: VesselFilter,
-                  opts?: EntitiesServiceWatchOptions & { query?: any; }): Observable<LoadResult<Vessel>> {
+                  opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
     sortBy = sortBy || 'vesselFeatures.exteriorMarking';
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
@@ -316,6 +317,7 @@ export class VesselService
 
   /**
    * Save many vessels
+   *
    * @param entities
    * @param opts
    */
@@ -350,6 +352,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -410,6 +413,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -474,11 +478,11 @@ export class VesselService
       return;
     }
     if (temporaryVesselIds.some(EntityUtils.isLocalId)) {
-      console.error(`${this._logPrefix} Cannot replace a local temporary vessel`)
+      console.error(`${this._logPrefix} Cannot replace a local temporary vessel`);
       return;
     }
     if (EntityUtils.isLocalId(validVesselId)) {
-      console.error(`${this._logPrefix} Cannot replace with local vessel`)
+      console.error(`${this._logPrefix} Cannot replace with local vessel`);
       return;
     }
     const now = new Date();
@@ -508,7 +512,7 @@ export class VesselService
         if (this._debug) console.debug(this._logPrefix + `Vessel replaced in ${new Date().getTime() - now.getTime()}ms`);
       }
 
-    })
+    });
   }
 
   async importFile(fileName: string, format = 'siop'): Promise<Job> {
@@ -537,7 +541,7 @@ export class VesselService
     const progression = JobProgression.fromObject({
       ...job,
       message
-    })
+    });
 
     // Start to listen job
     this.jobProgressionService.addJob(job.id, progression);

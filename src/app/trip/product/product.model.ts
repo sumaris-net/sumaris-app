@@ -1,21 +1,28 @@
 import {
-  EntityClass, isNil,
+  EntityClass,
+  equalsOrNil,
+  FilterFn,
+  IEntity,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {IEntity}  from "@sumaris-net/ngx-components";
-import {Sample} from "../sample/sample.model";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import {
+  IEntityWithMeasurement,
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementValuesUtils,
+} from '@app/data/measurement/measurement.model';
+import { Sample } from '../sample/sample.model';
+import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-export interface IWithProductsEntity<T, ID = number>
-  extends IEntity<T, ID> {
+export interface IWithProductsEntity<T, ID = number> extends IEntity<T, ID> {
   products: Product[];
 }
 
@@ -155,13 +162,14 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.measurementValues = source.measurementValues && {...source.measurementValues};
 
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
-    this.samples = source.samples && source.samples.map(source => Sample.fromObject(source)) || [];
+    this.samples = source.samples && source.samples.map(json => Sample.fromObject(json)) || [];
 
     return this;
   }
 
   /**
    * This equals function should also works with SaleProduct
+   *
    * @param other
    */
   equals(other: Product): boolean {

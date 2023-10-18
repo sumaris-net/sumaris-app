@@ -1,15 +1,13 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AggregatedLanding} from "./aggregated-landing.model";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {DataEntityValidatorOptions} from "@app/data/services/validator/data-entity.validator";
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {toBoolean} from '@sumaris-net/ngx-components';
+import {SharedValidators} from '@sumaris-net/ngx-components';
+import {LocalSettingsService}  from '@sumaris-net/ngx-components';
+import {AggregatedLanding} from './aggregated-landing.model';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {DataEntityValidatorOptions} from '@app/data/services/validator/data-entity.validator';
 
-export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOptions {
-  // required?: boolean;
-}
+export type AggregatedLandingValidatorOptions = DataEntityValidatorOptions;
 
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingValidatorService<T extends AggregatedLanding = AggregatedLanding, O extends AggregatedLandingValidatorOptions = AggregatedLandingValidatorOptions>

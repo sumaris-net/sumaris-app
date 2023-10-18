@@ -109,7 +109,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   }
 
   async applyValue() {
-    console.debug('[sample-modal] Applying data to form')
+    console.debug('[sample-modal] Applying data to form');
 
     this.table.markAsReady();
 
@@ -146,7 +146,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
 
     if (this.invalid) {
       // if (this.debug) AppFormUtils.logFormErrors(this.table.table., "[sample-modal] ");
-      this.table.error = "COMMON.FORM.HAS_ERROR";
+      this.table.error = 'COMMON.FORM.HAS_ERROR';
       this.table.markAllAsTouched();
       return;
     }

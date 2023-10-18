@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
 import { isNil, isNotNil, MatBadgeFill } from '@sumaris-net/ngx-components';
 import { qualityFlagToColor, qualityFlagToIcon, QualityIonIcon } from '@app/data/services/model/model.utils';
-import { Operation, OperationUtils } from '@app/trip/trip/trip.model';
-import { PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Operation } from '@app/trip/trip/trip.model';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { AppColors } from '@app/shared/colors.utils';
 import { MatBadgeSize } from '@angular/material/badge';
 import { TranslateService } from '@ngx-translate/core';
@@ -24,7 +24,7 @@ export class OperationIconComponent {
   badgeIcon: QualityIonIcon = null;
   badgeColor: AppColors = null;
   badgeFill: MatBadgeFill = 'clear';
-  badgeSize: MatBadgeSize = 'small'
+  badgeSize: MatBadgeSize = 'small';
   title: string = null;
 
   @Input() set value(value: Operation) {
@@ -113,7 +113,7 @@ export class OperationIconComponent {
     }
     // Controlled, not qualified
     else if (isNil(value.qualificationDate)) {
-      if (this.icon == 'navigate') {
+      if (this.icon === 'navigate') {
         this.icon = 'checkmark' as OperationIonIcon;
         this.color = 'tertiary';
         if (isNotNil(value.qualityFlagId) && value.qualificationComments) {

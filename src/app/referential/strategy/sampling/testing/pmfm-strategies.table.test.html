@@ -1,67 +1,61 @@
 <ion-header>
-    <ion-toolbar color="primary">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
 
-        <ion-buttons slot="start">
-            <ion-back-button></ion-back-button>
-        </ion-buttons>
-
-        <ion-title>Pmfm Strategies Table</ion-title>
-    </ion-toolbar>
+    <ion-title>Pmfm Strategies Table</ion-title>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+  <form class="form-container">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col size="0" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end">TABLE 1</ion-label>
+        </ion-col>
+        <ion-col>
+          <app-pmfm-strategies-table
+            #table1
+            [canEdit]="enabled"
+            [canDelete]="enabled"
+            [showToolbar]="false"
+            [showHeaderRow]="false"
+            [withDetails]="false"
+            [showSelectColumn]="false"
+            [showIdColumn]="false"
+            [showDetailsColumns]="false"
+            [showPmfmLabel]="false"
+            [pmfmFilter]="pmfmFilters"
+            [allowEmpty]="false"
+            [sticky]="true"
+          ></app-pmfm-strategies-table>
+        </ion-col>
+      </ion-row>
 
-    <form class="form-container">
-        <ion-grid class="ion-no-padding">
-
-            <ion-row>
-                <ion-col size="0" size-md="2" size-lg="3">
-                  <ion-label class="ion-float-end">TABLE 1</ion-label>
-                </ion-col>
-                <ion-col>
-                  <app-pmfm-strategies-table #table1
-                                             [canEdit]="enabled"
-                                             [canDelete]="enabled"
-                                             [showToolbar]="false"
-                                             [showHeaderRow]="false"
-                                             [withDetails]="false"
-                                             [showSelectColumn]="false"
-                                             [showIdColumn]="false"
-                                             [showDetailsColumns]="false"
-                                             [showPmfmLabel]="false"
-                                             [pmfmFilter]="pmfmFilters"
-                                             [allowEmpty]="false"
-                                             [sticky]="true">
-                  </app-pmfm-strategies-table>
-                </ion-col>
-              </ion-row>
-
-              <ion-row>
-                <ion-col size="0" size-md="2" size-lg="3">
-                  <ion-label class="ion-float-end">TABLE 2</ion-label>
-                </ion-col>
-                <ion-col>
-                  <app-pmfm-strategies-table #table2
-                                             [canEdit]="enabled"
-                                             [canDelete]="enabled"
-                                             [showToolbar]="true"
-                                             [showHeaderRow]="true"
-                                             [withDetails]="true"
-                                             [showSelectColumn]="true"
-                                             [showIdColumn]="true"
-                                             [showDetailsColumns]="true"
-                                             [showPmfmLabel]="true"
-                                             [pmfmFilter]=""
-                                             [allowEmpty]="true"
-                                             [sticky]="true">
-                  </app-pmfm-strategies-table>
-                </ion-col>
-              </ion-row>
-
-
-
-        </ion-grid>
-
-    </form>
-
+      <ion-row>
+        <ion-col size="0" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end">TABLE 2</ion-label>
+        </ion-col>
+        <ion-col>
+          <app-pmfm-strategies-table
+            #table2
+            [canEdit]="enabled"
+            [canDelete]="enabled"
+            [showToolbar]="true"
+            [showHeaderRow]="true"
+            [withDetails]="true"
+            [showSelectColumn]="true"
+            [showIdColumn]="true"
+            [showDetailsColumns]="true"
+            [showPmfmLabel]="true"
+            [pmfmFilter]=""
+            [allowEmpty]="true"
+            [sticky]="true"
+          ></app-pmfm-strategies-table>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
 </ion-content>

@@ -23,7 +23,7 @@ import { TaxonName } from './model/taxon-name.model';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
 import { mergeMap } from 'rxjs/operators';
 
-export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; } = {
+export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any } = {
   loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
     data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...LightTaxonNameFragment
@@ -53,7 +53,7 @@ export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists
   referenceTaxonExists: gql`query referenceTaxonExists($id: Int){
     data: referenceTaxonExists(id: $id)
   }`
-}
+};
 
 const TaxonNameMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation saveTaxonName($data: TaxonNameVOInput!) {
@@ -62,7 +62,7 @@ const TaxonNameMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${ReferentialFragments.fullTaxonName}`
-}
+};
 
 @Injectable({providedIn: 'root'})
 export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter>
@@ -81,7 +81,7 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
     });
   }
 
-  async existsByLabel(label: string, opts?: { excludedId?: number; }): Promise<boolean> {
+  async existsByLabel(label: string, opts?: { excludedId?: number }): Promise<boolean> {
     if (isNil(label)) return false;
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'TaxonName' });
   }
@@ -89,12 +89,12 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
   async referenceTaxonExists(referenceTaxonId: number): Promise<boolean> {
     if (isNil(referenceTaxonId)) return false;
 
-    const {data} = await this.graphql.query<{ data: boolean; }>({
+    const {data} = await this.graphql.query<{ data: boolean }>({
       query: TaxonNameQueries.referenceTaxonExists,
       variables : {
         id: referenceTaxonId
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' }
     });
 
     return data;

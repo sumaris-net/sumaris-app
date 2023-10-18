@@ -1,123 +1,132 @@
-<app-modal-toolbar color="secondary"
-                   [title]="$title | async"
-                   (cancel)="close($event)"
-                   (validate)="onSubmitIfDirty($event)"
-                   [canValidate]="!disabled"
-                   [showSpinner]="loading">
-
+<app-modal-toolbar
+  color="secondary"
+  [title]="$title | async"
+  (cancel)="close($event)"
+  (validate)="onSubmitIfDirty($event)"
+  [canValidate]="!disabled"
+  [showSpinner]="loading"
+>
   <ion-buttons slot="end" [class.cdk-visually-hidden]="loading">
-
     <!-- Options menu -->
-    <button mat-icon-button
-            [title]="'COMMON.BTN_OPTIONS'|translate"
-            [matMenuTriggerFor]="optionsMenu">
+    <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
-
   </ion-buttons>
 </app-modal-toolbar>
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-
-  <button mat-menu-item
-          *ngIf="onDelete"
-          [disabled]="disabled"
-          (click)="delete($event)">
+  <button mat-menu-item *ngIf="onDelete" [disabled]="disabled" (click)="delete($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 
 <ion-content class="ion-padding">
-
   <!-- debug -->
   <app-debug *ngIf="debug">
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          showIndividualMonitoringButton: {{showIndividualMonitoringButton}}<br/>
-          showIndividualReleaseButton: {{showIndividualReleaseButton}}<br/>
-          showPictures: {{showPictures}}<br/>
-          showComment: {{showComment}}<br/>
+          showIndividualMonitoringButton: {{ showIndividualMonitoringButton }}
+          <br />
+          showIndividualReleaseButton: {{ showIndividualReleaseButton }}
+          <br />
+          showPictures: {{ showPictures }}
+          <br />
+          showComment: {{ showComment }}
+          <br />
         </ion-col>
       </ion-row>
     </ion-grid>
   </app-debug>
 
-  <app-sample-form #form
-                   [debug]="debug"
-                   [acquisitionLevel]="acquisitionLevel"
-                   [programLabel]="programLabel"
-                   [mobile]="mobile"
-                   [pmfms]="pmfms"
-                   [usageMode]="usageMode"
-                   [i18nSuffix]="i18nSuffix"
-                   [availableTaxonGroups]="availableTaxonGroups"
-                   [showLabel]="showLabel"
-                   [requiredLabel]="requiredLabel"
-                   [showSampleDate]="showSampleDate"
-                   [showTaxonGroup]="showTaxonGroup"
-                   [showTaxonName]="showTaxonName"
-                   [showComment]="showComment"
-                   [pmfmValueColor]="pmfmValueColor"
-                   [maxVisibleButtons]="maxVisibleButtons"
-                   (onSubmit)="onSubmitAndNext($event)">
-
-
+  <app-sample-form
+    #form
+    [debug]="debug"
+    [acquisitionLevel]="acquisitionLevel"
+    [programLabel]="programLabel"
+    [mobile]="mobile"
+    [pmfms]="pmfms"
+    [usageMode]="usageMode"
+    [i18nSuffix]="i18nSuffix"
+    [availableTaxonGroups]="availableTaxonGroups"
+    [showLabel]="showLabel"
+    [requiredLabel]="requiredLabel"
+    [showSampleDate]="showSampleDate"
+    [showTaxonGroup]="showTaxonGroup"
+    [showTaxonName]="showTaxonName"
+    [showComment]="showComment"
+    [pmfmValueColor]="pmfmValueColor"
+    [maxVisibleButtons]="maxVisibleButtons"
+    (onSubmit)="onSubmitAndNext($event)"
+  >
     <ion-row beforeComment [class.cdk-visually-hidden]="!showPictures">
       <ion-col size="12">
-        <ion-label color="medium">{{'TRIP.SAMPLE.EDIT.IMAGES'|translateContext: i18nSuffix}}</ion-label>
+        <ion-label color="medium">{{ 'TRIP.SAMPLE.EDIT.IMAGES' | translateContext : i18nSuffix }}</ion-label>
       </ion-col>
       <ion-col size="12">
-        <app-image-attachment-gallery #gallery
-                                      mode="list"
-                                      color="light"
-                                      [disabled]="disabled"
-                                      [showToolbar]="false"
-                                      [showFabButton]="false"
-                                      [showAddCardButton]="true">
-        </app-image-attachment-gallery>
+        <app-image-attachment-gallery
+          #gallery
+          mode="list"
+          color="light"
+          [disabled]="disabled"
+          [showToolbar]="false"
+          [showFabButton]="false"
+          [showAddCardButton]="true"
+        ></app-image-attachment-gallery>
       </ion-col>
     </ion-row>
-
-
 
     <ion-grid afterComment *ngIf="mobile && !disabled" class="ion-no-padding">
       <ion-row class="ion-no-padding ion-row-buttons">
         <ion-col *ngIf="showIndividualMonitoringButton">
-          <ion-button class="mat-form-field-button button-round"
-                      color="tertiary" fill="outline" expand="full"
-                      [disabled]="form.invalid"
-                      (click)="onIndividualMonitoringClick($event)">
+          <ion-button
+            class="mat-form-field-button button-round"
+            color="tertiary"
+            fill="outline"
+            expand="full"
+            [disabled]="form.invalid"
+            (click)="onIndividualMonitoringClick($event)"
+          >
             <mat-icon slot="start">center_focus_strong</mat-icon>
-            <ion-label>{{'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING'|translateContext: i18nSuffix}}</ion-label>
+            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING' | translateContext : i18nSuffix }}</ion-label>
           </ion-button>
         </ion-col>
         <ion-col *ngIf="showIndividualReleaseButton">
-          <ion-button class="mat-form-field-button button-round"
-                      color="tertiary" fill="outline" expand="full"
-                      [disabled]="form.invalid"
-                      (click)="onIndividualReleaseClick($event)">
+          <ion-button
+            class="mat-form-field-button button-round"
+            color="tertiary"
+            fill="outline"
+            expand="full"
+            [disabled]="form.invalid"
+            (click)="onIndividualReleaseClick($event)"
+          >
             <mat-icon slot="start">room</mat-icon>
-            <ion-label>{{'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translateContext: i18nSuffix}}</ion-label>
+            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE' | translateContext : i18nSuffix }}</ion-label>
           </ion-button>
         </ion-col>
         <ion-col>
-          <ion-button class="mat-form-field-button button-round"
-                      fill="solid" expand="full"
-                      [disabled]="form.invalid"
-                      [color]="form.invalid ? 'light' : 'tertiary'"
-                      (click)="onSubmit($event)">
+          <ion-button
+            class="mat-form-field-button button-round"
+            fill="solid"
+            expand="full"
+            [disabled]="form.invalid"
+            [color]="form.invalid ? 'light' : 'tertiary'"
+            (click)="onSubmit($event)"
+          >
             <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
           </ion-button>
         </ion-col>
         <ion-col>
-          <ion-button class="mat-form-field-button button-round"
-                      fill="solid" expand="full"
-                      [disabled]="form.invalid"
-                      [color]="form.invalid ? 'light' : 'tertiary'"
-                      (click)="onSubmitAndNext($event)">
+          <ion-button
+            class="mat-form-field-button button-round"
+            fill="solid"
+            expand="full"
+            [disabled]="form.invalid"
+            [color]="form.invalid ? 'light' : 'tertiary'"
+            (click)="onSubmitAndNext($event)"
+          >
             <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
             <ion-icon slot="end" name="arrow-forward"></ion-icon>
           </ion-button>
@@ -125,14 +134,10 @@
       </ion-row>
     </ion-grid>
   </app-sample-form>
-
-
 </ion-content>
 
 <ion-footer *ngIf="!mobile">
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -142,24 +147,26 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button fill="solid"
-                    [color]="form.invalid ? 'light' : 'tertiary'"
-                    [disabled]="disabled || form.invalid"
-                    (keyup.enter)="onSubmit($event)"
-                    (click)="onSubmit($event)">
+        <ion-button
+          fill="solid"
+          [color]="form.invalid ? 'light' : 'tertiary'"
+          [disabled]="disabled || form.invalid"
+          (keyup.enter)="onSubmit($event)"
+          (click)="onSubmit($event)"
+        >
           <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
         </ion-button>
 
-        <ion-button fill="solid"
-                    [color]="form.invalid ? 'light' : 'tertiary'"
-                    [disabled]="disabled || form.invalid"
-                    (keyup.enter)="onSubmitAndNext($event)"
-                    (click)="onSubmitAndNext($event)">
+        <ion-button
+          fill="solid"
+          [color]="form.invalid ? 'light' : 'tertiary'"
+          [disabled]="disabled || form.invalid"
+          (keyup.enter)="onSubmitAndNext($event)"
+          (click)="onSubmitAndNext($event)"
+        >
           <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

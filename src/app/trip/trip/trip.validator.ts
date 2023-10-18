@@ -147,10 +147,10 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     opts.withObservers = toBoolean(opts.withObservers,
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'));
     opts.withMetiers = toBoolean(opts.withMetiers,
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
-    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === 'true'));
     opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
     opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
     opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);

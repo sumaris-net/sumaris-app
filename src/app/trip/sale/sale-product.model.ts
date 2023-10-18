@@ -41,7 +41,7 @@ export class SaleProduct extends Product {
     return target;
   }
 
-  fromObject(source: any, opts?: { withChildren: boolean; }): Product {
+  fromObject(source: any, opts?: { withChildren: boolean }): Product {
     super.fromObject(source);
     this.ratio = source.ratio;
     this.ratioCalculated = source.ratioCalculated;

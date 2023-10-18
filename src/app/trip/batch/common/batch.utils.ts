@@ -5,17 +5,25 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   isNotNilOrNaN,
   referentialToString,
   ReferentialUtils,
   splitByProperty,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, QualityFlags, UnitLabel } from '@app/referential/services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  MatrixIds,
+  MethodIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  QualitativeValueIds,
+  QualityFlagIds,
+  UnitLabel,
+} from '@app/referential/services/model/model.enum';
 import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { roundHalfUp } from '@app/shared/functions';
@@ -25,16 +33,16 @@ import { Moment } from 'moment/moment';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 export class BatchUtils {
-
   static isNotEmpty(source: Batch, opts = { ignoreChildren: false, ignoreTaxonGroup: false, ignoreTaxonName: false }) {
-    return source && (
-      isNotNil(source.individualCount)
-      || (!opts.ignoreTaxonGroup && ReferentialUtils.isNotEmpty(source.taxonGroup))
-      || (!opts.ignoreTaxonName && ReferentialUtils.isNotEmpty(source.taxonName))
-      || isNotNilOrNaN(source.samplingRatio)
-      || isNotNilOrNaN(source.weight?.value)
-      || MeasurementValuesUtils.isNotEmpty(source.measurementValues)
-      || (!opts.ignoreChildren && source.children && source.children.some(b => BatchUtils.isNotEmpty(b, opts)))
+    return (
+      source &&
+      (isNotNil(source.individualCount) ||
+        (!opts.ignoreTaxonGroup && ReferentialUtils.isNotEmpty(source.taxonGroup)) ||
+        (!opts.ignoreTaxonName && ReferentialUtils.isNotEmpty(source.taxonName)) ||
+        isNotNilOrNaN(source.samplingRatio) ||
+        isNotNilOrNaN(source.weight?.value) ||
+        MeasurementValuesUtils.isNotEmpty(source.measurementValues) ||
+        (!opts.ignoreChildren && source.children && source.children.some((b) => BatchUtils.isNotEmpty(b, opts))))
     );
   }
 
@@ -54,11 +62,14 @@ export class BatchUtils {
     return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#') || false;
   }
 
-  static parentToString(parent: Batch, opts?: {
-    pmfm?: IPmfm,
-    taxonGroupAttributes: string[];
-    taxonNameAttributes: string[];
-  }): string {
+  static parentToString(
+    parent: Batch,
+    opts?: {
+      pmfm?: IPmfm;
+      taxonGroupAttributes: string[];
+      taxonNameAttributes: string[];
+    }
+  ): string {
     if (!parent) return null;
     opts = opts || { taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name'] };
     if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.id])) {
@@ -72,8 +83,9 @@ export class BatchUtils {
     }
     // Display both, if both exists
     if (hasTaxonName && hasTaxonGroup) {
-      return referentialToString(parent.taxonGroup, opts.taxonGroupAttributes) + ' / '
-        + referentialToString(parent.taxonName, opts.taxonNameAttributes);
+      return (
+        referentialToString(parent.taxonGroup, opts.taxonGroupAttributes) + ' / ' + referentialToString(parent.taxonName, opts.taxonNameAttributes)
+      );
     }
     // Display only taxon group
     if (hasTaxonGroup) {
@@ -93,11 +105,11 @@ export class BatchUtils {
   }
 
   static isSamplingNotEmpty(samplingBatch: Batch): boolean {
-    return isNotNil(samplingBatch.individualCount)
-      || isNotNil(samplingBatch.samplingRatio)
-      || Object.getOwnPropertyNames(samplingBatch.measurementValues || {})
-        .filter(key => isNotNil(samplingBatch.measurementValues[key]))
-        .length > 0;
+    return (
+      isNotNil(samplingBatch.individualCount) ||
+      isNotNil(samplingBatch.samplingRatio) ||
+      Object.getOwnPropertyNames(samplingBatch.measurementValues || {}).filter((key) => isNotNil(samplingBatch.measurementValues[key])).length > 0
+    );
   }
 
   static isSamplingRatioComputed(samplingRatioText: string, format?: SamplingRatioFormat): boolean {
@@ -118,15 +130,17 @@ export class BatchUtils {
   }
 
   public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: IPmfm[]): boolean {
-    return EntityUtils.equals(b1.parent, b2.parent, 'label')
-      && ReferentialUtils.equals(b1.taxonName, b2.taxonName)
-      && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
+    return (
+      EntityUtils.equals(b1.parent, b2.parent, 'label') &&
+      ReferentialUtils.equals(b1.taxonName, b2.taxonName) &&
+      MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms)
+    );
   }
 
   static getOrCreateSamplingChild(parent: Batch) {
     const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
 
-    const samplingChild = (parent.children || []).find(b => b.label === samplingLabel) || new Batch();
+    const samplingChild = (parent.children || []).find((b) => b.label === samplingLabel) || new Batch();
     const isNew = !samplingChild.label && true;
 
     if (isNew) {
@@ -145,49 +159,60 @@ export class BatchUtils {
 
   static getSamplingChild(parent: Batch): Batch | undefined {
     const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
-    return parent.children?.length === 1 && parent.children.find(b => b.label === samplingLabel);
+    return parent.children?.length === 1 && parent.children.find((b) => b.label === samplingLabel);
   }
 
   static isEmptySamplingBatch(batch: Batch) {
-    return BatchUtils.isSamplingBatch(batch)
-      && isNil(BatchUtils.getWeight(batch)?.value)
-      && isNil(batch.samplingRatio)
-      && (batch.individualCount || 0) === 0
-      && isEmptyArray(batch.children)
+    return (
+      BatchUtils.isSamplingBatch(batch) &&
+      isNil(BatchUtils.getWeight(batch)?.value) &&
+      isNil(batch.samplingRatio) &&
+      (batch.individualCount || 0) === 0 &&
+      isEmptyArray(batch.children)
+    );
   }
 
   /**
    * Will copy root (species) batch id into subBatch.parentId
    * AND copy the QV sorting measurement hold by direct parent
+   *
    * @param rootBatches
    * @param subAcquisitionLevel
    * @param qvPmfm
    */
   static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: IPmfm): Batch[] {
     if (qvPmfm) {
-      return rootBatches.reduce((res, rootBatch) => {
-        return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
-          const children = BatchUtils.getChildrenByLevel(qvBatch, subAcquisitionLevel);
-          return res.concat(children
-            .map(child => {
-              // Copy QV value from the root batch
-              child.measurementValues = child.measurementValues || {};
-              child.measurementValues[qvPmfm.id] = qvBatch.measurementValues[qvPmfm.id];
-              // Replace parent by the group (instead of the sampling batch)
-              child.parentId = rootBatch.id;
-              return child;
-            }));
-        }, []));
-      }, []);
+      return rootBatches.reduce(
+        (res, rootBatch) =>
+          res.concat(
+            (rootBatch.children || []).reduce((res, qvBatch) => {
+              const children = BatchUtils.getChildrenByLevel(qvBatch, subAcquisitionLevel);
+              return res.concat(
+                children.map((child) => {
+                  // Copy QV value from the root batch
+                  child.measurementValues = child.measurementValues || {};
+                  child.measurementValues[qvPmfm.id] = qvBatch.measurementValues[qvPmfm.id];
+                  // Replace parent by the group (instead of the sampling batch)
+                  child.parentId = rootBatch.id;
+                  return child;
+                })
+              );
+            }, [])
+          ),
+        []
+      );
     }
-    return rootBatches.reduce((res, rootBatch) => {
-      return res.concat(BatchUtils.getChildrenByLevel(rootBatch, subAcquisitionLevel)
-        .map(child => {
-          // Replace parent by the group (instead of the sampling batch)
-          child.parentId = rootBatch.id;
-          return child;
-        }));
-    }, []);
+    return rootBatches.reduce(
+      (res, rootBatch) =>
+        res.concat(
+          BatchUtils.getChildrenByLevel(rootBatch, subAcquisitionLevel).map((child) => {
+            // Replace parent by the group (instead of the sampling batch)
+            child.parentId = rootBatch.id;
+            return child;
+          })
+        ),
+      []
+    );
   }
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
@@ -198,24 +223,27 @@ export class BatchUtils {
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
-    return batch && (batch.children || []).findIndex(child => {
-      return (child.label?.startsWith(acquisitionLevel + '#')) ||
-        // If children, recursive call
-        (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
-    }) !== -1;
+    return (
+      batch &&
+      (batch.children || []).findIndex(
+        (child) =>
+          child.label?.startsWith(acquisitionLevel + '#') ||
+          // If children, recursive call
+          (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel))
+      ) !== -1
+    );
   }
-
 
   /**
    * Méthode servant à corriger les rankOrder (et les label) des lots, à utiliser :
    * - quand les lots ont été importés (copier/coller)
    * - ou quand la saisie a été faite par plusieurs éditeurs de lots déconnecté les uns des autres (e.g. Batch Tree container)
    * - ou pour corriger des problèmes dans les données (e.g. introduit par un bug, comme cela est arrivé sur la BDD SUMARiS historique)
+   *
    * @param source
    * @param sortingBatchIndividualRankOrder
    */
   static computeRankOrder(source: Batch, sortingBatchIndividualRankOrder = 1) {
-
     if (!source?.label || !source.children) return; // skip
 
     source.children
@@ -224,7 +252,6 @@ export class BatchUtils {
 
       // For each child
       .forEach((b: Batch, index) => {
-
         // Individual measure batch
         if (this.isIndividualBatch(b)) {
           b.rankOrder = sortingBatchIndividualRankOrder++;
@@ -248,16 +275,15 @@ export class BatchUtils {
 
   /**
    * Compute individual count, from individual measures
+   *
    * @param source
    */
   static computeIndividualCount(source: Batch) {
-
     if (!source.label || !source.children) return; // skip
 
     let sumChildrenIndividualCount: number = null;
 
     source.children.forEach((b, index) => {
-
       this.computeIndividualCount(b); // Recursive call
 
       // Update sum of individual count
@@ -274,7 +300,9 @@ export class BatchUtils {
     // Parent is NOT a sampling batch
     else if (isNotNil(sumChildrenIndividualCount) && source.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
       if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
-        console.warn(`[batch-utils] Fix batch {${source.label}} individual count =${source.individualCount} but children individual count = ${sumChildrenIndividualCount}`);
+        console.warn(
+          `[batch-utils] Fix batch {${source.label}} individual count =${source.individualCount} but children individual count = ${sumChildrenIndividualCount}`
+        );
         //source.individualCount = childrenIndividualCount;
         source.qualityFlagId = QualityFlagIds.BAD;
       } else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
@@ -291,53 +319,52 @@ export class BatchUtils {
 
   /**
    * Sum individual count, onlly on batch with measure
+   *
    * @param batches
    */
   static sumObservedIndividualCount(batches: Batch[]): number {
     return (batches || [])
-      .map(b => isNotEmptyArray(b.children) ?
-        // Recursive call
-        BatchUtils.sumObservedIndividualCount(b.children) :
-        // Or get value from individual batches
-        (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+      .map((b) =>
+        isNotEmptyArray(b.children)
+          ? // Recursive call
+            BatchUtils.sumObservedIndividualCount(b.children)
+          : // Or get value from individual batches
+          b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
           ? toNumber(b.individualCount, 1)
-          // Default value, if not an individual batches
-          // Use '0' because we want only observed batches count
-          : 0
-        )
+          : // Default value, if not an individual batches
+            // Use '0' because we want only observed batches count
+            0
       )
-      .reduce((sum, individualCount) => {
-        return sum + individualCount;
-      }, 0);
+      .reduce((sum, individualCount) => sum + individualCount, 0);
   }
 
-  static getDefaultSortedWeightPmfms(): IPmfm[]{
+  static getDefaultSortedWeightPmfms(): IPmfm[] {
     return [
-      {id: PmfmIds.BATCH_MEASURED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER},
-      {id: PmfmIds.BATCH_ESTIMATED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER},
-      {id: PmfmIds.BATCH_CALCULATED_WEIGHT, isComputed: true, methodId: MethodIds.CALCULATED},
-      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH, maximumNumberDecimals: 6},
-      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM}
+      { id: PmfmIds.BATCH_MEASURED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER },
+      { id: PmfmIds.BATCH_ESTIMATED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER },
+      { id: PmfmIds.BATCH_CALCULATED_WEIGHT, isComputed: true, methodId: MethodIds.CALCULATED },
+      { id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH, maximumNumberDecimals: 6 },
+      { id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM },
     ]
-    .map(spec => ({
-      label: ParameterLabelGroups.WEIGHT[0],
-      //parameterId: ParameterIds.WEIGHT,
-      matrixId: MatrixIds.INDIVIDUAL,
-      type: 'double',
-      unitLabel: UnitLabel.KG,
-      maximumNumberDecimals: 3, // Default precision = grams
-      ...spec
-    }))
-    .map(json => DenormalizedPmfmStrategy.fromObject(json) as IPmfm);
+      .map((spec) => ({
+        label: ParameterLabelGroups.WEIGHT[0],
+        //parameterId: ParameterIds.WEIGHT,
+        matrixId: MatrixIds.INDIVIDUAL,
+        type: 'double',
+        unitLabel: UnitLabel.KG,
+        maximumNumberDecimals: 3, // Default precision = grams
+        ...spec,
+      }))
+      .map((json) => DenormalizedPmfmStrategy.fromObject(json) as IPmfm);
   }
 
   static sumCalculatedWeight(batches: Batch[], weightPmfms?: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): BatchWeight | undefined {
     let isExhaustive = true;
     weightPmfms = weightPmfms && this.getDefaultSortedWeightPmfms();
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
-    let childrenWeightMethodIds: number[] = [];
+    const childrenWeightMethodIds: number[] = [];
     const value = (batches || [])
-      .map(b => {
+      .map((b) => {
         // Recursive call
         if (isNotEmptyArray(b.children)) {
           return BatchUtils.sumCalculatedWeight(b.children, weightPmfms, weightPmfmsByMethodId);
@@ -346,7 +373,6 @@ export class BatchUtils {
         if (this.isIndividualBatch(b)) {
           const weight = b.weight || this.getWeight(b, weightPmfms);
           if (isNotNil(weight?.value)) {
-
             // Collect method used by children
             if (!childrenWeightMethodIds.includes(weight.methodId)) {
               childrenWeightMethodIds.push(weight.methodId);
@@ -356,19 +382,19 @@ export class BatchUtils {
             isExhaustive = false;
           }
         }
-        return undefined;// Ignore
+        return undefined; // Ignore
       })
       .filter(isNotNil)
-      .reduce((sum, weight) => {
-        return sum + +(weight.value || 0);
-      }, 0);
+      .reduce((sum, weight) => sum + +(weight.value || 0), 0);
 
     if (isNil(value) || !isExhaustive) return undefined;
 
     // Compute method and pmfm for SUM
-    const weightPmfm = childrenWeightMethodIds.length === 1 && childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
-      && weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
-      || weightPmfmsByMethodId[MethodIds.CALCULATED];
+    const weightPmfm =
+      (childrenWeightMethodIds.length === 1 &&
+        childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH &&
+        weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]) ||
+      weightPmfmsByMethodId[MethodIds.CALCULATED];
     const methodId = toNumber(weightPmfm?.methodId, MethodIds.CALCULATED);
     const maxDecimals = toNumber(weightPmfm?.maximumNumberDecimals, weightPmfms[0]?.maximumNumberDecimals || 3);
 
@@ -376,7 +402,7 @@ export class BatchUtils {
       value: roundHalfUp(value, maxDecimals),
       methodId,
       computed: true,
-      estimated: false
+      estimated: false,
     };
   }
 
@@ -389,7 +415,7 @@ export class BatchUtils {
     if (BatchUtils.isCatchBatch(source)) console.debug('[batch-utils] Computed batch tree weights...', source);
 
     let isExhaustive = true;
-    let childrenWeightMethodIds: number[] = [];
+    const childrenWeightMethodIds: number[] = [];
 
     const value = (source.children || [])
       .map((b, index) => {
@@ -400,7 +426,6 @@ export class BatchUtils {
         if (this.isIndividualBatch(b) && this.isNotEmpty(b)) {
           const weight = b.weight || this.getWeight(b, weightPmfms);
           if (isNotNil(weight?.value)) {
-
             // Collect method used by children
             if (!childrenWeightMethodIds.includes(weight.methodId)) {
               childrenWeightMethodIds.push(weight.methodId);
@@ -412,16 +437,16 @@ export class BatchUtils {
         }
       })
       .filter(isNotNil)
-      .reduce((sum, weight) => {
-        return sum + +(weight.value || 0);
-      }, 0);
+      .reduce((sum, weight) => sum + +(weight.value || 0), 0);
 
     if (isNil(value) || value === 0 || !isExhaustive) return undefined;
 
     // Compute method and pmfm for SUM
-    const weightPmfm = childrenWeightMethodIds.length === 1 && childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
-      && weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
-      || weightPmfmsByMethodId[MethodIds.CALCULATED];
+    const weightPmfm =
+      (childrenWeightMethodIds.length === 1 &&
+        childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH &&
+        weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]) ||
+      weightPmfmsByMethodId[MethodIds.CALCULATED];
     const methodId = toNumber(weightPmfm?.id, MethodIds.CALCULATED);
 
     source.weight = source.weight || this.getWeight(source, weightPmfms);
@@ -443,16 +468,16 @@ export class BatchUtils {
           unit: 'kg',
           methodId,
           computed: false,
-          estimated: false
+          estimated: false,
         };
         samplingBatch.measurementValues[weightPmfm.id] = samplingBatch.weight.value;
       }
-      console.debug('[batch-utils] Computed weight sum='+value, source);
+      console.debug('[batch-utils] Computed weight sum=' + value, source);
     }
   }
 
   static isEmptyWeight(weight: BatchWeight): boolean {
-    return !weight || isNil(weight.value) && isNil(weight.computed) && isNil(weight.methodId) && isNil(weight.computed);
+    return !weight || (isNil(weight.value) && isNil(weight.computed) && isNil(weight.methodId) && isNil(weight.computed));
   }
 
   static isNotEmptyWeight(weight: BatchWeight): boolean {
@@ -466,15 +491,17 @@ export class BatchUtils {
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
 
     return weightPmfms
-      .map(pmfm => {
+      .map((pmfm) => {
         const value = source.measurementValues[pmfm.id];
 
-        return isNotNilOrNaN(value) ? {
-          value: +value,
-          estimated: pmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
-          computed: pmfm.isComputed || pmfm.methodId === MethodIds.CALCULATED,
-          methodId: toNumber(pmfm.methodId, MethodIds.OBSERVED_BY_OBSERVER) // Need by BatchForm - see dispatchPmfms()
-        }: undefined;
+        return isNotNilOrNaN(value)
+          ? {
+              value: +value,
+              estimated: pmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
+              computed: pmfm.isComputed || pmfm.methodId === MethodIds.CALCULATED,
+              methodId: toNumber(pmfm.methodId, MethodIds.OBSERVED_BY_OBSERVER), // Need by BatchForm - see dispatchPmfms()
+            }
+          : undefined;
       })
       .filter(isNotNil)
       .sort((w1, w2) => {
@@ -486,8 +513,7 @@ export class BatchUtils {
   }
 
   static getWeightScore(weight: BatchWeight): number {
-    return 10 * (!weight.computed ? 1 : 0)
-      + (!weight.estimated ? 1 : 0);
+    return 10 * (!weight.computed ? 1 : 0) + (!weight.estimated ? 1 : 0);
   }
 
   static getWeightPmfm(weight: BatchWeight, weightPmfms: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): IPmfm {
@@ -496,14 +522,17 @@ export class BatchUtils {
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
 
-    return (weight?.estimated && weightPmfmsByMethodId[MethodIds.ESTIMATED_BY_OBSERVER])
-    || (weight?.computed && (weightPmfmsByMethodId[weight.methodId] || weightPmfmsByMethodId[MethodIds.CALCULATED]))
+    return (
+      (weight?.estimated && weightPmfmsByMethodId[MethodIds.ESTIMATED_BY_OBSERVER]) ||
+      (weight?.computed && (weightPmfmsByMethodId[weight.methodId] || weightPmfmsByMethodId[MethodIds.CALCULATED])) ||
       // Or default weight
-    || weightPmfms[0];
+      weightPmfms[0]
+    );
   }
 
   /**
    * Compute individual count, and weights, from a batch tree
+   *
    * @param source
    */
   static computeTree(source: Batch) {
@@ -513,35 +542,40 @@ export class BatchUtils {
 
   /**
    * Remove empty batches. Return if the source is empty (after the children cleanup)
+   *
    * @param source
    */
   static cleanTree(source: Batch): boolean {
-    source.children = source.children && source.children.filter(b => !this.cleanTree(b));
-    return isEmptyArray(source.children)
-      && this.isEmpty(source, { ignoreChildren: true /* already check */, ignoreTaxonGroup: true, ignoreTaxonName: true });
+    source.children = source.children && source.children.filter((b) => !this.cleanTree(b));
+    return (
+      isEmptyArray(source.children) &&
+      this.isEmpty(source, { ignoreChildren: true /* already check */, ignoreTaxonGroup: true, ignoreTaxonName: true })
+    );
   }
 
-
-  static logTree(batch: Batch, opts?: {
-    println?: (message: string) => void;
-    indent?: string;
-    nextIndent?: string;
-    showAll?: boolean;
-    showWeight?: boolean;
-    showParent?: boolean;
-    showTaxon?: boolean;
-    showMeasure?: boolean;
-  }) {
+  static logTree(
+    batch: Batch,
+    opts?: {
+      println?: (message: string) => void;
+      indent?: string;
+      nextIndent?: string;
+      showAll?: boolean;
+      showWeight?: boolean;
+      showParent?: boolean;
+      showTaxon?: boolean;
+      showMeasure?: boolean;
+    }
+  ) {
     opts = opts || {};
-    const indent = opts && opts.indent || '';
-    const nextIndent = opts && opts.nextIndent || indent;
+    const indent = (opts && opts.indent) || '';
+    const nextIndent = (opts && opts.nextIndent) || indent;
     let message = indent + (batch.label || 'NO_LABEL');
 
     if (opts.showAll) {
       const excludeKeys = ['label', 'parent', 'children', '__typename'];
       Object.keys(batch)
-        .filter(key => !excludeKeys.includes(key) && isNotNil(batch[key]))
-        .forEach(key => {
+        .filter((key) => !excludeKeys.includes(key) && isNotNil(batch[key]))
+        .forEach((key) => {
           let value = batch[key];
           if (value instanceof Object) {
             if (!(value instanceof Batch)) {
@@ -551,7 +585,6 @@ export class BatchUtils {
           message += ' ' + key + ':' + value;
         });
     } else {
-
       if (isNotNil(batch.id)) {
         message += ' id:' + batch.id;
       }
@@ -581,24 +614,32 @@ export class BatchUtils {
       // Measurement
       if (opts.showMeasure !== false && batch.measurementValues) {
         if (batch.measurementValues[PmfmIds.BATCH_GEAR_POSITION]) {
-          message += ' batchGearPosition:' + (batch.measurementValues[PmfmIds.BATCH_GEAR_POSITION] == QualitativeValueIds.BATCH_GEAR_POSITION.PORT ? 'B' : 'T');
+          // eslint-disable-next-line eqeqeq
+          message +=
+            ' batchGearPosition:' +
+            (batch.measurementValues[PmfmIds.BATCH_GEAR_POSITION] == QualitativeValueIds.BATCH_GEAR_POSITION.PORT ? 'B' : 'T');
         }
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
-          message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
+          // eslint-disable-next-line eqeqeq
+          message +=
+            ' discardOrLanding:' +
+            (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }
         const length = batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM];
         if (isNotNil(length)) {
           message += ' length:' + length + 'cm';
         }
-        const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
-          || batch.measurementValues[PmfmIds.DISCARD_WEIGHT];
+        const weight =
+          batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] ||
+          batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT] ||
+          batch.measurementValues[PmfmIds.DISCARD_WEIGHT];
         if (isNotNil(weight)) {
           message += ' weight:' + weight + 'kg';
         }
-        const computedWeight = batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH]
-          || batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM];
+        const computedWeight =
+          batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT] ||
+          batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] ||
+          batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM];
         if (isNotNil(computedWeight)) {
           message += ' weight:~' + computedWeight + 'kg';
         }
@@ -616,17 +657,20 @@ export class BatchUtils {
     if (opts.println) opts.println(message);
     else console.debug(message);
 
-    const childrenCount = batch.children && batch.children.length || 0;
+    const childrenCount = (batch.children && batch.children.length) || 0;
     if (childrenCount > 0) {
       batch.children.forEach((b, index) => {
-        const childOpts = (index === childrenCount - 1) ? {
-          println: opts.println,
-          indent: nextIndent + ' \\- ',
-          nextIndent: nextIndent + '\t'
-        } : {
-          println: opts.println,
-          indent: nextIndent + ' |- '
-        };
+        const childOpts =
+          index === childrenCount - 1
+            ? {
+                println: opts.println,
+                indent: nextIndent + ' \\- ',
+                nextIndent: nextIndent + '\t',
+              }
+            : {
+                println: opts.println,
+                indent: nextIndent + ' |- ',
+              };
 
         this.logTree(b, childOpts); // Loop
       });
@@ -635,6 +679,7 @@ export class BatchUtils {
 
   /**
    * Get all batches that matches the given filter
+   *
    * @param batch
    * @param filter
    */
@@ -647,6 +692,7 @@ export class BatchUtils {
 
   /**
    * Get all batches that matches the given filter
+   *
    * @param batch
    * @param filter
    */
@@ -661,20 +707,22 @@ export class BatchUtils {
 
   /**
    * Internal function
+   *
    * @param batch
    * @param filterFn
    * @private
    */
   private static filterRecursively(batch: Batch, filterFn: (b: Batch) => boolean): Batch[] {
-    return (batch.children || []).reduce((res, child) => {
-        return res.concat(this.filterRecursively(child, filterFn));
-      },
+    return (batch.children || []).reduce(
+      (res, child) => res.concat(this.filterRecursively(child, filterFn)),
       // Init result
-      filterFn(batch) ? [batch] : []);
+      filterFn(batch) ? [batch] : []
+    );
   }
 
   /**
    * Internal function
+   *
    * @param batch
    * @param filterFn
    * @private
@@ -684,46 +732,47 @@ export class BatchUtils {
 
     // Delete children
     const deletedBatches = batch.children.filter(filterFn);
-    batch.children = batch.children.filter(c => !deletedBatches.includes(c));
+    batch.children = batch.children.filter((c) => !deletedBatches.includes(c));
 
     // Recursive call, in still existing children
-    return batch.children.reduce((res, c) => {
-      return res.concat(this.deleteRecursively(c, filterFn))
-    }, deletedBatches);
+    return batch.children.reduce((res, c) => res.concat(this.deleteRecursively(c, filterFn)), deletedBatches);
   }
 
   /**
    * Reset controlDate and quality fLag and comment
+   *
    * @param entity
    * @param opts
    * @private
    */
-  static markAsNotControlled(entity: Batch, opts?: {withChildren?: boolean}) {
+  static markAsNotControlled(entity: Batch, opts?: { withChildren?: boolean }) {
     DataEntityUtils.markAsNotControlled(entity);
 
     // Recursive call to children
     if (!opts || opts.withChildren !== false) {
-      (entity.children || []).forEach(c => this.markAsNotControlled(c, opts));
+      (entity.children || []).forEach((c) => this.markAsNotControlled(c, opts));
     }
   }
 
   /**
    * Set controlDate, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    * @private
    */
-  static markAsControlled(entity: Batch, opts?: {withChildren?: boolean; controlDate?: Moment}) {
+  static markAsControlled(entity: Batch, opts?: { withChildren?: boolean; controlDate?: Moment }) {
     DataEntityUtils.markAsControlled(entity, opts);
 
     // Recursive call to children
     if (!opts || opts.withChildren !== false) {
-      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
+      (entity.children || []).forEach((c) => this.markAsControlled(c, opts));
     }
   }
 
   /**
    * Mark as invalid, using qualityFlag
+   *
    * @param entity
    * @param errorMessage
    */
@@ -733,6 +782,7 @@ export class BatchUtils {
 
   /**
    * Check if an entity has been mark as invalid
+   *
    * @param entity
    */
   static isInvalid(entity: Batch) {

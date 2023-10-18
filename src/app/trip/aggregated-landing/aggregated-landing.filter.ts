@@ -6,10 +6,10 @@ import {
     fromDateISOString,
     isNotNil,
     toDateISOString
-} from "@sumaris-net/ngx-components";
-import {AggregatedLanding} from "@app/trip/aggregated-landing/aggregated-landing.model";
-import {Moment} from "moment";
-import {SynchronizationStatus} from "@app/data/services/model/model.utils";
+} from '@sumaris-net/ngx-components';
+import {AggregatedLanding} from '@app/trip/aggregated-landing/aggregated-landing.model';
+import {Moment} from 'moment';
+import {SynchronizationStatus} from '@app/data/services/model/model.utils';
 
 @EntityClass({typename: 'AggregatedLandingFilterVO'})
 export class AggregatedLandingFilter extends EntityFilter<AggregatedLandingFilter, AggregatedLanding> {

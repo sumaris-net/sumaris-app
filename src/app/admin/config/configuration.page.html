@@ -1,19 +1,24 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [canGoBack]="false">
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading"
+  (onValidate)="save($event)"
+  [canGoBack]="false"
+>
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
-
-  <mat-tab-group #tabGroup
-                 class="mat-tab-fixed-content"
-                 [(selectedIndex)]="selectedTabIndex"
-                 (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 [dynamicHeight]="false">
-
+  <mat-tab-group
+    #tabGroup
+    class="mat-tab-fixed-content"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="tabGroupAnimationDuration"
+    [dynamicHeight]="false"
+  >
     <!-- TAB: general -->
-    <mat-tab label="{{'CONFIGURATION.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>CONFIGURATION.TAB_GENERAL</ion-label>
@@ -24,38 +29,43 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error"
-                     [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
-
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form #referentialForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [showDescription]="false"
-                                    [showComments]="true"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-
+              <app-referential-form
+                #referentialForm
+                [form]="form"
+                [showError]="false"
+                [showDescription]="false"
+                [showComments]="true"
+                [debug]="debug"
+                (onSubmit)="save($event)"
+              >
                 <!-- About -->
                 <ion-row>
                   <ion-col>
                     <mat-form-field>
-                       <textarea matInput #description
-                                 matTextareaAutosize="true"
-                                 matAutosizeMinRows="4"
-                                 rows="1"
-                                 maxlength="2000"
-                                 [placeholder]="'ABOUT.TITLE'|translate"
-                                 [formControl]="form.controls.description">
-                      </textarea>
-                      <mat-hint align="end">{{description.value.length}} / 255</mat-hint>
-                      <mat-error *ngIf="form.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-                      <mat-error *ngIf="form.controls.description.hasError('maxLength')">{{'ERROR.FIELD_MAX_LENGTH'|translate: {maxLength: 255} }}</mat-error>
+                      <textarea
+                        matInput
+                        #description
+                        matTextareaAutosize="true"
+                        matAutosizeMinRows="4"
+                        rows="1"
+                        maxlength="2000"
+                        [placeholder]="'ABOUT.TITLE' | translate"
+                        [formControl]="form.controls.description"
+                      ></textarea>
+                      <mat-hint align="end">{{ description.value.length }} / 255</mat-hint>
+                      <mat-error *ngIf="form.controls.description.hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                      <mat-error *ngIf="form.controls.description.hasError('maxLength')">
+                        {{ 'ERROR.FIELD_MAX_LENGTH' | translate : { maxLength: 255 } }}
+                      </mat-error>
                     </mat-form-field>
                   </ion-col>
                 </ion-row>
@@ -66,8 +76,6 @@
 
                 <!-- Home logos -->
                 <ng-container *ngIf="config?.smallLogo || config?.largeLogo">
-
-
                   <h4>
                     <ion-text translate>CONFIGURATION.LOGOS</ion-text>
                   </h4>
@@ -75,14 +83,20 @@
                   <ion-grid>
                     <ion-row>
                       <ion-col>
-                        <img *ngIf="config?.smallLogo"
-                             src="{{ config?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO'|translate"
-                             width="110"/>
+                        <img
+                          *ngIf="config?.smallLogo"
+                          src="{{ config?.smallLogo }}"
+                          [title]="'CONFIGURATION.OPTIONS.LOGO' | translate"
+                          width="110"
+                        />
                       </ion-col>
                       <ion-col>
-                        <img *ngIf="config?.largeLogo"
-                             src="{{ config?.largeLogo }}" [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'|translate"
-                             width="250"/>
+                        <img
+                          *ngIf="config?.largeLogo"
+                          src="{{ config?.largeLogo }}"
+                          [title]="'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE' | translate"
+                          width="250"
+                        />
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -94,13 +108,12 @@
                   </h4>
 
                   <div class="bottom-banner">
-                    <div class="partner-logo" *rxFor="let item of $partners; let i = index ">
-                      <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="50"/>
+                    <div class="partner-logo" *rxFor="let item of $partners; let i = index">
+                      <img class="logo" src="{{ item.logo }}" alt="{{ item.label }}" [title]="item.name" width="50" />
                       <!--<mat-icon class="button-close" (click)="removePartnerAt(i)">close</mat-icon>-->
                     </div>
                   </div>
                 </ng-container>
-
               </app-referential-form>
             </ion-col>
 
@@ -114,80 +127,99 @@
     </mat-tab>
 
     <!-- TAB: properties -->
-    <mat-tab label="{{'CONFIGURATION.TAB_PROPERTIES'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_PROPERTIES' | translate }}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
-        <ion-label [matBadge]="propertiesForm.length"
-                   [matBadgeHidden]="!propertiesForm.length"
-                   matBadgeColor="primary"
-                   matBadgeOverlap="false"
-                   matBadgeSize="small"
-                   translate>CONFIGURATION.TAB_PROPERTIES</ion-label>
+        <ion-label
+          [matBadge]="propertiesForm.length"
+          [matBadgeHidden]="!propertiesForm.length"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_PROPERTIES
+        </ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="propertiesForm.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-padding">
-
-        <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{allowEmptyArray: true}">
-
-        </app-properties-form>
-
+        <app-properties-form
+          #propertiesForm
+          [definitions]="propertyDefinitions"
+          [options]="{ allowEmptyArray: true }"
+        ></app-properties-form>
       </div>
-
     </mat-tab>
 
     <!-- TAB: notifications -->
-    <mat-tab label="{{'CONFIGURATION.TAB_NOTIFICATIONS'|translate}}">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_NOTIFICATIONS' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="notifications"></ion-icon>
         </mat-icon>
-        <ion-label [matBadge]="userEventsTable.totalRowCount"
-                   [matBadgeHidden]="!userEventsTable.totalRowCount"
-                   matBadgeColor="primary"
-                   matBadgeOverlap="false"
-                   matBadgeSize="small"
-                   translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
+        <ion-label
+          [matBadge]="userEventsTable.totalRowCount"
+          [matBadgeHidden]="!userEventsTable.totalRowCount"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_NOTIFICATIONS
+        </ion-label>
       </ng-template>
 
-      <app-user-events-table #userEventsTable
-                             [recipient]="'SYSTEM'"
-                             [withContent]="true"
-                             [debug]="debug">
-      </app-user-events-table>
+      <app-user-events-table
+        #userEventsTable
+        [recipient]="'SYSTEM'"
+        [withContent]="true"
+        [debug]="debug"
+      ></app-user-events-table>
     </mat-tab>
 
     <!-- TAB: cache -->
-    <mat-tab label="{{'CONFIGURATION.TAB_CACHE'|translate}}">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_CACHE' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="stats-chart"></ion-icon>
         </mat-icon>
-        <ion-label *rxLet="$cacheStatisticsCount as count"
-                   [matBadge]="count"
-                   [matBadgeHidden]="!count"
-                   matBadgeColor="primary"
-                   matBadgeOverlap="false"
-                   matBadgeSize="small"
-                   translate>CONFIGURATION.TAB_CACHE</ion-label>
+        <ion-label
+          *rxLet="$cacheStatisticsCount as count"
+          [matBadge]="count"
+          [matBadgeHidden]="!count"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_CACHE
+        </ion-label>
       </ng-template>
 
       <div>
-
         <mat-toolbar class="ion-no-padding">
-          <button mat-icon-button color="light" *ngIf="network.online" [title]="'COMMON.BTN_REFRESH'|translate"
-                  (click)="loadCacheStat()">
+          <button
+            mat-icon-button
+            color="light"
+            *ngIf="network.online"
+            [title]="'COMMON.BTN_REFRESH' | translate"
+            (click)="loadCacheStat()"
+          >
             <mat-icon>refresh</mat-icon>
           </button>
 
           <!-- title -->
-          <ion-text class="toolbar-spacer ion-text-center" >
+          <ion-text class="toolbar-spacer ion-text-center">
             <h3 translate>CONFIGURATION.CACHE_TITLE</h3>
           </ion-text>
 
-          <button mat-icon-button *ngIf="enabled"
-                  [matMenuTriggerFor]="optionsMenu"
-                  [title]=" 'COMMON.BTN_OPTIONS'|translate">
+          <button
+            mat-icon-button
+            *ngIf="enabled"
+            [matMenuTriggerFor]="optionsMenu"
+            [title]="'COMMON.BTN_OPTIONS' | translate"
+          >
             <mat-icon>more_vert</mat-icon>
           </button>
         </mat-toolbar>
@@ -200,9 +232,7 @@
         </mat-menu>
 
         <div class="">
-
           <ion-grid class="ion-no-padding cache">
-
             <!-- header -->
             <ion-row class="mat-header-row">
               <ion-col size="12" size-lg="6" class="mat-header-cell">
@@ -220,8 +250,7 @@
               <ion-col class="mat-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
               </ion-col>
-              <ion-col size="1">
-              </ion-col>
+              <ion-col size="1"></ion-col>
             </ion-row>
 
             <!-- total -->
@@ -230,109 +259,104 @@
                 <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{total.size}}</ion-label>
+                <ion-label>{{ total.size }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{total.heapSize | fileSize}}</ion-label>
+                <ion-label>{{ total.heapSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{total.offHeapSize | fileSize}}</ion-label>
+                <ion-label>{{ total.offHeapSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{total.diskSize | fileSize}}</ion-label>
+                <ion-label>{{ total.diskSize | fileSize }}</ion-label>
               </ion-col>
-              <ion-col size="1">
-              </ion-col>
+              <ion-col size="1"></ion-col>
             </ion-row>
 
             <!-- details -->
-            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd"
-                     class="mat-row"
-                     [class.odd]="odd">
+            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-row" [class.odd]="odd">
               <ion-col size="12" size-lg="6">
-                <ion-label class="ion-text-wrap">{{stat.name}}</ion-label>
+                <ion-label class="ion-text-wrap">{{ stat.name }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{stat.size}}</ion-label>
+                <ion-label>{{ stat.size }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{stat.heapSize | fileSize}}</ion-label>
+                <ion-label>{{ stat.heapSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{stat.offHeapSize | fileSize}}</ion-label>
+                <ion-label>{{ stat.offHeapSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col>
-                <ion-label>{{stat.diskSize | fileSize}}</ion-label>
+                <ion-label>{{ stat.diskSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col size="1">
-                <ion-button [title]="'COMMON.BTN_CLEAR'|translate"
-                            fill="clear" color="medium"
-                            (click)="clearCache($event, stat.name)">
+                <ion-button
+                  [title]="'COMMON.BTN_CLEAR' | translate"
+                  fill="clear"
+                  color="medium"
+                  (click)="clearCache($event, stat.name)"
+                >
                   <ion-icon slot="icon-only" name="trash"></ion-icon>
                 </ion-button>
               </ion-col>
             </ion-row>
           </ion-grid>
-
         </div>
       </div>
-
     </mat-tab>
 
-
     <!-- TAB: jobs -->
-    <mat-tab label="{{'CONFIGURATION.TAB_JOBS'|translate}}">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_JOBS' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>schedule</mat-icon>
-        <ion-label *rxLet="jobList.jobsCount$ as count"
-                   [matBadge]="count"
-                   [matBadgeHidden]="!count"
-                   matBadgeColor="primary"
-                   matBadgeOverlap="false"
-                   matBadgeSize="small"
-                   translate>CONFIGURATION.TAB_JOBS</ion-label>
+        <ion-label
+          *rxLet="jobList.jobsCount$ as count"
+          [matBadge]="count"
+          [matBadgeHidden]="!count"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_JOBS
+        </ion-label>
       </ng-template>
 
       <app-job-list #jobList></app-job-list>
     </mat-tab>
-
   </mat-tab-group>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
 
-
 <ng-template #propertiesSkeleton>
-
   <ion-grid class="ion-no-padding">
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
   </ion-grid>
-
 </ng-template>
 
 <ng-template #propertyRowSkeleton>
-
   <ion-row>
     <!-- property key -->
     <ion-col>
       <mat-form-field>
-        <input matInput hidden>
+        <input matInput hidden />
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
         <ion-icon name="arrow-dropdown" matSuffix></ion-icon>
       </mat-form-field>
@@ -340,17 +364,15 @@
     <!-- value -->
     <ion-col>
       <mat-form-field>
-        <input matInput hidden>
+        <input matInput hidden />
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
       </mat-form-field>
     </ion-col>
     <!-- buttons -->
     <ion-col size="2">
-      <button type="button" mat-icon-button color="light"
-              [disabled]="true">
+      <button type="button" mat-icon-button color="light" [disabled]="true">
         <mat-icon>close</mat-icon>
       </button>
     </ion-col>
   </ion-row>
-
 </ng-template>

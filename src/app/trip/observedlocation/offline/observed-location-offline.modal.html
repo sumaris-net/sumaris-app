@@ -1,43 +1,43 @@
-<app-modal-toolbar [modalName]="modalName"
-                   [title]="title|translate"
-                   color="accent"
-                   [canValidate]="!loading && valid"
-                   (cancel)="cancel()"
-                   (validate)="validate($event)"
+<app-modal-toolbar
+  [modalName]="modalName"
+  [title]="title | translate"
+  color="accent"
+  [canValidate]="!loading && valid"
+  (cancel)="cancel()"
+  (validate)="validate($event)"
 ></app-modal-toolbar>
 
 <ion-content class="ion-padding">
-
   <form class="form-container" [formGroup]="form">
-
     <ion-grid class="ion-no-padding">
-
       <ion-row>
         <ion-col>
           <!-- Program -->
           <mat-autocomplete-field
-            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM'|translate"
+            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM' | translate"
             formControlName="program"
             [config]="autocompleteFields.program"
             [required]="true"
             [clearable]="true"
-            [tabindex]="1">
+            [tabindex]="1"
+          >
             <ion-icon matPrefix name="contract"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
 
-
-      <ion-row class="ion-padding-start"
-               [class.cdk-visually-hidden]="(form|formGetControl:'strategy').disabled">
+      <ion-row class="ion-padding-start" [class.cdk-visually-hidden]="(form | formGetControl : 'strategy').disabled">
         <ion-col>
           <!-- Strategy -->
-          <mat-chips-field formControlName="strategy" #strategyChipsField
-                           [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY'|translate"
-                           [config]="autocompleteFields.strategy"
-                           [clearable]="true"
-                           chipColor="accent"
-                           [tabindex]="2">
+          <mat-chips-field
+            formControlName="strategy"
+            #strategyChipsField
+            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY' | translate"
+            [config]="autocompleteFields.strategy"
+            [clearable]="true"
+            chipColor="accent"
+            [tabindex]="2"
+          >
             <mat-icon matPrefix>date_range</mat-icon>
           </mat-chips-field>
         </ion-col>
@@ -48,33 +48,34 @@
           <!-- enable history ? -->
           <mat-form-field floatLabel="never">
             <!-- fake input -->
-            <input matInput hidden>
+            <input matInput hidden />
 
             <ion-label>&nbsp;</ion-label>
 
             <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix
-                          [formControl]="form.controls.enableHistory"
-                          labelPosition="after"
-                          [tabindex]="2">
+            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="2">
               <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
             </mat-checkbox>
 
-            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>
+              ERROR.FIELD_REQUIRED
+            </mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>
 
-
       <ion-row class="ion-padding-start">
         <ion-col>
           <!-- Location -->
-          <mat-chips-field #chipsField formControlName="location"
-                           [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
-                           [config]="autocompleteFields.location"
-                           [clearable]="true"
-                           [chipColor]="(form|formGetControl:'location').enabled ? 'accent' : 'medium'"
-                           [tabindex]="3">
+          <mat-chips-field
+            #chipsField
+            formControlName="location"
+            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
+            [config]="autocompleteFields.location"
+            [clearable]="true"
+            [chipColor]="(form | formGetControl : 'location').enabled ? 'accent' : 'medium'"
+            [tabindex]="3"
+          >
             <mat-icon matPrefix>room</mat-icon>
           </mat-chips-field>
         </ion-col>
@@ -83,27 +84,30 @@
       <ion-row class="ion-padding-start">
         <ion-col>
           <!-- Period duration -->
-          <mat-form-field >
+          <mat-form-field>
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            <mat-select formControlName="periodDuration"
-                        [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER'|translate"
-                        [tabindex]="4"
-                        required>
-              <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">{{ item.label | translate }}
+            <mat-select
+              formControlName="periodDuration"
+              [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
+              [tabindex]="4"
+              required
+            >
+              <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
+                {{ item.label | translate }}
               </mat-option>
             </mat-select>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>
+              ERROR.FIELD_REQUIRED
+            </mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>
     </ion-grid>
-
   </form>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
@@ -111,21 +115,21 @@
       </ion-col>
 
       <ion-col size="auto">
-
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="valid ? 'solid' : 'clear'"
-                    [disabled]="disabled"
-                    (click)="validate($event)"
-                    (keyup.enter)="validate($event)"
-                    [tabindex]="5"
-                    color="tertiary">
+        <ion-button
+          [fill]="valid ? 'solid' : 'clear'"
+          [disabled]="disabled"
+          (click)="validate($event)"
+          (keyup.enter)="validate($event)"
+          [tabindex]="5"
+          color="tertiary"
+        >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>
-
 </ion-footer>

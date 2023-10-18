@@ -18,7 +18,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 
 

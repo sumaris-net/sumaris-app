@@ -1,127 +1,128 @@
 <ion-label class="ion-text-wrap status" *ngIf="!loading">
   <!-- local entity -->
   <ion-text *ngIf="data.id < 0">
-    <ion-icon name="warning"></ion-icon>&nbsp;
+    <ion-icon name="warning"></ion-icon>
+    &nbsp;
     <span translate>QUALITY.NOT_SYNCHRONIZED</span>
   </ion-text>
   <!-- control date -->
   <ion-text *ngIf="data.controlDate">
-    <ion-icon name="checkmark"></ion-icon>&nbsp;
+    <ion-icon name="checkmark"></ion-icon>
+    &nbsp;
     <span translate>QUALITY.CONTROLLED_ON</span>
     <span>
-      <b>{{ data.controlDate | dateFormat: {time: true} }}</b>
+      <b>{{ data.controlDate | dateFormat : { time: true } }}</b>
     </span>
   </ion-text>
   <!-- validation date -->
   <ion-text *ngIf="data.validationDate">
-    <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
+    <ion-icon name="checkmark-circle"></ion-icon>
+    &nbsp;
     <span translate>QUALITY.VALIDATED_ON</span>
     <span>
-      <b>{{ data.validationDate | dateFormat: {time: true} }}</b>
+      <b>{{ data.validationDate | dateFormat : { time: true } }}</b>
     </span>
   </ion-text>
   <!-- usage mode -->
   <ion-text *ngIf="editor.usageMode as usageMode">
-    <br/>
-    <ion-icon [name]="usageMode === 'DESK' ? 'desktop-outline' : 'hourglass'"></ion-icon>&nbsp;
-    <span [innerHTML]="'SETTINGS.USAGE_MODE_'+usageMode|translate"></span>
+    <br />
+    <ion-icon [name]="usageMode === 'DESK' ? 'desktop-outline' : 'hourglass'"></ion-icon>
+    &nbsp;
+    <span [innerHTML]="'SETTINGS.USAGE_MODE_' + usageMode | translate"></span>
   </ion-text>
 </ion-label>
 
 <!-- Progress bar -->
-<app-progress-bar [progression]="_progression"
-                  [cancellable]="true">
-</app-progress-bar>
+<app-progress-bar [progression]="_progression" [cancellable]="true"></app-progress-bar>
 
 <p>
   <!-- Control (only if local) -->
-  <ion-button *ngIf="canControl && !canSynchronize && !canTerminate"
-              [disabled]="busy"
-              (click)="control($event)"
-              expand="block" color="tertiary">
+  <ion-button
+    *ngIf="canControl && !canSynchronize && !canTerminate"
+    [disabled]="busy"
+    (click)="control($event)"
+    expand="block"
+    color="tertiary"
+  >
     <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
     <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
   </ion-button>
 
   <!-- Terminate -->
-  <ion-button *ngIf="canTerminate"
-              [disabled]="busy"
-              (click)="terminate($event)"
-              expand="block" color="tertiary">
-    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
+  <ion-button *ngIf="canTerminate" [disabled]="busy" (click)="terminate($event)" expand="block" color="tertiary">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
+    &nbsp;
     <ion-label class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-label>
   </ion-button>
 
   <!-- synchronize -->
-  <ion-button *ngIf="canSynchronize"
-              expand="block"
-              [disabled]="busy"
-              [color]="network.offline ? 'danger100' : 'danger'"
-              (click)="synchronize($event)" >
+  <ion-button
+    *ngIf="canSynchronize"
+    expand="block"
+    [disabled]="busy"
+    [color]="network.offline ? 'danger100' : 'danger'"
+    (click)="synchronize($event)"
+  >
     <ion-icon *ngIf="_mobile" slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
     <ion-label translate>QUALITY.BTN_SYNCHRONIZE</ion-label>
   </ion-button>
 
-
-  <ion-button *ngIf="canValidate"
-              expand="block" color="success"
-              [disabled]="busy"
-              (click)="validate($event)">
-    <ion-icon *ngIf="_mobile" slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
+  <ion-button *ngIf="canValidate" expand="block" color="success" [disabled]="busy" (click)="validate($event)">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>
+    &nbsp;
     <ion-label translate>QUALITY.BTN_VALIDATE</ion-label>
   </ion-button>
-  <ion-button *ngIf="canUnvalidate"
-              expand="block" color="light"
-              [disabled]="busy"
-              (click)="unvalidate($event)">
+  <ion-button *ngIf="canUnvalidate" expand="block" color="light" [disabled]="busy" (click)="unvalidate($event)">
     <ion-text color="danger" translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
 </p>
 
-
 <ng-container *ngIf="qualityFlags as qualityFlags">
   <p *ngIf="qualityFlags.length && (canQualify || canUnqualify)" class="ion-padding-top">
+    <!-- flags menu -->
+    <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
+      <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
+      <ion-button
+        *rxFor="let qualityFlag of qualityFlags"
+        size="small"
+        expand="block"
+        [color]="qualityFlag.id | qualityFlagToColor"
+        (click)="qualify($event, qualityFlag.id)"
+      >
+        {{ qualityFlag.label | translate }}
+      </ion-button>
+    </mat-menu>
 
-      <!-- flags menu -->
-      <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
-        <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
-        <ion-button  *rxFor="let qualityFlag of qualityFlags"
-                     size="small" expand="block"
-                     [color]="qualityFlag.id|qualityFlagToColor"
-                     (click)="qualify($event, qualityFlag.id)">
-          {{qualityFlag.label | translate}}
-        </ion-button>
-      </mat-menu>
+    <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
+      <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
+      <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
+      <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
+    </ion-button>
 
-
-      <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
+    <!-- if already qualified -->
+    <ng-container *ngIf="canUnqualify">
+      <ion-label class="ion-text-wrap status">
+        <ion-text>
+          <ion-icon name="ribbon"></ion-icon>
+          &nbsp;
+          <span translate>QUALITY.QUALIFIED_ON</span>
+          <span>
+            <b>{{ data.qualificationDate | dateFormat : { time: true } }}</b>
+          </span>
+        </ion-text>
+        <br />
+      </ion-label>
+      <ion-button
+        [matMenuTriggerFor]="qualityFlagMenu"
+        expand="block"
+        [color]="data.qualityFlagId | qualityFlagToColor"
+      >
         <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
-        <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
+        <ion-text>
+          {{ translateQualityFlag(data.qualityFlagId, qualityFlags) | translate }}
+        </ion-text>
         <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
       </ion-button>
-
-      <!-- if already qualified -->
-      <ng-container *ngIf="canUnqualify">
-        <ion-label class="ion-text-wrap status">
-          <ion-text>
-            <ion-icon name="ribbon"></ion-icon>&nbsp;
-            <span translate>QUALITY.QUALIFIED_ON</span>
-            <span>
-                <b>{{ data.qualificationDate | dateFormat: {time: true} }}</b>
-            </span>
-          </ion-text>
-          <br/>
-        </ion-label>
-        <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block"
-                    [color]="data.qualityFlagId|qualityFlagToColor">
-          <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
-          <ion-text>
-            {{translateQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
-          <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
-        </ion-button>
-      </ng-container>
+    </ng-container>
   </p>
-
-
-
 </ng-container>

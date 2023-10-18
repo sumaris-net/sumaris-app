@@ -22,16 +22,16 @@ import {
   ViewChild,
   ViewContainerRef,
   ViewEncapsulation,
-  ViewRef
+  ViewRef,
 } from '@angular/core';
-import {ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions} from '@sumaris-net/ngx-components';
-import {IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent} from './reveal.utils';
-import {MarkdownComponent} from 'ngx-markdown';
-import {BehaviorSubject, lastValueFrom, Subscription} from 'rxjs';
-import {DOCUMENT} from '@angular/common';
-import {OverlayEventDetail} from '@ionic/core';
-import {ToastController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
+import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
+import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
+import { MarkdownComponent } from 'ngx-markdown';
+import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
+import { DOCUMENT } from '@angular/common';
+import { OverlayEventDetail } from '@ionic/core';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
@@ -104,8 +104,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   @Input() options: Partial<IRevealExtendedOptions>;
   @Input() autoPrint = true;
 
-  @Output('ready') onReady = new EventEmitter();
-  @Output('slideChanged') onSlideChanged = new EventEmitter<RevealSlideChangedEvent>();
+  @Output() ready = new EventEmitter();
+  @Output() slideChanged = new EventEmitter<RevealSlideChangedEvent>();
 
   @ViewChild('main') _revealDiv!: ElementRef;
 
@@ -171,14 +171,14 @@ export class RevealComponent implements AfterViewInit, OnDestroy
       });
     }
 
-    console.log('[reveal] ngAfterViewInit finished')
+    console.log('[reveal] ngAfterViewInit finished');
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
   }
 
-  registerSection(section:RevealSectionDef) {
+  registerSection(section: RevealSectionDef) {
     if (!this._embedded) {
       const exists = this._sectionDefs.some(s => s === section)
         || this._registeredSections.includes(section);
@@ -245,11 +245,11 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     await this._reveal.initialize();
 
     console.info(`[reveal] Reveal initialized in ${Date.now()-now}ms`);
-    this.onReady.emit();
+    this.ready.emit();
     this.markAsLoaded();
 
     this._reveal.on( 'slidechanged', (event: RevealSlideChangedEvent) => {
-      this.onSlideChanged.emit(event);
+      this.slideChanged.emit(event);
     });
 
     this._subscription.add(() => {
@@ -320,7 +320,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
           const removeIframe = () => {
             this._printIframe?.remove();
             this._printIframe = null;
-          }
+          };
           // destroy after 1min
           setTimeout(removeIframe, 60000);
 
@@ -361,7 +361,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   private getPrintPdfUrl() {
-    let printUrl = this.options.printUrl || new URL(window.location.href);
+    const printUrl = this.options.printUrl || new URL(window.location.href);
 
     if (! printUrl.searchParams.has('print-pdf')) {
       printUrl.searchParams.append('print-pdf', '1');

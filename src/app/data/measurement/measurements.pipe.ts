@@ -4,11 +4,10 @@ import { PmfmValuePipe } from '@app/referential/pipes/pmfms.pipe';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Pipe({
-  name: 'isMeasurementFormValues'
+  name: 'isMeasurementFormValues',
 })
 export class IsMeasurementFormValuesPipe implements PipeTransform {
-
-  transform = MeasurementValuesUtils.isMeasurementFormValues
+  transform = MeasurementValuesUtils.isMeasurementFormValues;
 }
 
 @Pipe({
@@ -16,13 +15,13 @@ export class IsMeasurementFormValuesPipe implements PipeTransform {
 })
 export class IsMeasurementModelValuesPipe implements PipeTransform {
 
-  transform = MeasurementValuesUtils.isMeasurementModelValues
+  transform = MeasurementValuesUtils.isMeasurementModelValues;
 }
 
 @Pipe({
   name: 'measurementValueGet'
 })
-export class MeasurementValueGetPipe extends PmfmValuePipe {
+export class MeasurementValueGetPipe extends PmfmValuePipe implements PipeTransform {
 
   transform(entity: IEntityWithMeasurement<any>, opts: {
     pmfm: IPmfm;
@@ -32,7 +31,6 @@ export class MeasurementValueGetPipe extends PmfmValuePipe {
     showLabelForPmfmIds?: number[];
     separator?: string;
   }): any {
-
     if (!entity.measurementValues || !opts?.pmfm) return undefined;
     return this.format(entity.measurementValues[opts.pmfm.id], {
       applyDisplayConversion: opts.pmfm.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),

@@ -1,12 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppForm,
   AppFormArray,
-  AppFormField,
   arrayDistinct,
   firstNotNilPromise,
   FormFieldDefinition,
@@ -17,7 +16,7 @@ import {
   LocalSettingsService,
   toBoolean,
   waitFor,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
@@ -27,9 +26,9 @@ import { ExtractionCriteriaValidatorService } from './extraction-criterion.valid
 import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/common/extraction.utils';
 
 export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
-  {columnName: 'project', name: 'EXTRACTION.COLUMNS.PROJECT', label: 'project', type: 'string'},
-  {columnName: 'year', name: 'EXTRACTION.COLUMNS.YEAR', label: 'year', type: 'integer'},
-]
+  { columnName: 'project', name: 'EXTRACTION.COLUMNS.PROJECT', label: 'project', type: 'string' },
+  { columnName: 'year', name: 'EXTRACTION.COLUMNS.YEAR', label: 'year', type: 'integer' },
+];
 
 @Component({
   selector: 'app-extraction-criteria-form',
@@ -38,7 +37,7 @@ export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType<any>>
-  extends AppForm<ExtractionFilterCriterion[]> implements OnInit {
+  extends AppForm<ExtractionFilterCriterion[]> implements OnInit, OnDestroy {
 
   private _sheetName: string;
   private _type: E;
@@ -76,7 +75,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       const columns = DEFAULT_EXTRACTION_COLUMNS.map(col => {
         col.name = this.translate.instant(col.name);
         return ExtractionColumn.fromObject(col);
-      })
+      });
       this.$columns.next(columns);
     }
   }
@@ -127,6 +126,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   ngOnDestroy() {
+    super.ngOnDestroy();
     this.resetColumnDefinitions();
     this.$columnValueDefinitions.unsubscribe();
     this.$columns.unsubscribe();
@@ -163,10 +163,10 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this.markForCheck();
   }
 
-  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean; }): boolean {
+  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean }): boolean {
     opts = opts || {};
     opts.appendValue = toBoolean(opts.appendValue, false);
-    console.debug("[extraction-form] Adding filter criterion");
+    console.debug('[extraction-form] Adding filter criterion');
 
     let hasChanged = false;
     let index = -1;
@@ -201,7 +201,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
         // Append value to existing value
         if (opts.appendValue) {
-          existingCriterion.value += ", " + criterion.value;
+          existingCriterion.value += ', ' + criterion.value;
           this.validatorService.setCriterionValue(criterionForm, existingCriterion);
         }
 
@@ -295,7 +295,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     (this._type && this._type.sheetNames || []).forEach(sheetName => this.addFilterCriterion({
       name: null,
       operator: DEFAULT_CRITERION_OPERATOR,
-      sheetName: sheetName
+      sheetName
     }));
 
     if (!opts || opts.emitEvent !== false) {
@@ -355,7 +355,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
         $items.next(items);
       }
       else {
-        $items = new BehaviorSubject<String[]>(items as string[]);
+        $items = new BehaviorSubject<string[]>(items as string[]);
       }
       definition = {
         ...definition,
@@ -363,7 +363,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           ...definition.autocomplete,
           items: $items
         }
-      }
+      };
     }
 
     if (!subject) {
@@ -397,11 +397,11 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           attributes: [undefined],
           columnNames: [column.name/*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
           mobile: false,
-          displayWith: (value) => {
+          displayWith: (value) =>
             // DEBUG
             //console.debug('TODO display with', value);
-            return isNil(value) ? '' : value;
-          }
+             isNil(value) ? '' : value
+
         }
       };
     }
@@ -466,9 +466,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
       // Flat the map by sheet
       return Object.getOwnPropertyNames(json)
-        .reduce((res, sheetName) => {
-          return res.concat(json[sheetName]);
-        }, [])
+        .reduce((res, sheetName) => res.concat(json[sheetName]), [])
         .map(ExtractionFilterCriterion.fromObject);
     }
     finally {
@@ -484,7 +482,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     Object.values(this.$columnValueDefinitionsByIndex).forEach(subject => {
       subject.next(null);
       subject.unsubscribe();
-    })
+    });
     this.$columnValueDefinitionsByIndex = {};
   }
 

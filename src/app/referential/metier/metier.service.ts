@@ -24,7 +24,7 @@ export class MetierService extends ReferentialService<Metier> {
     target.properties = {
       gear: source.gear?.asObject({...MINIFY_ENTITY_FOR_POD, keepEntityName: true}) || undefined,
       taxonGroup: source.taxonGroup?.asObject({...MINIFY_ENTITY_FOR_POD, keepEntityName: true}) || undefined,
-    }
+    };
     delete target.taxonGroup;
     delete target.gear;
 

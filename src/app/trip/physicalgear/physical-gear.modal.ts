@@ -1,6 +1,19 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild} from '@angular/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {PhysicalGearForm} from './physical-gear.form';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  Self,
+  ViewChild,
+} from '@angular/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { PhysicalGearForm } from './physical-gear.form';
 import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
@@ -16,23 +29,21 @@ import {
   ReferentialRef,
   toBoolean,
   toNumber,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import {MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
-import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {UntypedFormGroup} from '@angular/forms';
-import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
-import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
-import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
-import {filter, switchMap} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {slideDownAnimation} from '@app/shared/material/material.animation';
-import {RxState} from '@rx-angular/state';
-import {environment} from '@environments/environment';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { UntypedFormGroup } from '@angular/forms';
+import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
+import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
+import { filter, switchMap } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
+import { RxState } from '@rx-angular/state';
+import { environment } from '@environments/environment';
 
-export interface IPhysicalGearModalOptions
-  extends IEntityEditorModalOptions<PhysicalGear> {
-
+export interface IPhysicalGearModalOptions extends IEntityEditorModalOptions<PhysicalGear> {
   helpMessage: string;
 
   acquisitionLevel: string;
@@ -70,7 +81,7 @@ interface ComponentState {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
         equals: PhysicalGear.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       })
     },
     RxState
@@ -96,14 +107,14 @@ export class PhysicalGearModal
   @Input() tripId: number;
   @Input() canEditGear = false;
   @Input() canEditRankOrder = false;
-  @Input() allowChildrenGears: boolean
-  @Input() minChildrenCount: number = 2;
+  @Input() allowChildrenGears: boolean;
+  @Input() minChildrenCount = 2;
   @Input() showGear = true;
   @Input() showSearchButton = true;
   @Input() maxVisibleButtons: number;
-  @Input() maxItemCountForButtons: number = 12;
+  @Input() maxItemCountForButtons = 12;
 
-  @Output() onSearchButtonClick = createPromiseEventEmitter<PhysicalGear>();
+  @Output() searchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 
   @ViewChild(PhysicalGearForm, {static: true}) physicalGearForm: PhysicalGearForm;
 
@@ -138,7 +149,7 @@ export class PhysicalGearModal
       tabCount: 2,
       i18nPrefix: 'TRIP.PHYSICAL_GEAR.EDIT.',
       enableSwipe: false
-    })
+    });
 
     // Default values
     this._logPrefix = '[physical-gear-modal] ';
@@ -164,12 +175,12 @@ export class PhysicalGearModal
       this.physicalGearForm,
       // Will be included by (ngInit)= (see template)
       //this.childrenTable
-    ])
+    ]);
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.onSearchButtonClick.unsubscribe();
+    this.searchButtonClick.unsubscribe();
     this.childrenGearService.stop();
   }
 
@@ -225,11 +236,11 @@ export class PhysicalGearModal
 
   async openSearchModal(event?: Event) {
 
-    if (this.onSearchButtonClick.observers.length === 0) return; // Skip
+    if (this.searchButtonClick.observers.length === 0) return; // Skip
 
     // Emit event, then wait for a result
     try {
-      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, this.acquisitionLevel);
+      const selectedData = await emitPromiseEvent(this.searchButtonClick, this.acquisitionLevel);
 
       // No result (user cancelled): skip
       if (!selectedData) return;
@@ -396,19 +407,20 @@ export class PhysicalGearModal
 
   /**
    * Open a modal to select a previous child gear
+   *
    * @param event
    */
   async openSearchChildrenModal(event: PromiseEvent<PhysicalGear>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
 
-    if (this.onSearchButtonClick.observers.length === 0) {
+    if (this.searchButtonClick.observers.length === 0) {
       event.detail.error('CANCELLED');
       return; // Skip
     }
 
     // Emit event, then wait for a result
     try {
-      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, event.type);
+      const selectedData = await emitPromiseEvent(this.searchButtonClick, event.type);
 
       if (selectedData) {
         // Create a copy
@@ -428,7 +440,7 @@ export class PhysicalGearModal
       }
     }
     catch (err) {
-      console.error(err)
+      console.error(err);
       event.detail?.error(err);
     }
   }

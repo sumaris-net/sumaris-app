@@ -8,13 +8,12 @@ import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @Component({
-  selector: 'form-sale',
+  selector: 'app-form-sale',
   templateUrl: './sale.form.html',
   styleUrls: ['./sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
-
   private _minDate: Moment = null;
 
   @Input() required = true;
@@ -33,15 +32,17 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   get empty(): any {
     const value = this.value;
-    return (!value.saleLocation || !value.saleLocation.id)
-      && (!value.startDateTime)
-      && (!value.endDateTime)
-      && (!value.saleType || !value.saleType.id)
-      && (!value.comments || !value.comments.length);
+    return (
+      (!value.saleLocation || !value.saleLocation.id) &&
+      !value.startDateTime &&
+      !value.endDateTime &&
+      (!value.saleType || !value.saleType.id) &&
+      (!value.comments || !value.comments.length)
+    );
   }
 
   get valid(): any {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+    return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
   constructor(
@@ -63,9 +64,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     // Combo: vessels (if need)
     if (this.showVessel) {
       // Combo: vessels
-      this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-        this.registerAutocompleteField('vesselSnapshot', opts)
-      );
+      this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
     } else {
       this.form.get('vesselSnapshot').clearValidators();
     }
@@ -75,8 +74,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
-      }
+        levelId: LocationLevelIds.PORT,
+      },
     });
 
     // Combo: sale types
@@ -84,8 +83,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
-      }
+        entityName: 'SaleType',
+      },
     });
   }
 
@@ -93,11 +92,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     this.updateFormGroup();
   }
 
-  protected updateFormGroup(opts?: { emitEvent?: boolean; }) {
+  protected updateFormGroup(opts?: { emitEvent?: boolean }) {
     console.info('[sale-form] Updating form group...');
     this.validatorService.updateFormGroup(this.form, {
       required: this.required, // Set if required or not
-      minDate: this._minDate
+      minDate: this._minDate,
     });
 
     if (!opts || opts.emitEvent !== false) {

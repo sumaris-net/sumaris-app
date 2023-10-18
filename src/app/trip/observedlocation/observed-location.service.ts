@@ -448,7 +448,7 @@ export class ObservedLocationService
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
-    return this.graphql.subscribe<{ data: ObservedLocation }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: ObservedLocation }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
@@ -466,7 +466,7 @@ export class ObservedLocationService
       );
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -666,6 +666,7 @@ export class ObservedLocationService
 
   /**
    * Delete many observations
+   *
    * @param entities
    * @param opts
    */
@@ -704,6 +705,7 @@ export class ObservedLocationService
 
   /**
    * Delete many local entities
+   *
    * @param entities
    * @param opts
    */
@@ -878,7 +880,7 @@ export class ObservedLocationService
 
       let errorsById: FormErrors = null;
 
-      for (let entity of data) {
+      for (const entity of data) {
 
         const errors = await this.control(entity, {...opts, maxProgression: progressionStep});
 
@@ -1089,6 +1091,7 @@ export class ObservedLocationService
 
   /**
    * List of importation jobs.
+   *
    * @protected
    * @param opts
    */
@@ -1188,7 +1191,7 @@ export class ObservedLocationService
       ...opts,
       enable: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       withMeasurements: true, // Need by full validation
-    }
+    };
 
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
@@ -1206,7 +1209,7 @@ export class ObservedLocationService
     return {
       withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       ...opts,
-    }
+    };
   }
   protected async fillValidateOption(entity: ObservedLocation, opts?: IRootDataValidateOptions): Promise<IRootDataValidateOptions> {
     opts = await super.fillValidateOption(entity, opts);
@@ -1214,7 +1217,7 @@ export class ObservedLocationService
     return {
       withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       ...opts,
-    }
+    };
   }
 
 

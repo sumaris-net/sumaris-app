@@ -36,7 +36,7 @@ export interface IchthyometerDevice extends BluetoothDevice {
   meta?: {
     type?: IchthyometerType;
     [key: string]: any;
-  }
+  };
 }
 export interface Ichthyometer extends IchthyometerDevice, OnDestroy {
 
@@ -309,7 +309,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
               ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES.autocomplete,
               suggestFn: (value, filter) => this.suggest(value, filter)
             }
-          }
+          };
         }
 
         return definition;
@@ -320,6 +320,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
   /**
    * Create a new Ichthyometer instance, from the given type
+   *
    * @param device
    * @param type
    * @private

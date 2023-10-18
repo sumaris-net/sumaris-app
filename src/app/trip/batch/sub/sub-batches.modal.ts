@@ -57,14 +57,12 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
     {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: () => {
-        return {
+      useFactory: () => ({
           prependNewElements: true,
           suppressErrors: true,
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
-        };
-      }
+        })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -292,9 +290,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
-    if (this.debug) console.debug("[sub-batch-modal] Closing modal...");
+    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
     if (this.debug && this.form && this.form.dirty && this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
+      AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
       // Continue
     }
 
@@ -321,7 +319,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || this.selectedRow;
-    if (!row) throw new Error ("Missing row argument, or a row selection.");
+    if (!row) throw new Error ('Missing row argument, or a row selection.');
 
     // Confirm last edited row
     const confirmed = this.confirmEditCreate();
@@ -456,6 +454,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   /**
    * When a row has been edited, play a beep and highlight the row (during few seconds)
+   *
    * @param row
    * @pram times duration of highlight
    */

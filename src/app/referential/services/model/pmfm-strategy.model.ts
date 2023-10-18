@@ -247,10 +247,11 @@ export class DenormalizedPmfmStrategy
 
   /**
    * Allow to merge, using the children property
+   *
    * @param other
    */
   static merge(pmfm: DenormalizedPmfmStrategy, other: DenormalizedPmfmStrategy): DenormalizedPmfmStrategy {
-    if (!pmfm || !other || pmfm.id !== other.id) throw new Error('Cannot only merge pmfm with same id')
+    if (!pmfm || !other || pmfm.id !== other.id) throw new Error('Cannot only merge pmfm with same id');
     let result: DenormalizedPmfmStrategy;
 
     // Clone current (if not already clone)

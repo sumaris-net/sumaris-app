@@ -1,5 +1,4 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -7,100 +6,116 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-
     <ion-row *ngIf="showParent">
       <ion-col class="ion-padding">
         <!-- Parent -->
-        <mat-autocomplete-field formControlName='parent'
-                                [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
-                                [tabindex]="tabindex"
-                                [config]="autocompleteFields.parent"
-                                (focusin)="compositionEditedIndex=null"
-                                required>
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="parent"
+          [placeholder]="'TRIP.PRODUCT.LIST.PARENT' | translate"
+          [tabindex]="tabindex"
+          [config]="autocompleteFields.parent"
+          (focusin)="compositionEditedIndex = null"
+          required
+        ></mat-autocomplete-field>
       </ion-col>
     </ion-row>
 
     <ion-row>
       <!--  empty col for alignment  -->
-      <ion-col size="0" size-md="4" class="ion-no-padding">
-      </ion-col>
+      <ion-col size="0" size-md="4" class="ion-no-padding"></ion-col>
 
       <!--  NB packets  -->
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field>
-          <input matInput #packetNumber
-                 formControlName="number"
-                 [placeholder]="'PACKET.NUMBER' | translate"
-                 autocomplete="off" type="number"
-                 pattern="[0-9]*"
-                 step="1"
-                 [tabIndex]="tabindex+1"
-                 (click)="selectInputContent($event)"
-                 (focusin)="compositionEditedIndex=null"
-                 required>
+          <input
+            matInput
+            #packetNumber
+            formControlName="number"
+            [placeholder]="'PACKET.NUMBER' | translate"
+            autocomplete="off"
+            type="number"
+            pattern="[0-9]*"
+            step="1"
+            [tabIndex]="tabindex + 1"
+            (click)="selectInputContent($event)"
+            (focusin)="compositionEditedIndex = null"
+            required
+          />
         </mat-form-field>
       </ion-col>
 
       <!--  weight (computed)  -->
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field class="computed mat-form-field-disabled">
-          <input matInput #packetWeight
-                 formControlName="weight"
-                 [placeholder]="'PACKET.WEIGHT' | translate"
-                 autocomplete="off" type="number"
-                 tabIndex="-1"
-                 readonly>
+          <input
+            matInput
+            #packetWeight
+            formControlName="weight"
+            [placeholder]="'PACKET.WEIGHT' | translate"
+            autocomplete="off"
+            type="number"
+            tabIndex="-1"
+            readonly
+          />
         </mat-form-field>
       </ion-col>
     </ion-row>
-
   </ion-grid>
 
   <table class="mat-table" [style.--packet-count]="packetCount" [class.mobile]="mobile">
-
     <!-- header row -->
     <tr class="mat-header-row">
       <th class="mat-header-cell mat-column-taxonGroup ion-text-center" rowspan="2">
         <ion-label translate>PACKET.COMPOSITION.TAXON_GROUP</ion-label>
       </th>
       <th [attr.colspan]="packetCount" class="mat-header-cell ion-text-center">
-        <ion-label [innerHTML]="'PACKET.COMPOSITION.SAMPLED_PACKETS'|translate"></ion-label>
+        <ion-label [innerHTML]="'PACKET.COMPOSITION.SAMPLED_PACKETS' | translate"></ion-label>
       </th>
       <th class="mat-header-cell mat-column-small ion-text-center" rowspan="2">
-        <ion-label [innerHTML]="'PACKET.TAXON_GROUP_SAMPLED_WEIGHT'|translate"></ion-label>
+        <ion-label [innerHTML]="'PACKET.TAXON_GROUP_SAMPLED_WEIGHT' | translate"></ion-label>
       </th>
       <th class="mat-header-cell mat-column-actions" rowspan="2"></th>
     </tr>
     <tr class="mat-header-row mat-header-row-small">
       <!-- ratios -->
-      <th class="mat-header-cell mat-column-small ion-text-center" *ngFor="let index of $packetIndexes | async; even as colEven"
-          [class.even]="colEven">
-        <ion-label>{{'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1} }}</ion-label>
+      <th
+        class="mat-header-cell mat-column-small ion-text-center"
+        *ngFor="let index of $packetIndexes | async; even as colEven"
+        [class.even]="colEven"
+      >
+        <ion-label>{{ 'PACKET.SAMPLED_WEIGHT' | translate : { rankOrder: index + 1 } }}</ion-label>
       </th>
     </tr>
 
     <!-- Row by taxon group -->
-    <tr class="mat-row mat-row-all-taxonGroup"
-        [class.mat-row-disabled]="compositionEditedIndex!==-1"
-        [class.mat-row-selected]="compositionEditedIndex===-1"
-        (focusin)="compositionEditedIndex=-1">
+    <tr
+      class="mat-row mat-row-all-taxonGroup"
+      [class.mat-row-disabled]="compositionEditedIndex !== -1"
+      [class.mat-row-selected]="compositionEditedIndex === -1"
+      (focusin)="compositionEditedIndex = -1"
+    >
       <td class="mat-cell mat-column-taxonGroup ion-text-end">
         <ion-label color="primary" class="text-italic" translate>PACKET.COMPOSITION.PACKETS_WEIGHT_DOTS</ion-label>
       </td>
 
       <!-- Packet weight column -->
-      <td class="mat-cell mat-column-small" *ngFor="let index of $packetIndexes | async ; even as colEven"
-               [class.even]="colEven">
+      <td
+        class="mat-cell mat-column-small"
+        *ngFor="let index of $packetIndexes | async; even as colEven"
+        [class.even]="colEven"
+      >
         <mat-form-field floatLabel="never">
-          <input matInput
-                 autocomplete="off" type="number"
-                 decimal="true"
-                 step="0.1"
-                 [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
-                 [formControlName]="'sampledWeight'+index"
-                 [tabIndex]="tabindex+10+(index+1)*100"
-                 (click)="selectInputContent($event)">
+          <input
+            matInput
+            autocomplete="off"
+            type="number"
+            decimal="true"
+            step="0.1"
+            [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate : { rankOrder: index + 1 }"
+            [formControlName]="'sampledWeight' + index"
+            [tabIndex]="tabindex + 10 + (index + 1) * 100"
+            (click)="selectInputContent($event)"
+          />
           <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
         </mat-form-field>
       </td>
@@ -108,34 +123,46 @@
       <td class="mat-cell mat-column-actions"></td>
     </tr>
 
-
     <!--  composition row  -->
-    <tr class="mat-row" *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; last as last; even as even"
-        [formGroup]="compositionForm"
-        [class.mat-row-disabled]="compositionEditedIndex!==i"
-        [class.mat-row-selected]="compositionEditedIndex===i"
-        (focusin)="compositionEditedIndex=i">
-
+    <tr
+      class="mat-row"
+      *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; last as last; even as even"
+      [formGroup]="compositionForm"
+      [class.mat-row-disabled]="compositionEditedIndex !== i"
+      [class.mat-row-selected]="compositionEditedIndex === i"
+      (focusin)="compositionEditedIndex = i"
+    >
       <!-- taxon group -->
       <td class="mat-cell mat-column-taxonGroup">
-        <mat-autocomplete-field formControlName="taxonGroup" floatLabel="never"
-                                [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP'|translate"
-                                [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
-                                [config]="autocompleteFields.taxonGroup"
-                                [tabindex]="tabindex+10+i"
-                                required>
-        </mat-autocomplete-field>
+        <mat-autocomplete-field
+          formControlName="taxonGroup"
+          floatLabel="never"
+          [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP' | translate"
+          [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
+          [config]="autocompleteFields.taxonGroup"
+          [tabindex]="tabindex + 10 + i"
+          required
+        ></mat-autocomplete-field>
       </td>
 
       <!-- ratios -->
-      <td class="mat-cell mat-column-small" *ngFor="let packetIndex of $packetIndexes | async; even as colEven"
-               [class.even]="colEven">
-        <mat-form-field *ngIf="compositionForm.get('ratio'+packetIndex); let control">
-          <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100"
-                 [tabIndex]="tabindex+10+(packetIndex+1)*100+i"
-                 [formControl]="control"
-                 (click)="selectInputContent($event)"
-          >
+      <td
+        class="mat-cell mat-column-small"
+        *ngFor="let packetIndex of $packetIndexes | async; even as colEven"
+        [class.even]="colEven"
+      >
+        <mat-form-field *ngIf="compositionForm.get('ratio' + packetIndex); let control">
+          <input
+            matInput
+            autocomplete="off"
+            type="number"
+            pattern="[0-9]*"
+            step="1"
+            max="100"
+            [tabIndex]="tabindex + 10 + (packetIndex + 1) * 100 + i"
+            [formControl]="control"
+            (click)="selectInputContent($event)"
+          />
           <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
           <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -143,27 +170,33 @@
 
       <!-- computed weight -->
       <td class="mat-cell mat-column-small ion-text-center">
-        <ion-label color="primary" class="text-italic">{{compositionForm.get('weight').value}} kg</ion-label>
+        <ion-label color="primary" class="text-italic">{{ compositionForm.get('weight').value }} kg</ion-label>
       </td>
 
       <!-- buttons -->
       <td class="mat-cell mat-column-actions">
         <ion-buttons>
-          <button type="button" mat-icon-button
-                  *ngIf="!mobile"
-                  [style.visibility]="last ? 'visible' : 'hidden'"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addComposition($event)"
-                  [tabindex]="tabindex+999">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="!mobile"
+            [style.visibility]="last ? 'visible' : 'hidden'"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addComposition($event)"
+            [tabindex]="tabindex + 999"
+          >
             <mat-icon>add</mat-icon>
           </button>
-          <button type="button" mat-icon-button
-                  *ngIf="!mobile || compositionEditedIndex === i && !disabled"
-                  [class.visible-hover-row]="!mobile"
-                  [tabindex]="-1"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="removeCompositionAt(i)">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="!mobile || (compositionEditedIndex === i && !disabled)"
+            [class.visible-hover-row]="!mobile"
+            [tabindex]="-1"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="removeCompositionAt(i)"
+          >
             <mat-icon>delete_outline</mat-icon>
           </button>
         </ion-buttons>
@@ -172,39 +205,49 @@
 
     <!-- sampled ratios -->
     <tr class="mat-footer-row">
-      <td class="mat-footer-cell mat-column-taxonGroup " >
+      <td class="mat-footer-cell mat-column-taxonGroup">
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col size="auto">
               <!-- add composition (mobile) -->
-              <ion-fab-button *ngIf="mobile" size="small"
-                              class="ion-float-start"
-                              color="tertiary"
-                              (click)="addComposition()">
+              <ion-fab-button
+                *ngIf="mobile"
+                size="small"
+                class="ion-float-start"
+                color="tertiary"
+                (click)="addComposition()"
+              >
                 <ion-icon name="add"></ion-icon>
               </ion-fab-button>
             </ion-col>
-            <ion-col class="ion-text-end" style="align-self: center;">
-              <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>PACKET.COMPOSITION.TOTAL_PCT_DOTS</ion-label>
+            <ion-col class="ion-text-end" style="align-self: center">
+              <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>
+                PACKET.COMPOSITION.TOTAL_PCT_DOTS
+              </ion-label>
             </ion-col>
           </ion-row>
         </ion-grid>
-
       </td>
-      <td class="mat-footer-cell mat-column-small ion-text-center" *ngFor="let index of $packetIndexes | async; even as colEven"
-               [class.even]="colEven">
-        <ion-text *ngIf="form.get('sampledRatio'+index).value; let sampledRatio"
-                  [color]="sampledRatio > 100 ? 'danger' : 'primary'" class="error">
-          <small *ngIf="sampledRatio > 100"><ion-icon color="danger" slot="start" name="alert-circle"></ion-icon></small>
-          {{sampledRatio}} %
+      <td
+        class="mat-footer-cell mat-column-small ion-text-center"
+        *ngFor="let index of $packetIndexes | async; even as colEven"
+        [class.even]="colEven"
+      >
+        <ion-text
+          *ngIf="form.get('sampledRatio' + index).value; let sampledRatio"
+          [color]="sampledRatio > 100 ? 'danger' : 'primary'"
+          class="error"
+        >
+          <small *ngIf="sampledRatio > 100">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          </small>
+          {{ sampledRatio }} %
         </ion-text>
       </td>
       <td class="mat-cell mat-column-small"></td>
       <td class="mat-cell mat-column-actions"></td>
     </tr>
-
   </table>
 
   <ng-content select="[endButtons]"></ng-content>
-
 </form>

@@ -1,7 +1,13 @@
 {
   "root": true,
   "ignorePatterns": [
-    "projects/**/*",
+    "/dist/**/*.*",
+    "/doc/**/*.*",
+    "/resources/**/*.*",
+    "/scripts/**/*.*",
+    "/www/**/*.*",
+    "/src/**/*.test*.ts",
+    "index.html",
     "ngx-sumaris-components/**/*"
   ],
   "overrides": [
@@ -18,25 +24,47 @@
       "extends": [
         "plugin:@angular-eslint/ng-cli-compat",
         "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
-        "plugin:@angular-eslint/template/process-inline-templates"
+        "plugin:@angular-eslint/template/process-inline-templates",
+        "plugin:prettier/recommended"
       ],
       "rules": {
-        "no-throw-literal": "off",
+        "prettier/prettier": "off",
         "@angular-eslint/component-class-suffix": "off",
+        "@angular-eslint/no-output-rename": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
         "@typescript-eslint/consistent-type-definitions": "error",
         "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/dot-notation": "off",
+        "prefer-arrow/prefer-arrow-functions": "off",
+        "@typescript-eslint/ban-types": "off",
+        "@angular-eslint/no-output-on-prefix": "warn",
         "@typescript-eslint/explicit-member-accessibility": [
           "off",
           {
             "accessibility": "explicit"
           }
         ],
-        "@typescript-eslint/no-shadow": [
+        "@typescript-eslint/member-ordering": [
           "off",
           {
-            "hoist": "all"
+            "default": {
+              "memberTypes": [
+                // Index signature
+                "signature",
+
+                // Getters and Setters at the same rank
+                ["get", "set", "field"],
+
+                // Static initialization
+                "static-initialization",
+
+                // Constructors
+                "constructor",
+
+                // Methods
+                "method"
+              ]
+            }
           }
         ],
         "brace-style": [
@@ -44,20 +72,22 @@
           "off"
         ],
         "curly": "off",
-        "dot-notation": "off",
         "id-blacklist": "off",
         "id-match": "off",
         "no-empty-function": "off",
-        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": [
+          "off",
+          {
+            "hoist": "all"
+          }
+        ],
         "no-trailing-spaces": "off",
         "no-undef-init": "off",
         "no-underscore-dangle": "off",
-        "no-unused-expressions": "error",
-        "no-use-before-define": "off",
         "radix": "off",
-        "semi": "error",
         "no-console": "off",
-        "max-len": "off"
+        "max-len": "off",
+        "no-throw-literal": "off"
       }
     },
     {
@@ -65,7 +95,8 @@
         "*.html"
       ],
       "extends": [
-        "plugin:@angular-eslint/template/recommended"
+        "plugin:@angular-eslint/template/recommended",
+        "plugin:prettier/recommended"
       ],
       "rules": {}
     }

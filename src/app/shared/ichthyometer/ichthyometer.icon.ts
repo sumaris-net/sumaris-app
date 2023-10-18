@@ -1,27 +1,21 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { BluetoothDeviceCheckFn } from '@app/shared/bluetooth/bluetooth.service';
 import { IchthyometerService, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
 import { IconRef, isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { BluetoothDevice } from '@e-is/capacitor-bluetooth-serial';
 
-
 @Component({
   selector: 'app-ichthyometer-icon',
   templateUrl: './ichthyometer.icon.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppIchthyometerIcon implements OnInit {
-
   @Input() title = 'SHARED.ICHTHYOMETER.TITLE';
-  @Input() type: IchthyometerType
-  @Input() selectedDeviceIcon: IconRef = {matIcon: 'straighten'};
+  @Input() type: IchthyometerType;
+  @Input() selectedDeviceIcon: IconRef = { matIcon: 'straighten' };
   @Input() checkAfterConnect: BluetoothDeviceCheckFn;
 
-  constructor(
-    injector: Injector,
-    private ichthyometerService: IchthyometerService
-  ) {
-  }
+  constructor(private ichthyometerService: IchthyometerService) {}
 
   ngOnInit() {
     const ichthyometerService = this.ichthyometerService;

@@ -18,6 +18,10 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "types": [
+      "node",
+      "webpack-env"
+    ],
     "paths": {
       "@app/*": [
         "src/app/*"
@@ -25,18 +29,12 @@
       "@environments/*": [
         "src/environments/*"
       ],
-      // Force using the RxJS project's version
-      "rxjs": ["node_modules/rxjs"],
-      "rxjs/*": ["node_modules/rxjs/*"],
-
-      // Node JS lib
-//      "crypto": ["node_modules/crypto-browserify"],
-//      "stream": ["node_modules/stream-browserify"],
-//      "assert": ["node_modules/assert"],
-//      "http": ["node_modules/stream-http"],
-//      "https": ["node_modules/https-browserify"],
-//      "os": ["node_modules/os-browserify"],
-//      "util": ["node_modules/util"]
+      "rxjs": [
+        "node_modules/rxjs"
+      ],
+      "rxjs/*": [
+        "node_modules/rxjs/*"
+      ]
     }
   },
   "angularCompilerOptions": {

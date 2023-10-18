@@ -1,109 +1,112 @@
 <ion-header>
   <ion-toolbar color="secondary">
     <ion-buttons slot="start">
-      <ion-button (click)="close()"
-                  visible-xs visible-sm visible-mobile>
+      <ion-button (click)="close()" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
     <ion-title>
-      {{'TRIP.TRASH.TITLE' | translate }}
+      {{ 'TRIP.TRASH.TITLE' | translate }}
     </ion-title>
 
     <ion-buttons slot="end">
       <!-- loading spinner -->
-      <ion-spinner *ngIf="loadingSubject|async"></ion-spinner>
-
+      <ion-spinner *ngIf="loadingSubject | async"></ion-spinner>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-
 <!-- options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-
   <!-- display columns -->
-  <button mat-menu-item
-          (click)="openSelectColumnsModal($event)">
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
     <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
-
 </mat-menu>
 
 <ion-content class="ion-no-padding">
-
   <mat-toolbar>
-
     <!-- if NO row selection -->
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-      <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
     </ng-container>
 
     <!-- if row selection -->
     <ng-template #hasSelection>
-
       <!-- restore -->
-      <ion-button [fill]="selection.isEmpty() ? 'clear' : 'solid'"
-                  [disabled]="selection.isEmpty()"
-                  (click)="closeAndRestore($event, selection.selected)"
-                  color="tertiary">
+      <ion-button
+        [fill]="selection.isEmpty() ? 'clear' : 'solid'"
+        [disabled]="selection.isEmpty()"
+        (click)="closeAndRestore($event, selection.selected)"
+        color="tertiary"
+      >
         <ion-label translate>COMMON.BTN_RESTORE</ion-label>
       </ion-button>
 
       <!-- delete -->
-      <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
-              [matTooltip]="'COMMON.BTN_DELETE_FOREVER'|translate" (click)="cleanRemoteTrash($event, selection.selected)">
+      <button
+        mat-icon-button
+        class="hidden-xs hidden-sm"
+        *ngIf="canDelete"
+        [matTooltip]="'COMMON.BTN_DELETE_FOREVER' | translate"
+        (click)="cleanRemoteTrash($event, selection.selected)"
+      >
         <mat-icon>delete_forever</mat-icon>
       </button>
-
     </ng-template>
 
     <!-- error -->
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
     </ion-item>
 
     <div class="toolbar-spacer"></div>
 
-    <button mat-icon-button
-            [title]="'COMMON.BTN_OPTIONS'|translate"
-            [matMenuTriggerFor]="optionsMenu">
+    <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
   </mat-toolbar>
 
-
   <!-- table -->
   <div #tableContainer class="table-container">
-    <mat-table [dataSource]="dataSource" matSort
-               [matSortActive]="defaultSortBy"
-               [matSortDirection]="defaultSortDirection"
-               [trackBy]="trackByFn"
-               matSortDisableClear>
-
+    <mat-table
+      [dataSource]="dataSource"
+      matSort
+      [matSortActive]="defaultSortBy"
+      [matSortDirection]="defaultSortDirection"
+      [trackBy]="trackByFn"
+      matSortDisableClear
+    >
       <ng-container matColumnDef="select">
-        <mat-header-cell *matHeaderCellDef >
-          <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                        [indeterminate]="selection.hasValue() && !isAllSelected()">
-          </mat-checkbox>
+        <mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            (change)="$event ? masterToggle() : null"
+            [checked]="selection.hasValue() && isAllSelected()"
+            [indeterminate]="selection.hasValue() && !isAllSelected()"
+          ></mat-checkbox>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-          </mat-checkbox>
+          <mat-checkbox
+            (click)="$event.stopPropagation()"
+            (change)="$event ? selection.toggle(row) : null"
+            [checked]="selection.isSelected(row)"
+          ></mat-checkbox>
         </mat-cell>
       </ng-container>
 
       <!-- Id Column -->
       <ng-container matColumnDef="id">
         <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIdColumn">
-          <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+          <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">{{ row.currentData.id | mathAbs }}</mat-cell>
+        <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">
+          {{ row.currentData.id | mathAbs }}
+        </mat-cell>
       </ng-container>
 
       <!-- Update date Column -->
@@ -111,7 +114,7 @@
         <mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label translate>TRIP.TRASH.DELETION_DATE</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat:{time:true} }}</mat-cell>
+        <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat : { time: true } }}</mat-cell>
       </ng-container>
 
       <!-- Program Column -->
@@ -120,7 +123,7 @@
           <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          {{row.currentData.program | referentialToString:['label']}}
+          {{ row.currentData.program | referentialToString : ['label'] }}
         </mat-cell>
       </ng-container>
 
@@ -130,7 +133,9 @@
           <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <ion-label>{{row.currentData.vesselSnapshot | referentialToString:displayedAttributes.vesselSnapshot }}</ion-label>
+          <ion-label>
+            {{ row.currentData.vesselSnapshot | referentialToString : displayedAttributes.vesselSnapshot }}
+          </ion-label>
         </mat-cell>
       </ng-container>
 
@@ -140,7 +145,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          {{row.currentData.departureLocation | referentialToString:displayedAttributes.location }}
+          {{ row.currentData.departureLocation | referentialToString : displayedAttributes.location }}
         </mat-cell>
       </ng-container>
 
@@ -150,9 +155,8 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <ion-text>{{row.currentData.departureDateTime|dateFormat:{time:true} }}</ion-text>
+          <ion-text>{{ row.currentData.departureDateTime | dateFormat : { time: true } }}</ion-text>
         </mat-cell>
-
       </ng-container>
 
       <!-- return date time -->
@@ -161,7 +165,7 @@
           <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData?.returnDateTime|dateFormat:{time: true} }}</ion-text>
+          <ion-text>{{ row.currentData?.returnDateTime | dateFormat : { time: true } }}</ion-text>
         </mat-cell>
       </ng-container>
 
@@ -177,43 +181,50 @@
 
       <!-- Comments column -->
       <ng-container matColumnDef="comments">
-        <mat-header-cell *matHeaderCellDef>
-        </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <mat-icon color="primary"
-                    class="comment"
-                    *ngIf="row.currentData.comments"
-                    [title]="row.currentData.comments"></mat-icon>
+          <mat-icon
+            color="primary"
+            class="comment"
+            *ngIf="row.currentData.comments"
+            [title]="row.currentData.comments"
+          ></mat-icon>
         </mat-cell>
       </ng-container>
 
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
-        </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile"></mat-header-cell>
         <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
-          <button mat-icon-button color="warn"
-                  [title]="'COMMON.BTN_RESTORE'|translate"
-                  (click)="restore($event, [row])">
+          <button
+            mat-icon-button
+            color="warn"
+            [title]="'COMMON.BTN_RESTORE' | translate"
+            (click)="restore($event, [row])"
+          >
             <mat-icon>open_in_new</mat-icon>
           </button>
-          <button mat-icon-button color="warn"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="cleanRemoteTrash($event, [row])">
+          <button
+            mat-icon-button
+            color="warn"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="cleanRemoteTrash($event, [row])"
+          >
             <mat-icon>close</mat-icon>
           </button>
         </mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"
-               class="mat-row-disabled"
-               [class.mat-row-selected]="selection.isSelected(row)"
-               (click)="toggleRow($event, row)">
-      </mat-row>
+      <mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="mat-row-disabled"
+        [class.mat-row-selected]="selection.isSelected(row)"
+        (click)="toggleRow($event, row)"
+      ></mat-row>
     </mat-table>
 
-    <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ng-container *ngIf="loadingSubject | async; else noResult">
       <ion-item>
         <ion-skeleton-text animated></ion-skeleton-text>
       </ion-item>
@@ -229,33 +240,30 @@
   <ion-row class="ion-no-padding">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
     <ion-col class="ion-no-padding" size="auto">
-      <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-      </mat-paginator>
+      <mat-paginator
+        [length]="totalRowCount"
+        [pageSize]="defaultPageSize"
+        [pageSizeOptions]="defaultPageSizeOptions"
+        showFirstLastButtons
+      ></mat-paginator>
     </ion-col>
   </ion-row>
 </ion-content>
 
-
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->
       <ion-col size="auto">
-
         <!-- Clean local trash -->
-        <ion-button fill="clear" color="danger"
-                    *ngIf="isOfflineMode"
-                    (click)="cleanLocalTrash($event)">
+        <ion-button fill="clear" color="danger" *ngIf="isOfflineMode" (click)="cleanLocalTrash($event)">
           <mat-icon slot="start">delete_forever</mat-icon>
           <ion-label translate>COMMON.BTN_CLEAN_TRASH</ion-label>
         </ion-button>
 
-        <ion-button fill="clear" color="dark"
-                    (click)="close()">
+        <ion-button fill="clear" color="dark" (click)="close()">
           <ion-label translate>COMMON.BTN_CLOSE</ion-label>
         </ion-button>
       </ion-col>
