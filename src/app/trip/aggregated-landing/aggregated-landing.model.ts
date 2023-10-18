@@ -1,4 +1,4 @@
-import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { Moment } from 'moment';
 import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import {

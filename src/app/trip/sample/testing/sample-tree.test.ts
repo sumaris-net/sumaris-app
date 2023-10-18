@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { DateUtils, EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, PlatformService, SharedValidators, waitFor } from '@sumaris-net/ngx-components';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
 import { getExampleTree, SAMPLE_TREE_EXAMPLES } from '@app/trip/sample/testing/sample-data.test';

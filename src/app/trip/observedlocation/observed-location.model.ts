@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from "moment";
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import {Landing} from "../landing/landing.model";
 import { isNotNil, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';

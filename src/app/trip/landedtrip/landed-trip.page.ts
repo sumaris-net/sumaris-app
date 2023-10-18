@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -36,7 +36,7 @@ import { fillRankOrder, isRankOrderValid } from '@app/data/services/model/model.
 import { SaleProductUtils } from '../sale/sale-product.model';
 import { debounceTime, filter, first, map } from 'rxjs/operators';
 import { ExpenseForm } from '../expense/expense.form';
-import { FishingAreaForm } from '../../data/fishing-area/fishing-area.form';
+import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Landing } from '../landing/landing.model';

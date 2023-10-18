@@ -10,7 +10,7 @@ import {ReferentialFragments} from "./referential.fragments";
 import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
 import {isNil, isNotNil} from "@sumaris-net/ngx-components";
 import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
+import {environment} from '@environments/environment';
 import {StatusIds}  from "@sumaris-net/ngx-components";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
 

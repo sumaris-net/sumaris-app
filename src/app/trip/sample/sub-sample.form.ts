@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';

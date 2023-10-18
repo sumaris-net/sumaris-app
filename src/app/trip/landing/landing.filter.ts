@@ -1,4 +1,4 @@
-import { RootDataEntityFilter } from '../../data/services/model/root-data-filter.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Landing } from './landing.model';
 import { EntityAsObjectOptions, EntityClass, FilterFn, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';

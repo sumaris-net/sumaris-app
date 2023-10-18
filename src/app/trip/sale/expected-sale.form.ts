@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { FormBuilder } from '@angular/forms';
 import { AppForm, AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
 import { ProductsTable } from '../product/products.table';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
 import { Product } from '@app/trip/product/product.model';
 import { SaleProductUtils } from '@app/trip/sale/sale-product.model';

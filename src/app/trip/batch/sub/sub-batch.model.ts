@@ -1,8 +1,8 @@
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions} from '../common/batch.model';
 import { BatchGroup } from '../group/batch-group.model';
-import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { EntityClass, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';

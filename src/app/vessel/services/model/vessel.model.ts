@@ -15,7 +15,7 @@ import {
   ReferentialUtils,
   toDateISOString
 } from '@sumaris-net/ngx-components';
-import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselVO'})

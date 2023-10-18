@@ -1,16 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 // import fade in animation
-import {merge, Subscription} from "rxjs";
-import {Router} from "@angular/router";
-import {environment} from "../../../environments/environment";
-import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {fadeInAnimation} from "@sumaris-net/ngx-components";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {StrategyService} from "../../referential/services/strategy.service";
-import {ProgramProperties} from "../../referential/services/config/program.config";
+import { merge, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { environment } from '@environments/environment';
+import { AppRootDataEditor } from '../form/root-data-editor.class';
+import { fadeInAnimation, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
 

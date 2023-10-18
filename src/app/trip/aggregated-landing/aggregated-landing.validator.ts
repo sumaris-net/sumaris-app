@@ -5,7 +5,7 @@ import {SharedValidators} from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AggregatedLanding} from "./aggregated-landing.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {DataEntityValidatorOptions} from "../../data/services/validator/data-entity.validator";
+import {DataEntityValidatorOptions} from "@app/data/services/validator/data-entity.validator";
 
 export interface AggregatedLandingValidatorOptions extends DataEntityValidatorOptions {
   // required?: boolean;

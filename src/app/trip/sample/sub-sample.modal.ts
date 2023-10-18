@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Alerts, AppFormUtils, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';

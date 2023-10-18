@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { SaleValidatorService } from '../sale/sale.validator';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Trip } from './trip.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';

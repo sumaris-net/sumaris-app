@@ -1,4 +1,4 @@
-import { RootDataEntityFilter } from '../../data/services/model/root-data-filter.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isEmptyArray, isNil, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 

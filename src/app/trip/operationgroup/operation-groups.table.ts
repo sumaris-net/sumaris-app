@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { OperationGroupValidatorService } from './operation-group.validator';
 import { Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';

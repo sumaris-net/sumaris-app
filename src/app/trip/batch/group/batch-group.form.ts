@@ -6,7 +6,7 @@ import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-
 import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
-import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';

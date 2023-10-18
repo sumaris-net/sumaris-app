@@ -1,5 +1,5 @@
 import { DateUtils, isNotNil, toDateISOString } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { Moment } from 'moment';
 
 export function getMeasValues(opts?: {

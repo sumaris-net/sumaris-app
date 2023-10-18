@@ -23,7 +23,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { DataCommonFragments } from '../../trip/trip/trip.queries';
-import { SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
+import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { ExtractionProduct } from './product.model';
 import { ExtractionFragments } from '../common/extraction.service';
 import { environment } from '@environments/environment';

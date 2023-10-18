@@ -3,7 +3,7 @@ import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFo
 import { LocalSettingsService, ReferentialRef, SharedFormArrayValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { VesselActivity } from './aggregated-landing.model';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { DataEntityValidatorOptions } from '../../data/services/validator/data-entity.validator';
+import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 
 export interface VesselActivityValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;

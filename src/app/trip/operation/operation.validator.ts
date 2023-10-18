@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { PositionValidatorService } from '../../data/position/position.validator';
+import { PositionValidatorService } from '@app/data/position/position.validator';
 import {
   AppFormUtils,
   equals,
@@ -18,7 +18,7 @@ import {
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Operation, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';

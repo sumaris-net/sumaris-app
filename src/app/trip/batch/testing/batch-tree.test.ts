@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../tree/batch-tree.component';
 import {
@@ -18,8 +18,8 @@ import {
   toNumber,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { LocationLevels } from '../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';

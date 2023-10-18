@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ObservedLocationsPage} from '../table/observed-locations.page';
 import {ModalController} from '@ionic/angular';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '../../../referential/services/model/model.enum';
+import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
 import {Observable, Subscription} from 'rxjs';
 import { AppFormUtils, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import {TableElement} from '@e-is/ngx-material-table';

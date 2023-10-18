@@ -1,7 +1,7 @@
-import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "../../data/measurement/measurement.validator";
+import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "@app/data/measurement/measurement.validator";
 import {Injectable} from "@angular/core";
 import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
-import {Measurement} from "../../data/measurement/measurement.model";
+import {Measurement} from "@app/data/measurement/measurement.model";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import { TranslateService } from '@ngx-translate/core';
 

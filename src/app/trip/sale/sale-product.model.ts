@@ -1,5 +1,5 @@
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { isNil, isNilOrNaN, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Product } from '../product/product.model';

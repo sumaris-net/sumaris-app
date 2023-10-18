@@ -1,5 +1,5 @@
 import { LandingFilter } from '../landing/landing.filter';
-import { RootDataEntityFilter } from '../../data/services/model/root-data-filter.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { ObservedLocation } from './observed-location.model';
 import { EntityAsObjectOptions, EntityClass, FilterFn, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { combineLatest, firstValueFrom, Observable } from 'rxjs';
-import { QualityFlagIds } from '../../referential/services/model/model.enum';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   APP_JOB_PROGRESSION_SERVICE,
   BaseEntityGraphqlQueries,
@@ -27,15 +27,15 @@ import {
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
-import { ReferentialFragments } from '../../referential/services/referential.fragments';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
 import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
 import { Vessel } from './model/vessel.model';
-import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
-import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
-import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
-import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
 import { environment } from '@environments/environment';

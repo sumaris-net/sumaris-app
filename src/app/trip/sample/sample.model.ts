@@ -12,7 +12,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';

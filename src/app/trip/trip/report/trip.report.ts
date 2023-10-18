@@ -1,8 +1,7 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import {  RdbPmfmExtractionData } from '@app/trip/trip/report/trip-report.model';
-import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import {BaseTripReport} from '@app/trip/trip/report/base-trip.report';
+import { RdbPmfmExtractionData } from '@app/trip/trip/report/trip-report.model';
+import { BaseTripReport } from '@app/trip/trip/report/base-trip.report';
 
 @Component({
   selector: 'app-trip-report',

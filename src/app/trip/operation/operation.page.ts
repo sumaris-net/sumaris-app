@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } fro
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,

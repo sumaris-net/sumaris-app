@@ -1,8 +1,8 @@
 import { UntypedFormGroup } from '@angular/forms';
-import { DenormalizedPmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { Subscription } from 'rxjs';
 import { AppFormUtils, isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/sample/sample.validator';
 
 export class BiologicalSamplingValidators {

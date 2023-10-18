@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { statusToColor } from '../../data/services/model/model.utils';
+import { statusToColor } from '@app/data/services/model/model.utils';
 
 @Pipe({
   name: 'vesselStatusToColorPipe'

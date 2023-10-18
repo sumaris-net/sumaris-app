@@ -9,7 +9,7 @@ import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
 import {VesselFeaturesService} from "../services/vessel-features.service";
 import {referentialToString}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
+import {environment} from "@environments/environment";
 import {VesselFeaturesFilter} from "../services/filter/vessel.filter";
 
 @Component({

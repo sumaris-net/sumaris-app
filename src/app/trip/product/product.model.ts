@@ -5,7 +5,7 @@ import {
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "../sample/sample.model";

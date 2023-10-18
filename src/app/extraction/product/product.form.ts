@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ExtractionColumn, ExtractionFilterCriterion } from '../type/extraction-type.model';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { ReferentialForm } from '../../referential/form/referential.form';
+import { ReferentialForm } from '@app/referential/form/referential.form';
 import { BehaviorSubject } from 'rxjs';
 import { AppForm, AppFormArray, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
 import { debounceTime } from 'rxjs/operators';

@@ -1,5 +1,5 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
-import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { EntityClass, EntityUtils, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
-import { MeasurementValuesForm, MeasurementValuesState } from '../../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
@@ -26,16 +26,16 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LengthUnitSymbol, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject, combineLatest, from, Observable, Subject, Subscription } from 'rxjs';
-import { MeasurementValuesUtils } from '../../../data/measurement/measurement.model';
-import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';

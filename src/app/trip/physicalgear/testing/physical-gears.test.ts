@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   EntitiesStorage,
   EntityUtils,
@@ -14,8 +14,8 @@ import {
   sleep,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGearTestUtils } from '@app/trip/physicalgear/testing/physical-gears.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';

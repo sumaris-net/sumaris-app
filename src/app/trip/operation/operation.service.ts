@@ -42,7 +42,7 @@ import {
   toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '../../data/measurement/measurement.model';
+import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import {
   FISHING_AREAS_LOCATION_REGEXP,

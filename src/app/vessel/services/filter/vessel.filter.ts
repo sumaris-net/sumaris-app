@@ -12,7 +12,7 @@ import {
   toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vessel.model';
-import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Moment } from 'moment';
 import { key } from 'ionicons/icons';
 

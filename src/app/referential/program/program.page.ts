@@ -18,23 +18,27 @@ import {
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  HistoryPageReference, IEntity,
-  isNil, isNotEmptyArray,
-  isNotNil, isNotNilOrBlank, Property,
+  HistoryPageReference,
+  IEntity,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  Property,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  StatusIds, SuggestFn
+  StatusIds,
+  SuggestFn
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
 import { ISelectReferentialModalOptions, SelectReferentialModal } from '../table/select-referential.modal';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
-import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 

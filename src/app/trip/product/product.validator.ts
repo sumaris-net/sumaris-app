@@ -4,7 +4,7 @@ import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFo
 import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Product } from './product.model';
 import { OperationGroup } from '../trip/trip.model';
 import { DataValidators } from '@app/data/services/validator/data.validators';

@@ -7,7 +7,7 @@ import {Sale} from "./sale.model";
 import {
   DataRootEntityValidatorOptions,
   DataRootEntityValidatorService
-} from "../../data/services/validator/root-data-entity.validator";
+} from "@app/data/services/validator/root-data-entity.validator";
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';

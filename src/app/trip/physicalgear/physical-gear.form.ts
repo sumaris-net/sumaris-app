@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   focusNextInput,

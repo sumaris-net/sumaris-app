@@ -1,7 +1,7 @@
 import {EntityClass, fromDateISOString, isNotEmptyArray, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Measurement, MeasurementUtils} from '../../data/measurement/measurement.model';
+import {Measurement, MeasurementUtils} from '@app/data/measurement/measurement.model';
 import {IWithProductsEntity, Product} from '../product/product.model';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 

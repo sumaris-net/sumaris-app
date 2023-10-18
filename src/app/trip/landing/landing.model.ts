@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from 'moment';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import {Sample} from '../sample/sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {fillRankOrder, IWithObserversEntity} from '@app/data/services/model/model.utils';
