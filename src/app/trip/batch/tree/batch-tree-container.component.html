@@ -8,8 +8,8 @@
       <!-- model tree -->
       <app-batch-model-tree
         #batchModelTree
-        [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
-        [selected]="editingBatch$ | push"
+        [selectedBatchStatus]="batchTreeStatus$ | async"
+        [selected]="editingBatch$ | async"
         (itemClick)="startEditBatch(null, $event)"
         [mobile]="mobile"
         [debug]="debug && false"

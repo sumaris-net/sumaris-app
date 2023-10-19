@@ -28,7 +28,7 @@ import {
   waitForTrue,
 } from '@sumaris-net/ngx-components';
 import { AlertController, IonModal, NavController } from '@ionic/angular';
-import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { BatchTreeComponent, IBatchTreeComponent, IBatchTreeStatus } from '@app/trip/batch/tree/batch-tree.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 import { Program } from '@app/referential/services/model/program.model';
@@ -69,6 +69,7 @@ interface BadgeState {
 
 interface BatchTreeContainerState {
   programAllowMeasure: boolean;
+  showCatchForm: boolean;
   showBatchTables: boolean;
   allowDiscard: boolean;
   allowSpeciesSampling: boolean;
@@ -84,6 +85,7 @@ interface BatchTreeContainerState {
   form: UntypedFormGroup;
   data: Batch;
   editingBatch: BatchModel;
+  batchTreeStatus: IBatchTreeStatus;
   currentBadge: BadgeState;
   treePanelFloating: boolean;
 }
@@ -108,7 +110,6 @@ export class BatchTreeContainerComponent
   extends AppEditor<Batch>
   implements IBatchTreeComponent, OnInit {
 
-  private _listenStatusChangesSubscription: Subscription;
   private _listenProgramChanges = true;
   protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
@@ -125,6 +126,7 @@ export class BatchTreeContainerComponent
   protected readonly currentBadge$ = this._state.select('currentBadge');
   protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
   protected readonly model$ = this._state.select('model');
+  protected readonly batchTreeStatus$ = this._state.select('batchTreeStatus');
 
   protected get model(): BatchModel {
     return this._state.get('model');
@@ -162,7 +164,6 @@ export class BatchTreeContainerComponent
 
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
-  @Input() showCatchForm: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() showTaxonName: boolean;
@@ -247,6 +248,13 @@ export class BatchTreeContainerComponent
 
   get physicalGear(): PhysicalGear {
     return this._state.get('physicalGear');
+  }
+
+  @Input() set showCatchForm(value: boolean) {
+    this._state.set('showCatchForm', (_) => value);
+  }
+  get showCatchForm(): boolean {
+    return this._state.get('showCatchForm') || false;
   }
 
   @Input() set showBatchTables(value: boolean) {
@@ -434,22 +442,28 @@ export class BatchTreeContainerComponent
     // If now allowed sampling batches: remove it from data
     this._state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches());
 
-    this._state.connect('currentBadge', this.watchBatchTreeState(), (state, batchTree) => {
-      const badge: BadgeState = {
+    this._state.connect('batchTreeStatus', this.watchBatchTreeStatus());
+
+    this._state.connect('currentBadge', this.batchTreeStatus$, (state, status) => {
+      if (!status.valid) {
+        return {
+          text: '!',
+          hidden: false,
+          color: 'accent'
+        };
+      }
+      else if (status.rowCount) {
+        return {
+          text: status.rowCount.toString(),
+          hidden: false,
+          color: 'primary'
+        };
+      }
+      return {
         text: '',
         hidden: true,
         color: 'primary'
       };
-      if (!batchTree.valid) {
-        badge.text = '!';
-        badge.color = 'accent';
-        badge.hidden = false;
-      }
-      else if (batchTree.visibleRowCount) {
-        badge.text = batchTree.visibleRowCount.toString();
-        badge.hidden = false;
-      }
-      return badge;
     });
 
     // Workaround need by the sidenav, when included inside a MatTabGroup
@@ -476,7 +490,7 @@ export class BatchTreeContainerComponent
 
   ngOnInit() {
     super.ngOnInit();
-    this.showCatchForm = toBoolean(this.showCatchForm, true);
+    this.showCatchForm = toBoolean(this._state.get('showCatchForm'), true);
     this.showBatchTables = toBoolean(this._state.get('showBatchTables'), true);
     this.programAllowMeasure = toBoolean(this._state.get('programAllowMeasure'), this.showBatchTables);
     this.allowSubBatches = toBoolean(this._state.get('allowSubBatches'), this.programAllowMeasure);
@@ -575,15 +589,14 @@ export class BatchTreeContainerComponent
 
     // First, expand model tree
     if (!opts || opts.expandAll !== false) {
-      this.batchModelTree.expandAll();
+      if (!this.batchModelTree) this.cd.detectChanges();
+      this.batchModelTree?.expandAll();
     }
 
-    if (!this.useModal) {
-      // Wait side nav to be created
-      if (!this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
-     // open it, if need
-      if (!this.sidenav.opened) await this.sidenav.open();
-    }
+    // Wait side nav to be created
+    if (!this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
+    // open it, if need
+    if (!this.sidenav.opened) await this.sidenav.open();
 
     this.markForCheck();
   }
@@ -856,11 +869,9 @@ export class BatchTreeContainerComponent
 
     if (this.editingBatch === model) {
       if (this.treePanelFloating) this.closeTreePanel();
-      this.modal?.present();
+      if (this.useModal) this.modal?.present();
       return; // Skip
     }
-
-    this._listenStatusChangesSubscription?.unsubscribe();
 
     // Save current state
     await this.ready();
@@ -877,7 +888,6 @@ export class BatchTreeContainerComponent
 
       if (this.treePanelFloating) this.closeTreePanel();
 
-      this.editingBatch = model;
       model.editing = true;
 
       if (this.modal && !this.modal.isOpen) {
@@ -892,6 +902,7 @@ export class BatchTreeContainerComponent
 
       // Remember last editing batch, to be able to restore it later (e.g. see setValue())
       this._lastEditingBatchPath = model.path;
+      this.batchTree.markAsNotReady();
 
       const rootAcquisitionLevel = !model.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
       const program = this.program;
@@ -955,25 +966,8 @@ export class BatchTreeContainerComponent
 
       // Apply data
       await this.batchTree.setValue(data);
+      this.editingBatch = model;
 
-      // Listen batchTree's status, to update the model's one
-      const subscription = this.batchTree.statusChanges
-        .pipe(
-          filter(status => status !== 'PENDING'),
-          map(status => status === 'VALID')
-        )
-        .subscribe(valid => {
-          // DEBUG
-          //if (this.debug) console.debug(this._logPrefix + 'batchTree status changes: ', status);
-          model.valid = valid;
-          this.markForCheck();
-        });
-      this.registerSubscription(subscription);
-      this._listenStatusChangesSubscription = subscription;
-      subscription.add(() => {
-        this.unregisterSubscription(subscription);
-        if (this._listenStatusChangesSubscription === subscription) this._listenStatusChangesSubscription = null;
-      });
     }
     finally {
       // Restore previous state
@@ -988,7 +982,6 @@ export class BatchTreeContainerComponent
     source = source || this.editingBatch;
     if (!source) return;
 
-    this._listenStatusChangesSubscription?.unsubscribe();
     this.editingBatch = null;
     source.editing = false;
 
@@ -1060,9 +1053,6 @@ export class BatchTreeContainerComponent
 
     if (batch.label !== model.originalData.label)
       throw new Error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${batch.label}`);
-
-    // Stop listening editing row
-    this._listenStatusChangesSubscription?.unsubscribe();
 
     // Update model value (batch first)
     const json = batch.asObject();
@@ -1149,9 +1139,9 @@ export class BatchTreeContainerComponent
     }
   }
 
-  protected watchBatchTreeState(): Observable<{ valid: boolean; visibleRowCount: number|undefined}> {
+  protected watchBatchTreeStatus(): Observable<IBatchTreeStatus> {
     const stopSubject = new Subject<void>();
-    return new Observable<{ valid: boolean; visibleRowCount: number|undefined}>((subscriber) => {
+    return new Observable<IBatchTreeStatus>((subscriber) => {
       const subscription = new Subscription();
       subscription.add(() => stopSubject.next());
       waitFor(() => !!this.batchTree, {stop: stopSubject})
@@ -1163,7 +1153,7 @@ export class BatchTreeContainerComponent
                 map(([status, rows]) => {
                   return {
                     valid: status !== 'INVALID',
-                    visibleRowCount: this.batchTree.showBatchTables
+                    rowCount: this.batchTree.showBatchTables
                       ? (rows?.length || 0)
                       : undefined
                   };

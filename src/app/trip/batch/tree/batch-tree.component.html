@@ -135,7 +135,7 @@
 </ion-item>
 
 <!-- catch batch form -->
-<div class="ion-padding" [class.cdk-visually-hidden]="!(showCatchForm$ | push : rxStrategy)">
+<div class="ion-padding" [class.cdk-visually-hidden]="(showCatchForm$ | push : rxStrategy) === false">
   <app-form-catch-batch
     #catchBatchForm
     [programLabel]="programLabel$ | async"

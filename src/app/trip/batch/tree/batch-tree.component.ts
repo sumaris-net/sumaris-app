@@ -20,7 +20,7 @@ import {
 import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable, of } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { Batch } from '../common/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { BatchGroupsTable } from '../group/batch-groups.table';
@@ -48,6 +48,7 @@ import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -85,6 +86,14 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   setError(error: string, opts?: { emitEvent?: boolean });
 
   resetError(opts?: { emitEvent?: boolean });
+}
+
+/**
+ * Minimal status to use, to summary the batch tree state (e.g. in a badge)
+ */
+export interface IBatchTreeStatus {
+  valid: boolean;
+  rowCount: number|undefined;
 }
 
 export interface BatchTreeState {
@@ -308,27 +317,49 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   get statusChanges(): Observable<FormControlStatus> {
     const delegates: Observable<any>[] = [
-      ...(this.forms || []).map((c) => c.form ? c.form.statusChanges : of('DISABLED')).filter(isNotNil),
-      // TODO: add tables ?
+      // Listen on forms
+      ...(this.forms || []).filter(c => c.form).map((c) => c.form.statusChanges
+        .pipe(
+          startWith(c.form.invalid ? 'INVALID': 'VALID')
+        ),
+      ),
+      // Listen on tables
+      ...(this.tables || []).map((t) =>
+        t.onStartEditingRow
+          .pipe(
+            //map(_ => t.editedRow),
+            switchMap(row => row.validator ? row.validator.statusChanges
+                .pipe(
+                  startWith(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID': 'VALID')
+                )
+              :
+              of(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID')),
+
+            // DEBUG
+            // tap(status => console.debug(this._logPrefix + 'table row status=', status)),
+            // finalize(() => console.debug(this._logPrefix + 'table row stop')),
+          )
+      ),
     ];
     // Warn if empty
     if (this.debug && !delegates.length) console.warn(this._logPrefix + 'No child allow to observe the status');
 
     return combineLatest(delegates).pipe(
+      startWith(['VALID']),
       debounceTime(450),
       map((_) => {
         // DEBUG
-        //if (this.debug) console.debug(this._logPrefix + 'Computing tree status...');
+        //if (this.debug) console.debug(this._logPrefix + 'Computing tree status...', _);
 
         if (this.loading) return <FormControlStatus>'PENDING';
         if (this.disabled) return <FormControlStatus>'DISABLED';
         if (this.valid) return <FormControlStatus>'VALID';
         return this.pending ? <FormControlStatus>'PENDING' : <FormControlStatus>'INVALID';
       }),
-      //distinctUntilChanged(),
+      distinctUntilChanged(),
+
       // DEBUG
-      tap((status) => //this.debug &&
-        console.debug(this._logPrefix + 'Status changed: ' + status))
+      //tap((status) => this.debug && console.debug(this._logPrefix + 'Status changed: ' + status))
     );
   }
 
@@ -366,6 +397,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   ngOnInit() {
     // Set defaults
     this.tabCount = this.mobile ? 1 : 2;
+    this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
     this.allowSpeciesSampling = toBoolean(this.allowSpeciesSampling, true);
     this.allowSubBatches = toBoolean(this.allowSubBatches, true);
@@ -569,9 +601,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
 
     // DEBUG
-    //console.debug(this._logPrefix + 'setValue()');
-    this.markAsLoading();
-    this.markAsNotReady();
+    //console.debug(this._logPrefix + 'setValue()', source);
+    this.markAsLoading({emitEvent: false});
+    this.markAsNotReady({emitEvent: false});
 
     try {
       this.data = source;
@@ -636,19 +668,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected method -- */
 
-  markAsLoading(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsLoading(opts);
-
-    if (opts?.onlySelf !== true) {
-      this.children
-      if (this.batchGroupsTable.loaded) {
-        this.batchGroupsTable.markAsLoading();
-      }
-      if (this.subBatchesTable.loaded) {
-        this.subBatchesTable.markAsLoading();
-      }
-    }
-  }
 
 
   protected get form(): UntypedFormGroup {
@@ -668,7 +687,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   async setProgram(program: Program, opts = { emitEvent: true }) {
     if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.markAsLoading();
+    this.markAsLoading({emitEvent: false});
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -747,13 +766,36 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     super.markAsLoaded(opts);
   }
 
-  markAsNotReady(opts?: { emitEvent?: boolean }) {
-    this.children
-      ?.map((c) => (c as any)['readySubject'])
-      .filter(isNotNil)
-      .filter((readySubject) => readySubject.value !== false)
-      .forEach((readySubject) => readySubject.next(false));
-    this.readySubject.next(false);
+  markAsLoading(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
+
+      // Emit to children
+      if (!opts || opts.onlySelf !== true) {
+        this.children.filter(c => c.loading)
+          .forEach(c => c.markAsLoading(opts));
+      }
+
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+
+  }
+
+  markAsNotReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.readySubject.value) {
+      this.readySubject.next(false);
+
+      // Emit to children
+      if (!opts || opts.onlySelf !== true) {
+        this.children
+          ?.map((c) => (c as any)['readySubject'])
+          .filter(isNotNil)
+          .filter((readySubject) => readySubject.value !== false)
+          .forEach((readySubject) => readySubject.next(false));
+      }
+
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
   }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {
