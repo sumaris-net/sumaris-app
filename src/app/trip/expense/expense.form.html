@@ -47,7 +47,7 @@
       <div class="ion-padding">
         <ion-grid class="form-container">
           <!-- fuel -->
-          <ion-row [hidden]="($fuelTypePmfm | async) === false && ($fuelPmfms | async | isEmptyArray)">
+          <ion-row [hidden]="!($fuelTypePmfm | async) && ($fuelPmfms | async | isEmptyArray)">
             <ion-col size="12" size-md="3" size-lg="3">
               <app-pmfm-field
                 *ngIf="$fuelTypePmfm | async; let pmfm; index as i"

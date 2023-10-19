@@ -53,7 +53,7 @@
     </ion-row>
 
     <ion-row *ngIf="$totalPmfm | async; let totalPmfm">
-      <ion-col size="12" size-md="4" size-lg="3" [class.cdk-visually-hidden]="($typePmfm | async) === false"></ion-col>
+      <ion-col size="12" size-md="4" size-lg="3" [class.cdk-visually-hidden]="!($typePmfm | async)"></ion-col>
       <ion-col>
         <app-pmfm-field
           [pmfm]="totalPmfm"

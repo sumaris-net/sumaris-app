@@ -92,7 +92,7 @@
   <!-- model tree -->
   <app-batch-model-tree
     #batchModelTree
-    [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
+    [selectedBatchStatus]="batchTreeStatus$ | push"
     [selected]="editingBatch$ | push"
     (itemClick)="startEditBatch(null, $event)"
     [mobile]="mobile"
