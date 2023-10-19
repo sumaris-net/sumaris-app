@@ -20,10 +20,10 @@ export const environment = Object.freeze(<Environment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
-  baseUrl: "/",
-  defaultLocale: "fr",
-  defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "cache-first",
+  baseUrl: '/',
+  defaultLocale: 'fr',
+  defaultLatLongFormat: 'DDMM',
+  apolloFetchPolicy: 'cache-first',
 
   // FIXME: enable cache
   persistCache: false,

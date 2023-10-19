@@ -29,6 +29,7 @@ export interface IReferentialEntityService<
 
   /**
    * Check if a label already exists in database
+   *
    * @param label
    * @param filter
    * @param opts
@@ -68,7 +69,7 @@ export abstract class BaseReferentialService<
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: {
-    fetchPolicy?: WatchQueryFetchPolicy; withTotal?: boolean; toEntity?: boolean }): Observable<LoadResult<T>> {
+    fetchPolicy?: WatchQueryFetchPolicy; withTotal?: boolean; toEntity?: boolean; }): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter && filter.searchAttribute;
     // Call inherited function
@@ -105,7 +106,7 @@ export abstract class BaseReferentialService<
                   [key: string]: any;
                 }): Promise<LoadResult<T>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     // Replace '*' character by undefined
     if (!value || value === '*') {
       value = undefined;

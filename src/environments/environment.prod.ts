@@ -1,17 +1,17 @@
 import {AppEnvironment} from '@environments/environment.class';
 import {StorageDrivers} from '@sumaris-net/ngx-components';
 
-const pkg = require('../../package.json')
+const pkg = require('../../package.json');
 
 /* tslint:disable */
 export const environment = Object.freeze(<AppEnvironment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
-  baseUrl: "/",
-  defaultLocale: "fr",
-  defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "cache-first",
+  baseUrl: '/',
+  defaultLocale: 'fr',
+  defaultLatLongFormat: 'DDMM',
+  apolloFetchPolicy: 'cache-first',
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
   peerMinVersion: '2.6.0',

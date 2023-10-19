@@ -8,12 +8,12 @@ import { TripService } from '@app/trip/trip/trip.service';
 import moment from 'moment';
 import {AcquisitionLevelCodes, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {EntityAsObjectOptions, isNotNilOrNaN} from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, isNotEmptyArray, isNotNilOrNaN } from '@sumaris-net/ngx-components';
 import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {IComputeStatsOpts} from '@app/data/report/base-report.class';
 import {lastValueFrom} from 'rxjs';
-import {BaseTripReportStats} from "@app/trip/trip/report/base-trip.report";
+import { BaseTripReportStats, SpeciesChart } from '@app/trip/trip/report/base-trip.report';
 
 export class OperationStats extends BaseTripReportStats {
   sampleCount: number;
@@ -22,7 +22,7 @@ export class OperationStats extends BaseTripReportStats {
   weightDisplayedUnit: WeightUnitSymbol;
   taxonGroup: TaxonGroupRef;
 
-  fromObject(source:any) {
+  fromObject(source: any) {
     this.sampleCount = source.sampleCount;
     this.pmfms = source.pmfms.map(item => Pmfm.fromObject(item));
     this.program = Program.fromObject(source.program);
@@ -45,7 +45,7 @@ export class OperationStats extends BaseTripReportStats {
   selector: 'app-operation-report',
   templateUrl: './operation.report.html',
   styleUrls: [
-    '../../../data/report/base-report.scss',
+    '@app/data/report/base-report.scss',
   ],
 })
 export class OperationReport extends AppDataEntityReport<Operation, number, OperationStats> {
@@ -72,8 +72,8 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
     return data;
   }
 
-  dataFromObject(source:object): Operation {
-    return Operation.fromObject(source)
+  dataFromObject(source: object): Operation {
+    return Operation.fromObject(source);
   }
 
   protected async fillParent(data: Operation){
@@ -126,7 +126,7 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
     stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     stats.weightDisplayedUnit = stats.program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT) as WeightUnitSymbol;
 
-    let pmfm = await this.programRefService.loadProgramPmfms(stats.program.label, {
+    const pmfm = await this.programRefService.loadProgramPmfms(stats.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
       taxonGroupId: stats.taxonGroup?.id
     });
@@ -141,4 +141,7 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
     return '';
   }
 
+  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[]}) {
+    return isNotEmptyArray(species?.charts);
+  }
 }

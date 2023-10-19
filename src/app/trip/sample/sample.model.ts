@@ -12,7 +12,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -61,6 +61,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   /**
    * Transform a samples tree, into an array of object.
    * Parent & children links are removed, to keep only a parentId
+   *
    * @param sources
    * @param opts
    * @throw Error if a sample has no id
@@ -157,7 +158,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.sampleDate = fromDateISOString(source.sampleDate);
-    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
+    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== '' ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.size = source.size;
@@ -197,7 +198,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 export class SampleUtils {
 
   static parentToString(parent: Sample, opts?: {
-    pmfm?: IPmfm,
+    pmfm?: IPmfm;
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }) {
@@ -336,7 +337,7 @@ export class SampleUtils {
         MeasurementValuesUtils.getPmfmIds(sample.measurementValues)
           .forEach(pmfmId => {
             message += ` pmfm#${pmfmId}: ${sample.measurementValues[pmfmId]}`;
-          })
+          });
       }
     }
     // Print

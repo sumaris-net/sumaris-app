@@ -52,7 +52,7 @@ import { Moment } from 'moment';
 import { environment } from '@environments/environment';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
@@ -64,7 +64,7 @@ import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.
 import { BBox } from 'geojson';
 import { translateQualityFlag } from '@app/data/services/model/model.utils';
 
-const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
+const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any }>{
   lastUpdateDate: gql`query LastUpdateDate{
     lastUpdateDate
   }`,
@@ -417,7 +417,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
    * Load entity levels
    */
   async loadLevels(entityName: string, options?: {
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<ReferentialRef[]> {
     const now = Date.now();
     if (this._debug) console.debug(`[referential-ref-service] Loading levels for ${entityName}...`);
@@ -427,7 +427,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       variables: {
         entityName
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR' },
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
@@ -463,14 +463,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   /**
    * Get referential references, group by level
+   *
    * @param filter
    * @param groupBy
    * @param opts
    */
   async loadAllGroupByLevels(filter: Partial<ReferentialRefFilter>,
                              groupBy: {
-                               levelIds?: ObjectMap<number[]>
-                               levelLabels?: ObjectMap<string[]>,
+                               levelIds?: ObjectMap<number[]>;
+                               levelLabels?: ObjectMap<string[]>;
                              },
                              opts?: {
                                [key: string]: any;
@@ -493,7 +494,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading grouped ${entityName}...`);
 
-    const result: { [key: string]: ReferentialRef[]; } = {};
+    const result: { [key: string]: ReferentialRef[] } = {};
     await Promise.all(groupKeys.map(key => this.loadAll(0, 1000, 'id', 'asc', {
         ...filter,
         levelIds: groupBy.levelIds && groupBy.levelIds[key],
@@ -569,7 +570,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const statusIds = filter?.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
     try {
-      let getLoadOptions = (offset) => (<EntityServiceLoadOptions>{
+      const getLoadOptions = (offset) => (<EntityServiceLoadOptions>{
         fetchPolicy: 'no-cache',
         toEntity: false,
         withTotal: offset === 0});
@@ -603,9 +604,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           filter = {
             ...filter, statusIds,
             //boundingBox: opts?.boundingBox,
-            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => {
-                return res.concat(LocationLevelIds[item]);
-              }, [])
+            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => res.concat(LocationLevelIds[item]), [])
           };
           break;
 
@@ -664,7 +663,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entityName: 'QualityFlag',
       statusId: StatusIds.ENABLE
     }, {
-      fetchPolicy: "cache-first"
+      fetchPolicy: 'cache-first'
     });
 
     // Try to get i18n key instead of label
@@ -682,6 +681,12 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Program
     ProgramLabel.SIH = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_SIH_LABEL);
+
+    // Program privilege
+    /* TODO add enumeration options
+    ProgramPrivilegeIds.MANAGER = ...
+    ProgramPrivilegeIds.OBSERVER = ...
+    */
 
     // Location Levels
     LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
@@ -779,7 +784,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Force an update default values (e.g. when using LocationLevelId)
     ModelEnumUtils.refreshDefaultValues();
-    ProgramPropertiesUtils.refreshDefaultValues();
 
     // Location level groups
     //  /!\ should be call AFTER ModelEnumUtils.refreshDefaultValues()
@@ -789,6 +793,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     if (config.hasProperty(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS)) {
       LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
     }
+
+    // Force update ProgramProperties default
+    //  /!\ should be call AFTER overrides from config (e.g. in case an option use LocationLevelGroups.FISHING_AREA)
+    ProgramPropertiesUtils.refreshDefaultValues();
   }
 
 }

@@ -1,4 +1,4 @@
-import {gql} from "@apollo/client/core";
+import {gql} from '@apollo/client/core';
 
 export const ProgramFragments = {
   lightProgram: gql`
@@ -29,6 +29,7 @@ export const ProgramFragments = {
       locationClassificationIds
       locationIds
       acquisitionLevelLabels
+      privileges
     }`,
   program: gql`
     fragment ProgramFragment on ProgramVO {

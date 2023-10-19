@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../tree/batch-tree.component';
 import {
@@ -18,8 +18,8 @@ import {
   toNumber,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { LocationLevels } from '../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -137,7 +137,7 @@ export class BatchTreeTestPage implements OnInit {
         if (location) {
           this.context.setValue('fishingAreas', [FishingArea.fromObject({
             location
-          })])
+          })]);
         }
         else {
           this.context.resetValue('fishingAreas');
@@ -232,7 +232,7 @@ export class BatchTreeTestPage implements OnInit {
     }
 
     // Get program
-    const programLabel = this.filterForm.get('program').value?.label
+    const programLabel = this.filterForm.get('program').value?.label;
 
     // Load example
     const json = getExampleTree(key, programLabel);
@@ -248,7 +248,7 @@ export class BatchTreeTestPage implements OnInit {
     });
 
     // Convert into Batch tree
-    const catchBatch = Batch.fromObjectArrayAsTree(batches)
+    const catchBatch = Batch.fromObjectArrayAsTree(batches);
 
     BatchUtils.cleanTree(catchBatch);
 
@@ -286,22 +286,22 @@ export class BatchTreeTestPage implements OnInit {
     this.dumpCatchBatch(catchBatch, outputName);
 
     if (batchTree.mobile) {
-      let html = "<br/>Sub batches :<br/>";
+      let html = '<br/>Sub batches :<br/>';
       const subBatches = catchBatch.children;
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
       }
       else {
-        let html = "<ul>";
+        let html = '<ul>';
         subBatches.forEach(b => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
-              html += "<li>" + m + "</li>";
+              html += '<li>' + m + '</li>';
             }
           });
         });
-        html += "</ul>"
+        html += '</ul>';
       }
 
       // Append to result
@@ -312,12 +312,12 @@ export class BatchTreeTestPage implements OnInit {
 
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
-    let html = "";
+    let html = '';
     if (catchBatch) {
       BatchUtils.logTree(catchBatch, {
         showAll: false,
         println: (m) => {
-          html += "<br/>" + m
+          html += '<br/>' + m;
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');

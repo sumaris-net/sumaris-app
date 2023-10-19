@@ -1,7 +1,8 @@
 import { Operation, Trip } from '@app/trip/trip/trip.model';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { DataContext, DataContextService } from '@app/data/services/model/data-context.model';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { CONTEXT_DEFAULT_STATE } from '@app/shared/context.service';
 
 export interface TripContext extends DataContext, BatchContext {
   trip?: Trip;
@@ -9,10 +10,10 @@ export interface TripContext extends DataContext, BatchContext {
 }
 
 @Injectable({providedIn: 'root'})
-export class TripContextService extends DataContextService<TripContext> {
+export class TripContextService<C extends TripContext = TripContext> extends DataContextService<C> {
 
-  constructor() {
-    super(<TripContext>{});
+  constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
+    super(defaultState || <C>{});
   }
 
   set trip(value: Trip) {

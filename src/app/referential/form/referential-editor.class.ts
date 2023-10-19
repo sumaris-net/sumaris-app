@@ -3,7 +3,8 @@ import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
-  AppEntityEditor, BaseReferential,
+  AppEntityEditor,
+  BaseReferential,
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -14,10 +15,9 @@ import {
   IEntityService,
   isNil,
   isNotNil,
-  Referential,
   ReferentialRef,
   ReferentialUtils,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { environment } from '@environments/environment';
@@ -89,10 +89,6 @@ export abstract class AppReferentialEditor<
     if (this.withLevels) {
       this.loadLevels();
     }
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {

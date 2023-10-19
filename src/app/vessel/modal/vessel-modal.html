@@ -1,21 +1,19 @@
 <ion-header>
   <ion-toolbar color="secondary">
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
+      <ion-button (click)="cancel()" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
     <ion-title>
-      {{'VESSEL.NEW.TITLE'|translate}}
+      {{ 'VESSEL.NEW.TITLE' | translate }}
     </ion-title>
 
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button visible-xs visible-sm visible-mobile
-                  (click)="onSave($event)" *ngIf="!loading && valid">
+      <ion-button visible-xs visible-sm visible-mobile (click)="onSave($event)" *ngIf="!loading && valid">
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -23,16 +21,16 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form-vessel [canEditStatus]="canEditStatus"
-               [withNameRequired]="withNameRequired"
-               [maxDate]="maxDate"
-               (onSubmit)="onSave($event)"
-               (onCancel)="cancel()">
-  </form-vessel>
+  <app-form-vessel
+    [canEditStatus]="canEditStatus"
+    [withNameRequired]="withNameRequired"
+    [maxDate]="maxDate"
+    (onSubmit)="onSave($event)"
+    (onCancel)="cancel()"
+  ></app-form-vessel>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
@@ -40,17 +38,20 @@
       </ion-col>
 
       <ion-col size="auto">
-
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave($event)" (keyup.enter)="onSave($event)"
-                    color="tertiary" [disabled]="disabled">
+        <ion-button
+          [fill]="disabled ? 'clear' : 'solid'"
+          (click)="onSave($event)"
+          (keyup.enter)="onSave($event)"
+          color="tertiary"
+          [disabled]="disabled"
+        >
           <ion-label translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>
-
 </ion-footer>

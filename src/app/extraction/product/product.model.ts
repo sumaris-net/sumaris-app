@@ -2,7 +2,7 @@
 
 import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '../../data/services/model/model.utils';
+import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '@app/data/services/model/model.utils';
 import {ExtractionColumn, ExtractionFilter, ExtractionType} from '../type/extraction-type.model';
 import {AggregationStrata} from '@app/extraction/strata/strata.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';

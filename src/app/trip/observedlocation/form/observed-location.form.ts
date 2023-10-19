@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@an
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ObservedLocationValidatorService } from '../observed-location.validator';
-import { MeasurementValuesForm } from '../../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {
   DateUtils,

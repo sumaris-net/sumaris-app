@@ -25,7 +25,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
       current: 0,
       cancelled: false,
       ...initState
-    })
+    });
   }
 
   increment(value?: number, message?: string) {

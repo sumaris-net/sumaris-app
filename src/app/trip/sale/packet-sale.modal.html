@@ -1,17 +1,15 @@
-<app-modal-toolbar modalName="PacketSaleModal"
-                   [title]="$title | async"
-                   [color]="'secondary'"
-                   [showSpinner]="loading"
-                   [canValidate]="!loading && valid"
-                   (cancel)="cancel()"
-                   (validate)="onSave($event)"
+<app-modal-toolbar
+  modalName="PacketSaleModal"
+  [title]="$title | async"
+  [color]="'secondary'"
+  [showSpinner]="loading"
+  [canValidate]="!loading && valid"
+  (cancel)="cancel()"
+  (validate)="onSave($event)"
 ></app-modal-toolbar>
 
 <ion-content>
-  <app-packet-sale-form #packetSaleForm
-                        [packetSalePmfms]="packetSalePmfms"
-                        [mobile]="mobile"
-  ></app-packet-sale-form>
+  <app-packet-sale-form #packetSaleForm [packetSalePmfms]="packetSalePmfms" [mobile]="mobile"></app-packet-sale-form>
 
   <!-- add button (mobile) -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">
@@ -22,7 +20,6 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
@@ -30,19 +27,20 @@
       </ion-col>
 
       <ion-col size="auto">
-
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="disabled || loading || invalid"
-                    (click)="onSave($event)" (keyup.enter)="onSave($event)"
-                    color="tertiary">
+        <ion-button
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="disabled || loading || invalid"
+          (click)="onSave($event)"
+          (keyup.enter)="onSave($event)"
+          color="tertiary"
+        >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>
-
 </ion-footer>

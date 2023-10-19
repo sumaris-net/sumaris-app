@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import {
+  AppTable,
+  EntitiesTableDataSource,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+} from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
 import { BehaviorSubject } from 'rxjs';
@@ -19,15 +27,15 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Packet, PacketFilter, {
-        equals: Packet.equals
-      })
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService(Packet, PacketFilter, {
+          equals: Packet.equals,
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit {
-
+export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit, OnDestroy {
   @Input() $parents: BehaviorSubject<IWithPacketsEntity<any, any>[]>;
   @Input() parentAttributes: string[];
 
@@ -72,20 +80,15 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     protected validatorService: PacketValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
     protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'parent',
-          'number',
-          'weight'
-        ])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(['parent', 'number', 'weight']).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
         suppressErrors: true,
-        onRowCreated: (row) => this.onRowCreated(row)
+        onRowCreated: (row) => this.onRowCreated(row),
       }),
       null // Filter
     );
@@ -107,11 +110,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       items: this.$parents,
       attributes: this.parentAttributes,
       columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
-      mobile: this.mobile
+      columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+      mobile: this.mobile,
     });
 
-    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
+    this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditPacket(row)));
   }
 
   ngOnDestroy() {
@@ -120,8 +123,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
   private loadPmfms() {
-    this.programRefService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE})
-      .then(packetSalePmfms => this.packetSalePmfms = packetSalePmfms);
+    this.programRefService
+      .loadProgramPmfms(this.program, { acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE })
+      .then((packetSalePmfms) => (this.packetSalePmfms = packetSalePmfms));
   }
 
   trackByFn(index: number, row: TableElement<Packet>): number {
@@ -144,12 +148,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     this.markForCheck();
   }
 
-  protected async addEntityToTable(data: Packet, opts?: { confirmCreate?: boolean; }): Promise<TableElement<Packet>> {
-    if (!data) throw new Error("Missing data to add");
-    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+  protected async addEntityToTable(data: Packet, opts?: { confirmCreate?: boolean }): Promise<TableElement<Packet>> {
+    if (!data) throw new Error('Missing data to add');
+    if (this.debug) console.debug('[measurement-table] Adding new entity', data);
 
     const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row to table");
+    if (!row) throw new Error('Could not add row to table');
 
     await this.onNewEntity(data);
 
@@ -165,8 +169,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     if (!opts || opts.confirmCreate !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
-    }
-    else {
+    } else {
       this.editedRow = row;
     }
 
@@ -215,7 +218,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return true;
   }
 
-  async openDetailModal(dataToOpen?: Packet): Promise<{ data: Packet, role: string }> {
+  async openDetailModal(dataToOpen?: Packet): Promise<{ data: Packet; role: string }> {
     const isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new Packet();
@@ -223,7 +226,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       if (this.filter?.parent) {
         dataToOpen.parent = this.filter.parent;
       } else if (this.$parents.value?.length === 1) {
-        dataToOpen.parent =  this.$parents.value[0];
+        dataToOpen.parent = this.$parents.value[0];
       }
     }
 
@@ -236,10 +239,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         parentAttributes: this.parentAttributes,
         data: dataToOpen,
         isNew,
-        onDelete: (event, packet) => this.deleteEntity(event, packet)
+        onDelete: (event, packet) => this.deleteEntity(event, packet),
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
@@ -249,8 +252,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const { data, role } = await modal.onDidDismiss();
     this.markAsLoaded();
 
-    if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
-    return {data: (data instanceof Packet ? data as Packet : undefined), role};
+    if (this.debug) console.debug('[packet-table] packet modal result: ', { data, role });
+    return { data: data instanceof Packet ? (data as Packet) : undefined, role };
   }
 
   async deleteEntity(event: Event, data): Promise<boolean> {
@@ -261,11 +264,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(undefined, row, {interactive: false /*already confirmed*/});
+      this.cancelOrDelete(undefined, row, { interactive: false /*already confirmed*/ });
     }
     return canDeleteRow;
   }
-
 
   async openComposition(event: MouseEvent, row: TableElement<Packet>) {
     if (event) event.stopPropagation();
@@ -273,12 +275,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const { data, role } = await this.openDetailModal(row.currentData);
 
     if (data && role !== 'delete') {
-      row.validator.patchValue(data, {onlySelf: false, emitEvent: true});
+      row.validator.patchValue(data, { onlySelf: false, emitEvent: true });
 
       // update sales
       this.updateSaleProducts(row);
 
-      this.markAsDirty({emitEvent: false});
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
 
       if (role === 'sale') {
@@ -296,7 +298,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
         const updatedSaleProducts = SaleProductUtils.updateAggregatedSaleProducts(row.currentData, this.packetSalePmfms);
-        row.validator.patchValue({saleProducts: updatedSaleProducts}, {emitEvent: true});
+        row.validator.patchValue({ saleProducts: updatedSaleProducts }, { emitEvent: true });
       }
     }
   }
@@ -306,14 +308,14 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const modal = await this.modalCtrl.create({
       component: PacketSaleModal,
-      componentProps: <IPacketSaleModalOptions> {
+      componentProps: <IPacketSaleModalOptions>{
         data: row.currentData,
         packetSalePmfms: this.packetSalePmfms,
         disabled: this.disabled,
-        mobile: this.mobile
+        mobile: this.mobile,
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
@@ -321,8 +323,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     if (res && res.data) {
       // patch saleProducts only
-      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
-      this.markAsDirty({emitEvent: false});
+      row.validator.patchValue({ saleProducts: res.data.saleProducts }, { emitEvent: true });
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
     }
   }
@@ -330,12 +332,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   /* -- protected methods -- */
 
   protected async findRowByPacket(packet: Packet): Promise<TableElement<Packet>> {
-    return Packet && this.dataSource.getRows().find(r => Packet.equals(packet, r.currentData));
+    return Packet && this.dataSource.getRows().find((r) => Packet.equals(packet, r.currentData));
   }
 
   private onStartEditPacket(row: TableElement<Packet>) {
     if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
-      row.validator.patchValue({parent: this.filter.parent});
+      row.validator.patchValue({ parent: this.filter.parent });
     }
   }
 }

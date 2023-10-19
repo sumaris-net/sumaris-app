@@ -34,7 +34,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   canDelete: boolean;
   displayedAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   @Input() showIdColumn: boolean;
@@ -163,7 +163,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       // Success toast
       setTimeout(() => {
         this.showToast({
-          type: "info",
+          type: 'info',
           message: rows.length === 1 ?
             'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' :
             'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });

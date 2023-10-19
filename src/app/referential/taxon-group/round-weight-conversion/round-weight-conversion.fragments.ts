@@ -41,4 +41,4 @@ export const RoundWeightConversionFragments = {
   }
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightReferential}`
-}
+};

@@ -1,48 +1,51 @@
-<app-modal-toolbar color="secondary"
-                   [title]="'PROGRAM.STRATEGY.DUPLICATE_MODAL.TITLE'|translate">
-</app-modal-toolbar>
+<app-modal-toolbar color="secondary" [title]="'PROGRAM.STRATEGY.DUPLICATE_MODAL.TITLE' | translate"></app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
   <form [formGroup]="form" class="form-container">
-    <ion-row style="height: 50px;">
-      <ion-text style="height: 100%; width: 100%;" color="medium">
-        <div style="height: 100%; width: 100%; display: flex; justify-content: center; align-content: center; align-items: center;">{{ 'PROGRAM.STRATEGY.DUPLICATE_MODAL.HELP' | translate }}</div>
+    <ion-row style="height: 50px">
+      <ion-text style="height: 100%; width: 100%" color="medium">
+        <div
+          style="
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-content: center;
+            align-items: center;
+          "
+        >
+          {{ 'PROGRAM.STRATEGY.DUPLICATE_MODAL.HELP' | translate }}
+        </div>
       </ion-text>
     </ion-row>
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="2" offset="5">
-        <mat-date-short-field [placeholder]="'PROGRAM.STRATEGY.EDIT.YEAR_PLACEHOLDER'|translate"
-                              formControlName="year"
-                              [disabled]="false"
-                              [required]="true" >
-        </mat-date-short-field>
+        <mat-date-short-field
+          [placeholder]="'PROGRAM.STRATEGY.EDIT.YEAR_PLACEHOLDER' | translate"
+          formControlName="year"
+          [disabled]="false"
+          [required]="true"
+        ></mat-date-short-field>
       </ion-col>
     </ion-row>
-
   </form>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark"
-                    (click)="cancel()">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button color="primary"
-                    (click)="validDate()">
+        <ion-button color="primary" (click)="validDate()">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

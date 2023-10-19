@@ -15,7 +15,7 @@ import {
   splitByProperty,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../landing/landing.model';
@@ -234,7 +234,7 @@ export abstract class AbstractBatchesTable<
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroups
-      let data = this.dataSource.getData()
+      const data = this.dataSource.getData();
       const existingTaxonGroups = removeDuplicatesFromArray(
         data.map(batch => batch.taxonGroup).filter(isNotNil),
         'id');

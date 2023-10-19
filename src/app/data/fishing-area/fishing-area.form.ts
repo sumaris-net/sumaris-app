@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { FishingArea } from './fishing-area.model';
 import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
-import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { AppForm, NetworkService, ReferentialUtils, StatusIds } from '@sumaris-net/ngx-components';
 import { FishingAreaValidatorService } from './fishing-area.validator';
-import { LocationLevelIds } from '../../referential/services/model/model.enum';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -42,7 +42,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
       .pipe(
         startWith(this.locationControl.value),
         map(ReferentialUtils.isEmpty)
-      )
+      );
   }
 
   get value(): any {
@@ -111,11 +111,11 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
 
   private suggest(value: string, options: any, entityName: string) {
     return this.referentialRefService.suggest(value, {
-        entityName: entityName,
+        entityName,
         searchAttribute: options && options.searchAttribute
       },
-      "rankOrder",
-      "asc");
+      'rankOrder',
+      'asc');
   }
 
   protected markForCheck() {

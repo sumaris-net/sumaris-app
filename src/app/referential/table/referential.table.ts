@@ -1,4 +1,4 @@
-import { Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { Component, Inject, InjectionToken, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
@@ -8,9 +8,7 @@ import { PopoverController } from '@ionic/angular';
 import {
   AccountService,
   BaseReferential,
-  chainPromises,
   changeCaseToUnderscore,
-  EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
   FormFieldDefinition,
@@ -23,7 +21,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  JsonUtils,
   Referential,
   ReferentialRef,
   referentialToString,
@@ -32,9 +29,10 @@ import {
   RESERVED_START_COLUMNS,
   sleep,
   slideUpDownAnimation,
-  StatusById, StatusIds,
-  StatusList, suggestFromArray,
-  toBoolean
+  StatusById,
+  StatusIds,
+  StatusList,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
@@ -53,11 +51,11 @@ import { Method } from '@app/referential/pmfm/method/method.model';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { MethodValidatorService } from '@app/referential/pmfm/method/method.validator';
 import { AppBaseTable } from '@app/shared/table/base.table';
-import { ReferentialImportPolicy, ReferentialFileService } from '@app/referential/table/referential-file.service';
+import { ReferentialFileService, ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
 import { FullReferential } from '@app/referential/services/model/referential.model';
 import { ErrorCodes } from '@app/referential/services/errors';
 
-export const BASE_REFERENTIAL_COLUMNS = ['label','name','parent','level','status','creationDate','updateDate','comments'];
+export const BASE_REFERENTIAL_COLUMNS = ['label', 'name', 'parent', 'level', 'status', 'creationDate', 'updateDate', 'comments'];
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
@@ -84,9 +82,9 @@ export const DATA_SERVICE = new InjectionToken<new () => IEntityService<any>>('d
 export class ReferentialTable<
   T extends BaseReferential<T> = Referential,
   F extends BaseReferentialFilter<F, T> = ReferentialFilter
-> extends AppBaseTable<T, F> implements OnInit, OnDestroy {
+> extends AppBaseTable<T, F> implements OnInit {
 
-  static DEFAULT_ENTITY_NAME = "Pmfm";
+  static DEFAULT_ENTITY_NAME = 'Pmfm';
 
   private _entityName: string;
 
@@ -100,40 +98,41 @@ export class ReferentialTable<
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   readonly detailsPath = {
-    'Program': '/referential/programs/:id',
-    'Software': '/referential/software/:id?label=:label',
-    'Pmfm': '/referential/pmfm/:id?label=:label',
-    'Parameter': '/referential/parameter/:id?label=:label',
-    'Method': '/referential/method/:id?label=:label',
-    'TaxonName': '/referential/taxonName/:id?label=:label',
-    'TaxonGroup': '/referential/taxonGroup/:id?label=:label',
+    Program: '/referential/programs/:id',
+    Software: '/referential/software/:id?label=:label',
+    Pmfm: '/referential/pmfm/:id?label=:label',
+    Parameter: '/referential/parameter/:id?label=:label',
+    Method: '/referential/method/:id?label=:label',
+    TaxonName: '/referential/taxonName/:id?label=:label',
+    TaxonGroup: '/referential/taxonGroup/:id?label=:label',
+    Metier: '/referential/metier/:id?label=:label',
     // Extraction (special case)
-    'ExtractionProduct': '/extraction/product/:id?label=:label'
+    ExtractionProduct: '/extraction/product/:id?label=:label'
   };
   readonly dataTypes: { [key: string]: new () => BaseReferential<any> } = {
-    'Parameter': Parameter,
-    'Pmfm': Pmfm,
-    'TaxonName': TaxonName,
-    'Unit': FullReferential,
-    'Method': Method,
-    'TaxonGroup': FullReferential
+    Parameter,
+    Pmfm,
+    TaxonName,
+    Unit: FullReferential,
+    Method,
+    TaxonGroup: FullReferential
   };
   readonly dataServices: { [key: string]: any} = {
-    'Parameter': ParameterService,
-    'Pmfm': PmfmService,
-    'TaxonName': TaxonNameService,
-    'Unit': ReferentialService,
-    'TaxonGroup': ReferentialService
-  }
+    Parameter: ParameterService,
+    Pmfm: PmfmService,
+    TaxonName: TaxonNameService,
+    Unit: ReferentialService,
+    TaxonGroup: ReferentialService
+  };
   readonly dataValidators: { [key: string]: any} = {
-    'Method': MethodValidatorService
+    Method: MethodValidatorService
   };
   readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
 
   // Pu sub entity class (not editable without a root entity)
   readonly excludedEntityNames: string[] = [
     'QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'
-  ]
+  ];
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -318,15 +317,11 @@ export class ReferentialTable<
     }
   }
 
-  ngOnDestroy() {
-    super.ngOnDestroy();
-  }
-
   async restoreFilterOrLoad() {
     this.markAsLoading();
 
     const json = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY);
-    console.debug("[referentials] Restoring filter from settings...", json);
+    console.debug('[referentials] Restoring filter from settings...', json);
 
     if (json?.entityName) {
       const filter = this.asFilter(json);
@@ -411,12 +406,10 @@ export class ReferentialTable<
           dataType);
         this.fileService.i18nColumnPrefix = this.i18nColumnPrefix;
         this.fileService.defaultNewRowValue = () => this.defaultNewRowValue();
-        this.fileService.isKnownEntityName = (entityName) => this.isKnownEntityName(entityName);
+        this.fileService.isKnownEntityName = (name) => this.isKnownEntityName(name);
         this.fileService.loadByLabel = (label, filter) => this.loadByLabel(label, filter);
         this.fileService.entityName = entityName;
-        this.fileService.loadLevelById = (levelId) => {
-          return (this.$levels.value || []).find(l => l.id === levelId);
-        }
+        this.fileService.loadLevelById = (levelId) => (this.$levels.value || []).find(l => l.id === levelId);
         this.fileService.loadStatusById = (statusId) => this.statusById[statusId];
       }
 
@@ -499,7 +492,7 @@ export class ReferentialTable<
 
     if (isNotEmptyArray(levels)) {
       const parentEntityName = levels[0].entityName;
-      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(parentEntityName).toUpperCase();
+      const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(parentEntityName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
       this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
@@ -511,7 +504,7 @@ export class ReferentialTable<
   }
 
   computeI18nParentName(entityName): string {
-    const i18nKey = "REFERENTIAL." + changeCaseToUnderscore(entityName).toUpperCase() + ".PARENT";
+    const i18nKey = 'REFERENTIAL.' + changeCaseToUnderscore(entityName).toUpperCase() + '.PARENT';
     const translation = this.translate.instant(i18nKey);
     return (translation !== i18nKey) ? translation : ReferentialI18nKeys.DEFAULT_I18N_PARENT_NAME;
   }
@@ -520,7 +513,7 @@ export class ReferentialTable<
 
     if (isNil(entityName)) return undefined;
 
-    const tableName = entityName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
+    const tableName = entityName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
     const key = `REFERENTIAL.ENTITY.${tableName}`;
     let message = this.translate.instant(key);
 
@@ -627,7 +620,7 @@ export class ReferentialTable<
       this.onRefresh.emit();
     }
     catch(err) {
-      console.error(err)
+      console.error(err);
       this.setError(err);
     }
   }
@@ -640,14 +633,14 @@ export class ReferentialTable<
       this.onRefresh.emit();
     }
     catch(err) {
-      console.error(err)
+      console.error(err);
       this.setError(err);
     }
   }
 
   /* -- protected functions -- */
 
-  protected async loadByLabel<T extends IReferentialRef<T>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<T> {
+  protected async loadByLabel<R extends IReferentialRef<R>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<R> {
     if (isNilOrBlank(label)) throw new Error('Missing required argument \'label\'');
     const entityName = filter?.entityName;
     if (!entityName) throw new Error('Missing required argument \'source.entityName\', or \'filter.entityName\'');
@@ -669,10 +662,10 @@ export class ReferentialTable<
 
       const target = new dataType();
       target.fromObject(json);
-      return target as unknown as T;
+      return target as unknown as R;
     }
     catch (err) {
-      let message = err && err.message || err;
+      const message = err && err.message || err;
       console.error(message);
       throw err;
     }
@@ -724,7 +717,7 @@ export class ReferentialTable<
   }
 
   protected getDisplayColumns(): string[] {
-    let columns = removeDuplicatesFromArray(super.getDisplayColumns())
+    const columns = removeDuplicatesFromArray(super.getDisplayColumns())
       .filter(key => !RESERVED_END_COLUMNS.includes(key));
     const additionalColumns = (this.columnDefinitions || []).map(col => col.key)
       .filter(key => !columns.includes(key));
@@ -756,18 +749,18 @@ export class ReferentialTable<
       }, config);
   }
 
-  protected getEntityService<T extends IReferentialRef<any>>(entityName?: string): IEntityService<T> {
+  protected getEntityService<R extends IReferentialRef<R>>(entityName?: string): IEntityService<R> {
     entityName = entityName || this._entityName;
     if (!entityName) throw new Error('Missing required argument \'entityName\'');
     const serviceToken = this.dataServices[entityName];
-    const service: IEntitiesService<T, any> & IEntityService<T> = serviceToken && this.injector.get(serviceToken) as IEntitiesService<T, any> & IEntityService<T>;
+    const service: IEntitiesService<R, any> & IEntityService<R> = serviceToken && this.injector.get(serviceToken) as IEntitiesService<R, any> & IEntityService<R>;
     if (service && (typeof service.load !== 'function' || typeof service.save !== 'function')) throw new Error('Not a entities service. Missing load() or save()');
     if (service) return service;
 
     // Check if can be managed by generic service
     if (!this.isKnownEntityName(entityName)) return undefined;
 
-    return this.referentialService as unknown as IEntityService<T>;
+    return this.referentialService as unknown as IEntityService<R>;
   }
 
   protected getDataType(entityName?: string): new () => BaseReferential<any> {

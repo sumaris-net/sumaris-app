@@ -1,11 +1,11 @@
 import { EntityClass, fromDateISOString, isNotEmptyArray, isNotNil, Person, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DataEntityAsObjectOptions} from '../../data/services/model/data-entity.model';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Sample} from '../sample/sample.model';
-import {Measurement, MeasurementUtils} from '../../data/measurement/measurement.model';
+import {Measurement, MeasurementUtils} from '@app/data/measurement/measurement.model';
 import {IWithProductsEntity, Product} from '../product/product.model';
-import {DataRootVesselEntity} from '../../data/services/model/root-vessel-entity.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'SaleVO'})
 export class Sale extends DataRootVesselEntity<Sale>

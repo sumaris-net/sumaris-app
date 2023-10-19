@@ -18,7 +18,7 @@ import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { MetierFilter } from './filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',
@@ -168,7 +168,7 @@ export class MetierService extends BaseGraphqlService
 
   async suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value as Metier] };
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {...filter, searchText: value},
       {withTotal: true /* used by autocomplete */}

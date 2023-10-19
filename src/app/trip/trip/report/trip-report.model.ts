@@ -148,21 +148,19 @@ export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
 
 /* -- RDB Pmfm extraction classes -- */
 
-export interface RdbPmfmExtractionData<
+export type RdbPmfmExtractionData<
   TR extends RdbPmfmTrip = RdbPmfmTrip,
   HH extends RdbPmfmStation = RdbPmfmStation,
   SL extends RdbPmfmSpeciesList = RdbPmfmSpeciesList,
   HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength
-> extends RdbExtractionData<TR, HH, SL, HL> {
-
-}
+> = RdbExtractionData<TR, HH, SL, HL>;
 
 export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
   departureDateTime: Moment;
   returnDateTime: Moment;
 
   fromObject(source: any){
-    super.fromObject(source)
+    super.fromObject(source);
     this.departureDateTime = source.departureDateTime;
     this.returnDateTime = source.returnDateTime;
   }

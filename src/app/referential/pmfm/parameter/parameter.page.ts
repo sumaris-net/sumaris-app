@@ -62,7 +62,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Parameter";
+    this.defaultBackHref = '/referential/list?entity=Parameter';
     this.canEdit = this.accountService.isAdmin();
     this.tabCount = 2;
 
@@ -75,9 +75,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
         type: 'enum',
         required: true,
         values: ['double', 'string', 'qualitative_value', 'date', 'boolean']
-          .map(key => {
-            return {key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) };
-          })
+          .map(key => ({key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) }))
       }
     };
   }

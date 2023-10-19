@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
@@ -24,7 +24,7 @@ export interface CatchBatchFormState extends BatchFormState {
 }
 
 @Component({
-  selector: 'form-catch-batch',
+  selector: 'app-form-catch-batch',
   templateUrl: './catch.form.html',
   styleUrls: ['./catch.form.scss'],
   providers: [

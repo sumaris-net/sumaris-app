@@ -1,79 +1,89 @@
-
-<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="onSubmit.emit($event)" >
-
+<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="onSubmit.emit($event)">
   <ion-item *ngIf="showError && error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <!-- GEAR -->
-  <mat-autocomplete-field #matInput
-                          [class.cdk-visually-hidden]="!showGear"
-                          formControlName="gear"
-                          [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
-                          [config]="autocompleteFields.gear"
-                          [tabindex]="tabindex"
-                          [required]="true"
-                          [showSearchBar]="gears$|async|isArrayLength:{greaterThan: 5}"
-                          (click)="selectInputContent($event)"
-                          (keydown.tab)="focusNextInput($event)"
-                          (keydown.enter)="focusNextInput($event)"
-                          [mobile]="mobile">
-  </mat-autocomplete-field>
+  <mat-autocomplete-field
+    #matInput
+    [class.cdk-visually-hidden]="!showGear"
+    formControlName="gear"
+    [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR' | translateContext : i18nSuffix"
+    [config]="autocompleteFields.gear"
+    [tabindex]="tabindex"
+    [required]="true"
+    [showSearchBar]="gears$ | async | isArrayLength : { greaterThan: 5 }"
+    (click)="selectInputContent($event)"
+    (keydown.tab)="focusNextInput($event)"
+    (keydown.enter)="focusNextInput($event)"
+    [mobile]="mobile"
+  ></mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field *ngIf="canEditRankOrder && form|formGetControl:'rankOrder'; let control">
-    <input matInput #matInput
-           [formControl]="control"
-           autocomplete="off"
-           type="number"
-           step="1"
-           pattern="[0-9]*"
-           min="1"
-           (keydown.tab)="focusNextInput($event)"
-           (keydown.enter)="focusNextInput($event)"
-           (click)="selectInputContent($event)"
-           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
-           [tabindex]="tabindex + 1">
+  <mat-form-field *ngIf="canEditRankOrder && form | formGetControl : 'rankOrder'; let control">
+    <input
+      matInput
+      #matInput
+      [formControl]="control"
+      autocomplete="off"
+      type="number"
+      step="1"
+      pattern="[0-9]*"
+      min="1"
+      (keydown.tab)="focusNextInput($event)"
+      (keydown.enter)="focusNextInput($event)"
+      (click)="selectInputContent($event)"
+      [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER' | translateContext : i18nSuffix"
+      [tabindex]="tabindex + 1"
+    />
 
-    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+    <mat-error *ngIf="control.errors | mapKeys | arrayFirst; let errorKey">
       <ng-container [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
         <span *ngSwitchCase="'min'">
-          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
-        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate : control.errors.min }}
+        </span>
+        <span *ngSwitchCase="'msg'">
+          {{ control.errors.msg?.key || control.errors.msg | translate : control.errors.msg?.params }}
+        </span>
       </ng-container>
     </mat-error>
   </mat-form-field>
 
   <ng-content></ng-content>
 
-  <form *rxIf="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'userBlocking'"
-        [formGroup]="measurementValuesForm">
+  <form
+    *rxIf="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'userBlocking'"
+    [formGroup]="measurementValuesForm"
+  >
     <ion-grid class="ion-no-padding">
       <ion-row>
-
         <!-- Measurements -->
-        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last">
-          <ion-col class="ion-padding-end"
-                   *ngVar="pmfm|pmfmFieldStyle:maxItemCountForButtons as style"
-                   size="12"
-                   [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
-
-            <app-pmfm-field #matInput
-                            [pmfm]="pmfm"
-                            [controlName]="pmfm|pmfmIdString"
-                            [style]="style"
-                            [maxVisibleButtons]="maxVisibleButtons"
-                            [compact]="compact"
-                            [tabindex]="tabindex+2 + i*2"
-                            [floatLabel]="floatLabel"
-                            [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                            (keydown.tab)="focusNextInput($event)"
-                            (keydown.enter)="focusNextInput($event)"
-                            [mobile]="mobile">
-            </app-pmfm-field>
+        <ng-container
+          *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last"
+        >
+          <ion-col
+            class="ion-padding-end"
+            *ngVar="pmfm | pmfmFieldStyle : maxItemCountForButtons as style"
+            size="12"
+            [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
+          >
+            <app-pmfm-field
+              #matInput
+              [pmfm]="pmfm"
+              [controlName]="pmfm | pmfmIdString"
+              [style]="style"
+              [maxVisibleButtons]="maxVisibleButtons"
+              [compact]="compact"
+              [tabindex]="tabindex + 2 + i * 2"
+              [floatLabel]="floatLabel"
+              [placeholder]="pmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+              (keydown.tab)="focusNextInput($event)"
+              (keydown.enter)="focusNextInput($event)"
+              [mobile]="mobile"
+            ></app-pmfm-field>
           </ion-col>
         </ng-container>
       </ion-row>
@@ -86,17 +96,20 @@
   </ion-item>
 
   <mat-form-field appearance="outline" *ngIf="showComment">
-    <textarea matInput #comments #matInput
-              [formControl]="form|formGetControl:'comments'"
-              [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
-              matTextareaAutosize="true"
-              matAutosizeMinRows="4"
-              maxlength="2000"
-              [tabindex]="tabindex+100"
-              (keydown.tab)="focusNextInput($event)"
-              (keydown.control.enter)="onSubmit.emit($event)">
-    </textarea>
-    <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+    <textarea
+      matInput
+      #comments
+      #matInput
+      [formControl]="form | formGetControl : 'comments'"
+      [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS' | translate"
+      matTextareaAutosize="true"
+      matAutosizeMinRows="4"
+      maxlength="2000"
+      [tabindex]="tabindex + 100"
+      (keydown.tab)="focusNextInput($event)"
+      (keydown.control.enter)="onSubmit.emit($event)"
+    ></textarea>
+    <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
     <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 </form>
@@ -110,7 +123,7 @@
 
 <ng-template #measurementSkeleton>
   <mat-form-field class="mat-form-field-disabled">
-    <input matInput hidden>
+    <input matInput hidden />
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>
 </ng-template>

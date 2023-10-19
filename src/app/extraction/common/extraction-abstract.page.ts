@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Injector, Input, ViewChild } from '@angular/core';
+import { Directive, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   AccountService,
@@ -20,9 +20,16 @@ import {
   propertyComparator,
   toBoolean,
   toDateISOString,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import {
+  ExtractionCategories,
+  ExtractionColumn,
+  ExtractionFilter,
+  ExtractionFilterCriterion,
+  ExtractionType,
+  ExtractionTypeUtils,
+} from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
@@ -35,7 +42,6 @@ import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.mo
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
 import { Location } from '@angular/common';
-
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
@@ -53,7 +59,9 @@ export interface ExtractionState<T extends ExtractionType> {
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>> extends AppTabEditor<T> {
+export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>>
+  extends AppTabEditor<T>
+  implements OnInit {
 
   protected readonly type$ = this._state.select('type');
   protected readonly types$ = this._state.select('types');
@@ -155,12 +163,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       this._state.connect('types',
         this.watchAllTypes()
           .pipe(
-            map(({ data, total }) => {
+            map(({ data, total }) =>
               // Compute i18n name
-              return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+               data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
                 // Then sort by name
-                .sort(propertyComparator('name'));
-            })));
+                .sort(propertyComparator('name'))
+            )));
     }
 
     this._state.hold(this.types$, (_) => this.markAsReady());
@@ -207,7 +215,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   /**
    * Load type from a query params `{category, label, sheet, q}`
    */
-  protected async loadQueryParams(queryParams: {category: string; label: string; sheet: string; q: string, meta: any},
+  protected async loadQueryParams(queryParams: {category: string; label: string; sheet: string; q: string; meta: any},
                                   opts?: {emitEvent?: boolean}): Promise<boolean> {
     // Convert query params into a valid type
     const {category, label, sheet, q, meta} = queryParams;
@@ -256,7 +264,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // Update meta
     if (meta) {
-      const metaValue = this.parseMetaFromString(meta)
+      const metaValue = this.parseMetaFromString(meta);
       this.form.get('meta').patchValue(metaValue, {emitEvent: false});
     }
 
@@ -267,7 +275,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return true;
   }
 
-  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string; }): Promise<boolean> {
+  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
     opts = opts || {};
     opts.emitEvent = isNotNil(opts.emitEvent) ? opts.emitEvent : true;
     opts.skipLocationChange = isNotNil(opts.skipLocationChange) ? opts.skipLocationChange : false;
@@ -281,11 +289,11 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       // Replace by the full entity
       type = await this.findTypeByFilter(ExtractionTypeFilter.fromType(type));
       if (!type) {
-        console.warn("[extraction-form] Type not found:", type);
+        console.warn('[extraction-form] Type not found:', type);
         return false;
       }
       console.debug(`[extraction-form] Set type to {${type.label}}`, type);
-      this.form.patchValue({})
+      this.form.patchValue({});
       this.type = type;
       this.criteriaForm.type = type;
 
@@ -315,7 +323,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return changed;
   }
 
-  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
     if (sheetName === this.sheetName) return; //skip
 
     this.form.patchValue({sheetName}, opts);
@@ -389,9 +397,9 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
   }
 
-  async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>, emitEvent?: boolean; } ): Promise<any> {
+  async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>; emitEvent?: boolean } ): Promise<any> {
 
-    let types: T[] = this.types;
+    const types: T[] = this.types;
     if (isNil(types)) await this.ready();
 
     let type: T = (types || []).find(t => t.id === id);
@@ -422,7 +430,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   }
 
   async save(event): Promise<any> {
-    console.warn("Not allow to save extraction filter yet!");
+    console.warn('Not allow to save extraction filter yet!');
 
     return undefined;
   }
@@ -552,7 +560,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
         } else {
           return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
         }
-      }, []).join(";");
+      }, []).join(';');
     }
     return params;
   }
@@ -584,7 +592,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
 
     // No translation found: replace underscore with space
-    return sheetName.replace(/[_-]+/g, " ").toUpperCase();
+    return sheetName.replace(/[_-]+/g, ' ').toUpperCase();
   }
 
   protected translateColumns(columns: ExtractionColumn[], context?: string) {
@@ -614,7 +622,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
         if (column.name === key) {
 
           // Replace underscore with space
-          column.name = column.columnName.replace(/[_-]+/g, " ").toLowerCase();
+          column.name = column.columnName.replace(/[_-]+/g, ' ').toLowerCase();
 
           // First letter as upper case
           if (column.name.length > 1) column.name = capitalizeFirstLetter(column.name);
@@ -640,7 +648,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       if (message === key) {
 
         // Replace underscore with space
-        message = columnName.replace(/[_-]+/g, " ").toUpperCase();
+        message = columnName.replace(/[_-]+/g, ' ').toUpperCase();
         if (message.length > 1) {
           // First letter as upper case
           message = message.substring(0, 1) + message.substring(1).toLowerCase();

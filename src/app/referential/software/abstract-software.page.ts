@@ -1,5 +1,5 @@
-import {ChangeDetectorRef, Directive, Injector, ViewChild} from '@angular/core';
-import {AbstractControl, UntypedFormGroup} from '@angular/forms';
+import { ChangeDetectorRef, Directive, Injector, OnInit, ViewChild } from '@angular/core';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
@@ -17,20 +17,16 @@ import {
   isNotNilOrBlank,
   PlatformService,
   Software,
-  SuggestFn
+  SuggestFn,
 } from '@sumaris-net/ngx-components';
-import {ReferentialForm} from '../form/referential.form';
-import {SoftwareService} from '../services/software.service';
-import {SoftwareValidatorService} from '../services/validator/software.validator';
-import {ReferentialRefService} from '../services/referential-ref.service';
+import { ReferentialForm } from '../form/referential.form';
+import { SoftwareService } from '../services/software.service';
+import { SoftwareValidatorService } from '../services/validator/software.validator';
+import { ReferentialRefService } from '../services/referential-ref.service';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AbstractSoftwarePage<
-  T extends Software<T>,
-  S extends IEntityService<T>>
-  extends AppEntityEditor<T, S> {
-
+export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEntityService<T>> extends AppEntityEditor<T, S> implements OnInit {
   protected accountService: AccountService;
   protected platform: PlatformService;
   protected cd: ChangeDetectorRef;
@@ -45,37 +41,32 @@ export abstract class AbstractSoftwarePage<
 
   protected constructor(
     injector: Injector,
-    dataType: new() => T,
+    dataType: new () => T,
     dataService: S,
     protected validatorService: SoftwareValidatorService,
     configOptions: FormFieldDefinitionMap,
-    options?: AppEditorOptions,
-    ) {
-    super(injector,
-      dataType,
-      dataService,
-      options);
+    options?: AppEditorOptions
+  ) {
+    super(injector, dataType, dataService, options);
     this.platform = injector.get(PlatformService);
     this.accountService = injector.get(AccountService);
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
 
     // Convert map to list of options
-    this.propertyDefinitions = Object.values({...CORE_CONFIG_OPTIONS, ...configOptions})
-      .map(def => {
-        if (def.type === 'entity' || def.type === 'entities') {
-          def = Object.assign({}, def); // Copy
-          def.autocomplete = {
-            suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
-            attributes: ['label', 'name'],
-            ...(def.autocomplete || {})
-          };
-        }
-        return def;
-      });
+    this.propertyDefinitions = Object.values({ ...CORE_CONFIG_OPTIONS, ...configOptions }).map((def) => {
+      if (def.type === 'entity' || def.type === 'entities') {
+        def = Object.assign({}, def); // Copy
+        def.autocomplete = {
+          suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+          attributes: ['label', 'name'],
+          ...(def.autocomplete || {}),
+        };
+      }
+      return def;
+    });
 
     this.form = validatorService.getFormGroup();
-
   }
 
   ngOnInit() {
@@ -87,16 +78,14 @@ export abstract class AbstractSoftwarePage<
     // Check label is unique
     if (this.service instanceof SoftwareService) {
       const softwareService = this.service as SoftwareService;
-      this.form.get('label')
-        .setAsyncValidators(async (control: AbstractControl) => {
-          const label = control.enabled && control.value;
-          return label && (await softwareService.existsByLabel(label)) ? {unique: true} : null;
-        });
+      this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+        const label = control.enabled && control.value;
+        return label && (await softwareService.existsByLabel(label)) ? { unique: true } : null;
+      });
     }
   }
 
   /* -- protected methods -- */
-
 
   enable() {
     super.enable();
@@ -111,23 +100,22 @@ export abstract class AbstractSoftwarePage<
   }
 
   protected async loadFromRoute(): Promise<void> {
-
     // Make sure the platform is ready, before loading configuration
     await this.platform.ready();
 
     return super.loadFromRoute();
   }
 
-
-
   protected setValue(data: T) {
     if (!data) return; // Skip
 
-    this.form.patchValue({
-      ...data.asObject(),
-      properties: []
-    }, {emitEvent: false});
-
+    this.form.patchValue(
+      {
+        ...data.asObject(),
+        properties: [],
+      },
+      { emitEvent: false }
+    );
 
     // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
@@ -144,13 +132,15 @@ export abstract class AbstractSoftwarePage<
     // Transform properties
     data.properties = this.propertiesForm.value;
     data.properties
-      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
-      .forEach(property => {
+      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
+      .forEach((property) => {
         if (Array.isArray(property.value)) {
-          property.value = property.value.map(v => v?.id).filter(isNotNil).join(',');
-        }
-        else {
-          property.value = (property.value as any)?.id
+          property.value = property.value
+            .map((v) => v?.id)
+            .filter(isNotNil)
+            .join(',');
+        } else {
+          property.value = (property.value as any)?.id;
         }
       });
 
@@ -184,36 +174,34 @@ export abstract class AbstractSoftwarePage<
     this.markAsReady();
   }
 
-
   protected async loadEntityProperties(data: T | null) {
-
-    await Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitions.find(def => def.key === key && (def.type === 'entity' || def.type === 'entities')))
-      .filter(isNotNil)
-      .map(async (def) => {
-        if (def.type === 'entities') {
-          const values = (data.properties[def.key] || '').trim().split(/[|,]+/);
-          if (isNotEmptyArray(values)) {
-            const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
-            data.properties[def.key] = entities as any;
+    await Promise.all(
+      Object.keys(data.properties)
+        .map((key) => this.propertyDefinitions.find((def) => def.key === key && (def.type === 'entity' || def.type === 'entities')))
+        .filter(isNotNil)
+        .map(async (def) => {
+          if (def.type === 'entities') {
+            const values = (data.properties[def.key] || '').trim().split(/[|,]+/);
+            if (isNotEmptyArray(values)) {
+              const entities = await Promise.all(values.map((value) => this.resolveEntity(def, value)));
+              data.properties[def.key] = entities as any;
+            } else {
+              data.properties[def.key] = null;
+            }
           }
+          // If type = 'entity'
           else {
-            data.properties[def.key] = null;
+            let value = data.properties[def.key];
+            value = typeof value === 'string' ? value.trim() : value;
+            if (isNotNilOrBlank(value)) {
+              const entity = await this.resolveEntity(def, value);
+              data.properties[def.key] = entity;
+            } else {
+              data.properties[def.key] = null;
+            }
           }
-        }
-        // If type = 'entity'
-        else {
-          let value = data.properties[def.key];
-          value = typeof value === 'string' ?  value.trim() : value;
-          if (isNotNilOrBlank(value)) {
-            const entity = await this.resolveEntity(def, value)
-            data.properties[def.key] = entity;
-          }
-          else {
-            data.properties[def.key] = null;
-          }
-        }
-      }));
+        })
+    );
   }
 
   protected async resolveEntity(def: FormFieldDefinition, value: any): Promise<any> {
@@ -227,8 +215,7 @@ export abstract class AbstractSoftwarePage<
     if (joinAttribute === 'id') {
       filter.id = parseInt(value);
       value = '*';
-    }
-    else {
+    } else {
       filter.searchAttribute = joinAttribute;
     }
     const suggestFn: SuggestFn<any, any> = def.autocomplete.suggestFn || this.referentialRefService.suggest;
@@ -236,17 +223,15 @@ export abstract class AbstractSoftwarePage<
       // Fetch entity, as a referential
       const res = await suggestFn(value, filter);
       const data = Array.isArray(res) ? res : res.data;
-      return (data && data[0] || {id: value,  label: '??'}) as any;
-    }
-    catch (err) {
+      return ((data && data[0]) || { id: value, label: '??' }) as any;
+    } catch (err) {
       console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
-      return {id: value,  label: '??'};
+      return { id: value, label: '??' };
     }
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
 

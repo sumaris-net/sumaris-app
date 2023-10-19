@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
-import { AppForm, AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
+import { AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
 import { ProductsTable } from '../product/products.table';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
 import { Product } from '@app/trip/product/product.model';
 import { SaleProductUtils } from '@app/trip/sale/sale-product.model';
@@ -15,18 +14,17 @@ import { environment } from '@environments/environment';
   selector: 'app-expected-sale-form',
   templateUrl: './expected-sale.form.html',
   styleUrls: ['./expected-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implements OnInit {
-
   readonly debug = !environment.production;
 
   @Input() programLabel: string;
   @Input() showError = false;
   @Input() mobile: boolean;
 
-  @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
-  @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
+  @ViewChild('saleMeasurementsForm', { static: true }) saleMeasurementsForm: MeasurementsForm;
+  @ViewChild('productsTable', { static: true }) productsTable: ProductsTable;
 
   data: ExpectedSale;
   totalPriceCalculated: number;
@@ -39,11 +37,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
     this.setValue(isNotNil(data) ? data : new ExpectedSale());
   }
 
-  constructor(
-    protected injector: Injector,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
-  ) {
+  constructor(protected injector: Injector, protected settings: LocalSettingsService, protected cd: ChangeDetectorRef) {
     super(() => this.saleMeasurementsForm);
   }
 
@@ -66,26 +60,24 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
   }
 
   async updateProducts(value: Product[]) {
-
-    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms))
-      .map(pmfm => DenormalizedPmfmStrategy.fromObject(pmfm));
+    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms)).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm));
     let products = (value || []).slice();
     this.totalPriceCalculated = 0;
 
     // compute prices
-    products = products.map(product => {
+    products = products.map((product) => {
       const saleProduct = SaleProductUtils.productToSaleProduct(product, pmfms);
       SaleProductUtils.computeSaleProduct(
         product,
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => object[valueName] = round(value),
-        (object, valueName) => object[valueName] = undefined,
+        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName) => (object[valueName] = undefined),
         true,
         'individualCount'
       );
-      const target = {...product, ...saleProduct};
+      const target = { ...product, ...saleProduct };
       target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues || {}, pmfms);
 
       // add measurements for each calculated or non calculated values
@@ -95,17 +87,15 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
       this.totalPriceCalculated += saleProduct.totalPrice;
 
       return Product.fromObject(target);
-    })
+    });
 
-    if (this.totalPriceCalculated == 0) this.totalPriceCalculated = undefined;
+    if (this.totalPriceCalculated === 0) this.totalPriceCalculated = undefined;
 
     // populate table
     this.productsTable.value = products;
-
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

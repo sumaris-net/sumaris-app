@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output,
+} from '@angular/core';
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
 import {
@@ -31,7 +42,7 @@ import {
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
@@ -56,7 +67,6 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { isSameOrBefore } from 'ngx-material-timepicker/src/app/material-timepicker/utils/timepicker.utils';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -79,7 +89,7 @@ export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   styleUrls: ['./operation.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationForm extends AppForm<Operation> implements OnInit, OnReady {
+export class OperationForm extends AppForm<Operation> implements OnInit, OnDestroy, OnReady {
 
   private _trip: Trip;
   private _$physicalGears = new BehaviorSubject<PhysicalGear[]>(undefined);
@@ -129,7 +139,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() maxTotalDurationInHours: number;
 
   @Input() set usageMode(usageMode: UsageMode) {
-    if (this._usageMode != usageMode) {
+    if (this._usageMode !== usageMode) {
       this._usageMode = usageMode;
       if (!this.loading) this.updateFormGroup();
     }
@@ -310,7 +320,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return isNil(this.form?.controls.id.value);
   }
 
-  @Output() onParentChanges = new EventEmitter<Operation>();
+  @Output() parentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();
   @Output() openParentOperation = new EventEmitter<Operation>();
 
@@ -453,7 +463,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.setValue(data || new Operation(), opts);
   }
 
-  async setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }): Promise<void> {
+  async setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }): Promise<void> {
 
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
@@ -461,7 +471,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     const isNew = isNil(data?.id);
 
     // Use trip physical gear Object (if possible)
-    let physicalGear = data.physicalGear;
+    const physicalGear = data.physicalGear;
     const physicalGears = this._$physicalGears.value;
     if (physicalGear && isNotNil(physicalGear.id) && isNotEmptyArray(physicalGears)) {
       data.physicalGear = physicalGears.find(g => g.id === physicalGear.id) || physicalGear;
@@ -517,18 +527,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (trip) {
       // Propagate physical gears
       const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
-      const physicalGears = (trip.gears || []).map((ps, i) => {
-        const physicalGear = PhysicalGear.fromObject(ps).clone();
+      const physicalGears = (trip.gears || []).map((pg, i) => {
+        const pgCopy = PhysicalGear.fromObject(pg).clone();
 
         // Keep children (need by selection operation page)
         //physicalGear.children = null;
 
         // Use physical gear label, if present (see issue #314)
-        const physicalGearLabel = getPropertyByPath(ps, gearLabelPath);
+        const physicalGearLabel = getPropertyByPath(pg, gearLabelPath);
         if (isNotNilOrBlank(physicalGearLabel)) {
-          physicalGear.gear.name = physicalGearLabel;
+          pgCopy.gear.name = physicalGearLabel;
         }
-        return physicalGear;
+        return pgCopy;
       });
       this._$physicalGears.next(physicalGears);
 
@@ -553,7 +563,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
     endDateTime.subtract(1, 'second');
-    this.form.patchValue({startDateTime: this.trip.departureDateTime, endDateTime: endDateTime});
+    this.form.patchValue({startDateTime: this.trip.departureDateTime, endDateTime});
   }
 
   setChildOperation(value: Operation, opts?: { emitEvent: boolean }) {
@@ -576,6 +586,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   /**
    * Get the position by GPS sensor
+   *
    * @param fieldName
    */
   async onFillPositionClick(event: Event, fieldName: string) {
@@ -692,7 +703,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
     if (!opts || opts.emitEvent !== false) {
-      this.onParentChanges.emit(parentOperation);
+      this.parentChanges.emit(parentOperation);
     }
 
     // Compute parent operation label
@@ -1008,7 +1019,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         }
 
         // Or clean
-        console.warn('[operation-form] Cleaning metier, as it has not been found in metier')
+        console.warn('[operation-form] Cleaning metier, as it has not been found in metier');
         metierControl.patchValue(null);
       }
     }
@@ -1022,7 +1033,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return res;
   }
 
-  setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean; }) {
+  setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean }) {
 
     if (this.debug) console.debug('[operation-form] Is parent operation ? ', isParent);
 
@@ -1116,9 +1127,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   protected updateDistance(opts = { emitEvent: true }) {
     if (!this._showPosition) return; // Skip
 
-    let startPosition = this.form.get('startPosition').value;
+    const startPosition = this.form.get('startPosition').value;
     const endPositionControl = this.lastActivePositionControl;
-    let endPosition = endPositionControl?.value;
+    const endPosition = endPositionControl?.value;
     if (!startPosition || !endPosition) {
       this.distance = undefined;
       this.distanceWarning = false;

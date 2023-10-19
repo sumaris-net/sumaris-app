@@ -1,39 +1,35 @@
-<app-modal-toolbar color="secondary"
-                   [title]="'TRIP.OPERATION.PARENT.TITLE' | translate"
-                   (cancel)="cancel()"
-                   (validate)="close($event)"
-                   [showSpinner]="loading"
-                   [canValidate]="!loading && hasSelection()">
-</app-modal-toolbar>
+<app-modal-toolbar
+  color="secondary"
+  [title]="'TRIP.OPERATION.PARENT.TITLE' | translate"
+  (cancel)="cancel()"
+  (validate)="close($event)"
+  [showSpinner]="loading"
+  [canValidate]="!loading && hasSelection()"
+></app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
   <!-- main table -->
-  <app-select-operation-by-trip-table #table
-                                      [showToolbar]="false"
-                                      [enableGeolocation]="enableGeolocation"
-                                      [gearIds]="gearIds"
-                                      [parent]="parent"
-                                      (onOpenRow)="selectRow($event)">
-  </app-select-operation-by-trip-table>
+  <app-select-operation-by-trip-table
+    #table
+    [showToolbar]="false"
+    [enableGeolocation]="enableGeolocation"
+    [gearIds]="gearIds"
+    [parent]="parent"
+    (onOpenRow)="selectRow($event)"
+  ></app-select-operation-by-trip-table>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark"
-                    (click)="cancel()">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
-
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

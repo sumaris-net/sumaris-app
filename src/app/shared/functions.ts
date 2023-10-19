@@ -24,6 +24,7 @@ export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): Lo
  *  <li> round(0.01, 1) => '0.0'
  *  <li> round(0.08, 1) => '0.1'
  * </ul>
+ *
  * @param value
  * @param maxDecimals
  */
@@ -57,7 +58,7 @@ export function equals(item1, item2) {
   return item1 === item2;
 }
 
-export function arrayEquals<T>(value: T[], other:T[]): boolean {
+export function arrayEquals<T>(value: T[], other: T[]): boolean {
 
   // Get the value type
   const type = Object.prototype.toString.call(value);
@@ -79,7 +80,7 @@ export function arrayEquals<T>(value: T[], other:T[]): boolean {
       if (equals(value[i], other[i]) === false) return false;
     }
   } else {
-    for (let key in value) {
+    for (const key in value) {
       if (!equals(value[key], other[key])) return false;
     }
   }
@@ -96,6 +97,7 @@ export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[ty
 
 /**
  * Count how many times a search string occur
+ *
  * @param value
  * @param searchString
  */
@@ -123,7 +125,5 @@ export function intersectArrays<T = any>(values: T[][]): T[] {
   if (isEmptyArray(values)) return [];
 
   // Utilise la méthode reduce pour obtenir l'intersection des tableaux
-  return values.reduce((acc, curr) => {
-    return acc.filter(x => curr.includes(x));
-  }, values[0].slice());
+  return values.reduce((acc, curr) => acc.filter(x => curr.includes(x)), values[0].slice());
 }

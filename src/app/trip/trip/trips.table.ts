@@ -45,7 +45,7 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const TripsPageSettingsEnum = {
-  PAGE_ID: "trips",
+  PAGE_ID: 'trips',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: TRIP_FEATURE_NAME
 };
@@ -66,7 +66,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
-  qualityFlagsById: {[id:number]: ReferentialRef};
+  qualityFlagsById: {[id: number]: ReferentialRef};
 
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -293,8 +293,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
       name: this._dataService.featureName
     };
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const filter = this.asFilter(this.filterForm.value);
-    let synchroFilter = <TripSynchroImportFilter>{
+    const synchroFilter = <TripSynchroImportFilter>{
       vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
       programLabel: filter.program && filter.program.label || undefined,
       ...feature.filter
@@ -337,9 +338,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     const data = await super.importFromFile(event);
     if (isEmptyArray(data)) return; // Skip
 
-    let entities: Trip[] = [];
-    let errors = [];
-    for (let json of data) {
+    const entities: Trip[] = [];
+    const errors = [];
+    for (const json of data) {
       try {
         const entity = Trip.fromObject(json);
         const savedEntity = await this._dataService.copyLocally(entity);
@@ -382,7 +383,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
-    if (isEmptyArray(trips)) return // Skip if empty
+    if (isEmptyArray(trips)) return; // Skip if empty
 
     const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length !== 1) {
@@ -413,7 +414,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
-    if (isEmptyArray(trips)) return // Skip if empty
+    if (isEmptyArray(trips)) return; // Skip if empty
 
     const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length !== 1) {
@@ -497,7 +498,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
-      filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
+      filename: this.translate.instant('TRIP.TABLE.DOWNLOAD_JSON_FILENAME'),
       type: 'application/json'
     });
   }

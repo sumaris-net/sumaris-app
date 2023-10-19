@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   EntitiesStorage,
   EntityUtils,
@@ -14,8 +14,8 @@ import {
   sleep,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGearTestUtils } from '@app/trip/physicalgear/testing/physical-gears.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -197,7 +197,7 @@ export class PhysicalGearsTestPage implements OnInit {
 
     Object.keys(modalOptions).forEach(key =>
       this.setModalOptions(key as keyof IPhysicalGearModalOptions, modalOptions[key])
-    )
+    );
   }
 
   async setModalOptions(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
@@ -215,7 +215,7 @@ export class PhysicalGearsTestPage implements OnInit {
     await sleep(200);
 
     // Open modal
-    const rows = await this.table.dataSource.getRows()
+    const rows = await this.table.dataSource.getRows();
     if (isNotEmptyArray(rows)) {
       this.table.clickRow(null, rows[0]);
     }
@@ -232,10 +232,10 @@ export class PhysicalGearsTestPage implements OnInit {
   }
 
   dumpData(data: PhysicalGear[], outputName?: string) {
-    let html = "";
+    let html = '';
     if (data) {
       data.map(gear =>  {
-        html += "<br/> - " + gear.measurementValues[PmfmIds.GEAR_LABEL];
+        html += '<br/> - ' + gear.measurementValues[PmfmIds.GEAR_LABEL];
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 

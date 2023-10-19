@@ -16,7 +16,7 @@ export interface VesselModalOptions {
 }
 
 @Component({
-  selector: 'vessel-modal',
+  selector: 'app-vessel-modal',
   templateUrl: './vessel-modal.html'
 })
 export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
@@ -131,7 +131,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
 
       // If vessel name is not required and blank, copy exterior marking on name field
       if (isNotNil(this.withNameRequired) && !this.withNameRequired && isNotNil(data.vesselFeatures) && isNilOrBlank(data.vesselFeatures.name)){
-        data.vesselFeatures.name = data.vesselFeatures.exteriorMarking
+        data.vesselFeatures.name = data.vesselFeatures.exteriorMarking;
       }
 
       this.disable();

@@ -3,7 +3,7 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { OperationGroup } from '../trip/trip.model';
 import { TranslateService } from '@ngx-translate/core';

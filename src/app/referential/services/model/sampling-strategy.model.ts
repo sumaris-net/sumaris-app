@@ -56,8 +56,7 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || undefined;
 
     if (!this.efforts && this.appliedStrategies) {
-      this.efforts = this.appliedStrategies.reduce((res, as) => {
-        return res.concat(
+      this.efforts = this.appliedStrategies.reduce((res, as) => res.concat(
           (as.appliedPeriods || []).map(period => {
             const quarter = period.startDate?.quarter();
             if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
@@ -66,10 +65,9 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
               startDate: period.startDate,
               endDate: period.endDate,
               expectedEffort: period.acquisitionNumber
-            })
+            });
           }).filter(isNotNil)
-        )
-      }, []);
+        ), []);
     }
 
     this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || undefined;
@@ -146,6 +144,10 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
   get hasLanding(): boolean {
     return (this.efforts || []).findIndex(e => e.hasLanding) !== -1;
   }
+
+  get hasScientificCruise(): boolean {
+    return (this.efforts || []).findIndex(e => e.hasScientificCruise) !== -1;
+  }
 }
 
 
@@ -172,6 +174,7 @@ export class StrategyEffort {
   expectedEffort: number;
   realizedEffort: number;
   landingCount: number;
+  scientificCruise: number;
 
   constructor() {
   }
@@ -191,6 +194,7 @@ export class StrategyEffort {
     this.expectedEffort = toNumber(source.expectedEffort);
     this.realizedEffort = toNumber(source.realizedEffort);
     this.landingCount = toNumber(source.landingCount);
+    this.scientificCruise = toNumber(source.scientificCruise);
 
     // Compute quarter (if possible = is same between start/end date)
     const startQuarter = this.startDate && this.startDate.quarter();
@@ -206,11 +210,11 @@ export class StrategyEffort {
   }
 
   get realized(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort));
+    return !this.expectedEffort || (this.realizedEffort || 0) >= this.expectedEffort;
   }
 
   get realizedMore(): boolean {
-    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort > this.expectedEffort));
+    return (this.realizedEffort || 0) > (this.expectedEffort || 0);
   }
 
   get missingEffort(): number {
@@ -220,14 +224,18 @@ export class StrategyEffort {
   }
 
   get hasRealizedEffort(): boolean {
-    return (this.realizedEffort && this.realizedEffort > 0);
+    return (this.realizedEffort || 0) > 0;
   }
 
   get hasExpectedEffort(): boolean {
-    return (this.expectedEffort && this.expectedEffort > 0);
+    return (this.expectedEffort || 0) > 0;
   }
 
   get hasLanding(): boolean {
-    return (this.landingCount && this.landingCount > 0);
+    return (this.landingCount || 0) > 0;
+  }
+
+  get hasScientificCruise(): boolean {
+    return (this.scientificCruise || 0) > 0;
   }
 }

@@ -5,16 +5,22 @@ import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions, ConfigService, Configuration, CORE_CONFIG_OPTIONS, DateUtils,
+  BaseEntityGraphqlSubscriptions,
+  ConfigService,
+  Configuration,
+  CORE_CONFIG_OPTIONS,
+  DateUtils,
   EntitiesStorage,
   EntityAsObjectOptions,
   EntitySaveOptions,
-  EntityUtils, firstNotNilPromise,
+  EntityUtils,
+  firstNotNilPromise,
   IReferentialRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
-  isNilOrNaN, isNotEmptyArray,
+  isNilOrNaN,
+  isNotEmptyArray,
   isNotNil,
   JsonUtils,
   LoadResult,
@@ -22,7 +28,7 @@ import {
   Referential,
   ReferentialRef,
   ReferentialUtils,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { CacheService } from 'ionic-cache';
 import { ErrorCodes } from './errors';
@@ -43,11 +49,10 @@ import { Program } from '@app/referential/services/model/program.model';
 import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
-import {Moment} from 'moment';
-
+import { Moment } from 'moment';
 
 const FindStrategyNextLabel: any = gql`
-  query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int){
+  query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int) {
     data: strategyNextLabel(programId: $programId, labelPrefix: $labelPrefix, nbDigit: $nbDigit)
   }
 `;
@@ -81,7 +86,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.lightReferential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -203,16 +208,14 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     this.configService.config.subscribe(config => this.onConfigChanged(config));
   }
 
-  async getDateRangeByLabel(label: string): Promise<{startDate: Moment, endDate: Moment}> {
+  async getDateRangeByLabel(label: string): Promise<{startDate: Moment; endDate: Moment}> {
     const strategy = await this.loadByLabel(label);
     return strategy.appliedStrategies
-      .reduce((acc, strategy) => {
-        return strategy.appliedPeriods.reduce((acc, period) => {
-          acc.startDate = DateUtils.min(acc.startDate, period.startDate).clone();
-          acc.endDate = DateUtils.max(acc.endDate, period.endDate).clone();
-          return acc;
-        }, acc);
-      }, {startDate: undefined, endDate: undefined});
+      .reduce((res1, appliedStrategy) => appliedStrategy.appliedPeriods.reduce((res2, period) => {
+          res2.startDate = DateUtils.min(res2.startDate, period.startDate).clone();
+          res2.endDate = DateUtils.max(res2.endDate, period.endDate).clone();
+          return res2;
+        }, res1), {startDate: undefined, endDate: undefined});
   }
 
   private onConfigChanged(config: Configuration) {
@@ -223,9 +226,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   async existsByLabel(label: string, opts?: {
     programId?: number;
     excludedIds?: number[];
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy;
   }): Promise<boolean> {
-    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
+    if (isNilOrBlank(label)) throw new Error('Missing argument \'label\' ');
 
     const filter: Partial<StrategyFilter> = {
       label,
@@ -235,7 +238,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const {total} = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
-      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
+      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
     return toNumber(total, 0) > 0;
@@ -247,11 +250,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const res = await this.graphql.query<{ data: string }>({
       query: FindStrategyNextLabel,
       variables: {
-        programId: programId,
-        labelPrefix: labelPrefix,
-        nbDigit: nbDigit
+        programId,
+        labelPrefix,
+        nbDigit
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR'},
       fetchPolicy: 'network-only'
     });
     return res && res.data;
@@ -267,7 +270,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         labelSeparator,
         nbDigit
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR'},
       fetchPolicy: 'network-only'
     });
     return res && res.data;
@@ -293,15 +296,15 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const res = await this.graphql.query<LoadResult<T>>({
       query: FindStrategiesReferentials,
       variables: {
-        programId: programId,
-        locationClassification: locationClassification,
-        entityName: entityName,
+        programId,
+        locationClassification,
+        entityName,
         offset: offset || 0,
         size: size || 100,
         sortBy: sortBy || 'label',
         sortDirection: sortDirection || 'asc'
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR"},
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR'},
       fetchPolicy: 'network-only'
     });
 
@@ -336,7 +339,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: "PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR" },
+      error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR' },
       fetchPolicy: 'cache-first'
     });
 
@@ -364,7 +367,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
   async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === "string" && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
     return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
       {withTotal: true}
@@ -453,7 +456,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
   async duplicateAllToYear(sources: Strategy[], year: number): Promise<Strategy[]> {
     if (isEmptyArray(sources)) return [];
-    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
+    if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
 
     // CLear cache (only once)
     await this.clearCache();
@@ -474,7 +477,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
   async cloneToYear(source: Strategy, year: number, newLabel?: string): Promise<Strategy> {
     if (!source || isNil(source.programId)) throw Error('Missing strategy or strategy.programId, or newLabel argument');
-    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
+    if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
     newLabel = newLabel || source.label && `${source.label} (bis)`;
     if (isNilOrBlank(newLabel)) throw Error('Missing strategy.label or newLabel argument');
 
@@ -493,12 +496,12 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       targetAppliedStrategy.id = undefined;
       targetAppliedStrategy.updateDate = undefined;
       targetAppliedStrategy.location = sourceAppliedStrategy.location;
-      targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map(sourceAppliedPeriod => {
+      targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map(sourceAppliedPeriod =>
 
         // DEBUG
         //console.debug(`[strategy-service] Duplicate applied period, into year ${year}`, sourceAppliedPeriod);
 
-        return {
+         ({
           acquisitionNumber: sourceAppliedPeriod.acquisitionNumber,
           startDate: sourceAppliedPeriod.startDate?.clone()
             // Keep DB local time, because the DB can use a local time - fix ObsBio-79
@@ -508,28 +511,28 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
             // Keep the local time, because the DB can use a local time - fix ObsBio-79
             .tz(dbTimeZone)
             .year(year)
-        }
-      })
+        })
+      )
       .map(AppliedPeriod.fromObject);
       return targetAppliedStrategy;
-    })
+    });
 
     target.pmfms = source.pmfms && source.pmfms.map(pmfmStrategy => {
       const pmfmStrategyCloned = pmfmStrategy.clone();
       pmfmStrategyCloned.id = undefined;
       pmfmStrategyCloned.strategyId = undefined;
-      return PmfmStrategy.fromObject(pmfmStrategyCloned)
+      return PmfmStrategy.fromObject(pmfmStrategyCloned);
     }) || [];
     target.departments = source.departments && source.departments.map(department => {
       const departmentCloned = department.clone();
       departmentCloned.id = undefined;
       departmentCloned.strategyId = undefined;
-      return StrategyDepartment.fromObject(departmentCloned)
+      return StrategyDepartment.fromObject(departmentCloned);
     }) || [];
     target.taxonNames = source.taxonNames && source.taxonNames.map(taxonNameStrategy => {
       const taxonNameStrategyCloned = taxonNameStrategy.clone();
       taxonNameStrategyCloned.strategyId = undefined;
-      return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
+      return TaxonNameStrategy.fromObject(taxonNameStrategyCloned);
     }) || [];
     target.id = undefined;
     target.updateDate = undefined;
@@ -556,7 +559,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     ]);
   }
 
-  async downloadAsJsonByIds(ids: number[], opts?: {keepRemoteId: boolean, program?: Program}) {
+  async downloadAsJsonByIds(ids: number[], opts?: {keepRemoteId: boolean; program?: Program}) {
     if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
 
     // Load entities
@@ -570,7 +573,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     const jsonArray = data.map(entity => entity.asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false}));
 
     const program = opts.program || (await this.programRefService.load(data[0].programId));
-    const filename = this.translate.instant("PROGRAM.STRATEGY.DOWNLOAD_MANY_JSON_FILENAME", {
+    const filename = this.translate.instant('PROGRAM.STRATEGY.DOWNLOAD_MANY_JSON_FILENAME', {
       programLabel: program?.label
     });
 
@@ -578,7 +581,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     JsonUtils.exportToFile(jsonArray, {filename});
   }
 
-  async downloadAsJson(entity: Strategy, opts?: {keepRemoteId: boolean, program?: Program}) {
+  async downloadAsJson(entity: Strategy, opts?: {keepRemoteId: boolean; program?: Program}) {
     if (!entity) throw new Error('Missing required \'entity\' argument');
     if (isNilOrNaN(entity.programId)) throw new Error('Missing required \'entity.programId\'');
 
@@ -588,7 +591,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     delete json.denormalizedPmfms; // Not used, because we already have pmfms
 
     const program = opts.program || (await this.programRefService.load(entity.programId));
-    const filename = this.translate.instant("PROGRAM.STRATEGY.DOWNLOAD_JSON_FILENAME", {
+    const filename = this.translate.instant('PROGRAM.STRATEGY.DOWNLOAD_JSON_FILENAME', {
       programLabel: program?.label,
       label: entity.label
     });

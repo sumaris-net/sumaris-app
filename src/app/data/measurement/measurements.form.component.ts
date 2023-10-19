@@ -1,17 +1,39 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output,
+} from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { isObservable, merge, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
-import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, equals, firstNotNilPromise, firstTrue, isNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  AppFormUtils,
+  createPromiseEventEmitter,
+  emitPromiseEvent,
+  equals,
+  firstNotNilPromise,
+  firstTrue,
+  isNil,
+  PromiseEvent,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmFormReadySteps } from '@app/data/measurement/measurement-values.form.class';
 import { RxState } from '@rx-angular/state';
 
-export declare type MapPmfmEvent = PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>;
+export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedFormGroup}>;
 
 interface MeasurementsFormState {
@@ -135,7 +157,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     return this._state.get('readyStep');
   }
 
-  @Output('mapPmfms') onMapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
+  @Output() mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
   @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: UntypedFormGroup}>();
 
   get starting(): boolean {
@@ -212,7 +234,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this.resetPmfms();
   }
 
-  setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     return this.applyValue(data, opts);
   }
 
@@ -274,10 +296,11 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   /**
    * Wait form is ready, before setting the value to form
+   *
    * @param data
    * @param opts
    */
-  protected async applyValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected async applyValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     this.applyingValue = true;
 
     try {
@@ -309,11 +332,11 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
   }
 
-  protected onApplyingEntity(data: Measurement[], opts?: {[key: string]: any;}) {
+  protected onApplyingEntity(data: Measurement[], opts?: {[key: string]: any}) {
     // Can be override by subclasses
   }
 
-  protected async updateView(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected async updateView(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     // Warn is form is NOT ready
     if (this.debug && this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
@@ -458,8 +481,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       }
 
       // Call the map function
-      if (this.onMapPmfms.observers.length) {
-        const res = await emitPromiseEvent(this.onMapPmfms, 'pmfms', {detail: {pmfms}});
+      if (this.mapPmfms.observers.length) {
+        const res = await emitPromiseEvent(this.mapPmfms, 'pmfms', {detail: {pmfms}});
         pmfms = Array.isArray(res) ? res : pmfms;
       }
 
@@ -547,7 +570,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     return true;
   }
 
-  protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (this._enable) {
       this.enable(opts);
     }

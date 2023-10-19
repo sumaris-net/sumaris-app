@@ -1,22 +1,18 @@
 <ion-header>
   <ion-toolbar color="secondary">
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
-                  visible-xs visible-sm visible-mobile>
+      <ion-button (click)="cancel()" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
-    <ion-title [innerHTML]="$title|async">
-    </ion-title>
+    <ion-title [innerHTML]="$title | async"></ion-title>
 
-    <ion-buttons slot="end" >
+    <ion-buttons slot="end">
       <ion-spinner *ngIf="loading; else loaded"></ion-spinner>
 
       <ng-template #loaded>
-        <ion-button (click)="close($event)"
-                    [disabled]="invalid"
-                    visible-xs visible-sm visible-mobile>
+        <ion-button (click)="close($event)" [disabled]="invalid" visible-xs visible-sm visible-mobile>
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
         </ion-button>
       </ng-template>
@@ -24,28 +20,23 @@
   </ion-toolbar>
 </ion-header>
 
-
-<ion-content class="ion-padding" >
-
-
-  <app-sub-batch-form #form
-                      [debug]="debug"
-                      [acquisitionLevel]="acquisitionLevel"
-                      [availableParents]="availableParents"
-                      [programLabel]="programLabel"
-                      [showParentGroup]="showParent"
-                      [showTaxonName]="showTaxonName"
-                      [showIndividualCount]="showIndividualCount"
-                      [showSubmitButton]="false"
-                      (onSubmit)="close($event)"
+<ion-content class="ion-padding">
+  <app-sub-batch-form
+    #form
+    [debug]="debug"
+    [acquisitionLevel]="acquisitionLevel"
+    [availableParents]="availableParents"
+    [programLabel]="programLabel"
+    [showParentGroup]="showParent"
+    [showTaxonName]="showTaxonName"
+    [showIndividualCount]="showIndividualCount"
+    [showSubmitButton]="false"
+    (onSubmit)="close($event)"
   ></app-sub-batch-form>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -55,16 +46,17 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
-                    (keyup.enter)="close($event)"
-                    (click)="close($event)" color="tertiary">
+        <ion-button
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="loading || invalid"
+          (keyup.enter)="close($event)"
+          (click)="close($event)"
+          color="tertiary"
+        >
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

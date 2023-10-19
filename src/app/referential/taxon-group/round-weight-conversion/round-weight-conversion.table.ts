@@ -1,6 +1,6 @@
 import { RoundWeightConversion } from './round-weight-conversion.model';
 import { RoundWeightConversionFilter } from './round-weight-conversion.filter';
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, OnInit } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { RoundWeightConversionService } from './round-weight-conversion.service';
 import { Validators } from '@angular/forms';
@@ -13,21 +13,18 @@ import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/service
 @Component({
   selector: 'app-round-weight-conversion-table',
   templateUrl: '../../table/base-referential.table.html',
-  styleUrls: [
-    '../../table/base-referential.table.scss'
-  ]
+  styleUrls: ['../../table/base-referential.table.scss'],
 })
 // @ts-ignore
-export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeightConversion, RoundWeightConversionFilter> {
-
-   get taxonGroupIdControl() {
+export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeightConversion, RoundWeightConversionFilter> implements OnInit {
+  get taxonGroupIdControl() {
     return this.filterForm.get('taxonGroupId');
   }
 
   @Input() set taxonGroupId(value: number) {
-     if (this.taxonGroupIdControl.value !== value) {
-       this.taxonGroupIdControl.setValue(value);
-     }
+    if (this.taxonGroupIdControl.value !== value) {
+      this.taxonGroupIdControl.setValue(value);
+    }
   }
 
   get taxonGroupId(): number {
@@ -41,20 +38,11 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     return this.getShowColumn('taxonGroupId');
   }
 
-  constructor(injector: Injector,
-              entityService: RoundWeightConversionService,
-              validatorService: RoundWeightConversionValidatorService
-  ) {
-    super(injector,
-      RoundWeightConversion,
-      RoundWeightConversionFilter,
-      entityService,
-      validatorService,
-      {
-        i18nColumnPrefix: 'REFERENTIAL.TAXON_GROUP.ROUND_WEIGHT_CONVERSION.',
-        canUpload: true
-      }
-    );
+  constructor(injector: Injector, entityService: RoundWeightConversionService, validatorService: RoundWeightConversionValidatorService) {
+    super(injector, RoundWeightConversion, RoundWeightConversionFilter, entityService, validatorService, {
+      i18nColumnPrefix: 'REFERENTIAL.TAXON_GROUP.ROUND_WEIGHT_CONVERSION.',
+      canUpload: true,
+    });
     this.showTitle = false;
     this.showIdColumn = false;
     this.autoLoad = false; // Wait filter
@@ -67,7 +55,6 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
   }
 
   protected registerAutocompleteFields() {
-
     // Location
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
@@ -75,44 +62,46 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
       filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        levelIds: [LocationLevelIds.COUNTRY]
+        levelIds: [LocationLevelIds.COUNTRY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Dressing
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('dressing', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelLabels: ParameterLabelGroups.DRESSING
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelLabels: ParameterLabelGroups.DRESSING,
+        }),
       filter: {
         entityName: 'QualitativeValue',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Preserving
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('preserving', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelLabels: ParameterLabelGroups.PRESERVATION
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelLabels: ParameterLabelGroups.PRESERVATION,
+        }),
       filter: {
         entityName: 'QualitativeValue',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
   }
 
   protected getFilterFormConfig(): any {
     console.debug(this.logPrefix + ' Creating filter form group...');
     return {
-      taxonGroupId: [null, Validators.required]
+      taxonGroupId: [null, Validators.required],
     };
   }
 
@@ -123,8 +112,7 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
       startDate: null,
       endDate: null,
       taxonGroupId: this.taxonGroupId,
-      creationDate
+      creationDate,
     };
   }
-
 }

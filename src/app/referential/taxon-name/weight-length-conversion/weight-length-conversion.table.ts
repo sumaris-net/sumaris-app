@@ -1,6 +1,6 @@
 import { WeightLengthConversion } from './weight-length-conversion.model';
 import { WeightLengthConversionFilter } from '../../services/filter/weight-length-conversion.filter';
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, OnInit } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { WeightLengthConversionService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.service';
 import { Validators } from '@angular/forms';
@@ -15,21 +15,18 @@ import { BehaviorSubject } from 'rxjs';
 @Component({
   selector: 'app-weight-length-conversion-table',
   templateUrl: '../../table/base-referential.table.html',
-  styleUrls: [
-    '../../table/base-referential.table.scss'
-  ]
+  styleUrls: ['../../table/base-referential.table.scss'],
 })
 // @ts-ignore
-export class WeightLengthConversionTable extends BaseReferentialTable<WeightLengthConversion, WeightLengthConversionFilter> {
-
-   get referenceTaxonIdControl() {
+export class WeightLengthConversionTable extends BaseReferentialTable<WeightLengthConversion, WeightLengthConversionFilter> implements OnInit {
+  get referenceTaxonIdControl() {
     return this.filterForm.get('referenceTaxonId');
   }
 
   @Input() set referenceTaxonId(value: number) {
-     if (this.referenceTaxonIdControl.value !== value) {
-       this.referenceTaxonIdControl.setValue(value);
-     }
+    if (this.referenceTaxonIdControl.value !== value) {
+      this.referenceTaxonIdControl.setValue(value);
+    }
   }
 
   get referenceTaxonId(): number {
@@ -43,25 +40,20 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     return this.getShowColumn('referenceTaxonId');
   }
 
-  private _$lengthParameters = new BehaviorSubject<ReferentialRef[]>([])
-  private _$lengthUnits = new BehaviorSubject<ReferentialRef[]>([])
+  private _$lengthParameters = new BehaviorSubject<ReferentialRef[]>([]);
+  private _$lengthUnits = new BehaviorSubject<ReferentialRef[]>([]);
   private _locationLevelIds: number[];
 
-  constructor(injector: Injector,
-              entityService: WeightLengthConversionService,
-              validatorService: WeightLengthConversionValidatorService,
-              protected parameterService: ParameterService
+  constructor(
+    injector: Injector,
+    entityService: WeightLengthConversionService,
+    validatorService: WeightLengthConversionValidatorService,
+    protected parameterService: ParameterService
   ) {
-    super(injector,
-      WeightLengthConversion,
-      WeightLengthConversionFilter,
-      entityService,
-      validatorService,
-      {
-        i18nColumnPrefix: 'REFERENTIAL.TAXON_NAME.WEIGHT_LENGTH_CONVERSION.',
-        canUpload: true
-      }
-      );
+    super(injector, WeightLengthConversion, WeightLengthConversionFilter, entityService, validatorService, {
+      i18nColumnPrefix: 'REFERENTIAL.TAXON_NAME.WEIGHT_LENGTH_CONVERSION.',
+      canUpload: true,
+    });
     this.showTitle = false;
     this.showIdColumn = false;
     this.autoLoad = false; // Wait filter
@@ -80,37 +72,37 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     await firstNotNilPromise(this._$lengthParameters);
   }
 
-
   protected registerAutocompleteFields() {
-
     // Location
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelIds: this._locationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this._locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE, StatusIds.DISABLE /*CIEM division are disabled*/]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE, StatusIds.DISABLE /*CIEM division are disabled*/],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Sex
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('sex', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        searchAttributes: ['name'],
-        levelLabels: ParameterLabelGroups.SEX
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          searchAttributes: ['name'],
+          levelLabels: ParameterLabelGroups.SEX,
+        }),
       filter: {
         entityName: 'QualitativeValue',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE /*Non sexe*/]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE /*Non sexe*/],
       },
       attributes: ['name'],
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Length parameter
@@ -118,7 +110,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       showAllOnFocus: false,
       items: this._$lengthParameters,
       attributes: this.settings.getFieldDisplayAttributes('parameter'),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Length unit
@@ -126,7 +118,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       showAllOnFocus: false,
       items: this._$lengthUnits,
       attributes: ['label'],
-      mobile: this.mobile
+      mobile: this.mobile,
     });
   }
 
@@ -135,7 +127,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     return {
       // Not used
       //year: [null, Validators.compose([SharedValidators.integer, Validators.min(1970)])],
-      referenceTaxonId: [null, Validators.required]
+      referenceTaxonId: [null, Validators.required],
     };
   }
 
@@ -148,7 +140,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       year,
       startMonth: 1,
       endMonth: 12,
-      creationDate
+      creationDate,
     };
   }
 
@@ -157,7 +149,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
 
     // Force referenceTaxonId
     const creationDate = DateUtils.moment();
-    entities.forEach(e => {
+    entities.forEach((e) => {
       e.referenceTaxonId = this.referenceTaxonId;
       e.creationDate = creationDate;
     });
@@ -166,19 +158,20 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
   }
 
   protected async loadLengthParameters() {
-     // Make sure service uis ready (e.g. enumerations has been overridden)
+    // Make sure service uis ready (e.g. enumerations has been overridden)
     await this.referentialRefService.ready();
 
     // Set the location levels used to filter
     this._locationLevelIds = LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA;
 
     // Length parameters
-    await this.parameterService.loadAllByLabels(ParameterLabelGroups.LENGTH, {toEntity: false})
-      .then(items => this._$lengthParameters.next(items));
+    await this.parameterService
+      .loadAllByLabels(ParameterLabelGroups.LENGTH, { toEntity: false })
+      .then((items) => this._$lengthParameters.next(items));
 
     // Length units
-    await this.referentialRefService.loadAllByLabels(UnitLabelGroups.LENGTH, 'Unit', {statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]})
-      .then(items => this._$lengthUnits.next(items));
+    await this.referentialRefService
+      .loadAllByLabels(UnitLabelGroups.LENGTH, 'Unit', { statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })
+      .then((items) => this._$lengthUnits.next(items));
   }
-
 }

@@ -18,7 +18,7 @@ import {
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
-  sleep
+  sleep,
 } from '@sumaris-net/ngx-components';
 import { Feature, LineString, MultiPolygon, Position } from 'geojson';
 import { ModalController } from '@ionic/angular';
@@ -60,7 +60,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+    {maxZoom, attribution: '<a href=\'https://sextant.ifremer.fr\'>Sextant</a>'});
 
   options = <MapOptions>{
     layers: [this.sextantBaseLayer],
@@ -80,7 +80,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
   protected layers: L.Layer[];
   protected graticule: MapGraticule;
-  protected $center = new BehaviorSubject<{center: L.LatLng, zoom: number}>(undefined);
+  protected $center = new BehaviorSubject<{center: L.LatLng; zoom: number}>(undefined);
 
   debug: boolean;
   map: L.Map;
@@ -111,8 +111,8 @@ export class OperationsMap implements OnInit, OnDestroy {
     return this.$programLabel.value;
   }
 
-  @Output('ready') onReady = new EventEmitter<void>();
-  @Output('operationClick') onOperationClick = new EventEmitter<Operation>();
+  @Output() ready = new EventEmitter<void>();
+  @Output() operationClick = new EventEmitter<Operation>();
 
   constructor(
     protected translate: TranslateService,
@@ -180,7 +180,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   }
 
   async onMapReady(map: L.Map) {
-    console.info("[operations-map] Leaflet map is ready", map);
+    console.info('[operations-map] Leaflet map is ready', map);
 
     // Create graticule
     if (this.showGraticule) {
@@ -211,7 +211,7 @@ export class OperationsMap implements OnInit, OnDestroy {
 
   protected async load() {
 
-    if (this.debug) console.debug("[operations-map] Loading...");
+    if (this.debug) console.debug('[operations-map] Loading...');
     this.loadingSubject.next(true);
     this.error = null;
 
@@ -229,7 +229,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     // Load layers
     await this.loadLayers();
 
-    this.onReady.next();
+    this.ready.next();
     this.loadingSubject.next(false);
   }
 
@@ -317,7 +317,7 @@ export class OperationsMap implements OnInit, OnDestroy {
       await this.flyToBounds();
 
     } catch (err) {
-      console.error("[operations-map] Error while load layers:", err);
+      console.error('[operations-map] Error while load layers:', err);
       this.error = err && err.message || err;
     } finally {
       this.markForCheck();
@@ -332,7 +332,7 @@ export class OperationsMap implements OnInit, OnDestroy {
 
   protected onFeatureClick(feature: Feature) {
     const operation = this.getOperationFromFeature(feature);
-    this.onOperationClick.emit(operation);
+    this.operationClick.emit(operation);
   }
 
   protected getOperationFromFeature(feature: Feature): Operation|undefined {
@@ -365,7 +365,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     };
   }
 
-  protected async setProgram(program: Program, opts?: {emitEvent?: boolean; }) {
+  protected async setProgram(program: Program, opts?: {emitEvent?: boolean }) {
     if (!program) return; // Skip
 
     // Map center
@@ -417,10 +417,10 @@ export class OperationsMap implements OnInit, OnDestroy {
     };
 
     // Use lat/long positions
-    let coordinates: [number, number][] = [ope.startPosition, ope.fishingStartPosition, ope.fishingEndPosition, ope.endPosition]
+    const coordinates: [number, number][] = [ope.startPosition, ope.fishingStartPosition, ope.fishingEndPosition, ope.endPosition]
       .filter(VesselPositionUtils.isNoNilOrEmpty)
       .map(pos => [pos.longitude, pos.latitude]);
-    features.geometry = coordinates.length && <LineString>{ type: "LineString", coordinates};
+    features.geometry = coordinates.length && <LineString>{ type: 'LineString', coordinates};
 
     // Use Fishing Areas
     if (!features.geometry) {

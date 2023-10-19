@@ -1,150 +1,153 @@
-  <div class="ion-padding-start">
-    <!-- error -->
-    <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-    </ion-item>
+<div class="ion-padding-start">
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
 
-    <h3>
-      <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
-    </h3>
-  </div>
+  <h3>
+    <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
+  </h3>
+</div>
 
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc"
-             matSortDisableClear [trackBy]="trackByFn">
+<mat-table
+  #table
+  [dataSource]="dataSource"
+  matSort
+  matSortActive="startDate"
+  matSortDirection="desc"
+  matSortDisableClear
+  [trackBy]="trackByFn"
+>
+  <!-- Id Column -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+  </ng-container>
 
-    <!-- Id Column -->
-    <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
-    </ng-container>
+  <!-- Start date column -->
+  <ng-container matColumnDef="startDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.START_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.startDate | dateFormat : { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Start date column -->
-    <ng-container matColumnDef="startDate">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.START_DATE</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.startDate|dateFormat:{time:false} }}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- End date column -->
+  <ng-container matColumnDef="endDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.END_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.endDate | dateFormat : { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- End date column -->
-    <ng-container matColumnDef="endDate">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.END_DATE</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.endDate|dateFormat:{time:false} }}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- Exterior marking column -->
+  <ng-container matColumnDef="exteriorMarking">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.exteriorMarking }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Exterior marking column -->
-    <ng-container matColumnDef="exteriorMarking">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.exteriorMarking}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- Name column -->
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.NAME</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.name }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Name column -->
-    <ng-container matColumnDef="name">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.NAME</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.name}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- administrativePower column -->
+  <ng-container matColumnDef="administrativePower">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.administrativePower }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- administrativePower column -->
-    <ng-container matColumnDef="administrativePower">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.administrativePower}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- lengthOverAll column -->
+  <ng-container matColumnDef="lengthOverAll">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.lengthOverAll }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- lengthOverAll column -->
-    <ng-container matColumnDef="lengthOverAll">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.lengthOverAll}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- grossTonnageGt column -->
+  <ng-container matColumnDef="grossTonnageGt">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.grossTonnageGt }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- grossTonnageGt column -->
-    <ng-container matColumnDef="grossTonnageGt">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.grossTonnageGt}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- construction year column -->
+  <ng-container matColumnDef="constructionYear">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.constructionYear }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- construction year column -->
-    <ng-container matColumnDef="constructionYear">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.constructionYear}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- ircs column -->
+  <ng-container matColumnDef="ircs">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.IRCS</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.ircs }}</ion-text>
+    </mat-cell>
+  </ng-container>
 
-    <!-- ircs column -->
-    <ng-container matColumnDef="ircs">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.VESSEL_FEATURES.IRCS</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.ircs}}</ion-text>
-      </mat-cell>
-    </ng-container>
+  <!-- hull material -->
+  <ng-container matColumnDef="hullMaterial">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>VESSEL.VESSEL_FEATURES.HULL_MATERIAL</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{ row.currentData.hullMaterial | referentialToString }}
+    </mat-cell>
+  </ng-container>
 
-    <!-- hull material -->
-    <ng-container matColumnDef="hullMaterial">
-      <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.VESSEL_FEATURES.HULL_MATERIAL</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{row.currentData.hullMaterial|referentialToString}}
-      </mat-cell>
-    </ng-container>
+  <!-- base port location -->
+  <ng-container matColumnDef="basePortLocation">
+    <mat-header-cell *matHeaderCellDef>
+      <span translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{ row.currentData.basePortLocation | referentialToString }}
+    </mat-cell>
+  </ng-container>
 
-    <!-- base port location -->
-    <ng-container matColumnDef="basePortLocation">
-      <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{row.currentData.basePortLocation|referentialToString}}
-      </mat-cell>
-    </ng-container>
+  <!-- Comments column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-icon class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+    </mat-cell>
+  </ng-container>
 
-    <!-- Comments column -->
-    <ng-container matColumnDef="comments">
-      <mat-header-cell *matHeaderCellDef>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-icon class="comment"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
-      </mat-cell>
-    </ng-container>
-
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled"></mat-row>
-  </mat-table>
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled"></mat-row>
+</mat-table>
 
 <!--  <ion-row class="ion-no-padding">-->
 <!--    <ion-col></ion-col>-->

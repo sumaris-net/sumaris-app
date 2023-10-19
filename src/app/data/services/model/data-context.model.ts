@@ -25,10 +25,10 @@ export interface DataContext {
 }
 
 @Injectable()
-export abstract class DataContextService<S extends DataContext = DataContext> extends ContextService<S> {
+export abstract class DataContextService<C extends DataContext = DataContext> extends ContextService<C> {
 
-  protected constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: S) {
-    super(defaultState || <S>{});
+  protected constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
+    super(defaultState || <C>{});
   }
 
 }

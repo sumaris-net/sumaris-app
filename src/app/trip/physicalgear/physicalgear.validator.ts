@@ -100,7 +100,7 @@ export class PhysicalGearValidatorService
     return formArray;
   }
 
-  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
+  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean; withTypename?: boolean}) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }

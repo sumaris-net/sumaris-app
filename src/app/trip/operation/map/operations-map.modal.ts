@@ -77,7 +77,7 @@ export class OperationsMapModal implements OnInit, OperationsMapModalOptions {
   ngOnInit() {
     sleep(500)
       .then(() => {
-        console.debug('[operation-map-modal] Modal is ready: starting map...')
+        console.debug('[operation-map-modal] Modal is ready: starting map...');
         this.modalReady = true;
         this.cd.markForCheck();
       });

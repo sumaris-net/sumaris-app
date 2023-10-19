@@ -67,8 +67,8 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() allowMultipleSelection = true;
-  @Input() inModal: boolean = false;
-  @Input() enableFilterPanelCompact: boolean = false;
+  @Input() inModal = false;
+  @Input() enableFilterPanelCompact = false;
 
   @Input()
   set showProgramColumn(value: boolean) {
@@ -176,7 +176,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     });
 
     // Combo: recorder person
-    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name'])
+    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name']);
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
@@ -407,7 +407,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       // Reset the selected segment
       this.selectedSegment = '';
       this.markAsLoaded();
-    }, 200)
+    }, 200);
   }
 
   /**

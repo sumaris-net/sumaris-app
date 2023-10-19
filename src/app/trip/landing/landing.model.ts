@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from 'moment';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import {Sample} from '../sample/sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {fillRankOrder, IWithObserversEntity} from '@app/data/services/model/model.utils';
@@ -18,7 +18,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 
 

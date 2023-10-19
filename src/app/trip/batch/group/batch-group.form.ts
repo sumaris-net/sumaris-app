@@ -1,12 +1,22 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, InputElement, isNil, isNotNil, isNotNilOrBlank, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  InputElement,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialUtils,
+  toBoolean,
+  waitFor,
+  WaitForOptions,
+} from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
 import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
-import { MeasurementsValidatorService } from '../../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -15,7 +25,7 @@ import { merge } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export interface BatchGroupFormState extends BatchFormState {
-  childrenPmfmsByQvId: {[key: number]: IPmfm[]};
+  childrenPmfmsByQvId: { [key: number]: IPmfm[] };
   qvPmfm: IPmfm;
   hasSubBatches: boolean;
   childrenState: Partial<BatchFormState>;
@@ -30,7 +40,8 @@ export interface BatchGroupFormState extends BatchFormState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, BatchGroupValidatorService, BatchGroupValidatorOptions> {
+export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, BatchGroupValidatorService, BatchGroupValidatorOptions>
+  implements OnInit {
 
   readonly childrenPmfmsByQvId$ = this._state.select('childrenPmfmsByQvId');
   readonly hasSubBatches$ = this._state.select('hasSubBatches');
@@ -91,19 +102,19 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       (this.childrenList && this.childrenList.find(child => child.dirty) && true) || false;
   }
 
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAllAsTouched(opts);
     this.childrenList?.forEach(f => f.markAllAsTouched(opts));
     this.hasSubBatchesControl.markAsTouched(opts);
   }
 
-  markAsPristine(opts?: { onlySelf?: boolean; }) {
+  markAsPristine(opts?: { onlySelf?: boolean }) {
     super.markAsPristine(opts);
     (this.childrenList || []).forEach(child => child.markAsPristine(opts));
     this.hasSubBatchesControl.markAsPristine(opts);
   }
 
-  markAsUntouched(opts?: { onlySelf?: boolean; }) {
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
     super.markAsUntouched(opts);
     (this.childrenList || []).forEach(child => child.markAsUntouched(opts));
     this.hasSubBatchesControl.markAsUntouched(opts);
@@ -280,7 +291,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       const childrenPmfmsByQvId = qvPmfm.qualitativeValues.reduce((res, qv ) => {
         // Map PMFM, for batch group's children
         // Depending of the qvId, some pmfms can be hidden (e.g. DRESSING and PRESERVATION)
-        res[qv.id] = BatchGroupUtils.mapChildrenPmfms(childrenPmfms, {qvPmfm, qvId: qv.id})
+        res[qv.id] = BatchGroupUtils.mapChildrenPmfms(childrenPmfms, {qvPmfm, qvId: qv.id});
         return res;
       }, {});
 
@@ -296,7 +307,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     }
   }
 
-  protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     if (this.debug) console.debug(this._logPrefix + ' updateView() with value:', data);
 
@@ -427,6 +438,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
 
   /**
    * Compute if should show total individual count, instead of weight (eg. ADAP program, for species "RJB_x - Pocheteaux")
+   *
    * @param data
    * @param opts
    * @protected
@@ -440,7 +452,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     const taxonGroupNoWeight = ReferentialUtils.isNotEmpty(data?.taxonGroup)
       && (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
-    const hasSubBatches = toBoolean(opts?.hasSubBatches, this.hasSubBatches)
+    const hasSubBatches = toBoolean(opts?.hasSubBatches, this.hasSubBatches);
 
     // Show/hide
     const showWeight = !taxonGroupNoWeight;
@@ -467,7 +479,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       requiredSampleWeight,
       showChildrenWeight,
       samplingBatchEnabled
-    }
+    };
 
     return childrenState;
   }

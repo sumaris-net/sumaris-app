@@ -3,11 +3,13 @@
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "types": [
-      "jasmine"
+      "jasmine",
+      "node"
     ]
   },
   "files": [
     "src/test.ts",
+    "src/zone-flags.ts",
     "src/polyfills.ts"
   ],
   "include": [

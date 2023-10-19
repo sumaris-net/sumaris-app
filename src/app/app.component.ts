@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -14,7 +14,7 @@ import {
   LocalSettingsService,
   mixHex,
   PlatformService,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { DOCUMENT } from '@angular/common';
 import { throttleTime } from 'rxjs/operators';
@@ -23,17 +23,14 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
-import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
-
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
-
+export class AppComponent implements OnInit {
   protected logo: string;
   protected appName: string;
   protected enabledNotificationIcons = false;
@@ -46,7 +43,6 @@ export class AppComponent {
     private configService: ConfigService,
     private settings: LocalSettingsService,
     private devicePositionService: DevicePositionService,
-    private ichthyometerService: IchthyometerService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private cd: ChangeDetectorRef
@@ -59,7 +55,7 @@ export class AppComponent {
     await this.platform.ready();
 
     // Listen for config changed
-    this.configService.config.subscribe(config => this.onConfigChanged(config));
+    this.configService.config.subscribe((config) => this.onConfigChanged(config));
 
     // Add additional account fields
     this.addAccountFields();
@@ -86,7 +82,6 @@ export class AppComponent {
   }
 
   protected onConfigChanged(config: Configuration) {
-
     this.logo = config.smallLogo || config.largeLogo;
     this.appName = config.label;
 
@@ -95,7 +90,6 @@ export class AppComponent {
     this._document.getElementById('appTitle').textContent = title || '';
 
     if (config.properties) {
-
       // Set document favicon
       const favicon = config.getProperty(CORE_CONFIG_OPTIONS.FAVICON);
       if (isNotNil(favicon)) {
@@ -103,7 +97,7 @@ export class AppComponent {
       }
 
       // Enable user event and notification icons
-      this.enabledNotificationIcons = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS)
+      this.enabledNotificationIcons = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
 
       // Set theme colors
       this.updateTheme({
@@ -114,15 +108,15 @@ export class AppComponent {
           success: config.properties['sumaris.color.success'],
           warning: config.properties['sumaris.color.warning'],
           accent: config.properties['sumaris.color.accent'],
-          danger: config.properties['sumaris.color.danger']
-        }
+          danger: config.properties['sumaris.color.danger'],
+        },
       });
 
       this.cd.markForCheck();
     }
   }
 
-  protected updateTheme(options: { colors?: { [color: string]: string; } }) {
+  protected updateTheme(options: { colors?: { [color: string]: string } }) {
     if (!options) return;
 
     // Setting colors
@@ -132,15 +126,13 @@ export class AppComponent {
       const style = document.documentElement.style;
 
       // Add 100 & 900 color for primary and secondary color
-      ['primary', 'secondary'].forEach(colorName => {
+      ['primary', 'secondary'].forEach((colorName) => {
         const color = options.colors[colorName];
-        options.colors[colorName + '100'] = color && mixHex('#ffffff', color, 10) || undefined;
-        options.colors[colorName + '900'] = color && mixHex('#000000', color, 12) || undefined;
+        options.colors[colorName + '100'] = (color && mixHex('#ffffff', color, 10)) || undefined;
+        options.colors[colorName + '900'] = (color && mixHex('#000000', color, 12)) || undefined;
       });
 
-      Object.getOwnPropertyNames(options.colors)
-        .forEach(colorName => {
-
+      Object.getOwnPropertyNames(options.colors).forEach((colorName) => {
         // Remove existing value
         style.removeProperty(`--ion-color-${colorName}`);
         style.removeProperty(`--ion-color-${colorName}-rgb`);
@@ -168,60 +160,60 @@ export class AppComponent {
           style.setProperty(`--ion-color-${colorName}-tint`, getColorTint(color));
         }
       });
-
     }
   }
 
   protected addAccountFields() {
-
     console.debug('[app] Add additional account fields...');
 
-    const attributes = this.settings.getFieldDisplayAttributes('department');
+    const departmentAttributes = this.settings.getFieldDisplayAttributes('department');
     const departmentDefinition = <FormFieldDefinition>{
       key: 'department',
       label: 'USER.DEPARTMENT.TITLE',
       type: 'entity',
       autocomplete: {
-        suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-          ...filter
-        }),
-        filter: {entityName: 'Department'},
-        displayWith: (value) => value && joinPropertiesPath(value, attributes),
-        attributes
+        suggestFn: (value, filter) =>
+          this.referentialRefService.suggest(value, {
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+            ...filter,
+          }),
+        filter: { entityName: 'Department' },
+        displayWith: (value) => value && joinPropertiesPath(value, departmentAttributes),
+        attributes: departmentAttributes,
       },
       extra: {
         registration: {
-          required: true
+          required: true,
         },
         account: {
           required: true,
-          disabled: true
-        }
-      }
+          disabled: true,
+        },
+      },
     };
 
     // Add account field: department
     this.accountService.registerAdditionalField(departmentDefinition);
 
     // When settings changed
-    this.settings.onChange
-      .pipe(throttleTime(400))
-      .subscribe(() => {
-        // Update the display fn
-        const attributes = this.settings.getFieldDisplayAttributes('department');
-        departmentDefinition.autocomplete.attributes = attributes;
-        departmentDefinition.autocomplete.displayWith = (value) => value && joinPropertiesPath(value, attributes) || undefined;
-      });
+    this.settings.onChange.pipe(throttleTime(400)).subscribe(() => {
+      // Update the display fn
+      const attributes = this.settings.getFieldDisplayAttributes('department');
+      departmentDefinition.autocomplete.attributes = attributes;
+      departmentDefinition.autocomplete.displayWith = (value) => (value && joinPropertiesPath(value, attributes)) || undefined;
+    });
   }
 
   protected addCustomSVGIcons() {
-    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow'
+    [
+      'fish',
+      'fish-oblique',
+      'fish-packet',
+      'down-arrow',
+      'rollback-arrow',
       // ,'dolphin-damage' //PIFIL
-    ]
-    .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
-        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
-      )
+    ].forEach((filename) =>
+      this.matIconRegistry.addSvgIcon(filename, this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`))
     );
   }
 

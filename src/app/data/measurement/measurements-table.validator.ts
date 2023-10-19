@@ -50,7 +50,7 @@ export class MeasurementsTableValidatorService<
     injector: Injector,
     protected _delegate: S
   ) {
-    super(injector.get(FormBuilder), injector.get(TranslateService))
+    super(injector.get(FormBuilder), injector.get(TranslateService));
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
   }
 

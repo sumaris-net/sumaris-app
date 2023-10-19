@@ -1,55 +1,48 @@
-
 <ng-container [ngSwitch]="style">
-
   <!-- mat-icon-button -->
-  <button *ngSwitchCase="'mat-icon-button'"
-          mat-icon-button
-          [title]="title|translate"
-          [matMenuTriggerFor]="downloadMenu">
-    <mat-icon *ngIf="matIcon">{{matIcon}}</mat-icon>
+  <button
+    *ngSwitchCase="'mat-icon-button'"
+    mat-icon-button
+    [title]="title | translate"
+    [matMenuTriggerFor]="downloadMenu"
+  >
+    <mat-icon *ngIf="matIcon">{{ matIcon }}</mat-icon>
     <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
   </button>
 
   <!-- mat-menu-item -->
-  <button *ngSwitchCase="'mat-menu-item'"
-          mat-menu-item
-          #menuItemTrigger="matMenuTrigger"
-          [disabled]="disabled"
-          (mouseenter)="menuTrigger.openMenu()"
-          [matMenuTriggerFor]="downloadMenu">
+  <button
+    *ngSwitchCase="'mat-menu-item'"
+    mat-menu-item
+    #menuItemTrigger="matMenuTrigger"
+    [disabled]="disabled"
+    (mouseenter)="menuTrigger.openMenu()"
+    [matMenuTriggerFor]="downloadMenu"
+  >
     <ion-label>
-      <mat-icon *ngIf="matIcon">{{matIcon}}</mat-icon>
-      <mat-icon *ngIf="icon" ><ion-icon [name]="icon"></ion-icon></mat-icon>
-      <span>{{title|translate}}</span>
+      <mat-icon *ngIf="matIcon">{{ matIcon }}</mat-icon>
+      <mat-icon *ngIf="icon"><ion-icon [name]="icon"></ion-icon></mat-icon>
+      <span>{{ title | translate }}</span>
     </ion-label>
   </button>
-
 </ng-container>
 
 <!-- Download menu -->
-<mat-menu #downloadMenu="matMenu"  xPosition="after">
+<mat-menu #downloadMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-
-    <ng-container *ngIf="!onDownloadAsJson.observed && onDownloadAsType.observed; else subMenu ">
+    <ng-container *ngIf="!downloadAsJson.observed && downloadAsType.observed; else subMenu">
       <ng-container *ngTemplateOutlet="typesTemplate"></ng-container>
     </ng-container>
 
     <ng-template #subMenu>
       <!-- Select extraction types -->
-      <button mat-menu-item
-              *ngIf="onDownloadAsType.observed"
-              [disabled]="disabled"
-              [matMenuTriggerFor]="typesMenu">
+      <button mat-menu-item *ngIf="downloadAsType.observed" [disabled]="disabled" [matMenuTriggerFor]="typesMenu">
         <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
         <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
       </button>
 
       <!-- JSON -->
-      <button mat-menu-item
-              *ngIf="onDownloadAsJson.observed"
-              [disabled]="disabled"
-              (click)="onDownloadAsJson.emit($event)">
-
+      <button mat-menu-item *ngIf="downloadAsJson.observed" [disabled]="disabled" (click)="downloadAsJson.emit($event)">
         <mat-icon>download</mat-icon>
         <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
       </button>
@@ -73,13 +66,11 @@
   </ion-row>
 
   <ng-container *rxIf="types$; let items; suspense: loadingItem">
-    <button mat-menu-item *ngIf="items|isEmptyArray" [disabled]="true">
+    <button mat-menu-item *ngIf="items | isEmptyArray" [disabled]="true">
       <mat-label translate>COMMON.NO_RESULT</mat-label>
     </button>
-    <button mat-menu-item
-            *ngFor="let type of items"
-            (click)="onDownloadAsType.emit(type)">
-      <ion-label>{{type.name}}</ion-label>
+    <button mat-menu-item *ngFor="let type of items" (click)="downloadAsType.emit(type)">
+      <ion-label>{{ type.name }}</ion-label>
     </button>
   </ng-container>
   <ng-template #loadingItem>

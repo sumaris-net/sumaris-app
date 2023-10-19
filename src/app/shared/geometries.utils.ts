@@ -73,6 +73,7 @@ export class Geometries {
 
   /**
    * Make sure that the first point has lower latitude and longitude, and the second point upper values
+   *
    * @param coords
    */
   static normalizeBBox(coords: BBox): BBox {
@@ -122,12 +123,12 @@ export class Geometries {
    * @return true if the first object is entirely within the second object and the object boundaries do not touch; otherwise, returns FALSE.
    */
   static isBBoxInside(bbox: BBox, upperBBox: BBox) {
-    if (bbox?.length !== upperBBox?.length) throw Error("Invalid bbox. should have same dimension (2 or 3)")
+    if (bbox?.length !== upperBBox?.length) throw Error('Invalid bbox. should have same dimension (2 or 3)');
     const lastOffset = bbox.length / 2;
     // Longitude
     return bbox[0] >= upperBBox[0] && bbox[lastOffset] <= upperBBox[lastOffset]
       // Latitude
-      && bbox[1] >= upperBBox[1] && bbox[lastOffset+1] <= upperBBox[lastOffset+1]
+      && bbox[1] >= upperBBox[1] && bbox[lastOffset+1] <= upperBBox[lastOffset+1];
   }
 
   static isNotNilBBox(coords: BBox|number[]): boolean {
@@ -138,7 +139,7 @@ export class Geometries {
    * @return true if the first object is entirely within the second object and the object boundaries do not touch; otherwise, returns FALSE.
    */
   static isPositionInsideBBox(position: [number, number] | [number, number, number], bbox: BBox) {
-    if (position?.length !== bbox?.length / 2) throw Error("Invalid coordinate or bbox. Should have same dimension (2 or 3)")
+    if (position?.length !== bbox?.length / 2) throw Error('Invalid coordinate or bbox. Should have same dimension (2 or 3)');
     const lastOffset = position.length; // 2 or 3 dimensions
     // Longitude
     return position[0] >= bbox[0] && position[0] <= bbox[lastOffset]

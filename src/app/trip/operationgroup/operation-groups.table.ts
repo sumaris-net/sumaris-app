@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { OperationGroupValidatorService } from './operation-group.validator';
 import { Observable } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 import { InMemoryEntitiesService, isNil, LocalSettingsService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import { MetierService } from '@app/referential/services/metier.service';
 import { OperationGroup } from '../trip/trip.model';
@@ -25,7 +25,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
         equals: OperationGroup.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       })
     }
   ],
@@ -135,7 +135,7 @@ export class OperationGroupTable
         mobile: this.mobile,
         data: dataToOpen,
         isNew,
-        onDelete: (event, OperationGroup) => this.deleteEntity(event, OperationGroup)
+        onDelete: (event, item) => this.deleteEntity(event, item)
       },
       keyboardClose: true
     });
@@ -145,7 +145,7 @@ export class OperationGroupTable
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[operation-groups-table] operation-groups modal result: ", data);
+    if (data && this.debug) console.debug('[operation-groups-table] operation-groups modal result: ', data);
     this.markAsLoaded();
 
     if (data instanceof OperationGroup) {

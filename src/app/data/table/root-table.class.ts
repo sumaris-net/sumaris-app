@@ -1,5 +1,4 @@
-import { Directive, Injector, Input, ViewChild } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Directive, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -20,7 +19,7 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
@@ -35,13 +34,13 @@ import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
-import { ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 export const AppRootTableSettingsEnum = {
-  FILTER_KEY: 'filter'
+  FILTER_KEY: 'filter',
 };
+
+export type AppRootTableFilterRestoreSource = 'settings'|'queryParams';
 
 export interface IRootDataEntitiesService<
   T extends RootDataEntity<T, ID>,
@@ -62,23 +61,20 @@ export abstract class AppRootDataTable<
   ID = number,
   O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
   >
-  extends AppBaseTable<T, F, S, V, ID, O> {
+  extends AppBaseTable<T, F, S, V, ID, O>
+  implements OnInit, OnDestroy {
 
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly userEventService: UserEventService;
-  protected readonly extractionTypeService: ExtractionTypeService;
   protected readonly programRefService: ProgramRefService;
   protected readonly popoverController: PopoverController;
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
-  protected readonly selectedProgramLabels$: Observable<string[]>;
+  protected readonly $selectedProgramLabels = new BehaviorSubject<string[]>([]);
 
   canDelete: boolean;
   isAdmin: boolean;
-  filterForm: UntypedFormGroup;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
   needUpdateOfflineFeature = false;
   offline = false;
   logPrefix = '[root-data-table] ';
@@ -86,18 +82,15 @@ export abstract class AppRootDataTable<
   importing = false;
   progressionMessage: string = null;
   $progression = new BehaviorSubject<number>(0);
-  hasOfflineMode = false;
   featureName: string;
-
-  get filterIsEmpty(): boolean {
-    return this.filterCriteriaCount === 0;
-  }
+  @Input() hasOfflineMode = false;
+  @Input() restoreFilterSources: false|AppRootTableFilterRestoreSource[] = ['settings', 'queryParams'];
+  @Input() showOfflineMode = true;
+  @Input() showQuality = true;
 
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
-
-  @Input() showQuality = true;
 
   @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
@@ -131,7 +124,6 @@ export abstract class AppRootDataTable<
     this.network = injector.get(NetworkService);
     this.accountService = injector.get(AccountService);
     this.userEventService = injector.get(UserEventService);
-    this.extractionTypeService = injector.get(ExtractionTypeService);
     this.programRefService = injector.get(ProgramRefService);
     this.popoverController = injector.get(PopoverController);
 
@@ -142,21 +134,20 @@ export abstract class AppRootDataTable<
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
 
-    this.selectedProgramLabels$ = this.selection.changed
-      .pipe(
-        debounceTime(650),
-        map(_ => this.selection.selected)
-      )
-      .pipe(
-        // Get program labels, from selected rows
-        startWith(this.selection.selected),
-
-        map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
-        filter(isNotEmptyArray),
-        map(labels => arrayDistinct(labels)),
-
-        // DEBUG
-        tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+    this.registerSubscription(
+      this.selection.changed
+        .pipe(
+          debounceTime(650)
+        )
+        .pipe(
+          map(_ => this.selection.selected),
+          map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
+          filter(isNotEmptyArray),
+          map(programLabels => arrayDistinct(programLabels)),
+          // DEBUG
+          tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+        )
+        .subscribe(programLabels => this.$selectedProgramLabels.next(programLabels))
       );
   }
 
@@ -166,7 +157,7 @@ export abstract class AppRootDataTable<
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
     this.canDelete = toBoolean(this.canDelete, this.isAdmin);
-    if (this.debug) console.debug("[root-table] Can user edit table ? " + this.canEdit);
+    if (this.debug) console.debug('[root-table] Can user edit table ? ' + this.canEdit);
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
@@ -214,7 +205,7 @@ export abstract class AppRootDataTable<
           tap(json => this.setFilter(json, {emitEvent: false})),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          filter(() => isNotNilOrBlank(this.settingsId)),
+          filter(() => isNotNilOrBlank(this.settingsId) && this.restoreFilterSources !== false && this.restoreFilterSources.includes('settings')),
           tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
@@ -228,7 +219,7 @@ export abstract class AppRootDataTable<
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
-    const offline = type === "none";
+    const offline = type === 'none';
     if (this.offline !== offline) {
 
       // Update the property used in template
@@ -345,7 +336,7 @@ export abstract class AppRootDataTable<
       return false;
     }
 
-    console.debug("[trips] Applying filter to synchronization status: " + value);
+    console.debug('[trips] Applying filter to synchronization status: ' + value);
     this.resetError();
     this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus: value};
@@ -436,7 +427,10 @@ export abstract class AppRootDataTable<
 
   closeFilterPanel() {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-    this.filterPanelFloating = true;
+    if (!this.filterPanelFloating) {
+      this.filterPanelFloating = true;
+      this.markForCheck();
+    }
   }
 
   get hasReadyToSyncSelection(): boolean {
@@ -485,7 +479,7 @@ export abstract class AppRootDataTable<
   async terminateSelection(opts?: {
     showSuccessToast?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -502,7 +496,7 @@ export abstract class AppRootDataTable<
       });
     }
 
-    if (this.debug) console.debug("[root-table] Starting to terminate data...");
+    if (this.debug) console.debug('[root-table] Starting to terminate data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -555,7 +549,7 @@ export abstract class AppRootDataTable<
   async synchronizeSelection(opts?: {
     showSuccessToast?: boolean;
     emitEvent?: boolean;
-    rows?: TableElement<T>[]
+    rows?: TableElement<T>[];
   }) {
     if (!this._enabled) return; // Skip
 
@@ -572,7 +566,7 @@ export abstract class AppRootDataTable<
       });
     }
 
-    if (this.debug) console.debug("[root-table] Starting to synchronize data...");
+    if (this.debug) console.debug('[root-table] Starting to synchronize data...');
 
     const ids = rows
       .map(row => row.currentData)
@@ -642,26 +636,57 @@ export abstract class AppRootDataTable<
     return source as F;
   }
 
-  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; }) {
-    if (isNilOrBlank(this.settingsId)) return;
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    console.debug("[root-table] Restoring filter from settings...", opts);
+    console.log(`${this.logPrefix}restoreFilterOrLoad()`, opts);
 
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+    const json = this.restoreFilterSources !== false && (opts?.sources || this.restoreFilterSources || []).map(source => {
+      switch (source) {
+        case 'settings':
+          if (isNilOrBlank(this.settingsId)) return;
+          console.debug(this.logPrefix + 'Restoring filter from settings...');
+          return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+        case 'queryParams':
+          const {q} = this.route.snapshot.queryParams;
+          if (q) {
+            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+            try {
+              return JSON.parse(q);
+            } catch (err) {
+              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+            }
+          }
+      }
 
-    this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this._dataService.hasOfflineData());
+      return null;
+    }).find(isNotNil);
 
-    // Force offline, if no network AND has offline feature
-    if (this.network.offline && this.hasOfflineMode) {
-      json.synchronizationStatus = 'DIRTY';
+    if (json) {
+      // Force offline, if no network AND has offline feature
+      this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this._dataService.hasOfflineData());
+      if (this.network.offline && this.hasOfflineMode) {
+        json.synchronizationStatus = 'DIRTY';
+      }
+
+      this.setFilter(json, {emitEvent: true, ...opts});
     }
+    else {
+      // has offline feature
+      this.hasOfflineMode = await this._dataService.hasOfflineData();
 
-    this.setFilter(json, {emitEvent: true, ...opts});
+      if (!opts || opts.emitEvent !== false){
+        this.onRefresh.emit();
+      }
+    }
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
     super.setFilter(filter as F, opts);
+  }
+
+  patchFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
+    super.setFilter(<F>{...this.filter, ...filter}, opts);
   }
 
   protected async checkUpdateOfflineNeed() {
@@ -717,7 +742,7 @@ export abstract class AppRootDataTable<
           else if (event instanceof FileResponse){
             console.debug(this.logPrefix + 'File content: \n' + event.body);
             try {
-              let data = JSON.parse(event.body);
+              const data = JSON.parse(event.body);
               if (Array.isArray(data)) {
                 return new FileResponse<T[]>({body: data});
               }

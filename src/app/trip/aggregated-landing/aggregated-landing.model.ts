@@ -1,4 +1,4 @@
-import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { Moment } from 'moment';
 import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import {
@@ -17,7 +17,7 @@ import {
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { SortDirection } from '@angular/material/sort';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselActivityVO'})
 export class VesselActivity extends Entity<VesselActivity> {
@@ -32,6 +32,7 @@ export class VesselActivity extends Entity<VesselActivity> {
   observedLocationId: number;
   landingId: number;
   tripId: number;
+  invalid = false;
 
   constructor() {
     super(VesselActivity.TYPENAME);
@@ -56,7 +57,11 @@ export class VesselActivity extends Entity<VesselActivity> {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
-    target.metiers = this.metiers && this.metiers.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    target.metiers = this.metiers && this.metiers.filter(EntityUtils.isRemote)
+      .map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    if (opts?.minify) {
+      delete target.invalid;
+    }
     return target;
   }
 
@@ -66,10 +71,15 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
     this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
-    this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
+    this.metiers = source.metiers && source.metiers.filter(isNotNil).map(ReferentialRef.fromObject) || [];
     this.observedLocationId = source.observedLocationId;
     this.landingId = source.landingId;
     this.tripId = source.tripId;
+
+    if (isNotNil(this.tripId) && isEmptyArray(this.metiers)) {
+      this.metiers = [ ReferentialRef.fromObject({label: '??', name: '???'})];
+      this.invalid = true;
+    }
   }
 
 }

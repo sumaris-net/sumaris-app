@@ -1,16 +1,12 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
-import {
-  AppFormArray,
-  LocalSettingsService,
-  toBoolean
-} from '@sumaris-net/ngx-components';
+import { AppFormArray, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from './measurement.model';
-import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 
@@ -20,7 +16,7 @@ export interface MeasurementsValidatorOptions {
   protectedAttributes?: string[];
   forceOptional?: boolean;
   withTypename?: boolean; // Default to true
-  updateOn?: ControlUpdateOnType
+  updateOn?: ControlUpdateOnType;
 }
 
 @Injectable({providedIn: 'root'})
@@ -67,13 +63,13 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         // If pmfm is multiple, then use a AppFormArray
         if (pmfm.isMultiple) {
           const formArray = new AppFormArray(
-              (value) => this.formBuilder.control(value, validator),
+              (v) => this.formBuilder.control(v, validator),
               PmfmValueUtils.equals,
               PmfmValueUtils.isEmpty,
               {
                 allowEmptyArray: false
               }
-          )
+          );
           if (Array.isArray(value)) {
             formArray.setValue(value, {emitEvent: false});
           }

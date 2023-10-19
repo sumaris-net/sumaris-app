@@ -4,13 +4,13 @@ import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
-import { BaseMeasurementsTableConfig } from '../../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
-import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { environment } from '@environments/environment';
@@ -57,14 +57,12 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
     {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: () => {
-        return {
+      useFactory: () => ({
           prependNewElements: true,
           suppressErrors: true,
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
-        };
-      }
+        })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -292,9 +290,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
-    if (this.debug) console.debug("[sub-batch-modal] Closing modal...");
+    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
     if (this.debug && this.form && this.form.dirty && this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
+      AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
       // Continue
     }
 
@@ -321,7 +319,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
 
     row = row || this.selectedRow;
-    if (!row) throw new Error ("Missing row argument, or a row selection.");
+    if (!row) throw new Error ('Missing row argument, or a row selection.');
 
     // Confirm last edited row
     const confirmed = this.confirmEditCreate();
@@ -456,6 +454,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   /**
    * When a row has been edited, play a beep and highlight the row (during few seconds)
+   *
    * @param row
    * @pram times duration of highlight
    */

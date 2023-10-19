@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnInit,
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -28,7 +40,7 @@ import {
   StatusIds,
   toBoolean,
   toDateISOString,
-  UserProfileLabel
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
@@ -42,7 +54,7 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -50,8 +62,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
 @Component({
-  // tslint:disable-next-line:component-selector
-  selector: 'form-trip',
+  selector: 'app-form-trip',
   templateUrl: './trip.form.html',
   styleUrls: ['./trip.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -303,7 +314,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.setValue(data || new Trip(), opts);
   }
 
-  async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+  async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
@@ -360,11 +371,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       const vesselSnapshot = (vessel instanceof VesselSnapshot)
         ? vessel
         : ((vessel instanceof Vessel) ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
-      console.debug("[trip-form] New vessel added : updating form...", vesselSnapshot);
+      console.debug('[trip-form] New vessel added : updating form...', vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
     } else {
-      console.debug("[trip-form] No vessel added (user cancelled)");
+      console.debug('[trip-form] No vessel added (user cancelled)');
     }
   }
 
@@ -387,7 +398,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   /* -- protected methods-- */
 
   protected updateMetierFilter(value?: Trip) {
-    console.debug("[trip-form] Updating metier filter...");
+    console.debug('[trip-form] Updating metier filter...');
     value = value || this.form.value as Trip;
     const program = value.program || this.form.get('program').value;
     const programLabel = program && program.label;

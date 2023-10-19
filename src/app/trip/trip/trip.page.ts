@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
 
 import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
 import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
-import { MeasurementsForm } from '../../data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -34,7 +34,7 @@ import {
   PromiseEvent,
   ReferentialRef,
   sleep,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
@@ -65,7 +65,7 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 export const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
-  OPERATIONS: 2
+  OPERATIONS: 2,
 };
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -83,14 +83,14 @@ export const TripPageSettingsEnum = {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
         equals: PhysicalGear.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage
-  extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
+  extends AppRootDataEditor<Trip, TripService> implements OnDestroy, AfterViewInit {
 
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
@@ -150,13 +150,14 @@ export class TripPage
         enableListenChanges: true,
         i18nPrefix: 'TRIP.'
       });
-    this.defaultBackHref = "/trips";
+    this.defaultBackHref = '/trips';
     this.mobile = settings.mobile;
     this.settingsId = TripPageSettingsEnum.PAGE_ID;
     this.operationPasteFlags = this.operationPasteFlags || 0;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    // eslint-disable-next-line eqeqeq
     this.devAutoFillData = this.debug && (this.settings.getPageSettings(this.settingsId, 'devAutoFillData') == true) || false;
   }
 
@@ -223,7 +224,7 @@ export class TripPage
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string; }) {
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
 
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
@@ -316,7 +317,7 @@ export class TripPage
 
     // Measurement form
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
-    this.measurementsForm.forceOptional = this._forceMeasurementAsOptionalOnFieldMode
+    this.measurementsForm.forceOptional = this._forceMeasurementAsOptionalOnFieldMode;
     this.measurementsForm.maxVisibleButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
     this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
 
@@ -374,7 +375,7 @@ export class TripPage
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
-    console.debug("[trip] New entity: applying defaults...");
+    console.debug('[trip] New entity: applying defaults...');
 
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
@@ -448,7 +449,7 @@ export class TripPage
     this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
-  updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  updateViewState(data: Trip, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
     // Update tabs state (show/hide)
@@ -523,16 +524,16 @@ export class TripPage
 
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-    this.tripContext?.setValue('usageMode', this.usageMode);
+    this.tripContext.setValue('usageMode', this.usageMode);
 
     // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
+    this.tripContext.setValue('trip', this.data.clone());
 
     // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
-    this.tripContext?.setValue('operation', row.currentData);
+    this.tripContext.setValue('operation', row.currentData);
 
     // Propagate the past flags to clipboard
-    this.tripContext?.setValue('clipboard', {
+    this.tripContext.setValue('clipboard', {
       data: null, // Reset data
       pasteFlags: this.operationPasteFlags // Keep flags
     });
@@ -557,13 +558,13 @@ export class TripPage
     this.markAsLoading();
 
     // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
+    this.tripContext.setValue('trip', this.data.clone());
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-    this.tripContext?.setValue('usageMode', this.usageMode);
+    this.tripContext.setValue('usageMode', this.usageMode);
 
     // Reset operation
-    this.tripContext?.resetValue('operation');
+    this.tripContext.resetValue('operation');
 
     // Open the operation editor
     setTimeout(async () => {
@@ -579,7 +580,7 @@ export class TripPage
     if (!event?.data) return; // Skip
 
     // Fill clipboard
-    this.tripContext?.setValue('clipboard', {
+    this.tripContext.setValue('clipboard', {
       data: event.data.clone(),
       pasteFlags: this.operationPasteFlags
     });
@@ -634,6 +635,7 @@ export class TripPage
 
   /**
    * Open a modal to select a previous gear
+   *
    * @param event
    */
   async openSearchPhysicalGearModal(event: PromiseEvent<PhysicalGear>) {
@@ -657,7 +659,7 @@ export class TripPage
       excludeParentGear: (acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR)
     };
     const showGearColumn = (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR);
-    const includedPmfmIds = this.tripContext.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS)
+    const includedPmfmIds = this.tripContext.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
     const distinctBy = ['gear.id', 'rankOrder',
       ...(this.physicalGearsTable.pmfms||[])
         .filter(p => (p.required && !p.hidden) || includedPmfmIds?.includes(p.id))
@@ -697,10 +699,6 @@ export class TripPage
       // User cancelled
       event.detail.error('CANCELLED');
     }
-  }
-
-  canUserWrite(data: Trip, opts?: any): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
   }
 
   async save(event?: Event, opts?: any): Promise<boolean> {
@@ -807,14 +805,14 @@ export class TripPage
             filter(isNotNil),
             distinctUntilChanged()
           )
-          .subscribe(isGPSUsed => {
+          .subscribe(value => {
 
-            if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + isGPSUsed);
+            if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + value);
 
             // Enable positions, when has gps
-            this.operationsTable.showPosition = isGPSUsed;
+            this.operationsTable.showPosition = value;
             // Enable fishing area, when has not gps
-            this.operationsTable.showFishingArea = !isGPSUsed;
+            this.operationsTable.showFishingArea = !value;
 
             this.markForCheck();
           })
@@ -835,7 +833,7 @@ export class TripPage
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
-      filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
+      filename: this.translate.instant('TRIP.TABLE.DOWNLOAD_JSON_FILENAME'),
       type: 'application/json'
     });
   }

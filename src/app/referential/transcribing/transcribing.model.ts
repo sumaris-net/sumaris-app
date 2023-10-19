@@ -1,10 +1,17 @@
-import { BaseReferential, EntityClass, FilterFn, isNotNil, isNotNilOrBlank, ReferentialAsObjectOptions, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import {
+  BaseReferential,
+  EntityClass,
+  FilterFn,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
-@EntityClass({typename: 'TranscribingItemTypeVO'})
+@EntityClass({ typename: 'TranscribingItemTypeVO' })
 export class TranscribingItemType extends BaseReferential<TranscribingItemType> {
-
   static ENTITY_NAME = 'TranscribingItemType';
   static fromObject: (source: any, opts?: any) => TranscribingItemType;
 
@@ -22,19 +29,18 @@ export class TranscribingItemType extends BaseReferential<TranscribingItemType> 
     super.fromObject(source);
     this.objectType = source.objectType && ReferentialRef.fromObject(source.objectType);
     this.system = source.system && ReferentialRef.fromObject(source.system);
-    this.items = source.items && source.items.map(item => TranscribingItem.fromObject(item));
+    this.items = source.items && source.items.map((item) => TranscribingItem.fromObject(item));
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.objectType = this.objectType?.asObject(opts);
-    target.items = this.items?.map(item => item.asObject(opts));
+    target.items = this.items?.map((item) => item.asObject(opts));
     target.systemId = toNumber(this.systemId, this.system?.id);
     if (opts?.minify) {
       delete target.items;
       delete target.system;
-    }
-    else {
+    } else {
       target.system = this.system?.asObject(opts);
     }
     return target;
@@ -51,7 +57,7 @@ export class TranscribingItem extends BaseReferential<TranscribingItem> {
       // Or
       || (
         // Same label
-        (o1.label == o2.label)
+        (o1.label === o2.label)
         // Same object id
         && (toNumber(o1.objectId, o1.object?.id) === toNumber(o2.objectId, o2.object?.id))
         // Same type id

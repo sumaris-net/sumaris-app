@@ -1,22 +1,22 @@
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Moment} from "moment";
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../data/measurement/measurement.model';
-import {Landing} from "../landing/landing.model";
+import {Moment} from 'moment';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import {Landing} from '../landing/landing.model';
 import { isNotNil, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {Person}  from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
+import {Person}  from '@sumaris-net/ngx-components';
+import {EntityClass}  from '@sumaris-net/ngx-components';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-@EntityClass({typename: "ObservedLocationVO"})
+@EntityClass({typename: 'ObservedLocationVO'})
 export class ObservedLocation extends RootDataEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
   static fromObject: (source, opts?: any) => ObservedLocation;
 
-  static ENTITY_NAME:string = "ObservedLocation";
+  static ENTITY_NAME = 'ObservedLocation';
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;

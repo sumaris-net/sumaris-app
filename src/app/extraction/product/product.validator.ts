@@ -1,9 +1,9 @@
-import {Injectable} from "@angular/core";
+import {Injectable} from '@angular/core';
 import { FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppFormArray, EntityUtils, isNil, isNotEmptyArray, SharedValidators } from '@sumaris-net/ngx-components';
-import {ExtractionProduct} from "./product.model";
-import {AppValidatorService}  from "@sumaris-net/ngx-components";
-import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
+import {ExtractionProduct} from './product.model';
+import {AppValidatorService}  from '@sumaris-net/ngx-components';
+import {toBoolean, toNumber} from '@sumaris-net/ngx-components';
 import { AggregationStrata } from '@app/extraction/strata/strata.model';
 import { AggregationStrataValidatorService } from '@app/extraction/strata/strata.validator';
 

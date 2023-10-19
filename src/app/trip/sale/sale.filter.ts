@@ -1,6 +1,6 @@
-import {EntityClass, FilterFn, isNotNil} from "@sumaris-net/ngx-components";
-import {RootDataEntityFilter} from "@app/data/services/model/root-data-filter.model";
-import {Sale} from "@app/trip/sale/sale.model";
+import {EntityClass, FilterFn, isNotNil} from '@sumaris-net/ngx-components';
+import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
+import {Sale} from '@app/trip/sale/sale.model';
 
 @EntityClass({typename: 'SaleFilterVO'})
 export class SaleFilter extends RootDataEntityFilter<SaleFilter, Sale> {

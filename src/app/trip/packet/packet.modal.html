@@ -1,15 +1,20 @@
-<app-modal-toolbar modalName="PacketModal"
-                   [title]="$title | async"
-                   [color]="'secondary'"
-                   [showSpinner]="loading"
-                   [canValidate]="!loading"
-                   (cancel)="cancel()"
-                   (validate)="onSave($event)">
+<app-modal-toolbar
+  modalName="PacketModal"
+  [title]="$title | async"
+  [color]="'secondary'"
+  [showSpinner]="loading"
+  [canValidate]="!loading"
+  (cancel)="cancel()"
+  (validate)="onSave($event)"
+>
   <ion-buttons slot="end">
     <!-- Options menu -->
-    <button mat-icon-button *ngIf="!isNew && mobile"
-            [title]="'COMMON.BTN_OPTIONS'|translate"
-            [matMenuTriggerFor]="optionsMenu">
+    <button
+      mat-icon-button
+      *ngIf="!isNew && mobile"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+      [matMenuTriggerFor]="optionsMenu"
+    >
       <mat-icon>more_vert</mat-icon>
     </button>
   </ion-buttons>
@@ -17,51 +22,57 @@
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item
-          (click)="delete($event)"
-          [disabled]="disabled">
+  <button mat-menu-item [disabled]="disabled" (click)="delete($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 
-
 <ion-content class="ion-no-padding ion-padding-top" cdkTrapFocus>
-  <app-packet-form #form
-                   [showParent]="mobile"
-                   [mobile]="mobile"
-                   [parents]="parents"
-                   [parentAttributes]="parentAttributes">
-
+  <app-packet-form
+    #form
+    [showParent]="mobile"
+    [mobile]="mobile"
+    [parents]="parents"
+    [parentAttributes]="parentAttributes"
+  >
     <!-- open packet sale modal -->
     <ion-grid endButtons class="ion-margin-top" *ngIf="enabled">
       <ion-row>
-
         <ion-col>&nbsp;</ion-col>
 
         <ion-col class="ion-align-items-start">
-          <ion-button color="tertiary" fill="solid" expand="block" shape="round"
-                      [disabled]="invalid"
-                      [title]="'PACKET.COMPOSITION.BTN_SALE'|translate"
-                      (click)="onSave($event, 'sale')">
+          <ion-button
+            color="tertiary"
+            fill="solid"
+            expand="block"
+            shape="round"
+            [disabled]="invalid"
+            [title]="'PACKET.COMPOSITION.BTN_SALE' | translate"
+            (click)="onSave($event, 'sale')"
+          >
             <mat-icon slot="start">local_offer</mat-icon>
             <ion-label>
               <span translate>PACKET.COMPOSITION.BTN_SALE</span>
-              <span *ngIf="form.value.saleProducts && form.value.saleProducts.length && form.value.composition && form.value.composition.length">&nbsp;
-                ({{(form.value.saleProducts.length / form.value.composition.length).toString()}})
+              <span
+                *ngIf="
+                  form.value.saleProducts &&
+                  form.value.saleProducts.length &&
+                  form.value.composition &&
+                  form.value.composition.length
+                "
+              >
+                &nbsp; ({{ (form.value.saleProducts.length / form.value.composition.length).toString() }})
               </span>
             </ion-label>
           </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
-
   </app-packet-form>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
@@ -69,19 +80,20 @@
       </ion-col>
 
       <ion-col size="auto">
-
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="disabled || loading || invalid"
-                    (click)="onSave($event)" (keyup.enter)="onSave($event)"
-                    color="tertiary" >
+        <ion-button
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="disabled || loading || invalid"
+          (click)="onSave($event)"
+          (keyup.enter)="onSave($event)"
+          color="tertiary"
+        >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
   </ion-toolbar>
-
 </ion-footer>

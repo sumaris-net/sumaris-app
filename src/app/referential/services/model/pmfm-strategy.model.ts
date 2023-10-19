@@ -73,6 +73,13 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     super(PmfmStrategy.TYPENAME);
   }
 
+  clone(opts?: any): PmfmStrategy {
+    const target = super.clone(opts);
+    // Keep acquisitionLevel as object
+    target.acquisitionLevel = EntityUtils.isEntity(this.acquisitionLevel) ? this.acquisitionLevel.clone() as IReferentialRef : this.acquisitionLevel;
+    return target;
+  }
+
   asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.acquisitionLevel = PmfmStrategy.getAcquisitionLevelLabel(target);
@@ -240,10 +247,11 @@ export class DenormalizedPmfmStrategy
 
   /**
    * Allow to merge, using the children property
+   *
    * @param other
    */
   static merge(pmfm: DenormalizedPmfmStrategy, other: DenormalizedPmfmStrategy): DenormalizedPmfmStrategy {
-    if (!pmfm || !other || pmfm.id !== other.id) throw new Error('Cannot only merge pmfm with same id')
+    if (!pmfm || !other || pmfm.id !== other.id) throw new Error('Cannot only merge pmfm with same id');
     let result: DenormalizedPmfmStrategy;
 
     // Clone current (if not already clone)

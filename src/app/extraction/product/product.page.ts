@@ -3,7 +3,19 @@ import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../typ
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, equals, HistoryPageReference, isEmptyArray, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  Alerts,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  equals,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  Toasts
+} from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
@@ -85,7 +97,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
             this.markAsDirty();
           }
         })
-    )
+    );
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -107,9 +119,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
 
-    return setTimeout(() => {
+    return setTimeout(() => 
       // open the map
-      return this.router.navigate(['../../map'],
+       this.router.navigate(['../../map'],
         {
           relativeTo: this.route,
           queryParams: {
@@ -117,8 +129,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
             label: this.data.label,
             sheet: this.data.stratum[0].sheetName
           }
-        });
-    }, 200); // Add a delay need by matTooltip to be hide
+        })
+    , 200); // Add a delay need by matTooltip to be hide
   }
 
   async updateProduct(event?: Event) {
@@ -135,6 +147,11 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       const updatedEntity = await this.productService.updateProduct(this.data.id);
       await this.onEntityLoaded(updatedEntity);
       await this.updateView(updatedEntity);
+
+      Toasts.show(this.toastController, this.translate, {
+        type: 'info',
+        message: 'EXTRACTION.PRODUCT.INFO.UPDATED_SUCCEED'
+      });
     }
     catch (err) {
       this.setError(err);
@@ -144,12 +161,16 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     }
 
     // Switch to result tab
-    this.selectedTabIndex = ProductPageTabs.RESULT;
+    if (!this.data.isSpatial) {
+      this.selectedTabIndex = ProductPageTabs.RESULT;
+    }
   }
 
   /* -- protected -- */
 
   protected async setValue(data: ExtractionProduct) {
+    console.log('TODO setValue()');
+
     // Apply data to form
     await this.productForm.setValue(data.asObject());
 
@@ -172,12 +193,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         const types = this.datasourceTable.types;
 
         // Resolve by format + version
-        const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format
+        const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format;
         sourceTypeId = types.find(t => t.format === format && t.version === data.version)?.id;
 
         // Or resolve by format only, if not found
         if (isNil(sourceTypeId)) {
-          sourceTypeId = types.find(t => t.format === format)?.id
+          sourceTypeId = types.find(t => t.format === format)?.id;
         }
 
         // Types not found: stop here

@@ -1,5 +1,5 @@
 import { isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { LengthUnitSymbol, UnitLabelGroups, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import {LengthUnitSymbol, ProgramPrivilege, ProgramPrivilegeHierarchy, ProgramPrivilegeEnum, UnitLabelGroups, WeightKgConversion, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 import { roundHalfUp } from '@app/shared/functions';
 
 export function isLengthUnitSymbol(label: any): label is LengthUnitSymbol {
@@ -13,6 +13,7 @@ export class WeightUtils {
 
   /**
    * Apply a conversion; fromUnit -> toUnit
+   *
    * @param value
    * @param fromUnit
    * @param toUnit
@@ -28,7 +29,7 @@ export class WeightUtils {
     return +value * fromConversion / toConversion;
   }
 
-  static format(value: number|string, opts: {unit?: WeightUnitSymbol|string, withUnit?: boolean, maxDecimals?: number}): string {
+  static format(value: number|string, opts: {unit?: WeightUnitSymbol|string; withUnit?: boolean; maxDecimals?: number}): string {
     if (isNil(value)) return '';
     const withUnit = opts && opts.withUnit !== false && opts.unit;
     if (isNotNil(opts?.maxDecimals)) {
@@ -36,5 +37,18 @@ export class WeightUtils {
       return withUnit ? `${value.toFixed(opts.maxDecimals)} ${opts.unit}` : value.toFixed(opts.maxDecimals);
     }
     return withUnit ? `${value} ${opts.unit}` : value.toString();
+  }
+}
+
+export class ProgramPrivilegeUtils {
+
+  static hasExactPrivilege(actualPrivileges: ProgramPrivilege[], expectedPrivilege: ProgramPrivilege): boolean {
+    if (!expectedPrivilege) return false;
+    return actualPrivileges?.includes(expectedPrivilege) || false;
+  }
+
+  static hasUpperOrEqualsPrivilege(actualPrivileges: ProgramPrivilege[], expectedPrivilege: ProgramPrivilege): boolean {
+    if (!expectedPrivilege) return false;
+    return actualPrivileges?.some(p => ProgramPrivilegeHierarchy[p]?.includes(expectedPrivilege)) || false;
   }
 }

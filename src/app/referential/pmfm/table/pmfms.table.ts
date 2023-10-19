@@ -47,7 +47,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
-      'searchText': [null]
+      searchText: [null]
     });
 
     // Update filter when changes

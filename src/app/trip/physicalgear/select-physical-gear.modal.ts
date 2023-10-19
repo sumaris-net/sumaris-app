@@ -7,7 +7,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/refer
 import { Observable } from 'rxjs';
 import { PhysicalGearFilter } from './physical-gear.filter';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface ISelectPhysicalGearModalOptions {
   allowMultiple?: boolean;

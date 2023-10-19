@@ -16,7 +16,7 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { Sample } from './sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -93,7 +93,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       }),
       injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
@@ -147,7 +147,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         tap(pmfms => this.updateParents(pmfms))
       )
       .subscribe()
-    )
+    );
   }
 
   setModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
@@ -156,14 +156,14 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   async autoFillTable() {
-    console.debug("[sub-sample-table] Auto fill table");
+    console.debug('[sub-sample-table] Auto fill table');
 
     // Wait table ready and loaded
     await Promise.all([this.ready(), this.waitIdle()]);
 
     // Skip when disabled or still editing a row
     if (this.disabled || !this.confirmEditCreate()) {
-      console.warn("[sub-samples-table] Skipping autofill, as table is disabled or still editing a row");
+      console.warn('[sub-samples-table] Skipping autofill, as table is disabled or still editing a row');
       return;
     }
 
@@ -177,7 +177,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
       const displayParentPmfmId = this.displayParentPmfm?.id;
       const availableParents = this._availableSortedParents || this._availableParents
-          .filter(p => (isNil(displayParentPmfmId) || isNotNil(p.measurementValues[displayParentPmfmId])))
+          .filter(p => (isNil(displayParentPmfmId) || isNotNil(p.measurementValues[displayParentPmfmId])));
       const parents = availableParents
         .filter(p => !existingSamples.find(s => Sample.equals(s.parent, p)));
 
@@ -199,6 +199,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   /**
    * Allow to set value
+   *
    * @param data
    */
   setValue(data: Sample[]) {
@@ -219,7 +220,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     console.debug('[sub-samples-table] Opening detail modal...');
     const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
 
-    let isNew = !dataToOpen && true;
+    const isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new Sample();
       await this.onNewEntity(dataToOpen);
@@ -399,14 +400,14 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sub-samples-table] Initializing new row data...");
+    console.debug('[sub-samples-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
     // label
     if (!this.showLabelColumn) {
       // Generate label
-      data.label = this.acquisitionLevel + "#" + data.rankOrder;
+      data.label = this.acquisitionLevel + '#' + data.rankOrder;
     }
   }
 
@@ -429,7 +430,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
       s.parent = this._availableParents.find(p => p.id === parentId
         || (s.parent && p.label === s.parent.label && p.rankOrder === s.parent.rankOrder))
         || s.parent;
-      if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
+      if (!s.parent) console.warn('[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:', s);
     });
   }
 
@@ -505,7 +506,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   protected async suggestParent(value: any, opts?: any): Promise<LoadResult<Sample>> {
     if (EntityUtils.isNotEmpty(value, 'label')) return {data: [value]};
-    value = (typeof value === "string" && value !== "*") && value || undefined;
+    value = (typeof value === 'string' && value !== '*') && value || undefined;
 
     // All
     if (isNil(value)) return {data: this._availableSortedParents, total: this._availableSortedParents.length};

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { PositionValidatorService } from '../../data/position/position.validator';
+import { PositionValidatorService } from '@app/data/position/position.validator';
 import {
   AppFormUtils,
   equals,
@@ -18,7 +18,7 @@ import {
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Operation, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
@@ -223,6 +223,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
   /**
    * Update form group, with new options
+   *
    * @param form
    * @param opts
    */
@@ -233,7 +234,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Skip if same
     if (equals(previousOptions, opts)) {
-      console.debug('[operation-validator] Skipping form update (same options)')
+      console.debug('[operation-validator] Skipping form update (same options)');
       return;
     }
 
@@ -245,7 +246,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const positionOpts = {
       __typename: VesselPosition.TYPENAME,
       boundingBox: opts?.boundingBox
-    }
+    };
     // Start position
     if (opts.withPosition) {
       if (!form.controls.startPosition) {
@@ -258,7 +259,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         this.positionValidator.updateFormGroup(form.controls.startPosition, {
           ...positionOpts,
           required: true
-        })
+        });
       }
     } else {
       if (form.controls.startPosition) form.removeControl('startPosition');
@@ -662,6 +663,7 @@ export class OperationValidators {
 
   /**
    * Validate and compute
+   *
    * @param event
    */
   static listenIndividualOnDeck(event: IPmfmForm): Observable<any> | null {
@@ -741,7 +743,7 @@ export class OperationValidators {
     const parent = control.value as DataEntity<any>;
     const qualityFlagId = parent?.qualityFlagId;
     if (qualityFlagId === QualityFlagIds.MISSING) {
-      return {existsParent: true}
+      return {existsParent: true};
     }
     return null;
   }

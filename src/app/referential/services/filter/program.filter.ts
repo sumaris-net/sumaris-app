@@ -1,5 +1,5 @@
-import {BaseReferentialFilter} from "./referential.filter";
-import {Program} from "../model/program.model";
+import {BaseReferentialFilter} from './referential.filter';
+import {Program} from '../model/program.model';
 import { EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 

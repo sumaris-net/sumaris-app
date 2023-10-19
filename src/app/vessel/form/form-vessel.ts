@@ -8,6 +8,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import { Moment } from 'moment';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
+// eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: 'input[toRegistrationCode]'})
 export class ToRegistrationCodeDirective {
   constructor() {
@@ -21,7 +22,7 @@ export class ToRegistrationCodeDirective {
 }
 
 @Component({
-  selector: 'form-vessel',
+  selector: 'app-form-vessel',
   templateUrl: './form-vessel.html',
   styleUrls: ['./form-vessel.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,11 +33,11 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   private _defaultRegistrationLocation: ReferentialRef;
   private _withNameRequired: boolean;
   private _maxDate: Moment;
-  private _basePortLocationSuggestLengthThreshold: number = +VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH.defaultValue
+  private _basePortLocationSuggestLengthThreshold: number = +VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH.defaultValue;
 
   data: Vessel;
 
-  readonly mobile: boolean
+  readonly mobile: boolean;
   readonly statusList = StatusList;
   readonly statusById = StatusById;
 

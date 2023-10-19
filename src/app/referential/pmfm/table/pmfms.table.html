@@ -1,19 +1,23 @@
 <mat-toolbar *ngIf="showToolbar">
-
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-          (click)="onRefresh.emit()">
+  <button
+    mat-icon-button
+    color="light"
+    *ngIf="debug && !selection.hasValue()"
+    [title]="'COMMON.BTN_REFRESH' | translate"
+    (click)="onRefresh.emit()"
+  >
     <mat-icon>refresh</mat-icon>
   </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <div class="toolbar-spacer"></div>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
@@ -21,26 +25,29 @@
 <!-- error -->
 <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-
-<form *ngIf="showFilter" class="form-container ion-padding-top"
-      [formGroup]="filterForm"
-      (ngSubmit)="onRefresh.emit()">
+<form *ngIf="showFilter" class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
   <ion-grid>
     <ion-row>
       <ion-col>
         <!-- search text -->
         <mat-form-field>
-          <input matInput
-                 formControlName="searchText"
-                 autocomplete="off"
-                 [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
-          <button mat-icon-button matSuffix tabindex="-1"
-                  type="button"
-                  (click)="clearControlValue($event, filterForm.controls.searchText)"
-                  [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
+          <input
+            matInput
+            formControlName="searchText"
+            autocomplete="off"
+            [placeholder]="'REFERENTIAL.LIST.FILTER.SEARCH_TEXT' | translate"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            tabindex="-1"
+            type="button"
+            (click)="clearControlValue($event, filterForm.controls.searchText)"
+            [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value"
+          >
             <mat-icon>close</mat-icon>
           </button>
         </mat-form-field>
@@ -51,40 +58,46 @@
   </ion-grid>
 </form>
 
-<div class="table-container"
-     [class.has-filter]="showFilter"
-     [class.has-toolbar]="showToolbar"
-     [class.has-paginator]="showPaginator">
-
-  <table mat-table
-         [dataSource]="dataSource"
-         [matSortActive]="defaultSortBy"
-         [matSortDirection]="defaultSortDirection"
-         [trackBy]="trackByFn"
-         matSort matSortDisableClear>
-
+<div
+  class="table-container"
+  [class.has-filter]="showFilter"
+  [class.has-toolbar]="showToolbar"
+  [class.has-paginator]="showPaginator"
+>
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    [matSortActive]="defaultSortBy"
+    [matSortDirection]="defaultSortDirection"
+    [trackBy]="trackByFn"
+    matSort
+    matSortDisableClear
+  >
     <ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef
-          [class.cdk-visually-hidden]="!allowMultipleSelection">
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!allowMultipleSelection">
+        <mat-checkbox
+          (change)="$event ? masterToggle() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [class.cdk-visually-hidden]="!allowMultipleSelection">
-        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-        </mat-checkbox>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!allowMultipleSelection">
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- Id column -->
     <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header
-          [class.ion-padding-start]="!allowMultipleSelection">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!allowMultipleSelection">
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [class.ion-padding-start]="!allowMultipleSelection">{{ row.currentData?.id }}</td>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!allowMultipleSelection">
+        {{ row.currentData?.id }}
+      </td>
     </ng-container>
 
     <!-- Parameter column -->
@@ -93,7 +106,7 @@
         <ion-label translate>REFERENTIAL.NAME</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.parameter.name}}</ion-label>
+        <ion-label>{{ row.currentData.parameter.name }}</ion-label>
       </td>
     </ng-container>
 
@@ -103,7 +116,7 @@
         <ion-label translate>REFERENTIAL.PMFM.UNIT</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.unit?.label}}</ion-label>
+        <ion-label>{{ row.currentData.unit?.label }}</ion-label>
       </td>
     </ng-container>
 
@@ -113,7 +126,7 @@
         <ion-label translate>REFERENTIAL.PMFM.MATRIX</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.matrix?.name}}</ion-label>
+        <ion-label>{{ row.currentData.matrix?.name }}</ion-label>
       </td>
     </ng-container>
 
@@ -123,7 +136,7 @@
         <ion-label translate>REFERENTIAL.PMFM.FRACTION</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.fraction?.name}}</ion-label>
+        <ion-label>{{ row.currentData.fraction?.name }}</ion-label>
       </td>
     </ng-container>
 
@@ -133,7 +146,7 @@
         <ion-label translate>REFERENTIAL.PMFM.METHOD</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.method?.name}}</ion-label>
+        <ion-label>{{ row.currentData.method?.name }}</ion-label>
       </td>
     </ng-container>
 
@@ -144,7 +157,10 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>
-          <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId]?.icon"></ion-icon>
+          <ion-icon
+            *ngIf="row.currentData.statusId &gt;=0"
+            [name]="statusById[row.currentData.statusId]?.icon"
+          ></ion-icon>
           <span>{{ statusById[row.currentData.statusId]?.label | translate }}</span>
         </ion-text>
       </td>
@@ -156,29 +172,32 @@
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-        <mat-icon color="primary" class="comment"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
+        <mat-icon
+          color="primary"
+          class="comment"
+          *ngIf="row.currentData.comments"
+          [title]="row.currentData.comments"
+        ></mat-icon>
       </td>
     </ng-container>
 
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef hidden>
-      </th>
-      <td mat-cell *matCellDef="let row" hidden>
-      </td>
+      <th mat-header-cell *matHeaderCellDef hidden></th>
+      <td mat-cell *matCellDef="let row" hidden></td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        class="mat-row-disabled"
-        [class.cdk-visually-hidden]="loadingSubject|async"
-        (click)="clickRow($event, row)"></tr>
-
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="mat-row-disabled"
+      [class.cdk-visually-hidden]="loadingSubject | async"
+      (click)="clickRow($event, row)"
+    ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject|async; else noResult">
+  <ng-container *ngIf="loadingSubject | async; else noResult">
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
@@ -186,18 +205,19 @@
 
   <ng-template #noResult>
     <ion-item *ngIf="totalRowCount === 0">
-      <ion-text color="danger"
-                class="text-italic"
-                translate>COMMON.NO_RESULT</ion-text>
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
     </ion-item>
   </ng-template>
 </div>
 
 <!-- Paginator  -->
 <ion-footer *ngIf="showPaginator">
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="totalRowCount" [pageSize]="pageSize"
-                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
+  <mat-paginator
+    #paginator
+    class="mat-paginator-footer"
+    [length]="totalRowCount"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="defaultPageSizeOptions"
+    showFirstLastButtons
+  ></mat-paginator>
 </ion-footer>
-

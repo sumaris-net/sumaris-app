@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { AppFormUtils, LocalSettingsService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { Sample } from './sample.model';
 import { SamplesTable } from './samples.table';
 import { Moment } from 'moment';
-import { IPmfm } from '../../referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
@@ -109,7 +109,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   }
 
   async applyValue() {
-    console.debug('[sample-modal] Applying data to form')
+    console.debug('[sample-modal] Applying data to form');
 
     this.table.markAsReady();
 
@@ -146,7 +146,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
 
     if (this.invalid) {
       // if (this.debug) AppFormUtils.logFormErrors(this.table.table., "[sample-modal] ");
-      this.table.error = "COMMON.FORM.HAS_ERROR";
+      this.table.error = 'COMMON.FORM.HAS_ERROR';
       this.table.markAllAsTouched();
       return;
     }

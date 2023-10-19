@@ -1,4 +1,4 @@
-import { Directive, Injectable, Injector, Input } from '@angular/core';
+import { Directive, Injector, Input } from '@angular/core';
 import { isObservable, Observable, of, Subject } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import {
@@ -25,10 +25,11 @@ import {
   JsonUtils,
   LoadResult,
   PropertyFormatPipe,
-  Referential, ReferentialUtils,
+  Referential,
+  ReferentialUtils,
   ShowToastOptions,
   suggestFromArray,
-  Toasts
+  Toasts,
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
@@ -38,7 +39,7 @@ import { AppReferentialUtils } from '@app/core/services/model/referential.utils'
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { ErrorCodes } from '@app/referential/services/errors';
 
-export declare type ReferentialImportPolicy = 'insert-update'|'insert-only'|'update-only'|'delete-only';
+export declare type ReferentialImportPolicy = 'insert-update' | 'insert-only' | 'update-only' | 'delete-only';
 
 @Directive()
 export class ReferentialFileService<
@@ -59,7 +60,7 @@ export class ReferentialFileService<
   @Input() columnDefinitions: FormFieldDefinition[];
   @Input() defaultNewRowValue: () => any;
   @Input() isKnownEntityName: (entityName: string) => boolean;
-  @Input() loadByLabel: (label: string, filter: Partial<ReferentialFilter> & {entityName: string}) => Promise<IReferentialRef<any>>
+  @Input() loadByLabel: (label: string, filter: Partial<ReferentialFilter> & {entityName: string}) => Promise<IReferentialRef<any>>;
   @Input() loadLevelById: (id: number) => IReferentialRef<any>;
   @Input() loadStatusById: (id: number) => IStatus;
   @Input() importPolicy: ReferentialImportPolicy = 'insert-update';
@@ -128,7 +129,7 @@ export class ReferentialFileService<
 
   protected getCsvExportFileName(context: any): string {
     const key = this.i18nColumnPrefix + 'EXPORT_CSV_FILENAME';
-    let filename = this.translate.instant(key, context || {});
+    const filename = this.translate.instant(key, context || {});
     if (filename !== key) return filename;
 
     return `${changeCaseToUnderscore(this.entityName)}.csv`; // Default filename
@@ -269,21 +270,19 @@ export class ReferentialFileService<
     // Prepare suggest functions, from  autocomplete field
     const suggestFns = autocompleteFields
       .map(def => def.autocomplete)
-      .map(autocomplete => {
-        return autocomplete.suggestFn
+      .map(autocomplete => autocomplete.suggestFn
           || (isObservable(autocomplete.items)
             && (async (value, opts) => {
               const items = await firstNotNilPromise(autocomplete.items as Observable<any[]>);
               return suggestFromArray(items, value, opts);
             })
           )
-          || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts));
-      });
+          || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts)));
 
     const result: T[] = [];
 
     // For each entities
-    for (let entity of entities) {
+    for (const entity of entities) {
       let incomplete = false;
 
       // For each field to resolve
@@ -293,7 +292,7 @@ export class ReferentialFileService<
         const attributes = field.autocomplete.attributes || [];
         const obj = entity[field.key];
         let resolveObj: any;
-        for (let searchAttribute of attributes) {
+        for (const searchAttribute of attributes) {
           const searchValue = obj[searchAttribute];
           if (isNotNilOrBlank(searchValue)) {
             const res = await suggestFn(searchValue, { ...field.autocomplete.filter, searchAttribute });
@@ -320,14 +319,14 @@ export class ReferentialFileService<
       }
 
       // If complete entity: add to result
-      if (!incomplete) result.push(entity)
+      if (!incomplete) result.push(entity);
     }
 
     // Convert to entity
     return result.map(source => {
       const target: T = new this.dataType();
       target.fromObject(source);
-      return target
+      return target;
     });
   }
 
@@ -335,11 +334,9 @@ export class ReferentialFileService<
 
     if (this.dataService instanceof ReferentialService) return entities;
 
-    await JobUtils.fetchAllPages((offset, size) => {
-      return this.dataSource.dataService.watchAll(offset, size, 'id', 'asc', {
+    await JobUtils.fetchAllPages((offset, size) => this.dataSource.dataService.watchAll(offset, size, 'id', 'asc', {
         entityName: this.entityName
-      } as any).toPromise();
-    }, {
+      } as any).toPromise(), {
       onPageLoaded: ({ data }) => {
         entities.filter(e => isNil(e.id))
           .forEach(entity => {
@@ -359,7 +356,7 @@ export class ReferentialFileService<
 
   protected getJsonExportFileName(context: any): string {
     const key = this.i18nColumnPrefix + 'EXPORT_JSON_FILENAME';
-    let filename = this.translate.instant(key, context || {});
+    const filename = this.translate.instant(key, context || {});
     if (filename !== key) return filename;
 
     return `${changeCaseToUnderscore(this.entityName)}.json`; // Default filename
@@ -383,7 +380,7 @@ export class ReferentialFileService<
       uploadFn: (file) => this.parseJsonFile(file)
     });
 
-    let sources = (data || []).flatMap(file => file.response?.body || []);
+    const sources = (data || []).flatMap(file => file.response?.body || []);
     if (isEmptyArray(sources)) return; // No entities: skip
 
     return this.importEntities(sources);
@@ -427,7 +424,7 @@ export class ReferentialFileService<
 
             // For each resource (by not self)
             const internalSources = allSources?.slice(1) || [];
-            for (let internalSource of internalSources) {
+            for (const internalSource of internalSources) {
               const subEntityName = AppReferentialUtils.getEntityName(internalSource);
               const label = internalSource['label'];
               if (subEntityName && isNotNilOrBlank(label) && this.isKnownEntityName(subEntityName)) {
@@ -447,7 +444,7 @@ export class ReferentialFileService<
 
             }
 
-            if (missingReferences.length) throw this.translate.instant('REFERENTIAL.ERROR.MISSING_REFERENCES', {error: missingReferences.join(', ')})
+            if (missingReferences.length) throw this.translate.instant('REFERENTIAL.ERROR.MISSING_REFERENCES', {error: missingReferences.join(', ')});
 
             const levelId = ReferentialUtils.isNotEmpty(source.levelId) ? source.levelId['id'] : source.levelId;
             const target = new this.dataType();
@@ -494,7 +491,7 @@ export class ReferentialFileService<
           catch (err) {
             let message = err && err.message || err;
             if (typeof message === 'string') message = this.translate.instant(message);
-            const fullMessage = this.translate.instant("REFERENTIAL.ERROR.IMPORT_ENTITY_ERROR", {label: source.label, message});
+            const fullMessage = this.translate.instant('REFERENTIAL.ERROR.IMPORT_ENTITY_ERROR', {label: source.label, message});
             errors.push(fullMessage);
             console.error(fullMessage);
             return null;
@@ -535,14 +532,14 @@ export class ReferentialFileService<
   }
 
 
-  protected  parseJsonFile<T = any>(file: File, opts?: {encoding?: string}): Observable<FileEvent<T[]>> {
+  protected  parseJsonFile<R = any>(file: File, opts?: {encoding?: string}): Observable<FileEvent<R[]>> {
     console.info(`[referential-table] Reading JSON file ${file.name}...`);
 
     return JsonUtils.parseFile(file, {encoding: opts?.encoding})
       .pipe(
         switchMap(event => {
           if (event instanceof FileResponse){
-            const body: T[] = Array.isArray(event.body) ? event.body : [event.body];
+            const body: R[] = Array.isArray(event.body) ? event.body : [event.body];
             return of(new FileResponse({body}));
           }
           // Unknown event: skip
@@ -572,7 +569,7 @@ export class ReferentialFileService<
     // Load from rows
     else {
       entities = this.dataSource.getRows()
-        .map(element => element.currentData)
+        .map(element => element.currentData);
     }
 
     return entities;

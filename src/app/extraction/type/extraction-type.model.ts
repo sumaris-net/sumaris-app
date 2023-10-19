@@ -1,24 +1,27 @@
 /* -- Extraction -- */
 
 import {
-  arrayGroupBy,
   BaseReferential,
   capitalizeFirstLetter,
+  collectByProperty,
   Department,
   Entity,
   EntityAsObjectOptions,
   EntityClass,
-  EntityFilter, IEntity,
+  EntityFilter,
+  equals,
+  IEntity,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber, equals, trimEmptyToNull, collectByProperty
+  Person,
+  toNumber,
+  trimEmptyToNull
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { filter, map } from 'rxjs/operators';
 import { StoreObject } from '@apollo/client/core';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
@@ -131,7 +134,7 @@ export class ExtractionColumn {
   name: string;
   columnName: string;
   type: string;
-  description?: String;
+  description?: string;
   rankOrder: number;
   values?: string[];
 
@@ -171,7 +174,7 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
   meta?: {
     // Trip specific
     excludeInvalidStation?: boolean;
-  }
+  };
 
   fromObject(source: any): ExtractionFilter {
     super.fromObject(source);
@@ -197,16 +200,16 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 }
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
-export const CRITERION_OPERATOR_LIST: Readonly<{ symbol: CriterionOperator; name?: String; }[]> = Object.freeze([
+export const CRITERION_OPERATOR_LIST: Readonly<{ symbol: CriterionOperator; name?: string }[]> = Object.freeze([
   {symbol: '='},
   {symbol: '!='},
   {symbol: '>'},
   {symbol: '>='},
   {symbol: '<'},
   {symbol: '<='},
-  {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
-  {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
-  {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
+  {symbol: 'BETWEEN', name: 'EXTRACTION.FILTER.BETWEEN'},
+  {symbol: 'NULL', name: 'EXTRACTION.FILTER.NULL'},
+  {symbol: 'NOT NULL', name: 'EXTRACTION.FILTER.NOT_NULL'}
 ]);
 
 
@@ -243,7 +246,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   values?: string[];
   endValue?: string;
   sheetName?: string;
-  hidden: boolean = false;
+  hidden = false;
 
   constructor() {
     super(ExtractionFilterCriterion.TYPENAME);
@@ -327,7 +330,7 @@ export class ExtractionTypeUtils {
     // No I18n translation
     if (name === key) {
       // Use name, or label (but replace underscore with space)
-      key = type.name || (format && format.replace(/[_-]+/g, " ").toUpperCase());
+      key = type.name || (format && format.replace(/[_-]+/g, ' ').toUpperCase());
       // First letter as upper case
       name = capitalizeFirstLetter(key.toLowerCase());
     }

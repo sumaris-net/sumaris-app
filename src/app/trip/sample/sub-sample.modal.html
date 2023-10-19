@@ -1,63 +1,50 @@
-<app-modal-toolbar color="secondary"
-                   (cancel)="close($event)"
-                   [title]="$title | async"
-                   (validate)="onSubmit($event)"
-                   [canValidate]="!disabled"
-                   [showSpinner]="loading">
-
+<app-modal-toolbar
+  color="secondary"
+  (cancel)="close($event)"
+  [title]="$title | async"
+  (validate)="onSubmit($event)"
+  [canValidate]="!disabled"
+  [showSpinner]="loading"
+>
   <ion-buttons slot="end" [class.cdk-visually-hidden]="loading">
-
     <!-- Options menu -->
-    <button mat-icon-button
-            *ngIf="!isNew"
-            [title]="'COMMON.BTN_OPTIONS'|translate"
-            [matMenuTriggerFor]="optionsMenu">
+    <button mat-icon-button *ngIf="!isNew" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
-
-
   </ion-buttons>
 </app-modal-toolbar>
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-
-  <button mat-menu-item
-          *ngIf="onDelete"
-          (click)="delete($event)">
+  <button mat-menu-item *ngIf="onDelete" [disabled]="disabled" (click)="delete($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 </mat-menu>
 
 <ion-content class="ion-padding">
-
-  <app-sub-sample-form #form
-                       [debug]="debug"
-                       [acquisitionLevel]="acquisitionLevel"
-                       [programLabel]="programLabel"
-                       [mobile]="mobile"
-                       [pmfms]="pmfms"
-                       [i18nSuffix]="i18nSuffix"
-                       [usageMode]="usageMode"
-                       [showLabel]="showLabel"
-                       [showParent]="showParent"
-                       [showComment]="showComment"
-                       [availableParents]="availableParents"
-                       [maxVisibleButtons]="maxVisibleButtons"
-                       [defaultLatitudeSign]="defaultLatitudeSign"
-                       [defaultLongitudeSign]="defaultLongitudeSign"
-                       (onSubmit)="onSubmit($event)">
-
-  </app-sub-sample-form>
-
-
+  <app-sub-sample-form
+    #form
+    [debug]="debug"
+    [acquisitionLevel]="acquisitionLevel"
+    [programLabel]="programLabel"
+    [mobile]="mobile"
+    [pmfms]="pmfms"
+    [i18nSuffix]="i18nSuffix"
+    [usageMode]="usageMode"
+    [showLabel]="showLabel"
+    [showParent]="showParent"
+    [showComment]="showComment"
+    [availableParents]="availableParents"
+    [maxVisibleButtons]="maxVisibleButtons"
+    [defaultLatitudeSign]="defaultLatitudeSign"
+    [defaultLongitudeSign]="defaultLongitudeSign"
+    (onSubmit)="onSubmit($event)"
+  ></app-sub-sample-form>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -67,17 +54,17 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button color="tertiary"
-                    [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || disabled"
-                    (keyup.enter)="onSubmit($event)"
-                    (click)="onSubmit($event)">
+        <ion-button
+          color="tertiary"
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="loading || disabled"
+          (keyup.enter)="onSubmit($event)"
+          (click)="onSubmit($event)"
+        >
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
-
-
   </ion-toolbar>
 </ion-footer>

@@ -8,11 +8,10 @@ import { ExtractionTypeService } from '../../extraction/type/extraction-type.ser
 import { RxState } from '@rx-angular/state';
 import { MatMenuTrigger } from '@angular/material/menu';
 
-
 interface EntityExtractionMenuState {
   programLabels: string[];
   isSpatial: boolean;
-  category: ExtractionCategoryType
+  category: ExtractionCategoryType;
 }
 
 export declare type AppEntityExtractionButtonStyle = 'mat-icon-button' | 'mat-menu-item';
@@ -67,12 +66,12 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
   }
 
 
-  @Output() onDownloadAsJson = new EventEmitter<UIEvent>();
-  @Output() onDownloadAsType = new EventEmitter<ExtractionType>();
+  @Output() downloadAsJson = new EventEmitter<UIEvent>();
+  @Output() downloadAsType = new EventEmitter<ExtractionType>();
 
   @ViewChild(MatMenuTrigger) menuTrigger: MatMenuTrigger;
 
-  @ViewChild('typesTemplate') typesTemplate: TemplateRef<any>
+  @ViewChild('typesTemplate') typesTemplate: TemplateRef<any>;
 
   constructor(protected extractionTypeService: ExtractionTypeService) {
     super();

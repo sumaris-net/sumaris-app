@@ -1,15 +1,23 @@
 import { Inject, Injectable, OnDestroy, Optional } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { APP_LOGGING_SERVICE, chainPromises, ILogger, ILoggingService, isEmptyArray, isNotNilOrBlank, sleep, StartableService } from '@sumaris-net/ngx-components';
+import {
+  APP_LOGGING_SERVICE,
+  chainPromises,
+  ILogger,
+  ILoggingService,
+  isEmptyArray,
+  isNotNilOrBlank,
+  sleep,
+  StartableService,
+} from '@sumaris-net/ngx-components';
 import { BluetoothDevice, BluetoothReadResult, BluetoothSerial, BluetoothState } from '@e-is/capacitor-bluetooth-serial';
 import { EMPTY, from, fromEventPattern, Observable } from 'rxjs';
 import { catchError, filter, finalize, map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
 import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
 import { PluginListenerHandle } from '@capacitor/core';
 import { RxState } from '@rx-angular/state';
-import { CacheService } from 'ionic-cache';
 
-export {BluetoothDevice};
+export { BluetoothDevice };
 
 export declare type BluetoothEventType = 'onRead'|'onEnabledChanged';
 
@@ -32,9 +40,7 @@ interface BluetoothServiceState extends BluetoothState {
 
 export function removeByAddress<T extends {address: string}>(devices: T[], device: T): T[] {
   if (!device?.address) return devices; // skip
-  return devices?.reduce((res, d) => {
-    return (d.address !== device.address) ? res.concat(d) : res;
-  }, []);
+  return devices?.reduce((res, d) => (d.address !== device.address) ? res.concat(d) : res, []);
 }
 
 @Injectable({providedIn: 'root'})
@@ -72,7 +78,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
     console.debug('[bluetooth] Starting service...');
     const enabled = await this.isEnabled();
 
-    console.info(`[bluetooth] Init state with: {enabled: ${enabled}}`)
+    console.info(`[bluetooth] Init state with: {enabled: ${enabled}}`);
     this._state.set({enabled, connectedDevices: null, connecting: false});
 
     // Listen enabled state
@@ -144,7 +150,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
         takeUntil(this.stopSubject),
         map(data => data as unknown as T),
         finalize(() => listenerHandle?.remove()),
-      )
+      );
   }
 
   async isEnabled(): Promise<boolean> {
@@ -224,6 +230,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
 
   /**
    * Wait device to get really connected (isConnected() should return true)
+   *
    * @param device
    * @param opts
    */
@@ -303,7 +310,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
         }
       }
       finally {
-        this.markAsNotConnecting()
+        this.markAsNotConnecting();
       }
     }
 
@@ -325,7 +332,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
     }
   }
 
-  watch(device: BluetoothDevice, options : {delimiter: string}): Observable<string> {
+  watch(device: BluetoothDevice, options: {delimiter: string}): Observable<string> {
     let listenerHandle;
     let wasConnected: boolean;
 
@@ -353,7 +360,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
           listenerHandle = await BluetoothSerial.addListener('onRead', handler);
         })),
         map((res: BluetoothReadResult) => {
-          let value = res?.value;
+          const value = res?.value;
           console.debug(`[bluetooth] Read a value: ${value}`);
           return value;
         }),

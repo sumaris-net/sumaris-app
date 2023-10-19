@@ -33,13 +33,13 @@ export abstract class AppExtractionReport<
 
     if (isNil(this.data))
       if (isNil(this.uuid))
-        if(isNotNil(this.filter)) this.data = await this.load(this.filter, opts)
+        if(isNotNil(this.filter)) this.data = await this.load(this.filter, opts);
         else this.data = await this.loadFromRoute(opts);
 
     if (isNil(this.stats))
       this.stats = await this.computeStats(this.data, opts);
 
-    const computedContext = this.computeI18nContext(this.stats)
+    const computedContext = this.computeI18nContext(this.stats);
     this.i18nContext = {
       ...computedContext,
       ...this.i18nContext,

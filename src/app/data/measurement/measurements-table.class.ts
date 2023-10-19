@@ -18,7 +18,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
@@ -31,11 +31,7 @@ import { BaseValidatorService } from '@app/shared/service/base.validator.service
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 
-
-export interface BaseMeasurementsTableConfig<
-  T extends IEntityWithMeasurement<T>>
-  extends BaseTableConfig<T> {
-
+export interface BaseMeasurementsTableConfig<T extends IEntityWithMeasurement<T>> extends BaseTableConfig<T> {
   onRowCreated?: undefined; // IMPORTANT: leave 'undefined'. subclasses should use onPrepareRowForm instead
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
@@ -63,7 +59,7 @@ export abstract class BaseMeasurementsTable<
 
   private _programLabel: string;
   private _autoLoadAfterPmfm = true;
-  private _addingRow = false
+  private _addingRow = false;
 
   protected _acquisitionLevel: AcquisitionLevelType = null;
   protected _strategyLabel: string = null;
@@ -190,13 +186,21 @@ export abstract class BaseMeasurementsTable<
       console.warn('TODO: check if \'get dataService()\' is need', new Error());
       this._dataService.delegate = value;
       if (!this.loading) {
-        this.onRefresh.emit("new dataService");
+        this.onRefresh.emit('new dataService');
       }
     }
   }
 
+  get dataService(): S {
+    return this._dataService.delegate;
+  }
+
   get loading(): boolean {
     return super.loading || this._dataService.loading;
+  }
+
+  get loaded(): boolean {
+    return super.loaded && !this._dataService.loading;
   }
 
   protected constructor(
@@ -274,7 +278,7 @@ export abstract class BaseMeasurementsTable<
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
-           console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
+           console.debug(this.logPrefix + 'Received PMFMs to applied: ', pmfms);
 
           if (this.validatorService) {
             this.configureValidator({pmfms});
@@ -374,7 +378,7 @@ export abstract class BaseMeasurementsTable<
     opts = {
       stop: this.destroySubject,
       ...opts
-    }
+    };
     await Promise.all([
       super.ready(opts),
       this.validatorService ? this.validatorService.ready(opts) :  firstNotNilPromise(this.$pmfms, opts)
@@ -383,6 +387,7 @@ export abstract class BaseMeasurementsTable<
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param pmfm
    */
@@ -401,6 +406,7 @@ export abstract class BaseMeasurementsTable<
 
   /**
    * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
+   *
    * @param row
    * @param clone
    */
@@ -497,17 +503,17 @@ export abstract class BaseMeasurementsTable<
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean; }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>> {
 
     // Check entity can be added
     const canAdd = await this.canAddEntity(data);
     if (!canAdd) {
-      console.warn(this.logPrefix + "Cannot add entity to table");
+      console.warn(this.logPrefix + 'Cannot add entity to table');
       return undefined;
     }
 
     if (this._addingRow) {
-      console.warn(this.logPrefix + "Skipping addEntityToTable(). Another add is in progress.");
+      console.warn(this.logPrefix + 'Skipping addEntityToTable(). Another add is in progress.');
       return;
     }
     this._addingRow = true;
@@ -516,7 +522,7 @@ export abstract class BaseMeasurementsTable<
 
       // Create a row
       const row = await this.addRowToTable(null, {editing: opts?.editing, emitEvent: opts?.emitEvent});
-      if (!row) throw new Error("Could not add row to table");
+      if (!row) throw new Error('Could not add row to table');
 
       // Override rankOrder (with a computed value)
       if (this.hasRankOrder
@@ -574,7 +580,7 @@ export abstract class BaseMeasurementsTable<
    * @param row the row to update
    * @param opts
    */
-  protected updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<T>> {
+  protected updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean }): Promise<TableElement<T>> {
     return super.updateEntityToTable(data, row, opts);
   }
 
@@ -611,6 +617,7 @@ export abstract class BaseMeasurementsTable<
 
   /**
    * /!\ do NOT override this function. Use onPrepareRowForm instead
+   *
    * @param row
    * @private
    */

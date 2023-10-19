@@ -23,9 +23,9 @@ export class WeightFormatPipe implements PipeTransform {
     if (toUnit === 'auto') {
       value = WeightUtils.convert(value, fromUnit as WeightUnitSymbol, 'kg');
       fromUnit = 'kg';
-      if (value < 0.001) toUnit = 'mg'
-      else if (value < 1) toUnit = 'g'
-      else if (value < 1000) toUnit = 'kg'
+      if (value < 0.001) toUnit = 'mg';
+      else if (value < 1) toUnit = 'g';
+      else if (value < 1000) toUnit = 'kg';
       else toUnit = 't';
     }
     // Apply conversion

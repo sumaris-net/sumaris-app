@@ -1,8 +1,8 @@
-import {Injectable} from "@angular/core";
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import {Software}  from "@sumaris-net/ngx-components";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {Software}  from '@sumaris-net/ngx-components';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {EntityUtils}  from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class SoftwareValidatorService<T extends Software<T> = Software<any>> implements ValidatorService{
@@ -37,7 +37,7 @@ export class SoftwareValidatorService<T extends Software<T> = Software<any>> imp
     );
   }
 
-  getPropertyFormGroup(data?: { key: string; value?: string; }): UntypedFormGroup {
+  getPropertyFormGroup(data?: { key: string; value?: string }): UntypedFormGroup {
     return this.formBuilder.group({
       key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
       value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]

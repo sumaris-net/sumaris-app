@@ -1,14 +1,29 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading"
+  (onValidate)="save($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
+  <app-debug *ngIf="debug">
+    enabled: {{ enabled }}
+    <br />
+    ready: {{ readySubject | async }}
+    <br />
+    dirty: {{ dirtySubject | async }}
+    <br />
+    valid: {{ valid }}
+    <br />
+  </app-debug>
 
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
-
     <!-- TAB: general -->
-    <mat-tab label="{{'CONFIGURATION.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>CONFIGURATION.TAB_GENERAL</ion-label>
@@ -19,21 +34,20 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
-
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form #referentialForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-
-              </app-referential-form>
+              <app-referential-form
+                #referentialForm
+                [form]="form"
+                [showError]="false"
+                [debug]="debug"
+                (onSubmit)="save($event)"
+              ></app-referential-form>
             </ion-col>
 
             <!-- entity metadata-->
@@ -46,7 +60,7 @@
     </mat-tab>
 
     <!-- TAB: properties -->
-    <mat-tab label="{{'CONFIGURATION.TAB_PROPERTIES'|translate}}" [disabled]="isNewData">
+    <mat-tab label="{{ 'CONFIGURATION.TAB_PROPERTIES' | translate }}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
         <ion-label translate>CONFIGURATION.TAB_PROPERTIES</ion-label>
@@ -54,51 +68,45 @@
       </ng-template>
 
       <div class="ion-padding">
-
-        <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{allowEmptyArray: true}">
-
-        </app-properties-form>
-
+        <app-properties-form
+          #propertiesForm
+          [definitions]="propertyDefinitions"
+          [options]="{ allowEmptyArray: true }"
+        ></app-properties-form>
       </div>
-
     </mat-tab>
   </mat-tab-group>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
 
-
 <ng-template #propertiesSkeleton>
-
   <ion-grid class="ion-no-padding">
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
     <ng-container *ngTemplateOutlet="propertyRowSkeleton"></ng-container>
   </ion-grid>
-
 </ng-template>
 
 <ng-template #propertyRowSkeleton>
-
   <ion-row>
     <!-- property key -->
     <ion-col>
       <mat-form-field>
-        <input matInput hidden>
+        <input matInput hidden />
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
         <ion-icon name="arrow-dropdown" matSuffix></ion-icon>
       </mat-form-field>
@@ -106,17 +114,15 @@
     <!-- value -->
     <ion-col>
       <mat-form-field>
-        <input matInput hidden>
+        <input matInput hidden />
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
       </mat-form-field>
     </ion-col>
     <!-- buttons -->
     <ion-col size="2">
-      <button type="button" mat-icon-button color="light"
-              [disabled]="true">
+      <button type="button" mat-icon-button color="light" [disabled]="true">
         <mat-icon>close</mat-icon>
       </button>
     </ion-col>
   </ion-row>
-
 </ng-template>

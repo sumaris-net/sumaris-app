@@ -15,7 +15,8 @@ import {
   firstNotNilPromise,
   IEntitiesService,
   IEntityService,
-  IReferentialRef, isNil,
+  IReferentialRef,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -29,7 +30,7 @@ import {
   StatusIds,
   suggestFromArray,
   SuggestService,
-  Toasts
+  Toasts,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -55,101 +56,133 @@ import { SortDirection } from '@angular/material/sort';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { ProgramPrivilege, ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
+import { ProgramPrivilegeUtils } from '@app/referential/services/model/model.utils';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
-  loadLight: gql`query ProgramRef($id: Int, $label: String){
-        data: program(id: $id, label: $label){
-          ...LightProgramFragment
-        }
+  loadLight: gql`
+    query ProgramRef($id: Int, $label: String) {
+      data: program(id: $id, label: $label) {
+        ...LightProgramFragment
+      }
     }
-    ${ProgramFragments.lightProgram}`,
+    ${ProgramFragments.lightProgram}
+  `,
 
   // Load by id or label
-  load: gql`query ProgramRef($id: Int, $label: String){
-        data: program(id: $id, label: $label){
-          ...ProgramRefFragment
-        }
+  load: gql`
+    query ProgramRef($id: Int, $label: String) {
+      data: program(id: $id, label: $label) {
+        ...ProgramRefFragment
+      }
     }
-    ${ProgramFragments.programRef}`,
+    ${ProgramFragments.programRef}
+  `,
 
   // Load by id or label, with strategies
-  loadWithStrategies: gql`query ProgramRef($id: Int, $label: String, $strategyFilter: StrategyFilterVOInput){
-    data: program(id: $id, label: $label){
-      ...ProgramRefFragment
-      strategies(filter: $strategyFilter) {
-        ...StrategyRefFragment
+  loadWithStrategies: gql`
+    query ProgramRef($id: Int, $label: String, $strategyFilter: StrategyFilterVOInput) {
+      data: program(id: $id, label: $label) {
+        ...ProgramRefFragment
+        strategies(filter: $strategyFilter) {
+          ...StrategyRefFragment
+        }
       }
     }
-  }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`,
+    ${ProgramFragments.programRef}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
 
   // Load all query
-  loadAll: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ProgramRefFragment
+  loadAll: gql`
+    query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...ProgramRefFragment
+      }
     }
-  }
-  ${ProgramFragments.programRef}`,
+    ${ProgramFragments.programRef}
+  `,
 
   // Load all query (with total)
-  loadAllWithTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ProgramRefFragment
+  loadAllWithTotal: gql`
+    query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...ProgramRefFragment
+      }
+      total: programsCount(filter: $filter)
     }
-    total: programsCount(filter: $filter)
-  }
-  ${ProgramFragments.programRef}`,
+    ${ProgramFragments.programRef}
+  `,
 
   // Load all query with strategies
-  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $strategyFilter: StrategyFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ProgramRefFragment
-      strategies(filter: $strategyFilter) {
-        ...StrategyRefFragment
+  loadAllWithStrategies: gql`
+    query Programs(
+      $filter: ProgramFilterVOInput!
+      $strategyFilter: StrategyFilterVOInput
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+    ) {
+      data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...ProgramRefFragment
+        strategies(filter: $strategyFilter) {
+          ...StrategyRefFragment
+        }
       }
     }
-  }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`,
+    ${ProgramFragments.programRef}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
 
   // Load all query (with total, and strategies)
-  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $strategyFilter: StrategyFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ProgramRefFragment
-      strategies(filter: $strategyFilter) {
-        ...StrategyRefFragment
+  loadAllWithStrategiesAndTotal: gql`
+    query Programs(
+      $filter: ProgramFilterVOInput!
+      $strategyFilter: StrategyFilterVOInput
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+    ) {
+      data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...ProgramRefFragment
+        strategies(filter: $strategyFilter) {
+          ...StrategyRefFragment
+        }
       }
+      total: programsCount(filter: $filter)
     }
-    total: programsCount(filter: $filter)
-  }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`
+    ${ProgramFragments.programRef}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
 };
 
 const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions & { listenAuthorizedPrograms: any} = {
@@ -194,7 +227,7 @@ export class ProgramRefService
   private _subscriptionCache: {[key: string]: {
       subject: Subject<Program>;
       subscription: Subscription;
-    }} = {};
+    };} = {};
   private _listenAuthorizedSubscription: Subscription = null;
 
   constructor(
@@ -264,13 +297,29 @@ export class ProgramRefService
       return true;
     }
 
-    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
-    // const program = opts?.program || load()
-    // See http://youtrack.ifremer.fr/issue/Obsbio-92
-    console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
+    // Manager can write data (IMAGINE - issue #465)
+    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.MANAGER)) {
+      return true;
+    }
 
-    // Check same department
-    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+    // If user has observer privileges and the option to allow observer to write data is enabled
+    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
+      // Check if declared as observers (in data)
+      if (
+        DataEntityUtils.isWithObservers(entity)
+        && opts?.program?.getPropertyAsBoolean(ProgramProperties.DATA_OBSERVERS_CAN_WRITE)
+        && entity.observers?.some(o => ReferentialUtils.equals(o, this.accountService.person))
+      ) {
+        return true;
+      }
+
+      // Check same department
+      if (this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -332,6 +381,7 @@ export class ProgramRefService
 
   /**
    * Watch program by label
+   *
    * @param label
    * @param opts
    */
@@ -414,7 +464,7 @@ export class ProgramRefService
     );
   }
 
-  async existsByLabel(label: string): Promise<Boolean> {
+  async existsByLabel(label: string): Promise<boolean> {
     if (isNilOrBlank(label)) return false;
 
     const program = await this.loadByLabel(label, {toEntity: false});
@@ -454,7 +504,7 @@ export class ProgramRefService
       const res = await this.graphql.query<{ data: any }>({
         query,
         variables: { label },
-        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAM_ERROR'}
       });
       data = res && res.data;
     }
@@ -524,7 +574,7 @@ export class ProgramRefService
         }),
         // Merge duplicated pmfms (make to a unique pmfm, by id)
         map(pmfms => pmfms.reduce((res, p) => {
-            let index = res.findIndex(other => other.id === p.id);
+            const index = res.findIndex(other => other.id === p.id);
             if (index !== -1) {
               console.debug('[program-ref-service] Merging duplicated pmfms:', res[index], p);
               res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
@@ -674,14 +724,14 @@ export class ProgramRefService
   /**
    * Load program taxon groups
    */
-  loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean; }): Promise<TaxonGroupRef[]> {
+  loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean }): Promise<TaxonGroupRef[]> {
     return firstNotNilPromise(this.watchTaxonGroups(programLabel, opts));
   }
 
   /**
    * Suggest program taxon groups
    */
-  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string; }>): Promise<LoadResult<IReferentialRef>> {
+  async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string }>): Promise<LoadResult<IReferentialRef>> {
     // Search on program's taxon groups
     if (filter && isNotNil(filter.program)) {
       const programItems = await this.loadTaxonGroups(filter.program, {toEntity: false});
@@ -706,7 +756,7 @@ export class ProgramRefService
   async suggestTaxonNames(value: any, opts: {
     programLabel?: string;
     levelId?: number;
-    levelIds?: number[]
+    levelIds?: number[];
     searchAttribute?: string;
     taxonGroupId?: number;
   }): Promise<LoadResult<TaxonNameRef>> {
@@ -787,7 +837,7 @@ export class ProgramRefService
     const maxProgression = opts && opts.maxProgression || 100;
 
     const now = this._debug && Date.now();
-    console.info("[program-ref-service] Importing programs...");
+    console.info('[program-ref-service] Importing programs...');
 
     try {
       // Clear cache
@@ -805,7 +855,7 @@ export class ProgramRefService
 
       // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
       if (strategyFilter) {
-        filter.label = filter.label || opts?.program?.label
+        filter.label = filter.label || opts?.program?.label;
       }
 
       // Keep other programs, when ONLY ONE program is imported here
@@ -845,7 +895,7 @@ export class ProgramRefService
 
     }
     catch (err) {
-      console.error("[program-ref-service] Error during programs importation", err);
+      console.error('[program-ref-service] Error during programs importation', err);
       throw err;
     }
   }
@@ -887,13 +937,25 @@ export class ProgramRefService
   }
 
   async clearCache() {
-    console.info("[program-ref-service] Clearing program cache...");
+    console.info('[program-ref-service] Clearing program cache...');
     await this.cache.clearGroup(ProgramRefCacheKeys.CACHE_GROUP);
+  }
+
+  hasExactPrivilege(program: Program, privilege: ProgramPrivilege): boolean {
+    // Lookup on person's privileges
+    return ProgramPrivilegeUtils.hasExactPrivilege(program?.privileges, privilege);
+    // TODO check program department privileges ? Or fill privileges on POD, with Program2Department
+  }
+
+  hasUpperOrEqualPrivilege(program: Program, privilege: ProgramPrivilege): boolean {
+    // Lookup on person's privileges
+    return ProgramPrivilegeUtils.hasUpperOrEqualsPrivilege(program?.privileges, privilege);
+    // TODO check program department privileges ? Or fill privileges on POD, with Program2Department
   }
 
   /* -- protected methods -- */
 
-  protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number; }) {
+  protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number }) {
     if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
 
     console.debug(`${this._logPrefix}Watching authorized programs...`);

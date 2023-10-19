@@ -150,6 +150,9 @@
       "DIALOG_TITLE": "Share",
       "LINK": "Share link"
     },
+    "REPORT": {
+      "SHARE_LINK_PLACEHOLDER": "Link of the report:"
+    },
     "HELP": {
       "TITLE": "Online help"
     }
@@ -1844,6 +1847,14 @@
         "TITLE": "Method {{label}} - {{name}}"
       }
     },
+    "METIER": {
+      "NAME": "Metier",
+      "GEAR": "Gear",
+      "TAXON_GROUP": "Target species",
+      "EDIT": {
+        "TITLE": "Metier {{label}}"
+      }
+    },
     "TRANSCRIBING_ITEM": {
       "OBJECT": "Reference",
       "LABEL": "Transcribing code",
@@ -2059,6 +2070,7 @@
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
       },
+      "TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS": "Extraction > Trips: Locations level(s) for column 'AREA'",
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Occasion > Start date: Time ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Occasion > End date?",
@@ -2101,7 +2113,8 @@
       "STRATEGY_DEPARTMENT_ENABLE": "Strategy > Enable access right by department (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
-      "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
+      "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?",
+      "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it ?"
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
@@ -2229,6 +2242,7 @@
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Default value",
         "DEFAULT_QUALITATIVE_VALUE": "Default value",
+        "CONDITIONS": "Conditions",
         "TABLE": {
           "TITLE": "Collected parameters"
         }
@@ -2484,7 +2498,8 @@
       "MAP_CENTER_ZOOM": "Extraction > Map: Default zoom (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions",
-      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?"
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
+      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Trips > Individual length (HL): Length PMFM(s)"
     },
     "PRODUCT": {
       "NEW": {
@@ -2493,6 +2508,9 @@
       },
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
+      },
+      "INFO": {
+        "UPDATED_SUCCEED": "Execution <b>completed</b> successfully!"
       }
     },
     "FORMAT": {

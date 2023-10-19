@@ -90,6 +90,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
 
   /**
    * Load extraction rows
+   *
    * @param type
    * @param offset
    * @param size
@@ -127,11 +128,11 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     }
 
     const now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
+    if (this._debug) console.debug('[extraction-service] Loading rows... using options:', variables);
     const res = await this.graphql.query<{ data: ExtractionResult }>({
       query: Queries.loadRows,
       variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
     });
     if (!res || !res.data) return null;
@@ -146,6 +147,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
 
   /**
    * Download extraction to file
+   *
    * @param type
    * @param filter
    * @param options
@@ -154,7 +156,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     type: ExtractionType,
     filter?: ExtractionFilter,
     options?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
     }): Promise<string | undefined> {
 
     filter = this.asFilter(filter);
@@ -165,11 +167,11 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
+    if (this._debug) console.debug('[extraction-service] Download extraction file... using options:', variables);
     const res = await this.graphql.query<{ data: string }>({
       query: Queries.getFile,
       variables,
-      error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
+      error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: 'EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
     const fileUrl = res && res.data;
@@ -204,7 +206,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
                     sortDirection?: SortDirection,
                     filter?: ExtractionFilter,
                     options?: {
-                      fetchPolicy?: FetchPolicy
+                      fetchPolicy?: FetchPolicy;
                     }): Promise<FeatureCollection> {
     options = options || {};
 
@@ -220,8 +222,8 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
 
     const res = await this.graphql.query<{ data: any }>({
       query: Queries.loadGeoJson,
-      variables: variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
+      variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.data) return null;
@@ -232,7 +234,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
   async loadAggByTech(type: ExtractionType,
                       strata: IAggregationStrata,
                       filter: ExtractionFilter,
-                      options?: { fetchPolicy?: FetchPolicy; }): Promise<Map<string, any>> {
+                      options?: { fetchPolicy?: FetchPolicy }): Promise<Map<string, any>> {
 
     filter = this.asFilter(filter);
 
@@ -244,8 +246,8 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
 
     const { data } = await this.graphql.query<{ data: {data: Map<string, any>} }>({
       query: Queries.loadTech,
-      variables: variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_TECH_ERROR"},
+      variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: 'EXTRACTION.ERROR.LOAD_TECH_ERROR'},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -255,20 +257,20 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
   async loadAggMinMaxByTech(type: ExtractionType,
                             strata: IAggregationStrata,
                             filter: ExtractionFilter,
-                            opts?: { fetchPolicy?: FetchPolicy; }): Promise<{min: number; max: number; }> {
+                            opts?: { fetchPolicy?: FetchPolicy }): Promise<{min: number; max: number }> {
 
     filter = this.asFilter(filter);
 
     const variables = {
       type: ExtractionTypeUtils.minify(type),
       filter: filter && filter.asPodObject(),
-      strata: strata
+      strata
     };
 
-    const res = await this.graphql.query<{ data: {min: number; max: number; } }>({
+    const res = await this.graphql.query<{ data: {min: number; max: number } }>({
       query: Queries.techMinMax,
-      variables: variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR"},
+      variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: 'EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 

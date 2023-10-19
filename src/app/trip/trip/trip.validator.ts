@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { SaleValidatorService } from '../sale/sale.validator';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Trip } from './trip.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
@@ -147,10 +147,10 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     opts.withObservers = toBoolean(opts.withObservers,
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'));
     opts.withMetiers = toBoolean(opts.withMetiers,
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
-    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === "true"));
+    ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === 'true'));
     opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
     opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
     opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);

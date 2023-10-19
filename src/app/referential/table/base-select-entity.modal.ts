@@ -89,7 +89,7 @@ export abstract class BaseSelectEntityModal<
     // Load data
     setTimeout(() => {
 
-      this.table.onRefresh.next("modal");
+      this.table.onRefresh.next('modal');
       this.markForCheck();
     }, 200);
   }

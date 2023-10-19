@@ -3,7 +3,6 @@ import { ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/cl
 import { Observable, of } from 'rxjs';
 import { filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
-
 import {
   AccountService,
   BaseEntityGraphqlQueries,
@@ -19,7 +18,7 @@ import {
   Property,
   propertyComparator,
   ReferentialUtils,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ExtractionType, ExtractionTypeUtils } from './extraction-type.model';
 import { DataCommonFragments } from '@app/trip/trip/trip.queries';
@@ -31,39 +30,42 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TranslateService } from '@ngx-translate/core';
 import { intersectArrays } from '@app/shared/functions';
 
-
 export const ExtractionTypeFragments = {
-  lightType : gql`fragment LightExtractionTypeFragment on ExtractionTypeVO {
-    id
-    label
-    name
-    format
-    version
-    updateDate
-  }`,
-  type: gql`fragment ExtractionTypeFragment on ExtractionTypeVO {
-    id
-    label
-    name
-    format
-    version
-    description
-    docUrl
-    updateDate
-    comments
-    isSpatial
-    statusId
-    sheetNames
-    processingFrequencyId
-    recorderPerson {
-      ...LightPersonFragment
+  lightType: gql`
+    fragment LightExtractionTypeFragment on ExtractionTypeVO {
+      id
+      label
+      name
+      format
+      version
+      updateDate
     }
-    recorderDepartment {
-      ...LightDepartmentFragment
+  `,
+  type: gql`
+    fragment ExtractionTypeFragment on ExtractionTypeVO {
+      id
+      label
+      name
+      format
+      version
+      description
+      docUrl
+      updateDate
+      comments
+      isSpatial
+      statusId
+      sheetNames
+      processingFrequencyId
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
     }
-  }
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}`
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+  `,
 };
 
 const Queries: BaseEntityGraphqlQueries = {
@@ -75,7 +77,7 @@ const Queries: BaseEntityGraphqlQueries = {
     }
     ${ExtractionTypeFragments.type}`,
 
-}
+};
 
 const fixWorkaroundDataFn = ({data, total}) => {
   // Workaround because saveAggregation() doest not add NEW extraction type correctly
@@ -86,7 +88,7 @@ const fixWorkaroundDataFn = ({data, total}) => {
     }
     return true;
   });
-  return {data, total}
+  return {data, total};
 };
 
 @Injectable({providedIn: 'root'})
@@ -171,6 +173,7 @@ export class ExtractionTypeService
   }
   /**
    * Watch extraction types from given program labels
+   *
    * @protected
    */
   watchAllByProgramLabels(programLabels: string[], filter?: Partial<ExtractionTypeFilter>, opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
@@ -183,6 +186,7 @@ export class ExtractionTypeService
 
   /**
    * Watch extraction types from given programs
+   *
    * @protected
    */
   protected watchAllByPrograms(programs?: Program[], typeFilter?: Partial<ExtractionTypeFilter>, opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
@@ -192,8 +196,8 @@ export class ExtractionTypeService
       .pipe(
         filter(isNotEmptyArray),
         // Get extraction formats of selected programs (apply an intersection)
-        map(programs => {
-          const formatArrays = programs.map(program => {
+        map(values => {
+          const formatArrays = values.map(program => {
             const programFormats = program.getPropertyAsStrings(ProgramProperties.EXTRACTION_FORMATS);
             if (isNotEmptyArray(programFormats)) return programFormats;
             // Not configured in program options: return all formats
@@ -201,7 +205,7 @@ export class ExtractionTypeService
               .map(item => item.key?.toUpperCase()) // Extract the format (from option's key)
               .filter(format => format !== 'NA'); // Skip the 'NA' format
           });
-          if (formatArrays.length === 1) return formatArrays[0]
+          if (formatArrays.length === 1) return formatArrays[0];
           return intersectArrays(formatArrays);
         }),
 
@@ -219,12 +223,12 @@ export class ExtractionTypeService
         ),
 
         // Translate types, and sort
-        map(({data}) => {
+        map(({data}) =>
           // Compute i18n name
-          return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+           data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
             // Then sort by name
-            .sort(propertyComparator('name'));
-        })
+            .sort(propertyComparator('name'))
+        )
       );
   }
 }

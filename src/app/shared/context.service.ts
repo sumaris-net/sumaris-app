@@ -24,7 +24,7 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
-    super()
+    super();
     this.reset();
   }
 
@@ -44,7 +44,7 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
     return this.get(key);
   }
 
-  resetValue(key) {
+  resetValue<K extends keyof S>(key: K) {
     this.set(key, () => this.defaultState[key]);
   }
 
@@ -68,7 +68,15 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
     return this.get('program');
   }
 
+  set program(value: Program|undefined) {
+    this.set('clipboard', _ => value);
+  }
+
   get strategy(): Strategy|undefined {
     return this.get('strategy');
+  }
+
+  set strategy(value: Strategy|undefined) {
+    this.set('strategy', _ => value);
   }
 }

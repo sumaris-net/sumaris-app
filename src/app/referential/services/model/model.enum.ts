@@ -2,7 +2,7 @@ import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
 
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
-}
+};
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
   // Lands
@@ -33,7 +33,7 @@ export const LocationLevelGroups = {
   FISHING_AREA: LocationLevels.getFishingAreaLevelIds(),
   WEIGHT_LENGTH_CONVERSION_AREA: LocationLevels.getWeightLengthConversionAreaLevelIds(),
   STATISTICAL_RECTANGLE: LocationLevels.getStatisticalRectangleLevelIds()
-}
+};
 
 export const GearLevelIds = {
   FAO: 1
@@ -186,7 +186,7 @@ export const MethodIds = {
 };
 export abstract class Methods {
   static getCalculatedIds() {
-    return [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+    return [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM];
   }
 }
 export const MethodIdGroups = {
@@ -196,12 +196,12 @@ export const MatrixIds = {
   BATCH: 1,
   INDIVIDUAL: 2,
   GEAR: 3
-}
+};
 
 export const ParameterGroupIds = {
   UNKNOWN: 0,
   SURVEY: 1
-}
+};
 
 export const autoCompleteFractions = {
   1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
@@ -209,7 +209,7 @@ export const autoCompleteFractions = {
   1988: 'Otholite', 1567: 'Otholite', 1566: 'Otholite', 1681: 'Otholite', 1772: 'Otholite', 1551: 'Otholite', 1540: 'Otholite', 1543: 'Otholite',
   1573: 'Otholite', 1980: 'Otholite', 1978: 'Otholite', 1690: 'Otholite', 1689: 'Otholite', 1351: 'Otholite', 1996: 'Otholite', 1356: 'Otholite',
   1560: 'Otholite', 1559: 'Otholite'
-}
+};
 
 export const ParameterLabelGroups = {
   TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */,
@@ -281,11 +281,11 @@ export const PmfmLabelPatterns = {
 
 export const UnitIds = {
   NONE: 0
-}
+};
 
 export const GearIds = {
   //OTT: 7 // Not used - WARN id=21 in the SIH database
-}
+};
 
 export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
 export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
@@ -309,17 +309,17 @@ export const UnitLabel = {
 };
 
 export const WeightKgConversion: Record<WeightUnitSymbol, number> = Object.freeze({
-  't': 1000,
-  'kg': 1,
-  'g': 1/1000,
-  'mg': 1/1000/1000
+  t: 1000,
+  kg: 1,
+  g: 1/1000,
+  mg: 1/1000/1000
 });
 export const LengthMeterConversion: Record<LengthUnitSymbol, number> = Object.freeze({
-  'km': 1000,
-  'm': 1,
-  'dm': 1/10,
-  'cm': 1/100,
-  'mm': 1/1000
+  km: 1000,
+  m: 1,
+  dm: 1/10,
+  cm: 1/100,
+  mm: 1/1000
 });
 export const UnitLabelPatterns = {
   DATE_TIME: /^Date[ &]+Time$/,
@@ -328,7 +328,7 @@ export const UnitLabelPatterns = {
 export const UnitLabelGroups = {
   WEIGHT: Object.keys(WeightKgConversion),
   LENGTH: Object.keys(LengthMeterConversion)
-}
+};
 
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -341,12 +341,10 @@ export const QualityFlagIds = {
   MISSING: 9
 };
 
-export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => {
-  return {
+export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => ({
     id,
     label
-  };
-});
+  }));
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CHILD_PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
@@ -384,6 +382,11 @@ export const SaleTypeIds = {
   OTHER: 4
 };
 
+export type ProgramPrivilege = 'MANAGER'|'OBSERVER'|'VIEWER'|'VALIDATOR'|'QUALIFIER';
+export const ProgramPrivilegeEnum = Object.freeze({
+  MANAGER: <ProgramPrivilege>'MANAGER',
+  OBSERVER: <ProgramPrivilege>'OBSERVER'
+});
 export const ProgramPrivilegeIds = {
   MANAGER: 1,
   OBSERVER: 2,
@@ -392,10 +395,18 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
-export enum ObjectTypeEnum {
-  TRIP = 'FISHING_TRIP',
-  OBSERVED_LOCATION = 'OBSERVED_LOCATION',
-}
+export const ProgramPrivilegeHierarchy = Object.freeze({
+  MANAGER: <ProgramPrivilege[]>['MANAGER', 'OBSERVER', 'VIEWER', 'VALIDATOR', 'QUALIFIER'],
+  OBSERVER: <ProgramPrivilege[]>['OBSERVER', 'VIEWER'],
+  VIEWER: <ProgramPrivilege[]>['VIEWER'],
+  VALIDATOR: <ProgramPrivilege[]>['VALIDATOR', 'VIEWER'],
+  QUALIFIER: <ProgramPrivilege[]>['QUALIFIER', 'VIEWER'],
+});
+
+export const ObjectTypeLabels = {
+  TRIP: 'FISHING_TRIP',
+  OBSERVED_LOCATION: 'OBSERVED_LOCATION',
+};
 
 export class ModelEnumUtils {
   static refreshDefaultValues() {
@@ -405,10 +416,10 @@ export class ModelEnumUtils {
     LocationLevelGroups.STATISTICAL_RECTANGLE = LocationLevels.getStatisticalRectangleLevelIds();
   }
 
-  static getObjectTypeByEntityName(entityName: string): ObjectTypeEnum {
+  static getObjectTypeByEntityName(entityName: string): string {
     if (!entityName) throw new Error('Missing argument \'entityName\'');
     const label = changeCaseToUnderscore(entityName).toUpperCase();
-    const value = ObjectTypeEnum[label];
+    const value = ObjectTypeLabels[label];
     if (value) return value;
     throw new Error('Missing an ObjectType for entityName: ' + entityName);
   }

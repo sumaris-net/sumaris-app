@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { Program } from '../services/model/program.model';
@@ -18,23 +18,27 @@ import {
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  HistoryPageReference, IEntity,
-  isNil, isNotEmptyArray,
-  isNotNil, isNotNilOrBlank, Property,
+  HistoryPageReference,
+  IEntity,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  Property,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  StatusIds, SuggestFn
+  StatusIds,
+  SuggestFn,
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
 import { ISelectReferentialModalOptions, SelectReferentialModal } from '../table/select-referential.modal';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
-import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 
@@ -42,8 +46,8 @@ const PROGRAM_TABS = {
   LOCATIONS: 1,
   STRATEGIES: 2,
   OPTIONS: 3,
-  PERSONS: 4
-}
+  PERSONS: 4,
+};
 @Component({
   selector: 'app-program',
   templateUrl: 'program.page.html',
@@ -54,7 +58,7 @@ const PROGRAM_TABS = {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
+export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
 
   readonly TABS = PROGRAM_TABS;
   readonly mobile: boolean;
@@ -98,7 +102,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
     // default values
     this.mobile = this.settings.mobile;
-    this.defaultBackHref = "/referential/list?entity=Program";
+    this.defaultBackHref = '/referential/list?entity=Program';
     this._enabled = this.accountService.isAdmin();
 
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
@@ -168,11 +172,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
   load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: "network-only"});
+    return super.load(id, {...opts, fetchPolicy: 'network-only'});
   }
 
 
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     // TODO BLA remove this ?
@@ -226,7 +230,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   }
 
   protected setValue(data: Program) {
-    data = data || new Program()
+    data = data || new Program();
 
     this.form.patchValue({...data,
       properties: [],
@@ -263,7 +267,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
           case 'entity': {
             value = typeof value === 'string' ? value.trim() : value;
             if (isNotNilOrBlank(value)) {
-              const entity = await this.resolveEntity(def, value)
+              const entity = await this.resolveEntity(def, value);
               data.properties[def.key] = entity;
             } else {
               data.properties[def.key] = null;
@@ -273,7 +277,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
           case 'entities': {
             const values = (value || '').trim().split(/[|,]+/);
             if (isNotEmptyArray(values)) {
-              const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
+              const entities = await Promise.all(values.map(v => this.resolveEntity(def, v)));
               data.properties[def.key] = entities;
             } else {
               data.properties[def.key] = null;
@@ -337,7 +341,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
           property.value = property.value.map(v => v?.id).filter(isNotNil).join(',');
         }
         else {
-          property.value = (property.value as any)?.id
+          property.value = (property.value as any)?.id;
         }
       });
     data.properties
@@ -347,7 +351,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
           property.value = property.value.map(v => v?.key).filter(isNotNil).join(',');
         }
         else {
-          property.value = (property.value as any)?.key
+          property.value = (property.value as any)?.key;
         }
       });
 
@@ -441,7 +445,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.markAsLoading();
 
     setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
+      await this.router.navigate(['referential', 'programs',  this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
         queryParams: {}
       });
       this.markAsLoaded();

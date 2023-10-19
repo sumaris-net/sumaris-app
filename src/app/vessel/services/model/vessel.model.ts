@@ -15,7 +15,7 @@ import {
   ReferentialUtils,
   toDateISOString
 } from '@sumaris-net/ngx-components';
-import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselVO'})
@@ -103,6 +103,10 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   // Parent
   vesselId: number;
 
+  get empty(): boolean {
+    return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
+  }
+
   constructor() {
     super(VesselFeatures.TYPENAME);
     this.hullMaterial = null;
@@ -165,10 +169,6 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.creationDate = fromDateISOString(source.creationDate);
     this.qualityFlagId = source.qualityFlagId;
   }
-
-  get empty(): boolean {
-    return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
-  }
 }
 
 @EntityClass({typename: 'VesselRegistrationPeriodVO'})
@@ -182,6 +182,12 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
   registrationCode: string = null;
   intRegistrationCode: string = null;
   registrationLocation: ReferentialRef = null;
+
+  get empty(): boolean {
+    return isNil(this.id) && isNilOrBlank(this.registrationCode) && isNilOrBlank(this.intRegistrationCode)
+      && ReferentialUtils.isEmpty(this.registrationLocation)
+      && isNil(this.startDate);
+  }
 
   constructor() {
     super(VesselRegistrationPeriod.TYPENAME);
@@ -218,11 +224,5 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation) || undefined;
-  }
-
-  get empty(): boolean {
-    return isNil(this.id) && isNilOrBlank(this.registrationCode) && isNilOrBlank(this.intRegistrationCode)
-      && ReferentialUtils.isEmpty(this.registrationLocation)
-      && isNil(this.startDate);
   }
 }

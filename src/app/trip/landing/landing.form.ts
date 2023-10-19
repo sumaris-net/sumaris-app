@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, AcquisitionLevelType, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  AcquisitionLevelType,
+  LocationLevelGroups,
+  LocationLevelIds,
+  PmfmIds,
+} from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
 import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
@@ -31,7 +37,7 @@ import {
   suggestFromArray,
   toBoolean,
   toDateISOString,
-  UserProfileLabel
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from './landing.model';
@@ -46,17 +52,19 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { Trip } from '@app/trip/trip/trip.model';
 import { TripValidatorService } from '@app/trip/trip/trip.validator';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { DateAdapter } from '@angular/material/core';
 import { Moment } from 'moment/moment';
-import { ISelectObservedLocationsModalOptions, SelectObservedLocationsModal } from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
+import {
+  ISelectObservedLocationsModalOptions,
+  SelectObservedLocationsModal,
+} from '@app/trip/observedlocation/select-modal/select-observed-locations.modal';
 import { Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyService } from '@app/referential/services/strategy.service';
-
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
 
@@ -65,8 +73,8 @@ type FilterableFieldName = 'fishingArea';
 interface LandingFormState extends MeasurementValuesState {
   showStrategy: boolean;
   canEditStrategy: boolean;
-  showParent: boolean
-  parentAcquisitionLevel: AcquisitionLevelType
+  showParent: boolean;
+  parentAcquisitionLevel: AcquisitionLevelType;
   showObservedLocation: boolean;
 
   strategyControl: UntypedFormControl;
@@ -110,7 +118,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   get valid(): boolean {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty))
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
   }
 
   get observersForm(): UntypedFormArray {
@@ -160,7 +168,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   @Input() allowAddNewVessel: boolean;
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
-  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
+  @Input() fishingAreaLocationLevelIds: number[] = null;
 
   @Input() set showStrategy(value: boolean) {
     this._state.set('showStrategy', (_) => value);
@@ -213,9 +221,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     return this._state.get('parentAcquisitionLevel');
   }
 
-  @Output() onObservedLocationChanges = new EventEmitter<ObservedLocation>();
-  @Output() onOpenObservedLocation = new EventEmitter<ObservedLocation>();
-  @Output() onStrategyChanges = new EventEmitter<Strategy>();
+  @Output() observedLocationChanges = new EventEmitter<ObservedLocation>();
+  @Output() openObservedLocation = new EventEmitter<ObservedLocation>();
+  @Output() strategyChanges = new EventEmitter<Strategy>();
 
   constructor(
     injector: Injector,
@@ -259,8 +267,13 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
-      console.debug("[landing-form] Location level ids:", this.locationLevelIds);
+      console.debug('[landing-form] Location level ids:', this.locationLevelIds);
     }
+    if (isNil(this.fishingAreaLocationLevelIds) && this.showFishingArea) {
+      this.fishingAreaLocationLevelIds = LocationLevelGroups.FISHING_AREA;
+      console.debug('[landing-form] Fishing area location level ids:', this.fishingAreaLocationLevelIds);
+    }
+
 
     // Combo: programs
     this.registerAutocompleteField('program', {
@@ -406,7 +419,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       else if (!canEditStrategy && this.strategyControl?.enabled) {
         this.strategyControl.disable();
       }
-    })
+    });
 
     // Add observed location control
     this._state.connect('showObservedLocation', this._state.select(['showParent', 'parentAcquisitionLevel'], s => s),
@@ -414,17 +427,17 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     );
     this._state.connect('observedLocationControl', this._state.select('showObservedLocation'), (_, show) => this.initObservedLocationControl(show));
 
-    this._state.connect('observedLocationLabel', this.onObservedLocationChanges
+    this._state.connect('observedLocationLabel', this.observedLocationChanges
         .pipe(
           filter(parent => !parent || parent instanceof ObservedLocation),
           distinctUntilChanged(EntityUtils.equals)
       ),
-      (_, parent) => this.displayObservedLocation(parent as ObservedLocation))
+      (_, parent) => this.displayObservedLocation(parent as ObservedLocation));
 
     this._state.hold(this.strategyControl$.pipe(
       switchMap(control => control.valueChanges),
       distinctUntilChanged(EntityUtils.equals)
-    ), (strategy) => this.onStrategyChanges.emit(strategy));
+    ), (strategy) => this.strategyChanges.emit(strategy));
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -449,11 +462,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     // Reapplied changed data
     if (this.isNewData && this.form.touched) {
-      console.warn('[landing-form] Merging form value and input data, before updateing view')
+      console.warn('[landing-form] Merging form value and input data, before updateing view');
       const json = this.form.value;
       Object.keys(json).forEach(key => {
         if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
-      })
+      });
 
       data = Landing.fromObject({
         ...data.asObject(),
@@ -592,12 +605,12 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
       if (res &&  res.data instanceof VesselSnapshot) {
-        console.debug("[landing-form] New vessel added : updating form...", res.data);
+        console.debug('[landing-form] New vessel added : updating form...', res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
       }
       else {
-        console.debug("[landing-form] No vessel added (user cancelled)");
+        console.debug('[landing-form] No vessel added (user cancelled)');
       }
     });
     return modal.present();
@@ -788,8 +801,8 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       // Excluded some trip's fields
       TRIP_FORM_EXCLUDED_FIELD_NAMES
         .filter(key => {
-          if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
-            delete tripFormConfig[key]
+          if (!this.showTripDepartureDateTime || key !== 'departureDateTime') {
+            delete tripFormConfig[key];
           }
         });
 
@@ -816,11 +829,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
               map(value => value.label),
               distinctUntilChanged()
             )
-            .subscribe(strategyLabel => this.strategyLabel = strategyLabel);
+            .subscribe(value => this.strategyLabel = value);
         subscription.add(() => {
-          this.unregisterSubscription(subscription)
+          this.unregisterSubscription(subscription);
           this._strategySubscription = null;
-        })
+        });
         this.registerSubscription(subscription);
         this._strategySubscription = subscription;
       }
@@ -843,9 +856,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         this.form.addControl('observedLocation', control);
 
         // Subscribe to changes, and redirect it to the parent event emitter
-        const subscription = control.valueChanges.subscribe(ol => this.onObservedLocationChanges.emit(ol));
+        const subscription = control.valueChanges.subscribe(ol => this.observedLocationChanges.emit(ol));
         subscription.add(() => {
-          this.unregisterSubscription(subscription)
+          this.unregisterSubscription(subscription);
           this._parentSubscription = null;
         });
         this.registerSubscription(subscription);

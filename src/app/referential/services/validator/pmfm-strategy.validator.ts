@@ -1,10 +1,10 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import {PmfmStrategy} from "../model/pmfm-strategy.model";
+import {Injectable} from '@angular/core';
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {PmfmStrategy} from '../model/pmfm-strategy.model';
 
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {SharedValidators} from '@sumaris-net/ngx-components';
+import {isNotNil} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class PmfmStrategyValidatorService implements ValidatorService {

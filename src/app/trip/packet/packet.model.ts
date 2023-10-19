@@ -99,7 +99,7 @@ export class Packet extends DataEntity<Packet> {
     PacketIndexes.forEach(index => {
       sampledWeights.push(this['sampledWeight' + index]);
       delete target['sampledWeight' + index];
-    })
+    });
     target.sampledWeights = sampledWeights;
 
     target.composition = this.composition && this.composition.map(c => c.asObject(opts)) || undefined;
@@ -125,7 +125,7 @@ export class Packet extends DataEntity<Packet> {
     this.number = source.number;
     this.weight = source.weight;
     const sampledWeights = source.sampledWeights || [];
-    PacketIndexes.forEach(index => this['sampledWeight' + index] = sampledWeights[index] || source['sampledWeight' + index])
+    PacketIndexes.forEach(index => this['sampledWeight' + index] = sampledWeights[index] || source['sampledWeight' + index]);
     this.composition = source.composition && source.composition.map(c => PacketComposition.fromObject(c));
 
     this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
@@ -168,7 +168,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     PacketIndexes.forEach(index => {
       ratios.push(this['ratio' + index]);
       delete target['ratio' + index];
-    })
+    });
     target.ratios = ratios;
     delete target.weight;
     delete target.qualityFlagId;
@@ -181,7 +181,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     this.rankOrder = source.rankOrder || undefined;
     this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     const ratios = source.ratios || [];
-    PacketIndexes.forEach(index => this['ratio' + index] = ratios[index] || source['ratio' + index])
+    PacketIndexes.forEach(index => this['ratio' + index] = ratios[index] || source['ratio' + index]);
     return this;
   }
 
@@ -212,7 +212,7 @@ export class PacketUtils {
   }
 
   static getComposition(packet: Packet) {
-    return packet && packet.composition && packet.composition.map(composition => referentialToString(composition.taxonGroup)).join('\n') || "";
+    return packet && packet.composition && packet.composition.map(composition => referentialToString(composition.taxonGroup)).join('\n') || '';
   }
 
   static getCompositionAverageRatio(packet: Packet, composition: PacketComposition): number {
@@ -228,7 +228,7 @@ export class PacketUtils {
       if (!!packet['sampledWeight' + index])
         count++;
     });
-    return count
+    return count;
   }
 
 }

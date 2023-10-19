@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit
 import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
 
 @Component({

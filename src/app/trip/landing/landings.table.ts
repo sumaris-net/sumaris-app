@@ -10,7 +10,7 @@ import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { Landing } from './landing.model';
-import { LandingEditor } from '@app/referential/services/config/program.config';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
@@ -18,8 +18,20 @@ import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 
-export const LANDING_RESERVED_START_COLUMNS: string[] = ['quality', 'vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = [
+  'quality',
+  'vessel',
+  'vesselType',
+  'vesselBasePortLocation',
+  'location',
+  'dateTime',
+  'observers',
+  'creationDate',
+  'recorderPerson',
+  'samplesCount',
+];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
@@ -45,11 +57,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
-  protected locationAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
-  @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();
-  @Output() onNewTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() openTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() newTrip = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -57,6 +68,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
+  @Input() includedPmfmIds: number[] = null;
 
   @Input() set strategyPmfmId(value: number) {
     if (this._strategyPmfmId !== value) {
@@ -181,7 +193,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   constructor(
     injector: Injector,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected context: ObservedLocationContextService
   ) {
     super(injector,
       Landing, LandingFilter,
@@ -247,25 +260,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.onOpenTrip.unsubscribe();
-    this.onNewTrip.unsubscribe();
+    this.openTrip.unsubscribe();
+    this.newTrip.unsubscribe();
   }
 
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    return pmfms?.filter(p => p.required);
+    const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
+    // Keep selectivity device, if any
+    return pmfms.filter(p => p.required || (includedPmfmIds?.includes(p.id)));
   }
 
-  setParent(data: ObservedLocation | Trip | undefined) {
-    if (isNil(data?.id)) {
+  setParent(parent: ObservedLocation | Trip | undefined) {
+    if (isNil(parent?.id)) {
       this._parentDateTime = undefined;
       this.setFilter(LandingFilter.fromObject({}));
-    } else if (data instanceof ObservedLocation) {
-      this._parentDateTime = data.startDateTime;
-      this._parentObservers = data.observers;
-      this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
-    } else if (data instanceof Trip) {
-      this._parentDateTime = data.departureDateTime;
-      this.setFilter(LandingFilter.fromObject({tripId: data.id}), {emitEvent: true/*refresh*/});
+    } else if (parent instanceof ObservedLocation) {
+      this._parentDateTime = parent.startDateTime;
+      this._parentObservers = parent.observers;
+      this.context.observedLocation = parent;
+      this.setFilter(LandingFilter.fromObject({observedLocationId: parent.id}), {emitEvent: true/*refresh*/});
+    } else if (parent instanceof Trip) {
+      this._parentDateTime = parent.departureDateTime;
+      this.context.trip = parent;
+      this.setFilter(LandingFilter.fromObject({tripId: parent.id}), {emitEvent: true/*refresh*/});
     }
   }
 
@@ -297,7 +314,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
-      if (this.debug) console.debug("[landings-table] Asking for new landing...");
+      if (this.debug) console.debug('[landings-table] Asking for new landing...');
 
       // Force modal
       return this.openNewRowDetail(event);
@@ -316,10 +333,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (isNotNil(row.currentData.tripId)) {
       // Edit trip
-      this.onOpenTrip.emit(row);
+      this.openTrip.emit(row);
     } else {
       // New trip
-      this.onNewTrip.emit(row);
+      this.newTrip.emit(row);
     }
   }
 

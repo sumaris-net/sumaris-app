@@ -55,7 +55,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
     this.updateTitle();
     this.packetSaleForm.markAsReady();
     setTimeout(async () => {
-      await this.packetSaleForm.setValue(Packet.fromObject(this.data))
+      await this.packetSaleForm.setValue(Packet.fromObject(this.data));
       if (!this.disabled) this.enable();
     });
   }

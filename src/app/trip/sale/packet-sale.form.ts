@@ -3,11 +3,11 @@ import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, UsageMode } from '@sumaris-net/ngx-components';
 import { PacketValidatorService } from '../packet/packet.validator';
 import { Packet } from '../packet/packet.model';
-import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Subscription } from 'rxjs';
-import { fillRankOrder } from '../../data/services/model/model.utils';
+import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
-import { DenormalizedPmfmStrategy } from '../../referential/services/model/pmfm-strategy.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-packet-sale-form',

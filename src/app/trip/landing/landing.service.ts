@@ -11,7 +11,9 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
-  FormErrors, FormErrorTranslator, FormErrorTranslatorOptions,
+  FormErrors,
+  FormErrorTranslator,
+  FormErrorTranslatorOptions,
   fromDateISOString,
   IEntitiesService,
   IEntityService,
@@ -19,16 +21,19 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   JobUtils,
-  LoadResult, LocalSettingsService,
+  LoadResult,
+  LocalSettingsService,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, ProgressBarService,
+  Person,
+  ProgressBarService,
   toDateISOString,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, firstValueFrom, Observable } from 'rxjs';
 import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
@@ -42,7 +47,12 @@ import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { LandingFilter } from './landing.filter';
-import { DataEntityAsObjectOptions, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import {
+  DataEntityAsObjectOptions,
+  DataEntityUtils,
+  MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
+} from '@app/data/services/model/data-entity.model';
 import { TripFragments, TripService } from '@app/trip/trip/trip.service';
 import { Trip } from '@app/trip/trip/trip.model';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -55,15 +65,16 @@ import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
-import {LandingValidatorOptions, LandingValidatorService} from '@app/trip/landing/landing.validator';
-import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import {ProgressionModel} from '@app/shared/progression/progression.model';
+import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
+import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {StrategyRefService} from '@app/referential/services/strategy-ref.service';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -72,8 +83,7 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
   enableOptimisticResponse?: boolean;
 }
 
-export interface LandingServiceLoadOptions extends EntityServiceLoadOptions {
-}
+export type LandingServiceLoadOptions = EntityServiceLoadOptions;
 
 export declare interface LandingServiceWatchOptions
   extends EntitiesServiceWatchOptions {
@@ -220,7 +230,7 @@ const LandingQueries = {
   }`,
 };
 
-const LandingMutations:BaseRootEntityGraphqlMutations = {
+const LandingMutations: BaseRootEntityGraphqlMutations = {
   save: gql`mutation SaveLanding($data:LandingVOInput!){
     data: saveLanding(landing: $data){
       ...LandingFragment
@@ -278,21 +288,16 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
 };
 
 
-const sortByDateOrIdFn = (n1: Landing, n2: Landing) => {
-  return n1.dateTime.isSame(n2.dateTime)
+const sortByDateOrIdFn = (n1: Landing, n2: Landing) => n1.dateTime.isSame(n2.dateTime)
     ? (n1.id === n2.id ? 0 : Math.abs(n1.id) > Math.abs(n2.id) ? 1 : -1)
     : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
-};
 
-const sortByAscRankOrder = (n1: Landing, n2: Landing) => {
-  return n1.rankOrder === n2.rankOrder ? 0 :
+const sortByAscRankOrder = (n1: Landing, n2: Landing) => n1.rankOrder === n2.rankOrder
+    ? 0 :
     (n1.rankOrder > n2.rankOrder ? 1 : -1);
-};
 
-const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
-  return n1.rankOrder === n2.rankOrder ? 0 :
+const sortByDescRankOrder = (n1: Landing, n2: Landing) => n1.rankOrder === n2.rankOrder ? 0 :
     (n1.rankOrder > n2.rankOrder ? -1 : 1);
-};
 
 @Injectable({providedIn: 'root'})
 export class LandingService
@@ -331,15 +336,15 @@ export class LandingService
 
   hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
     // TODO
-    console.log('TODO: implement this part');
+    console.warn('TODO: implement LandingService.hasSampleWithTagId()');
     return Promise.resolve(false);
   }
 
-  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+    return firstValueFrom(this.watchAllByObservedLocation(filter, opts));
   }
 
-  watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
+  watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
     return this.watchAll(0, -1, null, null, filter, opts);
   }
 
@@ -366,6 +371,22 @@ export class LandingService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
+
+    // Fix sortBy (id -> rankOrder)
+    let afterSortBy = sortBy;
+    sortBy =  (sortBy !== 'id' && sortBy) || 'dateTime';
+    if (sortBy === 'vessel') {
+      sortBy = 'vesselSnapshot.' + this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES)[0];
+      // If fetching all rows: do NOT sort on pod
+      if (size === -1) {
+        afterSortBy = sortBy;
+        sortBy = 'dateTime';
+      }
+      else {
+        console.warn(this._logPrefix + `Pod sorting on '${sortBy}' can be long... Please make sure you need a page size=${size}, instead of all rows (that allow to sort in App side)`);
+      }
+    }
+
     const groupByVessel = dataFilter?.groupByVessel === true;
     if (groupByVessel || size === -1) {
       // sortBy = 'dateTime';
@@ -373,11 +394,11 @@ export class LandingService
       size = 1000;
     }
 
+
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      // TODO : Autoriser le trie par rankOrder
-      sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
+      sortBy,
       sortDirection: sortDirection || 'asc',
       filter: dataFilter && dataFilter.asPodObject()
     };
@@ -666,9 +687,10 @@ export class LandingService
 
   /**
    * Delete landing locally (from the entity storage)
+   *
    * @param filter (required observedLocationId)
    */
-  async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number; }): Promise<Landing[]> {
+  async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number }): Promise<Landing[]> {
     if (!filter || isNil(filter.observedLocationId)) throw new Error('Missing arguments \'filter.observedLocationId\'');
 
     const dataFilter = this.asFilter(filter);
@@ -787,7 +809,7 @@ export class LandingService
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
@@ -805,7 +827,7 @@ export class LandingService
       );
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = { i18nPrefix: 'LANDING.EDIT.', ...opts };
     // Translate PMFM field
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -939,7 +961,7 @@ export class LandingService
       if (errors) {
         return {
           trip: errors?.details?.errors
-        }
+        };
       }
 
       // terminate the trip
@@ -972,7 +994,7 @@ export class LandingService
 
       let errorsById: FormErrors = null;
 
-      for (let entity of data) {
+      for (const entity of data) {
 
         opts = await this.fillControlOptions(entity, opts);
 
@@ -1017,7 +1039,7 @@ export class LandingService
 
   async executeImport(filter?: Partial<LandingFilter>,
                       opts?: {
-                        progression?: BehaviorSubject<number>,
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                       }) {
     const now = this._debug && Date.now();
@@ -1077,6 +1099,7 @@ export class LandingService
 
   /**
    * Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
+   *
    * @param entity
    */
   async fixLandingTripDate(entity: Landing) {
@@ -1153,6 +1176,7 @@ export class LandingService
 
   /**
    * List of importation jobs.
+   *
    * @protected
    * @param opts
    */
@@ -1162,7 +1186,7 @@ export class LandingService
     acquisitionLevels?: string[];
   }): Observable<number>[] {
 
-    let offlineFilter = this.settings.getOfflineFeature(this.featureName)?.filter;
+    const offlineFilter = this.settings.getOfflineFeature(this.featureName)?.filter;
     if (!filter) {
       const observedLocationFilter = ObservedLocationFilter.fromObject(offlineFilter);
       filter = ObservedLocationFilter.toLandingFilter(observedLocationFilter);
@@ -1192,6 +1216,7 @@ export class LandingService
 
   /**
    * Save into the local storage
+   *
    * @param entity
    * @param opts
    */
@@ -1328,6 +1353,7 @@ export class LandingService
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */
@@ -1342,7 +1368,7 @@ export class LandingService
         // Set the operation id (required by equals function)
         target.operationId = operationId;
 
-        const source = sources.find(source => target.equals(source));
+        const source = sources.find(s => target.equals(s));
         EntityUtils.copyIdAndUpdateDate(source, target);
         RootDataEntityUtils.copyControlAndValidationDate(source, target);
 
@@ -1365,6 +1391,7 @@ export class LandingService
 
   /**
    * Copy Id and update, on images
+   *
    * @param sources
    * @param targets
    */
@@ -1377,7 +1404,7 @@ export class LandingService
         EntityUtils.copyIdAndUpdateDate(source, target);
         DataEntityUtils.copyControlDate(source, target);
         DataEntityUtils.copyQualificationDateAndFlag(source, target);
-      })
+      });
     }
   }
 
@@ -1393,6 +1420,8 @@ export class LandingService
                                     sortDirection: string,
                                     filter?: LandingFilter) {
 
+    console.log('TODO filtering landings');
+
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
       const asc = (!sortDirection || sortDirection === 'asc');
@@ -1402,7 +1431,12 @@ export class LandingService
         .forEach(o => o.rankOrder = rankOrder++);
 
       // Sort by rankOrder (even if 'id' because never used)
-      if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id') {
+      if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id' || sortBy === 'dateTime') {
+        data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
+      }
+
+      // Sort by vessel
+      if (sortBy === 'vessel') {
         data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
     }

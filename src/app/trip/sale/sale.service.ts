@@ -6,13 +6,15 @@ import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
   isNotNil,
-  LoadResult, toNumber
+  LoadResult,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -25,65 +27,67 @@ import { DocumentNode } from 'graphql';
 import { DataErrorCodes } from '@app/data/services/errors';
 
 export const SaleFragments = {
-  lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
-    id
-    startDateTime
-    endDateTime
-    tripId
-    comments
-    updateDate
-    saleLocation {
-      ...LocationFragment
-    }
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-  }
-  ${DataCommonFragments.location}
-  ${DataCommonFragments.lightDepartment}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataCommonFragments.referential}
-  `,
-  sale: gql`fragment SaleFragment_PENDING on SaleVO {
-    id
-    startDateTime
-    endDateTime
-    tripId
-    comments
-    updateDate
-    saleLocation {
-      ...LocationFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    samples {
-      ...SampleFragment
-    }
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    recorderPerson {
-        ...LightPersonFragment
-    }
-    recorderDepartment {
+  lightSale: gql`
+    fragment LightSaleFragment_PENDING on SaleVO {
+      id
+      startDateTime
+      endDateTime
+      tripId
+      comments
+      updateDate
+      saleLocation {
+        ...LocationFragment
+      }
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      recorderDepartment {
         ...LightDepartmentFragment
+      }
     }
-    observers {
-      ...LightPersonFragment
+    ${DataCommonFragments.location}
+    ${DataCommonFragments.lightDepartment}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataCommonFragments.referential}
+  `,
+  sale: gql`
+    fragment SaleFragment_PENDING on SaleVO {
+      id
+      startDateTime
+      endDateTime
+      tripId
+      comments
+      updateDate
+      saleLocation {
+        ...LocationFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      samples {
+        ...SampleFragment
+      }
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      observers {
+        ...LightPersonFragment
+      }
     }
-  }
-  ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.measurement}
-  ${DataCommonFragments.location}
-  ${DataFragments.sample}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataCommonFragments.referential}
-  `
+    ${DataCommonFragments.lightPerson}
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.measurement}
+    ${DataCommonFragments.location}
+    ${DataFragments.sample}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataCommonFragments.referential}
+  `,
 };
 
 const Queries: BaseEntityGraphqlQueries = {
@@ -145,6 +149,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
   /**
    * Load many sales
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -158,7 +163,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
            sortDirection?: SortDirection,
            dataFilter?: SaleFilter,
            options?: {
-             fetchPolicy?: WatchQueryFetchPolicy
+             fetchPolicy?: WatchQueryFetchPolicy;
            }): Observable<LoadResult<Sale>> {
 
     dataFilter = this.asFilter(dataFilter);
@@ -171,7 +176,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       filter: dataFilter.asPodObject()
     };
 
-    if (this._debug) console.debug("[sale-service] Loading sales... using options:", variables);
+    if (this._debug) console.debug('[sale-service] Loading sales... using options:', variables);
 
 
     // TODO: manage options.withTotal, and query selection
@@ -185,7 +190,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       insertFilterFn: dataFilter?.asFilterFn(),
       query,
       variables,
-      error: { code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR" },
+      error: { code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
       fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -202,7 +207,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
                 .forEach((o, i) => o.rankOrder = i+1);
 
               // sort by rankOrder (aka id)
-              if (!sortBy || sortBy == 'id') {
+              if (!sortBy || sortBy === 'id') {
                 const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
                 entities.sort((a, b) => {
                   const valueA = a.rankOrder;
@@ -220,21 +225,18 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   }
 
   load(id: number): Observable<Sale | null> {
-    if (this._debug) console.debug("[sale-service] Loading sale {" + id + "}...");
+    if (this._debug) console.debug('[sale-service] Loading sale {' + id + '}...');
 
     return this.graphql.watchQuery<{ data: any }>({
       query: Queries.load,
       variables: { id },
-      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR" }
+      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' }
     })
       .pipe(
         map(res => {
-          if (res?.data) {
-            const res = Sale.fromObject(res.data);
-            if (this._debug) console.debug("[sale-service] Sale {" + id + "} loaded", res);
-            return res;
-          }
-          return null;
+          const entity = res?.data && Sale.fromObject(res.data) || null;
+          if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded`, entity);
+          return entity;
         })
       );
   }
@@ -243,11 +245,11 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     interval?: number;
     fetchPolicy: FetchPolicy;
   }): Observable<Sale> {
-    if (!id && id !== 0) throw "Missing argument 'id' ";
+    if (!id && id !== 0) throw 'Missing argument \'id\' ';
 
     if (this._debug) console.debug(`[sale-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: Sale }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: Sale }, { id: number; interval: number }>({
       query: Subscriptions.listenChanges,
       fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
@@ -267,17 +269,18 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
   /**
    * Save many sales
+   *
    * @param data
    */
   async saveAll(entities: Sale[], options?: any): Promise<Sale[]> {
     if (!entities) return entities;
 
     if (!options || !options.tripId) {
-      console.error("[sale-service] Missing options.tripId");
-      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" };
+      console.error('[sale-service] Missing options.tripId');
+      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' };
     }
     const now = Date.now();
-    if (this._debug) console.debug("[sale-service] Saving sales...");
+    if (this._debug) console.debug('[sale-service] Saving sales...');
 
     // Compute rankOrder
     entities.sort(sortByEndDateOrStartDateFn)
@@ -289,14 +292,14 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       this.fillDefaultProperties(t, options);
       return t.asObject(SAVE_AS_OBJECT_OPTIONS);
     });
-    if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[sale-service] Using minify object, to send:', json);
 
     await this.graphql.mutate<{ data: Sale[] }>({
       mutation: Mutations.saveAll,
       variables: {
         data: json
       },
-      error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
+      error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
       update: (proxy, {data}) => {
         // Copy id and update date
         (data && data.data && entities || [])
@@ -313,12 +316,13 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   }
 
   /**
-     * Save an sale
-     * @param data
-     */
+   * Save an sale
+   *
+   * @param data
+   */
   async save(entity: Sale): Promise<Sale> {
     const now = Date.now();
-    if (this._debug) console.debug("[sale-service] Saving a sale...");
+    if (this._debug) console.debug('[sale-service] Saving a sale...');
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, {});
@@ -327,14 +331,14 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
     // Transform into json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[sale-service] Using minify object, to send:', json);
 
     await this.graphql.mutate<{ data: Sale[] }>({
       mutation: Mutations.saveAll,
       variables: {
         data: [json]
       },
-      error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
+      error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
       update: (proxy, {data}) => {
         const savedEntity = data && data.data && data.data[0];
         if (savedEntity && savedEntity !== entity) {
@@ -358,16 +362,17 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
   /**
    * Save many sales
+   *
    * @param entities
    */
   async deleteAll(entities: Sale[]): Promise<any> {
 
-    let ids = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 
     const now = Date.now();
-    if (this._debug) console.debug("[sale-service] Deleting sales... ids:", ids);
+    if (this._debug) console.debug('[sale-service] Deleting sales... ids:', ids);
 
     await this.graphql.mutate<any>({
       mutation: Mutations.deleteAll,
@@ -436,6 +441,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */

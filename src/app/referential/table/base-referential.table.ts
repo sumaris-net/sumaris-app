@@ -63,6 +63,7 @@ export abstract class BaseReferentialTable<
 
   /**
    * Compute columns from entity
+   *
    * @param dataType
    * @param validatorService
    */
@@ -94,7 +95,7 @@ export abstract class BaseReferentialTable<
   protected referentialRefService: ReferentialRefService;
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
-  private readonly withStatusId: boolean
+  private readonly withStatusId: boolean;
 
   protected constructor(
     injector: Injector,
@@ -146,7 +147,7 @@ export abstract class BaseReferentialTable<
           if (typeof statusId === 'object') {
             return statusId['label'];
           }
-          return this.translate.instant(StatusById[statusId].label)
+          return this.translate.instant(StatusById[statusId].label);
         },
         mobile: this.mobile
       });
@@ -420,21 +421,19 @@ export abstract class BaseReferentialTable<
     // Prepare suggest functions, from  autocomplete field
     const suggestFns = autocompleteFields
       .map(def => def.autocomplete)
-      .map(autocomplete => {
-      return autocomplete.suggestFn
+      .map(autocomplete => autocomplete.suggestFn
         || (isObservable(autocomplete.items)
           && (async (value, opts) => {
             const items = await firstNotNilPromise(autocomplete.items as Observable<any[]>);
             return suggestFromArray(items, value, opts);
             })
           )
-        || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts));
-    });
+        || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts)));
 
     const result: T[] = [];
 
     // For each entities
-    for (let entity of entities) {
+    for (const entity of entities) {
       let incomplete = false;
 
       // For each field to resolve
@@ -444,7 +443,7 @@ export abstract class BaseReferentialTable<
         const attributes = field.autocomplete.attributes || [];
         const obj = entity[field.key];
         let resolveObj: any;
-        for (let searchAttribute of attributes) {
+        for (const searchAttribute of attributes) {
           const searchValue = obj[searchAttribute];
           const res = await suggestFn(searchValue, { ...field.autocomplete.filter, searchAttribute });
           const matches = res && (Array.isArray(res) ? res : (res as LoadResult<any>).data);
@@ -469,14 +468,14 @@ export abstract class BaseReferentialTable<
       }
 
       // If complete entity: add to result
-      if (!incomplete) result.push(entity)
+      if (!incomplete) result.push(entity);
     }
 
     // Convert to entity
     return result.map(source => {
       const target: T = new this.dataType();
       target.fromObject(source);
-      return target
+      return target;
     });
   }
 

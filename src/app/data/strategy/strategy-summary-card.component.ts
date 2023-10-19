@@ -1,16 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 // import fade in animation
-import {merge, Subscription} from "rxjs";
-import {Router} from "@angular/router";
-import {environment} from "../../../environments/environment";
-import {AppRootDataEditor} from "../form/root-data-editor.class";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {fadeInAnimation} from "@sumaris-net/ngx-components";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {StrategyService} from "../../referential/services/strategy.service";
-import {ProgramProperties} from "../../referential/services/config/program.config";
+import { merge, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { environment } from '@environments/environment';
+import { AppRootDataEditor } from '../form/root-data-editor.class';
+import { fadeInAnimation, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
 
@@ -28,7 +25,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   data: T = null;
   loading = true;
-  displayAttributes: { [key: string]: string[]; } = {
+  displayAttributes: { [key: string]: string[] } = {
     location: undefined,
     taxonName: undefined,
     taxonGroup: undefined,
@@ -40,7 +37,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   @Input() calcifiedTypesDisplayed = false;
   @Input() showOpenLink = false;
 
-  @Input("value")
+  @Input()
   set value(value: T) {
     this.updateView(value);
   }
@@ -50,7 +47,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   @Input() editor: AppRootDataEditor<any, any>;
 
-  constructor (
+  constructor(
     protected router: Router,
     protected localSettings: LocalSettingsService,
     protected programRefService: ProgramRefService,
@@ -67,7 +64,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   ngOnInit(): void {
 
     // Check editor exists
-    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
+    if (!this.editor) throw new Error('Missing mandatory \'editor\' input!');
 
     this.title = this.title || (this.i18nPrefix + 'TITLE');
 
@@ -116,7 +113,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
 
     // Open the expected editor page
-    return this.router.navigateByUrl(`/referential/programs/${programId}/strategy/${strategyEditor}/${this.data.id}`);
+    return this.router.navigateByUrl(`/referential/programs/${programId}/strategies/${strategyEditor}/${this.data.id}`);
   }
 
   protected markForCheck() {

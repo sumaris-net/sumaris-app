@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppTable, changeCaseToUnderscore,
+  AppTable,
+  changeCaseToUnderscore,
   EntitiesServiceWatchOptions,
   EntitiesTableDataSource,
   EntitiesTableDataSourceConfig,
@@ -11,9 +12,13 @@ import {
   IEntitiesService,
   InMemoryEntitiesService,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
+  isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, toBoolean, TranslateContextService
+  RESERVED_START_COLUMNS,
+  toBoolean,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -21,13 +26,11 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import {filter, first, map, mergeMap, switchMap, takeUntil} from 'rxjs/operators';
+import { filter, first, map, switchMap, takeUntil } from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
-import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { timer } from 'rxjs';
-import { subscribe } from 'graphql/execution';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -340,6 +343,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   /**
    * Say if the row can be added. Useful to check unique constraints, and warn user
    * is.s physical gear table can check is the rankOrder
+   *
    * @param data
    * @protected
    */
@@ -366,8 +370,8 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
    * @param opts
    */
   protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<T>> {
-    if (!data) throw new Error("Missing data to add");
-    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+    if (!data) throw new Error('Missing data to add');
+    if (this.debug) console.debug('[measurement-table] Adding new entity', data);
 
     // Check entity can be added
     const canAdd = await this.canAddEntity(data);
@@ -375,7 +379,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     // Create a row
     const row = await this.addRowToTable(null, {editing: opts?.editing});
-    if (!row) throw new Error("Could not add row to table");
+    if (!row) throw new Error('Could not add row to table');
 
     // Adapt measurement values to row
     this.normalizeEntityToRow(data, row);
@@ -407,8 +411,8 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   }
 
   protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>[]> {
-    if (!data) throw new Error("Missing data to add");
-    if (this.debug) console.debug("[measurement-table] Adding new entities", data);
+    if (!data) throw new Error('Missing data to add');
+    if (this.debug) console.debug('[measurement-table] Adding new entities', data);
 
     // Check entity can be added
     const canAdd = await this.canAddEntities(data);
@@ -419,12 +423,12 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     // Bulk add
     const rows = await this.dataSource.addMany(data, null, opts);
-    if (!rows) throw new Error("Failed to add entities to table");
+    if (!rows) throw new Error('Failed to add entities to table');
 
     this.totalRowCount += rows.length;
     this.visibleRowCount += rows.length;
 
-    if (rows.length !== data.length) throw new Error("Not all entities has been added to table");
+    if (rows.length !== data.length) throw new Error('Not all entities has been added to table');
 
     rows.map((row, index) => {
       const entity = data[index];
@@ -438,7 +442,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       } else {
         row.currentData = entity;
       }
-    })
+    });
 
     this.markAsDirty();
 
@@ -455,9 +459,9 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<T>> {
-    if (!data || !row) throw new Error("Missing data, or table row to update");
-    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
+  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean }): Promise<TableElement<T>> {
+    if (!data || !row) throw new Error('Missing data, or table row to update');
+    if (this.debug) console.debug('[measurement-table] Updating entity to an existing row', data);
 
     const canUpdate = await this.canUpdateEntity(data, row);
     if (!canUpdate) return undefined;
@@ -504,20 +508,31 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean }) {
+  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: ('settings'|'queryParams')[] }) {
     this.markAsLoading();
 
-    let json = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
-    if (json) {
-      console.debug(this.logPrefix + 'Restoring filter from settings...', json);
-    }
-    else {
-      const {q} = this.route.snapshot.queryParams;
-      if (q) {
-        console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
-        json = JSON.parse(q);
+    const sources = opts?.sources || ['settings', 'queryParams'];
+    const json = sources.map(source => {
+      switch (source) {
+        case 'settings':
+          if (isNilOrBlank(this.settingsId)) return;
+          console.debug(this.logPrefix + 'Restoring filter from settings...');
+          return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
+        case 'queryParams':
+          const {q} = this.route.snapshot.queryParams;
+          if (q) {
+            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+            try {
+              return JSON.parse(q);
+            }
+            catch(err) {
+              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+            }
+          }
+          break;
       }
-    }
+      return null;
+    }).find(isNotNil);
 
     if (json) {
       this.setFilter(json, opts);
@@ -615,6 +630,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
+   *
    * @param d1
    * @param d2
    * @protected

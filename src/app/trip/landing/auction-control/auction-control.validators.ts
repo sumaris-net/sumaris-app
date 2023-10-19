@@ -1,17 +1,13 @@
-import {UntypedFormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {Subject, Subscription} from "rxjs";
-import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {AppFormUtils, isNil} from '@sumaris-net/ngx-components';
-import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {PmfmValueUtils} from "@app/referential/services/model/pmfm-value.model";
+import { UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, filter, map, startWith, tap } from 'rxjs/operators';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { AppFormUtils, isNil, isNotNilOrBlank, SharedValidators } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export class AuctionControlValidators {
-
-  static addSampleValidators(form: UntypedFormGroup, pmfms: IPmfm[],
-                             opts?: { markForCheck: () => void }): Subscription {
+  static addSampleValidators(form: UntypedFormGroup, pmfms: IPmfm[], opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
       return null;
@@ -24,13 +20,14 @@ export class AuctionControlValidators {
     // - remove 'required'
     // - add pattern
     form.get('label').setValidators(Validators.pattern(/^[0-9]*$/));
-    form.get('label').updateValueAndValidity({onlySelf: true, emitEvent: false});
+    form.get('label').updateValueAndValidity({ onlySelf: true, emitEvent: false });
 
     // Disable computed pmfms
-    AppFormUtils.disableControls(form,
-      pmfms
-      .filter(p => p.isComputed)
-      .map(p => `measurementValues.${p.id}`), {onlySelf: true, emitEvent: false});
+    AppFormUtils.disableControls(
+      form,
+      pmfms.filter((p) => p.isComputed).map((p) => `measurementValues.${p.id}`),
+      { onlySelf: true, emitEvent: false }
+    );
 
     const $errors = new Subject<ValidationErrors | null>();
     form.setAsyncValidators((control) => $errors);
@@ -41,10 +38,10 @@ export class AuctionControlValidators {
         startWith<any, any>(form.value),
         filter(() => !computing),
         // Protected against loop
-        tap(() => computing = true),
+        tap(() => (computing = true)),
         debounceTime(250),
-        map(() => AuctionControlValidators.computeAndValidate(form, pmfms, {...opts, emitEvent: false, onlySelf: false})),
-        tap(errors => {
+        map(() => AuctionControlValidators.computeAndValidate(form, pmfms, { ...opts, emitEvent: false, onlySelf: false })),
+        tap((errors) => {
           computing = false;
           $errors.next(errors);
           if (opts.markForCheck) opts.markForCheck();
@@ -65,24 +62,26 @@ export class AuctionControlValidators {
 
   /**
    * Validate and compute
+   *
    * @param form
    * @param pmfms
    * @param opts
    */
-  static computeAndValidate(form: UntypedFormGroup,
-                            pmfms: IPmfm[],
-                            opts?: {
-    emitEvent?: boolean;
-    onlySelf?: boolean;
-    markForCheck: () => void;
-  }): ValidationErrors | null {
-
-    console.debug("[auction-control-validator] Starting computation and validation...");
+  static computeAndValidate(
+    form: UntypedFormGroup,
+    pmfms: IPmfm[],
+    opts?: {
+      emitEvent?: boolean;
+      onlySelf?: boolean;
+      markForCheck: () => void;
+    }
+  ): ValidationErrors | null {
+    console.debug('[auction-control-validator] Starting computation and validation...');
     let errors: any;
 
     // Read pmfms
-    const weightPmfm = pmfms.find(p => p.label.endsWith('_WEIGHT'));
-    const indivCountPmfm = pmfms.find(p => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
+    const weightPmfm = pmfms.find((p) => p.label.endsWith('_WEIGHT'));
+    const indivCountPmfm = pmfms.find((p) => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
 
     // Get controls
     const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
@@ -101,17 +100,15 @@ export class AuctionControlValidators {
     // Out of size: compute percentage
     if (outOfSizePctControl) {
       // From a weight ratio
-      if (isNotNilOrBlank(weight) && isNotNilOrBlank(outOfSizeWeight)
-        && outOfSizeWeight <= weight) {
-        const pct = Math.trunc(10000 * outOfSizeWeight / weight) / 100;
+      if (isNotNilOrBlank(weight) && isNotNilOrBlank(outOfSizeWeight) && outOfSizeWeight <= weight) {
+        const pct = Math.trunc((10000 * outOfSizeWeight) / weight) / 100;
         outOfSizePctControl.setValue(pct, opts);
         SharedValidators.clearError(outOfSizeWeightControl, 'max');
-        outOfSizeWeightControl.updateValueAndValidity({onlySelf: true});
+        outOfSizeWeightControl.updateValueAndValidity({ onlySelf: true });
       }
       // Or a individual count ratio
-      else if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(outOfSizeCount)
-        && outOfSizeCount <= indivCount) {
-        const pct = Math.trunc(10000 * outOfSizeCount / indivCount) / 100;
+      else if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(outOfSizeCount) && outOfSizeCount <= indivCount) {
+        const pct = Math.trunc((10000 * outOfSizeCount) / indivCount) / 100;
         outOfSizePctControl.setValue(pct, opts);
         SharedValidators.clearError(outOfSizeCountControl, 'max');
       } else {
@@ -122,22 +119,20 @@ export class AuctionControlValidators {
     // Out of size: check max
     if (outOfSizeWeightControl) {
       if (isNotNilOrBlank(outOfSizeWeight) && isNotNilOrBlank(weight) && outOfSizeWeight > weight) {
-        const error = {max: {actual: outOfSizeWeight, max: weight}};
+        const error = { max: { actual: outOfSizeWeight, max: weight } };
         outOfSizeWeightControl.markAsPending(opts);
         outOfSizeWeightControl.setErrors(error);
-        errors = {...errors, ...error};
-      }
-      else {
+        errors = { ...errors, ...error };
+      } else {
         SharedValidators.clearError(outOfSizeWeightControl, 'max');
       }
     }
     if (outOfSizeCountControl) {
       if (isNotNilOrBlank(outOfSizeCount) && isNotNilOrBlank(indivCount) && outOfSizeCount > indivCount) {
-        const error = {max: {actual: outOfSizeCount, max: indivCount}};
+        const error = { max: { actual: outOfSizeCount, max: indivCount } };
         outOfSizeCountControl.setErrors(error, opts);
-        errors = {...errors, ...error};
-      }
-      else {
+        errors = { ...errors, ...error };
+      } else {
         SharedValidators.clearError(outOfSizeCountControl, 'max');
       }
     }
@@ -147,9 +142,8 @@ export class AuctionControlValidators {
     const parasitizedPctControl = measFormGroup.controls[PmfmIds.PARASITIZED_INDIV_PCT];
     // Compute out of size percentage
     if (parasitizedPctControl) {
-      if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount)
-        && parasitizedCount <= indivCount) {
-        const pct = Math.trunc(10000 * parasitizedCount / indivCount) / 100;
+      if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount) && parasitizedCount <= indivCount) {
+        const pct = Math.trunc((10000 * parasitizedCount) / indivCount) / 100;
         parasitizedPctControl.setValue(pct, opts);
         SharedValidators.clearError(parasitizedCountControl, 'max');
       } else {
@@ -159,11 +153,10 @@ export class AuctionControlValidators {
     // Parasitized: check max
     if (parasitizedCountControl) {
       if (isNotNilOrBlank(parasitizedCount) && isNotNilOrBlank(indivCount) && parasitizedCount > indivCount) {
-        const error = {max: {actual: parasitizedCount, max: indivCount}};
+        const error = { max: { actual: parasitizedCount, max: indivCount } };
         parasitizedCountControl.setErrors(error, opts);
-        errors = {...errors, ...error};
-      }
-      else {
+        errors = { ...errors, ...error };
+      } else {
         SharedValidators.clearError(parasitizedCountControl, 'max');
       }
     }
@@ -172,9 +165,8 @@ export class AuctionControlValidators {
     const dirtyCount = dirtyCountControl ? +dirtyCountControl.value : undefined;
     const dirtyPctControl = measFormGroup.controls[PmfmIds.DIRTY_INDIV_PCT];
     if (dirtyPctControl) {
-      if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount)
-        && dirtyCount <= indivCount) {
-        const pct = Math.trunc(10000 * dirtyCount / indivCount) / 100;
+      if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount) && dirtyCount <= indivCount) {
+        const pct = Math.trunc((10000 * dirtyCount) / indivCount) / 100;
         dirtyPctControl.setValue(pct, opts);
         SharedValidators.clearError(dirtyCountControl, 'max');
       } else {
@@ -184,11 +176,10 @@ export class AuctionControlValidators {
     // Dirty: check max
     if (dirtyCountControl) {
       if (isNotNilOrBlank(dirtyCount) && isNotNilOrBlank(indivCount) && dirtyCount > indivCount) {
-        const error = {max: {actual: dirtyCount, max: indivCount}};
+        const error = { max: { actual: dirtyCount, max: indivCount } };
         dirtyCountControl.setErrors(error, opts);
-        errors = {...errors, ...error};
-      }
-      else {
+        errors = { ...errors, ...error };
+      } else {
         SharedValidators.clearError(dirtyCountControl, 'max');
       }
     }
@@ -196,12 +187,11 @@ export class AuctionControlValidators {
     // Density per kg (indiv/kg)
     const numberDensityPerKgControl = measFormGroup.controls[PmfmIds.INDIVIDUALS_DENSITY_PER_KG];
     if (numberDensityPerKgControl) {
-      if ((isNotNilOrBlank(indivCount) && isNotNilOrBlank(weight)) && (indivCount != 0 && weight != 0)) {
+      if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(weight) && indivCount !== 0 && weight !== 0) {
         // compute (truncate the value to the hundredth)
         const numberDensityPerKgValue = Math.trunc((indivCount / PmfmValueUtils.toModelValueAsNumber(weight, weightPmfm)) * 100) / 100;
         numberDensityPerKgControl.setValue(numberDensityPerKgValue, opts);
-      }
-      else {
+      } else {
         numberDensityPerKgControl.setValue(null, opts); // Reset
       }
     }
@@ -209,42 +199,39 @@ export class AuctionControlValidators {
     // Compliant: disable some pmfms if compliant, and manage some default value
     const compliantProductControl = measFormGroup.controls[PmfmIds.COMPLIANT_PRODUCT];
     if (compliantProductControl) {
-
       const controlCorrectiveActionPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.CONTROL_CORRECTIVE_ACTION);
       const controlCorrectiveActionControl = controlCorrectiveActionPmfm && measFormGroup.controls[PmfmIds.CONTROL_CORRECTIVE_ACTION];
       if (controlCorrectiveActionControl) {
-
-        const defaultValue = PmfmValueUtils.fromModelValue(controlCorrectiveActionPmfm.defaultValue, controlCorrectiveActionPmfm)
-          || controlCorrectiveActionPmfm.qualitativeValues?.find(qv => qv.label === 'NSP');
+        const defaultValue =
+          PmfmValueUtils.fromModelValue(controlCorrectiveActionPmfm.defaultValue, controlCorrectiveActionPmfm) ||
+          controlCorrectiveActionPmfm.qualitativeValues?.find((qv) => qv.label === 'NSP');
 
         if (compliantProductControl.value) {
           controlCorrectiveActionControl.setValue(null);
           controlCorrectiveActionControl.disable();
           controlCorrectiveActionControl.setValidators(null);
-        }
-        else {
-          if (compliantProductControl.value === false && isNil(controlCorrectiveActionControl.value)) controlCorrectiveActionControl.setValue(defaultValue);
+        } else {
+          if (compliantProductControl.value === false && isNil(controlCorrectiveActionControl.value))
+            controlCorrectiveActionControl.setValue(defaultValue);
           if (controlCorrectiveActionPmfm.required) {
             controlCorrectiveActionControl.setValidators(Validators.required);
           }
           controlCorrectiveActionControl.enable();
         }
-
       }
 
       const productDestinationPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PRODUCT_DESTINATION);
       const productDestinationControl = productDestinationPmfm && measFormGroup.controls[PmfmIds.PRODUCT_DESTINATION];
       if (productDestinationControl) {
-
-        const defaultValue = PmfmValueUtils.fromModelValue(productDestinationPmfm.defaultValue, productDestinationPmfm)
-            || productDestinationPmfm.qualitativeValues?.find(qv => qv.label === 'NSP');
+        const defaultValue =
+          PmfmValueUtils.fromModelValue(productDestinationPmfm.defaultValue, productDestinationPmfm) ||
+          productDestinationPmfm.qualitativeValues?.find((qv) => qv.label === 'NSP');
 
         if (compliantProductControl.value) {
           productDestinationControl.setValue(null);
           productDestinationControl.disable();
           productDestinationControl.setValidators(null);
-        }
-        else {
+        } else {
           if (compliantProductControl.value === false && isNil(productDestinationControl.value)) productDestinationControl.setValue(defaultValue);
           productDestinationControl.enable();
           if (productDestinationPmfm.required) {
@@ -252,7 +239,6 @@ export class AuctionControlValidators {
           }
         }
       }
-
     }
 
     if (opts && opts.markForCheck) {

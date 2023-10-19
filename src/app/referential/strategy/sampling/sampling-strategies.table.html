@@ -1,44 +1,45 @@
 <mat-toolbar *ngIf="showToolbar">
-
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate:errorDetails"></ion-label>
+    <ion-label color="danger" [innerHTML]="error | translate : errorDetails"></ion-label>
   </ion-item>
 
   <span class="toolbar-spacer"></span>
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-
     <!-- Add -->
-    <button mat-icon-button
-            *rxIf="canEdit$"
-            class="hidden-xs hidden-sm"
-            [title]="'COMMON.BTN_ADD'|translate"
-            (click)="addRow()">
+    <button
+      mat-icon-button
+      *rxIf="canEdit$"
+      class="hidden-xs hidden-sm"
+      [title]="'COMMON.BTN_ADD' | translate"
+      (click)="addRow()"
+    >
       <mat-icon>add</mat-icon>
     </button>
 
     <!-- Refresh -->
-    <button mat-icon-button *ngIf="!mobile"
-            [title]="'COMMON.BTN_REFRESH'|translate"
-            (click)="onRefresh.emit()">
+    <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
 
     <!-- Reset filter -->
-    <button mat-icon-button (click)="resetFilterAndClose()"
-            *ngIf="filterCriteriaCount">
+    <button mat-icon-button (click)="resetFilterAndClose()" *ngIf="filterCriteriaCount">
       <mat-icon color="accent">filter_list_alt</mat-icon>
-      <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
     </button>
 
     <!-- Show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-      <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
-                [matBadge]="filterCriteriaCount"
-                matBadgeColor="accent"
-                matBadgeSize="small"
-                matBadgePosition="above after">filter_list_alt</mat-icon>
+      <mat-icon
+        *ngIf="filterCriteriaCount; else emptyFilter"
+        [matBadge]="filterCriteriaCount"
+        matBadgeColor="accent"
+        matBadgeSize="small"
+        matBadgePosition="above after"
+      >
+        filter_list_alt
+      </mat-icon>
       <ng-template #emptyFilter>
         <mat-icon>filter_list_alt</mat-icon>
       </ng-template>
@@ -48,45 +49,57 @@
   <!-- if row selection -->
   <ng-template #hasSelection>
     <!-- duplicate -->
-    <button mat-icon-button class="hidden-xs hidden-sm"
-            *rxIf="canEdit$"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_DUPLICATE'|translate"
-            (click)="openStrategyDuplicateYearSelectionModal($event, selection.selected)">
+    <button
+      mat-icon-button
+      class="hidden-xs hidden-sm"
+      *rxIf="canEdit$"
+      [disabled]="disabled"
+      [title]="'COMMON.BTN_DUPLICATE' | translate"
+      (click)="openStrategyDuplicateYearSelectionModal($event, selection.selected)"
+    >
       <mat-icon>library_add</mat-icon>
     </button>
 
-    <button mat-icon-button color="light"
-            *rxIf="canDelete$"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_DELETE'|translate"
-            (click)="deleteSelection($event)">
+    <button
+      mat-icon-button
+      color="light"
+      *rxIf="canDelete$"
+      [disabled]="disabled"
+      [title]="'COMMON.BTN_DELETE' | translate"
+      (click)="deleteSelection($event)"
+    >
       <mat-icon>delete</mat-icon>
     </button>
   </ng-template>
-
 </mat-toolbar>
 
 <!-- search -->
-<mat-expansion-panel #filterExpansionPanel
-                     class="filter-panel"
-                     [class.filter-panel-floating]="filterPanelFloating">
-  <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event, true)">
-
+<mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.filter-panel-floating]="filterPanelFloating">
+  <form
+    class="form-container ion-padding-top"
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilterAndClosePanel($event, true)"
+  >
     <ion-grid>
       <ion-row>
         <ion-col>
           <!-- search text -->
           <mat-form-field>
             <ion-icon matPrefix name="search"></ion-icon>
-            <input matInput
-                   formControlName="searchText"
-                   autocomplete="off"
-                   [placeholder]="i18nColumnPrefix + 'LABEL'|translate">
-            <button mat-icon-button matSuffix tabindex="-1"
-                    type="button"
-                    (click)="clearControlValue($event, filterForm.controls.searchText)"
-                    [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value">
+            <input
+              matInput
+              formControlName="searchText"
+              autocomplete="off"
+              [placeholder]="i18nColumnPrefix + 'LABEL' | translate"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              tabindex="-1"
+              type="button"
+              (click)="clearControlValue($event, filterForm.controls.searchText)"
+              [hidden]="filterForm.controls.searchText.disabled || !filterForm.controls.searchText.value"
+            >
               <mat-icon>close</mat-icon>
             </button>
           </mat-form-field>
@@ -95,24 +108,25 @@
         <ion-col>
           <!-- Analytic reference -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate"
+            [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translate"
             formControlName="analyticReference"
             [config]="autocompleteFields.analyticReference"
-            [clearable]="true">
+            [clearable]="true"
+          >
             <!-- <ion-icon matPrefix name="analyticReference"></ion-icon> -->
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
 
       <ion-row>
-
         <ion-col>
           <!-- department -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate"
+            [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translate"
             formControlName="department"
             [config]="autocompleteFields.department"
-            [clearable]="true">
+            [clearable]="true"
+          >
             <ion-icon matPrefix name="business"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
@@ -120,24 +134,24 @@
         <ion-col>
           <!-- taxonName -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'TAXON_NAMES'|translate"
+            [placeholder]="i18nColumnPrefix + 'TAXON_NAMES' | translate"
             formControlName="taxonName"
             [config]="autocompleteFields.taxonName"
-            [clearable]="true">
+            [clearable]="true"
+          >
             <ion-icon matPrefix name="fish"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
-
       </ion-row>
       <ion-row>
-
         <ion-col>
           <!-- location -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'LOCATIONS'|translate"
+            [placeholder]="i18nColumnPrefix + 'LOCATIONS' | translate"
             formControlName="location"
             [config]="autocompleteFields.location"
-            [clearable]="true">
+            [clearable]="true"
+          >
             <mat-icon matPrefix>room</mat-icon>
           </mat-autocomplete-field>
         </ion-col>
@@ -145,11 +159,13 @@
         <!-- Parameter groups -->
         <ion-col formGroupName="parameterGroups">
           <mat-form-field floatLabel="always">
-            <mat-label>{{'PROGRAM.STRATEGY.TABLE.SAMPLING.PARAMETERS_DOTS' |translate }}</mat-label>
-            <input matInput hidden>
-            <mat-checkbox *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last"
-                          [formControlName]="parameterGroupLabel">
-              {{i18nColumnPrefix + parameterGroupLabel |translate }}
+            <mat-label>{{ 'PROGRAM.STRATEGY.TABLE.SAMPLING.PARAMETERS_DOTS' | translate }}</mat-label>
+            <input matInput hidden />
+            <mat-checkbox
+              *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last"
+              [formControlName]="parameterGroupLabel"
+            >
+              {{ i18nColumnPrefix + parameterGroupLabel | translate }}
               <span *ngIf="!last">&nbsp;</span>
             </mat-checkbox>
           </mat-form-field>
@@ -159,73 +175,78 @@
       <ion-row>
         <!-- Start date -->
         <ion-col size="3">
-          <mat-date-short-field formControlName="startDate"
-                                [placeholder]="i18nColumnPrefix + 'START_YEAR'|translate"
-                                [clearable]="true">
+          <mat-date-short-field
+            formControlName="startDate"
+            [placeholder]="i18nColumnPrefix + 'START_YEAR' | translate"
+            [clearable]="true"
+          >
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
           </mat-date-short-field>
         </ion-col>
 
         <!-- End date -->
         <ion-col size="3">
-          <mat-date-short-field formControlName="endDate"
-                                [placeholder]="i18nColumnPrefix + 'END_YEAR'|translate"
-                                [clearable]="true">
-          </mat-date-short-field>
+          <mat-date-short-field
+            formControlName="endDate"
+            [placeholder]="i18nColumnPrefix + 'END_YEAR' | translate"
+            [clearable]="true"
+          ></mat-date-short-field>
         </ion-col>
 
         <!-- Efforts / Quarters column -->
-        <ion-col formGroupName="effortByQuarter" >
-            <mat-form-field floatLabel="always">
-              <mat-label>{{'PROGRAM.STRATEGY.TABLE.SAMPLING.QUARTERS_DOTS' |translate }}</mat-label>
-              <input matInput hidden>
-              <mat-checkbox *ngFor="let quarter of quarters; last as last"
-                            [formControlName]="quarter.toString()">
-                {{i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}
-                <span *ngIf="!last">&nbsp;</span>
-              </mat-checkbox>
-            </mat-form-field>
+        <ion-col formGroupName="effortByQuarter">
+          <mat-form-field floatLabel="always">
+            <mat-label>{{ 'PROGRAM.STRATEGY.TABLE.SAMPLING.QUARTERS_DOTS' | translate }}</mat-label>
+            <input matInput hidden />
+            <mat-checkbox *ngFor="let quarter of quarters; last as last" [formControlName]="quarter.toString()">
+              {{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}
+              <span *ngIf="!last">&nbsp;</span>
+            </mat-checkbox>
+          </mat-form-field>
         </ion-col>
-
-
       </ion-row>
     </ion-grid>
   </form>
 
   <mat-action-row>
     <!-- Counter  -->
-    <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
-               [color]="empty && 'danger'"
-               class="ion-padding">
-      {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
-            numberFormat)} }}
+    <ion-label [hidden]="(loadingSubject | async) || filterForm.dirty" [color]="empty && 'danger'" class="ion-padding">
+      {{
+        (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT')
+          | translate : { count: (totalRowCount | numberFormat) }
+      }}
     </ion-label>
 
     <div class="toolbar-spacer"></div>
 
     <!-- disable floating -->
-    <button mat-icon-button color="accent"
-            *ngIf="filterPanelFloating"
-            (click)="toggleFilterPanelFloating()"
-            class="hidden-xs hidden-sm hidden-md"
-            [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') |translate">
-      <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+    <button
+      mat-icon-button
+      color="accent"
+      *ngIf="filterPanelFloating"
+      (click)="toggleFilterPanelFloating()"
+      class="hidden-xs hidden-sm hidden-md"
+      [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') | translate"
+    >
+      <mat-icon>
+        <span style="transform: rotate(90deg)">{{ filterPanelFloating ? '&#xbb;' : '&#xab;' }}</span>
+      </mat-icon>
     </button>
 
     <!-- Close panel -->
-    <ion-button mat-button fill="clear" color="dark"
-                (click)="closeFilterPanel()"
-                [disabled]="loadingSubject|async">
+    <ion-button mat-button fill="clear" color="dark" (click)="closeFilterPanel()" [disabled]="loadingSubject | async">
       <ion-text translate>COMMON.BTN_CLOSE</ion-text>
     </ion-button>
 
     <!-- Search button -->
-    <ion-button mat-button
-                *ngIf="!mobile"
-                [color]="filterForm.dirty ? 'tertiary' : undefined"
-                [fill]="filterForm.dirty ? 'solid' : 'clear'"
-                (click)="applyFilterAndClosePanel($event)"
-                [disabled]="loadingSubject|async">
+    <ion-button
+      mat-button
+      *ngIf="!mobile"
+      [color]="filterForm.dirty ? 'tertiary' : undefined"
+      [fill]="filterForm.dirty ? 'solid' : 'clear'"
+      (click)="applyFilterAndClosePanel($event)"
+      [disabled]="loadingSubject | async"
+    >
       <ion-text translate>COMMON.BTN_APPLY</ion-text>
     </ion-button>
   </mat-action-row>
@@ -234,28 +255,39 @@
 <!-- error -->
 <ion-item *ngIf="showError && error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar"
-     [class.has-paginator]="showPaginator"
-     [class.full-height]="!showToolbar">
-  <table mat-table  matSort
-         [matSortActive]="defaultSortBy"
-         [matSortDirection]="defaultSortDirection"
-         matSortDisableClear
-         [dataSource]="dataSource"
-         [trackBy]="trackByFn">
-
+<div
+  #tableContainer
+  class="table-container"
+  [class.has-toolbar]="showToolbar"
+  [class.has-paginator]="showPaginator"
+  [class.full-height]="!showToolbar"
+>
+  <table
+    mat-table
+    matSort
+    [matSortActive]="defaultSortBy"
+    [matSortDirection]="defaultSortDirection"
+    matSortDisableClear
+    [dataSource]="dataSource"
+    [trackBy]="trackByFn"
+  >
     <ng-container matColumnDef="select" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
+        <mat-checkbox
+          (change)="$event ? masterToggle() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        ></mat-checkbox>
       </th>
-      <td mat-cell  *matCellDef="let row">
-        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-        </mat-checkbox>
+      <td mat-cell *matCellDef="let row">
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
       </td>
     </ng-container>
 
@@ -270,17 +302,17 @@
     <!-- label column -->
     <ng-container matColumnDef="label" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'LABEL'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'LABEL' | translate }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label class="ion-text-wrap">{{row.currentData.label }}</ion-label>
+        <ion-label class="ion-text-wrap">{{ row.currentData.label }}</ion-label>
       </td>
     </ng-container>
 
     <!-- analyticReference column -->
     <ng-container matColumnDef="analyticReference">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{i18nColumnPrefix + 'ANALYTIC_REFERENCE'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translate }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-label>{{ row.currentData.analyticReference }}</ion-label>
@@ -290,12 +322,16 @@
     <!-- Departments column -->
     <ng-container matColumnDef="recorderDepartments">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{i18nColumnPrefix + 'RECORDER_DEPARTMENTS'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translate }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text class="ion-text-nowrap"
-                  [title]="departments.innerText">
-          <span #departments [innerHTML]="row.currentData.departments | arrayPluck:{property: 'department'} | departmentToString: ', <br>'"></span>
+        <ion-text class="ion-text-nowrap" [title]="departments.innerText">
+          <span
+            #departments
+            [innerHTML]="
+              row.currentData.departments | arrayPluck : { property: 'department' } | departmentToString : ', <br>'
+            "
+          ></span>
         </ion-text>
       </td>
     </ng-container>
@@ -303,48 +339,64 @@
     <!-- Applied strategies (location) column -->
     <ng-container matColumnDef="locations">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{i18nColumnPrefix + 'LOCATIONS'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'LOCATIONS' | translate }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-nowrap" [title]="locationsSpan.innerText">
-          <span #locationsSpan [innerHTML]="row.currentData.appliedStrategies | arrayPluck: {property: 'location'} | referentialToString: {properties: autocompleteFields.location.attributes, separator: ', <br>'}"></span>
+          <span
+            #locationsSpan
+            [innerHTML]="
+              row.currentData.appliedStrategies
+                | arrayPluck : { property: 'location' }
+                | referentialToString : { properties: autocompleteFields.location.attributes, separator: ', <br>' }
+            "
+          ></span>
         </ion-text>
       </td>
     </ng-container>
 
-     <!-- Taxon names column -->
-     <ng-container matColumnDef="taxonNames">
+    <!-- Taxon names column -->
+    <ng-container matColumnDef="taxonNames">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{i18nColumnPrefix + 'TAXON_NAMES'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'TAXON_NAMES' | translate }}</span>
       </th>
-       <td mat-cell *matCellDef="let row">
-         <ion-text class="ion-text-nowrap" [title]="taxonNameSpan.innerText">
-           <span #taxonNameSpan [innerHTML]="row.currentData.taxonNames | arrayPluck: {property: 'taxonName'} | referentialToString: {properties: autocompleteFields.taxonName.attributes, separator: ', <br>'}"></span>
-         </ion-text>
-       </td>
+      <td mat-cell *matCellDef="let row">
+        <ion-text class="ion-text-nowrap" [title]="taxonNameSpan.innerText">
+          <span
+            #taxonNameSpan
+            [innerHTML]="
+              row.currentData.taxonNames
+                | arrayPluck : { property: 'taxonName' }
+                | referentialToString : { properties: autocompleteFields.taxonName.attributes, separator: ', <br>' }
+            "
+          ></span>
+        </ion-text>
+      </td>
     </ng-container>
 
     <!-- comment column -->
     <ng-container matColumnDef="comments">
-      <th mat-header-cell *matHeaderCellDef>
-      </th>
+      <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon color="primary" class="comment"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
+        <mat-icon
+          color="primary"
+          class="comment"
+          *ngIf="row.currentData.comments"
+          [title]="row.currentData.comments"
+        ></mat-icon>
       </td>
     </ng-container>
 
     <!-- Parameters column -->
     <ng-container matColumnDef="parameterGroups">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{i18nColumnPrefix + 'PARAMETERS'|translate}}</span>
+        <span>{{ i18nColumnPrefix + 'PARAMETERS' | translate }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>
           <ng-container *ngFor="let groupName of row.currentData.parameterGroups; index as i; last as last">
             <span>{{ i18nColumnPrefix + groupName | uppercase | translate }}</span>
-            <span *ngIf="!last">, </span>
+            <span *ngIf="!last">,</span>
           </ng-container>
         </ion-text>
       </td>
@@ -354,53 +406,62 @@
     <ng-container *ngFor="let quarter of quarters">
       <ng-container [matColumnDef]="'effortQ' + quarter">
         <th mat-header-cell *matHeaderCellDef>
-          <span>{{i18nColumnPrefix + 'EFFORT_Q' + quarter |translate }}</span>
+          <span>{{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}</span>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text *ngIf="row.currentData.effortByQuarter|mapGet: quarter; let effort">
+          <ion-text *ngIf="row.currentData.effortByQuarter | mapGet : quarter; let effort">
             <!-- OBSBIO-49 et OBSBIO-83 - use warning color if more than expected effort -->
-            <ion-text [color]="effort.realized ? (effort.realizedMore ? 'tertiary' : 'success') : 'dark'">
-              <span>{{effort.realizedEffort}}</span>
+            <ion-text
+              [color]="effort.realized ? (effort.realizedMore ? 'tertiary' : 'success') : 'dark'"
+              [class.has-realized]="effort.hasRealizedEffort"
+              (click)="openLandingsByQuarter($event, row.currentData, quarter)"
+            >
+              <span>{{ effort.realizedEffort }}</span>
               <span>&#47;</span>
-              <span>{{effort.expectedEffort}}</span>
+              <span>{{ effort.expectedEffort }}</span>
+
+              <!-- open landings icon -->
+              <span *ngIf="canOpenRealizedLandings && effort.hasRealizedEffort" class="mouseover">
+                <ion-icon name="eye"></ion-icon>
+              </span>
             </ion-text>
-            <ion-text [color]="effort.realized ? 'dark' : 'danger'" >
-              <br/>{{effort.missingEffort}}
+            <ion-text [color]="effort.realized ? 'dark' : 'danger'">
+              <br />
+              {{ effort.missingEffort }}
             </ion-text>
           </ion-text>
         </td>
       </ng-container>
     </ng-container>
 
-
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
-
         <!-- display columns -->
-        <button mat-icon-button
-                [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
-                (click)="openSelectColumnsModal($event)">
+        <button
+          mat-icon-button
+          [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate"
+          (click)="openSelectColumnsModal($event)"
+        >
           <mat-icon>more_vert</mat-icon>
         </button>
-
       </th>
-      <td mat-cell *matCellDef="let row" >
-
-        <ng-container *ngTemplateOutlet="cellTemplate; context: { $implicit: row  }"></ng-container>
-
+      <td mat-cell *matCellDef="let row">
+        <ng-container *ngTemplateOutlet="cellTemplate; context: { $implicit: row }"></ng-container>
       </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id"
-        (click)="clickRow($event, row)"></tr>
-
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="mat-row-disabled"
+      [class.mat-row-selected]="highlightedRowId === row.id"
+      (click)="clickRow($event, row)"
+    ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject|async; else noResult">
+  <ng-container *ngIf="loadingSubject | async; else noResult">
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
@@ -408,24 +469,26 @@
 
   <ng-template #noResult>
     <ion-item *ngIf="totalRowCount === 0">
-      <ion-text color="danger"
-                class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
     </ion-item>
   </ng-template>
 </div>
 
 <ion-footer *ngIf="showPaginator">
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="totalRowCount" [pageSize]="pageSize"
-                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
+  <mat-paginator
+    #paginator
+    class="mat-paginator-footer"
+    [length]="totalRowCount"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="defaultPageSizeOptions"
+    showFirstLastButtons
+  ></mat-paginator>
 </ion-footer>
 
-
 <ng-template #addRowButton>
-  <span *ngIf="!mobile && enabled">&nbsp;
-    <ion-button color="medium"
-                (click)="addRow()">
+  <span *ngIf="!mobile && enabled">
+    &nbsp;
+    <ion-button color="medium" (click)="addRow()">
       <ion-icon name="add" slot="start"></ion-icon>
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>

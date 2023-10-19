@@ -1,4 +1,4 @@
-import {DataEntityFilter} from '../../data/services/model/data-filter.model';
+import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {Sample} from './sample.model';
 import {EntityAsObjectOptions, EntityClass, FilterFn, isNotNil, isNotNilOrBlank} from '@sumaris-net/ngx-components';
 import {PmfmIds} from '@app/referential/services/model/model.enum';

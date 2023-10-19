@@ -3,7 +3,16 @@ import { APP_IMAGE_ATTACHMENT_SERVICE } from './image-attachment.service';
 import { ImageAttachment, ImageAttachmentFilter } from './image-attachment.model';
 import { BehaviorSubject, of, Subscription } from 'rxjs';
 import { ModalController } from '@ionic/angular';
-import { EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import {
+  EntitiesTableDataSource,
+  EntityUtils,
+  GalleryMode,
+  Image,
+  InMemoryEntitiesService,
+  isNil,
+  LocalSettingsService,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { TableDataSource, TableElement } from '@e-is/ngx-material-table';
 import { startWith, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
@@ -17,16 +26,16 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
   providers: [
     {
       provide: APP_IMAGE_ATTACHMENT_SERVICE,
-      useFactory: () => new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
-        equals: ImageAttachment.equals,
-        onSort: (data, sortBy= 'rankOrder', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
-      })
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
+          equals: ImageAttachment.equals,
+          onSort: (data, sortBy = 'rankOrder', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppImageAttachmentGallery implements OnInit, OnDestroy {
-
   private readonly debug: boolean;
   private readonly _subscription = new Subscription();
   protected readonly dataSource: EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>;
@@ -37,8 +46,8 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
   @Input() mobile: boolean;
   @Input() mode: GalleryMode;
   @Input() cardColor: PredefinedColors | string = 'light';
-  @Input() disabled: boolean = false;
-  @Input() readOnly: boolean = false;
+  @Input() disabled = false;
+  @Input() readOnly = false;
   @Input() showToolbar: boolean;
   @Input() showFabButton: boolean;
   @Input() showAddCardButton: boolean;
@@ -71,14 +80,14 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     return this.dataService.dirty || this.dirtySubject.value;
   }
 
-  enable(opts?: {emitEvent?: boolean}) {
+  enable(opts?: { emitEvent?: boolean }) {
     if (this.disabled) {
       this.disabled = false;
       this.markForCheck();
     }
   }
 
-  disable(opts?: {emitEvent?: boolean}) {
+  disable(opts?: { emitEvent?: boolean }) {
     if (!this.disabled) {
       this.disabled = true;
       this.markForCheck();
@@ -103,7 +112,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     }
   }
 
-  @Output() onRefresh = new EventEmitter<any>();
+  @Output() refresh = new EventEmitter<any>();
 
   constructor(
     protected modalCtrl: ModalController,
@@ -112,7 +121,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     @Self() @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
   ) {
     this.dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
-      prependNewElements: false
+      prependNewElements: false,
     });
     this.debug = !environment.production;
   }
@@ -124,17 +133,18 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
 
     // Call datasource refresh, on each refresh events
     this._subscription.add(
-      this.onRefresh
+      this.refresh
         .pipe(
           startWith<any, any>((this.autoLoad ? {} : 'skip') as any),
-          switchMap(event => {
+          switchMap((event) => {
             if (event === 'skip') {
               return of(undefined);
             }
             if (this.debug) console.debug('[image-attachment-gallery] Calling dataSource.watchAll()...');
-            return this.dataSource.watchAll(0,100, null, null, null);
+            return this.dataSource.watchAll(0, 100, null, null, null);
           })
-        ).subscribe()
+        )
+        .subscribe()
     );
   }
 
@@ -143,10 +153,9 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
   }
 
   async onAfterAddRows(rows: TableElement<ImageAttachment>[]) {
-
     // Fill rankOrder
     let rankOrder = getMaxRankOrder(this.dataSource.getData()) + 1;
-    (rows || []).forEach(row => {
+    (rows || []).forEach((row) => {
       const data = row.currentData;
       if (isNil(data.rankOrder)) {
         data.rankOrder = rankOrder++;

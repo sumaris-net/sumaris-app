@@ -1,83 +1,86 @@
-
-
 <ng-container *ngIf="debug && false">
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
 </ng-container>
 
 <ng-container *ngIf="!useModal; else withModal">
-  <mat-sidenav-container>
-    <mat-sidenav #sidenav [mode]="treePanelFloating ? 'over' : 'side'"
-                 [class.has-footer]="!mobile">
+  <mat-sidenav-container *rxLet="treePanelFloating$ as floating; strategy: rxStrategy">
+    <mat-sidenav #sidenav [mode]="floating ? 'over' : 'side'" [class.has-footer]="!mobile">
+      <!-- model tree -->
+      <app-batch-model-tree
+        #batchModelTree
+        [selectedBatchStatus]="batchTreeStatus$ | async"
+        [selected]="editingBatch$ | async"
+        (itemClick)="startEditBatch(null, $event)"
+        [mobile]="mobile"
+        [debug]="debug && false"
+      ></app-batch-model-tree>
 
-        <!-- model tree -->
-        <app-batch-model-tree #batchModelTree
-                              [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
-                              [selected]="editingBatch$|push"
-                              (itemClick)="startEditBatch(null, $event)"
-                              [mobile]="mobile"
-                              [debug]="debug && false">
-        </app-batch-model-tree>
+      <ion-footer *ngIf="!mobile">
+        <ion-toolbar>
+          <ion-buttons slot="end">
+            <button
 
-        <ion-footer *ngIf="!mobile">
-          <ion-toolbar>
-            <ion-buttons slot="end">
-              <button *rxLet="treePanelFloating$ as floating"
-                      mat-icon-button color="accent" (click)="toggleTreePanelFloating()"
-                      [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
-                <mat-icon><span>{{floating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
-              </button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-footer>
+              mat-icon-button
+              color="accent"
+              (click)="toggleTreePanelFloating()"
+              [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
+            >
+              <mat-icon>
+                <span>{{ floating ? '&#xbb;' : '&#xab;' }}</span>
+              </mat-icon>
+            </button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-footer>
     </mat-sidenav>
 
     <mat-sidenav-content>
-
       <!-- Top toolbar -->
       <mat-toolbar>
-
         <!-- Toggle tree panel -->
-        <ng-container *rxIf="treePanelFloating$">
-          <button mat-icon-button *rxIf="model$; let model"
-                  (click)="toggleTreePanel()"
-                  [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate"
-                  matBadge="!"
-                  [matBadgeHidden]="model.valid && model.childrenValid"
-                  matBadgeOverlap="true"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">
+        <ng-container *ngIf="floating">
+          <button
+            mat-icon-button
+            *rxIf="model$; let model"
+            (click)="toggleTreePanel()"
+            [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
+            matBadge="!"
+            [matBadgeHidden]="model.valid && model.childrenValid"
+            matBadgeOverlap="true"
+            matBadgeColor="accent"
+            matBadgeSize="small"
+            matBadgePosition="above after"
+          >
             <ion-icon slot="icon-only" name="menu"></ion-icon>
           </button>
         </ng-container>
 
-        <div *ngIf="editingBatch$|async; let node; else helpMessage">
-          <ng-container *ngTemplateOutlet="breadcrumbButtons; context: {$implicit: node}"></ng-container>
+        <div *rxIf="editingBatch$; let node; else: helpMessage; suspense: helpMessage">
+          <ng-container *ngTemplateOutlet="breadcrumbButtons; context: { $implicit: node }"></ng-container>
         </div>
 
         <!-- help message -->
         <ng-template #helpMessage>
-          <ion-item color="transparent"
-                    class="help" lines="none"
-                    (click)="toggleTreePanel()"
-                    tappable>
+          <ion-item color="transparent" class="help" lines="none" (click)="toggleTreePanel()" tappable>
             <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-            <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+            <ion-label
+              color="primary"
+              class="text-italic"
+              [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP' | translate"
+            ></ion-label>
           </ion-item>
         </ng-template>
 
         <div class="toolbar-spacer"></div>
 
         <!-- navigation buttons -->
-        <ng-container *rxIf="editingBatch$; let node">
+        <ng-container *rxIf="editingBatch$; let node; strategy: rxStrategy">
           <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
         </ng-container>
-
       </mat-toolbar>
 
       <ng-container *ngTemplateOutlet="batchTreePanel"></ng-container>
     </mat-sidenav-content>
-
   </mat-sidenav-container>
 
   <ng-container *ngIf="mobile && !useModal">
@@ -86,31 +89,35 @@
 </ng-container>
 
 <ng-template #withModal>
-    <!-- model tree -->
-    <app-batch-model-tree #batchModelTree
-                          [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
-                          [selected]="editingBatch$|push"
-                          (itemClick)="startEditBatch(null, $event)"
-                          [mobile]="mobile"
-                          [debug]="debug && false">
-    </app-batch-model-tree>
+  <!-- model tree -->
+  <app-batch-model-tree
+    #batchModelTree
+    [selectedBatchStatus]="batchTreeStatus$ | push"
+    [selected]="editingBatch$ | push"
+    (itemClick)="startEditBatch(null, $event)"
+    [mobile]="mobile"
+    [debug]="debug && false"
+  ></app-batch-model-tree>
 </ng-template>
 
-<ion-modal #modal *ngIf="useModal"
-           [keepContentsMounted]="true"
-           class="modal-large"
-           enter-animation="modal-slide-in" leave-animation="modal-slide-out">
+<ion-modal
+  #modal
+  *ngIf="useModal"
+  [keepContentsMounted]="true"
+  class="modal-large"
+  enter-animation="modal-slide-in"
+  leave-animation="modal-slide-out"
+>
   <ng-template>
     <ion-header>
       <ion-toolbar color="secondary">
-
         <ion-buttons slot="start">
           <ion-button (click)="modal.dismiss()">
             <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
           </ion-button>
 
           <ng-container *rxIf="editingBatch$; let node">
-            <ng-container *ngTemplateOutlet="breadcrumbButtons; context: {$implicit: node}"></ng-container>
+            <ng-container *ngTemplateOutlet="breadcrumbButtons; context: { $implicit: node }"></ng-container>
           </ng-container>
         </ion-buttons>
 
@@ -135,31 +142,41 @@
     <!-- if hidden, show parent children -->
     <ng-container *ngIf="node.hidden && node?.parent; let parent">
       <ng-container *ngFor="let item of parent.children">
-        <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: item, selected: selected}"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"
+        ></ng-container>
       </ng-container>
     </ng-container>
     <ng-container *ngFor="let item of node?.children">
       <ng-container *ngIf="item.hidden">
         <ng-container *ngFor="let subitem of item.children">
-          <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: subitem, selected: selected}"></ng-container>
+          <ng-container
+            *ngTemplateOutlet="menuItemButton; context: { $implicit: subitem, selected: selected }"
+          ></ng-container>
         </ng-container>
       </ng-container>
-      <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: item, selected: selected}"></ng-container>
+      <ng-container *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"></ng-container>
     </ng-container>
 
     <!-- display one menu item -->
     <ng-template #menuItemButton let-item let-selected="selected">
-      <button  mat-menu-item
-               *ngIf="!item.hidden"
-               [class.activated]="item===selected"
-               (click)="startEditBatch(null, item)">
+      <button
+        mat-menu-item
+        *ngIf="!item.hidden"
+        [class.activated]="item === selected"
+        (click)="startEditBatch(null, item)"
+      >
         <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
-        <span matBadge="!"
-              [matBadgeHidden]="item.valid"
-              matBadgeOverlap="false"
-              matBadgeColor="accent"
-              matBadgeSize="small"
-              matBadgePosition="above after">{{item.name}}</span>
+        <span
+          matBadge="!"
+          [matBadgeHidden]="item.valid"
+          matBadgeOverlap="false"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          {{ item.name }}
+        </span>
       </button>
     </ng-template>
   </ng-template>
@@ -168,118 +185,121 @@
 <ng-template #parentButton let-parent>
   <!-- Recursive call -->
   <ng-container *ngIf="parent?.parent">
-    <ng-container *ngTemplateOutlet="parentButton; context: {$implicit: parent.parent}">
-    </ng-container>
+    <ng-container *ngTemplateOutlet="parentButton; context: { $implicit: parent.parent }"></ng-container>
   </ng-container>
 
   <ng-container *ngIf="parent && !parent.hidden">
     <!-- Allow to select a parent's brother -->
-    <ng-container *ngIf="parent.parent?.children|isArrayLength:{greaterThan: 1}; else noParentBrother">
-      <button mat-button class="breadcrumb"
-              [matMenuTriggerFor]="childrenMenu"
-              [matMenuTriggerData]="{node: parent.parent, selected: parent}"
-              matBadge="!"
-              [matBadgeHidden]="!parent.invalid"
-              matBadgeOverlap="true"
-              matBadgeColor="accent"
-              matBadgeSize="small"
-              matBadgePosition="above after">
-              {{parent.name}}
+    <ng-container *ngIf="parent.parent?.children | isArrayLength : { greaterThan: 1 }; else noParentBrother">
+      <button
+        mat-button
+        class="breadcrumb"
+        [matMenuTriggerFor]="childrenMenu"
+        [matMenuTriggerData]="{ node: parent.parent, selected: parent }"
+        matBadge="!"
+        [matBadgeHidden]="!parent.invalid"
+        matBadgeOverlap="true"
+        matBadgeColor="accent"
+        matBadgeSize="small"
+        matBadgePosition="above after"
+      >
+        {{ parent.name }}
       </button>
-      <span class="breadcrumb-separator"> / </span>
+      <span class="breadcrumb-separator">/</span>
     </ng-container>
 
     <!-- Parent has no brother  -->
     <ng-template #noParentBrother>
-      <button mat-button class="breadcrumb"
-              (click)="startEditBatch($event, parent)"
-              matBadge="!"
-              [matBadgeHidden]="!parent.invalid"
-              matBadgeOverlap="true"
-              matBadgeColor="accent"
-              matBadgeSize="small"
-              matBadgePosition="above after">
-              {{parent.name}}
+      <button
+        mat-button
+        class="breadcrumb"
+        (click)="startEditBatch($event, parent)"
+        matBadge="!"
+        [matBadgeHidden]="!parent.invalid"
+        matBadgeOverlap="true"
+        matBadgeColor="accent"
+        matBadgeSize="small"
+        matBadgePosition="above after"
+      >
+        {{ parent.name }}
       </button>
-      <span class="breadcrumb-separator"> / </span>
+      <span class="breadcrumb-separator">/</span>
     </ng-template>
   </ng-container>
 </ng-template>
 
 <ng-template #breadcrumbButtons let-node>
   <!-- Parent button -->
-  <ng-container *ngTemplateOutlet="parentButton; context: {$implicit: node.parent}">
-  </ng-container>
+  <ng-container *ngTemplateOutlet="parentButton; context: { $implicit: node.parent }"></ng-container>
 
   <!-- current batch name -->
-  <button mat-button
-          class="breadcrumb selected"
-          *rxLet="currentBadge$ as badgeContent"
-          [disabled]="!node.parent"
-          [matMenuTriggerFor]="childrenMenu"
-          [matMenuTriggerData]="{node: node.parent, selected: node}"
-          [matBadge]="badgeContent?.text"
-          [matBadgeHidden]="badgeContent?.hidden"
-          [matBadgeColor]="badgeContent?.color"
-          matBadgeOverlap="true"
-          matBadgeSize="small"
-          matBadgePosition="above after">
-    {{node.name}}
+  <button
+    mat-button
+    class="breadcrumb selected"
+    *rxIf="currentBadge$; let badgeContent"
+    [disabled]="!node.parent"
+    [matMenuTriggerFor]="childrenMenu"
+    [matMenuTriggerData]="{ node: node.parent, selected: node }"
+    [matBadge]="badgeContent?.text"
+    [matBadgeHidden]="badgeContent?.hidden"
+    [matBadgeColor]="badgeContent?.color"
+    matBadgeOverlap="true"
+    matBadgeSize="small"
+    matBadgePosition="above after"
+  >
+    {{ node.name }}
   </button>
 
   <ng-container *ngIf="!node.isLeaf">
-
-    <span class="breadcrumb-separator"> / </span>
+    <span class="breadcrumb-separator">/</span>
 
     <!-- Children menu -->
-    <button mat-button class="breadcrumb"
-            [matMenuTriggerFor]="childrenMenu"
-            [matMenuTriggerData]="{node: node}">
+    <button mat-button class="breadcrumb" [matMenuTriggerFor]="childrenMenu" [matMenuTriggerData]="{ node: node }">
       <span>...</span>
     </button>
   </ng-container>
-
 </ng-template>
 
 <ng-template #navigationButtons>
   <!-- navigation buttons -->
-  <button mat-icon-button
-          (click)="backward($event)"
-          [title]="'COMMON.BTN_BACKWARD'|translate">
+  <button mat-icon-button (click)="backward($event)" [title]="'COMMON.BTN_BACKWARD' | translate">
     <ion-icon slot="icon-only" name="chevron-back-circle-outline"></ion-icon>
   </button>
-  <button mat-icon-button
-          (click)="forward($event)"
-          [title]="'COMMON.BTN_FORWARD'|translate">
-
-    <ion-icon *ngIf="highlightForwardButton; else normalIcon" slot="icon-only" name="chevron-forward-circle" color="tertiary"></ion-icon>
+  <button mat-icon-button (click)="forward($event)" [title]="'COMMON.BTN_FORWARD' | translate">
+    <ion-icon
+      *ngIf="highlightForwardButton; else normalIcon"
+      slot="icon-only"
+      name="chevron-forward-circle"
+      color="tertiary"
+    ></ion-icon>
     <ng-template #normalIcon>
       <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
     </ng-template>
   </button>
 </ng-template>
 <ng-template #batchTreePanel>
-  <app-batch-tree #batchTree
-                  (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!(editingBatch$|push:rxStrategy)"
-                  [queryTabIndexParamName]="queryTabIndexParamName"
-                  [allowSpeciesSampling]="allowSamplingBatches$|push:rxStrategy"
-                  [allowSubBatches]="allowSubBatches$|push:rxStrategy"
-                  [defaultHasSubBatches]="defaultHasSubBatches"
-                  [availableTaxonGroups]="availableTaxonGroups"
-                  [usageMode]="usageMode"
-                  [modalOptions]="modalOptions"
-                  [useSticky]="useSticky"
-                  [i18nPmfmPrefix]="i18nPmfmPrefix"
-                  [mobile]="mobile"
-                  [disabled]="disabled"
-                  [filter]="filter"
-                  [rxStrategy]="rxStrategy"
-                  [requiredGear]="requiredGear$|async"
-                  [gearId]="gearId$|async"
-                  [debug]="debug">
-
-  </app-batch-tree>
+  <app-batch-tree
+    #batchTree
+    (ngInit)="addChildForm(batchTree)"
+    [class.cdk-visually-hidden]="(editingBatch$ | push : rxStrategy) == null"
+    [queryTabIndexParamName]="queryTabIndexParamName"
+    [allowSpeciesSampling]="allowSamplingBatches$ | push : rxStrategy"
+    [allowSubBatches]="allowSubBatches$ | push : rxStrategy"
+    [defaultHasSubBatches]="defaultHasSubBatches"
+    [availableTaxonGroups]="availableTaxonGroups"
+    [showAutoFillButton]="showAutoFillButton"
+    [usageMode]="usageMode"
+    [modalOptions]="modalOptions"
+    [useSticky]="useSticky"
+    [i18nPmfmPrefix]="i18nPmfmPrefix"
+    [mobile]="mobile"
+    [disabled]="disabled"
+    [filter]="filter"
+    [rxStrategy]="rxStrategy"
+    [requiredGear]="requiredGear$ | async"
+    [gearId]="gearId$ | async"
+    [debug]="debug && false"
+  ></app-batch-tree>
 </ng-template>
 
 <!-- Fab buttons -->
@@ -287,18 +307,22 @@
   <!-- Fab button -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <!-- Add button -->
-    <ion-fab-button color="tertiary"
-                    *ngIf="enabled && editingBatch?.isLeaf"
-                    (click)="addRow($event)"
-                    @fadeInOutAnimation>
-
+    <ion-fab-button
+      color="tertiary"
+      *ngIf="enabled && editingBatch?.isLeaf"
+      (click)="addRow($event)"
+      @fadeInOutAnimation
+    >
       <ion-icon name="fish"></ion-icon>
-      <ion-icon name="add" class="icon-secondary" style="left: 29px;top: 4px;font-size: 23px;"></ion-icon>
+      <ion-icon name="add" class="icon-secondary" style="left: 29px; top: 4px; font-size: 23px"></ion-icon>
     </ion-fab-button>
 
     <!-- Forward button -->
-    <ion-fab-button [color]="highlightForwardButton ? 'tertiary': 'light'"
-                    (click)="forward($event)" @fadeInOutAnimation>
+    <ion-fab-button
+      [color]="highlightForwardButton ? 'tertiary' : 'light'"
+      (click)="forward($event)"
+      @fadeInOutAnimation
+    >
       <ion-icon name="chevron-forward"></ion-icon>
     </ion-fab-button>
   </ion-fab>
@@ -310,35 +334,57 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          loading: {{loading}}<br/>
-          ready: {{readySubject|async}}<br/>
-          dirty: {{dirty}}<br/>
-          value: {{!!data}}<br/>
-          valid: {{valid}}<br/>
-          invalid: {{invalid}}<br/>
-          disabled: {{disabled}}<br/>
-          enabled: {{enabled}}<br/>
+          loading: {{ loading }}
+          <br />
+          ready: {{ readySubject | async }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          value: {{ !!data }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          invalid: {{ invalid }}
+          <br />
+          disabled: {{ disabled }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
         </ion-col>
         <ion-col *ngIf="form">
-          form.dirty: {{form.dirty}}<br/>
-          form.valid: {{form.valid}}<br/>
-          form.invalid: {{form.invalid}}<br/>
-          form.enabled: {{form.enabled}}<br/>
-          form.value: <br/>
+          form.dirty: {{ form.dirty }}
+          <br />
+          form.valid: {{ form.valid }}
+          <br />
+          form.invalid: {{ form.invalid }}
+          <br />
+          form.enabled: {{ form.enabled }}
+          <br />
+          form.value:
+          <br />
           <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
         </ion-col>
         <ion-col>
-          batchTree.loading: {{batchTree?.loading}}<br/>
-          batchTree.ready: {{batchTree?.readySubject|async}}<br/>
-          batchTree.dirty: {{batchTree?.dirty}}<br/>
-          batchTree.value: {{!!batchTree?.data}}<br/>
-          batchTree.valid: {{batchTree?.valid}}<br/>
-          batchTree.enabled: {{batchTree?.enabled}}<br/>
+          batchTree.loading: {{ batchTree?.loading }}
+          <br />
+          batchTree.ready: {{ batchTree?.readySubject | async }}
+          <br />
+          batchTree.dirty: {{ batchTree?.dirty }}
+          <br />
+          batchTree.value: {{ !!batchTree?.data }}
+          <br />
+          batchTree.valid: {{ batchTree?.valid }}
+          <br />
+          batchTree.enabled: {{ batchTree?.enabled }}
+          <br />
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col size="12">
-          <ion-text color="danger" [innerHTML]="form$| push: 'userBlocking' | translateFormError: errorTranslatorOptions"></ion-text>
+          <ion-text
+            color="danger"
+            [innerHTML]="form$ | push : 'userBlocking' | translateFormError : errorTranslatorOptions"
+          ></ion-text>
         </ion-col>
       </ion-row>
     </ion-grid>

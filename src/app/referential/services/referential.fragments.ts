@@ -1,4 +1,4 @@
-import {gql} from "@apollo/client/core";
+import {gql} from '@apollo/client/core';
 
 export const ReferentialFragments = {
   lightReferential: gql`fragment LightReferentialFragment on ReferentialVO {

@@ -82,7 +82,7 @@ export class SelectivityOperationPage extends OperationPage {
       this.batchTree.addRow(event);
     }
     else {
-      super.onNewFabButtonClick(event)
+      super.onNewFabButtonClick(event);
     }
   }
 

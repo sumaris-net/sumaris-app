@@ -17,7 +17,7 @@ import { FormGroupDirective } from '@angular/forms';
 })
 export class ReferentialForm<T extends BaseReferential<any> = Referential> extends AppForm<T> implements OnInit {
 
-  statusById: { [id: number]: IStatus; };
+  statusById: { [id: number]: IStatus };
   protected cd: ChangeDetectorRef;
   private _statusList = StatusList;
 

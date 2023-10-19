@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
@@ -20,24 +31,18 @@ import { OperationEditor } from '@app/referential/services/config/program.config
   selector: 'app-operations-table',
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: OperationValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: OperationValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OperationsTable
-  extends AppBaseTable<Operation, OperationFilter>
-  implements OnInit, OnDestroy {
-
+export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
-  statusList = DataQualityStatusList
-    .filter(s => s.id !== DataQualityStatusIds.VALIDATED);
+  statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
     tripId: [null],
-    dataQualityStatus: [null]
+    dataQualityStatus: [null],
   });
 
   @Input() latLongPattern: LatLongPattern;
@@ -74,11 +79,11 @@ export class OperationsTable
     if (this.tripId < 0) {
       switch (sortActive) {
         case 'physicalGear':
-          //return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+        //return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
         //return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
         case 'fishingArea':
-        //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+          //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
           // Fix issue on rankOrder computation
           return 'id';
         default:
@@ -89,9 +94,9 @@ export class OperationsTable
     else {
       switch (sortActive) {
         case 'targetSpecies':
-          //return 'metier';
+        //return 'metier';
         case 'fishingArea':
-          //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         case 'physicalGear':
           // Fix issue on rankOrder computation
           return 'id';
@@ -107,8 +112,7 @@ export class OperationsTable
   }
 
   get showPosition(): boolean {
-    return this.getShowColumn('startPosition') &&
-      this.getShowColumn('endPosition');
+    return this.getShowColumn('startPosition') && this.getShowColumn('endPosition');
   }
 
   @Input() set showFishingArea(show: boolean) {
@@ -143,9 +147,10 @@ export class OperationsTable
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
-  @Output() onDuplicateRow = new EventEmitter<{ data: Operation }>();
+  // eslint-disable-next-line @angular-eslint/no-output-on-prefix
+  @Output('duplicateRow') onDuplicateRow = new EventEmitter<{ data: Operation }>();
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,
@@ -154,42 +159,40 @@ export class OperationsTable
     protected _dataService: OperationService,
     protected accountService: AccountService,
     protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      Operation, OperationFilter,
-      settings.mobile ?
-        ['quality',
-          'physicalGear',
-          'targetSpecies',
-          'startDateTime',
-          'endDateTime',
-          'fishingEndDateTime',
-          'fishingArea'] :
-        ['quality',
-          'physicalGear',
-          'targetSpecies',
-          'startDateTime',
-          'startPosition',
-          'endDateTime',
-          'fishingEndDateTime',
-          'endPosition',
-          'fishingArea',
-          'comments'],
-        _dataService,
-        null,
-        // DataSource options
-        {
-          i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
-          prependNewElements: false,
-          suppressErrors: environment.production,
-          readOnly: false,
-          watchAllOptions: <OperationServiceWatchOptions>{
-            withBatchTree: false,
-            withSamples: false,
-            withTotal: true
-          }
-        }
+    super(
+      injector,
+      Operation,
+      OperationFilter,
+      settings.mobile
+        ? ['quality', 'physicalGear', 'targetSpecies', 'startDateTime', 'endDateTime', 'fishingEndDateTime', 'fishingArea']
+        : [
+            'quality',
+            'physicalGear',
+            'targetSpecies',
+            'startDateTime',
+            'startPosition',
+            'endDateTime',
+            'fishingEndDateTime',
+            'endPosition',
+            'fishingArea',
+            'comments',
+          ],
+      _dataService,
+      null,
+      // DataSource options
+      {
+        i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
+        prependNewElements: false,
+        suppressErrors: environment.production,
+        readOnly: false,
+        watchAllOptions: <OperationServiceWatchOptions>{
+          withBatchTree: false,
+          withSamples: false,
+          withTotal: true,
+        },
+      }
     );
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -204,13 +207,7 @@ export class OperationsTable
     this.loadingSubject.next(false);
 
     // Listen settings changed
-    this.registerSubscription(
-      merge(
-        from(this.settings.ready()),
-        this.settings.onChange
-      )
-        .subscribe(_ => this.configureFromSettings())
-    );
+    this.registerSubscription(merge(from(this.settings.ready()), this.settings.onChange).subscribe((_) => this.configureFromSettings()));
   }
 
   ngOnInit() {
@@ -224,7 +221,8 @@ export class OperationsTable
       this.onRefresh.subscribe(() => {
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-      }));
+      })
+    );
 
     // Update filter when changes
     this.registerSubscription(
@@ -237,12 +235,13 @@ export class OperationsTable
             return valid && !this.loading;
           }),
           // Update the filter, without reloading the content
-          tap(json => this.setFilter(json, {emitEvent: false})),
+          tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap((json) => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
-        .subscribe());
+        .subscribe()
+    );
 
     // Apply trip id, if already set
     if (isNotNil(this.tripId)) {
@@ -255,18 +254,23 @@ export class OperationsTable
     this.onDuplicateRow.unsubscribe();
   }
 
-  setTripId(tripId: number, opts?: { emitEvent: boolean; }) {
-    this.setFilter(<OperationFilter>{
-      ...this.filterForm.value,
-      tripId
-    }, opts);
+  setTripId(tripId: number, opts?: { emitEvent: boolean }) {
+    this.setFilter(
+      <OperationFilter>{
+        ...this.filterForm.value,
+        tripId,
+      },
+      opts
+    );
   }
 
   async openMapModal(event?: Event) {
-
-    const res = await this._dataService.loadAllByTrip({
-      tripId: this.tripId
-    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
+    const res = await this._dataService.loadAllByTrip(
+      {
+        tripId: this.tripId,
+      },
+      { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/ }
+    );
 
     if (!res.total) return; // No data
 
@@ -275,38 +279,35 @@ export class OperationsTable
       componentProps: <OperationsMapModalOptions>{
         data: [res.data],
         latLongPattern: this.latLongPattern,
-        programLabel: this.programLabel
+        programLabel: this.programLabel,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data instanceof Operation) {
       console.info('[operation-table] User select an operation from the map:', data);
 
       // Open the row
-      let row = this.dataSource.getRows().find(row => row.currentData.id === data.id);
+      let row = this.dataSource.getRows().find((r) => r.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
-      }
-      else {
+      } else {
         // Create a fake row
-        row = await this.dataSource.createNew(null, {editing: true});
+        row = await this.dataSource.createNew(null, { editing: true });
         try {
           row.currentData = data;
           await this.openRow(data.id, row);
-        }
-        finally {
+        } finally {
           row.cancelOrDelete();
         }
       }
     }
-
   }
 
   async duplicateRow(event?: Event, row?: TableElement<Operation>) {
@@ -317,17 +318,18 @@ export class OperationsTable
       return false;
     }
 
-    this.onDuplicateRow.emit({data: row.currentData});
+    this.onDuplicateRow.emit({ data: row.currentData });
 
     this.selection.clear();
   }
 
   async getUsedPhysicalGearIds(): Promise<number[]> {
-    return this.dataSource.getRows()
-      .map(ope => ope.currentData.physicalGear)
+    return this.dataSource
+      .getRows()
+      .map((ope) => ope.currentData.physicalGear)
       .filter(isNotNil)
-      .map(gear => gear.id)
-      .reduce((res, id) => res.includes(id) ? res : res.concat(id), []);
+      .map((gear) => gear.id)
+      .reduce((res, id) => (res.includes(id) ? res : res.concat(id)), []);
   }
 
   // Changed as public
@@ -336,7 +338,7 @@ export class OperationsTable
   }
 
   resetFilter(value?: any, opts?: { emitEvent: boolean }) {
-    super.resetFilter(<OperationFilter>{...value, tripId: this.tripId}, opts);
+    super.resetFilter(<OperationFilter>{ ...value, tripId: this.tripId }, opts);
     this.resetError();
   }
 
@@ -360,7 +362,7 @@ export class OperationsTable
   }
 
   // Change visibility to public
-  setError(error: string, opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
     super.setError(error, opts);
 
     // If error
@@ -388,7 +390,7 @@ export class OperationsTable
   }
 
   // Change visibility to public
-  resetError(opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
     this.setError(undefined, opts);
   }
 
@@ -409,9 +411,8 @@ export class OperationsTable
 
     if (settings.accountInheritance) {
       const account = this.accountService.account;
-      this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-    }
-    else {
+      this.latLongPattern = (account && account.settings && account.settings.latLongFormat) || this.settings.latLongFormat;
+    } else {
       this.latLongPattern = this.settings.latLongFormat;
     }
 
@@ -419,7 +420,7 @@ export class OperationsTable
       gear: this.settings.getFieldDisplayAttributes('gear'),
       physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-      fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label'])
+      fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label']),
     };
 
     this.markForCheck();

@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, QueryList, Renderer2, ViewChild, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Injector,
+  Input,
+  OnInit,
+  QueryList,
+  Renderer2,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { of } from 'rxjs';
@@ -6,24 +18,28 @@ import { IGNORED_ENTITY_COLUMNS } from '@app/referential/table/referential.table
 import { DevicePosition, DevicePositionFilter } from '@app/data/position/device/device-position.model';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import {
-  AccountService, arrayDistinct,
-  capitalizeFirstLetter, isNil,
-  isNilOrNaN, isNotNil,
+  AccountService,
+  arrayDistinct,
+  capitalizeFirstLetter,
+  isNil,
+  isNilOrNaN,
+  isNotNil,
   LoadResult,
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig, Person,
+  MatAutocompleteFieldConfig,
+  Person,
   PersonService,
   PersonUtils,
   StatusIds,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { catchError, debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
 import { L } from '@app/shared/map/leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
 import { Feature, Point } from 'geojson';
-import { ObjectTypeEnum } from '@app/referential/services/model/model.enum';
+import { ObjectTypeLabels } from '@app/referential/services/model/model.enum';
 import { NavController } from '@ionic/angular';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
@@ -48,8 +64,8 @@ export class DevicePositionMapPage
 
   protected readonly features$ = this._state.select('features');
 
-  protected _autocompleteConfigHolder:MatAutocompleteConfigHolder;
-  protected filter:DevicePositionFilter = new DevicePositionFilter();
+  protected _autocompleteConfigHolder: MatAutocompleteConfigHolder;
+  protected filter: DevicePositionFilter = new DevicePositionFilter();
 
   filterForm: UntypedFormGroup;
 
@@ -58,14 +74,14 @@ export class DevicePositionMapPage
   filterCriteriaCount = 0;
   filterPanelFloating = true;
 
-  autocompleteFields: {[key:string]:MatAutocompleteFieldConfig};
+  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   onRefresh = new EventEmitter<any>();
 
   @Input() persistFilterInSettings = true;
   @Input() showTooltip = true;
 
-  @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel:MatExpansionPanel;
-  @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel:MatExpansionPanel;
+  @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel: MatExpansionPanel;
   @ViewChild('table',{static: true, read: ElementRef}) tableElement: ElementRef;
   @ViewChildren('tableRows', {read: ElementRef}) tableRows!: QueryList<ElementRef>;
 
@@ -77,7 +93,7 @@ export class DevicePositionMapPage
   }
 
   constructor(
-    injector:Injector,
+    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected _state: RxState<DevicePositionMapState>,
     protected dataService: DevicePositionService,
@@ -105,7 +121,7 @@ export class DevicePositionMapPage
     super.ngOnInit();
 
     // Combo: recorder person
-    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name'])
+    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name']);
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
@@ -126,7 +142,7 @@ export class DevicePositionMapPage
             // Done in setFilter
             // this.filterCriteriaCount = filter.countNotEmptyCriteria();
             this.markForCheck();
-            this.setFilter(filter, {emitEvent: false})
+            this.setFilter(filter, {emitEvent: false});
           }),
           debounceTime(500),
           tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, DEVICE_POSITION_MAP_SETTINGS.FILTER_KEY))
@@ -150,10 +166,6 @@ export class DevicePositionMapPage
         )
         .subscribe((res) => this.updateView(res))
     );
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
   }
 
   protected load() {
@@ -204,7 +216,7 @@ export class DevicePositionMapPage
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  applyFilterAndClosePanel(event?:Event) {
+  applyFilterAndClosePanel(event?: Event) {
     this.onRefresh.emit(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -277,7 +289,7 @@ export class DevicePositionMapPage
     this.applyFilter(filterInstance, opts);
   }
 
-  async updateView(res: LoadResult<DevicePosition> | undefined, opts?: {emitEvent?: boolean;}): Promise<void> {
+  async updateView(res: LoadResult<DevicePosition> | undefined, opts?: {emitEvent?: boolean}): Promise<void> {
     let {data, total} = res;
 
     data = data || [];
@@ -323,7 +335,7 @@ export class DevicePositionMapPage
     return target;
   }
 
-  private applyFilter(filter:DevicePositionFilter, opts: { emitEvent?: boolean; }) {
+  private applyFilter(filter: DevicePositionFilter, opts: { emitEvent?: boolean }) {
     if (this._debug) console.debug(`${this._logPrefix} Applying filter`, filter);
     this.filter = filter;
     if (opts && opts.emitEvent) {
@@ -353,7 +365,7 @@ export class DevicePositionMapPage
         res[p.id] = layer;
         this.layers.push(layer);
         return res;
-      }, {})
+      }, {});
 
       // Add each position to layer
       const features = (data || [])
@@ -373,7 +385,7 @@ export class DevicePositionMapPage
         const layer = layerByPersonId[p.id];
         const layerName = PersonUtils.personToString(p);
         this.layersControl.overlays[layerName] = layer;
-      })
+      });
 
       this.layers.forEach(layer => layer.addTo(this.map));
 
@@ -382,7 +394,7 @@ export class DevicePositionMapPage
       return features;
 
     } catch (err) {
-      console.error("[operations-map] Error while load layers:", err);
+      console.error('[operations-map] Error while load layers:', err);
       this.error = err && err.message || err;
     } finally {
       this.markForCheck();
@@ -395,7 +407,7 @@ export class DevicePositionMapPage
     const features = <Feature>{
       id: position.id,
       type: 'Feature',
-      geometry: <Point>{ type: "Point", coordinates: [position.longitude, position.latitude]},
+      geometry: <Point>{ type: 'Point', coordinates: [position.longitude, position.latitude]},
       properties: {
         ...position.asObject(),
         objectTypeName: this.getObjectTypeName(position)
@@ -410,10 +422,10 @@ export class DevicePositionMapPage
     const objectType = position.objectType?.label;
     if (objectType) {
       switch (objectType) {
-        case ObjectTypeEnum.TRIP:
-          return this.translate.instant('TRIP.TITLE')
-        case ObjectTypeEnum.OBSERVED_LOCATION:
-          return this.translate.instant('OBSERVED_LOCATION.TITLE')
+        case ObjectTypeLabels.TRIP:
+          return this.translate.instant('TRIP.TITLE');
+        case ObjectTypeLabels.OBSERVED_LOCATION:
+          return this.translate.instant('OBSERVED_LOCATION.TITLE');
       }
       return objectType.split('_').map(capitalizeFirstLetter).join(' ');
     }
@@ -460,9 +472,9 @@ export class DevicePositionMapPage
           }));
           delete marker['_selected'];
         }
-      })
+      });
 
-    })
+    });
   }
 
   protected async onOpenDataClick(event: Event, position: DevicePosition|any) {
@@ -477,16 +489,16 @@ export class DevicePositionMapPage
     }
     let path: string;
     switch (objectType) {
-      case ObjectTypeEnum.TRIP:
-        path = `/trips/${objectId}`
+      case ObjectTypeLabels.TRIP:
+        path = `/trips/${objectId}`;
         break;
-      case ObjectTypeEnum.OBSERVED_LOCATION:
-        path = `/observations/${objectId}`
+      case ObjectTypeLabels.OBSERVED_LOCATION:
+        path = `/observations/${objectId}`;
         break;
     }
     if (!path) {
       console.error('Cannot load router path for objectType: ' + objectType);
-      return
+      return;
     }
     await this.navController.navigateForward(path);
   }

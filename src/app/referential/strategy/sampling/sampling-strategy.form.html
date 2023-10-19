@@ -1,53 +1,62 @@
 <app-debug *ngIf="debug">
-  touched ? {{form.touched}}<br/>
-  appliedPeriodsForm.touched ? {{appliedPeriodsForm.touched}}<br/>
+  touched ? {{ form.touched }}
+  <br />
+  appliedPeriodsForm.touched ? {{ appliedPeriodsForm.touched }}
+  <br />
+  hasEffort ? {{ hasEffort }}
+  <br />
 </app-debug>
 
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <ion-grid>
-
     <!-- year + label -->
-    <ion-row *ngIf="form.controls.label; let labelControl">
+    <ion-row *ngIf="form | formGetControl : 'label'; let labelControl">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
 
       <!-- label -->
-      <ion-col size="6" size-md="5" size-lg="5" >
+      <ion-col size="6" size-md="5" size-lg="5">
         <mat-form-field *ngIf="labelMask; else noLabelMask">
-          <input matInput #matInput
-                 [formControl]="labelControl"
-                 autocomplete="off"
-                 type="text"
-                 [textMask]="{mask: labelMask, keepCharPositions: true, showMask: true, guide: true}"
-                 (click)="selectMask(matInput)"
-                 placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
-          <mat-error *ngIf="labelControl.hasError('unique')"
-                     translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
-          <mat-error *ngIf="labelControl.hasError('zero')"
-                     translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
+          <input
+            matInput
+            #matInput
+            [formControl]="labelControl"
+            autocomplete="off"
+            type="text"
+            [textMask]="{ mask: labelMask, keepCharPositions: true, showMask: true, guide: true }"
+            (click)="selectMask(matInput)"
+            placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}"
+          />
+          <mat-error *ngIf="labelControl.hasError('unique')" translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
+          <mat-error *ngIf="labelControl.hasError('zero')" translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
         </mat-form-field>
 
         <ng-template #noLabelMask>
           <mat-form-field>
-            <input matInput #matInput
-                   [formControl]="labelControl"
-                   autocomplete="off"
-                   type="text"
-                   placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
-            <mat-error *ngIf="labelControl.hasError('unique')"
-                       translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
-            <mat-error *ngIf="labelControl.hasError('zero')"
-                       translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
+            <input
+              matInput
+              #matInput
+              [formControl]="labelControl"
+              autocomplete="off"
+              type="text"
+              placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}"
+            />
+            <mat-error *ngIf="labelControl.hasError('unique')" translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
+            <mat-error *ngIf="labelControl.hasError('zero')" translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
           </mat-form-field>
         </ng-template>
       </ion-col>
       <ion-col size="2" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-button [disabled]="labelControl.disabled || labelControl.pristine || disableEditionListeners"
-                    [color]="canGenerateLabel ? 'tertiary' : 'light'"
-                    (click)="generateLabelIncrement()" translate>PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON</ion-button>
+        <ion-button
+          [disabled]="labelControl.disabled || labelControl.pristine || disableEditionListeners"
+          [color]="canGenerateLabel ? 'tertiary' : 'light'"
+          (click)="generateLabelIncrement()"
+          translate
+        >
+          PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON
+        </ion-button>
       </ion-col>
-
     </ion-row>
 
     <!-- analytic reference  -->
@@ -56,145 +65,183 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field #analyticReferenceField
+        <mat-autocomplete-field
+          #analyticReferenceField
           formControlName="analyticReference"
-          [placeholder]="i18nFieldPrefix + 'ANALYTIC_REFERENCE_PLACEHOLDER'|translate"
+          [placeholder]="i18nFieldPrefix + 'ANALYTIC_REFERENCE_PLACEHOLDER' | translate"
           [config]="autocompleteFields.analyticReference"
-          [tabindex]="tabindex+1"
-          [required]="true">
-
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilter('analyticReference', analyticReferenceField)"
-                  [color]="autocompleteFilters.analyticReference ? 'primary' : undefined">
+          [tabindex]="tabindex + 1"
+          [required]="true"
+        >
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            tabindex="-1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_FILTER' | translate"
+            (click)="toggleFilter('analyticReference', analyticReferenceField)"
+            [color]="autocompleteFilters.analyticReference ? 'primary' : undefined"
+          >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
-
       </ion-col>
     </ion-row>
 
     <!-- Departments -->
     <ion-row *ngFor="let departmentForm of departmentsFormArray?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'DEPARTMENTS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'DEPARTMENTS' | translate }}</ion-label>
       </ion-col>
       <ion-col [formGroup]="departmentsHelper.at(i)">
-        <mat-autocomplete-field #departmentField
+        <mat-autocomplete-field
+          #departmentField
           formControlName="department"
-          [placeholder]="(i18nFieldPrefix + 'DEPARTMENT_PLACEHOLDER'|translate) + (i+1)"
+          [placeholder]="(i18nFieldPrefix + 'DEPARTMENT_PLACEHOLDER' | translate) + (i + 1)"
           [config]="autocompleteFields.department"
-          [tabindex]="tabindex+10+i*3"
-          [required]="true">
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilter('department', departmentField)"
-                  [color]="autocompleteFilters.department ? 'primary' : undefined">
+          [tabindex]="tabindex + 10 + i * 3"
+          [required]="true"
+        >
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            tabindex="-1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_FILTER' | translate"
+            (click)="toggleFilter('department', departmentField)"
+            [color]="autocompleteFilters.department ? 'primary' : undefined"
+          >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button
-                [disabled]="isDepartmentDisable(i)"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addDepartment()">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isDepartmentDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 1"
+          [title]="'COMMON.BTN_ADD' | translate"
+          (click)="addDepartment()"
+        >
           <mat-icon>add</mat-icon>
         </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="isDepartmentDisable(i)"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="departmentsHelper.removeAt(i)">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isDepartmentDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 2"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="departmentsHelper.removeAt(i)"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
     </ion-row>
 
     <!-- locations -->
     <ion-row *ngFor="let appliedStrategyForm of appliedStrategiesForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'LOCATIONS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'LOCATIONS' | translate }}</ion-label>
       </ion-col>
       <ion-col [formGroup]="appliedStrategiesHelper.at(i)">
-        <mat-autocomplete-field #locationField
+        <mat-autocomplete-field
+          #locationField
           formControlName="location"
-          [placeholder]="(i18nFieldPrefix + 'LOCATION_PLACEHOLDER'|translate) + (i+1)"
+          [placeholder]="(i18nFieldPrefix + 'LOCATION_PLACEHOLDER' | translate) + (i + 1)"
           [config]="autocompleteFields.location"
-          [tabindex]="tabindex+10+i*3"
-          [required]="true">
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilter('location', locationField)"
-                  [color]="autocompleteFilters.location ? 'primary' : undefined">
+          [tabindex]="tabindex + 10 + i * 3"
+          [required]="true"
+        >
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            tabindex="-1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_FILTER' | translate"
+            (click)="toggleFilter('location', locationField)"
+            [color]="autocompleteFilters.location ? 'primary' : undefined"
+          >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button
-                [disabled]="isLocationDisable(i)"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addAppliedStrategy()">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isLocationDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 1"
+          [title]="'COMMON.BTN_ADD' | translate"
+          (click)="addAppliedStrategy()"
+        >
           <mat-icon>add</mat-icon>
         </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="isLocationDisable(i)"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeAppliedStrategies(i)">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isLocationDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 2"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="removeAppliedStrategies(i)"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
     </ion-row>
 
     <!-- Taxon names -->
     <ion-row *ngFor="let taxonNameForm of taxonNamesFormArray?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'TAXON_NAMES'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'TAXON_NAMES' | translate }}</ion-label>
       </ion-col>
       <ion-col [formGroup]="taxonNamesHelper.at(i)">
-        <mat-autocomplete-field #taxonField
+        <mat-autocomplete-field
+          #taxonField
           formControlName="taxonName"
-          [placeholder]="(i18nFieldPrefix + 'TAXON_NAME_PLACEHOLDER'|translate)"
+          [placeholder]="i18nFieldPrefix + 'TAXON_NAME_PLACEHOLDER' | translate"
           [config]="autocompleteFields.taxonName"
-          [tabindex]="tabindex+10+i*3"
-          [required]="true">
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleFilter('taxonName', taxonField)"
-                  [color]="autocompleteFilters.taxonName ? 'primary' : undefined">
+          [tabindex]="tabindex + 10 + i * 3"
+          [required]="true"
+        >
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            tabindex="-1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_FILTER' | translate"
+            (click)="toggleFilter('taxonName', taxonField)"
+            [color]="autocompleteFilters.taxonName ? 'primary' : undefined"
+          >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col *ngIf="taxonNameForm.touched && taxonNameForm.invalid"
-               size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
-               class="mat-form-field-errors">
-        <mat-hint *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')"
-                   translate>PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE</mat-hint>
-        <mat-hint *ngIf="taxonNameForm.hasError('uniqueTaxonCode')"
-                   translate>PROGRAM.STRATEGY.ERROR.NOT_UNIQUE_TAXON_CODE</mat-hint>
+      <ion-col
+        *ngIf="taxonNameForm.touched && taxonNameForm.invalid"
+        size="12"
+        size-md="10"
+        offset-md="2"
+        size-lg="9"
+        offset-lg="3"
+        class="mat-form-field-errors"
+      >
+        <mat-hint *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')" translate>
+          PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE
+        </mat-hint>
+        <mat-hint *ngIf="taxonNameForm.hasError('uniqueTaxonCode')" translate>
+          PROGRAM.STRATEGY.ERROR.NOT_UNIQUE_TAXON_CODE
+        </mat-hint>
       </ion-col>
-
     </ion-row>
-
 
     <!-- year -->
     <ion-row>
@@ -202,10 +249,11 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col size="12" size-md="3" size-lg="2">
-        <mat-date-short-field [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER'|translate"
-                              formControlName="year"
-                              [required]="true">
-        </mat-date-short-field>
+        <mat-date-short-field
+          [placeholder]="i18nFieldPrefix + 'YEAR_PLACEHOLDER' | translate"
+          formControlName="year"
+          [required]="true"
+        ></mat-date-short-field>
       </ion-col>
     </ion-row>
 
@@ -213,33 +261,46 @@
     <ng-container *ngIf="appliedPeriodsForm; let appliedPeriodsForm">
       <ion-row>
         <ion-col size="12" size-md="2" size-lg="3">
-          <ion-label class="ion-float-end">{{i18nFieldPrefix + 'EFFORT'|translate}}</ion-label>
+          <ion-label class="ion-float-end">{{ i18nFieldPrefix + 'EFFORT' | translate }}</ion-label>
         </ion-col>
 
-        <ion-col size="3" size-md="2"
-                 *ngFor="let appliedPeriodForm of appliedPeriodsForm.controls; index as i; first as first"
-                 [class.ion-padding-start]="!first">
+        <ion-col
+          size="3"
+          size-md="2"
+          *ngFor="let appliedPeriodForm of appliedPeriodsForm.controls; index as i; first as first"
+          [class.ion-padding-start]="!first"
+        >
           <form [formGroup]="appliedPeriodForm">
             <mat-form-field>
-              <input matInput
-                     formControlName="acquisitionNumber"
-                     [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' |translate) + (i+1)"
-                     type="number"
-                     step="1"
-                     min="0"
-                     autocomplete="off"
-                     (click)="selectInputContent($event)">
+              <input
+                matInput
+                formControlName="acquisitionNumber"
+                [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' | translate) + (i + 1)"
+                type="number"
+                step="1"
+                min="0"
+                autocomplete="off"
+                (click)="selectInputContent($event)"
+              />
             </mat-form-field>
           </form>
         </ion-col>
-        <ion-col *ngIf="(form.touched || appliedPeriodsForm.touched) && appliedPeriodsForm.invalid"
-                 size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
-                 class="mat-form-field-errors">
+        <ion-col
+          *ngIf="(form.touched || appliedPeriodsForm.touched) && appliedPeriodsForm.invalid"
+          size="12"
+          size-md="10"
+          offset-md="2"
+          size-lg="9"
+          offset-lg="3"
+          class="mat-form-field-errors"
+        >
           <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
-            {{'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}
+            {{ 'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate : appliedPeriodsForm.errors.minLength }}
           </mat-error>
           <mat-error *ngIf="appliedPeriodsForm.hasError('hasRealizedEffort')">
-            {{'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate: appliedPeriodsForm.errors.hasRealizedEffort }}
+            {{
+              'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate : appliedPeriodsForm.errors.hasRealizedEffort
+            }}
           </mat-error>
         </ion-col>
       </ion-row>
@@ -248,7 +309,7 @@
     <ion-row>
       <ion-col size="12">
         <ion-text color="primary">
-          <h2>{{i18nFieldPrefix + 'PARAMETERS_DIVIDER'|translate}}</h2>
+          <h2>{{ i18nFieldPrefix + 'PARAMETERS_DIVIDER' | translate }}</h2>
         </ion-text>
       </ion-col>
     </ion-row>
@@ -257,54 +318,61 @@
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col *ngIf="form.touched || pmfmsForm.touched"
-               class="mat-form-field-errors" [style.margin-top]="0">
+      <ion-col *ngIf="form.touched || pmfmsForm.touched" class="mat-form-field-errors" [style.margin-top]="0">
         <mat-error *ngIf="pmfmsForm.hasError('required') || pmfmsForm.hasError('minLength')">
-          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: {minLength: minPmfmCount} }}
+          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate : { minLength: minPmfmCount } }}
         </mat-error>
         <mat-error *ngIf="pmfmsForm.hasError('weightOrSize')">
-          {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate}}
+          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate }}
         </mat-error>
       </ion-col>
     </ion-row>
     <ion-row *ngFor="let lengthPmfmForm of lengthPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'LENGTHS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'LENGTHS' | translate }}</ion-label>
       </ion-col>
       <ion-col>
         <form [formGroup]="lengthPmfmsHelper.at(i)">
-          <mat-autocomplete-field class="mat-autocomplete-panel-full-size"
-                                  formControlName="pmfm"
-                                  [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER'|translate) + (i+1)"
-                                  [config]="autocompleteFields.lengthPmfm"
-                                  [tabindex]="tabindex+10+i*3"
-                                  [required]="false">
-  <!--          <button matAfter type="button" mat-icon-button-->
-  <!--                  tabindex="-1"-->
-  <!--                  [disabled]="disabled"-->
-  <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
-  <!--                  (click)="toggleFilter('lengthPmfm', lengthPmfmField)"-->
-  <!--                  [color]="autocompleteFilters.lengthPmfm ? 'primary' : undefined">-->
-  <!--            <mat-icon>filter_list_alt</mat-icon>-->
-  <!--          </button>-->
+          <mat-autocomplete-field
+            class="mat-autocomplete-panel-full-size"
+            formControlName="pmfm"
+            [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER' | translate) + (i + 1)"
+            [config]="autocompleteFields.lengthPmfm"
+            [tabindex]="tabindex + 10 + i * 3"
+            [required]="false"
+          >
+            <!--          <button matAfter type="button" mat-icon-button-->
+            <!--                  tabindex="-1"-->
+            <!--                  [disabled]="disabled"-->
+            <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+            <!--                  (click)="toggleFilter('lengthPmfm', lengthPmfmField)"-->
+            <!--                  [color]="autocompleteFilters.lengthPmfm ? 'primary' : undefined">-->
+            <!--            <mat-icon>filter_list_alt</mat-icon>-->
+            <!--          </button>-->
           </mat-autocomplete-field>
         </form>
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button
-                [disabled]="isLengthPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addLengthPmfm()">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isLengthPmfmDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 1"
+          [title]="'COMMON.BTN_ADD' | translate"
+          (click)="addLengthPmfm()"
+        >
           <mat-icon>add</mat-icon>
         </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="isLengthPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeLengthPmfm(i)">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isLengthPmfmDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 2"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="removeLengthPmfm(i)"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
@@ -314,42 +382,50 @@
     <!-- Weights Pmfms -->
     <ion-row *ngFor="let weightPmfmForm of weightPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'WEIGHTS'|translate}}</ion-label>
+        <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'WEIGHTS' | translate }}</ion-label>
       </ion-col>
       <ion-col>
         <form [formGroup]="weightPmfmsHelper.at(i)">
-          <mat-autocomplete-field class="mat-autocomplete-panel-full-size"
-                                  formControlName="pmfm"
-                                  [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER'|translate) + (i+1)"
-                                  [config]="autocompleteFields.weightPmfm"
-                                  [tabindex]="tabindex+10+i*3"
-                                  [required]="false">
-  <!--          <button matAfter type="button" mat-icon-button-->
-  <!--                  tabindex="-1"-->
-  <!--                  [disabled]="disabled"-->
-  <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
-  <!--                  (click)="toggleFilter('weightPmfm', weightPmfmField)"-->
-  <!--                  [color]="autocompleteFilters.weightPmfm ? 'primary' : undefined">-->
-  <!--            <mat-icon>filter_list_alt</mat-icon>-->
-  <!--          </button>-->
+          <mat-autocomplete-field
+            class="mat-autocomplete-panel-full-size"
+            formControlName="pmfm"
+            [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER' | translate) + (i + 1)"
+            [config]="autocompleteFields.weightPmfm"
+            [tabindex]="tabindex + 10 + i * 3"
+            [required]="false"
+          >
+            <!--          <button matAfter type="button" mat-icon-button-->
+            <!--                  tabindex="-1"-->
+            <!--                  [disabled]="disabled"-->
+            <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+            <!--                  (click)="toggleFilter('weightPmfm', weightPmfmField)"-->
+            <!--                  [color]="autocompleteFilters.weightPmfm ? 'primary' : undefined">-->
+            <!--            <mat-icon>filter_list_alt</mat-icon>-->
+            <!--          </button>-->
           </mat-autocomplete-field>
         </form>
       </ion-col>
 
       <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button
-                [disabled]="isWeightPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addWeightPmfm()">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isWeightPmfmDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 1"
+          [title]="'COMMON.BTN_ADD' | translate"
+          (click)="addWeightPmfm()"
+        >
           <mat-icon>add</mat-icon>
         </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="isWeightPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeWeightPmfm(i)">
+        <button
+          type="button"
+          mat-icon-button
+          [disabled]="isWeightPmfmDisable(i)"
+          [tabindex]="tabindex + 10 + +i * 3 + 2"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="removeWeightPmfm(i)"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
@@ -358,60 +434,69 @@
     <!-- SEX -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'SEX'|translate}}</ion-label>
+        <ion-label class="ion-float-end">{{ i18nFieldPrefix + 'SEX' | translate }}</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="auto">
-       <mat-boolean-field [placeholder]="i18nFieldPrefix + 'SEX_PLACEHOLDER'|translate"
-                          formControlName="sex"
-                          [required]="true">
-       </mat-boolean-field>
+        <mat-boolean-field
+          [placeholder]="i18nFieldPrefix + 'SEX_PLACEHOLDER' | translate"
+          formControlName="sex"
+          [required]="true"
+        ></mat-boolean-field>
       </ion-col>
     </ion-row>
 
     <!-- Maturity Pmfms -->
     <ng-container *ngIf="hasSex">
-    <ion-row *ngFor="let maturityPmfmForm of maturityPmfmsForm?.controls; index as i; first as first">
-      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
-      </ion-col>
-      <ion-col>
-        <form [formGroup]="maturityPmfmsHelper.at(i)">
-          <mat-autocomplete-field class="mat-autocomplete-panel-full-size"
-                                  formControlName="pmfm"
-                                  [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER'|translate) + (i+1)"
-                                  [config]="autocompleteFields.maturityPmfm"
-                                  [tabindex]="tabindex+10+i*3"
-                                  [required]="false">
-  <!--          <button matAfter type="button" mat-icon-button-->
-  <!--                  tabindex="-1"-->
-  <!--                  [disabled]="disabled"-->
-  <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
-  <!--                  (click)="toggleFilter('maturityPmfm', maturityPmfmField)"-->
-  <!--                  [color]="autocompleteFilters.maturityPmfm ? 'primary' : undefined">-->
-  <!--            <mat-icon>filter_list_alt</mat-icon>-->
-  <!--          </button>-->
-          </mat-autocomplete-field>
-        </form>
-      </ion-col>
+      <ion-row *ngFor="let maturityPmfmForm of maturityPmfmsForm?.controls; index as i; first as first">
+        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" *ngIf="first">{{ i18nFieldPrefix + 'MATURITIES' | translate }}</ion-label>
+        </ion-col>
+        <ion-col>
+          <form [formGroup]="maturityPmfmsHelper.at(i)">
+            <mat-autocomplete-field
+              class="mat-autocomplete-panel-full-size"
+              formControlName="pmfm"
+              [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER' | translate) + (i + 1)"
+              [config]="autocompleteFields.maturityPmfm"
+              [tabindex]="tabindex + 10 + i * 3"
+              [required]="false"
+            >
+              <!--          <button matAfter type="button" mat-icon-button-->
+              <!--                  tabindex="-1"-->
+              <!--                  [disabled]="disabled"-->
+              <!--                  [title]="'COMMON.BTN_FILTER'|translate"-->
+              <!--                  (click)="toggleFilter('maturityPmfm', maturityPmfmField)"-->
+              <!--                  [color]="autocompleteFilters.maturityPmfm ? 'primary' : undefined">-->
+              <!--            <mat-icon>filter_list_alt</mat-icon>-->
+              <!--          </button>-->
+            </mat-autocomplete-field>
+          </form>
+        </ion-col>
 
-      <ion-col size="auto" class="ion-align-self-center">
-        <button type="button" mat-icon-button
-                [disabled]="isMaturityPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addMaturityPmfm()">
-          <mat-icon>add</mat-icon>
-        </button>
+        <ion-col size="auto" class="ion-align-self-center">
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="isMaturityPmfmDisable(i)"
+            [tabindex]="tabindex + 10 + +i * 3 + 1"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addMaturityPmfm()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="isMaturityPmfmDisable(i)"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeMaturityPmfm(i)">
-          <mat-icon>close</mat-icon>
-        </button>
-      </ion-col>
-    </ion-row>
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="isMaturityPmfmDisable(i)"
+            [tabindex]="tabindex + 10 + +i * 3 + 2"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="removeMaturityPmfm(i)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
     </ng-container>
 
     <ion-row style="height: 15px"></ion-row>
@@ -419,11 +504,14 @@
     <!-- AGE -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end">{{i18nFieldPrefix + 'AGE'|translate}}</ion-label>
+        <ion-label class="ion-float-end">{{ i18nFieldPrefix + 'AGE' | translate }}</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="auto">
-        <mat-boolean-field [placeholder]="i18nFieldPrefix + 'AGE_PLACEHOLDER'|translate" formControlName="age" [required]="true" >
-        </mat-boolean-field>
+        <mat-boolean-field
+          [placeholder]="i18nFieldPrefix + 'AGE_PLACEHOLDER' | translate"
+          formControlName="age"
+          [required]="true"
+        ></mat-boolean-field>
       </ion-col>
     </ion-row>
 
@@ -431,49 +519,59 @@
     <ng-container *ngIf="hasAge">
       <ion-row *ngFor="let fractionControl of fractionPmfmsForm?.controls; index as i; first as first">
         <ion-col [size]="first ? 12 : 0" size-md="2" size-lg="3" class="ion-align-self-end">
-          <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+          <ion-label class="ion-float-end" *ngIf="first">
+            {{ i18nFieldPrefix + 'CALCIFIED_TYPE' | translate }}
+          </ion-label>
         </ion-col>
         <ion-col>
           <form [formGroup]="fractionControl">
-            <mat-autocomplete-field #fractionField
-                                    formControlName="fraction"
-                                    [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER'|translate) + (i+1)"
-                                    [config]="autocompleteFields.fractionPmfm"
-                                    [tabindex]="tabindex+10+i*3"
-                                    [required]="false">
-              <button matAfter type="button" mat-icon-button
-                      tabindex="-1"
-                      [disabled]="disabled"
-                      [title]="'COMMON.BTN_FILTER'|translate"
-                      (click)="toggleFilter('fractionPmfm', fractionField)"
-                      [color]="autocompleteFilters.fractionPmfm ? 'primary' : undefined">
+            <mat-autocomplete-field
+              #fractionField
+              formControlName="fraction"
+              [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER' | translate) + (i + 1)"
+              [config]="autocompleteFields.fractionPmfm"
+              [tabindex]="tabindex + 10 + i * 3"
+              [required]="false"
+            >
+              <button
+                matAfter
+                type="button"
+                mat-icon-button
+                tabindex="-1"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_FILTER' | translate"
+                (click)="toggleFilter('fractionPmfm', fractionField)"
+                [color]="autocompleteFilters.fractionPmfm ? 'primary' : undefined"
+              >
                 <mat-icon>filter_list_alt</mat-icon>
               </button>
-
             </mat-autocomplete-field>
           </form>
         </ion-col>
 
         <ion-col size="auto" class="ion-align-self-center">
-
-          <button type="button" mat-icon-button
-                  [disabled]="fractionControl.disabled"
-                  [tabindex]="tabindex+10++i*3+1"
-                  [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addPmfmFraction()">
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="fractionControl.disabled"
+            [tabindex]="tabindex + 10 + +i * 3 + 1"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addPmfmFraction()"
+          >
             <mat-icon>add</mat-icon>
           </button>
 
-          <button type="button" mat-icon-button
-                  [disabled]="fractionControl.disabled"
-                  [tabindex]="tabindex+10++i*3+2"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="fractionPmfmsHelper.removeAt(i)">
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="fractionControl.disabled"
+            [tabindex]="tabindex + 10 + +i * 3 + 2"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="fractionPmfmsHelper.removeAt(i)"
+          >
             <mat-icon>close</mat-icon>
           </button>
-
         </ion-col>
-
       </ion-row>
     </ng-container>
 
@@ -481,10 +579,16 @@
     <ion-row>
       <ion-col>
         <mat-form-field appearance="outline">
-        <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
-                  [placeholder]="'COMMON.COMMENTS'|translate"
-                  formControlName="comments" ></textarea>
-          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <textarea
+            matInput
+            #comments
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            [placeholder]="'COMMON.COMMENTS' | translate"
+            formControlName="comments"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
         </mat-form-field>
       </ion-col>
     </ion-row>

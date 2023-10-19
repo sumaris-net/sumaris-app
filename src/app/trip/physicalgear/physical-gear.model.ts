@@ -72,7 +72,7 @@ export class PhysicalGear
     // Link to children
     root.forEach(s => s.children = targets.filter(p => p.parent && p.parent === s) || []);
 
-    console.debug("[physical-gear-model] fromObjectArrayAsTree() result:", root);
+    console.debug('[physical-gear-model] fromObjectArrayAsTree() result:', root);
     // Return root
     return root;
   }
@@ -80,6 +80,7 @@ export class PhysicalGear
   /**
    * Transform an entities tree, into an array of objects.
    * children.parent are removed, to keep only a parentId
+   *
    * @param source
    * @param opts
    * @throw Error if a batch has no id
@@ -164,7 +165,7 @@ export class PhysicalGear
     const target = super.asObject(opts);
     target.gear = this.gear && this.gear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
     if (target.gear && !target.gear.entityName) {
-      console.warn("Fixme : manually set gear entityName!");
+      console.warn('Fixme : manually set gear entityName!');
       target.gear.entityName = 'GearVO';
     }
 

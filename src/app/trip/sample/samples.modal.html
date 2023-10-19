@@ -1,26 +1,27 @@
-<app-modal-toolbar color="secondary"
-                   (cancel)="cancel()"
-                   [title]="$title | async"
-                   [showSpinner]="loading"
-                   [canValidate]="!loading && enabled"
-                   (validate)="onSubmit($event)">
-</app-modal-toolbar>
+<app-modal-toolbar
+  color="secondary"
+  (cancel)="cancel()"
+  [title]="$title | async"
+  [showSpinner]="loading"
+  [canValidate]="!loading && enabled"
+  (validate)="onSubmit($event)"
+></app-modal-toolbar>
 
 <ion-content>
-
-  <app-samples-table #table
-                     [programLabel]="programLabel"
-                     [acquisitionLevel]="acquisitionLevel"
-                     [defaultTaxonGroup]="defaultTaxonGroup"
-                     [defaultSampleDate]="defaultSampleDate"
-                     [showToolbar]="!mobile"
-                     [showLabelColumn]="showLabel"
-                     [showSampleDateColumn]="false"
-                     [showTaxonNameColumn]="showTaxonName"
-                     [showTaxonGroupColumn]="showTaxonGroup"
-                     [showCommentsColumn]="false"
-                     [debug]="debug">
-  </app-samples-table>
+  <app-samples-table
+    #table
+    [programLabel]="programLabel"
+    [acquisitionLevel]="acquisitionLevel"
+    [defaultTaxonGroup]="defaultTaxonGroup"
+    [defaultSampleDate]="defaultSampleDate"
+    [showToolbar]="!mobile"
+    [showLabelColumn]="showLabel"
+    [showSampleDateColumn]="false"
+    [showTaxonNameColumn]="showTaxonName"
+    [showTaxonGroupColumn]="showTaxonGroup"
+    [showCommentsColumn]="false"
+    [debug]="debug"
+  ></app-samples-table>
 
   <!--  <app-sample-form #form-->
   <!--                   [debug]="debug"-->
@@ -31,13 +32,10 @@
   <!--                   [showTaxonName]="showTaxonName"-->
   <!--                   (onSubmit)="close($event)">-->
   <!--  </app-sample-form>-->
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
   <ion-toolbar>
-
     <ion-row class="ion-no-padding" nowrap>
       <ion-col></ion-col>
 
@@ -47,10 +45,13 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="disabled || loading || invalid"
-                    (keyup.enter)="onSubmit($event)"
-                    (click)="onSubmit($event)" color="tertiary">
+        <ion-button
+          [fill]="invalid ? 'clear' : 'solid'"
+          [disabled]="disabled || loading || invalid"
+          (keyup.enter)="onSubmit($event)"
+          (click)="onSubmit($event)"
+          color="tertiary"
+        >
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
@@ -60,12 +61,8 @@
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="enabled"
-         visible-xs visible-sm visible-mobile>
-
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="enabled" visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-
 </ion-fab>
-

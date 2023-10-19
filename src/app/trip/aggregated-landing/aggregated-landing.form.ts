@@ -48,7 +48,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   @Input() showError = true;
 
-  @Output() onOpenTrip = new EventEmitter<{ activity: VesselActivity }>();
+  @Output() openTrip = new EventEmitter<{ activity: VesselActivity }>();
 
   get dirty(): boolean {
     return super.dirty && this._activityDirty;
@@ -134,8 +134,8 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.acquisitionLevel = this._options?.acquisitionLevel;
 
     const form = this.formBuilder.group({
-      'date': [this._options?.initialDate, Validators.compose([Validators.required, SharedValidators.validDate])],
-      'activities': this.formBuilder.array([])
+      date: [this._options?.initialDate, Validators.compose([Validators.required, SharedValidators.validDate])],
+      activities: this.formBuilder.array([])
     });
     this.setForm(form);
 
@@ -200,13 +200,13 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     return d1 && d2 && d1.isSame(d2) || false;
   }
 
-  openTrip(activity: VesselActivity) {
+  openTripClick(activity: VesselActivity) {
     if (!activity || !activity.tripId) {
       console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
       return;
     }
 
-    this.onOpenTrip.emit({activity});
+    this.openTrip.emit({activity});
   }
 
   /* -- internal functions -- */

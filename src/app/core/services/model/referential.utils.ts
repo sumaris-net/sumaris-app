@@ -22,6 +22,7 @@ export class AppReferentialUtils {
 
   /**
    * Used to clean an object tree, with some remote id (e.g. Strategy, when download as JSON file)
+   *
    * @param source
    * @param recursive
    */
@@ -53,12 +54,13 @@ export class AppReferentialUtils {
           else {
             this.cleanIdAndDates(v as IEntity<any>, recursive, excludedKeys, pathPrefix + k);
           }
-        })
+        });
     }
   }
 
   /**
    * Used to clean an object tree, with some remote id (e.g. Strategy, when download as JSON file)
+   *
    * @param source
    * @param recursive
    */
@@ -81,7 +83,7 @@ export class AppReferentialUtils {
         else {
           this.collectEntities(v as IEntity<any>, excludedKeys, pathPrefix + k, result);
         }
-      })
+      });
     return result;
   }
 }

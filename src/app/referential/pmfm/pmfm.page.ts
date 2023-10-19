@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
@@ -18,7 +18,7 @@ import {
   Referential,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { ReferentialForm } from '../form/referential.form';
 import { PmfmValidatorService } from '../services/validator/pmfm.validator';
@@ -39,14 +39,11 @@ import { UnitIds } from '@app/referential/services/model/model.enum';
 @Component({
   selector: 'app-pmfm',
   templateUrl: 'pmfm.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: PmfmValidatorService}
-  ],
+  providers: [{ provide: ValidatorService, useExisting: PmfmValidatorService }],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PmfmPage extends AppEntityEditor<Pmfm> {
-
+export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy {
   form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
   $parameter = new BehaviorSubject<Parameter>(null);
@@ -72,20 +69,15 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     protected pmfmService: PmfmService,
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController,
+    protected modalCtrl: ModalController
   ) {
-    super(injector,
-      Pmfm,
-      pmfmService,
-      {tabCount: 2});
+    super(injector, Pmfm, pmfmService, { tabCount: 2 });
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/list?entity=Pmfm";
+    this.defaultBackHref = '/referential/list?entity=Pmfm';
 
     this.debug = !environment.production;
-
-
   }
   ngOnInit() {
     super.ngOnInit();
@@ -97,19 +89,18 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
-      columnSizes: [6, 6]
+      columnSizes: [6, 6],
     };
     this.fieldDefinitions = {
-
       parameter: {
         key: `parameter`,
         label: `REFERENTIAL.PMFM.PARAMETER`,
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Parameter'},
-          showAllOnFocus: false
-        }
+          filter: { entityName: 'Parameter' },
+          showAllOnFocus: false,
+        },
       },
       unit: {
         key: `unit`,
@@ -118,44 +109,44 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['label'],
-          filter: {entityName: 'Unit'},
-          showAllOnFocus: false
-        }
+          filter: { entityName: 'Unit' },
+          showAllOnFocus: false,
+        },
       },
 
       // Numerical options
       minValue: {
         key: `minValue`,
         label: `REFERENTIAL.PMFM.MIN_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       maxValue: {
         key: `maxValue`,
         label: `REFERENTIAL.PMFM.MAX_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       defaultValue: {
         key: `defaultValue`,
         label: `REFERENTIAL.PMFM.DEFAULT_VALUE`,
-        type: 'double'
+        type: 'double',
       },
       maximumNumberDecimals: {
         key: `maximumNumberDecimals`,
         label: `REFERENTIAL.PMFM.MAXIMUM_NUMBER_DECIMALS`,
         type: 'integer',
-        minValue: 0
+        minValue: 0,
       },
       signifFiguresNumber: {
         key: `signifFiguresNumber`,
         label: `REFERENTIAL.PMFM.SIGNIF_FIGURES_NUMBER`,
         type: 'integer',
-        minValue: 0
+        minValue: 0,
       },
       precision: {
         key: `precision`,
         label: `REFERENTIAL.PMFM.PRECISION`,
         type: 'double',
-        minValue: 0
+        minValue: 0,
       },
       matrix: {
         key: `matrix`,
@@ -164,9 +155,9 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['id', 'name'],
-          filter: {entityName: 'Matrix'},
-          showAllOnFocus: false
-        }
+          filter: { entityName: 'Matrix' },
+          showAllOnFocus: false,
+        },
       },
       fraction: {
         key: `fraction`,
@@ -175,9 +166,9 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['id', 'name'],
-          filter: {entityName: 'Fraction'},
-          showAllOnFocus: false
-        }
+          filter: { entityName: 'Fraction' },
+          showAllOnFocus: false,
+        },
       },
       method: {
         key: `method`,
@@ -186,10 +177,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['id', 'name'],
-          filter: {entityName: 'Method'},
-          showAllOnFocus: false
-        }
-      }
+          filter: { entityName: 'Method' },
+          showAllOnFocus: false,
+        },
+      },
     };
 
     // TODO : See #450 (need to implement `levelIds[]` to get "n to n" relation between Fraction and Matrix)
@@ -202,25 +193,25 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
     // Listen for parameter
     this.registerSubscription(
-      this.form.get('parameter').valueChanges
-        .pipe(
+      this.form
+        .get('parameter')
+        .valueChanges.pipe(
           filter(ReferentialUtils.isNotEmpty),
-          mergeMap(p => this.parameterService.load(p.id))
+          mergeMap((p) => this.parameterService.load(p.id))
         )
-      .subscribe(p => {
-        // If qualitative value: use 'None' unit
-        if (p.isQualitative) {
-            this.form.get('unit').setValue({id: UnitIds.NONE})
-        }
-        else {
-          // Remove default unit (added just before)
-          const unit = this.form.get('unit').value;
-          if (unit && (unit.id === UnitIds.NONE && !unit.label)) {
-            this.form.get('unit').setValue(null, {emitEvent: false});
+        .subscribe((p) => {
+          // If qualitative value: use 'None' unit
+          if (p.isQualitative) {
+            this.form.get('unit').setValue({ id: UnitIds.NONE });
+          } else {
+            // Remove default unit (added just before)
+            const unit = this.form.get('unit').value;
+            if (unit && unit.id === UnitIds.NONE && !unit.label) {
+              this.form.get('unit').setValue(null, { emitEvent: false });
+            }
           }
-        }
-        this.$parameter.next(p);
-      })
+          this.$parameter.next(p);
+        })
     );
   }
 
@@ -230,9 +221,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   }
 
   async addNewParameter() {
-    await this.router.navigateByUrl(
-      '/referential/parameter/new'
-    );
+    await this.router.navigateByUrl('/referential/parameter/new');
     return true;
   }
 
@@ -240,19 +229,14 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     parameter = parameter || this.$parameter.value;
     if (isNil(parameter)) return;
 
-    const succeed = await this.router.navigateByUrl(
-      `/referential/parameter/${parameter.id}?label=${parameter.label}`
-    );
+    const succeed = await this.router.navigateByUrl(`/referential/parameter/${parameter.id}?label=${parameter.label}`);
     return succeed;
   }
 
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.qualitativeValuesTable
-    ]);
+    this.addChildForms([this.referentialForm, this.qualitativeValuesTable]);
   }
 
   protected setValue(data: Pmfm) {
@@ -261,7 +245,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     const json = data.asObject();
     json.entityName = Pmfm.ENTITY_NAME;
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
 
     // qualitativeValues
     if (isNilOrBlank(data.qualitativeValues)) {
@@ -269,7 +253,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
       this.btnUseDefaultQualitativeValues.checked = true;
       this.useDefaultQualitativesValues = true;
     } else {
-      this.qualitativeValuesTable.value = this.data.qualitativeValues.map(d => Referential.fromObject(d.asObject()));
+      this.qualitativeValuesTable.value = this.data.qualitativeValues.map((d) => Referential.fromObject(d.asObject()));
       this.btnUseDefaultQualitativeValues.checked = false;
       this.useDefaultQualitativesValues = false;
     }
@@ -296,7 +280,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     }
 
     // Existing data
-    return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', {title: joinProperties(this.data, ['label', 'name'])}).toPromise();
+    return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', { title: joinProperties(this.data, ['label', 'name']) }).toPromise();
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -304,7 +288,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
       ...(await super.computePageHistory(title)),
       title: joinProperties(this.data, ['label', 'name']),
       subtitle: 'REFERENTIAL.ENTITY.PMFM',
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -317,11 +301,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     await super.onNewEntity(data, options);
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
-      });
+    this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+      const label = control.enabled && control.value;
+      return label && (await this.pmfmService.existsByLabel(label, { excludedId: this.data.id })) ? { unique: true } : null;
+    });
 
     this.markAsReady();
   }
@@ -342,7 +325,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     if (!this.btnUseDefaultQualitativeValues.checked) {
       this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
       this.useDefaultQualitativesValues = true;
-      this.markAsDirty()
+      this.markAsDirty();
     } else {
       this.qualitativeValuesTable.value = null;
       const data = await this.openSelectReferentialModal();
@@ -356,12 +339,11 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   }
 
   protected async openSelectReferentialModal(opts?: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
-
-    const excludedIds = (this.qualitativeValuesTable.value || []).map(q => q.id);
+    const excludedIds = (this.qualitativeValuesTable.value || []).map((q) => q.id);
     const filter = <Partial<ReferentialRefFilter>>{
       entityName: 'QualitativeValue',
       levelId: this.form.get('parameter').value.id,
-      excludedIds
+      excludedIds,
     };
     console.debug(`[pmfm-page] Opening select PMFM modal, with filter:`, filter);
 
@@ -372,7 +354,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         ...opts,
         allowMultipleSelection: true,
         showLevelFilter: false,
-        filter
+        filter,
       },
       keyboardClose: true,
       backdropDismiss: false,
@@ -381,12 +363,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
     await modal.present();
 
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     if (isNotEmptyArray(data)) {
-      this.qualitativeValuesTable.value = isEmptyArray(this.qualitativeValuesTable.value)
-        ? data
-        : this.qualitativeValuesTable.value.concat(data);
+      this.qualitativeValuesTable.value = isEmptyArray(this.qualitativeValuesTable.value) ? data : this.qualitativeValuesTable.value.concat(data);
       this.markAsDirty();
     }
 
@@ -394,7 +374,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   }
 
   protected onAfterDeleteQualitativeValueRows(deletedRows: TableElement<Referential>[]) {
-
     this.markAsDirty();
     if (isEmptyArray(this.qualitativeValuesTable.value)) {
       this.useDefaultQualitativesValues = true;
@@ -406,6 +385,5 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   protected onQualitativeValueRowClick(row: TableElement<any>) {
     this.qualitativeValuesTable.selection.toggle(row);
   }
-
 }
 

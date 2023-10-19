@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {MeasurementValuesForm} from '@app/data/measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '@app/data/measurement/measurement.validator';
-import {UntypedFormArray, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
   FormArrayHelper,
@@ -13,28 +13,25 @@ import {
   isNotNilOrBlank,
   LoadResult,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {SampleValidatorService} from './sample.validator';
-import {Sample} from './sample.model';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SubSampleValidatorService} from '@app/trip/sample/sub-sample.validator';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { SampleValidatorService } from './sample.validator';
+import { Sample } from './sample.model';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 @Component({
   selector: 'app-sample-form',
   templateUrl: 'sample.form.html',
   styleUrls: ['sample.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SampleForm extends MeasurementValuesForm<Sample>
-  implements OnInit, OnDestroy, IFormControlPathTranslator {
-
-
+export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy, IFormControlPathTranslator {
   childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;
 
@@ -51,7 +48,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
-  @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn;
+  @Input() pmfmValueColor: PmfmValueColorFn;
 
   constructor(
     injector: Injector,
@@ -61,14 +58,11 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected validatorService: SampleValidatorService,
     protected subValidatorService: SubSampleValidatorService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService,
-      validatorService.getFormGroup(),
-      {
-        skipDisabledPmfmControl: false,
-        skipComputedPmfmControl: false,
-        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
-      }
-    );
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+      skipDisabledPmfmControl: false,
+      skipComputedPmfmControl: false,
+      onUpdateFormGroup: (form) => this.onUpdateFormGroup(form),
+    });
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
@@ -90,37 +84,37 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     if (isNotEmptyArray(this.availableTaxonGroups)) {
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
-        mobile: this.mobile
+        mobile: this.mobile,
       });
     } else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, options?: any) => this.programRefService.suggestTaxonGroups(value, {
-          ...options,
-          program: this.programLabel
-        }),
-        mobile: this.mobile
+        suggestFn: (value: any, options?: any) =>
+          this.programRefService.suggestTaxonGroups(value, {
+            ...options,
+            program: this.programLabel,
+          }),
+        mobile: this.mobile,
       });
     }
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
-    this.focusFieldName = !this.mobile && ((this.showLabel && 'label')
-      || (this.showTaxonGroup && 'taxonGroup')
-      || (this.showTaxonName && 'taxonName'));
+    this.focusFieldName =
+      !this.mobile && ((this.showLabel && 'label') || (this.showTaxonGroup && 'taxonGroup') || (this.showTaxonName && 'taxonName'));
   }
 
-  setChildren(children: Sample[], opts?: { emitEvent?: boolean; }) {
+  setChildren(children: Sample[], opts?: { emitEvent?: boolean }) {
     children = children || [];
 
     if (this.childrenArrayHelper.size() !== children.length) {
       this.childrenArrayHelper.resize(children.length);
     }
 
-    this.form.patchValue({children}, opts);
+    this.form.patchValue({ children }, opts);
   }
 
   toggleComment() {
@@ -135,9 +129,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   /* -- protected methods -- */
 
   protected onUpdateFormGroup(form: UntypedFormGroup) {
-
     this.validatorService.updateFormGroup(form, {
-      requiredLabel: this.requiredLabel
+      requiredLabel: this.requiredLabel,
     });
   }
 
@@ -150,7 +143,6 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     if (this.childrenArrayHelper.size() !== childrenCount) {
       this.childrenArrayHelper.resize(childrenCount);
     }
-
   }
 
   protected getValue(): Sample {
@@ -163,15 +155,14 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.form.get('taxonGroup').value;
 
-// IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(taxonGroup)) return { data: [] };
 
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
+    });
   }
 
   protected markForCheck() {
@@ -186,13 +177,14 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     }
     return new FormArrayHelper<Sample>(
       arrayControl,
-      (value) => this.subValidatorService.getFormGroup(value, {
-        measurementValuesAsGroup: false, // avoid to pass pmfms list
-        requiredParent: false // Not need
-      }),
+      (value) =>
+        this.subValidatorService.getFormGroup(value, {
+          measurementValuesAsGroup: false, // avoid to pass pmfms list
+          requiredParent: false, // Not need
+        }),
       (v1, v2) => Sample.equals(v1, v2),
       (value) => isNil(value),
-      {allowEmptyArray: true}
+      { allowEmptyArray: true }
     );
   }
 

@@ -14,7 +14,7 @@ interface JobListState {
   progressions: JobProgression[];
   types: { label: string; name: string }[];
   issuer: string;
-  status: JobStatusEnum[]
+  status: JobStatusEnum[];
 }
 
 @Component({
@@ -62,7 +62,7 @@ export class JobListComponent implements OnInit{
     this.state.set({
       issuer: null, // All
       status: ['RUNNING', 'PENDING', 'SUCCESS', 'ERROR', 'WARNING', 'CANCELLED']
-    })
+    });
   }
 
   ngOnInit() {
@@ -74,8 +74,7 @@ export class JobListComponent implements OnInit{
         )
       )
       .pipe(
-        mergeMap(({issuer, status}) => {
-          return this.jobService.watchAll(<JobFilter>{issuer, status}, {sortBy: 'id', sortDirection: 'DESC'})
+        mergeMap(({issuer, status}) => this.jobService.watchAll(<JobFilter>{issuer, status}, {sortBy: 'id', sortDirection: 'DESC'})
             .pipe(
               takeUntil(this.onRefresh),
 
@@ -87,10 +86,9 @@ export class JobListComponent implements OnInit{
                     takeUntil(this.onRefresh),
                     first(),
                   )
-                  .subscribe(_ => this.onRefresh.emit())
+                  .subscribe(_ => this.onRefresh.emit());
               })
-            )
-        }),
+            )),
         map(jobs => {
           jobs.forEach(job => {
             // Add icon/color

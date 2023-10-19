@@ -24,9 +24,9 @@ import {Landing} from '@app/trip/landing/landing.model';
 import {ObservedLocationService} from '@app/trip/observedlocation/observed-location.service';
 import {LandingService} from '@app/trip/landing/landing.service';
 import {ObservedLocation} from '@app/trip/observedlocation/observed-location.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from "@app/trip/trip.config";
-import {DenormalizedPmfmStrategy} from "@app/referential/services/model/pmfm-strategy.model";
-import {TaxonNameRef} from "@app/referential/services/model/taxon-name.model";
+import {TRIP_LOCAL_SETTINGS_OPTIONS} from '@app/trip/trip.config';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 import {Trip} from '@app/trip/trip/trip.model';
 import {FishingArea} from '@app/data/fishing-area/fishing-area.model';
 
@@ -126,7 +126,7 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
   protected async computeStats(data: Landing, opts?: IComputeStatsOpts<S>): Promise<S> {
     if (this.debug) console.log(`[${this.logPrefix}.computeStats]`);
     // TODO When we need to get stats from opts ?
-    const stats:S = opts?.stats || new this.statsType();
+    const stats: S = opts?.stats || new this.statsType();
 
     // TODO Check and send error if data.observedLocation is empty (must be filled `computeParent` in `loadData`)
     const parent = data.observedLocation as ObservedLocation;
@@ -159,7 +159,7 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
         // Add title to image
         s.images.forEach(image => {
           image.title = image.title || s.label || `#${s.rankOrder}`;
-        })
+        });
         return s.images;
       });
 

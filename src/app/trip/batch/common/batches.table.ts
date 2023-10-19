@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy } from '@angular/core';
 import { InMemoryEntitiesService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -20,12 +20,12 @@ export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'
     {provide: InMemoryEntitiesService, useFactory: () =>
         new InMemoryEntitiesService(Batch, BatchFilter, {
           equals: Batch.equals,
-          sortByReplacement: {'id': 'rankOrder'}
+          sortByReplacement: {id: 'rankOrder'}
         })
     }
   ]
 })
-export class BatchesTable extends AbstractBatchesTable<Batch>{
+export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestroy {
 
   @Input() modalOptions: Partial<IBatchModalOptions>;
   @Input() compactFields = true;

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorOptions, SampleValidatorService} from './sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -26,42 +26,36 @@ import {
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {BaseMeasurementsTable, BaseMeasurementsTableConfig} from '@app/data/measurement/measurements-table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Sample, SampleUtils} from './sample.model';
-import {
-  AcquisitionLevelCodes,
-  AcquisitionLevelType,
-  ParameterGroups,
-  PmfmIds,
-  WeightUnitSymbol
-} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from './sample.filter';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {ISelectPmfmModalOptions, SelectPmfmModal} from '@app/referential/pmfm/table/select-pmfm.modal';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {arrayPluck} from '@app/shared/functions';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
-import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
-import {OverlayEventDetail} from '@ionic/core';
-import {IPmfmForm} from '@app/trip/operation/operation.validator';
-import {PmfmFilter} from '@app/referential/services/filter/pmfm.filter';
-import {MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
-import {AppImageAttachmentsModal, IImageModalOptions} from '@app/data/image/image-attachment.modal';
-import {MeasurementsTableValidatorOptions} from '@app/data/measurement/measurements-table.validator';
-import {PmfmValueColorFn} from '@app/referential/pipes/pmfms.pipe';
-import {DataEntityUtils} from "@app/data/services/model/data-entity.model";
-import {UntypedFormGroup} from "@angular/forms";
+import { Moment } from 'moment';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Sample, SampleUtils } from './sample.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from './sample.filter';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { arrayPluck } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
+import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
+import { OverlayEventDetail } from '@ionic/core';
+import { IPmfmForm } from '@app/trip/operation/operation.validator';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
+import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { UntypedFormGroup } from '@angular/forms';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -92,7 +86,8 @@ export class SamplesTable
     InMemoryEntitiesService<Sample, SampleFilter>,
     SampleValidatorService,
     BaseMeasurementsTableConfig<Sample>,
-    SampleValidatorOptions> {
+    SampleValidatorOptions>
+implements OnInit, AfterViewInit, OnDestroy {
 
   private _footerRowsSubscription: Subscription;
 
@@ -148,7 +143,7 @@ export class SamplesTable
   @Input() readonlyPmfmGroups: string[];
   @Input() showReadonlyPmfms = true;
   @Input() pmfmIdsToCopy: number[];
-  @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn = null;
+  @Input() pmfmValueColor: PmfmValueColorFn = null;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -230,8 +225,8 @@ export class SamplesTable
     return this.enableTagIdGeneration ? (this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode) : 'none';
   }
 
-  @Output('prepareRowForm') prepareRowFormEventEmitter = new EventEmitter<IPmfmForm>();
-  @Output('weightUnitChanges') onWeightUnitChanges = new EventEmitter<WeightUnitSymbol>();
+  @Output() prepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output() weightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
   constructor(
     injector: Injector,
@@ -242,7 +237,7 @@ export class SamplesTable
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSave: (data) => this.onSave(data),
         equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
+        sortByReplacement: {id: 'rankOrder'}
       }),
       injector.get(LocalSettingsService).mobile ? null : injector.get(SampleValidatorService),
       {
@@ -280,7 +275,6 @@ export class SamplesTable
 
   ngOnInit() {
     this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
-    this.canEdit
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
@@ -321,8 +315,8 @@ export class SamplesTable
     super.ngOnDestroy();
 
     this.memoryDataService?.stop();
-    this.prepareRowFormEventEmitter.complete();
-    this.prepareRowFormEventEmitter.unsubscribe();
+    this.prepareRowForm.complete();
+    this.prepareRowForm.unsubscribe();
     this.$pmfmGroups.complete();
     this.$pmfmGroups.unsubscribe();
     this.pmfmGroupColumns$.complete();
@@ -336,14 +330,14 @@ export class SamplesTable
     this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
   }
 
-  protected onPrepareRowForm(form: UntypedFormGroup, opts?: {pmfms?: IPmfm[]; markForCheck?: () => void;}) {
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: {pmfms?: IPmfm[]; markForCheck?: () => void}) {
 
     if (this.validatorService) {
       this.validatorService.updateFormGroup(form);
     }
 
-    this.prepareRowFormEventEmitter.emit({
-      form: form,
+    this.prepareRowForm.emit({
+      form,
       pmfms: this.pmfms,
       markForCheck: () => this.markForCheck(),
       ...opts
@@ -358,6 +352,7 @@ export class SamplesTable
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param column
    */
@@ -447,7 +442,7 @@ export class SamplesTable
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       showPictures: this.showImagesColumn,
-      pmfmValueColor: this.pmfmValueColorFn,
+      pmfmValueColor: this.pmfmValueColor,
       onReady: (modal) => {
         this.onPrepareRowForm(modal.form.form, {
           pmfms,
@@ -609,7 +604,7 @@ export class SamplesTable
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
         mobile: this.mobile,
 
-        onDelete: (event, data) => Promise.resolve(true),
+        onDelete: (_, __) => Promise.resolve(true),
         ...this.subSampleModalOptions
       },
       backdropDismiss: false,
@@ -679,6 +674,7 @@ export class SamplesTable
 
   /**
    * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
+   *
    * @param event
    */
   async openChangePmfmsModal(event?: Event) {
@@ -856,7 +852,7 @@ export class SamplesTable
         if (isNotNilOrNaN(existingTagId)) return existingTagId;
       }
     }
-    return undefined
+    return undefined;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -959,6 +955,7 @@ export class SamplesTable
 
   /**
    * Force to wait PMFM map to be loaded
+   *
    * @param pmfms
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
@@ -1012,7 +1009,7 @@ export class SamplesTable
             if (!this.showReadonlyPmfms && this._enabled) {
               pmfm.hidden = true;
               groupPmfmCount--;
-              console.log('TODO HIDE pmfm ', pmfm)
+              console.log('TODO HIDE pmfm ', pmfm);
             }
           }
 

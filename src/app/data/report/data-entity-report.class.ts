@@ -7,8 +7,7 @@ import {
   BaseReportStats,
 } from '@app/data/report/base-report.class';
 
-export interface DataEntityReportOptions extends BaseReportOptions {
-}
+export type DataEntityReportOptions = BaseReportOptions;
 
 export class DataReportStats extends BaseReportStats {
 }
@@ -46,7 +45,7 @@ export abstract class AppDataEntityReport<
       autoInitialize: false,
       disableLayout: this.mobile,
       touch: this.mobile
-    }
+    };
   }
 
   async ngOnStart(opts?: any) {
@@ -56,13 +55,13 @@ export abstract class AppDataEntityReport<
 
     if (isNil(this.data))
       if (isNil(this.uuid))
-        if(isNotNil(this.id)) this.data = await this.load(this.id, opts)
+        if(isNotNil(this.id)) this.data = await this.load(this.id, opts);
         else this.data = await this.loadFromRoute(opts);
 
     if (isNil(this.stats))
       this.stats = await this.computeStats(this.data, opts);
 
-    const computedContext = this.computeI18nContext(this.stats)
+    const computedContext = this.computeI18nContext(this.stats);
     this.i18nContext = {
       ...computedContext,
       ...this.i18nContext,

@@ -28,11 +28,11 @@ import {AuctionControlReport} from '@app/trip/landing/auction-control/report/auc
 import {SamplingLandingReport} from '../../landing/sampling/report/sampling-landing.report';
 import {IComputeStatsOpts, IReportI18nContext} from '@app/data/report/base-report.class';
 import {LandingStats} from '@app/trip/landing/report/base-landing-report.class';
-import {ObservedLocation} from "@app/trip/observedlocation/observed-location.model";
-import {ObservedLocationService} from "@app/trip/observedlocation/observed-location.service";
-import {LandingService} from "@app/trip/landing/landing.service";
-import {lastValueFrom} from "rxjs";
-import {Landing} from "@app/trip/landing/landing.model";
+import {ObservedLocation} from '@app/trip/observedlocation/observed-location.model';
+import {ObservedLocationService} from '@app/trip/observedlocation/observed-location.service';
+import {LandingService} from '@app/trip/landing/landing.service';
+import {lastValueFrom} from 'rxjs';
+import {Landing} from '@app/trip/landing/landing.model';
 
 export class ObservedLocationStats extends DataReportStats {
   vesselCount: number;
@@ -138,7 +138,7 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     return data;
   }
 
-  dataFromObject(source:any): ObservedLocation {
+  dataFromObject(source: any): ObservedLocation {
     const result = ObservedLocation.fromObject(source);
     result.landings.forEach(l => l.observedLocation = result);
     return result;
@@ -189,7 +189,7 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
   protected async computeStats(data: ObservedLocation, opts?: IComputeStatsOpts<ObservedLocationStats>): Promise<ObservedLocationStats> {
 
     if (this.debug) console.log(`[${this.logPrefix}.computeStats]`);
-    const stats:ObservedLocationStats = opts?.stats || new this.statsType();
+    const stats: ObservedLocationStats = opts?.stats || new this.statsType();
     stats.program = await this.programRefService.loadByLabel(data.program.label);
 
     stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
@@ -252,7 +252,7 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
         console.debug(`[${this.logPrefix}] Waiting for child`);
         return c.waitIdle(opts);
       })
-    )
+    );
   }
 
   isQualitativePmfm(pmfm: IPmfm) {

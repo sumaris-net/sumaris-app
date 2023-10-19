@@ -4,12 +4,12 @@ import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'DataReferenceVO': {
+  DataReferenceVO: {
     keyFields: ['entityName', 'id']
   }
 };
 
-export const DATA_IMPORT_PERIODS:readonly { value: number; unit: DurationConstructor }[] = Object.freeze([
+export const DATA_IMPORT_PERIODS: readonly { value: number; unit: DurationConstructor }[] = Object.freeze([
   {value: 1, unit: 'week'},
   {value: 15, unit: 'day'},
   {value: 1, unit: 'month'},
@@ -43,8 +43,8 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: false
   },
   SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
-    key: "sumaris.persistence.sample.uniqueTag",
-    label: "CONFIGURATION.OPTIONS.SAMPLE_UNIQUE_TAG",
+    key: 'sumaris.persistence.sample.uniqueTag',
+    label: 'CONFIGURATION.OPTIONS.SAMPLE_UNIQUE_TAG',
     type: 'boolean',
     defaultValue: false
   },
@@ -61,8 +61,8 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: false
   },
   ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
-    key: "sumaris.data.program.ids",
-    label: "CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS",
+    key: 'sumaris.data.program.ids',
+    label: 'CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS',
     type: 'entities',
     autocomplete: {
       attributes: ['label'],
@@ -74,8 +74,8 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: '',
   },
   ACCESS_NOT_SELF_DATA_ROLE: <FormFieldDefinition>{
-    key: "sumaris.data.accessNotSelfData.role",
-    label: "CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE",
+    key: 'sumaris.data.accessNotSelfData.role',
+    label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE',
     type: 'enum',
     values: PRIORITIZED_AUTHORITIES.map(key => ({
       key: 'ROLE_' + key,

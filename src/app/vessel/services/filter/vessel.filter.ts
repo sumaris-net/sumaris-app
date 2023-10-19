@@ -9,16 +9,18 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vessel.model';
-import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Moment } from 'moment';
 
 @EntityClass({typename: 'VesselFilterVO'})
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
 
   static fromObject: (source: any, opts?: any) => VesselFilter;
+
+  static EXCLUDE_CRITERIA_COUNT = ['statusIds', 'onlyWithRegistration'];
 
   searchText: string;
   searchAttributes: string[];
@@ -119,6 +121,11 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     return filterFns;
+  }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    return !VesselFilter.EXCLUDE_CRITERIA_COUNT.includes(key)
+      && super.isCriteriaNotEmpty(key, value);
   }
 }
 

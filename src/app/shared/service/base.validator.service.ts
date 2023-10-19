@@ -9,7 +9,7 @@ export class BaseValidatorService<E extends Entity<E, ID>, ID = number, O = any>
   static create<E extends Entity<E, ID>, ID = number, O = any>(
     injector: Injector,
     factory: (data?: E, opts?: O) => UntypedFormGroup): BaseValidatorService<E, ID, O> {
-    const target = new BaseValidatorService<E, ID, O>(injector.get(FormBuilder), injector.get(TranslateService))
+    const target = new BaseValidatorService<E, ID, O>(injector.get(FormBuilder), injector.get(TranslateService));
     target.getFormGroup = factory;
     return target;
   }

@@ -1,23 +1,31 @@
 <mat-toolbar *ngIf="showToolbar">
-
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-    <button mat-icon-button
-            hidden-xs hidden-sm hidden-mobile
-            *ngIf="canEdit"
-            [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+    <button
+      mat-icon-button
+      hidden-xs
+      hidden-sm
+      hidden-mobile
+      *ngIf="canEdit"
+      [title]="'COMMON.BTN_ADD' | translate"
+      (click)="addRow()"
+    >
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+    <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
   </ng-container>
 
   <!-- if row selection -->
   <ng-template #hasSelection>
-
     <!-- delete -->
-    <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
-            [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection($event)">
+    <button
+      mat-icon-button
+      class="hidden-xs hidden-sm"
+      *ngIf="canDelete"
+      [title]="'COMMON.BTN_DELETE' | translate"
+      (click)="deleteSelection($event)"
+    >
       <mat-icon>delete</mat-icon>
     </button>
   </ng-template>
@@ -25,43 +33,55 @@
   <!-- error -->
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
-
 </mat-toolbar>
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
-
   <!-- table -->
-  <table mat-table [dataSource]="dataSource"
-         matSort
-         matSortActive="vessel"
-         matSortDirection="asc"
-         matSortDisableClear
-         [trackBy]="trackByFn">
-
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    matSort
+    matSortActive="vessel"
+    matSortDirection="asc"
+    matSortDisableClear
+    [trackBy]="trackByFn"
+  >
     <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || mobile">
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
+        <mat-checkbox
+          (change)="$event ? masterToggle() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || mobile">
-        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-        </mat-checkbox>
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- Id Column -->
     <ng-container matColumnDef="id" [sticky]="useSticky">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header
-          [class.cdk-visually-hidden]="!isAdmin"
-          [class.ion-padding-start]="!canEdit || mobile">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        [class.cdk-visually-hidden]="!isAdmin"
+        [class.ion-padding-start]="!canEdit || mobile"
+      >
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [class.cdk-visually-hidden]="!isAdmin"
-          [class.ion-padding-start]="!canEdit || mobile">
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [class.cdk-visually-hidden]="!isAdmin"
+        [class.ion-padding-start]="!canEdit || mobile"
+      >
         {{ row.currentData.id | mathAbs }}
       </td>
     </ng-container>
@@ -72,26 +92,29 @@
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.vesselSnapshot | referentialToString: ['exteriorMarking', 'name'] }}</ion-label>
+        <ion-label>{{ row.currentData.vesselSnapshot | referentialToString : ['exteriorMarking', 'name'] }}</ion-label>
       </td>
     </ng-container>
 
-    <ng-container *ngIf='mobile && ($currentDate | async) as currentDate; else allDates'>
+    <ng-container *ngIf="mobile && ($currentDate | async) as currentDate; else allDates">
       <ng-container [matColumnDef]="currentDate.valueOf().toString()">
         <th mat-header-cell *matHeaderCellDef>
-          <ion-label>{{currentDate | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+          <ion-label>{{ currentDate | dateFormat : { pattern: 'dddd L' } }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="td"
-            (click)="clickCell($event, row, currentDate)">
+        <td mat-cell *matCellDef="let row" class="td" (click)="clickCell($event, row, currentDate)">
           <ng-container *ngIf="getActivities(row, currentDate); let activities">
             <div *ngFor="let activity of activities">
               <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
-                {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
+                {{
+                  activity.measurementValues[pmfm.id]
+                    | pmfmValue : { pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds }
+                }}
               </div>
               <div *ngFor="let metier of activity.metiers; last as last">
-                <span>{{metier | referentialToString: ['label', 'name'] }}</span><span *ngIf="!last">,</span>
+                <span>{{ metier | referentialToString : ['label', 'name'] }}</span>
+                <span *ngIf="!last">,</span>
               </div>
-              <span class="comments-italic">{{activity.comments}}</span>
+              <span class="comments-italic">{{ activity.comments }}</span>
             </div>
             <!--<ion-text *ngIf="activities | isEmptyArray" translate>
               COMMON.NO_DATA
@@ -103,17 +126,26 @@
     <ng-template #allDates>
       <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
         <th mat-header-cell *matHeaderCellDef>
-          <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+          <ion-label>{{ date | dateFormat : { pattern: 'dddd L' } }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="td mat-cell-selected ion-padding-start" (click)="clickCell($event, row, date)">
-          <div *ngFor="let activity of getActivities(row, date)">
+        <td
+          mat-cell
+          *matCellDef="let row"
+          class="td mat-cell-selected ion-padding-start"
+          (click)="clickCell($event, row, date)"
+        >
+          <div *ngFor="let activity of getActivities(row, date)" [class.mat-cell-error]="activity.invalid">
             <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
-              {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
+              {{
+                activity.measurementValues[pmfm.id]
+                  | pmfmValue : { pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds }
+              }}
             </div>
             <div *ngFor="let metier of activity.metiers; last as last">
-              <span>{{metier | referentialToString: ['label'] }}</span><span *ngIf="!last">,</span>
+              <span>{{ metier | referentialToString : ['label'] }}</span>
+              <span *ngIf="!last">,</span>
             </div>
-            <span class="comments-italic">{{activity.comments}}</span>
+            <span class="comments-italic">{{ activity.comments }}</span>
           </div>
         </td>
       </ng-container>
@@ -121,23 +153,30 @@
 
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-      <th mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-      </th>
+      <th mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></th>
       <td mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-        <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+        <button
+          mat-icon-button
+          color="light"
+          *ngIf="row.editing"
+          [title]="'COMMON.BTN_UNDO' | translate"
+          (click)="cancelOrDelete($event, row)"
+        >
           <mat-icon>undo</mat-icon>
         </button>
       </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        class="tr mat-row-disabled tr mat-row-height-auto"
-        (click)="clickRow($event, row)">
-    </tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="tr mat-row-disabled tr mat-row-height-auto"
+      (click)="clickRow($event, row)"
+    ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject|async; else noResult">
+  <ng-container *ngIf="loadingSubject | async; else noResult">
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
@@ -160,11 +199,10 @@
 <!--  </ion-fab-button>-->
 <!--</ion-fab>-->
 
-
 <ng-template #addRowButton>
-  <span *ngIf="!mobile && enabled">&nbsp;
-    <ion-button color="medium"
-                (click)="addRow()">
+  <span *ngIf="!mobile && enabled">
+    &nbsp;
+    <ion-button color="medium" (click)="addRow()">
       <ion-icon name="add" slot="start"></ion-icon>
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>

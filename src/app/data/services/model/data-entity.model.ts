@@ -1,8 +1,7 @@
 import { Moment } from 'moment';
 import { DateUtils, Department, Entity, removeEnd, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
-import { IWithRecorderDepartmentEntity } from './model.utils';
+import {IWithObserversEntity, IWithRecorderDepartmentEntity} from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { Batch } from '@app/trip/batch/common/batch.model';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -115,10 +114,11 @@ export abstract class DataEntityUtils {
 
   /**
    * Reset controlDate, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
-  static markAsNotControlled(entity: DataEntity<any, any>|undefined, opts?: {keepQualityFlag?: boolean;}) {
+  static markAsNotControlled(entity: DataEntity<any, any>|undefined, opts?: {keepQualityFlag?: boolean}) {
     // Mark as controlled
     entity.controlDate = null;
     // Clean quality flag
@@ -132,6 +132,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Set controlDat, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
@@ -148,6 +149,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Mark as invalid, using qualityFlag
+   *
    * @param entity
    * @param errorMessage
    */
@@ -166,6 +168,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Check if an entity has been mark as invalid
+   *
    * @param entity
    */
   static isInvalid(entity: DataEntity<any, any>|undefined) {
@@ -175,6 +178,7 @@ export abstract class DataEntityUtils {
 
   /**
    * Reset controlDate, and reset quality fLag and comment
+   *
    * @param entity
    * @param opts
    */
@@ -184,9 +188,14 @@ export abstract class DataEntityUtils {
 
   /**
    * Get entity name from the __typename of an entity
+   *
    * @param entity
    */
   static getEntityName(entity: DataEntity<any, any>|undefined): string|undefined {
     return entity && removeEnd(entity.__typename || 'UnknownVO', 'VO');
+  }
+
+  static isWithObservers<T extends IEntity<any, any> = IEntity<any, any>>(entity: T|undefined): entity is T & IWithObserversEntity<T> {
+    return isNotNil(entity?.['observers']);
   }
 }

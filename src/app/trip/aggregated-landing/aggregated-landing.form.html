@@ -1,74 +1,79 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <mat-menu #optionsMenu="matMenu" xPosition="after">
     <ng-template matMenuContent let-activity="activity" let-index="index">
-
-      <button mat-menu-item
-              [title]="'COMMON.BTN_EDIT'|translate" (click)="openTrip(activity)"
-              [disabled]="!activity || !activity.tripId || !activity.observedLocationId">
+      <button
+        mat-menu-item
+        [title]="'COMMON.BTN_EDIT' | translate"
+        (click)="openTripClick(activity)"
+        [disabled]="!activity || !activity.tripId || !activity.observedLocationId"
+      >
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
       </button>
 
-      <button *ngIf="!options?.readonly"
+      <button
+        *ngIf="!options?.readonly"
         mat-menu-item
-        [title]="'COMMON.BTN_DELETE'|translate" (click)="removeActivity(index)">
+        [title]="'COMMON.BTN_DELETE' | translate"
+        (click)="removeActivity(index)"
+      >
         <mat-icon>delete</mat-icon>
         <ion-label translate>COMMON.BTN_DELETE</ion-label>
       </button>
-
     </ng-template>
-
   </mat-menu>
 
   <ion-grid class="ion-no-padding ion-margin-top">
-
     <ion-row>
       <ion-col class="ion-padding">
-        <mat-swipe-field formControlName="date"
-                         [items]="dates"
-                         [displayWith]="displayDateFn"
-                         [equals]="compareDateFn"
-                         [debug]="debug">
-        </mat-swipe-field>
+        <mat-swipe-field
+          formControlName="date"
+          [items]="dates"
+          [displayWith]="displayDateFn"
+          [equals]="compareDateFn"
+          [debug]="debug"
+        ></mat-swipe-field>
       </ion-col>
     </ion-row>
 
     <ion-row>
-      <ion-col size="12" *ngFor="let formGroup of activitiesForm.controls; index as i; first as first" >
+      <ion-col size="12" *ngFor="let formGroup of activitiesForm.controls; index as i; first as first">
         <ion-card>
           <mat-toolbar>
-            <ion-label *ngIf="formGroup.get('rankOrder').valueChanges|async; let rankOrder">{{'AGGREGATED_LANDING.ACTIVITY' | translate: {rankOrder: rankOrder} }}</ion-label>
+            <ion-label *ngIf="formGroup.get('rankOrder').valueChanges | async; let rankOrder">
+              {{ 'AGGREGATED_LANDING.ACTIVITY' | translate : { rankOrder: rankOrder } }}
+            </ion-label>
 
             <div class="toolbar-spacer"></div>
 
-            <button mat-icon-button
-                    [title]="'COMMON.BTN_OPTIONS'|translate"
-                    [matMenuTriggerFor]="optionsMenu"
-                    [matMenuTriggerData]="{index: i, activity: activities[i]}">
+            <button
+              mat-icon-button
+              [title]="'COMMON.BTN_OPTIONS' | translate"
+              [matMenuTriggerFor]="optionsMenu"
+              [matMenuTriggerData]="{ index: i, activity: activities[i] }"
+            >
               <mat-icon>more_vert</mat-icon>
             </button>
           </mat-toolbar>
 
           <ion-card-content>
-            <app-vessel-activity-form #activityFormComponent
-                                      [form]="formGroup"
-                                      [value]="activities[i]"
-                                      [programLabel]="programLabel"
-                                      [acquisitionLevel]="acquisitionLevel"
-                                      maxVisibleButtons="2"
-                                      (ngInit)="activityFormComponent.markAsReady(); options?.readonly && activityFormComponent.disable()">
-            </app-vessel-activity-form>
+            <app-vessel-activity-form
+              #activityFormComponent
+              [form]="formGroup"
+              [value]="activities[i]"
+              [programLabel]="programLabel"
+              [acquisitionLevel]="acquisitionLevel"
+              maxVisibleButtons="2"
+              (ngInit)="activityFormComponent.markAsReady(); options?.readonly && activityFormComponent.disable()"
+            ></app-vessel-activity-form>
           </ion-card-content>
         </ion-card>
       </ion-col>
     </ion-row>
-
   </ion-grid>
-
 </form>

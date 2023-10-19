@@ -1,8 +1,8 @@
-import {UntypedFormBuilder, Validators} from "@angular/forms";
+import {UntypedFormBuilder, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
 
-import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./root-data-entity.validator";
-import {DataRootVesselEntity} from "../model/root-vessel-entity.model";
+import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from './root-data-entity.validator';
+import {DataRootVesselEntity} from '../model/root-vessel-entity.model';
 import {Optional} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 

@@ -10,7 +10,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ITreeItemEntity,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
@@ -22,17 +22,17 @@ export declare type RuleOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'IN' |
 export function inverseOperator(operator: RuleOperator) {
   switch (operator) {
     case '=':
-      return '!='
+      return '!=';
     case '!=':
-      return '='
+      return '=';
     case '<':
-      return '>='
+      return '>=';
     case '>':
-      return '<='
+      return '<=';
     case '>=':
-      return '<'
+      return '<';
     case '<=':
-      return '>'
+      return '>';
     case 'IN':
       return 'NOT IN';
     case 'NOT IN':
@@ -54,9 +54,9 @@ export class Rule<T = any>
   extends BaseReferential<Rule, number, EntityAsObjectOptions, RuleFromOptionOptions>
   implements ITreeItemEntity<Rule>{
   static ENTITY_NAME = 'Rule';
-  static fromObject: <T>(source: any, opts?: any) => Rule<T>;
+  static fromObject: <R>(source: any, opts?: any) => Rule<R>;
 
-  static check<T>(rule: Rule<T>) {
+  static check<R>(rule: Rule<R>) {
 
     // Check rule validity
     if (rule.precondition) {
@@ -68,7 +68,8 @@ export class Rule<T = any>
     if ((isNilOrBlank(rule.operator) || isNilOrBlank(rule.name)) && (typeof rule.filter !== 'function'))
       throw new Error('Invalid rule: required an attribute \'operator\' or \'filter\'');
   }
-  static asFilterFn<T>(rule: Rule<T>): FilterFn<T> {
+
+  static asFilterFn<R>(rule: Rule<R>): FilterFn<R> {
 
     // Check rule validity
     if (rule.precondition) {
@@ -88,11 +89,13 @@ export class Rule<T = any>
         if (Array.isArray(expectedValue)) {
           return (source) => expectedValue.includes(get(source, props));
         }
+        // eslint-disable-next-line eqeqeq
         return (source) => source == get(expectedValue, props);
       case '!=':
         if (Array.isArray(expectedValue)) {
           return (source) => !expectedValue.includes(get(source, props));
         }
+        // eslint-disable-next-line eqeqeq
         return (source) => expectedValue != get(source, props);
       case 'IN':
         if (Array.isArray(expectedValue)) {
@@ -100,13 +103,14 @@ export class Rule<T = any>
             const value = get(source, props);
             const values = Array.isArray(value) ? value : [value];
             return values.some(av => expectedValue.includes(av));
-          }
+          };
         }
         return (source) => {
           const value = get(source, props);
           const values = Array.isArray(value) ? value : [value];
+          // eslint-disable-next-line eqeqeq
           return values.some(v => v == expectedValue);
-        }
+        };
       case 'NULL':
         return (source) => isNil(get(source, props));
       case 'NOT NULL':
@@ -116,7 +120,7 @@ export class Rule<T = any>
     }
   }
 
-  static control<T>(source: T, rule: Rule<T>, opts: {depth?: number, indent?: string; debug?: boolean} = {debug: false} ): FormErrors|undefined {
+  static control<R>(source: R, rule: Rule<R>, opts: {depth?: number; indent?: string; debug?: boolean} = {debug: false} ): FormErrors|undefined {
 
     const filter = rule.filter || this.asFilterFn(rule);
     const indent = opts.debug && opts.indent || '';
@@ -140,9 +144,7 @@ export class Rule<T = any>
       if (isEmptyArray(errors)) return undefined; // No error
 
       // Concat errors
-      return errors.reduce((res, error) => {
-        return { ...res, ...error };
-      }, {});
+      return errors.reduce((res, error) => ({ ...res, ...error }), {});
     }
 
     // Standard rule
@@ -162,7 +164,7 @@ export class Rule<T = any>
     };
   }
 
-  static not<T>(rule: Rule<T>): Rule<T> {
+  static not<R>(rule: Rule<R>): Rule<R> {
     const target = rule.clone();
     if (target.operator) {
       target.operator = inverseOperator(target.operator);
@@ -258,16 +260,14 @@ export class RuleUtils {
     return this.control(entity, rules, debug) === undefined /*no error*/;
   }
 
-  static control<T>(source: T, rules: Rule<T>[], debug ?: boolean): FormErrors|undefined {
+  static control<T>(source: T, rules: Rule<T>[], debug?: boolean): FormErrors|undefined {
 
     const errors = (rules || []).map(r => Rule.control(source, r, {debug})).filter(isNotNil);
 
     if (isEmptyArray(errors)) return undefined; // No error
 
     // Concat errors
-    return errors.reduce((res, error) => {
-      return {...res, ...error};
-    }, {});
+    return errors.reduce((res, error) => ({...res, ...error}), {});
   }
 
   static not<T>(rules: Rule<T>[]): Rule<T>[] {

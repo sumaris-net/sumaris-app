@@ -1,12 +1,12 @@
-<app-image-gallery [dataSource]="galleryDataSource"
-                   [mobile]="mobile"
-                   [disabled]="disabled"
-                   [readOnly]="readOnly || disabled"
-                   [mode]="mode"
-                   [cardColor]="cardColor"
-                   [showToolbar]="showToolbar"
-                   [showAddCardButton]="!disabled && showAddCardButton"
-                   [showFabButton]="showFabButton"
-                   (onAfterAddRows)="onAfterAddRows($event)">
-</app-image-gallery>
-
+<app-image-gallery
+  [dataSource]="galleryDataSource"
+  [mobile]="mobile"
+  [disabled]="disabled"
+  [readOnly]="readOnly || disabled"
+  [mode]="mode"
+  [cardColor]="cardColor"
+  [showToolbar]="showToolbar"
+  [showAddCardButton]="!disabled && showAddCardButton"
+  [showFabButton]="showFabButton"
+  (onAfterAddRows)="onAfterAddRows($event)"
+></app-image-gallery>

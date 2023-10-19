@@ -40,10 +40,10 @@ export class BatchModel
   extends Entity<BatchModel, number, BatchModelAsObjectOptions, BatchModelFromObjectOptions>
   implements ITreeItemEntity<BatchModel> {
 
-  static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
+  static fromObject: (source: any, opts?: { withChildren?: boolean }) => BatchModel;
   static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
-                   rules: Rule<{model: BatchModel, pmfm: IPmfm}>[],
+                   rules: Rule<{model: BatchModel; pmfm: IPmfm}>[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 4,
                    treeDepth = 0,
@@ -94,7 +94,7 @@ export class BatchModel
         const samplingBatch = BatchUtils.getSamplingChild(batch);
         const childLabelPrefix = isCatchBatch ?
           `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${samplingBatch?.label || batch.label}.`;
-        let childrenPath = isCatchBatch ? 'children' :
+        const childrenPath = isCatchBatch ? 'children' :
           (samplingBatch
              ? `${path}.children.0.children`
              : `${path}.children`);
@@ -173,7 +173,7 @@ export class BatchModel
   // Cached values (should be recomputed on changes)
   private _valid: boolean;
   private _rowCount: number;
-  private _weightPmfms : IPmfm[];
+  private _weightPmfms: IPmfm[];
 
   name: string;
   icon: IconRef;
@@ -414,7 +414,7 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
             return measurementValues && isNotNil(measurementValues[pmfmId]) && PmfmValueUtils.equals(measurementValues[pmfmId], pmfmValue);
           });
         }
-      })
+      });
     }
 
     // Check all expected pmfms has value
@@ -483,6 +483,7 @@ export class BatchModelUtils {
 
   /**
    * Find matches batches (recursively)
+   *
    * @param batch
    * @param filter
    */
@@ -492,6 +493,7 @@ export class BatchModelUtils {
 
   /**
    * Delete matches batches (recursively)
+   *
    * @param batch
    * @param filter
    */
@@ -502,7 +504,7 @@ export class BatchModelUtils {
   static logTree(model: BatchModel, treeDepth = 0, treeIndent = '', result: string[] = []) {
     const isCatchBatch = treeDepth === 0;
     // Append current batch to result array
-    let name = isCatchBatch ? 'Catch' : (model.name || model.originalData.label)
+    let name = isCatchBatch ? 'Catch' : (model.name || model.originalData.label);
     const pmfmLabelsStr = (model.pmfms || []).map(p => p.label).join(', ');
     if (isNotNilOrBlank(pmfmLabelsStr)) name += `: ${pmfmLabelsStr}`;
     if (model.hidden) name += ' (hidden)';

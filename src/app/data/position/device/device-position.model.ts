@@ -71,16 +71,16 @@ export class DevicePosition
 export class DevicePositionFilter extends EntityFilter<DevicePositionFilter, DevicePosition> {
 
   static TYPENAME = 'DevicePositionVO';
-  objectType:Referential = null;
-  objectId:number = null;
-  startDate:Moment = null;
-  endDate:Moment = null;
-  recorderPerson:Person = null;
+  objectType: Referential = null;
+  objectId: number = null;
+  startDate: Moment = null;
+  endDate: Moment = null;
+  recorderPerson: Person = null;
   recorderDepartment: Department = null;
 
   static fromObject: (source: any, opts?: any) => DevicePositionFilter;
 
-  fromObject(source:any, opts?:any) {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.objectType = Referential.fromObject(source.objectType);
     this.objectId = source.objectId;
@@ -125,13 +125,13 @@ export class DevicePositionFilter extends EntityFilter<DevicePositionFilter, Dev
     if (this.objectId) {
       const objectId = this.objectId;
       if (isNotNil(objectId))
-        filterFns.push(t => (t.objectId === objectId))
+        filterFns.push(t => (t.objectId === objectId));
     }
 
     if (this.objectType) {
       const objectTypeLabel = this.objectType?.label;
       if (isNotNil(objectTypeLabel))
-        filterFns.push(t => (t.objectType.label === objectTypeLabel))
+        filterFns.push(t => (t.objectType.label === objectTypeLabel));
     }
 
     if (ReferentialUtils.isNotEmpty(this.recorderPerson)) {

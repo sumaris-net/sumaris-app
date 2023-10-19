@@ -3,7 +3,7 @@ import { LandingsTable } from './landings.table';
 import { LandingPage } from './landing.page';
 import { LandingForm } from './landing.form';
 import { SelectLandingsModal } from './select-landings.modal';
-import { AppDataModule } from '../../data/data.module';
+import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { VesselModule } from '../../vessel/vessel.module';
 import { AppReferentialModule } from '@app/referential/referential.module';

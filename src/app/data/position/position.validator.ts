@@ -38,7 +38,7 @@ export class PositionValidatorService {
     form.get('longitude').setValidators(this.getLongitudeValidator(opts));
   }
 
-  getLatitudeValidator(opts?: {required?: boolean; boundingBox?: BBox;}): ValidatorFn {
+  getLatitudeValidator(opts?: {required?: boolean; boundingBox?: BBox}): ValidatorFn {
     let validators: ValidatorFn[] = [];
     if (opts?.required) validators = [Validators.required];
     if (opts?.boundingBox) {
@@ -57,7 +57,7 @@ export class PositionValidatorService {
     return Validators.compose(validators);
   }
 
-  getLongitudeValidator(opts?: {required?: boolean; boundingBox?: BBox;}) {
+  getLongitudeValidator(opts?: {required?: boolean; boundingBox?: BBox}) {
     let validators: ValidatorFn[] = [];
     if (opts?.required) validators = [Validators.required];
     if (opts?.boundingBox) {

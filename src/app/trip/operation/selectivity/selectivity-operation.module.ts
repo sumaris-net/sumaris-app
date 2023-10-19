@@ -12,6 +12,7 @@ import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.modu
 import { SelectivityOperationPage } from '@app/trip/operation/selectivity/selectivity-operation.page';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
+import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 
 @NgModule({
   imports: [
@@ -30,7 +31,8 @@ import { AppOperationModule } from '@app/trip/operation/operation.module';
     AppBatchModule,
     AppSampleModule,
     AppPhysicalGearModule,
-    AppOperationModule
+    AppOperationModule,
+    AppExtractionButtonModule
   ],
   declarations: [
     SelectivityOperationPage

@@ -14,24 +14,13 @@ export class MethodService extends ReferentialService<Method> {
     super(graphql, accountService, settings, Method);
   }
 
-  async save(entity: Method, options?: EntitySaveOptions): Promise<Method> {
-    return super.save(entity, options);
-  }
-
-  async load(id: number, opts?: ReferentialServiceLoadOptions): Promise<Method> {
-    const data = await super.load(id, opts);
-    if (!data) return data;
-
-    return data;
-  }
-
   asObject(source: Method, opts?: any): any {
 
     const target = super.asObject(source, opts);
     target.properties = {
-      isEstimated: target.isEstimated,
-      isCalculated: target.isCalculated,
-    }
+      isEstimated: source.isEstimated,
+      isCalculated: source.isCalculated,
+    };
     delete target.isEstimated;
     delete target.isCalculated;
 

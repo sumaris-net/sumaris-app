@@ -31,6 +31,15 @@ export const OperationPasteFlags = Object.freeze({
 
 
 export const ProgramProperties = Object.freeze({
+
+  // Right
+  DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
+    key: 'sumaris.data.observers.canWrite',
+    label: 'PROGRAM.OPTIONS.DATA_OBSERVERS_CAN_WRITE',
+    type: 'boolean',
+    defaultValue: false,
+  },
+
   // Trip
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.location.level.ids',
@@ -168,14 +177,17 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.NONE'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_GEAR_METIER'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.TIME | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER'
       },
       {
+        // eslint-disable-next-line no-bitwise
         key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.MEASUREMENT | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER'
       }
@@ -569,9 +581,23 @@ export const ProgramProperties = Object.freeze({
     ],
     defaultValue: 'Observer' // See RDB/COST extraction specification
   },
+  TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.area.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
+    defaultValue: null
+  },
+
   TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.extraction.batch.denormalization.enable',
-    label: "PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE",
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
   },
@@ -951,6 +977,7 @@ export class ProgramPropertiesUtils {
   static refreshDefaultValues() {
     console.info('[program-properties] Refreshing ProgramProperties default values...');
 
+    ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_DIVISION.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();

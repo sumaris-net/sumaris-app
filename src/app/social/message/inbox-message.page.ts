@@ -1,5 +1,14 @@
-import { ChangeDetectionStrategy, Component, Injector, Input } from '@angular/core';
-import { AppEntityEditor, LocalSettingsService, Message, MessageModal, MessageModalOptions, MessageService, Person, PersonService } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import {
+  AppEntityEditor,
+  LocalSettingsService,
+  Message,
+  MessageModal,
+  MessageModalOptions,
+  MessageService,
+  Person,
+  PersonService,
+} from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -9,23 +18,24 @@ import { ModalController } from '@ionic/angular';
   selector: 'app-message-page',
   templateUrl: 'inbox-message.page.html',
   styleUrls: ['inbox-message.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> {
-
+export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> implements OnInit {
   form: UntypedFormGroup;
 
   @Input() bodyAutoHeight = true;
 
-  constructor(injector: Injector,
-              protected personService: PersonService,
-              protected messageService: MessageService,
-              protected settings: LocalSettingsService,
-              protected modalCtrl: ModalController,
-              protected formBuilder: UntypedFormBuilder) {
+  constructor(
+    injector: Injector,
+    protected personService: PersonService,
+    protected messageService: MessageService,
+    protected settings: LocalSettingsService,
+    protected modalCtrl: ModalController,
+    protected formBuilder: UntypedFormBuilder
+  ) {
     super(injector, UserEvent, injector.get(UserEventService), {
       pathIdAttribute: 'messageId',
-      tabCount: 1
+      tabCount: 1,
     });
     this.form = formBuilder.group({
       subject: [],
@@ -33,7 +43,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       type: [],
       issuer: [],
       recipients: formBuilder.array([]),
-      creationDate: []
+      creationDate: [],
     });
   }
 
@@ -43,15 +53,11 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
     this.markAsReady();
   }
 
-
-
   async reply(event?: Event): Promise<any> {
-
     const source = this.form.value as Message;
 
     // Prepare recipient
-    const recipient = source.issuer && Person.fromObject(source.issuer)
-        .asObject({minify: true});
+    const recipient = source.issuer && Person.fromObject(source.issuer).asObject({ minify: true });
     if (recipient?.department) recipient.department = recipient.department.asObject();
 
     // Prepare subject
@@ -68,17 +74,17 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
         suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, null, sortBy, sortDirection),
         data: <Message>{
           recipients: [recipient],
-          subject
-        }
+          subject,
+        },
       },
-      cssClass: hasTopModal && 'stack-modal'
+      cssClass: hasTopModal && 'stack-modal',
     });
 
     // Open the modal
     await modal.present();
 
     // On dismiss
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (!data || !(data instanceof Message)) return; // CANCELLED
 
     console.info('[users] received message to send: ', data);
@@ -98,11 +104,10 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   }
 
   protected async setValue(data: UserEvent): Promise<void> {
-
     // Set form
     const json = {
       ...data.asObject(),
-      ...data.content
+      ...data.content,
     };
 
     // Load issuers

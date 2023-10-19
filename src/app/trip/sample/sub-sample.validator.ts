@@ -1,9 +1,9 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
 import { AbstractControlOptions, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {Sample} from "./sample.model";
-import {toNumber} from "@sumaris-net/ngx-components";
+import {SharedValidators} from '@sumaris-net/ngx-components';
+import {Sample} from './sample.model';
+import {toNumber} from '@sumaris-net/ngx-components';
 import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/sample/sample.validator';
 import { TranslateService } from '@ngx-translate/core';
 import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';

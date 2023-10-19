@@ -331,7 +331,7 @@ export class LandingsPage extends AppRootDataTable<
     });
 
     // Combo: recorder person
-    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name'])
+    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name']);
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
@@ -459,7 +459,7 @@ export class LandingsPage extends AppRootDataTable<
     const landingPmfms = await this.programRefService.loadProgramPmfms(program?.label, {
       acquisitionLevel: AcquisitionLevelCodes.LANDING
     });
-    const columnPmfms = landingPmfms.filter(p => p.required || includedPmfmIds?.includes(p.id))
+    const columnPmfms = landingPmfms.filter(p => p.required || includedPmfmIds?.includes(p.id));
 
     this.$pmfms.next(columnPmfms);
 
@@ -514,7 +514,13 @@ export class LandingsPage extends AppRootDataTable<
       return;
     }
 
-    // Reload last filter
+    // For to use queryParams, if any
+    const {q} = this.route.snapshot.queryParams;
+    if (isNotNilOrBlank(q)) {
+      return super.restoreFilterOrLoad({...opts, sources:['queryParams']});
+    }
+
+    // Default implementation
     return super.restoreFilterOrLoad(opts);
   }
 
@@ -757,6 +763,7 @@ export class LandingsPage extends AppRootDataTable<
 
   /**
    * Use in ngFor, for trackBy
+   *
    * @param index
    * @param pmfm
    */
@@ -780,7 +787,7 @@ export class LandingsPage extends AppRootDataTable<
 
   protected async getDetailProgram(source?: Landing): Promise<Program | undefined> {
     // Find data program
-    let programLabel = source?.program?.label || this.filter?.program?.label;
+    const programLabel = source?.program?.label || this.filter?.program?.label;
     let program: Program = programLabel && (await this.programRefService.loadByLabel(programLabel))
       || this.$detailProgram.value;
 

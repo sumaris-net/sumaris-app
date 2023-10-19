@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { DateUtils, EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, PlatformService, SharedValidators, waitFor } from '@sumaris-net/ngx-components';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
 import { getExampleTree, SAMPLE_TREE_EXAMPLES } from '@app/trip/sample/testing/sample-data.test';
@@ -115,7 +115,7 @@ export class SampleTreeTestPage implements OnInit {
           });
 
         this.applyExample();
-      })
+      });
   }
 
 
@@ -178,7 +178,7 @@ export class SampleTreeTestPage implements OnInit {
       sampleTree.program = program;
     }
 
-    this.cd.detectChanges()
+    this.cd.detectChanges();
   }
 
   markAsReady() {
@@ -202,7 +202,7 @@ export class SampleTreeTestPage implements OnInit {
     }
 
     // Get program
-    const programLabel = this.filterForm.get('program').value?.label
+    const programLabel = this.filterForm.get('program').value?.label;
 
     // Load example
     const json = getExampleTree(key, programLabel);
@@ -242,7 +242,7 @@ export class SampleTreeTestPage implements OnInit {
     this.dumpSamples(samples, outputName);
 
     if (component.mobile) {
-      let html = "<br/>Sub samples :<br/>";
+      const html = '<br/>Sub samples :<br/>';
 
       // TODO
 
@@ -255,12 +255,12 @@ export class SampleTreeTestPage implements OnInit {
 
 
   dumpSamples(samples: Sample[], outputName?: string, indent?: string): string {
-    let html = "";
+    let html = '';
     if (samples) {
       SampleUtils.logTree(samples, {
         showAll: false,
         println: (m) => {
-          html += "<br/>" + m
+          html += '<br/>' + m;
         }
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');

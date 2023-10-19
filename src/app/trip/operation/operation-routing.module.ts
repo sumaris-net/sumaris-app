@@ -18,11 +18,12 @@ const routes: Routes = [
       pathIdParam: 'operationId'
     }
   },
-  {
-    path: ':operationId/report',
-    pathMatch: 'full',
-    loadChildren:() => import('./report/operation-report-routing.module').then(m => m.OperationReportRoutingModule),
-  }
+  // Not implemented yet
+  // {
+  //   path: ':operationId/report',
+  //   pathMatch: 'full',
+  //   loadChildren:() => import('./report/operation-report-routing.module').then(m => m.OperationReportRoutingModule),
+  // }
 ];
 
 

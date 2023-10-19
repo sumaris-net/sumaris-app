@@ -163,7 +163,7 @@ export class TaxonUtils {
     return undefined;
   }
 
-  static generateNameSearchPatternFromLabel(label: string, optionalParenthese ?: boolean) {
+  static generateNameSearchPatternFromLabel(label: string, optionalParenthese?: boolean) {
     if (!label || label.length !== 7) {
       throw new Error('Invalid taxon name label (expected 7 characters)');
     }

@@ -251,6 +251,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /**
    * Validate and close
+   *
    * @param event
    */
   async onSubmitIfDirty(event?: Event) {
@@ -264,6 +265,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /**
    * Validate and close
+   *
    * @param event
    */
   async onSubmit(event?: Event) {
@@ -303,11 +305,11 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   onIndividualMonitoringClick(event?: Event) {
-    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_MONITORING)
+    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
   }
 
   onIndividualReleaseClick(event?: Event) {
-    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_RELEASE)
+    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
   }
 
   toggleImageGallery() {
@@ -365,7 +367,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  protected async getDataToSave(opts?: {disable?: boolean;}): Promise<Sample> {
+  protected async getDataToSave(opts?: {disable?: boolean}): Promise<Sample> {
 
     if (!this.valid) {
       // Wait validation end

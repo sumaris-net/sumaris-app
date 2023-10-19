@@ -153,7 +153,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
       }));
-    })
+    });
 
     this.registerSubscription(this.form.get('composition').valueChanges.subscribe(() => {
       this.computeSampledRatios();
@@ -193,7 +193,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
           const ratio = composition.controls['ratio' + index].value;
           if (isNotNilOrNaN(ratio))
             ratios.push(ratio);
-        })
+        });
         const sum = ratios.reduce((a, b) => a + b, 0);
         const avg = (sum / ratios.length) || 0;
         composition.controls.weight.setValue(round(avg / 100 * totalWeight));
@@ -215,7 +215,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         const weight = this.form.controls['sampledWeight' + index].value;
         if (isNotNilOrNaN(weight))
           sampledWeights.push(weight);
-      })
+      });
       const sum = sampledWeights.reduce((a, b) => a + b, 0);
       const avg = round((sum / sampledWeights.length) || 0);
       const number = this.form.controls.number.value || 0;

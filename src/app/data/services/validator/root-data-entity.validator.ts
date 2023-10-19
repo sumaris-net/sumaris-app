@@ -2,7 +2,7 @@ import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidato
 import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { RootDataEntity } from '../model/root-data-entity.model';
 import { IWithObserversEntity } from '../model/model.utils';
-import { Program } from '../../../referential/services/model/program.model';
+import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 import {OperationValidators} from '@app/trip/operation/operation.validator';
 import { TranslateService } from '@ngx-translate/core';

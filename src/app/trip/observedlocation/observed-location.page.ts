@@ -9,13 +9,14 @@ import {
   Alerts,
   AppTable,
   ConfigService,
-  CORE_CONFIG_OPTIONS, DateUtils,
-  EntityServiceLoadOptions, EntityUtils,
+  CORE_CONFIG_OPTIONS,
+  DateUtils,
+  EntityServiceLoadOptions,
+  EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
-  isNil,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
   LocalSettingsService,
   NetworkService,
   ReferentialRef,
@@ -23,7 +24,7 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
@@ -45,11 +46,12 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
-
+import { VesselService } from '@app/vessel/services/vessel-service';
+import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
-  LANDINGS: 1
+  LANDINGS: 1,
 };
 
 type LandingTableType = 'legacy' | 'aggregated';
@@ -102,8 +104,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected settings: LocalSettingsService,
     protected configService: ConfigService,
     protected accountService: AccountService,
+    protected vesselService: VesselService,
     protected translateContext: TranslateContextService,
     protected context: ContextService,
+    protected observedLocationContext: ObservedLocationContextService,
     public network: NetworkService
   ) {
     super(injector,
@@ -155,11 +159,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       })
     );
 
-  }
-
-  canUserWrite(data: ObservedLocation, opts?: any): boolean {
-    return isNil(data.validationDate)
-      && this.dataService.canUserWrite(data, opts);
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
@@ -309,13 +308,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
-    // Prepare filter's value
-    const startDate = this.data.startDateTime.clone().add(-15, 'days');
-    const endDate = this.data.startDateTime.clone();
+    // Prepare vessel filter's value
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
-    const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
+    const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({synchronizationStatus: 'DIRTY'})) > 0;
+    const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
 
+    // Prepare landing's filter
+    const startDate = this.data.startDateTime.clone().add(-15, 'days');
+    const endDate = this.data.startDateTime.clone();
     const landingFilter = LandingFilter.fromObject({
       programLabel,
       startDate,
@@ -340,6 +341,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         showBasePortLocationColumn: this.showVesselBasePortLocation,
         showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
         defaultVesselSynchronizationStatus,
+        showOfflineVessels,
         maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
@@ -378,32 +380,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-
-    // When connected user is an admin
-    if (this.accountService.isAdmin()) {
-      return true;
-    }
-
-    const entity = this.data;
-
-    // When observed location has been recorded by connected user
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
-
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
@@ -422,8 +398,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
+    if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
 
-    await super.setProgram(program);
+    // Update the context
+    if (this.observedLocationContext.program !== program) {
+      console.debug('TODO setting context program', program.label);
+      this.observedLocationContext.setValue('program', program);
+    }
 
     try {
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -462,19 +443,19 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       // Wait the expected table (set using ngInit - see template)
       const table$ = this.$table.pipe(
-          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable));
+          filter(t => aggregatedLandings ? t instanceof AggregatedLandingsTable : t instanceof LandingsTable));
       const table = await firstNotNilPromise(table$, {stop: this.destroySubject});
 
       // Configure table
       if (aggregatedLandings) {
-        console.debug("[observed-location] Init aggregated landings table:", table);
+        console.debug('[observed-location] Init aggregated landings table:', table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
         aggregatedLandingsTable.timeZone = this.dbTimeZone;
         aggregatedLandingsTable.nbDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       }
       else {
-        console.debug("[observed-location] Init landings table:", table);
+        console.debug('[observed-location] Init landings table:', table);
         const landingsTable = table as LandingsTable;
         landingsTable.i18nColumnSuffix = i18nSuffix;
         landingsTable.detailEditor = this.landingEditor;
@@ -487,6 +468,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
         landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+        landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
       }
 
@@ -503,7 +485,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-    console.debug("[observed-location] New entity: applying defaults...");
+    console.debug('[observed-location] New entity: applying defaults...');
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
@@ -597,8 +579,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async getValue(): Promise<ObservedLocation> {
-    const data = await super.getValue();
-    return data;
+    return await super.getValue();
   }
 
   protected get form(): UntypedFormGroup {

@@ -1,14 +1,18 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar
+  [title]="$title | async"
+  color="primary"
+  [hasValidate]="!loading"
+  (onValidate)="save($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
-
   <mat-tab-group #tabGroup (selectedTabChange)="onTabChange($event)" dynamicHeight>
-
     <!-- TAB: general -->
-    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_GENERAL' | translate }}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>REFERENTIAL.PMFM.TAB_GENERAL</ion-label>
@@ -19,51 +23,59 @@
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
-
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form #referentialForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
-
+              <app-referential-form
+                #referentialForm
+                [form]="form"
+                [showError]="false"
+                [debug]="debug"
+                (onSubmit)="save($event)"
+              >
                 <!-- Other fields -->
-                <form  [formGroup]="form" class="form-container">
-
+                <form [formGroup]="form" class="form-container">
                   <ion-grid class="ion-no-padding">
-
                     <!-- Parameter + Unit -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field [definition]="fieldDefinitions.parameter"
-                                        formControlName="parameter"
-                                        required>
-                        </app-form-field>
+                        <app-form-field
+                          [definition]="fieldDefinitions.parameter"
+                          formControlName="parameter"
+                          required
+                        ></app-form-field>
                       </ion-col>
                       <ion-col size="auto" class="ion-align-self-center">
-                        <button type="button" mat-icon-button tabindex="-1"
-                                [title]="'REFERENTIAL.PMFM.BTN_ADD_PARAMETER'|translate"
-                                (click)="addNewParameter()">
+                        <button
+                          type="button"
+                          mat-icon-button
+                          tabindex="-1"
+                          [title]="'REFERENTIAL.PMFM.BTN_ADD_PARAMETER' | translate"
+                          (click)="addNewParameter()"
+                        >
                           <mat-icon>add</mat-icon>
                         </button>
-                        <button type="button" mat-icon-button tabindex="-1"
-                                *ngIf="$parameter|async; let parameter"
-                                [title]="'REFERENTIAL.PMFM.BTN_OPEN_PARAMETER'|translate"
-                                (click)="openParameter(parameter)">
+                        <button
+                          type="button"
+                          mat-icon-button
+                          tabindex="-1"
+                          *ngIf="$parameter | async; let parameter"
+                          [title]="'REFERENTIAL.PMFM.BTN_OPEN_PARAMETER' | translate"
+                          (click)="openParameter(parameter)"
+                        >
                           <mat-icon>open_in_new</mat-icon>
                         </button>
                       </ion-col>
                       <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative; let notQualitative">
-                        <app-form-field [definition]="fieldDefinitions.unit"
-                                        formControlName="unit"
-                                        [required]="notQualitative">
-                        </app-form-field>
+                        <app-form-field
+                          [definition]="fieldDefinitions.unit"
+                          formControlName="unit"
+                          [required]="notQualitative"
+                        ></app-form-field>
                       </ion-col>
                     </ion-row>
 
@@ -71,79 +83,82 @@
                     <div *ngIf="($parameter | async)?.isNumeric" @fadeInOutAnimation>
                       <ion-row>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.minValue"
-                                          formControlName="minValue"
-                                          tabindex="21">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.minValue"
+                            formControlName="minValue"
+                            tabindex="21"
+                          ></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.maxValue"
-                                          formControlName="maxValue"
-                                          tabindex="22">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.maxValue"
+                            formControlName="maxValue"
+                            tabindex="22"
+                          ></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.defaultValue"
-                                          formControlName="defaultValue"
-                                          tabindex="23">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.defaultValue"
+                            formControlName="defaultValue"
+                            tabindex="23"
+                          ></app-form-field>
                         </ion-col>
                       </ion-row>
                       <ion-row>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.maximumNumberDecimals"
-                                          formControlName="maximumNumberDecimals"
-                                          tabindex="24">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.maximumNumberDecimals"
+                            formControlName="maximumNumberDecimals"
+                            tabindex="24"
+                          ></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.signifFiguresNumber"
-                                          formControlName="signifFiguresNumber"
-                                          tabindex="25">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.signifFiguresNumber"
+                            formControlName="signifFiguresNumber"
+                            tabindex="25"
+                          ></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field [definition]="fieldDefinitions.precision"
-                                          formControlName="precision"
-                                          tabindex="26">
-                          </app-form-field>
+                          <app-form-field
+                            [definition]="fieldDefinitions.precision"
+                            formControlName="precision"
+                            tabindex="26"
+                          ></app-form-field>
                         </ion-col>
                       </ion-row>
                     </div>
 
-
-
                     <!-- Matrix, Fraction -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field [definition]="fieldDefinitions.matrix"
-                                        formControlName="matrix"
-                                        tabindex="27">
-                        </app-form-field>
-
+                        <app-form-field
+                          [definition]="fieldDefinitions.matrix"
+                          formControlName="matrix"
+                          tabindex="27"
+                        ></app-form-field>
                       </ion-col>
                       <ion-col>
-                        <app-form-field [definition]="fieldDefinitions.fraction"
-                                        formControlName="fraction"
-                                        tabindex="28">
-                        </app-form-field>
+                        <app-form-field
+                          [definition]="fieldDefinitions.fraction"
+                          formControlName="fraction"
+                          tabindex="28"
+                        ></app-form-field>
                       </ion-col>
                     </ion-row>
 
                     <!-- Matrix, Fraction -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field [definition]="fieldDefinitions.method"
-                                        formControlName="method"
-                                        tabindex="29">
-                        </app-form-field>
-
+                        <app-form-field
+                          [definition]="fieldDefinitions.method"
+                          formControlName="method"
+                          tabindex="29"
+                        ></app-form-field>
                       </ion-col>
                     </ion-row>
                   </ion-grid>
-
                 </form>
-
               </app-referential-form>
             </ion-col>
 
@@ -153,13 +168,14 @@
             </ion-col>
           </ion-row>
         </ion-grid>
-
       </div>
     </mat-tab>
 
     <!-- TAB: Qualitative value -->
-    <mat-tab label="{{'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE'|translate}}"
-             [disabled]="($parameter | async)?.isQualitative !== true">
+    <mat-tab
+      label="{{ 'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE' | translate }}"
+      [disabled]="($parameter | async)?.isQualitative !== true"
+    >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
@@ -168,46 +184,47 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="qualitativeValuesTable.invalid"></ion-icon>
       </ng-template>
 
-      <app-simple-referential-table #qualitativeValuesTable entityName="QualitiveValue"
-                                    [canEdit]="!useDefaultQualitativesValues"
-                                    [canDelete]="!useDefaultQualitativesValues"
-                                    [confirmBeforeDelete]="false"
-                                    [saveBeforeDelete]="false"
-                                    [showPaginator]="false"
-                                    [showSelectColumn]="!useDefaultQualitativesValues"
-                                    [hasRankOrder]="false"
-                                    [showUpdateDateColumn]="false"
-                                    [showCommentsColumn]="false"
-                                    [inlineEdition]="false"
-                                    (onOpenRow)="onQualitativeValueRowClick($event)"
-                                    (onAfterDeletedRows)="onAfterDeleteQualitativeValueRows($event)"
-                                    (onNewRow)="openSelectReferentialModal()">
-
+      <app-simple-referential-table
+        #qualitativeValuesTable
+        entityName="QualitiveValue"
+        [canEdit]="!useDefaultQualitativesValues"
+        [canDelete]="!useDefaultQualitativesValues"
+        [confirmBeforeDelete]="false"
+        [saveBeforeDelete]="false"
+        [showPaginator]="false"
+        [showSelectColumn]="!useDefaultQualitativesValues"
+        [hasRankOrder]="false"
+        [showUpdateDateColumn]="false"
+        [showCommentsColumn]="false"
+        [inlineEdition]="false"
+        (onOpenRow)="onQualitativeValueRowClick($event)"
+        (onAfterDeletedRows)="onAfterDeleteQualitativeValueRows($event)"
+        (onNewRow)="openSelectReferentialModal()"
+      >
         <ion-item lines="none" matToolbarEnd>
-          <ion-label>{{'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES'|translate}}</ion-label>
-          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
+          <ion-label>{{ 'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES' | translate }}</ion-label>
+          <ion-toggle
+            #btnUseDefaultQualitativeValues
+            (click)="toggleUseDefaultQualitativeValues($event)"
+            color="primary"
+          ></ion-toggle>
         </ion-item>
-
       </app-simple-referential-table>
     </mat-tab>
-
   </mat-tab-group>
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-
-  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
-                        [disabledCancel]="!dirty || loading"
-                        (onSave)="save($event)"
-                        [disabled]="!dirty || loading">
-
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
     </ion-item>
-
   </app-form-buttons-bar>
 </ion-footer>
-

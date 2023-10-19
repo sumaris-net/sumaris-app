@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm, MeasurementValuesState } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   focusNextInput,
@@ -15,7 +15,7 @@ import {
   selectInputContent,
   toBoolean,
   toNumber,
-  waitFor
+  waitFor,
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -41,7 +41,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
-  @Input() maxItemCountForButtons: number = 12;
+  @Input() maxItemCountForButtons = 12;
   @Input() maxVisibleButtons: number;
   @Input() showGear = true;
   @Input() showError = false;
@@ -55,8 +55,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   get gears(): ReferentialRef[] {
     return this._state.get('gears');
   }
-
-  @Output() onSubmit = new EventEmitter<any>();
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
@@ -181,7 +179,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
   /* -- protected methods -- */
 
-  protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any;}) {
+  protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any}) {
 
     if (!data) return; // Skip
 

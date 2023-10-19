@@ -21,7 +21,7 @@ export interface Graticule2Options extends GeoJSONOptions {
   color: string;
   font: string;
   fontColor?: string;
-  latLngPattern?: LatLongPattern,
+  latLngPattern?: LatLongPattern;
   lngLineCurved: number;
   latLineCurved: number;
   zoomInterval?: Graticule2ZoomInterval[];

@@ -42,7 +42,7 @@ import {
   toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '../../data/measurement/measurement.model';
+import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import {
   FISHING_AREAS_LOCATION_REGEXP,
@@ -64,7 +64,7 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -420,11 +420,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return firstNotNilPromise(this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts));
   }
 
-  async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
+  async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     return firstNotNilPromise(this.watchAllByTrip(filter, opts));
   }
 
-  watchAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+  watchAllByTrip(filter?: (OperationFilter | any) & { tripId: number }, opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
     return this.watchAll(0, -1, null, null, filter, opts);
   }
 
@@ -467,7 +467,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         toEntity: false,
         computeRankOrder: false,
         sortByDistance: false
-      }
+      };
     }
 
     const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
@@ -478,9 +478,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       return combineLatest([offline$, online$])
         .pipe(
           map(([res1, res2]) => mergeLoadResult(res1, res2)),
-          mergeMap(({ data, total }) => {
-            return this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
-          })
+          mergeMap(({ data, total }) => this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts))
         );
     }
     return offline$ || online$;
@@ -619,7 +617,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     const maxProgression = toNumber(opts?.maxProgression, 100);
     opts = {...opts, maxProgression};
-    opts.progression = opts.progression || new ProgressionModel({total: maxProgression})
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
     const progressionStep = maxProgression / 3; // 3 steps: operation control, control batches, and save
     const incrementProgression = () => opts.progression.increment(progressionStep);
 
@@ -653,7 +651,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches (skip if abnormal operation)
     if (!entity.abnormal && entity.catchBatch && opts?.program) {
-      const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
+      const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES);
       const physicalGear = entity.physicalGear?.clone();
 
       const wasInvalid = BatchUtils.isInvalid(entity.catchBatch);
@@ -675,7 +673,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
       else {
         // Mark as dirty, if invalid changed
-        dirty = (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch))
+        dirty = (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
       }
 
       incrementProgression();
@@ -728,7 +726,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       variables: {
         data: json
       },
-      error: { code: DataErrorCodes.CONTROL_ENTITY_ERROR, message: "ERROR.CONTROL_ENTITY_ERROR" },
+      error: { code: DataErrorCodes.CONTROL_ENTITY_ERROR, message: 'ERROR.CONTROL_ENTITY_ERROR' },
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
 
@@ -766,7 +764,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
-    return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: Operation }, { id: number; interval: number }>({
       query: OperationSubscriptions.listenChanges,
       fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
@@ -1113,9 +1111,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
     return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
-      .pipe(mergeMap(async ({ data, total }) => {
-        return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts);
-      }));
+      .pipe(mergeMap(async ({ data, total }) => await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts)));
   }
 
 
@@ -1212,7 +1208,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   async executeImport(filter: Partial<OperationFilter>,
                       opts?: {
-                        progression?: BehaviorSubject<number>,
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                         program?: Program;
                         [key: string]: any;
@@ -1404,13 +1400,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         child.fishingStartDateTime = entity.fishingStartDateTime;
         if (entity.startPosition && isNotNil(entity.startPosition.id)) {
           child.startPosition = child.startPosition || new VesselPosition();
-          child.startPosition.copyPoint(entity.startPosition)
+          child.startPosition.copyPoint(entity.startPosition);
         } else {
           child.startPosition = undefined;
         }
         if (entity.fishingStartPosition && isNotNil(entity.fishingStartPosition.id)) {
           child.fishingStartPosition = child.fishingStartPosition || new VesselPosition();
-          child.fishingStartPosition.copyPoint(entity.fishingStartPosition)
+          child.fishingStartPosition.copyPoint(entity.fishingStartPosition);
         } else {
           child.fishingStartPosition = undefined;
         }
@@ -1515,8 +1511,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean> {
     const res = await this.loadAll(0, 1, null, null,
       {
-        tripId: tripId,
-        physicalGearIds: physicalGearIds
+        tripId,
+        physicalGearIds
       },
       {
         withTotal: false
@@ -1526,7 +1522,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return (usedGearIds.length === 0);
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = opts || {};
     if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.OPERATION.EDIT.';
     // Translate PMFM field
@@ -1689,7 +1685,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         });
       if (sortedSourcePositions.length) {
         // Should never append
-        console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sortedSourcePositions)
+        console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sortedSourcePositions);
       }
     }
 
@@ -1698,7 +1694,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       target.fishingAreas.forEach(targetFishArea => {
         const sourceFishArea = source.fishingAreas.find(json => targetFishArea.equals(json));
         EntityUtils.copyIdAndUpdateDate(sourceFishArea, targetFishArea);
-      })
+      });
     }
 
     // Update measurements
@@ -1756,7 +1752,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           target.parent = null;
         }
         else {
-          console.warn('Missing a sample, equals to this target: ', target)
+          console.warn('Missing a sample, equals to this target: ', target);
 
           // Apply to children
           if (target.children?.length) {
@@ -1818,7 +1814,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any; }>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
+  protected getRefetchQueriesForMutation(opts?: EntitySaveOptions): ((result: FetchResult<{ data: any }>) => InternalRefetchQueriesInclude) | InternalRefetchQueriesInclude {
     if (opts && opts.refetchQueries) return opts.refetchQueries;
 
     // Skip if update policy not used refecth queries

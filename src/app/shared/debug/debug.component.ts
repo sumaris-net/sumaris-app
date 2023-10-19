@@ -9,11 +9,11 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 })
 export class DebugComponent {
 
-  @Input() title: string = '';
+  @Input() title = '';
   @Input() enable = !environment.production;
   @Input() expanded = false;
 
-  @ViewChild('expansionPanel') expansionPanel: MatExpansionPanel
+  @ViewChild('expansionPanel') expansionPanel: MatExpansionPanel;
 
   constructor() { }
 

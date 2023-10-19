@@ -255,7 +255,7 @@ export class MeasurementsTableEntitiesService<
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
 
-    if (this._debug) console.debug("[meas-service] converting measurement values before saving...");
+    if (this._debug) console.debug('[meas-service] converting measurement values before saving...');
     const pmfms = this._$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
       const entity = new this.dataType() as T;
@@ -290,12 +290,12 @@ export class MeasurementsTableEntitiesService<
     }
 
     if (this._requiredStrategy && isNil(this._strategyLabel)) {
-      if (this._debug) console.debug("[meas-service] Cannot watch Pmfms yet. Missing required 'strategyLabel'.");
+      if (this._debug) console.debug('[meas-service] Cannot watch Pmfms yet. Missing required \'strategyLabel\'.');
       return;
     }
 
     if (this._requiredGear && isNil(this._gearId)) {
-      if (this._debug) console.debug("[meas-service] Cannot watch Pmfms yet. Missing required 'gearId'.");
+      if (this._debug) console.debug('[meas-service] Cannot watch Pmfms yet. Missing required \'gearId\'.');
       return;
     }
 

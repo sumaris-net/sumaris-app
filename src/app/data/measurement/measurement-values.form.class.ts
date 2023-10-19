@@ -189,7 +189,7 @@ export abstract class MeasurementValuesForm<
     });
 
     if (!this.cd && !environment.production) {
-      console.warn(this._logPrefix + 'No injected ChangeDetectorRef found! Please make sure your component has \'changeDetection: ChangeDetectionStrategy.OnPush\'')
+      console.warn(this._logPrefix + 'No injected ChangeDetectorRef found! Please make sure your component has \'changeDetection: ChangeDetectionStrategy.OnPush\'');
     }
 
     // DEBUG
@@ -256,11 +256,11 @@ export abstract class MeasurementValuesForm<
     this.resetPmfms();
   }
 
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void {
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}): Promise<void> | void {
     return this.applyValue(data, opts);
   }
 
-  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}) {
     return this.applyValue(data, opts);
   }
 
@@ -302,6 +302,7 @@ export abstract class MeasurementValuesForm<
   /**
    * Wait form is ready, before setting the value to form
    * /!\ should NOT be overwritten by subclasses.
+   *
    * @param data
    * @param opts
    */
@@ -335,14 +336,14 @@ export abstract class MeasurementValuesForm<
     }
   }
 
-  protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
+  protected onApplyingEntity(data: T, opts?: {[key: string]: any}) {
     // Propagate program
     if (data?.program?.label) {
       this.programLabel = data.program.label;
     }
   }
 
-  protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+  protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     // Warn is form is NOT ready
     if (this.debug && this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
       console.warn(`${this._logPrefix} Trying to set value, but form may be not ready!`);
@@ -642,7 +643,7 @@ export abstract class MeasurementValuesForm<
     return true;
   }
 
-  protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (this._enable) {
       this.enable(opts);
     }

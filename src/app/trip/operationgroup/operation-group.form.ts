@@ -11,7 +11,7 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { OperationGroupValidatorService } from '@app/trip/operationgroup/operation-group.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
-import { Metier } from '@app/referential/services/model/metier.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 
 @Component({
@@ -23,7 +23,7 @@ import { Metier } from '@app/referential/services/model/metier.model';
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
 
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   mobile: boolean;

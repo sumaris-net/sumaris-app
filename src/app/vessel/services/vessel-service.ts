@@ -1,8 +1,7 @@
-
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { combineLatest, Observable } from 'rxjs';
-import { QualityFlagIds } from '../../referential/services/model/model.enum';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   APP_JOB_PROGRESSION_SERVICE,
   BaseEntityGraphqlQueries,
@@ -21,21 +20,22 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobProgression,
-  LoadResult, mergeLoadResult,
+  LoadResult,
+  mergeLoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
-import { ReferentialFragments } from '../../referential/services/referential.fragments';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
 import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
 import { Vessel } from './model/vessel.model';
-import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
-import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
-import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
-import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
 import { environment } from '@environments/environment';
@@ -239,15 +239,22 @@ export class VesselService
     // Load using vessel snapshot, if offline and has offline feature
     if (this.network.offline && EntityUtils.isRemoteId(id) && (await this.hasOfflineData())) {
       const data: VesselSnapshot = await this.entities.load(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+      if (!data) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       return VesselSnapshot.toVessel(data);
     }
 
     return super.load(id, opts);
   }
 
+  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<VesselFilter>, opts?: EntityServiceLoadOptions & {
+    debug?: boolean;
+  }): Promise<LoadResult<Vessel>> {
+    return firstValueFrom(this.watchAll(offset, size, sortBy, sortDirection, filter as VesselFilter, opts));
+  }
+
   /**
    * Load many vessels
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -270,13 +277,12 @@ export class VesselService
     const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, filter, opts);
 
     // Merge local and remote
-    const res = (offline$ && online$)
+    return (offline$ && online$)
       ? combineLatest([offline$, online$])
         .pipe(
           map(([res1, res2]) => mergeLoadResult(res1, res2))
         )
       : (offline$ || online$);
-    return res;
   }
 
   watchAllRemotely(offset: number,
@@ -284,7 +290,7 @@ export class VesselService
                   sortBy?: string,
                   sortDirection?: SortDirection,
                   filter?: VesselFilter,
-                  opts?: EntitiesServiceWatchOptions & { query?: any; }): Observable<LoadResult<Vessel>> {
+                  opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
     sortBy = sortBy || 'vesselFeatures.exteriorMarking';
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
@@ -299,7 +305,7 @@ export class VesselService
     // Adapt filter
     const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    sortBy = sortBy?.includes('.') && sortBy.substr(sortBy.lastIndexOf('.') + 1) || sortBy;
+    sortBy = sortBy?.includes('.') && sortBy.substring(sortBy.lastIndexOf('.') + 1) || sortBy;
 
     return this.vesselSnapshotService.watchAllLocally(offset, size, sortBy, sortDirection, vesselSnapshotFilter)
       .pipe(
@@ -311,7 +317,9 @@ export class VesselService
 
   /**
    * Save many vessels
+   *
    * @param entities
+   * @param opts
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
 
@@ -344,6 +352,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -404,6 +413,7 @@ export class VesselService
 
   /**
    * Save a vessel
+   *
    * @param entity
    * @param opts
    */
@@ -468,11 +478,11 @@ export class VesselService
       return;
     }
     if (temporaryVesselIds.some(EntityUtils.isLocalId)) {
-      console.error(`${this._logPrefix} Cannot replace a local temporary vessel`)
+      console.error(`${this._logPrefix} Cannot replace a local temporary vessel`);
       return;
     }
     if (EntityUtils.isLocalId(validVesselId)) {
-      console.error(`${this._logPrefix} Cannot replace with local vessel`)
+      console.error(`${this._logPrefix} Cannot replace with local vessel`);
       return;
     }
     const now = new Date();
@@ -502,7 +512,7 @@ export class VesselService
         if (this._debug) console.debug(this._logPrefix + `Vessel replaced in ${new Date().getTime() - now.getTime()}ms`);
       }
 
-    })
+    });
   }
 
   async importFile(fileName: string, format = 'siop'): Promise<Job> {
@@ -531,7 +541,7 @@ export class VesselService
     const progression = JobProgression.fromObject({
       ...job,
       message
-    })
+    });
 
     // Start to listen job
     this.jobProgressionService.addJob(job.id, progression);

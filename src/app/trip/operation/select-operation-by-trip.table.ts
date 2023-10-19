@@ -47,7 +47,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   trips = new Array<Trip>();
   filterForm: UntypedFormGroup;
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
   highlightedRow: TableElement<Operation>;
   $taxonGroups = new BehaviorSubject<ReferentialRef[]>(undefined);
@@ -152,9 +152,9 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.excludesColumns = ['select'];
 
     this.filterForm = formBuilder.group({
-      'startDate': null,
-      'gearIds': [null],
-      'taxonGroupLabels': [null]
+      startDate: null,
+      gearIds: [null],
+      taxonGroupLabels: [null]
     });
 
     // Update filter when changes
@@ -226,7 +226,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   /* -- protected methods -- */
 
   protected configureFromSettings(settings: LocalSettings) {
-    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');
     settings = settings || this.settings.settings;
 
     if (settings.accountInheritance) {
@@ -281,7 +281,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
     // Add existing parent operation
     if (this.parent && data.findIndex(o => o.id === this.parent.id) === -1){
-      data.push(this.parent)
+      data.push(this.parent);
     }
 
     if (isEmptyArray((data))) return data;

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../../data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../data/measurement/measurement.validator';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -108,7 +108,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
         .pipe(
           filter(isNotEmptyArray),
         ).subscribe((pmfms) => this.updateParents(pmfms))
-    )
+    );
 
     if (!this.showParent) {
       this.form.parent?.disable();
@@ -126,7 +126,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     // DEBUG
     console.debug('[sub-sample-form] Mapping PMFMs...', pmfms);
 
-    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID);
     const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
     this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 

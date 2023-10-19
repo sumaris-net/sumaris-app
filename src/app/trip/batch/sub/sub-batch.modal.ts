@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Batch} from '../common/batch.model';
-import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { Batch } from '../common/batch.model';
+import { AppFormUtils, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -16,9 +16,7 @@ import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validato
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 
-
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
-
   showParent: boolean;
   availableParents: BatchGroup[];
 }
@@ -158,7 +156,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
     }
   }
 
-  protected getDataToSave(opts?: {disable?: boolean;}): Batch {
+  protected getDataToSave(opts?: {disable?: boolean}): Batch {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');

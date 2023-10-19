@@ -36,7 +36,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
   $partners = new BehaviorSubject<Department[]>(null);
   $cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
   $cacheStatisticTotal = new BehaviorSubject<CacheStatistic>(null);
-  $cacheStatisticsCount = this.$cacheStatistics.pipe(filter(isNotNil), map(data => data?.length || 0))
+  $cacheStatisticsCount = this.$cacheStatistics.pipe(filter(isNotNil), map(data => data?.length || 0));
 
   get config(): Configuration {
     return this.data && (this.data as Configuration) || undefined;
@@ -69,7 +69,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     const config = await firstNotNilPromise(this.dataService.config);
 
     // Force the load of the config
-    await super.load(config.id, {...opts, fetchPolicy: "network-only"});
+    await super.load(config.id, {...opts, fetchPolicy: 'network-only'});
 
     this.$cacheStatistics.subscribe(value => this.computeStatisticTotal(value));
 
@@ -101,7 +101,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     if (confirm) {
       await this.network.clearCache();
       await this.settings.removeOfflineFeatures();
-      await this.dataService.clearCache({cacheName: cacheName});
+      await this.dataService.clearCache({cacheName});
       await this.loadCacheStat();
     }
   }

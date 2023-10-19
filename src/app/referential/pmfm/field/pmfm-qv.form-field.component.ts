@@ -91,7 +91,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() placeholder: string;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() required: boolean;
   @Input() readonly = false;
@@ -139,9 +139,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as UntypedFormControl;
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
+    if (!this.formControl) throw new Error('Missing mandatory attribute \'formControl\' or \'formControlName\' in <app-pmfm-qv-field>.');
 
-    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
+    if (!this.pmfm) throw new Error('Missing mandatory attribute \'pmfm\' in <mat-qv-field>.');
     let qualitativeValues: IReferentialRef[] = this.pmfm.qualitativeValues || [];
     if (!qualitativeValues.length && PmfmUtils.isFullPmfm(this.pmfm)) {
       // Get qualitative values from parameter
@@ -305,7 +305,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.formControl.value !== "object") {
+    if (this._implicitValue && typeof this.formControl.value !== 'object') {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;
@@ -346,7 +346,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.formControl.value !== "object") {
+    if (this._implicitValue && typeof this.formControl.value !== 'object') {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;

@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppReferentialModule } from '../../referential/referential.module';
+import { AppReferentialModule } from '@app/referential/referential.module';
 import { ConfigurationPage } from './configuration.page';
 import { AdminModule, JobModule } from '@sumaris-net/ngx-components';
 import { NgxJdenticonModule } from 'ngx-jdenticon';

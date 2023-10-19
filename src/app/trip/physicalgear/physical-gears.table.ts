@@ -1,8 +1,17 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
-import {createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
+import {
+  createPromiseEventEmitter,
+  IEntitiesService,
+  isNotNil,
+  LoadResult,
+  ReferentialRef,
+  SharedValidators,
+  toBoolean,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -131,9 +140,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       });
 
     this.filterForm = formBuilder.group({
-      'tripId': [null],
-      'startDate': [null, Validators.compose([Validators.required, SharedValidators.validDate])],
-      'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
+      tripId: [null],
+      startDate: [null, Validators.compose([Validators.required, SharedValidators.validDate])],
+      endDate: [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
     });
 
     this.defaultSortBy = 'id';
@@ -205,7 +214,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
             this.resetError();
           }
         })
-      )
+      );
     }
   }
 
@@ -214,7 +223,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     this.openSelectPreviousGearModal.unsubscribe();
   }
 
-  setTripId(tripId: number, opts?: { emitEvent: boolean; }) {
+  setTripId(tripId: number, opts?: { emitEvent: boolean }) {
     this.setFilter(<PhysicalGearFilter>{
       ...this.filterForm.value,
       tripId
@@ -246,11 +255,11 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     super.setFilter(value as PhysicalGearFilter, opts);
   }
 
-  setError(error: string, opts?: {emitEvent?: boolean; }) {
+  setError(error: string, opts?: {emitEvent?: boolean }) {
     super.setError(error, opts);
   }
 
-  resetError(opts?: {emitEvent?: boolean; }) {
+  resetError(opts?: {emitEvent?: boolean }) {
     this.setError(undefined, opts);
   }
 
@@ -272,7 +281,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
     const { data, role } = await this.openDetailModal();
     if (data && role !== 'delete') {
-      if (this.debug) console.debug("Adding new gear:", data);
+      if (this.debug) console.debug('Adding new gear:', data);
       await this.addEntityToTable(data, {confirmCreate: false, editing: false});
     }
     return true;
@@ -330,8 +339,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         showSearchButton,
         onAfterModalInit: (modal: PhysicalGearModal) => {
           subscription.add(
-            modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
-          )
+            modal.searchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
+          );
         },
         onDelete: (event, data) => this.deleteEntity(event, data),
         showGear: this.showGearColumn,

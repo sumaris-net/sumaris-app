@@ -1,7 +1,18 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AccountService, Alerts, ConfigService, FilesUtils, HammerSwipeEvent, isNotEmptyArray, isNotNil, LocalSettingsService, referentialToString, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  Alerts,
+  ConfigService,
+  FilesUtils,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  referentialToString,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 import { Location } from '@angular/common';
 import { VesselsTable } from './vessels.table';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -16,8 +27,8 @@ import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 
 export const VesselsPageSettingsEnum = {
-  PAGE_ID: "vessels",
-  FEATURE_ID: VESSEL_FEATURE_NAME
+  PAGE_ID: 'vessels',
+  FEATURE_ID: VESSEL_FEATURE_NAME,
 };
 
 @Component({
@@ -39,7 +50,8 @@ export class VesselsPage implements OnInit, OnDestroy {
   private _subscription = new Subscription();
 
   get replacementDisabled(): boolean {
-    return !this.canReplace && this.table.selection.isEmpty() || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
+    return (!this.canReplace && this.table.selection.isEmpty())
+      || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
   }
 
   @ViewChild('table', { static: true }) table: VesselsTable;

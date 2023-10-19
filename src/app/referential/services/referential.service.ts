@@ -36,7 +36,23 @@ export interface ReferentialType {
   level?: string;
 }
 
-export const ReferentialQueries: BaseEntityGraphqlQueries & {count: any; loadTypes: any; } = {
+export const ReferentialQueries: BaseEntityGraphqlQueries & {loadAllFull?: any; count: any; loadTypes: any } = {
+  // Load
+  load: gql`query Referential($entityName: String, $id: Int){
+    data: referential(entityName: $entityName, id: $id){
+      ...FullReferentialFragment
+    }
+  }
+  ${ReferentialFragments.fullReferential}`,
+
+  // Load all full
+  loadAllFull: gql`query FullReferentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+    data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...FullReferentialFragment
+    }
+  }
+  ${ReferentialFragments.fullReferential}`,
+
   // Load all
   loadAll: gql`query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -92,6 +108,7 @@ const ReferentialSubscriptions: BaseEntityGraphqlSubscriptions = {
 
 export interface ReferentialServiceLoadOptions extends EntityServiceLoadOptions {
   entityName: string;
+  fullLoad?: boolean;
 }
 
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
@@ -104,7 +121,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
 
   private readonly queries = ReferentialQueries;
   private readonly mutations = ReferentialMutations;
-  private readonly dataType: new () => T
+  private readonly dataType: new () => T;
 
   constructor(
     protected graphql: GraphqlService,
@@ -212,7 +229,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     const now = Date.now();
     if (debug) console.debug(`[referential-service] Loading ${uniqueEntityName} items...`, variables);
 
-    const withTotal = (!opts || opts.withTotal !== false)
+    const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
     const res = await this.graphql.query<LoadResult<any>>({
       query,
@@ -295,18 +312,23 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     return entities;
   }
 
-  load(id: number, opts?: ReferentialServiceLoadOptions): Promise<T> {
-    return this.loadAll(0,1,null, null, {
-        includedIds: [id],
+  async load(id: number, opts?: ReferentialServiceLoadOptions): Promise<T> {
+    if (!opts || !opts.entityName) {
+      console.error('[referential-service] Missing opts.entityName');
+      // eslint-disable-next-line no-throw-literal
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
+    }
+
+    const { data } = await this.graphql.query<{data: any}>({
+      query: ReferentialQueries.load,
+      variables: {
         entityName: opts.entityName,
-        // Force the full status list, to make sure to load disabled entities (required to be able to export it - see ReferentialFileService)
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE]
+        id
       },
-      {withTotal: false, ...opts})
-      .then(res => {
-        if (res && res.data) return res.data[0];
-        return undefined;
-      });
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
+    });
+    const target = this.fromObject(data);
+    return target;
   }
 
   delete(data: T, opts?: any): Promise<any> {
@@ -318,7 +340,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
   }
 
   listenChanges(id: number, opts?: {
-      entityName: string,
+      entityName: string;
       variables?: any;
       interval?: number;
       toEntity?: boolean;
@@ -369,7 +391,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     filter = this.asFilter(filter);
     filter.label = label;
 
-    const {total} = await this.graphql.query<{ total: number; }>({
+    const {total} = await this.graphql.query<{ total: number }>({
       query: this.queries.count,
       variables : {
         entityName: filter.entityName,
@@ -453,8 +475,8 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
 
     // Check that all entities have the same entityName
     if (entities.length > ids.length) {
-      console.error("[referential-service] Could not delete referentials: only one entityName is allowed");
-      throw { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR" };
+      console.error('[referential-service] Could not delete referentials: only one entityName is allowed');
+      throw { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR' };
     }
 
     const now = new Date();
@@ -466,7 +488,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
         entityName,
         ids
       },
-      error: { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR' },
       update: (proxy) => {
         // Remove from cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
@@ -487,16 +509,14 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
    * Load referential types
    */
   watchTypes(): Observable<ReferentialType[]> {
-    if (this._debug) console.debug("[referential-service] Loading referential types...");
+    if (this._debug) console.debug('[referential-service] Loading referential types...');
     return this.graphql.watchQuery<LoadResult<ReferentialType>>({
       query: this.queries.loadTypes,
       variables: null,
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' }
     })
       .pipe(
-        map(({data}) => {
-          return (data || []);
-        })
+        map(({data}) => (data || []))
       );
   }
 

@@ -1,37 +1,33 @@
 <app-toolbar [title]="$title | async" color="primary">
   <ion-buttons slot="end">
-
     <ng-container *ngIf="!table?.selection.hasValue(); else hasSelection">
-
       <!-- Add -->
-      <button mat-icon-button
-              *ngIf="canEdit"
-              [title]="'COMMON.BTN_ADD'|translate"
-              (click)="table?.addRow()">
+      <button mat-icon-button *ngIf="canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="table?.addRow()">
         <mat-icon>add</mat-icon>
       </button>
 
       <!-- Refresh -->
-      <button mat-icon-button *ngIf="!mobile"
-              [title]="'COMMON.BTN_REFRESH'|translate"
-              (click)="doRefresh()">
+      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="doRefresh()">
         <mat-icon>refresh</mat-icon>
       </button>
 
       <!-- reset filter -->
-      <button mat-icon-button (click)="resetFilter($event)"
-              *ngIf="filterCriteriaCount">
+      <button mat-icon-button (click)="resetFilter($event)" *ngIf="filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
       </button>
 
       <!-- show filter -->
       <button mat-icon-button (click)="filterExpansionPanel?.toggle()">
-        <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
-                  [matBadge]="filterCriteriaCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <mat-icon
+          *ngIf="filterCriteriaCount; else emptyFilter"
+          [matBadge]="filterCriteriaCount"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          filter_list_alt
+        </mat-icon>
         <ng-template #emptyFilter>
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
@@ -41,108 +37,120 @@
     <!-- if row selection -->
     <ng-template #hasSelection>
       <!-- duplicate -->
-      <button mat-icon-button class="hidden-xs hidden-sm"
-              [title]="'COMMON.BTN_DUPLICATE'|translate"
-              *ngIf="canEdit && this.samplingTable; let table"
-              (click)="table.openStrategyDuplicateYearSelectionModal($event, table.selection.selected)">
+      <button
+        mat-icon-button
+        class="hidden-xs hidden-sm"
+        [title]="'COMMON.BTN_DUPLICATE' | translate"
+        *ngIf="canEdit && samplingTable; let table"
+        (click)="table.openStrategyDuplicateYearSelectionModal($event, table.selection.selected)"
+      >
         <mat-icon>library_add</mat-icon>
       </button>
 
       <!-- delete -->
-      <button mat-icon-button class="hidden-xs hidden-sm"
-              *ngIf="canDelete"
-              [title]="'COMMON.BTN_DELETE'|translate"
-              (click)="table?.deleteSelection($event)">
+      <button
+        mat-icon-button
+        class="hidden-xs hidden-sm"
+        *ngIf="canDelete"
+        [title]="'COMMON.BTN_DELETE' | translate"
+        (click)="table?.deleteSelection($event)"
+      >
         <mat-icon>delete</mat-icon>
       </button>
     </ng-template>
-
   </ion-buttons>
 </app-toolbar>
 
 <ion-content>
-
-  <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
+  <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <!-- error -->
   <ion-item *ngIf="table?.error || error; let error" visible-xs visible-sm visible-mobile lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="error |translate"></ion-label>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ng-container [ngSwitch]="strategyEditor">
+    <!-- Biological sampling strategy table -->
+    <app-sampling-strategies-table
+      #samplingTable
+      *ngSwitchCase="'sampling'"
+      [program]="data"
+      [canEdit]="canEdit"
+      [canDelete]="canDelete"
+      [canOpenRealizedLandings]="true"
+      [showError]="false"
+      [showToolbar]="false"
+      [showPaginator]="false"
+      [paginator]="paginator"
+      (onOpenRow)="onOpenRow($event)"
+      (onNewRow)="onNewRow($event)"
+      [cellTemplate]="actionCellTemplate"
+    >
+      <ng-template #actionCellTemplate let-row>
+        <!-- add new data -->
+        <button
+          mat-icon-button
+          class="visible-hover-row visible-selected-row"
+          [title]="'PROGRAM.STRATEGY.TABLE.BTN_ADD_DATA_DOTS' | translateContext : i18nSuffix"
+          (click)="$event.preventDefault() || samplingTable.highlightRow(row)"
+          [matMenuTriggerFor]="addButtonMenu"
+        >
+          <mat-icon>add_location_alt</mat-icon>
+        </button>
 
-      <!-- Biological sampling strategy table -->
-      <app-sampling-strategies-table #samplingTable *ngSwitchCase="'sampling'"
-                                     [program]="data"
-                                     [showToolbar]="false"
-                                     [canEdit]="canEdit"
-                                     [canDelete]="canDelete"
-                                     [showError]="false"
-                                     [showPaginator]="false"
-                                     [paginator]="paginator"
-                                     (onOpenRow)="onOpenRow($event)"
-                                     (onNewRow)="onNewRow($event)"
-                                     [cellTemplate]="actionCellTemplate">
-        <ng-template #actionCellTemplate let-row>
-          <!-- add new data -->
-          <button mat-icon-button class="visible-hover-row visible-selected-row"
-                  [title]="'PROGRAM.STRATEGY.TABLE.BTN_ADD_DATA_DOTS'|translateContext: this.i18nSuffix"
-                  (click)="$event.preventDefault() || samplingTable.highlightRow(row)"
-                  [matMenuTriggerFor]="addButtonMenu">
-            <mat-icon>add_location_alt</mat-icon>
-          </button>
+        <mat-menu #addButtonMenu="matMenu">
+          <ng-template matMenuContent>
+            <button mat-menu-item (click)="onNewDataFromRow(row, 'OBSERVED_LOCATION')">
+              <mat-icon>
+                <ion-icon name="location"></ion-icon>
+                <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px"></ion-icon>
+              </mat-icon>
+              {{ 'OBSERVED_LOCATION.NEW.TITLE' | translateContext : i18nSuffix }}
+            </button>
+            <button mat-menu-item (click)="onNewDataFromRow(row, 'LANDING')">
+              <mat-icon>
+                <ion-icon name="boat"></ion-icon>
+                <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px"></ion-icon>
+              </mat-icon>
+              {{ 'LANDING.NEW.TITLE' | translateContext : i18nSuffix }}
+            </button>
+          </ng-template>
+        </mat-menu>
+      </ng-template>
+    </app-sampling-strategies-table>
 
-          <mat-menu #addButtonMenu="matMenu">
-            <ng-template matMenuContent>
-              <button mat-menu-item
-                (click)="onNewDataFromRow(row, 'OBSERVED_LOCATION')">
-                <mat-icon>
-                  <ion-icon name="location"></ion-icon>
-                  <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
-                </mat-icon>
-                {{ 'OBSERVED_LOCATION.NEW.TITLE'|translateContext: this.i18nSuffix }}
-              </button>
-              <button mat-menu-item
-                (click)="onNewDataFromRow(row, 'LANDING')">
-                <mat-icon>
-                  <ion-icon name="boat"></ion-icon>
-                  <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px;"></ion-icon>
-                </mat-icon>
-                {{ 'LANDING.NEW.TITLE'|translateContext: this.i18nSuffix }}
-              </button>
-            </ng-template>
-          </mat-menu>
-        </ng-template>
-      </app-sampling-strategies-table>
-
-      <!-- legacy strategy table -->
-      <app-strategy-table #legacyTable *ngSwitchDefault
-                          [program]="data"
-                          [canEdit]="canEdit"
-                          [canDelete]="canDelete"
-                          [showError]="false"
-                          [showPaginator]="false"
-                          [paginator]="paginator"
-                          (onOpenRow)="onOpenRow($event)"
-                          (onNewRow)="onNewRow($event)">
-      </app-strategy-table>
-
+    <!-- legacy strategy table -->
+    <app-strategy-table
+      #legacyTable
+      *ngSwitchDefault
+      [program]="data"
+      [canEdit]="canEdit"
+      [canDelete]="canDelete"
+      [showError]="false"
+      [showPaginator]="false"
+      [paginator]="paginator"
+      (onOpenRow)="onOpenRow($event)"
+      (onNewRow)="onNewRow($event)"
+    ></app-strategy-table>
   </ng-container>
 </ion-content>
 
 <ion-footer>
-  <mat-paginator #paginator class="mat-paginator-footer"
-                 [length]="table?.totalRowCount" [pageSize]="table?.defaultPageSize"
-                 [pageSizeOptions]="table?.defaultPageSizeOptions" showFirstLastButtons>
-  </mat-paginator>
+  <mat-paginator
+    #paginator
+    class="mat-paginator-footer"
+    [length]="table?.totalRowCount"
+    [pageSize]="table?.defaultPageSize"
+    [pageSizeOptions]="table?.defaultPageSizeOptions"
+    showFirstLastButtons
+  ></mat-paginator>
 </ion-footer>
 
 <!-- Add button -->
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="canEdit && mobile">
+<ion-fab vertical="bottom" horizontal="end" *ngIf="canEdit && mobile">
   <ion-fab-button color="tertiary" (click)="table?.addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

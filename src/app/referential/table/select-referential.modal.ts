@@ -19,7 +19,7 @@ export class SelectReferentialModal
   extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
   implements OnInit, ISelectReferentialModalOptions {
 
-  @Input() showLevelFilter: boolean = true;
+  @Input() showLevelFilter = true;
 
   constructor(
     injector: Injector,

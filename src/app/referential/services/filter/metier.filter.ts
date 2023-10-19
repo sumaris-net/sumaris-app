@@ -1,9 +1,9 @@
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import {ReferentialRefFilter} from "./referential-ref.filter";
-import {Moment} from "moment";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import { Metier } from '@app/referential/services/model/metier.model';
+import {EntityClass}  from '@sumaris-net/ngx-components';
+import {ReferentialRefFilter} from './referential-ref.filter';
+import {Moment} from 'moment';
+import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
+import {EntityAsObjectOptions}  from '@sumaris-net/ngx-components';
+import { Metier } from '@app/referential/metier/metier.model';
 
 @EntityClass({typename: 'MetierFilterVO'})
 export class MetierFilter extends ReferentialRefFilter {

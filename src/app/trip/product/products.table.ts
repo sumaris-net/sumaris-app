@@ -1,6 +1,14 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../../data/measurement/measurements-table.class';
+import {
+  filterNotNil,
+  InMemoryEntitiesService,
+  IReferentialRef,
+  isNotEmptyArray,
+  LoadResult,
+  LocalSettingsService,
+  referentialToString,
+} from '@sumaris-net/ngx-components';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { ProductValidatorService } from './product.validator';
 import { IWithProductsEntity, Product, ProductFilter } from './product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -104,7 +112,7 @@ export class ProductsTable
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
-    this.defaultSortBy = 'id'
+    this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
@@ -271,7 +279,7 @@ export class ProductsTable
     return true;
   }
 
-  async openDetailModal(dataToOpen?: Product): Promise<{ data: Product, role: string } | undefined> {
+  async openDetailModal(dataToOpen?: Product): Promise<{ data: Product; role: string } | undefined> {
     const isNew = !dataToOpen && true;
 
     if (isNew) {
@@ -298,7 +306,7 @@ export class ProductsTable
         disabled: this.disabled,
         mobile: this.mobile,
         isNew,
-        onDelete: (event, Product) => this.deleteEntity(event, Product)
+        onDelete: (event, data) => this.deleteEntity(event, data)
       },
       cssClass: 'modal-large',
       keyboardClose: true
