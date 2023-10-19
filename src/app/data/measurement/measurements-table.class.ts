@@ -18,7 +18,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
@@ -31,11 +31,7 @@ import { BaseValidatorService } from '@app/shared/service/base.validator.service
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 
-
-export interface BaseMeasurementsTableConfig<
-  T extends IEntityWithMeasurement<T>>
-  extends BaseTableConfig<T> {
-
+export interface BaseMeasurementsTableConfig<T extends IEntityWithMeasurement<T>> extends BaseTableConfig<T> {
   onRowCreated?: undefined; // IMPORTANT: leave 'undefined'. subclasses should use onPrepareRowForm instead
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
@@ -201,6 +197,10 @@ export abstract class BaseMeasurementsTable<
 
   get loading(): boolean {
     return super.loading || this._dataService.loading;
+  }
+
+  get loaded(): boolean {
+    return super.loaded && !this._dataService.loading;
   }
 
   protected constructor(

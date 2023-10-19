@@ -56,7 +56,7 @@
           <!-- Auto fill species -->
           <button
             mat-icon-button
-            *ngIf="showAutoFillButton && (availableTaxonGroups | isNotEmptyArray)"
+            *rxIf="showAutoFillButton$"
             [disabled]="disabled"
             [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
             (click)="autoFillTable()">
@@ -573,7 +573,7 @@
       </ng-container>
 
       <!-- first header -->
-      <ng-container *ngIf="showToolbar && (groupColumnNames|isNotEmptyArray)">
+      <ng-container *ngIf="showToolbar && (groupColumnNames | isNotEmptyArray)">
         <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true" class="first-header-row"></tr>
       </ng-container>
 

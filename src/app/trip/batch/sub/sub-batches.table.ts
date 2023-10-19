@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  InjectionToken,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -18,7 +29,7 @@ import {
   ReferentialUtils,
   startsWithUpperCase,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
@@ -64,28 +75,24 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   templateUrl: 'sub-batches.table.html',
   styleUrls: ['sub-batches.table.scss'],
   providers: [
-    {provide: ContextService, useExisting: TripContextService},
+    { provide: ContextService, useExisting: TripContextService },
     SubBatchValidatorService,
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => ({
-          prependNewElements: false,
-          suppressErrors: environment.production,
-          reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
-          reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
-        })
-    }
+        prependNewElements: false,
+        suppressErrors: environment.production,
+        reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+        reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS,
+      }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubBatchesTable
-  extends BaseMeasurementsTable<SubBatch,
-    SubBatchFilter,
-    InMemoryEntitiesService<SubBatch, SubBatchFilter>,
-    SubBatchValidatorService
-    >
-  implements OnInit, OnDestroy {
-
+  extends BaseMeasurementsTable<SubBatch, SubBatchFilter, InMemoryEntitiesService<SubBatch, SubBatchFilter>, SubBatchValidatorService>
+  implements OnInit, OnDestroy
+{
   private _qvPmfm: IPmfm;
   private _parentSubscription: Subscription;
   private _availableParents: BatchGroup[] = [];
@@ -113,7 +120,7 @@ export class SubBatchesTable
     if (this._qvPmfm !== value) {
       this._qvPmfm = value;
       // If already loaded, re apply pmfms, to be able to execute mapPmfms
-      if (!this.loading) this.refreshPmfms();
+      if (this.loaded) this.refreshPmfms();
     }
   }
 
@@ -181,7 +188,7 @@ export class SubBatchesTable
   }
 
   get showIndividualCount(): boolean {
-    return this.getShowColumn('individualCount') && this.displayedColumns.findIndex(c => c === 'individualCount') !== -1;
+    return this.getShowColumn('individualCount') && this.displayedColumns.findIndex((c) => c === 'individualCount') !== -1;
   }
 
   @Input()
@@ -202,7 +209,6 @@ export class SubBatchesTable
     return this.getShowColumn('comments');
   }
 
-
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
@@ -210,16 +216,18 @@ export class SubBatchesTable
     validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
-    super(injector,
-      SubBatch, SubBatchFilter,
+    super(
+      injector,
+      SubBatch,
+      SubBatchFilter,
       new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
         equals: Batch.equals,
         sortByReplacement: {
           id: 'rankOrder',
-          parentGroup: 'parentGroup.rankOrder'
-        }
+          parentGroup: 'parentGroup.rankOrder',
+        },
       }),
       validatorService,
       {
@@ -227,7 +235,7 @@ export class SubBatchesTable
         i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
         i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -250,83 +258,90 @@ export class SubBatchesTable
     this.registerAutocompleteField('parentGroup', {
       suggestFn: (value: any, options?: any) => this.suggestParent(value, options),
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.updateParentAutocomplete();
 
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
-    if (this.inlineEdition) { // can be override by subclasses
+    if (this.inlineEdition) {
+      // can be override by subclasses
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
-        this.registerCellValueChanges('discard', 'measurementValues.' + PmfmIds.DISCARD_OR_LANDING.toString(), true)
-          .subscribe((value) => {
-            if (!this.editedRow) return; // Should never occur
-            const row = this.editedRow;
-            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
-            if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-              if (controls[PmfmIds.DISCARD_REASON]) {
-                if (row.validator.enabled) {
-                  controls[PmfmIds.DISCARD_REASON].enable();
-                }
-                controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
-                controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
+        this.registerCellValueChanges('discard', 'measurementValues.' + PmfmIds.DISCARD_OR_LANDING.toString(), true).subscribe((value) => {
+          if (!this.editedRow) return; // Should never occur
+          const row = this.editedRow;
+          const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
+          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              if (row.validator.enabled) {
+                controls[PmfmIds.DISCARD_REASON].enable();
               }
-            } else {
-              if (controls[PmfmIds.DISCARD_REASON]) {
-                controls[PmfmIds.DISCARD_REASON].disable();
-                controls[PmfmIds.DISCARD_REASON].setValue(null);
-                controls[PmfmIds.DISCARD_REASON].setValidators(null);
-              }
+              controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+              controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
             }
-          }));
+          } else {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              controls[PmfmIds.DISCARD_REASON].disable();
+              controls[PmfmIds.DISCARD_REASON].setValue(null);
+              controls[PmfmIds.DISCARD_REASON].setValidators(null);
+            }
+          }
+        })
+      );
 
       this.registerSubscription(
-        this.registerCellValueChanges('parentGroup', 'parentGroup', true)
-          .subscribe((parentGroup) => {
-            if (!this.editedRow) return; // Skip
+        this.registerCellValueChanges('parentGroup', 'parentGroup', true).subscribe((parentGroup) => {
+          if (!this.editedRow) return; // Skip
 
-            const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
-            if (isNil(parenTaxonGroupId)) return; // Skip
+          const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
+          if (isNil(parenTaxonGroupId)) return; // Skip
 
-            const row = this.editedRow;
+          const row = this.editedRow;
 
-            const formEnabled = row.validator.enabled;
-            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
+          const formEnabled = row.validator.enabled;
+          const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
 
-            (this.pmfms || []).forEach(pmfm => {
-              const enable = !pmfm.isComputed &&
-                (!PmfmUtils.isDenormalizedPmfm(pmfm)
-                || isEmptyArray(pmfm.taxonGroupIds)
-                || pmfm.taxonGroupIds.includes(parenTaxonGroupId));
-              const control = controls[pmfm.id];
+          (this.pmfms || []).forEach((pmfm) => {
+            const enable =
+              !pmfm.isComputed &&
+              (!PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId));
+            const control = controls[pmfm.id];
 
-              // Update control state
-              if (control) {
-                if (enable) {
-                  if (formEnabled) {
-                    control.enable();
-                  }
-                  control.setValidators(PmfmValidators.create(pmfm));
+            // Update control state
+            if (control) {
+              if (enable) {
+                if (formEnabled) {
+                  control.enable();
                 }
-                else {
-                  control.disable();
-                  control.setValidators(null);
-                  control.setValue(null);
-                }
+                control.setValidators(PmfmValidators.create(pmfm));
+              } else {
+                control.disable();
+                control.setValidators(null);
+                control.setValue(null);
               }
-            });
-          }));
+            }
+          });
+        })
+      );
+    }
+  }
+
+  markAsLoading(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.markAsLoading(opts);
+
+    // WARN: use to avoid data reload, when pmfms changed
+    if (opts?.onlySelf !== false) {
+      this.dataSource.markAsLoading();
     }
   }
 
   async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
-
     // Skip if loading,
     // or if previous edited row not confirmed
 
@@ -355,7 +370,7 @@ export class SubBatchesTable
       delete subBatch.weight;
     }
 
-    await this.resetForm(subBatch, {focusFirstEmpty: true});
+    await this.resetForm(subBatch, { focusFirstEmpty: true });
 
     // Add batch to table
     if (!row) {
@@ -370,7 +385,7 @@ export class SubBatchesTable
     return true;
   }
 
-  async add(batches: SubBatch[], opts?: {linkDataToParentGroup?: boolean}) {
+  async add(batches: SubBatch[], opts?: { linkDataToParentGroup?: boolean }) {
     if (toBoolean(opts && opts.linkDataToParentGroup, true)) {
       this.linkDataToParentGroup(batches);
     }
@@ -380,7 +395,7 @@ export class SubBatchesTable
     }
   }
 
-  markAsPristine(opts?: {onlySelf?: boolean}) {
+  markAsPristine(opts?: { onlySelf?: boolean }) {
     super.markAsPristine();
     if (this.form) this.form.markAsPristine(opts);
   }
@@ -390,7 +405,7 @@ export class SubBatchesTable
     if (this.form) this.form.markAsUntouched();
   }
 
-  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     if (this.showForm && this.form && this.form.disabled) {
@@ -398,7 +413,7 @@ export class SubBatchesTable
     }
   }
 
-  disable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);
 
     if (this.showForm && this.form && this.form.enabled) {
@@ -436,24 +451,24 @@ export class SubBatchesTable
     const parentToStringOptions = {
       pmfm: this.displayParentPmfm,
       taxonGroupAttributes,
-      taxonNameAttributes
+      taxonNameAttributes,
     };
     if (this._showTaxonNameInParentAutocomplete) {
       if (this.showTaxonNameColumn) {
-        this.autocompleteFields.parentGroup.attributes = ['rankOrder']
-          .concat(taxonGroupAttributes.map(attr => 'taxonGroup.' + attr));
+        this.autocompleteFields.parentGroup.attributes = ['rankOrder'].concat(taxonGroupAttributes.map((attr) => 'taxonGroup.' + attr));
       } else {
-        this.autocompleteFields.parentGroup.attributes = ['taxonGroup.' + taxonGroupAttributes[0]]
-          .concat(taxonNameAttributes.map(attr => 'taxonName.' + attr));
+        this.autocompleteFields.parentGroup.attributes = ['taxonGroup.' + taxonGroupAttributes[0]].concat(
+          taxonNameAttributes.map((attr) => 'taxonName.' + attr)
+        );
       }
     } else {
       // show only taxon group
-      this.autocompleteFields.parentGroup.attributes = taxonGroupAttributes.map(attr => 'taxonGroup.' + attr);
+      this.autocompleteFields.parentGroup.attributes = taxonGroupAttributes.map((attr) => 'taxonGroup.' + attr);
     }
     this.autocompleteFields.parentGroup.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }
 
-  public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean; emitEvent?: boolean}) {
+  public async resetForm(previousBatch?: SubBatch, opts?: { focusFirstEmpty?: boolean; emitEvent?: boolean }) {
     if (!this.form) throw new Error('Form not exists');
 
     await this.ready();
@@ -486,8 +501,7 @@ export class SubBatchesTable
       // Copy taxon name (if freezed)
       if (previousBatch.taxonName && this.form.freezeTaxonName) {
         newBatch.taxonName = previousBatch.taxonName;
-      }
-      else {
+      } else {
         // Set taxonName, is only one in list
         const taxonNames = this.form.taxonNames;
         if (taxonNames && taxonNames.length === 1) {
@@ -498,7 +512,7 @@ export class SubBatchesTable
 
     // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.pmfms, this.form.form);
-    this.form.setValue(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
+    this.form.setValue(newBatch, { emitEvent: true, normalizeEntityToForm: false /*already done*/ });
 
     // If need, enable the form
     if (this.form.disabled) {
@@ -508,13 +522,12 @@ export class SubBatchesTable
     if (opts && opts.focusFirstEmpty === true) {
       setTimeout(() => {
         this.form.focusFirstEmptyInput();
-        this.form.markAsPristine({onlySelf: true});
-        this.form.markAsUntouched({onlySelf: true});
+        this.form.markAsPristine({ onlySelf: true });
+        this.form.markAsUntouched({ onlySelf: true });
       });
-    }
-    else {
-      this.form.markAsPristine({onlySelf: true});
-      this.form.markAsUntouched({onlySelf: true});
+    } else {
+      this.form.markAsPristine({ onlySelf: true });
+      this.form.markAsUntouched({ onlySelf: true });
     }
 
     if (!opts || opts.emitEvent !== false) {
@@ -526,28 +539,28 @@ export class SubBatchesTable
     if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
     if (isNil(value)) return this._availableSortedParents; // All
 
     if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
     const ucValueParts = value.trim().toUpperCase().split(' ', 1);
 
     // Search on labels (taxonGroup or taxonName)
-    return this._availableSortedParents.filter(p =>
-      (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
-      (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
+    return this._availableSortedParents.filter(
+      (p) =>
+        (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
+        (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
     );
   }
 
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const parent = this.editedRow && this.editedRow.validator.get('parentGroup').value;
-    if (isNilOrBlank(value) && isNil(parent)) return {data: []};
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
-      });
+    if (isNilOrBlank(value) && isNil(parent)) return { data: [] };
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (parent && parent.taxonGroup && parent.taxonGroup.id) || undefined,
+    });
   }
 
   protected mapPmfms(pmfms: IPmfm[]) {
@@ -557,7 +570,7 @@ export class SubBatchesTable
 
     if (this._qvPmfm) {
       // Make sure QV Pmfm is required (need to link with parent batch)
-      const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
+      const index = pmfms.findIndex((pmfm) => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         // Replace original pmfm by a clone, with hidden=true
         const qvPmfm = this._qvPmfm.clone();
@@ -568,12 +581,12 @@ export class SubBatchesTable
     }
 
     // Filter on parent taxon groups
-    const taxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup?.id).filter(isNotNil);
+    const taxonGroupIds = (this._availableParents || []).map((parent) => parent.taxonGroup?.id).filter(isNotNil);
     if (isNotEmptyArray(taxonGroupIds)) {
-      pmfms = pmfms.map(pmfm => {
+      pmfms = pmfms.map((pmfm) => {
         if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
           // Hidden PMFM that are not for existing taxon groups
-          if (isNotEmptyArray(pmfm.taxonGroupIds) && !pmfm.taxonGroupIds.some(id => taxonGroupIds.includes(id))) {
+          if (isNotEmptyArray(pmfm.taxonGroupIds) && !pmfm.taxonGroupIds.some((id) => taxonGroupIds.includes(id))) {
             pmfm = pmfm.clone(); // Keep original
             pmfm.hidden = true;
             pmfm.required = false;
@@ -585,8 +598,7 @@ export class SubBatchesTable
 
     // Check weight-length conversion is enabled
     {
-      const index = pmfms.findIndex(p => p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
-          || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH);
+      const index = pmfms.findIndex((p) => p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH);
       if (index !== -1) {
         this.weightPmfm = pmfms[index]?.clone();
         //this.weightPmfm.hidden = !this.mobile;
@@ -599,8 +611,7 @@ export class SubBatchesTable
           this.weightPmfm = PmfmUtils.setWeightUnitConversion(this.weightPmfm, this.weightDisplayedUnit);
         }*/
         pmfms[index] = this.weightPmfm;
-      }
-      else {
+      } else {
         this.enableWeightConversion = false;
       }
     }
@@ -633,8 +644,7 @@ export class SubBatchesTable
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row);
-    }
-    else {
+    } else {
       this.editedRow = null;
     }
     return true;
@@ -660,18 +670,18 @@ export class SubBatchesTable
         showParent: this.showParentColumn,
         showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
-        showIndividualCount: this.showIndividualCount
+        showIndividualCount: this.showIndividualCount,
       },
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
-    return  (data instanceof SubBatch) ? data : undefined;
+    return data instanceof SubBatch ? data : undefined;
   }
 
   protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
@@ -686,7 +696,7 @@ export class SubBatchesTable
     // If individual count column is shown (can be greater than 1)
     if (this.showIndividualCount) {
       // Try to find an identical sub-batch
-      const row = this.dataSource.getRows().find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+      const row = this.dataSource.getRows().find((r) => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
 
       // Already exists: increment individual count
       if (row) {
@@ -754,12 +764,11 @@ export class SubBatchesTable
   }
 
   protected async onInvalidForm(): Promise<void> {
-    this.form.markAllAsTouched({emitEvent: true});
+    this.form.markAllAsTouched({ emitEvent: true });
     if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-batch-table] ');
   }
 
   protected getI18nColumnName(columnName: string): string {
-
     // Replace parent by TAG_ID pmfms
     columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.id.toString() : columnName;
 
@@ -769,8 +778,8 @@ export class SubBatchesTable
   protected linkDataToParentGroup(data: SubBatch[]) {
     if (!this._availableParents || !data) return;
 
-    data.forEach(s => {
-      s.parentGroup = s.parentGroup && this._availableParents.find(p => Batch.equals(p, s.parentGroup)) || null;
+    data.forEach((s) => {
+      s.parentGroup = (s.parentGroup && this._availableParents.find((p) => Batch.equals(p, s.parentGroup))) || null;
       if (!s.parentGroup) console.warn('[sub-batches-table] linkDataToParent() - Could not found parent group, for sub-batch:', s);
     });
   }
@@ -779,19 +788,18 @@ export class SubBatchesTable
    * Remove batches in table, if there have no more parent
    */
   protected async linkDataToParentAndDeleteOrphan() {
-
     const rows = this.dataSource.getRows();
 
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
-      .map(row => {
+      .map((row) => {
         const item = row.currentData;
 
         let parentGroup;
         if (item.parentGroup) {
           // Update the parent, by id
-          parentGroup = this._availableParents.find(p => Batch.equals(p, item.parentGroup));
+          parentGroup = this._availableParents.find((p) => Batch.equals(p, item.parentGroup));
 
           // Not found, so try to get it by species
           if (!parentGroup) {
@@ -800,9 +808,12 @@ export class SubBatchesTable
             if (isNil(parentTaxonGroupId) && isNil(parentTaxonNameId)) {
               parentGroup = undefined; // remove link to parent
             } else {
-              parentGroup = this._availableParents.find(p =>
-                (p && ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id === parentTaxonGroupId))
-                  && ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id === parentTaxonNameId))));
+              parentGroup = this._availableParents.find(
+                (p) =>
+                  p &&
+                  ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id === parentTaxonGroupId)) &&
+                  ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id === parentTaxonNameId))
+              );
             }
           }
         }
@@ -811,7 +822,7 @@ export class SubBatchesTable
           if (item.parentGroup !== parentGroup) {
             item.parentGroup = parentGroup;
             // If row use a validator, force update
-            if (!row.editing && row.validator) row.validator.patchValue(item, {emitEvent: false});
+            if (!row.editing && row.validator) row.validator.patchValue(item, { emitEvent: false });
           }
           return item; // Keep only rows with a parent (or in editing mode)
         }
@@ -824,7 +835,7 @@ export class SubBatchesTable
 
     if (hasRemovedItem) {
       // Make sure to convert into a Sample - fix issue #371
-      this.value = data.map(c => SubBatch.fromObject(c));
+      this.value = data.map((c) => SubBatch.fromObject(c));
     }
   }
 
@@ -843,7 +854,7 @@ export class SubBatchesTable
     if (!pmfms) return; // Not loaded
 
     this._dataService.pmfms = this._initialPmfms;
-    await this._dataService.waitIdle({stop: this.destroySubject});
+    await this._dataService.waitIdle({ stop: this.destroySubject });
 
     this.updateColumns();
   }
@@ -860,7 +871,7 @@ export class SubBatchesTable
 
     this.validatorService.updateFormGroup(form, {
       withWeight: this.enableWeightConversion,
-      pmfms: this.pmfms
+      pmfms: this.pmfms,
     });
 
     // Add length -> weight conversion
@@ -869,8 +880,8 @@ export class SubBatchesTable
       const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
-        onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
-        markForCheck: () => this.markForCheck()
+        onError: (err) => this.setError((err && err.message) || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
+        markForCheck: () => this.markForCheck(),
       });
       if (subscription) {
         this._rowValidatorSubscription = subscription;

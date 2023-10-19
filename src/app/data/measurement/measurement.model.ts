@@ -1,10 +1,19 @@
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  arraySize,
+  fromDateISOString,
+  IEntity,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  ReferentialRef,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-
 
 export const MEASUREMENT_PMFM_ID_REGEXP = /measurements\.\d+$/;
 export const MEASUREMENT_VALUES_PMFM_ID_REGEXP = /measurementValues\.\d+$/;
@@ -346,7 +355,7 @@ export class MeasurementValuesUtils {
     pmfms = pmfms || [];
 
     // DEBUG
-    console.debug('calling normalizeValueToForm() from ' +  source.__typename);
+    //console.debug('calling normalizeValueToForm() from ' +  source.__typename);
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts?.onlyExistingPmfms) {

@@ -35,7 +35,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { merge, Observable, Subject, Subscription } from 'rxjs';
+import { combineLatestWith, Observable, Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -356,7 +356,6 @@ export class BatchTreeContainerComponent
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
-      editingBatch: null,
       treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
 
@@ -1158,17 +1157,17 @@ export class BatchTreeContainerComponent
       waitFor(() => !!this.batchTree, {stop: stopSubject})
         .then(() => {
           subscription.add(
-            merge(
-              this.batchTree.statusChanges,
-              this.batchTree.batchGroupsTable.dataSource.rowsSubject
-            )
+            this.batchTree.statusChanges
               .pipe(
-                map(_ => ({
-                    valid: !this.batchTree.invalid,
+                combineLatestWith(this.batchTree.batchGroupsTable.dataSource.rowsSubject),
+                map(([status, rows]) => {
+                  return {
+                    valid: status !== 'INVALID',
                     visibleRowCount: this.batchTree.showBatchTables
-                      ? this.batchTree.batchGroupsTable.visibleRowCount
+                      ? (rows?.length || 0)
                       : undefined
-                  }))
+                  };
+                })
               )
               .subscribe(state => subscriber.next(state))
           );

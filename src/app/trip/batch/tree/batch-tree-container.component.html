@@ -55,7 +55,7 @@
           </button>
         </ng-container>
 
-        <div *rxIf="editingBatch$; let node; else: helpMessage">
+        <div *rxIf="editingBatch$; let node; else: helpMessage; suspense: helpMessage">
           <ng-container *ngTemplateOutlet="breadcrumbButtons; context: { $implicit: node }"></ng-container>
         </div>
 
@@ -74,7 +74,7 @@
         <div class="toolbar-spacer"></div>
 
         <!-- navigation buttons -->
-        <ng-container *rxIf="editingBatch$; let node">
+        <ng-container *rxIf="editingBatch$; let node; strategy: rxStrategy">
           <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
         </ng-container>
       </mat-toolbar>
@@ -236,7 +236,7 @@
   <button
     mat-button
     class="breadcrumb selected"
-    *rxLet="currentBadge$ as badgeContent"
+    *rxIf="currentBadge$; let badgeContent"
     [disabled]="!node.parent"
     [matMenuTriggerFor]="childrenMenu"
     [matMenuTriggerData]="{ node: node.parent, selected: node }"
@@ -281,12 +281,13 @@
   <app-batch-tree
     #batchTree
     (ngInit)="addChildForm(batchTree)"
-    [class.cdk-visually-hidden]="!(editingBatch$ | push : rxStrategy)"
+    [class.cdk-visually-hidden]="(editingBatch$ | push : rxStrategy) == null"
     [queryTabIndexParamName]="queryTabIndexParamName"
     [allowSpeciesSampling]="allowSamplingBatches$ | push : rxStrategy"
     [allowSubBatches]="allowSubBatches$ | push : rxStrategy"
     [defaultHasSubBatches]="defaultHasSubBatches"
     [availableTaxonGroups]="availableTaxonGroups"
+    [showAutoFillButton]="showAutoFillButton"
     [usageMode]="usageMode"
     [modalOptions]="modalOptions"
     [useSticky]="useSticky"
@@ -297,7 +298,6 @@
     [rxStrategy]="rxStrategy"
     [requiredGear]="requiredGear$ | async"
     [gearId]="gearId$ | async"
-    [showAutoFillButton]="showAutoFillButton"
     [debug]="debug && false"
   ></app-batch-tree>
 </ng-template>

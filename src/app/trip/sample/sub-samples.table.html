@@ -130,19 +130,18 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'parent'">
         <mat-autocomplete-field
-          *ngIf="row.editing; else readonlyPmfmField"
+          *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
           class="min-width-medium"
-          [autofocus]="row.editing && focusColumn === 'parent'"
+          [autofocus]="focusColumn === 'parent'"
           [formControl]="row.validator | formGetControl : 'parent'"
           [placeholder]="'TRIP.SAMPLE.TABLE.PARENT' | translateContext : i18nColumnSuffix"
           [config]="autocompleteFields.parent"
           required
         ></mat-autocomplete-field>
 
-        <!--TOTO {{autocompleteFields.parent.attributes.join(', ')}}-->
         <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
+        <ng-template #readonlyCell>
           <ion-label
             [innerHTML]="row.currentData.parent | displayWith : autocompleteFields.parent.displayWith"
           ></ion-label>
@@ -170,12 +169,11 @@
           floatLabel="never"
           [pmfm]="pmfm"
           [control]="row.validator | formGetControl : ['measurementValues', pmfm.id]"
-          [autofocus]="row.editing && focusColumn == pmfm.id"
+          [autofocus]="focusColumn == pmfm.id"
           [i18nPrefix]="i18nPmfmPrefix"
           [i18nSuffix]="i18nColumnSuffix"
           [defaultLatitudeSign]="defaultLatitudeSign"
           [defaultLongitudeSign]="defaultLongitudeSign"
-          [readonly]="!row.editing"
           [compact]="true"
         ></app-pmfm-field>
 
@@ -183,7 +181,8 @@
         <ng-template #readonlyPmfmField>
           <ion-label
             [innerHTML]="
-              row.currentData.measurementValues[pmfm.id]
+              row.validator
+                | formGetValue : ['measurementValues', pmfm.id]
                 | pmfmValue : { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
           ></ion-label>
@@ -203,7 +202,6 @@
             [formControl]="row.validator.controls.comments"
             [appAutofocus]="row.editing && focusColumn === 'comments'"
             [placeholder]="'REFERENTIAL.COMMENTS' | translate"
-            [readonly]="!row.editing"
           />
         </mat-form-field>
 

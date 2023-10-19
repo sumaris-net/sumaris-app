@@ -26,6 +26,8 @@
         "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
         "plugin:@angular-eslint/template/process-inline-templates",
         "plugin:prettier/recommended"
+//        "plugin:@rx-angular/recommended",
+//        "plugin:@rx-angular/zoneless"
       ],
       "rules": {
         "prettier/prettier": "off",
