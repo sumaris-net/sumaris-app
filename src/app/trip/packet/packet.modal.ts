@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { IWithPacketsEntity, Packet } from './packet.model';
 import { ModalController } from '@ionic/angular';
-import { Subscription, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { PacketForm } from './packet.form';
 import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
@@ -103,8 +103,8 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
       this.disable();
 
       const data = Packet.fromObject(value);
-      await this.viewCtrl.dismiss(data, role);
       this.packetForm.error = null;
+      await this.viewCtrl.dismiss(data, role);
     } catch (err) {
       this.packetForm.error = err && err.message || err;
       this.enable();
