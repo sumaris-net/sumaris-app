@@ -10,7 +10,8 @@ import { AppRoutingModule } from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
-  APP_CONFIG_OPTIONS, APP_DEBUG_DATA_SERVICE,
+  APP_CONFIG_OPTIONS,
+  APP_DEBUG_DATA_SERVICE,
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
@@ -18,7 +19,8 @@ import {
   APP_LOCAL_SETTINGS,
   APP_LOCAL_SETTINGS_OPTIONS,
   APP_LOCAL_STORAGE_TYPE_POLICIES,
-  APP_LOCALES, APP_LOGGING_SERVICE,
+  APP_LOCALES,
+  APP_LOGGING_SERVICE,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
   APP_PROGRESS_BAR_SERVICE,
@@ -32,10 +34,15 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
-  FormFieldDefinitionMap, isAndroid, isCapacitor, isIOS, isMobile,
+  FormFieldDefinitionMap,
+  isAndroid,
+  isCapacitor,
+  isIOS,
+  isMobile,
   JobModule,
   LocalSettings,
-  LocalSettingsOptions, LoggingService,
+  LocalSettingsOptions,
+  LoggingService,
   MenuItem,
   MenuOptions,
   ProgressBarService,
@@ -43,7 +50,7 @@ import {
   SOCIAL_TESTING_PAGES,
   StorageService,
   TestingPage,
-  UserEventModule
+  UserEventModule,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
@@ -59,7 +66,11 @@ import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
 import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
-import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
+import {
+  REFERENTIAL_CONFIG_OPTIONS,
+  REFERENTIAL_GRAPHQL_TYPE_POLICIES,
+  REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+} from './referential/services/config/referential.config';
 import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
 import { JDENTICON_CONFIG } from 'ngx-jdenticon';
@@ -88,9 +99,7 @@ import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/valida
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -103,16 +112,16 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
         mobile: isMobile,
         ios: isIOS,
         android: isAndroid,
-        capacitor: isCapacitor
-      }
+        capacitor: isCapacitor,
+      },
     }),
     CacheModule.forRoot({
       keyPrefix: '', // For compatibility
-      ...environment.cache
+      ...environment.cache,
     }),
     IonicStorageModule.forRoot({
       name: 'sumaris', // default
-      ...environment.storage
+      ...environment.storage,
     }),
     TranslateModule.forRoot({
       loader: {
@@ -124,8 +133,8 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
           }
           return new TranslateHttpLoader(httpClient, './assets/i18n/', `.json`);
         },
-        deps: [HttpClient]
-      }
+        deps: [HttpClient],
+      },
     }),
     MarkdownModule.forRoot({
       loader: HttpClient, // Allow to load using [src]
@@ -139,10 +148,10 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
           smartLists: true,
           smartypants: false,
         },
-      }
+      },
     }),
     NgChartsModule.forRoot({
-      plugins: []
+      plugins: [],
     }),
 
     // Need for tap event, in app-toolbar
@@ -153,7 +162,7 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     AppCoreModule.forRoot(),
     AppRoutingModule,
     UserEventModule,
-    JobModule
+    JobModule,
   ],
   providers: [
     // Cordova plugins
@@ -161,46 +170,48 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     AudioManagement,
     Downloader,
 
-    {provide: APP_BASE_HREF, useFactory: () => {
+    {
+      provide: APP_BASE_HREF,
+      useFactory: () => {
         try {
           return document.getElementsByTagName('base')[0].href;
-        }
-        catch (err) {
+        } catch (err) {
           console.error(err);
           return environment.baseUrl || '/';
         }
-      }
+      },
     },
 
-    {provide: APP_STORAGE, useExisting: StorageService},
+    { provide: APP_STORAGE, useExisting: StorageService },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: APP_PROGRESS_BAR_SERVICE, useClass: ProgressBarService },
     { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [APP_PROGRESS_BAR_SERVICE] },
 
     {
-      provide: APP_LOCALES, useValue:
-        [
-          {
-            key: 'fr',
-            value: 'Français',
-            country: 'fr'
-          },
-          {
-            key: 'en',
-            value: 'English (UK)',
-            country: 'gb'
-          },
-          {
-            key: 'en-US',
-            value: 'English (US)',
-            country: 'us'
-          }
-        ]
+      provide: APP_LOCALES,
+      useValue: [
+        {
+          key: 'fr',
+          value: 'Français',
+          country: 'fr',
+        },
+        {
+          key: 'en',
+          value: 'English (UK)',
+          country: 'gb',
+        },
+        {
+          key: 'en-US',
+          value: 'English (US)',
+          country: 'us',
+        },
+      ],
     },
 
-    {provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en'},
+    { provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en' },
     {
-      provide: MAT_DATE_FORMATS, useValue: {
+      provide: MAT_DATE_FORMATS,
+      useValue: {
         parse: {
           dateInput: DATE_ISO_PATTERN,
         },
@@ -209,231 +220,281 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
           monthYearLabel: 'MMM YYYY',
           dateA11yLabel: 'LL',
           monthYearA11yLabel: 'MMMM YYYY',
-        }
-      }
+        },
+      },
     },
     {
       provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS,
-      useValue: { strict: false }
+      useValue: { strict: false },
     },
-    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
-    {provide: DateAdapter, useExisting: MomentDateAdapter},
+    { provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
+    { provide: DateAdapter, useExisting: MomentDateAdapter },
 
     // Logging
-    {provide: APP_LOGGING_SERVICE, useClass: LoggingService},
+    { provide: APP_LOGGING_SERVICE, useClass: LoggingService },
 
     // User event
-    {provide: UserEventService, useClass: UserEventService},
-    {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
-    {provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService},
+    { provide: UserEventService, useClass: UserEventService },
+    { provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService },
+    { provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService },
 
     // Job
-    {provide: JobProgressionService, useClass: JobProgressionService},
-    {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
+    { provide: JobProgressionService, useClass: JobProgressionService },
+    { provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService },
 
     // Device position
-    {provide: DevicePositionService, useClass: DevicePositionService},
+    { provide: DevicePositionService, useClass: DevicePositionService },
 
     // Ichthyometer
-    {provide: IchthyometerService, useClass: IchthyometerService},
+    { provide: IchthyometerService, useClass: IchthyometerService },
 
     // Form errors translations
-    {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
+    {
+      provide: APP_FORM_ERROR_I18N_KEYS,
+      useValue: {
         ...PMFM_VALIDATOR_I18N_ERROR_KEYS,
         ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
         ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
-        ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
-    }},
+        ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS,
+      },
+    },
 
     // Configure hammer gesture
     // FIXME: not working well on tablet
-    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
+    { provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig },
 
     // Settings default values
-    { provide: APP_LOCAL_SETTINGS, useValue: <Partial<LocalSettings>>{
-        pageHistoryMaxSize: 3
-      }
+    {
+      provide: APP_LOCAL_SETTINGS,
+      useValue: <Partial<LocalSettings>>{
+        pageHistoryMaxSize: 3,
+      },
     },
 
     // Setting options definition
     {
-      provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <LocalSettingsOptions>{
+      provide: APP_LOCAL_SETTINGS_OPTIONS,
+      useValue: <LocalSettingsOptions>{
         serializeAsString: true,
         options: {
           ...SHARED_LOCAL_SETTINGS_OPTIONS,
           ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
           ...VESSEL_LOCAL_SETTINGS_OPTIONS,
-          ...TRIP_LOCAL_SETTINGS_OPTIONS
-        }
-      }
+          ...TRIP_LOCAL_SETTINGS_OPTIONS,
+        },
+      },
     },
 
     // Config options definition (Core + trip)
-    { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
-      ...CORE_CONFIG_OPTIONS,
-      ...APP_CORE_CONFIG_OPTIONS,
-      ...APP_SOCIAL_CONFIG_OPTIONS,
-      ...REFERENTIAL_CONFIG_OPTIONS,
-      ...VESSEL_CONFIG_OPTIONS,
-      ...DATA_CONFIG_OPTIONS,
-      ...EXTRACTION_CONFIG_OPTIONS,
-      ...TRIP_CONFIG_OPTIONS,
-      ...DEVICE_POSITION_CONFIG_OPTION,
-    }},
+    {
+      provide: APP_CONFIG_OPTIONS,
+      useValue: <FormFieldDefinitionMap>{
+        ...CORE_CONFIG_OPTIONS,
+        ...APP_CORE_CONFIG_OPTIONS,
+        ...APP_SOCIAL_CONFIG_OPTIONS,
+        ...REFERENTIAL_CONFIG_OPTIONS,
+        ...VESSEL_CONFIG_OPTIONS,
+        ...DATA_CONFIG_OPTIONS,
+        ...EXTRACTION_CONFIG_OPTIONS,
+        ...TRIP_CONFIG_OPTIONS,
+        ...DEVICE_POSITION_CONFIG_OPTION,
+      },
+    },
 
     // Menu config
-    { provide: APP_MENU_OPTIONS, useValue: <MenuOptions>{
-        showNotification: true
-      }
+    {
+      provide: APP_MENU_OPTIONS,
+      useValue: <MenuOptions>{
+        showNotification: true,
+      },
     },
 
     // Menu items
-    { provide: APP_MENU_ITEMS, useValue: <MenuItem[]>[
-        {title: 'MENU.HOME', path: '/', icon: 'home'},
+    {
+      provide: APP_MENU_ITEMS,
+      useValue: <MenuItem[]>[
+        { title: 'MENU.HOME', path: '/', icon: 'home' },
 
         // Data entry
-        {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-        {title: 'MENU.TRIPS', path: '/trips',
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER' },
+        {
+          title: 'MENU.TRIPS',
+          path: '/trips',
           matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
-          titleProperty: 'sumaris.trip.name'
+          titleProperty: 'sumaris.trip.name',
         },
         {
-          title: 'MENU.OCCASIONS', path: '/observations',
+          title: 'MENU.OCCASIONS',
+          path: '/observations',
           icon: 'location',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
-          titleProperty: 'sumaris.observedLocation.name'
-        },
-        {
-          title: 'MENU.LANDINGS', path: '/observations/landings',
-          icon: 'location',
-          profile: 'USER',
-          ifProperty: 'sumaris.observedLocation.landing.enable',
-          titleProperty: 'sumaris.observedLocation.landing.name'
+          titleProperty: 'sumaris.observedLocation.name',
         },
 
         // Data extraction
-        {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
-        {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
-        {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
-        {title: 'MENU.DEVICE_POSITION', path: '/extraction/device-position', icon: 'location-outline', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
+        { title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST' },
+        {
+          title: 'MENU.DOWNLOADS',
+          path: '/extraction/data',
+          icon: 'cloud-download',
+          ifProperty: 'sumaris.extraction.product.enable',
+          profile: 'GUEST',
+        },
+        { title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST' },
+        {
+          title: 'MENU.DEVICE_POSITION',
+          path: '/extraction/device-position',
+          icon: 'location-outline',
+          ifProperty: 'sumaris.device.position.tracking.enable',
+          profile: 'ADMIN',
+        },
 
         // Referential
-        {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
-        {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
-        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
-        {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
-        {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+        { title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER' },
+        { title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER' },
+        { title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR' },
+        { title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
+        { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
 
-        {title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN'},
-        {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
+        { title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN' },
+        { title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN' },
 
         // Settings
-        {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
-        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR'},
-        {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium'},
-        {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile'},
+        { title: '' /*empty divider*/, cssClass: 'flex-spacer' },
+        { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
+        { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },
+        { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile' },
 
         // Logout
-        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile'},
-        {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile'}
-
-      ]
+        { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile' },
+        { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile' },
+      ],
     },
 
     // Home buttons
-    { provide: APP_HOME_BUTTONS, useValue: [
+    {
+      provide: APP_HOME_BUTTONS,
+      useValue: [
         // Data entry
-        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
-        { title: 'MENU.TRIPS', path: '/trips',
+        { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER' },
+        {
+          title: 'MENU.TRIPS',
+          path: '/trips',
           matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',
-          titleProperty: 'sumaris.trip.name'
+          titleProperty: 'sumaris.trip.name',
         },
-        { title: 'MENU.OCCASIONS', path: '/observations',
+        {
+          title: 'MENU.OCCASIONS',
+          path: '/observations',
           matIcon: 'verified',
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
-          titleProperty: 'sumaris.observedLocation.name'
+          titleProperty: 'sumaris.observedLocation.name',
         },
-        { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
-      ]
+        { title: '' /*empty divider*/, cssClass: 'visible-mobile' },
+      ],
     },
 
     // Settings menu options
-    {provide: APP_SETTINGS_MENU_ITEMS, useValue: <MenuItem[]>[
-        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR'},
-      ]},
+    {
+      provide: APP_SETTINGS_MENU_ITEMS,
+      useValue: <MenuItem[]>[
+        { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
+      ],
+    },
 
     // About developers
     {
-      provide: APP_ABOUT_DEVELOPERS, useValue: <Partial<Department>[]>[
-        {siteUrl: 'https://www.e-is.pro', logo: 'assets/img/logo/logo-eis_50px.png', label: 'Environmental Information Systems'}
-      ]
+      provide: APP_ABOUT_DEVELOPERS,
+      useValue: <Partial<Department>[]>[
+        { siteUrl: 'https://www.e-is.pro', logo: 'assets/img/logo/logo-eis_50px.png', label: 'Environmental Information Systems' },
+      ],
     },
 
     // About partners
-    { provide: APP_ABOUT_PARTNERS, useValue: <Partial<Department>[]>[
+    {
+      provide: APP_ABOUT_PARTNERS,
+      useValue: <Partial<Department>[]>[
         {
-          siteUrl: 'https://www.interreg2seas.eu', logo: 'assets/img/logo/logo-interreg2seas.png'
+          siteUrl: 'https://www.interreg2seas.eu',
+          logo: 'assets/img/logo/logo-interreg2seas.png',
         },
         {
-          siteUrl: 'https://www.fromnord.fr', logo: 'assets/img/logo/logo-fromnord_50px.png'
+          siteUrl: 'https://www.fromnord.fr',
+          logo: 'assets/img/logo/logo-fromnord_50px.png',
         },
         {
-          siteUrl: 'https://www.rederscentrale.be', logo: 'assets/img/logo/logo-redercentrale.png'
+          siteUrl: 'https://www.rederscentrale.be',
+          logo: 'assets/img/logo/logo-redercentrale.png',
         },
         {
-          siteUrl: 'https://www.ifremer.fr', logo: 'assets/img/logo/logo-ifremer.png'
+          siteUrl: 'https://www.ifremer.fr',
+          logo: 'assets/img/logo/logo-ifremer.png',
         },
         {
-          siteUrl: 'https://www.ilvo.vlaanderen.be/', logo: 'assets/img/logo/logo-ilvo-text.png'
+          siteUrl: 'https://www.ilvo.vlaanderen.be/',
+          logo: 'assets/img/logo/logo-ilvo-text.png',
         },
         {
-          siteUrl: 'https://www.nausicaa.fr', logo: 'assets/img/logo/logo-nausicaa.png'
+          siteUrl: 'https://www.nausicaa.fr',
+          logo: 'assets/img/logo/logo-nausicaa.png',
         },
         {
-          siteUrl: 'https://www.pecheursdebretagne.eu', logo: 'assets/img/logo/logo-lpdb.png'
+          siteUrl: 'https://www.pecheursdebretagne.eu',
+          logo: 'assets/img/logo/logo-lpdb.png',
         },
         {
-          siteUrl: 'https://www.aglia.fr', logo: 'assets/img/logo/logo-aglia.png'
+          siteUrl: 'https://www.aglia.fr',
+          logo: 'assets/img/logo/logo-aglia.png',
         },
         {
-          siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.png'
+          siteUrl: 'https://www.sfa.sc',
+          logo: 'assets/img/logo/logo-sfa.png',
         },
         {
-          siteUrl: 'https://www.comite-peches.fr/', logo: 'assets/img/logo/logo-cnpmem.png'
-        }
-      ]
+          siteUrl: 'https://www.comite-peches.fr/',
+          logo: 'assets/img/logo/logo-cnpmem.png',
+        },
+      ],
     },
 
     // Entities Apollo cache options
-    { provide: APP_GRAPHQL_TYPE_POLICIES, useValue: <TypePolicies>{
+    {
+      provide: APP_GRAPHQL_TYPE_POLICIES,
+      useValue: <TypePolicies>{
         ...REFERENTIAL_GRAPHQL_TYPE_POLICIES,
         ...DATA_GRAPHQL_TYPE_POLICIES,
         ...VESSEL_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
-        ...EXTRACTION_GRAPHQL_TYPE_POLICIES
-      }
+        ...EXTRACTION_GRAPHQL_TYPE_POLICIES,
+      },
     },
 
     // Entities storage options
-    { provide: APP_LOCAL_STORAGE_TYPE_POLICIES, useValue: <EntitiesStorageTypePolicies>{
-      ...TRIP_STORAGE_TYPE_POLICIES
-    }},
+    {
+      provide: APP_LOCAL_STORAGE_TYPE_POLICIES,
+      useValue: <EntitiesStorageTypePolicies>{
+        ...TRIP_STORAGE_TYPE_POLICIES,
+      },
+    },
 
     // Testing pages
-    { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
+    {
+      provide: APP_TESTING_PAGES,
+      useValue: <TestingPage[]>[
         ...APP_SHARED_TESTING_PAGES,
         ...REFERENTIAL_TESTING_PAGES,
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
-        ...TRIP_TESTING_PAGES
-      ]},
+        ...TRIP_TESTING_PAGES,
+      ],
+    },
 
     // Custom identicon style
     // https://jdenticon.com/icon-designer.html?config=4451860010ff320028501e5a
@@ -441,26 +502,25 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
       provide: JDENTICON_CONFIG,
       useValue: {
         lightness: {
-          color: [0.26, 0.80],
-          grayscale: [0.30, 0.90],
+          color: [0.26, 0.8],
+          grayscale: [0.3, 0.9],
         },
         saturation: {
-          color: 0.50,
+          color: 0.5,
           grayscale: 0.46,
         },
-        backColor: '#0000'
-      }
+        backColor: '#0000',
+      },
     },
     {
       provide: DEVICE_POSITION_ENTITY_SERVICES,
       useValue: [TripService, ObservedLocationService],
-    }
+    },
   ],
   bootstrap: [AppComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppModule {
-
   constructor() {
     console.debug('[app] Creating module');
   }

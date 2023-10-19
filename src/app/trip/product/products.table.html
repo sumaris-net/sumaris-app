@@ -217,6 +217,7 @@
       (backward)="confirmAndBackward($event.event, $event.row)"
       (forward)="confirmAndForward($event.event, $event.row)"
       [canCancel]="false"
+      [dirtyIcon]="!mobile"
       [cellTemplate]="cellTemplate"
       (optionsClick)="openSelectColumnsModal($event)"
     >
