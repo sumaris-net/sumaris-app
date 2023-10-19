@@ -537,7 +537,7 @@ export class OperationPage<S extends OperationState = OperationState>
             map(qv => qv.label),
             distinctUntilChanged()
           )
-          .subscribe(qvLabel => {
+          .subscribe((qvLabel) => {
 
             switch (qvLabel as string) {
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
