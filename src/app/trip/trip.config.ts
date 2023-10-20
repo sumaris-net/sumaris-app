@@ -36,6 +36,10 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
         value: 'MENU.TRIPS'
       },
       {
+        key: 'MENU.SCIENTIFIC_CRUISES',
+        value: 'MENU.SCIENTIFIC_CRUISES'
+      },
+      {
         key: 'MENU.LOGBOOKS',
         value: 'MENU.LOGBOOKS'
       }
