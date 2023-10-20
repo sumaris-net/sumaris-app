@@ -27,7 +27,6 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { debounceTime } from 'rxjs/operators';
-import {Sample} from '@app/trip/sample/sample.model';
 
 @Component({
   selector: 'app-sampling-landing-page',
@@ -265,18 +264,40 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
-    const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL.toString()];
-    if (strategyLabel) {
-      this.$strategyLabel.next(strategyLabel);
-    }
-
     if (this.parent instanceof ObservedLocation && isNotNil(data.id)) {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find((p) => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.WARNING.NOT_OBSERVER_ERROR' : null;
     }
 
-    data.samples = this.getSamplesForTable(data);
+    const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL.toString()];
+    if (strategyLabel) {
+      // Propagate strategy
+      this.$strategyLabel.next(strategyLabel);
 
+      // Remove sample's TAG_ID prefix
+      {
+        const samplePrefix = strategyLabel + '-';
+        let prefixCount = 0;
+        console.info(`[sampling-landing-page] Removing prefix '${samplePrefix}' in samples TAG_ID...`);
+        (data.samples || []).map((sample) => {
+          const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
+          if (tagId?.startsWith(samplePrefix)) {
+            sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
+            prefixCount++;
+          }
+        });
+
+        // Check if replacements has been done on every sample. If not, log a warning
+        if (prefixCount > 0 && prefixCount !== data.samples.length) {
+          const invalidTagIds = data.samples
+            .map((sample) => sample.measurementValues?.[PmfmIds.TAG_ID])
+            .filter((tagId) => !tagId || tagId.length > 4 || tagId.indexOf('-') !== -1);
+          console.warn(`[sampling-landing-page] ${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
+        }
+      }
+    }
+
+    // Apply the value into form and table
     await super.setValue(data);
   }
 
@@ -341,33 +362,4 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     }
     return done;
   }
-
-  protected getSamplesForTable(data: Landing): Sample[] {
-    const res = super.getSamplesForTable(data);
-
-    const strategyLabel = this.$strategyLabel.value;
-
-    // Remove sample's TAG_ID prefix
-    if (strategyLabel) {
-      const samplePrefix = strategyLabel + '-';
-      let prefixCount = 0;
-      console.info(`[sampling-landing-page] Removing prefix '${samplePrefix}' in samples TAG_ID...`);
-      (data.samples || []).map(sample => {
-        const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
-        if (tagId?.startsWith(samplePrefix)) {
-          sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
-          prefixCount++;
-        }
-      });
-      // Check if replacements has been done on every sample. If not, log a warning
-      if (prefixCount > 0 && prefixCount !== data.samples.length) {
-        const invalidTagIds = data.samples.map(sample => sample.measurementValues?.[PmfmIds.TAG_ID])
-          .filter(tagId => !tagId || tagId.length > 4 || tagId.indexOf('-') !== -1);
-        console.warn(`[sampling-landing-page] ${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
-      }
-    }
-
-    return res;
-  }
-
 }

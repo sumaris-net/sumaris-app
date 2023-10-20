@@ -77,9 +77,9 @@
             class="cursor-pointer"
             [value]="observedLocationLabel$ | async"
             [disabled]="disabledParent"
-                 (click)="openSelectObservedLocationModal($event)"
-                 [tabindex]="tabindex"
-                 readonly/>
+            (click)="openSelectObservedLocationModal($event)"
+            [tabindex]="tabindex"
+            readonly/>
 
           <button
             *ngIf="!(control | formGetValue); else otherButtons"

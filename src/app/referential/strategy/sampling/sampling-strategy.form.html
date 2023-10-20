@@ -319,11 +319,11 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col *ngIf="form.touched || pmfmsForm.touched" class="mat-form-field-errors" [style.margin-top]="0">
-        <mat-error *ngIf="pmfmsForm.hasError('required') || pmfmsForm.hasError('minLength')">
-          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate : { minLength: minPmfmCount } }}
-        </mat-error>
         <mat-error *ngIf="pmfmsForm.hasError('weightOrSize')">
           {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate }}
+        </mat-error>
+        <mat-error *ngIf="pmfmsForm.hasError('required') || pmfmsForm.hasError('minLength')">
+          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate : { minLength: minPmfmCount } }}
         </mat-error>
         <mat-error *ngIf="pmfmsForm.hasError('missingFraction')">
           {{'PROGRAM.STRATEGY.ERROR.PARAMETERS.MISSING_FRACTION' | translate}}

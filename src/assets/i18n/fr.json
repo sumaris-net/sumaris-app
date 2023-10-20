@@ -1148,7 +1148,6 @@
       "ERROR": {
         "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
-        "MISSING_FRACTION": "Au moins un pièce calcifiée doit être ajouté",
         "OUT_OF_RANGE": "Hors fourchette",
         "DUPLICATED_TAG_ID": "Duplication de {{name}}"
       },
@@ -2289,6 +2288,7 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
+        "PARAMETERS.MISSING_FRACTION": "Au moins un pièce calcifiée est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",

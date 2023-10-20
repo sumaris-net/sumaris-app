@@ -2253,7 +2253,7 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is required",
-        "MISSING_FRACTION": "At least one fraction must be added",
+        "PARAMETERS.MISSING_FRACTION": "At least one fraction is required",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",

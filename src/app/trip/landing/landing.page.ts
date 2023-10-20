@@ -391,22 +391,15 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       if (this.loaded && !this.saving) {
         const data = await this.getValue();
         await this.fillPropertiesFromParent(data, parent);
-
-        this.landingForm.markAsUntouched(); // Need to force full update of the form (otherwise it keep)
-        await this.landingForm.setValue(data);
-        this.landingForm.markAsDirty();
-
-        this.samplesTable.value = this.getSamplesForTable(data);
-        this.samplesTable.markAsDirty();
-
-        this.markForCheck();
+        await this.setValue(data);
+        this.markAsDirty();
       }
     }
   }
 
   protected async fillPropertiesFromParent(data: Landing, parent: Trip|ObservedLocation) {
     // DEBUG
-    console.debug('[landing-page] Apply parent to new data', parent);
+    console.debug('[landing-page] Fill some properties from parent', parent);
 
     const queryParams = this.route.snapshot.queryParams;
 
@@ -774,10 +767,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Reload data
     setTimeout(() => this.reload(), 250);
-  }
-
-  protected getSamplesForTable(data: Landing) {
-    return data.samples || [];
   }
 
 }
