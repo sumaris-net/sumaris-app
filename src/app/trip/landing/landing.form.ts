@@ -169,6 +169,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = null;
+  @Input() disabledParent: boolean = null;
 
   @Input() set showStrategy(value: boolean) {
     this._state.set('showStrategy', (_) => value);

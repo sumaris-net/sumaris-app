@@ -1,8 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppForm,
-  AppFormUtils, DateUtils,
+  AppFormUtils,
+  DateUtils,
   DEFAULT_PLACEHOLDER_CHAR,
   EntityUtils,
   firstArrayValue,
@@ -26,14 +27,14 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
-import {Program} from '../../services/model/program.model';
-import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
-import {ReferentialRefService} from '../../services/referential-ref.service';
-import {StrategyService} from '../../services/strategy.service';
-import {StrategyValidatorService} from '../../services/validator/strategy.validator';
+import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
+import { Program } from '../../services/model/program.model';
+import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from '../../services/model/strategy.model';
+import { ReferentialRefService } from '../../services/referential-ref.service';
+import { StrategyService } from '../../services/strategy.service';
+import { StrategyValidatorService } from '../../services/validator/strategy.validator';
 import {
   AcquisitionLevelCodes,
   autoCompleteFractions,
@@ -43,26 +44,36 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramPrivilegeIds,
-  TaxonomicLevelIds
+  TaxonomicLevelIds,
 } from '../../services/model/model.enum';
-import {ProgramProperties} from '../../services/config/program.config';
-import {BehaviorSubject, merge} from 'rxjs';
-import {PmfmService} from '../../services/pmfm.service';
-import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
-import {TaxonNameRef, TaxonUtils} from '@app/referential/services/model/taxon-name.model';
-import {TaxonNameService} from '@app/referential/services/taxon-name.service';
-import {PmfmStrategyValidatorService} from '@app/referential/services/validator/pmfm-strategy.validator';
-import {Pmfm} from '@app/referential/services/model/pmfm.model';
-import {TaxonNameRefFilter} from '@app/referential/services/filter/taxon-name-ref.filter';
-import {TaxonNameFilter} from '@app/referential/services/filter/taxon-name.filter';
-import {filter, map} from 'rxjs/operators';
-import {environment} from '@environments/environment';
-import {TaxonNameRefService} from '@app/referential/services/taxon-name-ref.service';
-import {PmfmFilter} from '@app/referential/services/filter/pmfm.filter';
+import { ProgramProperties } from '../../services/config/program.config';
+import { BehaviorSubject, merge } from 'rxjs';
+import { PmfmService } from '../../services/pmfm.service';
+import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
+import { TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
+import { TaxonNameService } from '@app/referential/services/taxon-name.service';
+import { PmfmStrategyValidatorService } from '@app/referential/services/validator/pmfm-strategy.validator';
+import { Pmfm } from '@app/referential/services/model/pmfm.model';
+import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
+import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
+import { filter, map } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import moment from 'moment';
-import {Parameter} from '@app/referential/services/model/parameter.model';
+import { Parameter } from '@app/referential/services/model/parameter.model';
 
-type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
+type FilterableFieldName =
+  | 'analyticReference'
+  | 'location'
+  | 'taxonName'
+  | 'department'
+  | 'lengthPmfm'
+  | 'weightPmfm'
+  | 'maturityPmfm'
+  | 'fractionPmfm';
+
+const MIN_PMFM_COUNT = 2;
 
 const STRATEGY_LABEL_UI_PREFIX_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
 const STRATEGY_LABEL_UI_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
@@ -173,10 +184,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get minPmfmCount(): number {
-    return this.weightPmfmsForm.value.length
-      + this.lengthPmfmsForm.value.length
-      + (this.hasSex ? this.maturityPmfmsForm.value.length : 0)
-      + (this.hasAge ? this.fractionPmfmsForm.value.length : 0);
+    return MIN_PMFM_COUNT;
   }
 
   get lengthPmfmsForm(): UntypedFormArray {
@@ -1573,10 +1581,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // DEBUG
     //console.debug('DEV Call validatePmfmsForm()...');
 
-    const weightPmfmsCount = (this.weightPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
     const lengthPmfmsCount = (this.lengthPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
+    const weightPmfmsCount = (this.weightPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
     const maturityPmfmsCount = (this.maturityPmfmsForm.value || []).filter(PmfmStrategy.isNotEmpty).length;
-
     const fractionPmfmCount = (this.fractionPmfmsForm.value || []).filter(value => value?.fraction && value.fraction?.id).length;
 
     let errors: ValidationErrors;
@@ -1591,16 +1598,26 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       SharedValidators.clearError(pmfmsForm, 'weightOrSize');
     }
 
-    // Add one to min count to ingore fraction and maturity if they control are set to false
-    const length = (this.hasAge ? fractionPmfmCount : 1)
-      + (this.hasSex ? maturityPmfmsCount : 1)
-      + weightPmfmsCount
-      + lengthPmfmsCount;
-
-    if (length < this.minPmfmCount) {
+    // If hasAge and no fraction set explicit error
+    if (this.hasAge && fractionPmfmCount === 0) {
       errors = {
         ...errors,
-        minLength: { minLength: this.minPmfmCount }
+        missingFraction: true,
+      };
+    } else {
+      SharedValidators.clearError(pmfmsForm, 'missingFraction');
+    }
+
+    // Add one to min count to ignore fraction and maturity if they control are set to false
+    const pmfmCount = lengthPmfmsCount
+        + weightPmfmsCount
+        + (this.hasSex ? (1 + maturityPmfmsCount) : 0)
+        + (this.hasAge ? 1 : 0);
+
+    if (pmfmCount < MIN_PMFM_COUNT) {
+      errors = {
+        ...errors,
+        minLength: { minLength: MIN_PMFM_COUNT }
       };
     }
     else {
