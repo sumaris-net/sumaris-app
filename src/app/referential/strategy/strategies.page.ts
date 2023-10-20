@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Subject } from 'rxjs';
 import { AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
-import {LandingEditor, ProgramProperties, StrategyEditor} from '../services/config/program.config';
+import { LandingEditor, ProgramProperties, StrategyEditor } from '../services/config/program.config';
 import { Program } from '../services/model/program.model';
 import { Strategy } from '../services/model/strategy.model';
 import { ProgramService } from '../services/program.service';
@@ -13,8 +13,8 @@ import { StrategiesTable } from './strategies.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ContextService } from '@app/shared/context.service';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {NavController} from '@ionic/angular';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { NavController } from '@ionic/angular';
 
 
 // app-strategies-page
@@ -80,6 +80,8 @@ export class StrategiesPage implements OnInit {
 
     // Make to remove old contextual values
     this.resetContext();
+
+
   }
 
   async load(id?: number, opts?: EntityServiceLoadOptions) {
@@ -106,30 +108,25 @@ export class StrategiesPage implements OnInit {
     }
   }
 
-  async onOpenRow<T extends Strategy<any>>(row: TableElement<T>) {
-
-    this.markAsLoading();
-    setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
-        queryParams: {}
-      });
-      this.markAsLoaded();
+  onOpenRow<T extends Strategy<any>>(row: TableElement<T>) {
+    return this.navController.navigateForward(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
+      queryParams: {}
     });
-
   }
 
   async onNewRow(event?: any) {
+    if (this.loading) return; // Skip
 
-    // Skip
-    if (this.loading) return;
+    this.markAsLoading({emitEvent: false});
 
-    this.markAsLoading();
-    setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, 'new'], {
+    try {
+      await this.navController.navigateForward(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, 'new'], {
         queryParams: {}
       });
+    }
+    finally {
       this.markAsLoaded();
-    });
+    }
   }
 
   onNewDataFromRow<S extends Strategy<S>>(row: TableElement<S>, acquisitionLevel: AcquisitionLevelType) {

@@ -181,14 +181,14 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       )
     });
 
-    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwrite by a program property - see setProgram()
+    this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwritten by a program property - see setProgram()
     this.autoLoad = false; // waiting program to be loaded - see setProgram()
     this.defaultSortBy = 'label';
     this.defaultSortDirection = 'asc';
     this.confirmBeforeDelete = true;
     this.inlineEdition = false;
 
-    // Will be override when getting program - see setProgram()
+    // Will be overridden when getting program - see setProgram()
     this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#?';
 
     this._state.set({
