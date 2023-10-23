@@ -2569,8 +2569,8 @@
         "TITLE": "Data collection strategies",
         "NAME": "Data collection strategies",
         "SHEET": {
-          "ST": "Strategies",
-          "SM": "Strategy monitoring"
+          "ST": "Strategies (ST)",
+          "SM": "Strategy monitoring (SM)"
         }
       },
       "VESSEL": {
