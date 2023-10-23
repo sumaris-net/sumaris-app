@@ -9,7 +9,7 @@ const routes: Routes = [
     path: ':landingId',
     data: {
       profile: 'USER',
-      pathIdParam: 'landingId'
+      pathIdParam: 'landingId',
     },
     children: [
       {
@@ -18,13 +18,17 @@ const routes: Routes = [
         runGuardsAndResolvers: 'pathParamsChange',
         component: LandingPage,
         canDeactivate: [ComponentDirtyGuard],
+        data: {
+          profile: 'USER',
+          pathIdParam: 'landingId',
+        },
       },
       {
         path: 'report',
-        loadChildren:() => import('./report/landing-report-routing.module').then(m => m.LandingReportRoutingModule)
-      }
+        loadChildren: () => import('./report/landing-report-routing.module').then((m) => m.LandingReportRoutingModule),
+      },
     ],
-  }
+  },
 ];
 
 
