@@ -579,9 +579,17 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     if (isNil(sheetName) || isNil(type)) return undefined;
 
     // Try from specific translation
-    let key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
-    let message = self.translate.instant(key);
-    if (message !== key) return message;
+    let key:string, message: string;
+    if (type.category === 'LIVE') {
+      key = `EXTRACTION.FORMAT.${type.label.toUpperCase()}.SHEET.${sheetName}`;
+      message = self.translate.instant(key);
+      if (message !== key) return message;
+    }
+    else {
+      key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
+      message = self.translate.instant(key);
+      if (message !== key) return message;
+    }
 
     // Try from generic translation
     key = `EXTRACTION.SHEET.${sheetName}`;

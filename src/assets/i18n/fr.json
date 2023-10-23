@@ -2636,8 +2636,8 @@
         "TITLE": "Stratégies de collecte",
         "NAME": "Stratégies de collecte",
         "SHEET": {
-          "ST": "Stratégies",
-          "SM": "Suivi de stratégies"
+          "ST": "Stratégies (ST)",
+          "SM": "Suivi de stratégies (SM)"
         }
       },
       "VESSEL": {

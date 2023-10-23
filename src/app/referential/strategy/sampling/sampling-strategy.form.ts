@@ -95,8 +95,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   data: SamplingStrategy;
 
   hasEffort = false;
-  hasLanding = false;
-  hasScientificCruise = false;
 
   taxonNamesHelper: FormArrayHelper<TaxonNameStrategy, UntypedFormGroup>;
   departmentsHelper: FormArrayHelper<StrategyDepartment, UntypedFormGroup>;
@@ -947,8 +945,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // Fill efforts (need by validator)
       this.hasEffort = this.data.hasRealizedEffort;
-      this.hasLanding = this.data.hasLanding;
-      this.hasScientificCruise = this.data.hasScientificCruise;
 
       // Make sure to have (at least) one department
       data.departments = data.departments && data.departments.length ? data.departments : [null];
@@ -1303,7 +1299,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   get canGenerateLabel(): boolean {
-    return !this.hasLanding && !this.loading && this.program && this.year && this.taxonNameStrategyControl.value?.taxonName && true;
+    return !this.hasEffort && !this.loading && this.program && this.year && this.taxonNameStrategyControl.value?.taxonName && true;
   }
 
   async generateLabelIncrement() {
@@ -1527,7 +1523,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === 'DISABLED' || this.hasLanding;
+    return this.appliedStrategiesHelper.at(index).status === 'DISABLED' || this.hasEffort;
   }
 
   isFractionDisable(index: number): boolean {

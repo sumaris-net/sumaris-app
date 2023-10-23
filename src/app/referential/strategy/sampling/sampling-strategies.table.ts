@@ -312,7 +312,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const strategyLabelsWithData = (rowsToDelete || [])
       .map(row => row.currentData as SamplingStrategy)
       .map(SamplingStrategy.fromObject)
-      .filter(strategy => strategy.hasLanding)
+      .filter(strategy => strategy.hasRealizedEffort)
       .map(s => s.label);
 
     // send error if one strategy has landing
