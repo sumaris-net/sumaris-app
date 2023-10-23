@@ -170,6 +170,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     });
     this.registerAutocompleteField('vesselType', {
       service: this.referentialRefService,
+      attributes: ['name'],
       filter: {
         entityName: 'VesselType',
         statusId: StatusIds.ENABLE
