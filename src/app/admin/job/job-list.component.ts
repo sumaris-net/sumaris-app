@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewChild,
+} from '@angular/core';
 import { ActionSheetController, AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { RxState } from '@rx-angular/state';
@@ -20,7 +31,7 @@ import {
   MatAutocompleteFieldConfig,
   Person,
   PersonService,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, merge, Subscription } from 'rxjs';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
@@ -141,9 +152,9 @@ export class JobListComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap(({issuer, status, types}) => {
           // Read filter's type
-          const filter = this.getFilter({issuer, status, types});
+          const filter = this.getFilter({ issuer, status, types });
           console.debug('[job-list] Refreshing using filter: ', filter);
-          return this.jobService.watchAll(filter, {sortBy: 'id', sortDirection: 'DESC'}, {fetchPolicy: 'cache-and-network'})
+          return this.jobService.watchAll(filter, { sortBy: 'id', sortDirection: 'DESC' }, { fetchPolicy: 'cache-and-network' })
             .pipe(
               // Listen for new jobs (if new job => force refresh)
               tap(jobs => {
@@ -157,7 +168,9 @@ export class JobListComponent implements OnInit, OnDestroy {
                     .subscribe(_ => this.onRefresh.emit())
                 )
               })
-            )),
+            );
+
+        }),
         map(jobs => {
 
           this.filterForm.markAsPristine();

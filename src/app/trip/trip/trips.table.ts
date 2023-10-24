@@ -1,6 +1,4 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { TripValidatorService } from './trip.validator';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -10,7 +8,9 @@ import {
   ConfigService,
   FilesUtils,
   HammerSwipeEvent,
-  isEmptyArray, isNil, isNilOrBlank,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
@@ -20,14 +20,14 @@ import {
   SharedValidators,
   slideUpDownAnimation,
   splitByProperty,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
-import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '../trip.config';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
@@ -47,16 +47,13 @@ import { OperationEditor, ProgramProperties } from '@app/referential/services/co
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
-  FEATURE_ID: TRIP_FEATURE_NAME
+  FEATURE_ID: TRIP_FEATURE_NAME,
 };
 
 @Component({
   selector: 'app-trips-table',
   templateUrl: 'trips.table.html',
   styleUrls: ['./trips.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: TripValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation]
 })
