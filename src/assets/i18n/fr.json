@@ -1287,6 +1287,12 @@
       "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
     }
   },
+  "SCIENTIFIC_CRUISE": {
+    "TABLE": {
+      "NAME": "Nom",
+      "MANAGER": "Responsable"
+    }
+  },
   "OBSERVED_LOCATION": {
     "TITLE": "Sortie",
     "NEW": {

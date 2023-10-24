@@ -69,7 +69,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.location = ReferentialRef.fromObject(source.location);
-    this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
+    this.observers = (source.observers && source.observers.map(Person.fromObject).filter(isNotNil)) || [];
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
     this.boundingBox = source.boundingBox;
