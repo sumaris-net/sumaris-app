@@ -99,6 +99,7 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 
@@ -293,6 +294,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...VESSEL_CONFIG_OPTIONS,
         ...DATA_CONFIG_OPTIONS,
         ...EXTRACTION_CONFIG_OPTIONS,
+        ...SCIENTIFIC_CRUISE_CONFIG_OPTIONS,
         ...TRIP_CONFIG_OPTIONS,
         ...DEVICE_POSITION_CONFIG_OPTION,
       },
@@ -318,6 +320,14 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 
         // Data entry
         { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER' },
+        {
+          title: 'MENU.SCIENTIFIC_CRUISE',
+          path: '/scientific-cruise',
+          matIcon: 'explore',
+          profile: 'USER',
+          ifProperty: 'sumaris.scientificCruise.enable',
+          titleProperty: 'sumaris.scientificCruise.name',
+        },
         {
           title: 'MENU.TRIPS',
           path: '/trips',

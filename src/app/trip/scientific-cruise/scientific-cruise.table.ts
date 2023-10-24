@@ -45,7 +45,6 @@ import { ScientificCruiseFilter } from '@app/trip/scientific-cruise/scientific-c
 import { ScientificCruiseComparators, ScientificCruiseService } from '@app/trip/scientific-cruise/scientific-cruise.service';
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS, SCIENTIFIC_CRUISE_FEATURE_NAME } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { filter } from 'rxjs/operators';
-import { TableElement } from '@e-is/ngx-material-table';
 
 export const ScientificCruiseTableSettingsEnum = {
   PAGE_ID: 'scientificCruises',
@@ -224,19 +223,6 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
 
     this.toggleSynchronizationStatus();
     return true;
-  }
-
-  protected async openRow(id: number, row: TableElement<ScientificCruise>): Promise<boolean> {
-    const tripId = row.currentData.trip?.id;
-    console.log('TODO open data', row.currentData);
-    if (isNotNil(tripId)) {
-      return this.navController.navigateForward(`trips/${id.toString()}`, {
-        queryParams: {}
-      });
-    }
-    else {
-      super.openRow(id, row);
-    }
   }
 
   async openTrashModal(event?: Event) {

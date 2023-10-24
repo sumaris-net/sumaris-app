@@ -729,7 +729,6 @@
       }
     },
     "OPERATION": {
-      "TITLE": "OP #{{rankOrder}}",
       "BTN_SHOW_ALL": "Voir tout",
       "BTN_HISTORY": "Historique",
       "BTN_SHOW_MAP": "Carte des opérations",
@@ -1291,9 +1290,6 @@
     "TABLE": {
       "NAME": "Nom",
       "MANAGER": "Responsable"
-    },
-    "OPTIONS": {
-      "ENABLE": "Campagnes à la mer > Activer ?"
     }
   },
   "OBSERVED_LOCATION": {
