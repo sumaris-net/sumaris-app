@@ -123,7 +123,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}">
+    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}"
+             appSubMenuTab
+             subMenuTitle="{{'TRIP.TITLE'| translate}}"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
@@ -264,7 +267,9 @@
     </mat-tab>
 
     <!-- TAB: Gear -->
-    <mat-tab label="{{ 'TRIP.TAB_PHYSICAL_GEAR' | translate }}" [disabled]="!showGearTable">
+    <mat-tab [label]="'TRIP.TAB_PHYSICAL_GEAR' | translate"
+             [disabled]="!showGearTable"
+             appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
@@ -297,7 +302,9 @@
     </mat-tab>
 
     <!-- TAB: operations -->
-    <mat-tab label="{{ 'TRIP.TAB_OPERATIONS' | translate }}" [disabled]="!showOperationTable">
+    <mat-tab [label]="'TRIP.TAB_OPERATIONS' | translate"
+             [disabled]="!showOperationTable"
+             appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>

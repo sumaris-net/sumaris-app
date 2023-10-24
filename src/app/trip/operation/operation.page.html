@@ -235,7 +235,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate }}">
+    <mat-tab [label]="'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate"
+             appSubMenuTab
+             [subMenuTitle]="'TRIP.OPERATION.TITLE'| translate"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
@@ -317,6 +320,7 @@
       #catchTab
       [label]="'TRIP.OPERATION.EDIT.TAB_CATCH' | translateContext : i18nContext.suffix"
       [disabled]="!showCatchTab"
+      appSubMenuTab
     >
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
@@ -361,6 +365,7 @@
       #sampleTab
       [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES' | translateContext : i18nContext.suffix"
       [disabled]="!showSamplesTab"
+      appSubMenuTab
     >
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
