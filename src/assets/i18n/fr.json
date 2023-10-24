@@ -729,6 +729,7 @@
       }
     },
     "OPERATION": {
+      "TITLE": "Opération",
       "BTN_SHOW_ALL": "Voir tout",
       "BTN_HISTORY": "Historique",
       "BTN_SHOW_MAP": "Carte des opérations",
