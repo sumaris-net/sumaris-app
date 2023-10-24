@@ -1,6 +1,17 @@
 import { Strategy } from './strategy.model';
 import { Moment } from 'moment';
-import { DateUtils, EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  ReferentialAsObjectOptions,
+  toDateISOString,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
@@ -140,14 +151,6 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
   get hasExpectedEffort(): boolean {
     return (this.efforts || []).findIndex(e => e.hasExpectedEffort) !== -1;
   }
-
-  get hasLanding(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasLanding) !== -1;
-  }
-
-  get hasScientificCruise(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasScientificCruise) !== -1;
-  }
 }
 
 
@@ -173,8 +176,6 @@ export class StrategyEffort {
   quarter: number;
   expectedEffort: number;
   realizedEffort: number;
-  landingCount: number;
-  scientificCruise: number;
 
   constructor() {
   }
@@ -193,8 +194,6 @@ export class StrategyEffort {
     this.endDate = fromDateISOString(source.endDate);
     this.expectedEffort = toNumber(source.expectedEffort);
     this.realizedEffort = toNumber(source.realizedEffort);
-    this.landingCount = toNumber(source.landingCount);
-    this.scientificCruise = toNumber(source.scientificCruise);
 
     // Compute quarter (if possible = is same between start/end date)
     const startQuarter = this.startDate && this.startDate.quarter();
@@ -229,13 +228,5 @@ export class StrategyEffort {
 
   get hasExpectedEffort(): boolean {
     return (this.expectedEffort || 0) > 0;
-  }
-
-  get hasLanding(): boolean {
-    return (this.landingCount || 0) > 0;
-  }
-
-  get hasScientificCruise(): boolean {
-    return (this.scientificCruise || 0) > 0;
   }
 }

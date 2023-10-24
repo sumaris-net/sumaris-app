@@ -385,7 +385,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
           .filter(isNotNil)
           .forEach(effort => {
             effort.realizedEffort = 0;
-            effort.landingCount = 0;
           });
       }
     });
@@ -415,7 +414,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
               existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
               existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
               existingEffort.realizedEffort += effort.realizedEffort;
-              existingEffort.landingCount += effort.landingCount;
             }
           }
         }

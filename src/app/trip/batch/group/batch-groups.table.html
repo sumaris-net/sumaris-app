@@ -40,16 +40,13 @@
             class="ion-float-start"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD_ROW' | translate"
-            (click)="addRow()">
+            (click)="addRow()"
+          >
             <mat-icon>add</mat-icon>
           </button>
 
           <!-- refresh (debug only) -->
-          <button
-            mat-icon-button
-            *ngIf="debug"
-            [title]="'COMMON.BTN_REFRESH' | translate"
-            (click)="onRefresh.emit()">
+          <button mat-icon-button *ngIf="debug" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
             <mat-icon>refresh</mat-icon>
           </button>
 
@@ -59,7 +56,8 @@
             *rxIf="showAutoFillButton$"
             [disabled]="disabled"
             [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
-            (click)="autoFillTable()">
+            (click)="autoFillTable()"
+          >
             <mat-icon>control_point_duplicate</mat-icon>
           </button>
         </ng-container>
@@ -75,7 +73,6 @@
             <mat-icon>delete</mat-icon>
           </button>
         </ng-template>
-
       </th>
     </ng-container>
 
@@ -275,8 +272,14 @@
           [class.visible-hover]="!row.editing && !control.value"
           (click)="openCommentPopover($event, row)"
           [disabled]="disabled"
-          [title]="control.value || ''">
-          <ion-icon *ngIf="_enabled || control.value" [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          [title]="control.value || ''"
+        >
+          <ion-icon
+            *ngIf="_enabled || control.value"
+            [color]="control.value ? 'tertiary' : 'medium'"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
         </button>
       </td>
     </ng-container>
@@ -307,7 +310,7 @@
     </app-actions-column>
 
     <!-- first header -->
-    <ng-container *ngIf="showToolbar && (groupColumnNames|isNotEmptyArray)">
+    <ng-container *ngIf="showToolbar && (groupColumnNames | isNotEmptyArray)">
       <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true" class="first-header-row"></tr>
     </ng-container>
 

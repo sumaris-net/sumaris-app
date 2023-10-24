@@ -3,10 +3,12 @@
   <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl" class="batch-tree">
     <!-- Expandable nodes -->
     <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-      <li *ngVar="{
-        expanded: treeControl.isExpanded(node),
-        selected: node === (selectionSubject|async)
-      } as vars">
+      <li
+        *ngVar="{
+          expanded: treeControl.isExpanded(node),
+          selected: node === (selectionSubject | async)
+        } as vars"
+      >
         <ion-item
           (click)="click($event, node)"
           [class.activated]="vars.selected"
@@ -30,10 +32,12 @@
             </ng-container>
 
             <!-- error -->
-            <ion-icon *ngIf="(vars.selected ? selectedBatchStatus.valid : node.valid) === false" color="danger"
-                      slot="icon-only"
-                      name="alert-circle">
-            </ion-icon>
+            <ion-icon
+              *ngIf="(vars.selected ? selectedBatchStatus.valid : node.valid) === false"
+              color="danger"
+              slot="icon-only"
+              name="alert-circle"
+            ></ion-icon>
           </ion-buttons>
 
           <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile && !node.disabled"></ion-icon>
@@ -46,7 +50,7 @@
 
     <!-- Leaf nodes -->
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
-      <li *ngVar="(selectionSubject|async) === node; let selected">
+      <li *ngVar="(selectionSubject | async) === node; let selected">
         <ion-item (click)="click($event, node)" [class.activated]="selected" tappable>
           <!-- spacer for alignment -->
           <app-icon slot="start" [ref]="node.icon || {}"></app-icon>
@@ -63,10 +67,12 @@
             </ng-container>
 
             <!-- batches count -->
-            <ion-badge *ngVar="selected ? selectedBatchStatus : node; let node"
-              [color]="node.valid === false ? 'danger' : (!node.rowCount ? 'medium' : 'tertiary')"
-              slot="end">
-              {{ node.rowCount || 0}}
+            <ion-badge
+              *ngVar="selected ? selectedBatchStatus : node; let node"
+              [color]="node.valid === false ? 'danger' : !node.rowCount ? 'medium' : 'tertiary'"
+              slot="end"
+            >
+              {{ node.rowCount || 0 }}
             </ion-badge>
           </ion-buttons>
 
@@ -88,7 +94,6 @@
   <ion-badge *ngIf="node.pmfms?.length; let count" slot="end" class="visible-hover" color="secondary">
     {{ count }} pmfms
   </ion-badge>
-
 </ng-template>
 
 <!-- leaf nodes badges -->
@@ -108,5 +113,4 @@
   >
     {{ count }} col
   </ion-badge>
-
 </ng-template>

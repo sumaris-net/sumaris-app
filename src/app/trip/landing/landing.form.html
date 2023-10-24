@@ -79,7 +79,8 @@
             [disabled]="disabledParent"
             (click)="openSelectObservedLocationModal($event)"
             [tabindex]="tabindex"
-            readonly/>
+            readonly
+          />
 
           <button
             *ngIf="!(control | formGetValue); else otherButtons"
@@ -427,11 +428,14 @@
 <!-- Parent = options menu -->
 <mat-menu #parentFieldMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-    <button mat-menu-item type="button"
-            *ngIf="enabled"
-            tabindex="-1"
-            [disabled]="disabledParent"
-            (click)="openSelectObservedLocationModal($event)">
+    <button
+      mat-menu-item
+      type="button"
+      *ngIf="enabled"
+      tabindex="-1"
+      [disabled]="disabledParent"
+      (click)="openSelectObservedLocationModal($event)"
+    >
       <ion-label>
         <mat-icon>list</mat-icon>
         <span translate>LANDING.EDIT.BTN_SELECT_OBSERVED_LOCATION</span>
