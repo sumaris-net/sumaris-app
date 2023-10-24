@@ -222,8 +222,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [title]="errorSpan.innerText || ''">
+      <td mat-cell *matCellDef="let row" [title]="errorSpan.innerText || ''">
         <ion-label
           matBadge="!"
           [matBadgeHidden]="errorSpan.innerText|isNilOrBlank"
