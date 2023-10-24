@@ -8,7 +8,8 @@
       hidden-mobile
       [disabled]="disabled"
       [title]="'COMMON.BTN_ADD' | translate"
-      (click)="addRow()">
+      (click)="addRow()"
+    >
       <mat-icon>add</mat-icon>
     </button>
 
@@ -25,15 +26,10 @@
   </ng-container>
 
   <ng-template #hasSelection>
-    <button
-      mat-icon-button
-      *ngIf="enabled"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="deleteSelection($event)">
+    <button mat-icon-button *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
   </ng-template>
-
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -121,7 +117,11 @@
 
         <!-- readonly -->
         <ng-template #readonlyCell>
-          {{ row.validator | formGetValue : 'parentGroup' | referentialToString: autocompleteFields.parentGroup.attributes }}
+          {{
+            row.validator
+              | formGetValue : 'parentGroup'
+              | referentialToString : autocompleteFields.parentGroup.attributes
+          }}
         </ng-template>
       </td>
     </ng-container>
@@ -136,7 +136,7 @@
           *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
           class="min-width-medium"
-          [formControl]="row.validator|formGetControl: 'taxonName'"
+          [formControl]="row.validator | formGetControl : 'taxonName'"
           [autofocus]="focusColumn === 'taxonName'"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER' | translate"
           [config]="autocompleteFields.taxonName"
@@ -145,7 +145,9 @@
 
         <!-- readonly -->
         <ng-template #readonlyCell>
-          {{ row.validator | formGetValue : 'taxonName' | referentialToString: autocompleteFields.taxonName.attributes }}
+          {{
+            row.validator | formGetValue : 'taxonName' | referentialToString : autocompleteFields.taxonName.attributes
+          }}
         </ng-template>
       </td>
     </ng-container>
@@ -236,8 +238,14 @@
           [class.visible-hover]="!row.editing && !control.value"
           (click)="openCommentPopover($event, row)"
           [disabled]="disabled"
-          [title]="control.value || ''">
-          <ion-icon *ngIf="_enabled || control.value" [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          [title]="control.value || ''"
+        >
+          <ion-icon
+            *ngIf="_enabled || control.value"
+            [color]="control.value ? 'tertiary' : 'medium'"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
         </button>
       </td>
     </ng-container>

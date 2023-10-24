@@ -579,7 +579,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     if (isNil(sheetName) || isNil(type)) return undefined;
 
     // Try from specific translation
-    let key:string, message: string;
+    let key:string; let message: string;
     if (type.category === 'LIVE') {
       key = `EXTRACTION.FORMAT.${type.label.toUpperCase()}.SHEET.${sheetName}`;
       message = self.translate.instant(key);
