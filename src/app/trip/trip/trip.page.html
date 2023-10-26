@@ -125,7 +125,7 @@
     <!-- TAB: general -->
     <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}"
              appSubMenuTab
-             subMenuTitle="{{'TRIP.TITLE'| translate}}"
+             [subMenuTitle]="($title|async|noHtml)||''"
              [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>

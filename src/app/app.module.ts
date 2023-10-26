@@ -38,6 +38,7 @@ import {
   EnvironmentHttpLoader,
   EnvironmentLoader,
   FormFieldDefinitionMap,
+  IMenuItem,
   isAndroid,
   isCapacitor,
   isIOS,
@@ -46,7 +47,6 @@ import {
   LocalSettings,
   LocalSettingsOptions,
   LoggingService,
-  MenuItem,
   MenuOptions,
   ProgressBarService,
   ProgressInterceptor,
@@ -315,7 +315,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     // Menu items
     {
       provide: APP_MENU_ITEMS,
-      useValue: <MenuItem[]>[
+      useValue: <IMenuItem[]>[
         { title: 'MENU.HOME', path: '/', icon: 'home' },
 
         // Data entry
@@ -415,7 +415,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     // Settings menu options
     {
       provide: APP_SETTINGS_MENU_ITEMS,
-      useValue: <MenuItem[]>[
+      useValue: <IMenuItem[]>[
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
       ],
     },
