@@ -333,6 +333,7 @@ export class UserEventService extends
 
 
   /* -- protected methods -- */
+
   protected defaultFilter(): UserEventFilter {
     const target = super.defaultFilter();
 
