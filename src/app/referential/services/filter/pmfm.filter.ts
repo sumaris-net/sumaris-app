@@ -1,11 +1,9 @@
 import { EntityClass, EntityFilter, FilterFn, isEmptyArray, isNotEmptyArray, isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
-import { IDenormalizedPmfm, IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IDenormalizedPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 
 @EntityClass({ typename: 'PmfmFilterVO' })
 export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
-
   static fromObject: (source: any, opts?: any) => PmfmFilter;
 
   entityName?: 'Pmfm';

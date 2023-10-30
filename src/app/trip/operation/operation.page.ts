@@ -26,6 +26,7 @@ import {
   ReferentialUtils,
   sleep,
   toBoolean,
+  toInt,
   toNumber,
   UsageMode,
   WaitForOptions,
@@ -211,6 +212,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Init defaults
     this.showLastOperations = this.settings.isUsageMode('FIELD');
+    this.tripId = toInt(this.route.snapshot.params['tripId']);
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
       PmfmIds.HAS_ACCIDENTAL_CATCHES,

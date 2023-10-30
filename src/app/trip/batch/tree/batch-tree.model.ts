@@ -15,16 +15,22 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ITreeItemEntity,
-  waitWhilePending
+  TreeItemEntityUtils,
+  waitWhilePending,
 } from '@sumaris-net/ngx-components';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { FormArray, UntypedFormGroup } from '@angular/forms';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import {
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils,
+  MeasurementValuesTypes,
+  MeasurementValuesUtils,
+} from '@app/data/measurement/measurement.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
 

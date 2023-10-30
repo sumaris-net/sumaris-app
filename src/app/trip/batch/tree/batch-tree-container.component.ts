@@ -22,6 +22,7 @@ import {
   LocalSettingsService,
   toBoolean,
   toNumber,
+  TreeItemEntityUtils,
   UsageMode,
   waitFor,
   WaitForOptions,
@@ -51,7 +52,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { RxState } from '@rx-angular/state';
 import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
 import { MatSidenav } from '@angular/material/sidenav';

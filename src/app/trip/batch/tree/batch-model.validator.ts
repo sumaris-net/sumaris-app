@@ -1,9 +1,20 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormArray, AppFormUtils, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {
+  AppFormArray,
+  AppFormUtils,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  ReferentialRef,
+  removeDuplicatesFromArray,
+  TreeItemEntityUtils,
+} from '@sumaris-net/ngx-components';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { DataEntityValidatorOptions, ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
+import { ControlUpdateOnType, DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { TranslateService } from '@ngx-translate/core';
@@ -12,7 +23,6 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { environment } from '@environments/environment';
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { Rule } from '@app/referential/services/model/rule.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchRules } from '@app/trip/batch/tree/batch-tree.rules';

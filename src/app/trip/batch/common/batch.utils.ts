@@ -10,6 +10,7 @@ import {
   ReferentialUtils,
   splitByProperty,
   toNumber,
+  TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -689,10 +690,7 @@ export class BatchUtils {
    * @param filter
    */
   static findByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
-    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
-    if (!filterFn) throw new Error('Missing or empty filter argument');
-
-    return this.filterRecursively(batch, filterFn);
+    return TreeItemEntityUtils.findByFilter(batch, BatchFilter.fromObject(filter));
   }
 
   /**
@@ -702,46 +700,10 @@ export class BatchUtils {
    * @param filter
    */
   static deleteByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
-    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
-    if (!filterFn) throw new Error('Missing or empty filter argument');
-
-    return this.deleteRecursively(batch, filterFn);
+    return TreeItemEntityUtils.deleteByFilter(batch, BatchFilter.fromObject(filter));
   }
 
   /* -- internal functions -- */
-
-  /**
-   * Internal function
-   *
-   * @param batch
-   * @param filterFn
-   * @private
-   */
-  private static filterRecursively(batch: Batch, filterFn: (b: Batch) => boolean): Batch[] {
-    return (batch.children || []).reduce(
-      (res, child) => res.concat(this.filterRecursively(child, filterFn)),
-      // Init result
-      filterFn(batch) ? [batch] : []
-    );
-  }
-
-  /**
-   * Internal function
-   *
-   * @param batch
-   * @param filterFn
-   * @private
-   */
-  private static deleteRecursively(batch: Batch, filterFn: (b: Batch) => boolean, result: Batch[] = []): Batch[] {
-    if (isEmptyArray(batch.children)) return result; // Skip
-
-    // Delete children
-    const deletedBatches = batch.children.filter(filterFn);
-    batch.children = batch.children.filter((c) => !deletedBatches.includes(c));
-
-    // Recursive call, in still existing children
-    return batch.children.reduce((res, c) => res.concat(this.deleteRecursively(c, filterFn)), deletedBatches);
-  }
 
   /**
    * Reset controlDate and quality fLag and comment
