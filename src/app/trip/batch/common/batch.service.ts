@@ -11,7 +11,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
@@ -33,8 +33,6 @@ import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.val
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { environment } from '@environments/environment';
-
 
 export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
   program: Program;
@@ -418,7 +416,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const samplingBatch = BatchUtils.getSamplingChild(batch);
     if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch);
 
-    // Remove the sampling batch, if existe but empty
+    // Remove the sampling batch, if exists but empty
+    // /!\ If sampling weight is computed, and its the only filled data: should be consider like an empty value - fix #482
     if (BatchUtils.isEmptySamplingBatch(samplingBatch)) {
       batch.children = [];
       return;
@@ -426,11 +425,11 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     // If total weight = 0, fill sampling weight to zero (if weight is required)
     if (opts.weightRequired && totalWeight === 0) {
-      if (samplingBatch && isNil(samplingBatch.weight?.value)) {
+      if (samplingBatch && BatchUtils.isNilOrComputedWeight(samplingBatch)) {
         const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
-        // no weight: OK, set default
+        // computed weight = 0 => OK, we can set a default value
         if (computedWeight === 0 && isNil(samplingBatch.samplingRatio) && (samplingBatch.individualCount || 0) === 0) {
-          console.info(`[batch-service] Force weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
+          console.info(`[batch-service] Force sampling weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
           // Find same weight pmfm as total weight, or use the first one
           const sampleWeightPmfm = opts.weightPmfms?.find(p => isNil(batch.weight?.methodId) || p.methodId === batch.weight.methodId);
           samplingBatch.weight = {

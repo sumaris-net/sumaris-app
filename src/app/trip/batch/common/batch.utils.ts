@@ -172,6 +172,11 @@ export class BatchUtils {
     );
   }
 
+  static isNilOrComputedWeight(batch: Batch) {
+    const weight = BatchUtils.getWeight(batch);
+    return isNil(weight?.value) || weight.computed;
+  }
+
   /**
    * Will copy root (species) batch id into subBatch.parentId
    * AND copy the QV sorting measurement hold by direct parent
