@@ -8,7 +8,7 @@ import {
   AccountService,
   arrayDistinct,
   BaseEntityGraphqlSubscriptions,
-  ConfigService,
+  ConfigService, Configuration, Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
   firstArrayValue,
@@ -22,7 +22,7 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, PersonUtils,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -30,7 +30,7 @@ import {
   StatusIds,
   suggestFromArray,
   SuggestService,
-  Toasts,
+  Toasts, UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -60,6 +60,7 @@ import { ProgramPrivilege, ProgramPrivilegeEnum } from '@app/referential/service
 import { ProgramPrivilegeUtils } from '@app/referential/services/model/model.utils';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -230,6 +231,9 @@ export class ProgramRefService
     };} = {};
   private _listenAuthorizedSubscription: Subscription = null;
 
+  private accessNotSelfDataDepartementIds: number[] = [];
+  private accessNotSelfDataMinProfile: UserProfileLabel = 'ADMIN';
+
   constructor(
     injector: Injector,
     protected network: NetworkService,
@@ -254,6 +258,7 @@ export class ProgramRefService
     this._debug = !environment.production;
     this._logPrefix = '[program-ref-service] ';
 
+    this.configService.config.subscribe(config => this.onConfigChanged(config));
     this.start();
   }
 
@@ -292,18 +297,20 @@ export class ProgramRefService
   canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
     if (!entity) return false;
 
-    // If the user is the recorder: can write
-    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
-      return true;
-    }
-
     // Manager can write data (IMAGINE - issue #465)
     if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.MANAGER)) {
       return true;
     }
 
     // If user has observer privileges and the option to allow observer to write data is enabled
+    // OBSERVER = User has write access to program
     if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
+
+      // If the user is the recorder: can write
+      if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
+        return true;
+      }
+
       // Check if declared as observers (in data)
       if (
         DataEntityUtils.isWithObservers(entity)
@@ -313,13 +320,39 @@ export class ProgramRefService
         return true;
       }
 
-      // Check same department
-      if (this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment)) {
+      // Check can write data's department
+      if (this.canUserWriteDataForDepartment(entity.recorderDepartment)) {
         return true;
       }
     }
 
     return false;
+  }
+
+  canUserWriteDataForDepartment(recorderDepartment: Department) {
+    if (ReferentialUtils.isEmpty(recorderDepartment)) return this.accountService.isAdmin();
+
+    // Should be login, and status ENABLE
+    const account = this.accountService.account;
+    if (account?.statusId !== StatusIds.ENABLE) return false;
+
+    if (ReferentialUtils.isEmpty(account.department)) {
+      console.warn('User account has no department! Unable to check write right against recorderDepartment');
+      return false;
+    }
+
+    // Should have min role to access not self data
+    if (!this.accountService.hasMinProfile(this.accessNotSelfDataMinProfile)) {
+     return false;
+    }
+
+    // Same recorder department: OK, user can write
+    if (account.department.id === recorderDepartment.id) {
+      return true;
+    }
+
+    // Not same department: should be inside a department that can access not self data
+    return this.accessNotSelfDataDepartementIds.includes(account.department.id);
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -955,6 +988,12 @@ export class ProgramRefService
 
   /* -- protected methods -- */
 
+  private onConfigChanged(config: Configuration) {
+    // const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+    this.accessNotSelfDataDepartementIds = config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS) || [];
+    this.accessNotSelfDataMinProfile = PersonUtils.roleToProfile(config.getProperty(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_ROLE)?.replace(/^ROLE_/, ''), 'ADMIN');
+  }
+
   protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number }) {
     if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
 
@@ -1009,4 +1048,5 @@ export class ProgramRefService
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
   }
+
 }
