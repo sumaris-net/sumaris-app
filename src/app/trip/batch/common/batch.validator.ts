@@ -511,7 +511,7 @@ export class BatchValidators {
     // ***********
     if (isTotalWeightValid && isSamplingWeightValid) {
 
-      // If samplingWeight < totalWeight => Error
+      // If samplingWeight > totalWeight => Error
       if (toNumber(samplingWeight.value) > toNumber(totalWeight)) {
 
         // Before error, try to recompute from invalid sampling weight - fix ADAP issue #482
