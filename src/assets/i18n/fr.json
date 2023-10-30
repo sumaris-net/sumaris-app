@@ -1291,6 +1291,9 @@
     "TABLE": {
       "NAME": "Nom",
       "MANAGER": "Responsable"
+    },
+    "OPTIONS": {
+      "ENABLE": "Campagnes à la mer > Activer ?"
     }
   },
   "OBSERVED_LOCATION": {

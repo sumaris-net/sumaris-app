@@ -1,21 +1,22 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Optional} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Optional } from '@angular/core';
 import {
   Alerts,
   APP_CONFIG_OPTIONS,
-  ConfigService,
   Configuration,
   Department,
   EntityServiceLoadOptions,
   firstNotNilPromise,
   FormFieldDefinitionMap,
-  HistoryPageReference, isNotNil,
-  NetworkService
+  HistoryPageReference,
+  isNotNil,
+  NetworkService,
 } from '@sumaris-net/ngx-components';
-import {SoftwareValidatorService} from '@app/referential/services/validator/software.validator';
-import {BehaviorSubject} from 'rxjs';
-import {AbstractSoftwarePage} from '@app/referential/software/abstract-software.page';
+import { SoftwareValidatorService } from '@app/referential/services/validator/software.validator';
+import { BehaviorSubject } from 'rxjs';
+import { AbstractSoftwarePage } from '@app/referential/software/abstract-software.page';
 import { environment } from '@environments/environment';
 import { filter, map } from 'rxjs/operators';
+import { ConfigurationService } from '@app/admin/config/configuration.service';
 
 declare interface CacheStatistic {
   name: string;
@@ -31,7 +32,7 @@ declare interface CacheStatistic {
   styleUrls: ['./configuration.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConfigurationPage extends AbstractSoftwarePage<Configuration, ConfigService> {
+export class ConfigurationPage extends AbstractSoftwarePage<Configuration, ConfigurationService> {
 
   $partners = new BehaviorSubject<Department[]>(null);
   $cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
@@ -45,8 +46,8 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
   constructor(
     injector: Injector,
     validatorService: SoftwareValidatorService,
-    public dataService: ConfigService,
-    public network: NetworkService,
+    dataService: ConfigurationService,
+    protected network: NetworkService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap,
   ) {
     super(injector,

@@ -1463,6 +1463,31 @@ type ScientificCruiseVO {
     vesselSnapshot: VesselSnapshotVO
 }
 
+type ScientificCruiseVO {
+    comments: String
+    controlDate: Date
+    creationDate: Date
+    departureDateTime: Date
+    id: Int
+    managerPerson: PersonVO
+    name: String
+    program: ProgramVO
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlagId: Int
+    recorderDepartment: DepartmentVO
+    recorderPerson: PersonVO
+    reference: String
+    returnDateTime: Date
+    trip: TripVO
+    tripId: Int
+    updateDate: Date
+    validationDate: Date
+    vesselDateTime: Date
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVO
+}
+
 type SoftwareVO {
     comments: String
     creationDate: Date
@@ -1827,6 +1852,7 @@ type VesselRegistrationPeriodVO {
 }
 
 type VesselSnapshotVO {
+    INDEX: String
     administrativePower: Int
     basePortLocation: LocationVO
     comments: String
@@ -3214,6 +3240,30 @@ input SampleVOInput {
     taxonName: TaxonNameVOInput
     updateDate: Date
     validationDate: Date
+}
+
+input ScientificCruiseVOInput {
+    comments: String
+    controlDate: Date
+    creationDate: Date
+    departureDateTime: Date
+    id: Int
+    managerPerson: PersonVOInput
+    name: String
+    program: ProgramVOInput
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlagId: Int
+    recorderDepartment: DepartmentVOInput
+    recorderPerson: PersonVOInput
+    reference: String
+    returnDateTime: Date
+    trip: TripVOInput
+    tripId: Int
+    updateDate: Date
+    validationDate: Date
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVOInput
 }
 
 input ScientificCruiseVOInput {
