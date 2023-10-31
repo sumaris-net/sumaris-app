@@ -365,7 +365,7 @@
       <ion-col class="ion-align-self-end">
         <!-- chart -->
         <ion-card
-          *rxIf="$techChart; let tech; else: addChartButton"
+          *rxIf="techChart$; let tech; else: addChartButton"
           color="light"
           class="chart chart-{{ tech.type }}"
           @fadeInAnimation

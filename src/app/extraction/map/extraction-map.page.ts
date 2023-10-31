@@ -40,7 +40,7 @@ import { UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil } from 'rxjs/operators';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -125,6 +125,7 @@ export interface FeatureDetails {
 export interface ExtractionMapState extends ExtractionState<ExtractionProduct>{
   overFeature: Feature;
   details: FeatureDetails;
+  techChart: TechChartConfiguration<any>;
   legendItems: ColorScaleLegendItem[] | undefined;
   customLegendOptions: Partial<CustomLegendOptions>;
 }
@@ -215,6 +216,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   // -- Details card --
   overFeature$ = this._state.select('overFeature');
   details$ = this._state.select('details');
+  techChart$ = this._state.select('techChart');
 
   set overFeature(value: Feature) {
     this._state.set('overFeature', _ => value);
@@ -232,6 +234,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     return this._state.get('details');
   }
 
+  set techChart(value: TechChartConfiguration<any>) {
+    this._state.set('techChart', _ => value);
+  }
+
+  get techChart(): TechChartConfiguration<any> {
+    return this._state.get('techChart');
+  }
+
+
   // -- Tech chart card
   techChartDefaults: TechChartConfiguration<any> = {
     type: 'bar',
@@ -241,6 +252,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     },
     options: {
       responsive: true,
+      animation: true,
       maintainAspectRatio: false,
       plugins: {
         title: {
@@ -290,7 +302,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $techChart = new BehaviorSubject<TechChartConfiguration<any>>(undefined);
   $years = new BehaviorSubject<number[]>(undefined);
   formatNumberLocale: string;
   animation: Subscription;
@@ -490,7 +501,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     this.$aggColumns.unsubscribe();
     this.$techColumns.unsubscribe();
     this.$criteriaColumns.unsubscribe();
-    this.$techChart.unsubscribe();
     this.$years.unsubscribe();
   }
 
@@ -702,7 +712,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   hideTechChart() {
-    this.$techChart.next(null);
+    this.techChart = null;
     this.showTechChart = false;
     delete this.animationOverrides.techChartOptions;
     this.markForCheck();
@@ -744,7 +754,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     // Hide details
     this.details = null;
     // Hide chart
-    this.$techChart.next(null);
+    this.techChart = null;
+
     // Hide legend
     this.showLegend = false;
 
@@ -908,6 +919,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     this.markAsLoading();
 
+    const isAnimated = !!this.animation;
     const strata = this.getStrataValue();
     const filter = this.getFilterValue(strata);
 
@@ -917,10 +929,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
       // Disabled forms (after getting strata and filter)
       this.disable();
-      this.resetGeoData();
+      if (!isAnimated) this.cleanMapLayers();
       this.error = null;
 
-      let hasMore = true;
       let offset = 0;
       const size = 3000;
 
@@ -935,6 +946,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       const fetchPolicy: FetchPolicy = this.isAnimated ? 'cache-first' : undefined /*default*/;
       let maxValue = 0;
 
+      let hasMore = true;
       while (hasMore) {
 
         // Get geo json using slice
@@ -947,6 +959,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
         const hasData = isNotNil(geoJson) && geoJson.features && geoJson.features.length || false;
 
         if (hasData) {
+          // Remove previous layer (once if animated, otherwise it has been done before data load)
+          if (isAnimated && offset === 0) this.cleanMapLayers();
+
           // Add data to layer
           layer.addData(geoJson);
 
@@ -1055,8 +1070,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       let map = await this.service.loadAggByTech(type, strata, filter, {
         fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
       });
+
       if (isAnimated) {
-        // Prepare overrides, if need
+        // Prepare overrides (if need)
         const overrides = await this.loadAnimationOverrides(type, strata, filter);
         techChart = {
           ...techChart,
@@ -1134,13 +1150,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       const labels: any[] = entries.map(item => item[0]);
       ChartJsUtils.setLabels(techChart, labels);
 
-      this.$techChart.next(techChart);
+      this.techChart = techChart;
       return true;
     }
     catch (error) {
       console.error('Cannot load tech values:', error);
       // Reset tech, then continue
-      this.$techChart.next(undefined);
+      this.techChart = null;
       return false;
     }
     finally {
@@ -1209,18 +1225,24 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       const filterNoTimes = ExtractionFilter.fromObject({ ...filter,
         criteria: (filter.criteria || []).filter(criterion => criterion.name !== strata.timeColumnName)
       });
-      const {min, max} = await this.service.loadAggMinMaxByTech(type, strata, filterNoTimes,
+      const {aggMin, aggMax, techMin, techMax} = await this.service.loadAggMinMaxByTech(type, strata, filterNoTimes,
         { fetchPolicy: 'cache-first' });
-      console.debug(`[extraction-map] Changing tech chart options: {min: ${min}, max: ${max}}`);
+      console.debug(`[extraction-map] Changing tech chart options: {aggMin: ${aggMin}, aggMax: ${aggMax}}`);
       this.animationOverrides.techChartOptions = {
         ...techChart?.options,
+        animation: false,
         fixAxis: true,
         scales: {
           ...techChart.options.scales,
           y: {
             ...techChart.options?.scales.y,
-            min,
-            max
+            min: aggMin,
+            max: aggMax
+          },
+          x: {
+            ...techChart.options?.scales.y,
+            min: techMin,
+            max: techMax
           }
         }
       };
@@ -1404,8 +1426,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     if (event && event.defaultPrevented) return;
     // Avoid to expand the filter section
     if (event) {
-      event.preventDefault();
       event.stopPropagation();
+      event.preventDefault();
     }
     // Stop existing animation
     if (this.animation) {
@@ -1465,7 +1487,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     // Take first
     const { datasetIndex, index } = elements[0];
-    const value = this.$techChart.value.data.labels[index];
+    const value = this.techChart?.data.labels[index];
 
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: this.techColumnName,
@@ -1521,15 +1543,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   protected startAnimation() {
     const years = this.$years.getValue();
 
-    // Pre loading data
-    console.info('[extraction-map] Preloading data for animation...');
-
+    // Disable chart animation
+    const techChart = this.techChart
+    if (techChart) {
+      techChart.options = {
+        ...techChart.options,
+        animation: false
+      };
+      this.techChart = techChart;
+    }
 
     console.info('[extraction-map] Starting animation...');
-    this.animation = isNotEmptyArray(years) && timer(500, 500)
-      .pipe(
-        throttleTime(450)
-      )
+    this.animation = isNotEmptyArray(years) && timer(0, 1000)
       .subscribe(index => {
         const year = years[index % arraySize(years)];
         console.info(`[extraction-map] Rendering animation on year ${year}...`);

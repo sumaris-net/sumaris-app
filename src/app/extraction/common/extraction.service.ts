@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 
-import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, isNotNil, isNotNilOrBlank, Person, trimEmptyToNull } from '@sumaris-net/ngx-components';
+import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
@@ -12,16 +12,17 @@ import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { IAggregationStrata } from '@app/extraction/strata/strata.model';
 import { FeatureCollection } from 'geojson';
 
-
 export const ExtractionFragments = {
-  column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
-    label
-    name
-    columnName
-    type
-    description
-    rankOrder
-  }`
+  column: gql`
+    fragment ExtractionColumnFragment on ExtractionTableColumnVO {
+      label
+      name
+      columnName
+      type
+      description
+      rankOrder
+    }
+  `,
 };
 
 export declare type CacheDuration = 'none' |'short'; // TODO complete
@@ -73,8 +74,10 @@ const Queries = {
       $strata: AggregationStrataVOInput
     ) {
       data: aggregationTechMinMax(type: $type, filter: $filter, strata: $strata) {
-        min
-        max
+        aggMin
+        aggMax
+        techMin
+        techMax
       }
     }`
 };
@@ -257,7 +260,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
   async loadAggMinMaxByTech(type: ExtractionType,
                             strata: IAggregationStrata,
                             filter: ExtractionFilter,
-                            opts?: { fetchPolicy?: FetchPolicy }): Promise<{min: number; max: number }> {
+                            opts?: { fetchPolicy?: FetchPolicy }): Promise<{aggMin: number; aggMax: number; techMin: number; techMax: number }> {
 
     filter = this.asFilter(filter);
 
@@ -274,7 +277,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 
-    return res && { min: 0, max: 0, ...res.data} || null;
+    return res && { aggMin: 0, aggMax: 0, techMin: 0, techMax: 0, ...res.data} || null;
   }
 
   /* -- protected functions -- */
