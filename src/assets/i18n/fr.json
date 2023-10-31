@@ -329,6 +329,9 @@
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
         "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
+      },
+      "ACCOUNT": {
+        "ENABLE_AUTH_TOKENS": "Activer les jetons d'authentification"
       }
     },
     "CACHE": {
@@ -445,6 +448,38 @@
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
+    "TOKENS": {
+      "TITLE": "Jetons",
+      "DESCRIPTION": "Liste des jetons d'authentification",
+      "SCOPES": {
+        "READ": "Lecture",
+        "WRITE": "Écriture",
+        "ADMIN": "Administration"
+      },
+      "TABLE": {
+        "NAME": "Nom",
+        "UNKNOWN": "Jeton inconnu",
+        "FLAGS": "Droits (numeric)",
+        "SCOPES": "Droits",
+        "CREATION_DATE": "Date de création",
+        "UPDATE_DATE": "Date de modification",
+        "LAST_USED_DATE": "Date de dernière utilisation",
+        "EXPIRATION_DATE": "Date d'expiration"
+      },
+      "CREATE": {
+        "TITLE": "Création d'un nouveau jeton",
+        "DESCRIPTION": "Donnez un nom à ce jeton, mais n'entrez pas d'information sensible qui pourrait être récupérée par une tierce personne !",
+        "NAME": "Nom",
+        "NAME_ALREADY_EXISTS": "Ce nom est déjà utilisé",
+        "SCOPES": "Droits",
+        "EXPIRATION_DATE": "Date d'expiration",
+        "BTN_GENERATE": "Générer",
+        "BTN_GENERATE_TITLE": "Générer",
+        "COPY_HELP": "Veuillez copier le jeton ci-dessous dans le presse-papier en cliquant sur le bouton. Une fois validé, ce jeton ne sera plus visible.",
+        "BTN_COPY_TITLE": "Copier le jeton dans le presse-papier",
+        "COPIED": "Copié"
+      }
+    },
     "INFO": {
       "RELOADED": "Votre compte utilisateur a été <b>actualisé</b> !"
     },
@@ -528,6 +563,7 @@
     "LIST": {
       "TITLE": "Utilisateurs",
       "BTN_SEND_MESSAGE": "Envoyer un message",
+      "BTN_ACTIONS": "Actions",
       "FILTER": {
         "SEARCH": "Recherche : nom, prénom..."
       }

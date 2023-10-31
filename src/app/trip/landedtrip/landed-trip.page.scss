@@ -2,7 +2,7 @@ ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
 }
-.mat-tab-group {
+.mat-mdc-tab-group {
   --mat-tab-body-content-height-root: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 2px);
   --mat-tab-body-content-height: var(--mat-tab-body-content-height-root);
 
@@ -14,7 +14,7 @@ ion-col>ion-label {
     }
   }
 
-  .mat-tab-group {
+  .mat-mdc-tab-group {
     --mat-tab-body-content-height: calc(var(--mat-tab-body-content-height-root) - var(--table-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-catches-filter-height, 0px) - 1px);
   }
 }

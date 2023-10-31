@@ -136,7 +136,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     }
 
     let now;
-    const debug = this._debug && (!opts || opts !== false);
+    const debug = this._debug && (!opts || opts?.debug !== false);
     now = debug && Date.now();
     if (now) console.debug(`[strategy-ref-service] Watching strategy {${label}}...`);
     let res: Observable<any>;

@@ -329,6 +329,9 @@
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
         "FILTER_PERIOD": "Landing > Show period filter?"
+      },
+      "ACCOUNT": {
+        "ENABLE_AUTH_TOKENS": "Enable auth tokens"
       }
     },
     "CACHE": {
@@ -445,6 +448,38 @@
       "LOCALE": "Language",
       "LAT_LONG_FORMAT": "Latitude/longitude format"
     },
+    "TOKENS": {
+      "TITLE": "Tokens",
+      "DESCRIPTION": "Authentication tokens",
+      "SCOPES": {
+        "READ": "Read",
+        "WRITE": "Write",
+        "ADMIN": "Administration"
+      },
+      "TABLE": {
+        "NAME": "Name",
+        "UNKNOWN": "Unknown token",
+        "FLAGS": "Scopes (numeric)",
+        "SCOPES": "Scopes",
+        "CREATION_DATE": "Creation date",
+        "UPDATE_DATE": "Update date",
+        "LAST_USED_DATE": "Last used date",
+        "EXPIRATION_DATE": "Expiration date"
+      },
+      "CREATE": {
+        "TITLE": "Create new token",
+        "DESCRIPTION": "Give this token a name, but don't enter any sensitive information that could be recovered by a third party!",
+        "NAME": "Name",
+        "NAME_ALREADY_EXISTS": "This name already exists",
+        "SCOPES": "Scopes",
+        "EXPIRATION_DATE": "Expiration date",
+        "BTN_GENERATE": "Generate",
+        "BTN_GENERATE_TITLE": "Generate",
+        "COPY_HELP": "Please copy the token below to the clipboard by clicking on the button. Once validated, this token will no longer be visible.",
+        "BTN_COPY_TITLE": "Copy the token to the clipboard",
+        "COPIED": "Copied"
+      }
+    },
     "INFO": {
       "RELOADED": "Your user account has been updated!"
     },
@@ -528,6 +563,7 @@
     "LIST": {
       "TITLE": "Users",
       "BTN_SEND_MESSAGE": "Send a message",
+      "BTN_ACTIONS": "Actions",
       "FILTER": {
         "SEARCH": "Search"
       }

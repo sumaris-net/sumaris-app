@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { ProgramPage } from './program.page';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { ProgramsPage } from './programs.page';
 import { AppCoreModule } from '@app/core/core.module';
@@ -16,7 +15,6 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
     TranslateModule.forChild(),
 
     AppCoreModule,
@@ -25,15 +23,14 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     AppReferentialFormModule,
     AppReferentialTableModule,
     AppReferentialPipesModule,
-    AppStrategyModule
+    AppStrategyModule,
   ],
   declarations: [
-
     // Components
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
   exports: [
     TranslateModule,
@@ -42,8 +39,7 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
 })
-export class AppProgramModule {
-}
+export class AppProgramModule {}

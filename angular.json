@@ -24,8 +24,6 @@
               "text-mask-core",
               "uuid",
               "clone",
-              "zone.js",
-              "tweetnacl",
               "bn.js",
               "ed2curve",
               "graphql-tag",
@@ -161,11 +159,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "app:build:development"
+            "buildTarget": "app:build:development"
           },
           "configurations": {
             "production": {
-              "browserTarget": "app:build:production"
+              "buildTarget": "app:build:production"
             },
             "ci": {
               "progress": false
@@ -235,10 +233,10 @@
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {
-      "styleext": "scss"
+      "style": "scss"
     },
     "@ionic/angular-toolkit:page": {
-      "styleext": "scss"
+      "style": "scss"
     }
   }
 }

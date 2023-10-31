@@ -6,7 +6,6 @@ import { AppImageAttachmentModule } from '@app/data/image/image-attachment.modul
 import { ImageGalleryModule } from '@sumaris-net/ngx-components';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppSharedModule } from '@app/shared/shared.module';
-import { environment } from '@environments/environment';
 import { AppCoreModule } from '@app/core/core.module';
 
 describe('AppImageAttachmentsModal', () => {
@@ -15,15 +14,15 @@ describe('AppImageAttachmentsModal', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ AppImageAttachmentsModal ],
+      declarations: [AppImageAttachmentsModal],
       imports: [
         AppImageAttachmentModule,
         ImageGalleryModule,
         IonicModule.forRoot(),
-        AppSharedModule.forRoot(environment),
+        AppSharedModule.forRoot(),
         AppCoreModule.forRoot(),
-        TranslateModule.forRoot()
-      ]
+        TranslateModule.forRoot(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppImageAttachmentsModal);

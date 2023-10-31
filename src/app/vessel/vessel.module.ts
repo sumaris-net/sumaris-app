@@ -6,7 +6,6 @@ import { VesselModal } from './modal/vessel-modal';
 import { VesselsPage } from './list/vessels.page';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppDataModule } from '../data/data.module';
 import { VesselFeaturesHistoryComponent } from './page/vessel-features-history.component';
@@ -23,13 +22,12 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     SharedModule,
     CommonModule,
     IonicModule,
-    TextMaskModule,
     TranslateModule.forChild(),
 
     // App modules
     AppCoreModule,
     AppReferentialModule,
-    AppDataModule
+    AppDataModule,
   ],
   declarations: [
     // Pipes
@@ -44,7 +42,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselFeaturesHistoryComponent,
     VesselRegistrationHistoryComponent,
     SelectVesselsModal,
-    ToRegistrationCodeDirective
+    ToRegistrationCodeDirective,
   ],
   exports: [
     SharedModule,
@@ -58,8 +56,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselPage,
     VesselsPage,
     VesselForm,
-    VesselsPage
-  ]
+    VesselsPage,
+  ],
 })
-export class VesselModule {
-}
+export class VesselModule {}

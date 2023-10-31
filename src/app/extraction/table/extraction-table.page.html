@@ -351,7 +351,7 @@
   </ion-refresher>
 
   <ng-container *ngIf="type?.sheetNames as sheetNames">
-    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength : { greaterThan: 1 }">
+    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength : { greaterThan: 1 }" [tabPanel]="tableContainer">
       <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
         <ion-text>{{ getI18nSheetName(item) }}</ion-text>
         <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>

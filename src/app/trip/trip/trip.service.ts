@@ -1404,7 +1404,7 @@ export class TripService
     trash?: boolean; // True by default
   }): Promise<any> {
 
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts?.trash !== false;
     const trashUpdateDate = trash && moment();
     if (this._debug) console.debug(`[trip-service] Deleting trip #${entity.id}... {trash: ${trash}`);
 

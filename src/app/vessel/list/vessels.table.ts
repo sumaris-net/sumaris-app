@@ -7,9 +7,7 @@ import { Vessel } from '../services/model/vessel.model';
 import {
   AccountService,
   isNil,
-  isNilOrBlank,
   isNotNil,
-  isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
   SharedValidators,
@@ -19,7 +17,7 @@ import {
   trimEmptyToNull
 } from '@sumaris-net/ngx-components';
 import { Observable, tap } from 'rxjs';
-import { FormControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';

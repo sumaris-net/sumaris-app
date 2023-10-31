@@ -34,6 +34,8 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
+  EnvironmentHttpLoader,
+  EnvironmentLoader,
   FormFieldDefinitionMap,
   isAndroid,
   isCapacitor,
@@ -62,7 +64,7 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
+import { MarkdownModule, MARKED_OPTIONS } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
 import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
@@ -97,6 +99,8 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
 
 @NgModule({
   declarations: [AppComponent],
@@ -140,8 +144,8 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
       loader: HttpClient, // Allow to load using [src]
       sanitize: SecurityContext.NONE,
       markedOptions: {
-        provide: MarkedOptions,
-        useValue: <MarkedOptions>{
+        provide: MARKED_OPTIONS,
+        useValue: {
           gfm: true,
           breaks: false,
           pedantic: false,
@@ -158,7 +162,13 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     HammerModule,
 
     // functional modules
-    AppSharedModule.forRoot(environment),
+    AppSharedModule.forRoot({
+      loader: {
+        provide: EnvironmentLoader,
+        deps: [HttpClient],
+        useFactory: (httpClient: HttpClient) => new EnvironmentHttpLoader(httpClient, environment),
+      },
+    }),
     AppCoreModule.forRoot(),
     AppRoutingModule,
     UserEventModule,
@@ -169,7 +179,20 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     Network,
     AudioManagement,
     Downloader,
-
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'outline',
+        subscriptSizing: 'dynamic',
+      },
+    },
+    {
+      provide: MAT_TABS_CONFIG,
+      useValue: <MatTabsConfig>{
+        stretchTabs: false,
+        // preserveContent: true
+      },
+    },
     {
       provide: APP_BASE_HREF,
       useFactory: () => {
