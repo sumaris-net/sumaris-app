@@ -18,7 +18,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -26,16 +26,15 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import { filter, first, map, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
 
-
 export const BASE_TABLE_SETTINGS_ENUM = {
   filterKey: 'filter',
-  compactRowsKey: 'compactRows'
+  compactRowsKey: 'compactRows',
 };
 
 export interface BaseTableConfig<
@@ -206,14 +205,20 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element })
+          .addShortcut({ keys: 'control.a', element, preventDefault: false /*will prevent default only if no row editing */})
           .pipe(
-            filter(() => this.canEdit),
+            filter(() => this.canEdit && !this.focusColumn),
+            tap((event: Event) => event?.preventDefault()),
             map(() => this.dataSource?.getRows()),
             filter(isNotEmptyArray)
           )
           .subscribe(rows => {
-            this.selection.select(...rows);
+            if (this.isAllSelected()) {
+              this.selection.clear();
+            }
+            else {
+              this.selection.select(...rows);
+            }
             this.markForCheck();
           })
       );

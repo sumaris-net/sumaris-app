@@ -80,7 +80,8 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     values: PRIORITIZED_AUTHORITIES.map(key => ({
       key: 'ROLE_' + key,
       value: 'USER.PROFILE_ENUM.' + key
-    }))
+    })),
+    defaultValue: 'ROLE_ADMIN',
   },
   ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS: <FormFieldDefinition>{
     key: 'sumaris.data.accessNotSelfData.department.ids',

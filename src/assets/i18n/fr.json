@@ -2503,6 +2503,9 @@
       "WEIGHT": "Poids (g)",
       "SUBSAMPLE_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_WEIGHT": "Poids échantillonné (g)",
+      "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés",
+      "SUBSAMPLING_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés",
+      "SUBSAMPLING_RATIO": "Taux de sous-échantillonnage",
       "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
       "TRIP_COUNT_BY_STATION": "Nb de marées, par station",
@@ -2590,7 +2593,7 @@
         "SUB_GEAR_IDENTIFIER": "Identifiant du sous-engin",
         "CATCH_WEIGHT": "Poids total capture (g)",
         "DISCARD_WEIGHT": "Poids total rejet (g)",
-        "ELEVATED_NUMBER_AT_LENGTH": "Nombre d'individu élevé"
+        "ELEVATED_NUMBER_AT_LENGTH": "Nombre d'individus élevé"
       },
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})",
@@ -2625,7 +2628,9 @@
       },
       "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})",
-        "NAME": "Pocheteaux"
+        "NAME": "Pocheteaux",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés",
+        "SUBSAMPLING_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
       },
       "PMFM_TRIP": {
         "TITLE": "Marées brutes > Générique",

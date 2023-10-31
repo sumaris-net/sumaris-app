@@ -1272,6 +1272,7 @@
       "START_DATE_TIME": "Start date/time ",
       "END_DATE": "End date",
       "END_DATE_TIME": "End date/time",
+      "BTN_REPORT": "Edit report...",
       "START": "Start:",
       "END": "End:",
       "START_END": "Start/End:",
@@ -2468,6 +2469,9 @@
       "WEIGHT": "Weight (kg)",
       "SUBSAMPLE_WEIGHT": "Subsample weight (g)",
       "SUBSAMPLING_WEIGHT": "Subsample weight (kg)",
+      "SUBSAMPLE_INDIVIDUAL_COUNT": "Subsample individual count",
+      "SUBSAMPLING_INDIVIDUAL_COUNT": "Subsample individual count",
+      "SUBSAMPLING_RATIO": "Subsampling ratio",
       "SUBSAMPLING_CATEGORY": "Subsampling category",
       "STATION_COUNT": "Number of station",
       "TRIP_COUNT_BY_STATION": "Nb of trips, by station",
@@ -2558,7 +2562,9 @@
       },
       "RJB_TRIP": {
         "TITLE": "Raw RJB trips (RJB v{{version}})",
-        "NAME": "Pocheteaux"
+        "NAME": "Pocheteaux",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Subsample individual count",
+        "SUBSAMPLING_INDIVIDUAL_COUNT": "Subsample individual count"
       },
       "PMFM_TRIP": {
         "TITLE": "Raw trips > Generic",

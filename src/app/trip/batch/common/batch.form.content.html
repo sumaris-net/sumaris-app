@@ -192,7 +192,7 @@
       >
         <!-- SUM of children weight-->
         <ion-col
-          *ngIf="delegate.showChildrenWeight && controls.childrenWeightValue?.value"
+          *ngIf="delegate.showChildrenWeight && (controls.childrenWeightValue?.value | isNotNil)"
           offset="4"
           size="8"
           class="ion-no-padding"
@@ -365,7 +365,7 @@
               sampling.childrenWeight: {{ controls.childrenWeightValue?.value }}
               {{ controls.childrenWeightComputed?.value ? '(computed)' : '' }}
               <br />
-              nb. indiv: {{ controls.samplingIndividualCount?.value }}
+              sampling.individualCount: {{ controls.samplingIndividualCount?.value }}
               <br />
               <br />
               defaultWeightPmfm: {{ delegate.defaultWeightPmfm?.label }} (maxDecimals:

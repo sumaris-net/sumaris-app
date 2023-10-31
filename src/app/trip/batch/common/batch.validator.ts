@@ -511,8 +511,25 @@ export class BatchValidators {
     // ***********
     if (isTotalWeightValid && isSamplingWeightValid) {
 
-      // If samplingWeight < totalWeight => Error
+      // If samplingWeight > totalWeight => Error
       if (toNumber(samplingWeight.value) > toNumber(totalWeight)) {
+
+        // Before error, try to recompute from invalid sampling weight - fix ADAP issue #482
+        if (isTotalWeightValid && isSamplingRatioValid && samplingWeight.computed) {
+          const computedSamplingWeight = roundHalfUp(totalWeight * samplingRatio, opts.weightMaxDecimals || 3);
+          console.debug('[batch-validator] Applying computed sampling weight = ' + computedSamplingWeight);
+          if (samplingWeight?.value !== computedSamplingWeight) {
+            samplingWeightForm.patchValue(<BatchWeight>{
+              computed: true,
+              estimated: false,
+              value: computedSamplingWeight,
+              methodId: MethodIds.CALCULATED
+            }, opts);
+          }
+          return;
+        }
+
+        // Add max error (if not yet defined)
         if (samplingWeightValueControl.errors?.max?.max !== totalWeight) {
           samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true });
           samplingWeightValueControl.markAsTouched({ onlySelf: true });
