@@ -388,7 +388,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
       this.addChildForm(table);
     }
     // Mark table as ready, if main component is ready
-    if (this._$ready.value) {
+    if (this.readySubject.value) {
       table.markAsReady();
     }
     // Mark table as loaded, if main component is loaded
