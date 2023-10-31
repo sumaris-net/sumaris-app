@@ -746,7 +746,7 @@ export class ObservedLocationService
   async deleteLocally(entity: ObservedLocation, opts?: {
     trash?: boolean; // True by default
   }): Promise<any> {
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts?.trash !== false;
     const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);

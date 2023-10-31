@@ -1,3 +1,4 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
@@ -11,7 +12,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "incremental": true,
-    "target": "es2015",
+    "target": "es2022",
     "module": "es2020",
     "lib": ["es2020","dom"],
     "allowSyntheticDefaultImports": true,
@@ -35,7 +36,8 @@
       "rxjs/*": [
         "node_modules/rxjs/*"
       ]
-    }
+    },
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

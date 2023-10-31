@@ -23,6 +23,7 @@ import {
 import { Color, ColorScale, ColorScaleOptions, isNil } from '@sumaris-net/ngx-components';
 import chartTrendline from 'chartjs-plugin-trendline';
 import { BoxAndWiskers, BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
+import {TechChartConfiguration} from '@app/extraction/map/extraction-map.page';
 
 declare type ThresholdLineStyle = 'solid' | 'dashed' | string;
 interface ThresholdLineOptions {
@@ -274,7 +275,7 @@ export class ChartJsUtils {
     else chart.data.datasets.push(dataset);
   }
 
-  static setSingleDataSet(chart: ChartConfiguration, dataset: ChartDataset) {
+  static setSingleDataSet(chart: ChartConfiguration  | TechChartConfiguration, dataset: ChartDataset) {
     chart.data = chart.data || {datasets: undefined};
     chart.data.datasets = [dataset];
   }

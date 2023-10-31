@@ -402,7 +402,7 @@
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus">
+    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus" [tabPanel]="tableContainer">
       <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;

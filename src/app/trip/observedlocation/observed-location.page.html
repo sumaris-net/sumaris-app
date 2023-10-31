@@ -169,36 +169,36 @@
 
         <ng-container *rxIf="landingTableType$; let type">
           <ng-container [ngSwitch]="type">
-            <!-- aggregated landings -->
-            <app-aggregated-landings-table
-              #aggregatedLandingsTable
-              *ngSwitchCase="'aggregated'"
+          <!-- aggregated landings -->
+          <app-aggregated-landings-table
+            #aggregatedLandingsTable
+            *ngSwitchCase="'aggregated'"
               [programLabel]="programLabel$ | async"
-              (onNewRow)="onNewAggregatedLanding($event)"
-              [showToolbar]="!mobile"
+            (onNewRow)="onNewAggregatedLanding($event)"
+            [showToolbar]="!mobile"
               [sticky]="true"
               (ngInit)="landingTable = aggregatedLandingsTable"
               [debug]="debug"
-            ></app-aggregated-landings-table>
+          ></app-aggregated-landings-table>
 
-            <!-- landings -->
-            <app-landings-table
-              #landingsTable
-              *ngSwitchCase="'legacy'"
+          <!-- landings -->
+          <app-landings-table
+            #landingsTable
+            *ngSwitchCase="'legacy'"
               [programLabel]="programLabel$ | async"
               [requiredStrategy]="requiredStrategy$ | async"
               [strategyId]="strategy$ | async | mapGet: 'id'"
-              [showObserversColumn]="false"
-              [showDateTimeColumn]="false"
-              [showToolbar]="!mobile"
+            [showObserversColumn]="false"
+            [showDateTimeColumn]="false"
+            [showToolbar]="!mobile"
               [showPaginator]="true"
-              (onOpenRow)="onOpenLanding($event)"
-              (onNewRow)="onNewLanding($event)"
-              (openTrip)="onOpenTrip($event)"
-              (newTrip)="onNewTrip($event)"
+            (onOpenRow)="onOpenLanding($event)"
+            (onNewRow)="onNewLanding($event)"
+            (openTrip)="onOpenTrip($event)"
+            (newTrip)="onNewTrip($event)"
               (ngInit)="landingTable = landingsTable"
               [debug]="debug"
-            ></app-landings-table>
+          ></app-landings-table>
           </ng-container>
         </ng-container>
       </div>

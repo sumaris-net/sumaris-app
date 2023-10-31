@@ -1,19 +1,14 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { SharedDebugModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
+import { RxStateModule, SharedDebugModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
 import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
-import { UnpatchModule } from '@rx-angular/template/unpatch';
-import { IfModule } from '@rx-angular/template/if';
-import { ForModule } from '@rx-angular/template/for';
-import { LetModule } from '@rx-angular/template/let';
-import { PushModule } from '@rx-angular/template/push';
-import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
+import { RxUnpatch } from '@rx-angular/template/unpatch';
 
 @NgModule({
   imports: [
@@ -21,11 +16,8 @@ import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
     SharedDebugModule,
 
     // Rx angular
-    IfModule,
-    ForModule,
-    LetModule,
-    PushModule,
-    UnpatchModule,
+    RxStateModule,
+    RxUnpatch,
 
     // Sub modules
     MatFormFieldsSkeletonModule,
@@ -45,11 +37,8 @@ import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
     TranslateModule,
 
     // Rx angular
-    IfModule,
-    ForModule,
-    LetModule,
-    PushModule,
-    UnpatchModule,
+    RxStateModule,
+    RxUnpatch,
 
     // Pipes
     DisplayWithPipe,

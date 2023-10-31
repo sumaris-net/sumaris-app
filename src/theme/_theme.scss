@@ -19,6 +19,14 @@
 /* -- mat-tab -- */
 
 .mat-tab-fixed-content {
+  height: 100%;
+  .mat-mdc-tab-body-wrapper {
+    height: 100%;
+    .mat-mdc-tab-body {
+      height: 100%;
+    }
+  }
+
   .mat-tab-body-content {
     height: var(--mat-tab-body-content-height, 100%) !important;
     overflow: auto;
@@ -79,7 +87,7 @@ ion-content.ion-flex-direction-column::part(scroll) {
   overflow-y: auto;
 }
 
-.mat-table {
+.mat-mdc-table {
   .mat-row {
     overflow: hidden;
     /*FIXME not need anymore ?

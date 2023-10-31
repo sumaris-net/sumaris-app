@@ -110,6 +110,7 @@
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
+    <mat-label>{{ placeholder }}</mat-label>
     <input
       matInput
       #matInput
@@ -121,7 +122,6 @@
       [min]="pmfm.minValue"
       [max]="pmfm.maxValue"
       [appAutofocus]="autofocus"
-      [placeholder]="placeholder"
       [formControl]="vars.control"
       (keydown.enter)="onPressEnter.emit($event)"
       (keypress)="filterNumberInput($event, false)"
@@ -166,6 +166,7 @@
 
   <!-- double -->
   <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
+    <mat-label>{{ placeholder }}</mat-label>
     <input
       matInput
       #matInput
@@ -249,7 +250,6 @@
     #matInput
     [style]="style"
     [formControl]="vars.control"
-    [placeholder]="placeholder"
     [floatLabel]="floatLabel"
     [required]="required"
     [readonly]="readonly"
@@ -257,6 +257,7 @@
     [tabindex]="tabindex"
     [buttonsColCount]="maxVisibleButtons"
     [showButtonIcons]="showButtonIcons"
+    [placeholder]="placeholder"
   >
     <div matSuffix class="mat-form-field-suffix-container">
       <!-- Add a fake fab button, to have same alignment as a pmfm QV field
@@ -332,6 +333,7 @@
 
   <!-- string -->
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
+    <mat-label>{{ placeholder }}</mat-label>
     <input
       matInput
       #matInput

@@ -1,5 +1,5 @@
 
-.mat-table {
+.mat-mdc-table {
   --packet-count: 6;
   --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
   --mat-column-small-count: calc(var(--packet-count) + 2);
