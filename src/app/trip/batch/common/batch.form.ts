@@ -370,7 +370,7 @@ export class BatchForm<
 
     // Make sure to have a resizable array for children
     if (!(this.form.get('children') instanceof AppFormArray)) {
-      console.warn(this._logPrefix + 'Create a new AppFormArray for children, using options:', validatorOptions?.childrenOptions);
+      console.warn(this._logPrefix + 'Creating a new AppFormArray for children, using options:', validatorOptions?.childrenOptions);
       this.form.setControl('children', this.validatorService.getChildrenFormArray(null, {
         ...validatorOptions?.childrenOptions
       }));
