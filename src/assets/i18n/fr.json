@@ -1531,7 +1531,7 @@
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
-      "TITLE": "Navire {{vessel}}",
+      "TITLE": "<span class=\"visible-mobile\">Navire </span>{{vessel}}",
       "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
       "BTN_REPORT": "Éditer le rapport..."
     },

@@ -34,6 +34,7 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
+  ENVIRONMENT,
   FormFieldDefinitionMap,
   isAndroid,
   isCapacitor,
@@ -97,6 +98,7 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { AppEnvironment } from '@environments/environment.class';
 
 @NgModule({
   declarations: [AppComponent],
@@ -304,9 +306,12 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     // Menu config
     {
       provide: APP_MENU_OPTIONS,
-      useValue: <MenuOptions>{
-        showNotification: true,
-      },
+      deps: [ENVIRONMENT],
+      useFactory: (environment: AppEnvironment) =>
+        <MenuOptions>{
+          showNotification: true,
+          ...environment?.menu,
+        },
     },
 
     // Menu items

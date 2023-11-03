@@ -13,6 +13,7 @@ import { IfModule } from '@rx-angular/template/if';
 import { ForModule } from '@rx-angular/template/for';
 import { LetModule } from '@rx-angular/template/let';
 import { PushModule } from '@rx-angular/template/push';
+import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
 
 @NgModule({
   imports: [
@@ -20,17 +21,22 @@ import { PushModule } from '@rx-angular/template/push';
     SharedDebugModule,
 
     // Rx angular
-    IfModule, ForModule, LetModule, PushModule, UnpatchModule,
+    IfModule,
+    ForModule,
+    LetModule,
+    PushModule,
+    UnpatchModule,
 
     // Sub modules
-    MatFormFieldsSkeletonModule
+    MatFormFieldsSkeletonModule,
   ],
   declarations: [
     // Pipes
     DisplayWithPipe,
     DelayPipe,
     SplitArrayInChunksPipe,
-    PaginationToStringPipe
+    PaginationToStringPipe,
+    NoHtmlPipe,
   ],
   exports: [
     SharedModule,
@@ -39,21 +45,25 @@ import { PushModule } from '@rx-angular/template/push';
     TranslateModule,
 
     // Rx angular
-    IfModule, ForModule, LetModule, PushModule, UnpatchModule,
+    IfModule,
+    ForModule,
+    LetModule,
+    PushModule,
+    UnpatchModule,
 
     // Pipes
     DisplayWithPipe,
     DelayPipe,
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
+    NoHtmlPipe,
 
     //Sub modules
-    MatFormFieldsSkeletonModule
-  ]
+    MatFormFieldsSkeletonModule,
+  ],
 })
 export class AppSharedModule {
   static forRoot(environment: Environment): ModuleWithProviders<AppSharedModule> {
-
     console.debug('[app-shared] Creating module (root)');
 
     return {
@@ -64,9 +74,9 @@ export class AppSharedModule {
         // A context service
         {
           provide: ContextService,
-          useValue: new ContextService<Context>({})
-        }
-      ]
+          useValue: new ContextService<Context>({}),
+        },
+      ],
     };
   }
 }
