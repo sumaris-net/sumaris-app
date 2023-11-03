@@ -19,6 +19,8 @@
     "BTN_DOWNLOAD": "Download",
     "BTN_DOWNLOAD_DOTS": "Download...",
     "BTN_DOWNLOAD_JSON": "Download (JSON)",
+    "BTN_DOWNLOAD_CSV": "Download (CSV)",
+    "BTN_DOWNLOAD_GEOJSON": "Download (GeoJSON)",
     "BTN_IMPORT": "Import",
     "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",
@@ -2780,6 +2782,8 @@
   "DEVICE_POSITION": {
     "MAP": {
       "TITLE": "Positions map",
+      "EXPORT_CSV_FILENAME": "Positions.csv",
+      "EXPORT_GEOJSON_FILENAME": "Positions.geojson",
       "FILTER": {
         "RECORDER_PERSON": "Recorder",
         "START_DATE": "Start date",
@@ -2966,7 +2970,8 @@
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
-    "TEXT_PROGRESS": "{{current}} of {{max}}"
+    "TEXT_PROGRESS": "{{current}} of {{max}}",
+    "DOWNLOADING_DOTS": "Download in progress..."
   },
   "WARNING": {
     "ALERT_HEADER": "Warning",

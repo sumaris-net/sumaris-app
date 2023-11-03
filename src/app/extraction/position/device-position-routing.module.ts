@@ -1,10 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import {comment} from 'postcss';
-import {DevicePositionMapPage} from '@app/extraction/position/device-position-map-page.component';
-import {AuthGuardService} from '@sumaris-net/ngx-components';
+import { DevicePositionMapPage } from '@app/extraction/position/device-position-map-page.component';
+import { AuthGuardService } from '@sumaris-net/ngx-components';
 import { DevicePositionModule } from '@app/extraction/position/device-position.module';
-
 
 const routes: Routes = [
   {
@@ -13,7 +11,7 @@ const routes: Routes = [
     component: DevicePositionMapPage,
     canActivate: [AuthGuardService],
     data: {
-      profile: 'ADMIN'
+      profile: 'ADMIN',
     },
   },
 ];

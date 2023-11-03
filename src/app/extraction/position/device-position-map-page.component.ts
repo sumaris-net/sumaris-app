@@ -13,14 +13,13 @@ import {
 } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { of } from 'rxjs';
+import { BehaviorSubject, merge, of } from 'rxjs';
 import { IGNORED_ENTITY_COLUMNS } from '@app/referential/table/referential.table';
 import { DevicePosition, DevicePositionFilter } from '@app/data/position/device/device-position.model';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import {
   AccountService,
   arrayDistinct,
-  capitalizeFirstLetter,
   isNil,
   isNilOrNaN,
   isNotNil,
@@ -38,18 +37,26 @@ import { catchError, debounceTime, filter, switchMap, tap } from 'rxjs/operators
 import { RxState } from '@rx-angular/state';
 import { L } from '@app/shared/map/leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
-import { Feature, Point } from 'geojson';
+import { Feature } from 'geojson';
 import { ObjectTypeLabels } from '@app/referential/services/model/model.enum';
-import { NavController } from '@ionic/angular';
+import { IonPopover, NavController } from '@ionic/angular';
+import { MatPaginator } from '@angular/material/paginator';
+import { SortDirection } from '@angular/material/sort';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
   FILTER_KEY: 'filter',
+  PAGE_SIZE: 'pageSize',
 };
 export interface DevicePositionMapState extends BaseMapState {
   features: Feature[];
   total: number;
   visibleTotal: number;
+  downloading: boolean;
+  downloadProgression: ProgressionModel;
 }
+
+export const DEFAULT_PAGE_SIZE = 100;
 
 @Component({
   selector: 'app-device-position-map',
@@ -63,6 +70,7 @@ export class DevicePositionMapPage
   implements OnInit {
 
   protected readonly features$ = this._state.select('features');
+  protected readonly downloadProgression$ = this._state.select('downloadProgression');
 
   protected _autocompleteConfigHolder: MatAutocompleteConfigHolder;
   protected filter: DevicePositionFilter = new DevicePositionFilter();
@@ -73,6 +81,10 @@ export class DevicePositionMapPage
   title = 'TITLE';
   filterCriteriaCount = 0;
   filterPanelFloating = true;
+  defaultPageSize= DEFAULT_PAGE_SIZE;
+  defaultPageSizeOptions = [100, 500, 1000, 2000];
+  defaultSortBy = 'dateTime';
+  defaultSortDirection: SortDirection = 'desc';
 
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   onRefresh = new EventEmitter<any>();
@@ -83,6 +95,7 @@ export class DevicePositionMapPage
   @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel: MatExpansionPanel;
   @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel: MatExpansionPanel;
   @ViewChild('table',{static: true, read: ElementRef}) tableElement: ElementRef;
+  @ViewChild('paginator', {static: true}) paginator: MatPaginator;
   @ViewChildren('tableRows', {read: ElementRef}) tableRows!: QueryList<ElementRef>;
 
   get total() {
@@ -90,6 +103,22 @@ export class DevicePositionMapPage
   }
   get visibleTotal() {
     return this._state.get('visibleTotal');
+  }
+
+  get pageSize(): number {
+    return this.paginator && this.paginator.pageSize || this.defaultPageSize || DEFAULT_PAGE_SIZE;
+  }
+
+  get pageOffset(): number {
+    return this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0;
+  }
+
+  get sortBy(): string {
+    return this.defaultSortBy;
+  }
+
+  get sortDirection(): SortDirection {
+    return this.defaultSortDirection;
   }
 
   constructor(
@@ -104,6 +133,8 @@ export class DevicePositionMapPage
   ) {
     super(injector, _state, {
       maxZoom: 14 // Need by SFA
+    }, {
+      loading: true
     });
 
     this.settingsId = 'device-position-map';
@@ -151,13 +182,19 @@ export class DevicePositionMapPage
     );
 
     this.registerSubscription(
-      this.onRefresh
+      merge(
+        this.onRefresh,
+        this.paginator.page.pipe(
+          // Save page size in settings
+          tap(() => this.savePageSettings(this.paginator.pageSize, DEVICE_POSITION_MAP_SETTINGS.PAGE_SIZE))
+        )
+      )
         .pipe(
-          // mergeMap(() => this.configService.ready()),
-          // filter(() => false && this.accountService.isAdmin()),
-          switchMap((event: any) => this.dataService.watchAll(
-                0, 100, 'dateTime', 'desc', this.filter
-            )),
+          tap(() => this.markAsLoading()),
+          debounceTime(100),
+          switchMap(() => this.dataService.watchAll(
+              this.pageOffset, this.pageSize, this.sortBy, this.sortDirection, this.filter
+          )),
           catchError(err => {
             if (this._debug) console.error(err);
             this.setError(err && err.message || err);
@@ -234,6 +271,14 @@ export class DevicePositionMapPage
 
   closeFilterPanel() {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
+
+  protected getPageSettings<T = any>(propertyName?: string): T {
+    return this.settings.getPageSettings(this.settingsId, propertyName);
+  }
+
+  protected async savePageSettings(value: any, propertyName?: string) {
+    await this.settings.savePageSetting(this.settingsId, value, propertyName);
   }
 
   // setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
@@ -313,7 +358,7 @@ export class DevicePositionMapPage
 
     // Update state
     this._state.set(state => <DevicePositionMapState>{
-      ...state, features, total, visibleTotal: features.length
+      ...state, features, total, visibleTotal: Math.min(this.pageSize, features.length)
     });
 
 
@@ -356,6 +401,7 @@ export class DevicePositionMapPage
     try {
       // Clean existing layers, if any
       this.cleanMapLayers();
+      const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
       const persons: Person[] = arrayDistinct((data || []).map(position => position.recorderPerson).filter(p => isNotNil(p?.id)), 'id');
       const layerByPersonId = persons.reduce((res, p, index) => {
@@ -367,12 +413,13 @@ export class DevicePositionMapPage
         return res;
       }, {});
 
+
       // Add each position to layer
       const features = (data || [])
         .map((position, index) => {
           const personId = position.recorderPerson?.id;
           if (isNil(personId)) return;
-          const feature = this.toFeature(position, index);
+          const feature = this.dataService.toGeoJsonFeature(position, {dateTimePattern});
           if (!feature) return; // Skip if empty
 
           // Add feature to layer
@@ -398,36 +445,6 @@ export class DevicePositionMapPage
       this.error = err && err.message || err;
     } finally {
       this.markForCheck();
-    }
-  }
-
-  protected toFeature(position: DevicePosition, index: number): Feature {
-
-    // Create feature
-    const features = <Feature>{
-      id: position.id,
-      type: 'Feature',
-      geometry: <Point>{ type: 'Point', coordinates: [position.longitude, position.latitude]},
-      properties: {
-        ...position.asObject(),
-        objectTypeName: this.getObjectTypeName(position)
-      }
-    };
-
-    return features;
-  }
-
-  protected getObjectTypeName(position: DevicePosition): string {
-    if (!position) return '';
-    const objectType = position.objectType?.label;
-    if (objectType) {
-      switch (objectType) {
-        case ObjectTypeLabels.TRIP:
-          return this.translate.instant('TRIP.TITLE');
-        case ObjectTypeLabels.OBSERVED_LOCATION:
-          return this.translate.instant('OBSERVED_LOCATION.TITLE');
-      }
-      return objectType.split('_').map(capitalizeFirstLetter).join(' ');
     }
   }
 
@@ -501,5 +518,37 @@ export class DevicePositionMapPage
       return;
     }
     await this.navController.navigateForward(path);
+  }
+
+  protected async download(event: MouseEvent|TouchEvent|PointerEvent, format: 'csv'|'geojson', popover: IonPopover) {
+    const progression = new BehaviorSubject<number>(0);
+    const maxProgression = 100;
+    const progressionModel = new ProgressionModel({
+      message: 'INFO.DOWNLOADING_DOTS',
+      current: 0,
+      total: maxProgression,
+      cancelled: false
+    });
+    const subscription = progression.subscribe(current => progressionModel.current = current);
+    subscription.add(() => this.unregisterSubscription(subscription));
+
+    this.registerSubscription(subscription);
+    this._state.set('downloadProgression', () => progressionModel);
+
+    popover.present(event);
+    this.markForCheck();
+
+    switch (format) {
+      case 'geojson':
+          await this.dataService.downloadAsGeoJson(this.filter, {progression, maxProgression})
+          break;
+      default:
+        await this.dataService.downloadAsCsv(this.filter, {progression, maxProgression})
+        break;
+    }
+
+    await popover.dismiss();
+    this._state.set('downloadProgression', () => null);
+    subscription.unsubscribe();
   }
 }

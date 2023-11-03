@@ -1,22 +1,31 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import {
-  AccountService, APP_LOGGING_SERVICE,
+  AccountService,
+  APP_LOGGING_SERVICE,
   BaseEntityGraphqlQueries,
   BaseEntityService,
+  capitalizeFirstLetter,
   ConfigService,
   Configuration,
+  CsvUtils,
   DateUtils,
   EntitiesServiceWatchOptions,
-  EntitiesStorage, EntityAsObjectOptions,
+  EntitiesStorage,
+  EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
-  GraphqlService, ILogger, ILoggingService,
-  isNil, isNotEmptyArray,
+  GraphqlService,
+  ILogger,
+  ILoggingService,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
-  LoadResult,
+  JobUtils,
+  JsonUtils,
   LocalSettingsService,
+  PersonUtils,
   PlatformService,
-  Referential
+  Referential,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
 import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/position/device/device-position.config';
@@ -29,14 +38,14 @@ import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { DataCommonFragments } from '@app/trip/trip/trip.queries';
-import { SortDirection } from '@angular/material/sort';
 import { distinctUntilChanged, throttleTime } from 'rxjs/operators';
-import { ModelEnumUtils } from '@app/referential/services/model/model.enum';
+import { ModelEnumUtils, ObjectTypeLabels } from '@app/referential/services/model/model.enum';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { v4 as uuid } from 'uuid';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { Feature, FeatureCollection } from 'geojson';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
@@ -178,6 +187,140 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
       return super.deleteAll(remoteEntities, opts);
     }
   }
+
+  async downloadAsCsv(filter?: Partial<DevicePositionFilter>,
+                                opts?: {
+                                  progression?: BehaviorSubject<number>;
+                                  maxProgression?: number;
+                                }) {
+
+    const now = this._debug && Date.now();
+    const maxProgression = opts && opts.maxProgression || 100;
+    const data = await this.downloadAll(filter, {...opts, maxProgression: maxProgression * 0.9});
+
+    // Convert into CSV
+    const translations = this.translate.instant([
+      'COMMON.DATE_TIME_PATTERN',
+      'DEVICE_POSITION.MAP.EXPORT_CSV_FILENAME',
+      'DEVICE_POSITION.MAP.TABLE.DATE_TIME',
+      'DEVICE_POSITION.MAP.TABLE.DATE_TIME',
+      'DEVICE_POSITION.MAP.TABLE.LATITUDE',
+      'DEVICE_POSITION.MAP.TABLE.LONGITUDE',
+      'DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON',
+      'DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE'
+    ]);
+    const dateTimePattern = translations['COMMON.DATE_TIME_PATTERN'];
+    const filename = translations['DEVICE_POSITION.MAP.EXPORT_CSV_FILENAME'];
+    const headers = [
+      translations['DEVICE_POSITION.MAP.TABLE.DATE_TIME'],
+      translations['DEVICE_POSITION.MAP.TABLE.LATITUDE'],
+      translations['DEVICE_POSITION.MAP.TABLE.LONGITUDE'],
+      translations['DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON'],
+      translations['DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE']
+    ];
+
+    const rows = data.map(position => {
+      const objectTypeName = this.getObjectTypeName(position);
+      return [
+        DateUtils.moment(position.dateTime).local().format(dateTimePattern),
+        position.latitude,
+        position.longitude,
+        PersonUtils.personToString(position.recorderPerson),
+        `${objectTypeName} #${position.objectId}`
+      ]
+    })
+
+    // Download as CSV
+    CsvUtils.exportToFile(rows, {filename, headers});
+
+    opts?.progression.next(maxProgression);
+    console.info(`[device-position-service] Downloading ${data.length} rows, in ${Date.now() - now}ms`);
+  }
+
+  async downloadAsGeoJson(filter?: Partial<DevicePositionFilter>,
+                          opts?: {
+                            progression?: BehaviorSubject<number>;
+                            maxProgression?: number;
+                          }) {
+
+    const now = this._debug && Date.now();
+    const maxProgression = opts && opts.maxProgression || 100;
+    const data = await this.downloadAll(filter, {...opts, maxProgression: maxProgression * 0.9});
+    const geoJson = this.toGeoJson(data);
+    const filename = this.translate.instant('DEVICE_POSITION.MAP.EXPORT_GEOJSON_FILENAME');
+    JsonUtils.exportToFile(geoJson, {
+      filename,
+      type: 'application/geo+json' // GeoJSON mime-type
+    });
+
+    opts?.progression.next(maxProgression);
+    console.info(`[device-position-service] Downloading ${data.length} rows, in ${Date.now() - now}ms`);
+  }
+
+  toGeoJson(data: DevicePosition[]): FeatureCollection {
+
+    const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+
+    // Convert into Geo Json features
+    const features = (data || [])
+      .map(position => this.toGeoJsonFeature(position, {dateTimePattern}))
+      .filter(isNotNil);
+
+    return <FeatureCollection>{
+      type: 'FeatureCollection',
+      features: features
+    };
+  }
+
+  /**
+   * Convert into Geo Json feature
+   * @param position
+   * @param opts
+   */
+  toGeoJsonFeature(position: DevicePosition, opts?: { dateTimePattern?: string }): Feature|null {
+
+    const dateTimePattern = opts?.dateTimePattern || this.translate.instant('COMMON.DATE_TIME_PATTERN');
+
+    // Ignore invalid positions
+    if (position.latitude == null || position.longitude == null || position.dateTime == null) {
+      return null;
+    }
+    const personId = position.recorderPerson?.id;
+    if (isNil(personId)) return;
+
+    return <Feature>{
+      id: position.id,
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [position.longitude, position.latitude],
+      },
+      properties: {
+        dateTime: DateUtils.moment(position.dateTime).local().format(dateTimePattern),
+        latitude: position.latitude,
+        longitude: position.longitude,
+        recorderPerson: PersonUtils.personToString(position.recorderPerson),
+        objectTypeName: this.getObjectTypeName(position),
+        objectId: position.objectId
+      }
+    };
+  }
+
+  getObjectTypeName(position: DevicePosition): string {
+    if (!position) return '';
+    const objectType = position.objectType?.label;
+    if (objectType) {
+      switch (objectType) {
+        case ObjectTypeLabels.TRIP:
+          return this.translate.instant('TRIP.TITLE');
+        case ObjectTypeLabels.OBSERVED_LOCATION:
+          return this.translate.instant('OBSERVED_LOCATION.TITLE');
+      }
+      return objectType.split('_').map(capitalizeFirstLetter).join(' ');
+    }
+  }
+
+  /* -- protected functions -- */
 
   protected async saveLocally(entity: DevicePosition, opts?: EntitySaveOptions): Promise<DevicePosition> {
 
@@ -519,26 +662,32 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     }
   }
 
-  protected async applyWatchOptions({data, total}: LoadResult<DevicePosition>,
-                                    offset: number,
-                                    size: number,
-                                    sortBy?: string,
-                                    sortDirection?: SortDirection,
-                                    filter?: Partial<DevicePositionFilter>,
-                                    opts?: DevicePositionServiceWatchOptions): Promise<LoadResult<DevicePosition>> {
-
-    // Sort entities
-    data = EntityUtils.sort(data, sortBy, sortDirection);
-
-    // Transform to entities (if need)
-    const entities = (!opts || opts.toEntity !== false) ?
-      (data || []).map(source => DevicePosition.fromObject(source, opts))
-      : (data || []) as DevicePosition[];
-
-    return {data: entities, total};
-  }
-
   protected isLocal(entity: DevicePosition) {
     return isNotNil(entity.id) ? EntityUtils.isLocalId(entity.id) : EntityUtils.isLocalId(entity.objectId);
+  }
+
+  protected async downloadAll(filter: Partial<DevicePositionFilter>, opts?: {
+    progression?: BehaviorSubject<number>;
+    maxProgression?: number
+  }) {
+
+    const maxProgression = opts && opts.maxProgression || 100;
+    filter = this.asFilter(filter);
+
+    const {data} = await JobUtils.fetchAllPages<DevicePosition>((offset, size) =>
+        this.loadAll(offset, size, 'dateTime', 'asc', filter, {
+          query: (offset === 0) ? Queries.loadAllWithTotal : Queries.loadAll,
+          fetchPolicy: 'no-cache',
+          toEntity: false
+        }),
+      {
+        progression: opts?.progression,
+        maxProgression,
+        logPrefix: '[device-position-service]',
+        fetchSize: 1000
+      }
+    );
+
+    return data;
   }
 }
