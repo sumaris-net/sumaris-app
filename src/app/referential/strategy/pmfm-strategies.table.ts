@@ -346,7 +346,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
-    console.log('TODO setFilter', source)
     const target = new PmfmStrategyFilter();
     Object.assign(target, source);
 
