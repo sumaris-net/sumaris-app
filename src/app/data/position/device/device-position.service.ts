@@ -37,6 +37,7 @@ import { ISynchronizeEvent, RootDataEntitySaveOptions, RootDataSynchroService } 
 import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 import { distinctUntilChanged, throttleTime } from 'rxjs/operators';
 import { ModelEnumUtils, ObjectTypeLabels } from '@app/referential/services/model/model.enum';
 import { AlertController } from '@ionic/angular';
@@ -45,7 +46,6 @@ import { v4 as uuid } from 'uuid';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Feature, FeatureCollection } from 'geojson';
-import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
