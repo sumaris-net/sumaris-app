@@ -18,7 +18,7 @@ import {
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { environment } from '@environments/environment';
@@ -346,6 +346,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
+    console.log('TODO setFilter', source)
     const target = new PmfmStrategyFilter();
     Object.assign(target, source);
 

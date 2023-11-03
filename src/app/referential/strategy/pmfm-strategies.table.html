@@ -1,9 +1,10 @@
 <mat-toolbar *ngIf="showToolbar">
   <ng-content select="[matToolbarStart]"></ng-content>
 
-  <ng-container *ngIf="canEdit && enabled && selection.hasValue()">
+  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <button
       mat-icon-button
+      *ngIf="canEdit && enabled"
       [title]="'COMMON.BTN_ADD' | translate"
       class="hidden-xs hidden-sm hidden-mobile"
       (click)="addRow()"
@@ -14,6 +15,21 @@
       <mat-icon>delete</mat-icon>
     </button>
 
+    <!-- refresh (debug only) -->
+    <button
+      mat-icon-button
+      color="light"
+      *ngIf="debug"
+      [title]="'COMMON.BTN_REFRESH' | translate"
+      (click)="onRefresh.emit()"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </ng-container>
+
+  <ng-template #hasSelection>
+
+
     <!-- duplicate (if desktop) -->
     <button
       mat-icon-button
@@ -23,18 +39,8 @@
     >
       <mat-icon slot="icon-only">content_copy</mat-icon>
     </button>
-  </ng-container>
+  </ng-template>
 
-  <!-- refresh (debug only) -->
-  <button
-    mat-icon-button
-    color="light"
-    *ngIf="debug && !selection.hasValue()"
-    [title]="'COMMON.BTN_REFRESH' | translate"
-    (click)="onRefresh.emit()"
-  >
-    <mat-icon>refresh</mat-icon>
-  </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>

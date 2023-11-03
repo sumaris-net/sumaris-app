@@ -208,6 +208,7 @@
       mat-row
       *matRowDef="let row; columns: displayedColumns"
       class="mat-row-disabled"
+      [class.mat-row-selected]="mode === 'select' && selection.isSelected(row)"
       (click)="clickRow($event, row)"
     ></tr>
   </table>

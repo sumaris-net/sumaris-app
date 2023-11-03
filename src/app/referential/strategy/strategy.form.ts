@@ -499,6 +499,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
   resetFilter() {
     this.patchPmfmStrategyFilter({
+      acquisitionLevel: null,
       referenceTaxonIds: null,
       locationIds: null,
       taxonGroupIds: null,
