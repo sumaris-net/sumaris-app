@@ -19,8 +19,7 @@
   }
 
   mat-header-cell.hidden,
-  mat-cell.hidden
-    {
+  mat-cell.hidden {
     visibility: hidden;
     display: none;
   }
@@ -31,9 +30,19 @@
     .comments-italic {
       font-style: italic;
     }
+    &.even {
+      background-color: var(--ion-color-light-tint, whitesmoke);
+    }
 
-    .mat-cell.mat-cell-selected:hover {
-      background-color: var(--ion-color-secondary);
+    .mat-header-cell,
+    .mat-cell {
+      &.even {
+        background-color: var(--ion-color-light, whitesmoke);
+      }
+    }
+
+    .mat-cell.mat-column-day:hover {
+      background-color: var(--ion-color-secondary) !important;
       color: var(--ion-color-secondary-contrast);
       cursor: pointer !important;
     }

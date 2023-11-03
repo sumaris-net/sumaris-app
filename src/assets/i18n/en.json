@@ -535,7 +535,7 @@
   },
   "TRIP": {
     "TITLE": "Fishing trip",
-    "PROGRAM": "Data collection programme",
+    "PROGRAM": "Data collection program",
     "VESSEL_SNAPSHOT": "Vessel",
     "BTN_ADD_VESSEL": "Add a vessel",
     "DEPARTURE": "Departure:",
@@ -577,7 +577,7 @@
     "TABLE": {
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
-      "PROGRAM": "Programme",
+      "PROGRAM": "Program",
       "DEPARTURE_DATE_TIME": "Departure date",
       "DEPARTURE_LOCATION": "Departure harbour",
       "RETURN_DATE_TIME": "Return date",
