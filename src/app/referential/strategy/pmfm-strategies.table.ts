@@ -27,7 +27,7 @@ import { ReferentialRefService } from '../services/referential-ref.service';
 import { merge, Observable, of } from 'rxjs';
 import { PmfmService } from '../services/pmfm.service';
 import { Pmfm } from '../services/model/pmfm.model';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
 import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
@@ -460,7 +460,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return this.onStartEditingRow
       .pipe(
           // DEBUG
-          tap(row => console.debug('TODO Starting editing row', row.currentData)),
+          //tap(row => console.debug('DEV - Starting editing row', row.currentData)),
           debounceTime(200),
           mergeMap(row => {
             const control = row.validator?.get('pmfm');

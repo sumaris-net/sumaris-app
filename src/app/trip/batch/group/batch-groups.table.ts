@@ -717,7 +717,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         const detectedFormat = BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText, this.samplingRatioFormat);
         if (detectedFormat !== this.samplingRatioFormat) {
           // TODO adapt text if format change ?
-          console.warn('TODO: adapt samplingRatioText to new format=' + this.samplingRatioFormat);
+          console.warn('[batch-group-table] TODO: adapt samplingRatioText to new format=' + this.samplingRatioFormat);
         }
       }
 
@@ -1327,7 +1327,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (!environment.production) {
       const result2 = data && this.dataSource.getRows().find((r) => BatchGroup.equals(r.currentData, data));
       if (result !== result2) {
-        console.warn('TODO: findRowByEntity(). Nos same result, using static BatchGroup.equals() !', result, result2);
+        console.warn('[batch-group-table] TODO: findRowByEntity(). Not same result, using static BatchGroup.equals() !', result, result2);
       }
     }
 

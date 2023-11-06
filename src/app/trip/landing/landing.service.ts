@@ -377,6 +377,7 @@ export class LandingService
     sortBy =  (sortBy !== 'id' && sortBy) || 'dateTime';
     if (sortBy === 'vessel') {
       sortBy = 'vesselSnapshot.' + this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES)[0];
+
       // If fetching all rows: do NOT sort on pod
       if (size === -1) {
         afterSortBy = sortBy;
@@ -450,7 +451,7 @@ export class LandingService
 
           // Compute rankOrder, by tripId or observedLocationId
           if (!opts || opts.computeRankOrder !== false) {
-            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter as LandingFilter);
+            this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter as LandingFilter);
           }
 
           return {data: entities, total};
@@ -1419,8 +1420,8 @@ export class LandingService
                                     sortBy: string,
                                     sortDirection: string,
                                     filter?: LandingFilter) {
-
-    console.log('TODO filtering landings');
+    // DEBUG
+    console.debug('[landing-service] DEV - filtering landings - sortBy=' + sortBy);
 
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
@@ -1435,10 +1436,6 @@ export class LandingService
         data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
 
-      // Sort by vessel
-      if (sortBy === 'vessel') {
-        data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
-      }
     }
   }
 }

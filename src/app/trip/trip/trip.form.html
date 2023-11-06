@@ -130,7 +130,7 @@
 
     <!-- Observers -->
     <ng-container *ngIf="showObservers">
-      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OBSERVERS</ion-label>
         </ion-col>
@@ -151,6 +151,7 @@
           <button
             type="button"
             mat-icon-button
+            *ngIf="last"
             [tabindex]="tabindex + 10 + i * 3 + 1"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD' | translate"
@@ -174,7 +175,7 @@
 
     <!-- Metiers -->
     <ng-container *ngIf="showMetiers">
-      <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first">
+      <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first; last as last">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.METIERS</ion-label>
         </ion-col>
@@ -211,6 +212,7 @@
           <button
             type="button"
             mat-icon-button
+            *ngIf="last"
             [tabindex]="tabindex + 10 + i * 3 + 1"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD' | translate"

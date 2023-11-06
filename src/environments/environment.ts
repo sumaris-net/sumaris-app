@@ -138,7 +138,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   menu: {
     subMenu: {
-      enable: true
+      enable: false
     }
   }
 });

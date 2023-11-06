@@ -97,9 +97,9 @@
               <!-- landing form-->
               <app-landing-form
                 #landingForm
-                [programLabel]="$programLabel | async"
+                [programLabel]="programLabel$ | async"
                 [i18nSuffix]="i18nContext.suffix"
-                [requiredStrategy]="true"
+                [requiredStrategy]="!isNewData"
                 [showStrategy]="true"
                 [showMeasurements]="true"
                 [showError]="false"
@@ -138,7 +138,7 @@
                     <app-strategy-summary-card
                       #strategyCard
                       [editor]="this"
-                      [value]="$strategy | async"
+                      [value]="strategy$ | async"
                       [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE' | translateContext : i18nContext.suffix"
                       [calcifiedTypesDisplayed]="true"
                     >

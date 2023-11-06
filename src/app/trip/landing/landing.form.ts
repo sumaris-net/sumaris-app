@@ -26,6 +26,8 @@ import {
   isNotNilOrBlank,
   LoadResult,
   MatAutocompleteField,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig,
   NetworkService,
   Person,
   PersonService,
@@ -54,7 +56,6 @@ import { Trip } from '@app/trip/trip/trip.model';
 import { TripValidatorService } from '@app/trip/trip/trip.validator';
 import { Metier } from '@app/referential/metier/metier.model';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
-import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { DateAdapter } from '@angular/material/core';
 import { Moment } from 'moment/moment';
@@ -86,10 +87,9 @@ interface LandingFormState extends MeasurementValuesState {
   selector: 'app-landing-form',
   templateUrl: './landing.form.html',
   styleUrls: ['./landing.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState> implements OnInit {
-
   private _showObservers: boolean; // Disable by default
   private _parentSubscription: Subscription;
   private _strategySubscription: Subscription;
@@ -107,18 +107,16 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   observedLocationControl$ = this._state.select('observedLocationControl');
 
   autocompleteFilters = {
-    fishingArea: false
+    fishingArea: false,
   };
 
   get empty(): any {
     const value = this.value;
-    return ReferentialUtils.isEmpty(value.location)
-      && (!value.dateTime)
-      && (!value.comments || !value.comments.length);
+    return ReferentialUtils.isEmpty(value.location) && !value.dateTime && (!value.comments || !value.comments.length);
   }
 
   get valid(): boolean {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+    return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
   get observersForm(): UntypedFormArray {
@@ -181,13 +179,13 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
-    this.fishingAreaFields?.forEach(fishingArea => {
+    this.fishingAreaFields?.forEach((fishingArea) => {
       this.setFieldFilterEnable('fishingArea', value, fishingArea, true);
     });
   }
 
   @Input() set canEditStrategy(value: boolean) {
-    this._state.set('canEditStrategy', _ => value);
+    this._state.set('canEditStrategy', (_) => value);
   }
 
   get canEditStrategy(): boolean {
@@ -207,7 +205,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   @Input() set showParent(value: boolean) {
-    this._state.set('showParent', _ => value);
+    this._state.set('showParent', (_) => value);
   }
 
   get showParent(): boolean {
@@ -215,7 +213,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   @Input() set parentAcquisitionLevel(value: AcquisitionLevelType) {
-    this._state.set('parentAcquisitionLevel', _ => value);
+    this._state.set('parentAcquisitionLevel', (_) => value);
   }
 
   get parentAcquisitionLevel(): AcquisitionLevelType {
@@ -241,12 +239,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     protected tripValidatorService: TripValidatorService,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected networkService: NetworkService,
-    protected observedLocationService: ObservedLocationService,
     protected strategyService: StrategyService,
     protected dateAdapter: DateAdapter<Moment>
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
-      mapPmfms: pmfms => this.mapPmfms(pmfms)
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
 
     this._enable = false;
@@ -255,8 +252,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
-    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
-
+    this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
   }
 
   ngOnInit() {
@@ -275,15 +271,14 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       console.debug('[landing-form] Fishing area location level ids:', this.fishingAreaLocationLevelIds);
     }
 
-
     // Combo: programs
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
+        acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: strategy
@@ -291,30 +286,29 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       suggestFn: (value, filter) => this.suggestStrategy(value, filter),
       filter: {
         entityName: 'Strategy',
-        searchAttribute: 'label'
+        searchAttribute: 'label',
       },
       attributes: ['label'],
       columnSizes: [12],
       showAllOnFocus: true, // Show all value, when focus
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', opts)
-    );
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
 
     // Combo location
     this.registerAutocompleteField('location', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelIds: this.locationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this.locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: observers
@@ -325,11 +319,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: metier
@@ -340,40 +334,43 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       // Default filter. A excludedIds will be add dynamically
       filter: {
         entityName: 'Metier',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: metierAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: fishingAreas
     const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
     this.registerAutocompleteField('fishingAreaLocation', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
-        ...filter,
-        levelIds: this.fishingAreaLocationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.suggestFishingAreaLocations(value, {
+          ...filter,
+          levelIds: this.fishingAreaLocationLevelIds,
+        }),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: fishingAreaAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Propagate program
     this.registerSubscription(
-      this.form.get('program').valueChanges
-        .pipe(
+      this.form
+        .get('program')
+        .valueChanges.pipe(
           debounceTime(250),
-          map(value => (value && typeof value === 'string') ? value : (value && value.label || undefined))
+          map((value) => (value && typeof value === 'string' ? value : (value && value.label) || undefined))
         )
-        .subscribe(programLabel => this.programLabel = programLabel));
+        .subscribe((programLabel) => (this.programLabel = programLabel))
+    );
 
     // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
-    this._state.hold(this.programLabel$, programLabel => {
+    this._state.hold(this.programLabel$, (programLabel) => {
       if (this.autocompleteFields.strategy) {
         this.autocompleteFields.strategy.filter.levelLabel = programLabel;
       }
@@ -381,7 +378,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     this._state.hold(this.strategyLabel$, async (strategyLabel) => {
       // Wait loaded
-      await this.waitIdle({stop: this.destroySubject});
+      await this.waitIdle({ stop: this.destroySubject });
 
       // Get control to store strategy label, in measurements form
       const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
@@ -394,13 +391,13 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
       // Update strategy control
       if (this.showStrategy && this.strategyControl && this.strategyControl.value?.label !== strategyLabel) {
-        console.debug('[landing-form] Updating strategy control, with value', {label: strategyLabel});
-        this.strategyControl.setValue({label: strategyLabel}, {emitEvent: false});
+        console.debug('[landing-form] Updating strategy control, with value', { label: strategyLabel });
+        this.strategyControl.setValue({ label: strategyLabel }, { emitEvent: false });
         this.markForCheck();
       }
 
       // Refresh fishing areas autocomplete
-      this.fishingAreaFields?.forEach(fishingArea => fishingArea.reloadItems());
+      this.fishingAreaFields?.forEach((fishingArea) => fishingArea.reloadItems());
     });
 
     // Init trip form (if enable)
@@ -413,38 +410,47 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Add strategy control
     this._state.connect('strategyControl', this._state.select('showStrategy'), (_, show) => this.initStrategyControl(show));
 
-    this._state.hold(this._state.select('canEditStrategy'), canEditStrategy => {
+    this._state.hold(this._state.select('canEditStrategy'), (canEditStrategy) => {
       if (canEditStrategy && this.strategyControl?.disabled) {
         this.strategyControl.enable();
-      }
-      else if (!canEditStrategy && this.strategyControl?.enabled) {
+      } else if (!canEditStrategy && this.strategyControl?.enabled) {
         this.strategyControl.disable();
       }
     });
 
     // Add observed location control
-    this._state.connect('showObservedLocation', this._state.select(['showParent', 'parentAcquisitionLevel'], s => s),
-      ({showParent, parentAcquisitionLevel}) => showParent && parentAcquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION
+    this._state.connect(
+      'showObservedLocation',
+      this._state.select(['showParent', 'parentAcquisitionLevel'], (s) => s),
+      ({ showParent, parentAcquisitionLevel }) => showParent && parentAcquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION
     );
     this._state.connect('observedLocationControl', this._state.select('showObservedLocation'), (_, show) => this.initObservedLocationControl(show));
 
-    this._state.connect('observedLocationLabel', this.observedLocationChanges
-        .pipe(
-          filter(parent => !parent || parent instanceof ObservedLocation),
-          distinctUntilChanged(EntityUtils.equals)
+    this._state.connect(
+      'observedLocationLabel',
+      this.observedLocationChanges.pipe(
+        filter((parent) => !parent || parent instanceof ObservedLocation),
+        distinctUntilChanged(EntityUtils.equals)
       ),
-      (_, parent) => this.displayObservedLocation(parent as ObservedLocation));
+      (_, parent) => this.displayObservedLocation(parent as ObservedLocation)
+    );
 
-    this._state.hold(this.strategyControl$.pipe(
-      switchMap(control => control.valueChanges),
-      distinctUntilChanged(EntityUtils.equals)
-    ), (strategy) => this.strategyChanges.emit(strategy));
+    this._state.hold(
+      this.strategyControl$.pipe(
+        switchMap((control) => control.valueChanges),
+        distinctUntilChanged(EntityUtils.equals)
+      ),
+      (strategy) => this.strategyChanges.emit(strategy)
+    );
+  }
+
+  registerAutocompleteField<E = any, EF = any>(fieldName: string, opts?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
+    return super.registerAutocompleteField(fieldName, opts);
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
     this.setFieldFilterEnable(fieldName, !this.isFieldFilterEnable(fieldName), field);
   }
-
 
   protected onApplyingEntity(data: Landing, opts?: any) {
     super.onApplyingEntity(data, opts);
@@ -454,18 +460,21 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Propagate the strategy
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
     if (strategyLabel) {
-      this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+      this.strategyControl.patchValue(ReferentialRef.fromObject({ label: strategyLabel }));
     }
   }
 
-  protected async updateView(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }): Promise<void> {
+  protected async updateView(
+    data: Landing,
+    opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }
+  ): Promise<void> {
     if (!data) return;
 
     // Reapplied changed data
     if (this.isNewData && this.form.touched) {
       console.warn('[landing-form] Merging form value and input data, before updateing view');
       const json = this.form.value;
-      Object.keys(json).forEach(key => {
+      Object.keys(json).forEach((key) => {
         if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
       });
 
@@ -486,7 +495,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     }
 
     // Trip
-    let trip = (data.trip as Trip);
+    let trip = data.trip as Trip;
     this.showMetier = this.showMetier || isNotEmptyArray(trip?.metiers);
     this.showFishingArea = this.showFishingArea || isNotEmptyArray(trip?.fishingAreas);
     if (!trip && (this.showMetier || this.showFishingArea)) {
@@ -523,7 +532,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     await super.updateView(data, opts);
   }
 
-
   protected getValue(): Landing {
     // DEBUG
     //console.debug('[landing-form] get value');
@@ -534,7 +542,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Re add the strategy label
     if (this.showStrategy) {
       const strategyValue = this.strategyControl.value;
-      const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : strategyValue as string;
+      const strategyLabel = EntityUtils.isNotEmpty(strategyValue, 'label') ? strategyValue.label : (strategyValue as string);
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()] = strategyLabel;
     }
@@ -547,7 +555,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         vesselSnapshot: data.vesselSnapshot,
         returnDateTime: toDateISOString(data.dateTime),
         departureLocation: data.location,
-        returnLocation: data.location
+        returnLocation: data.location,
       });
       // INFO CLT : trip departure date time is stored in database for imagine
       trip.departureDateTime = trip.departureDateTime || data.dateTime;
@@ -581,36 +589,31 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     }
   }
 
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 
     // Leave program disable once data has been saved
     if (!this.isNewData && !this.form.get('program').enabled) {
-      this.form.controls['program'].disable({emitEvent: false});
+      this.form.controls['program'].disable({ emitEvent: false });
       this.markForCheck();
     }
 
     if (this.canEditStrategy && this.strategyControl?.disabled) {
       this.strategyControl.enable(opts);
-    }
-    else if (!this.canEditStrategy && this.strategyControl?.enabled) {
-      this.strategyControl.disable({emitEvent: false});
+    } else if (!this.canEditStrategy && this.strategyControl?.enabled) {
+      this.strategyControl.disable({ emitEvent: false });
     }
   }
 
   async addVesselModal(): Promise<any> {
     const modal = await this.modalCtrl.create({ component: VesselModal });
-    modal.onDidDismiss().then(res => {
+    modal.onDidDismiss().then((res) => {
       // if new vessel added, use it
-      if (res &&  res.data instanceof VesselSnapshot) {
+      if (res && res.data instanceof VesselSnapshot) {
         console.debug('[landing-form] New vessel added : updating form...', res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
-      }
-      else {
+      } else {
         console.debug('[landing-form] No vessel added (user cancelled)');
       }
     });
@@ -633,20 +636,18 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
     // Avoid to reload, when value is already a valid strategy
-    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     filter = {
       ...filter,
-      levelLabel: this.programLabel
+      levelLabel: this.programLabel,
     };
     if (isNilOrBlank(filter.levelLabel)) return undefined; // Program no loaded yet
 
     // Force network, if possible - fix IMAGINE 302
-    const fetchPolicy = this.networkService.online && 'network-only' || undefined /*default*/;
+    const fetchPolicy = (this.networkService.online && 'network-only') || undefined; /*default*/
 
-    return this.referentialRefService.suggest(value, filter, undefined, undefined,
-      { fetchPolicy }
-    );
+    return this.referentialRefService.suggest(value, filter, undefined, undefined, { fetchPolicy });
   }
 
   protected async openSelectObservedLocationModal(event?: Event) {
@@ -655,7 +656,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     if (!control || control.disabled) return;
 
     try {
-      control.disable({emitEvent: false});
+      control.disable({ emitEvent: false });
 
       const program = await this.programRefService.loadByLabel(this.programLabel);
       const defaultData = ObservedLocation.fromObject({
@@ -667,9 +668,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
       if (this.showStrategy) {
         const strategy = this.strategyControl.value;
-        const period = strategy && await this.strategyService.getDateRangeByLabel(this.strategyControl.value.label);
-        filter.startDate = strategy && period.startDate || DateUtils.moment().startOf('year');
-        filter.endDate = strategy && period.endDate || DateUtils.moment().endOf('year');
+        const period = strategy && (await this.strategyService.getDateRangeByLabel(this.strategyControl.value.label));
+        filter.startDate = (strategy && period.startDate) || DateUtils.moment().startOf('year');
+        filter.endDate = (strategy && period.endDate) || DateUtils.moment().endOf('year');
       }
 
       const modal = await this.modalCtrl.create({
@@ -684,10 +685,10 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         },
         keyboardClose: true,
         backdropDismiss: true,
-        cssClass: 'modal-large'
+        cssClass: 'modal-large',
       });
       await modal.present();
-      const {data} = await modal.onDidDismiss();
+      const { data } = await modal.onDidDismiss();
 
       const value = data?.[0];
       if (!value) return; // User cancelled
@@ -695,8 +696,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       console.debug('[landing-form] Selected observed location: ', value);
       control.setValue(value);
       this.form.markAllAsTouched();
-    }
-    finally {
+    } finally {
       control.enable();
     }
   }
@@ -708,27 +708,27 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.observersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(person => !currentControlValue || currentControlValue !== person)
-      .map(person => parseInt(person.id));
+      .filter((person) => !currentControlValue || currentControlValue !== person)
+      .map((person) => parseInt(person.id));
 
     return this.personService.suggest(newValue, {
       ...filter,
-      excludedIds
+      excludedIds,
     });
   }
 
-  protected suggestMetiers(value: any, filter?: any):  Promise<LoadResult<ReferentialRef>> {
+  protected suggestMetiers(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
 
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.metiersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(item => !currentControlValue || currentControlValue !== item)
-      .map(item => parseInt(item.id));
+      .filter((item) => !currentControlValue || currentControlValue !== item)
+      .map((item) => parseInt(item.id));
 
     return this.referentialRefService.suggest(value, {
       ...filter,
-      excludedIds
+      excludedIds,
     });
   }
 
@@ -736,20 +736,20 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     // Excluded existing locations, BUT keep the current control value
     const excludedIds = (this.fishingAreasForm.value || [])
-      .map(fa => fa.location)
+      .map((fa) => fa.location)
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(item => !currentControlValue || currentControlValue !== item)
-      .map(item => parseInt(item.id));
+      .filter((item) => !currentControlValue || currentControlValue !== item)
+      .map((item) => parseInt(item.id));
 
     if (this.autocompleteFilters.fishingArea && isNotNil(this.filteredFishingAreaLocations)) {
       return suggestFromArray(this.filteredFishingAreaLocations, value, {
         ...filter,
-        excludedIds
+        excludedIds,
       });
     } else {
       return this.referentialRefService.suggest(value, {
         ...filter,
-        excludedIds
+        excludedIds,
       });
     }
   }
@@ -778,8 +778,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       if (this.observersHelper.size() === 0) {
         this.observersHelper.resize(1);
       }
-    }
-    else if (this.observersHelper.size() > 0) {
+    } else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
   }
@@ -796,16 +795,15 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         withSale: false,
         withObservers: false,
         withMeasurements: false,
-        departureDateTimeRequired: false
+        departureDateTimeRequired: false,
       });
 
       // Excluded some trip's fields
-      TRIP_FORM_EXCLUDED_FIELD_NAMES
-        .filter(key => {
-          if (!this.showTripDepartureDateTime || key !== 'departureDateTime') {
-            delete tripFormConfig[key];
-          }
-        });
+      TRIP_FORM_EXCLUDED_FIELD_NAMES.filter((key) => {
+        if (!this.showTripDepartureDateTime || key !== 'departureDateTime') {
+          delete tripFormConfig[key];
+        }
+      });
 
       tripForm = this.formBuilder.group(tripFormConfig);
 
@@ -820,17 +818,17 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       let control = this.strategyControl;
       if (!control) {
         const strategyLabel = this.strategyLabel;
-        control = this.formBuilder.control(strategyLabel && {label: strategyLabel} || null, Validators.required);
-        this.form.setControl('strategy',  control);
+        control = this.formBuilder.control((strategyLabel && { label: strategyLabel }) || null, Validators.required);
+        this.form.setControl('strategy', control);
 
         // Propagate strategy changes
         const subscription = control.valueChanges
-            .pipe(
-              filter(value => EntityUtils.isNotEmpty(value, 'label')),
-              map(value => value.label),
-              distinctUntilChanged()
-            )
-            .subscribe(value => this.strategyLabel = value);
+          .pipe(
+            filter((value) => EntityUtils.isNotEmpty(value, 'label')),
+            map((value) => value.label),
+            distinctUntilChanged()
+          )
+          .subscribe((value) => (this.strategyLabel = value));
         subscription.add(() => {
           this.unregisterSubscription(subscription);
           this._strategySubscription = null;
@@ -839,8 +837,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         this._strategySubscription = subscription;
       }
       return control;
-    }
-    else {
+    } else {
       this._strategySubscription?.unsubscribe();
       this.form.removeControl('strategy');
       return null;
@@ -851,13 +848,12 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     if (showObservedLocation) {
       let control = this.observedLocationControl;
       if (!control) {
-
         // Create control
         control = this.formBuilder.control(this.data?.observedLocation || null, [Validators.required, SharedValidators.entity]);
         this.form.addControl('observedLocation', control);
 
         // Subscribe to changes, and redirect it to the parent event emitter
-        const subscription = control.valueChanges.subscribe(ol => this.observedLocationChanges.emit(ol));
+        const subscription = control.valueChanges.subscribe((ol) => this.observedLocationChanges.emit(ol));
         subscription.add(() => {
           this.unregisterSubscription(subscription);
           this._parentSubscription = null;
@@ -866,8 +862,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         this._parentSubscription = subscription;
       }
       return control;
-    }
-    else {
+    } else {
       this._parentSubscription?.unsubscribe();
       this.form.removeControl('observedLocation');
       return null;
@@ -875,7 +870,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   protected initMetiersHelper(form: UntypedFormGroup) {
-
     if (!this.metiersHelper) {
       this.metiersHelper = new FormArrayHelper<FishingArea>(
         FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'metiers'),
@@ -884,16 +878,14 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         ReferentialUtils.isEmpty,
         { allowEmptyArray: !this.showMetier }
       );
-    }
-    else {
+    } else {
       this.metiersHelper.allowEmptyArray = !this.showMetier;
     }
     if (this.showMetier) {
       if (this.metiersHelper.size() === 0) {
         this.metiersHelper.resize(1);
       }
-    }
-    else if (this.metiersHelper.size() > 0) {
+    } else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);
     }
   }
@@ -902,12 +894,12 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     if (!this.fishingAreasHelper) {
       this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
         FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
-        (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
-        (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+        (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, { required: true }),
+        (o1, o2) => (isNil(o1) && isNil(o2)) || (o1 && o1.equals(o2)),
         (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
-      { allowEmptyArray: !this.showFishingArea});
-    }
-    else {
+        { allowEmptyArray: !this.showFishingArea }
+      );
+    } else {
       this.fishingAreasHelper.allowEmptyArray = !this.showFishingArea;
     }
     if (this.showFishingArea) {
@@ -923,21 +915,19 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
    * Make sure a pmfmStrategy exists to store the Strategy.label
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
-
     if (this.debug) console.debug(`${this._logPrefix} calling mapPmfms()`);
 
     // Create the missing Pmfm, to hold strategy (if need)
     if (this.showStrategy) {
-      const existingIndex = (pmfms || []).findIndex(pmfm => pmfm.id === PmfmIds.STRATEGY_LABEL);
+      const existingIndex = (pmfms || []).findIndex((pmfm) => pmfm.id === PmfmIds.STRATEGY_LABEL);
       let strategyPmfm: IPmfm;
       if (existingIndex !== -1) {
         // Remove existing, then copy it (to leave original unchanged)
         strategyPmfm = pmfms.splice(existingIndex, 1)[0].clone();
-      }
-      else {
+      } else {
         strategyPmfm = DenormalizedPmfmStrategy.fromObject({
           id: PmfmIds.STRATEGY_LABEL,
-          type: 'string'
+          type: 'string',
         });
       }
 
@@ -961,8 +951,8 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     const locationAttributes = this.settings.getFieldDisplayAttributes('location');
     const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
-
-    return locationAttributes.map(attr => getPropertyByPath(ol, `location.${attr}`))
+    return locationAttributes
+      .map((attr) => getPropertyByPath(ol, `location.${attr}`))
       .concat([this.dateAdapter.format(ol.startDateTime, dateTimePattern)])
       .filter(isNotNilOrBlank)
       .join(' - ');

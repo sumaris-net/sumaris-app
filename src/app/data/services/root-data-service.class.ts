@@ -18,7 +18,7 @@ import {
   isNil,
   isNotNil,
   Person,
-  PlatformService
+  PlatformService,
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions } from './data-quality-service.class';
 import { RootDataEntity, RootDataEntityUtils } from './model/root-data-entity.model';
@@ -30,7 +30,6 @@ import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Observable, of } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 
-
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
   terminate?: any;
   validate?: any;
@@ -41,47 +40,37 @@ export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutatio
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class BaseRootDataService<
-  T extends RootDataEntity<T, ID>,
-  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
-  ID = number,
-  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
-  Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
-  M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
-  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
-  CO extends IProgressionOptions = IProgressionOptions,
-  TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
-  VO extends IRootDataValidateOptions = IRootDataValidateOptions
->
+    T extends RootDataEntity<T, ID>,
+    F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+    ID = number,
+    WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+    LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+    Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
+    M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
+    S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
+    CO extends IProgressionOptions = IProgressionOptions,
+    TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
+    VO extends IRootDataValidateOptions = IRootDataValidateOptions
+  >
   extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
-  implements IDataEntityQualityService<T, ID> {
-
+  implements IDataEntityQualityService<T, ID>
+{
   protected accountService: AccountService;
   protected programRefService: ProgramRefService;
 
-  protected constructor(
-    injector: Injector,
-    dataType: new() => T,
-    filterType: new() => F,
-    options: BaseEntityServiceOptions<T, ID, Q, M, S>
-  ) {
-    super(
-      injector.get(GraphqlService),
-      injector.get(PlatformService),
-      dataType,
-      filterType,
-      options);
+  protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, options: BaseEntityServiceOptions<T, ID, Q, M, S>) {
+    super(injector.get(GraphqlService), injector.get(PlatformService), dataType, filterType, options);
 
-    this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
-    this.programRefService = this.programRefService || injector && injector.get(ProgramRefService) || undefined;
+    this.accountService = this.accountService || (injector && injector.get(AccountService)) || undefined;
+    this.programRefService = this.programRefService || (injector && injector.get(ProgramRefService)) || undefined;
   }
 
-  canUserWrite(entity: T, opts?: any): boolean {
-    return EntityUtils.isLocal(entity) // For performance, always give write access to local data
-      || this.accountService.isAdmin()
-      || (this.programRefService.canUserWriteEntity(entity, opts)
-        && (isNil(entity.validationDate) || this.accountService.isSupervisor())
-      );
+  canUserWrite(entity: T, opts?: { program?: Program }): boolean {
+    return (
+      EntityUtils.isLocal(entity) || // For performance, always give write access to local data
+      this.accountService.isAdmin() ||
+      (this.programRefService.canUserWriteEntity(entity, opts) && (isNil(entity.validationDate) || this.accountService.isSupervisor()))
+    );
   }
 
   listenChanges(id: ID, opts?: EntityServiceListenChangesOptions): Observable<T> {
@@ -89,7 +78,7 @@ export abstract class BaseRootDataService<
     return super.listenChanges(id, opts);
   }
 
-  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails|FormErrors>;
+  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails | FormErrors>;
 
   async terminate(entity: T, opts?: TO): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');
@@ -113,18 +102,17 @@ export abstract class BaseRootDataService<
       mutation: this.mutations.terminate,
       variables: {
         data: json,
-        options: opts?.withChildren ? {withChildren: true} : undefined
+        options: opts?.withChildren ? { withChildren: true } : undefined,
       },
       error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: 'ERROR.TERMINATE_ENTITY_ERROR' },
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
-      }
+      },
     });
 
     return entity;
   }
-
 
   /**
    * Validate an root entity
@@ -159,15 +147,15 @@ export abstract class BaseRootDataService<
       mutation: this.mutations.validate,
       variables: {
         data: json,
-        options: opts?.withChildren ? {withChildren: true} : undefined,
+        options: opts?.withChildren ? { withChildren: true } : undefined,
       },
       error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: 'ERROR.VALIDATE_ENTITY_ERROR' },
-      update: (cache, {data}) => {
+      update: (cache, { data }) => {
         this.copyIdAndUpdateDate(data && data.data, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
 
-        this.refetchMutableWatchQueries({queries: this.getLoadQueries()});
-      }
+        this.refetchMutableWatchQueries({ queries: this.getLoadQueries() });
+      },
     });
 
     return entity;
@@ -195,14 +183,14 @@ export abstract class BaseRootDataService<
       mutation: this.mutations.unvalidate,
       variables: {
         data: json,
-        options: opts?.withChildren ? {withChildren: true} : undefined,
+        options: opts?.withChildren ? { withChildren: true } : undefined,
       },
       context: {
         // TODO serializationKey:
-        tracked: true
+        tracked: true,
       },
       error: { code: DataErrorCodes.UNVALIDATE_ENTITY_ERROR, message: 'ERROR.UNVALIDATE_ENTITY_ERROR' },
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         const savedEntity = data && data.data;
         if (savedEntity) {
           if (savedEntity !== entity) {
@@ -212,8 +200,8 @@ export abstract class BaseRootDataService<
           if (this._debug) console.debug(this._logPrefix + `Entity unvalidated in ${Date.now() - now}ms`, entity);
         }
 
-        this.refetchMutableWatchQueries({queries: this.getLoadQueries()});
-      }
+        this.refetchMutableWatchQueries({ queries: this.getLoadQueries() });
+      },
     });
 
     return entity;
@@ -240,16 +228,16 @@ export abstract class BaseRootDataService<
     await this.graphql.mutate<{ data: T }>({
       mutation: this.mutations.qualify,
       variables: {
-        data: json
+        data: json,
       },
       error: { code: DataErrorCodes.QUALIFY_ENTITY_ERROR, message: 'ERROR.QUALIFY_ENTITY_ERROR' },
-      update: (cache, {data}) => {
+      update: (cache, { data }) => {
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
         RootDataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
         if (this._debug) console.debug(this._logPrefix + `Entity qualified in ${Date.now() - now}ms`, entity);
-      }
+      },
     });
 
     return entity;
@@ -262,7 +250,6 @@ export abstract class BaseRootDataService<
 
     // Copy control and validation date
     RootDataEntityUtils.copyControlAndValidationDate(source, target);
-
   }
 
   /* -- protected methods -- */
@@ -272,16 +259,17 @@ export abstract class BaseRootDataService<
     const copy = entity.asObject(opts);
 
     if (opts && opts.minify) {
-
       // Comment because need to keep recorder person
-      copy.recorderPerson = entity.recorderPerson && <Person>{
-        id: entity.recorderPerson.id,
-        firstName: entity.recorderPerson.firstName,
-        lastName: entity.recorderPerson.lastName
-      };
+      copy.recorderPerson =
+        entity.recorderPerson &&
+        <Person>{
+          id: entity.recorderPerson.id,
+          firstName: entity.recorderPerson.firstName,
+          lastName: entity.recorderPerson.lastName,
+        };
 
       // Keep id only, on department
-      copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+      copy.recorderDepartment = (entity.recorderDepartment && { id: entity.recorderDepartment && entity.recorderDepartment.id }) || undefined;
     }
 
     return copy;
@@ -291,7 +279,6 @@ export abstract class BaseRootDataService<
     // If new entity
     const isNew = isNil(entity.id);
     if (isNew) {
-
       const person = this.accountService.person;
 
       // Recorder department
@@ -307,14 +294,13 @@ export abstract class BaseRootDataService<
   }
 
   protected fillRecorderDepartment(entities: IWithRecorderDepartmentEntity<any> | IWithRecorderDepartmentEntity<any>[], department?: Department) {
-
     if (isNil(entities)) return;
     if (!Array.isArray(entities)) {
       entities = [entities];
     }
     department = department || this.accountService.department;
 
-    entities.forEach(entity => {
+    entities.forEach((entity) => {
       if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
         // Recorder department
         if (department) {
@@ -332,7 +318,7 @@ export abstract class BaseRootDataService<
     return this.fillProgramOptions(entity, opts);
   }
 
-  protected async fillProgramOptions<O extends {program?: Program}>(entity: T, opts?: O): Promise<O> {
+  protected async fillProgramOptions<O extends { program?: Program }>(entity: T, opts?: O): Promise<O> {
     opts = opts || <O>{};
 
     // Load program (need only properties)
@@ -344,7 +330,6 @@ export abstract class BaseRootDataService<
     return opts;
   }
 
-
   protected resetQualityProperties(entity: T) {
     entity.controlDate = undefined;
     entity.validationDate = undefined;
@@ -352,6 +337,4 @@ export abstract class BaseRootDataService<
     entity.qualityFlagId = undefined;
     // Do not reset qualification comments, because used to hold control errors
   }
-
-
 }

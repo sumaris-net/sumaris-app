@@ -28,7 +28,7 @@ import {
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { LandingService } from './landing.service';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
@@ -73,7 +73,7 @@ export class LandingEditorOptions extends AppEditorOptions {}
     }
   ]
 })
-export class LandingPage extends AppRootDataEditor<Landing, LandingService> implements OnInit, AfterViewInit {
+export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService> implements OnInit, AfterViewInit {
 
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
@@ -152,9 +152,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       this.landingForm.strategyLabel$
         .pipe(
-          filter(value => this.$strategyLabel.value !== value),
+          filter(value => this.strategyLabel !== value),
           tap(strategyLabel => console.debug('[landing-page] Received strategy label: ', strategyLabel)),
-          tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
+          tap(strategyLabel => this.strategyLabel = strategyLabel)
         )
         .subscribe());
 
@@ -275,7 +275,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  async openReport(event?: Event) {
+  async openReport(event: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -293,7 +293,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     const queryParams = this.route.snapshot.queryParams;
 
     // DEBUG
-    console.debug(' Creating new landing entity');
+    //console.debug('DEV - Creating new landing entity');
 
     if (this.isOnFieldMode) {
       data.dateTime = moment();
@@ -331,8 +331,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
 
     // Emit program, strategy
-    if (programLabel) this.$programLabel.next(programLabel);
-    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
+    if (programLabel) this.programLabel = programLabel;
+    if (strategyLabel) this.strategyLabel = strategyLabel;
 
   }
 
@@ -378,8 +378,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
-    if (programLabel) this.$programLabel.next(programLabel);
-    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
+    if (programLabel) this.programLabel = programLabel;
+    if (strategyLabel) this.strategyLabel = strategyLabel;
   }
 
   protected async onParentChanged(parent: Trip|ObservedLocation) {
@@ -484,15 +484,16 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (!program) return; // Skip
     console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
+    const isNewData = this.isNewData;
 
     // Customize the UI, using program options
     const enableStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.requiredStrategy = enableStrategy;
     this.landingForm.showStrategy = enableStrategy;
+    this.landingForm.requiredStrategy = !isNewData && enableStrategy;
+    this.landingForm.canEditStrategy = isNewData && enableStrategy;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
@@ -503,6 +504,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : (this.i18nContext?.suffix || '');
     this.i18nContext.suffix = i18nSuffix;
     this.landingForm.i18nSuffix = i18nSuffix;
+
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
 
     if (this.samplesTable) {
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
@@ -526,13 +529,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (!enableStrategy) {
-      this.markAsReady();
-    }
-    // Strategy is enabled: special case for new data
-    else if (this.isNewData) {
-      this.landingForm.requiredStrategy = false;
-      this.landingForm.canEditStrategy = true;
+    if (!enableStrategy || isNewData) {
       this.markAsReady();
     }
 
@@ -546,7 +543,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean }) {
     await super.setStrategy(strategy);
 
-    const program = this.$program.value;
+    const program = this.program;
     if (!strategy || !program) return; // Skip if empty
 
     // Propagate to form
@@ -655,7 +652,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async computeTitle(data: Landing): Promise<string> {
 
-    const program = await firstNotNilPromise(this.$program, {stop: this.destroySubject});
+    const program = await firstNotNilPromise(this.program$, {stop: this.destroySubject});
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
@@ -701,7 +698,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
-    const strategyLabel = this.$strategyLabel.value;
+    const strategyLabel = this.strategyLabel;
     if (isNotNilOrBlank(strategyLabel)) {
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
     }

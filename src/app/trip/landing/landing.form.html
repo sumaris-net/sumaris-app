@@ -239,7 +239,7 @@
       </ion-row>
 
       <!-- Fishing areas -->
-      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first">
+      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
         </ion-col>
@@ -276,10 +276,11 @@
           <button
             type="button"
             mat-icon-button
+            *ngIf="last"
             [tabindex]="tabindex + 30 + i * 3 + 1"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD' | translate"
-            (click)="this.fishingAreasHelper.resize(this.fishingAreasHelper.size() + 1)"
+            (click)="this.addFishingArea()"
           >
             <mat-icon>add</mat-icon>
           </button>
@@ -298,7 +299,7 @@
 
       <!-- Observers -->
       <ng-container *ngIf="showObservers">
-        <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first">
+        <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
           <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
             <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
           </ion-col>
@@ -319,6 +320,7 @@
             <button
               type="button"
               mat-icon-button
+              *ngIf="last"
               [tabindex]="tabindex + 10 + i * 3 + 1"
               [disabled]="disabled"
               [title]="'COMMON.BTN_ADD' | translate"
