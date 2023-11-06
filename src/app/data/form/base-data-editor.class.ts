@@ -1,6 +1,6 @@
-import { Directive, EventEmitter, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import { combineLatestWith, merge, Subscription } from 'rxjs';
+import { combineLatestWith, merge, Subject, Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -45,8 +45,8 @@ export abstract class AppBaseDataEntityEditor<
   implements OnInit, OnDestroy
 {
   protected readonly _state: RxState<ST> = new RxState<ST>();
-  protected readonly _onReloadProgram = new EventEmitter<void>();
-  protected readonly _onStrategyReload = new EventEmitter<void>();
+  protected readonly _onReloadProgram = new Subject<void>();
+  protected readonly _onStrategyReload = new Subject<void>();
 
   protected readonly mobile: boolean;
 
