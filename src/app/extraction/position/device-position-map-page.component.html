@@ -1,15 +1,27 @@
 <app-toolbar [title]="i18nPrefix + title | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
-    <!-- reset filter -->
-    <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-      <mat-icon color="accent">filter_list_alt</mat-icon>
-      <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+
+    <!-- Download -->
+    <button
+      mat-icon-button
+      [title]="'COMMON.BTN_DOWNLOAD_DOTS'|translate"
+      [matMenuTriggerFor]="downloadMenu"
+    >
+      <mat-icon>download</mat-icon>
     </button>
 
     <!-- Refresh -->
     <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
+
+
+    <!-- reset filter -->
+    <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
+      <mat-icon color="accent">filter_list_alt</mat-icon>
+      <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+    </button>
+
 
     <!-- show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
@@ -28,6 +40,22 @@
     </button>
   </ion-buttons>
 </app-toolbar>
+
+
+<!-- Download menu -->
+<mat-menu #downloadMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <!-- CSV -->
+    <button mat-menu-item [disabled]="loading" (click)="download($event, 'csv', downloadPopover)">
+      <ion-label translate>COMMON.BTN_DOWNLOAD_CSV</ion-label>
+    </button>
+
+    <!-- GeoJSON -->
+    <button mat-menu-item [disabled]="loading" (click)="download($event, 'geojson', downloadPopover)">
+      <ion-label translate>COMMON.BTN_DOWNLOAD_GEOJSON</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
 
 <ion-content class="ion-no-padding" scroll-y="false">
   <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.filter-panel-floating]="filterPanelFloating">
@@ -126,13 +154,13 @@
     <mat-expansion-panel-header>
       <mat-panel-title>
         <ion-text color="primary">
-          {{ 'DEVICE_POSITION.MAP.TABLE.TITLE' | translate }}
+          <b>{{ 'DEVICE_POSITION.MAP.TABLE.TITLE' | translate }}</b>
+
           <span *ngIf="total <= visibleTotal; else warning">({{ total }})</span>
           <ng-template #warning>
-            <ion-text color="danger" *ngIf="!loading">
-              <ion-icon name="alert-circle"></ion-icon>
-              {{ 'DEVICE_POSITION.MAP.TABLE.LIMIT_TO' | translate : { total: total, visibleTotal: visibleTotal } }}
-            </ion-text>
+            <i style="color: var(--ion-color-medium, gray)" *ngIf="!loading">
+              ({{ 'DEVICE_POSITION.MAP.TABLE.LIMIT_TO' | translate : { total: total, visibleTotal: visibleTotal } }})
+            </i>
           </ng-template>
         </ion-text>
       </mat-panel-title>
@@ -146,23 +174,29 @@
         <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
         <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
       </ion-row>
-      <ng-container *rxFor="let feature of features$">
+
+      <ng-container *rxIf="loading$; else rows">
+        <ion-row>
+          <ion-col size="12">
+            <ion-skeleton-text animated></ion-skeleton-text>
+          </ion-col>
+        </ion-row>
+      </ng-container>
+
+      <ng-template #rows>
         <ion-row
+          *rxFor="let feature of features$"
           #tableRows
           class="mat-row"
           [class.mat-row-selected]="selection.isSelected(feature)"
           (click)="onRowClick($event, feature)"
         >
           <ion-col class="mat-cell mat-column-dateTime">
-            {{ feature.properties.dateTime | dateFormat : { time: true } }}
-            <ion-text color="medium">
-              <ion-icon name="time-outline"></ion-icon>
-              {{ feature.properties.dateTime | dateFromNow }}
-            </ion-text>
+            {{ feature.properties.dateTime }}
           </ion-col>
           <ion-col class="mat-cell" size="2">{{ feature.properties.latitude | numberFormat }}</ion-col>
           <ion-col class="mat-cell" size="2">{{ feature.properties.longitude | numberFormat }}</ion-col>
-          <ion-col class="mat-cell">{{ feature.properties.recorderPerson | personToString }}</ion-col>
+          <ion-col class="mat-cell">{{ feature.properties.recorderPerson }}</ion-col>
           <ion-col class="mat-cell ion-no-padding ion-padding-horizontal">
             <ion-button
               class="text-button"
@@ -172,11 +206,31 @@
               (click)="onOpenDataClick($event, feature.properties)"
               [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA' | translate"
             >
-              {{ feature.properties.objectTypeName }} #{{ feature.properties.objectId }}
+              {{ feature.properties.objectTypeName }} #{{ feature.properties.objectId}}
             </ion-button>
           </ion-col>
         </ion-row>
-      </ng-container>
+      </ng-template>
+
     </ion-grid>
+
+
+    <ion-footer>
+      <mat-paginator #paginator
+                     class="mat-paginator-footer"
+                     [length]="total"
+                     [pageSize]="defaultPageSize"
+                     [pageSizeOptions]="defaultPageSizeOptions"
+                     showFirstLastButtons
+      ></mat-paginator>
+    </ion-footer>
   </mat-expansion-panel>
 </ion-content>
+
+<ion-popover #downloadPopover>
+  <ng-template>
+    <ion-content class="ion-padding-horizontal">
+      <app-progress-bar [progression]="downloadProgression$|async"></app-progress-bar>
+    </ion-content>
+  </ng-template>
+</ion-popover>

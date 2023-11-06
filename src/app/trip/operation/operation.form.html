@@ -496,7 +496,7 @@
 
     <!-- Fishing areas -->
     <ng-container *ngIf="showFishingArea">
-      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first">
+      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
         <ion-col size="0" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" hidden-xs hidden-sm *ngIf="first" translate>
             TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS
@@ -536,6 +536,7 @@
           <button
             type="button"
             mat-icon-button
+            *ngIf="last"
             [tabindex]="tabindex + 30 + i * 3 + 1"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD' | translate"
@@ -560,8 +561,9 @@
     <ng-content></ng-content>
 
     <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="toggleComment()" tappable>
-      <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
-      <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+      <ion-toggle [checked]="showComment" [disabled]="disabled" labelPlacement="end" justify="start">
+        <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+      </ion-toggle>
     </ion-item>
 
     <!-- Comments -->

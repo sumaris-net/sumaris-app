@@ -359,7 +359,7 @@ export abstract class MeasurementValuesForm<
 
     // If a program has been filled, always keep it
     const program = this.programControl?.value;
-    if (program?.label) {
+    if (data && program?.label) {
       data.program = program;
     }
 

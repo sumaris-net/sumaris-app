@@ -79,7 +79,7 @@
               <!-- landing form-->
               <app-landing-form
                 #landingForm
-                [programLabel]="$programLabel | async"
+                [programLabel]="programLabel$ | async"
                 [i18nSuffix]="i18nContext.suffix"
                 [showError]="false"
                 [showParent]="showParent"

@@ -121,7 +121,7 @@
                         entityName="VesselUseMeasurement"
                         [forceOptional]="usageMode | isOnField"
                         [acquisitionLevel]="acquisitionLevel"
-                        [programLabel]="$programLabel | async"
+                        [programLabel]="programLabel$ | async"
                         [tabindex]="30"
                         [mobile]="mobile"
                       ></app-form-measurements>
@@ -157,7 +157,7 @@
 
       <app-operation-group-table
         #operationGroupTable
-        [programLabel]="$programLabel | async"
+        [programLabel]="programLabel$ | async"
         acquisitionLevel="OPERATION"
         [metiers]="$metiers.asObservable()"
         [showToolbar]="!mobile"
@@ -189,7 +189,7 @@
                   floatLabel="never"
                   [clearable]="true"
                   [placeholder]="'COMMON.EMPTY_OPTION' | translate"
-                  [config]="autocompleteFields.operationGroupFilter"
+                  [config]="tripForm.autocompleteFields.operationGroupFilter"
                   formControlName="operationGroup"
                 >
                   <ion-icon matPrefix name="locate"></ion-icon>
@@ -225,7 +225,7 @@
             <app-products-table
               #productsTable
               [debug]="debug"
-              [programLabel]="$programLabel | async"
+              [programLabel]="programLabel$ | async"
               acquisitionLevel="PRODUCT"
               [$parents]="$operationGroups"
               [parentFilter]="$productFilter | async"
@@ -260,7 +260,7 @@
             <app-packets-table
               #packetsTable
               [debug]="debug"
-              [program]="$programLabel | async"
+              [program]="programLabel$ | async"
               [$parents]="$operationGroups"
               [parentFilter]="$packetFilter | async"
               [parentAttributes]="operationGroupAttributes"
@@ -287,7 +287,7 @@
 
       <app-expected-sale-form
         #expectedSaleForm
-        [programLabel]="$programLabel | async"
+        [programLabel]="programLabel$ | async"
         [showError]="true"
         [mobile]="mobile"
       ></app-expected-sale-form>
@@ -304,7 +304,7 @@
       <app-expense-form
         #expenseForm
         entityName="VesselUseMeasurement"
-        [programLabel]="$programLabel | async"
+        [programLabel]="programLabel$ | async"
         acquisitionLevel="EXPENSE"
         [forceOptional]="usageMode | isOnField"
         [showError]="true"

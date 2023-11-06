@@ -85,7 +85,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     this.samplesTable.inlineEdition = !this.mobile;
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
-    this.registerAutocompleteField('taxonGroup', {
+    this.landingForm.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
       columnSizes: taxonGroupAttributes.map((attr) => (attr === 'label' ? 3 : undefined)),
       mobile: this.mobile,
@@ -97,7 +97,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
 
     // Get program taxon groups
     this.registerSubscription(
-      this.$programLabel
+      this.programLabel$
         .pipe(
           filter(isNotNil),
           mergeMap((programLabel) => this.programRefService.loadTaxonGroups(programLabel))
@@ -179,7 +179,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
           filter(isNotNil),
           distinctUntilChanged((tg1, tg2) => EntityUtils.equals(tg1, tg2, 'id')),
           mergeMap((taxonGroup) =>
-            this.programRefService.watchProgramPmfms(this.$programLabel.value, {
+            this.programRefService.watchProgramPmfms(this.programLabel, {
               acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
               taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined),
             })
@@ -325,7 +325,6 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         } else {
           return 'success';
         }
-        break;
 
       case PmfmIds.INDIVIDUALS_DENSITY_PER_KG:
         const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;

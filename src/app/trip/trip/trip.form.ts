@@ -29,6 +29,8 @@ import {
   isNotNilOrBlank,
   LoadResult,
   MatAutocompleteField,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig,
   NetworkService,
   OnReady,
   Person,
@@ -65,10 +67,9 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   selector: 'app-form-trip',
   templateUrl: './trip.form.html',
   styleUrls: ['./trip.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
-
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
@@ -127,7 +128,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       // Update fields
       if (this.autocompleteFields.location) {
         this.autocompleteFields.location.suggestLengthThreshold = value;
-        this.locationFields.forEach(field => {
+        this.locationFields.forEach((field) => {
           field.suggestLengthThreshold = value;
           field.reloadItems();
         });
@@ -135,12 +136,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
   }
 
-  @Input() set returnFieldsRequired(value: boolean){
+  @Input() set returnFieldsRequired(value: boolean) {
     if (this._returnFieldsRequired !== value) {
       this._returnFieldsRequired = value;
       if (!this.loading) this.updateFormGroup();
     }
-  };
+  }
 
   get returnFieldsRequired(): boolean {
     return this._returnFieldsRequired;
@@ -192,7 +193,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(injector, validatorService.getFormGroup());
   }
 
@@ -211,29 +211,28 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       service: this.programRefService,
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION],
       },
       mobile: this.mobile,
-      showAllOnFocus: this.mobile
+      showAllOnFocus: this.mobile,
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', opts)
-    );
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
 
     // Combo location
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelIds: this.locationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this.locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: observers
@@ -244,11 +243,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST'],
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: metiers
@@ -259,12 +258,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       suggestFn: (value, options) => this.suggestMetiers(value, options),
       // Default filter. An excludedIds will be add dynamically
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       // Increase default size (=3) of 'label' column
-      columnSizes: metierAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      columnSizes: metierAttributes.map((a) => (a === 'label' ? 4 : undefined) /*auto*/),
       attributes: metierAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Update metier filter when form changed (if filter enable)
@@ -272,34 +271,34 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.form.valueChanges
         .pipe(
           debounceTime(250),
-          filter(_ => this._showMetiers)
+          filter((_) => this._showMetiers)
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );
-
-
   }
 
   ngOnReady() {
     this.updateFormGroup();
 
     this.registerSubscription(
-      combineLatest([
-        this.form.get('departureDateTime').valueChanges,
-        this.form.get('returnDateTime').valueChanges
-      ])
-      .subscribe(([d1, d2]) => {
+      combineLatest([this.form.get('departureDateTime').valueChanges, this.form.get('returnDateTime').valueChanges]).subscribe(([d1, d2]) => {
         const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
         this.maxDateChanges.next(max);
       })
     );
   }
 
+  registerAutocompleteField<E = any, EF = any>(
+    fieldName: string,
+    opts?: MatAutocompleteFieldAddOptions<E, EF>
+  ): MatAutocompleteFieldConfig<E, EF> {
+    return super.registerAutocompleteField(fieldName, opts);
+  }
+
   toggleFilteredMetier() {
     if (this.enableMetierFilter) {
       this.enableMetierFilter = false;
-    }
-    else {
+    } else {
       const value = this.form.value;
       const date = value.returnDateTime || value.departureDateTime;
       const vesselId = value.vesselSnapshot && value.vesselSnapshot.id;
@@ -323,8 +322,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (this._showObservers) {
       data.observers = data.observers && data.observers.length ? data.observers : [null];
       this.observersHelper.resize(Math.max(1, data.observers.length));
-    }
-    else {
+    } else {
       data.observers = [];
       this.observersHelper?.resize(0);
     }
@@ -333,10 +331,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, data.metiers.length), {emitEvent: false});
+      this.metiersHelper.resize(Math.max(1, data.metiers.length), { emitEvent: false });
     } else {
       data.metiers = [];
-      this.metiersHelper?.resize(0, {emitEvent: false});
+      this.metiersHelper?.resize(0, { emitEvent: false });
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
@@ -357,8 +355,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       component: VesselModal,
       componentProps: {
         defaultStatus: this.vesselDefaultStatus,
-        maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined
-      }
+        maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined,
+      },
     });
 
     await modal.present();
@@ -368,9 +366,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // if new vessel added, use it
     const vessel = res && res.data;
     if (vessel) {
-      const vesselSnapshot = (vessel instanceof VesselSnapshot)
-        ? vessel
-        : ((vessel instanceof Vessel) ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel));
+      const vesselSnapshot =
+        vessel instanceof VesselSnapshot ? vessel : vessel instanceof Vessel ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel);
       console.debug('[trip-form] New vessel added : updating form...', vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
@@ -399,7 +396,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   protected updateMetierFilter(value?: Trip) {
     console.debug('[trip-form] Updating metier filter...');
-    value = value || this.form.value as Trip;
+    value = value || (this.form.value as Trip);
     const program = value.program || this.form.get('program').value;
     const programLabel = program && program.label;
     const endDate = fromDateISOString(value.returnDateTime || value.departureDateTime);
@@ -410,9 +407,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     let metierFilter: Partial<MetierFilter>;
     if (!this.enableMetierFilter || !canFilterMetier) {
       metierFilter = TRIP_METIER_DEFAULT_FILTER;
-    }
-    else {
-      const startDate = endDate.clone().startOf('day').add(-1 * this.metierHistoryNbDays, 'day');
+    } else {
+      const startDate = endDate
+        .clone()
+        .startOf('day')
+        .add(-1 * this.metierHistoryNbDays, 'day');
       const excludedTripId = EntityUtils.isRemote(value) ? value.id : undefined;
 
       metierFilter = {
@@ -421,7 +420,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         vesselId,
         startDate,
         endDate,
-        excludedTripId
+        excludedTripId,
       };
     }
     if (this.canFilterMetier !== canFilterMetier || this.metierFilter !== metierFilter) {
@@ -439,12 +438,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.observersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(person => !currentControlValue || currentControlValue !== person)
-      .map(person => parseInt(person.id));
+      .filter((person) => !currentControlValue || currentControlValue !== person)
+      .map((person) => parseInt(person.id));
 
     return this.personService.suggest(newValue, {
       ...filter,
-      excludedIds
+      excludedIds,
     });
   }
 
@@ -455,13 +454,13 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.metiersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(item => !currentControlValue || currentControlValue !== item)
-      .map(item => parseInt(item.id));
+      .filter((item) => !currentControlValue || currentControlValue !== item)
+      .map((item) => parseInt(item.id));
 
     return this.metierService.suggest(newValue, {
       ...filter,
       ...this.metierFilter,
-      excludedIds
+      excludedIds,
     });
   }
 
@@ -489,8 +488,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       if (this.observersHelper.size() === 0) {
         this.observersHelper.resize(1);
       }
-    }
-    else if (this.observersHelper.size() > 0) {
+    } else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
   }
@@ -506,30 +504,26 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         ReferentialUtils.isEmpty,
         { allowEmptyArray: !this._showMetiers }
       );
-    }
-    else {
+    } else {
       this.metiersHelper.allowEmptyArray = !this._showMetiers;
     }
     if (this._showMetiers) {
       if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1, {emitEvent: false});
+        this.metiersHelper.resize(1, { emitEvent: false });
       }
-    }
-    else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0, {emitEvent: false});
+    } else if (this.metiersHelper.size() > 0) {
+      this.metiersHelper.resize(0, { emitEvent: false });
     }
   }
-
 
   updateFormGroup() {
     const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
-      maxDurationInHours: this.maxDurationInHours
+      maxDurationInHours: this.maxDurationInHours,
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
-
       console.info('[trip-form] Updating form group, using opts', validatorOpts);
 
       this.validatorService.updateFormGroup(this.form, validatorOpts);
@@ -539,8 +533,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         this.updateValueAndValidity();
         // Not need to markForCheck (should be done inside updateValueAndValidity())
         //this.markForCheck();
-      }
-      else {
+      } else {
         // Need to toggle return date time to required
         this.markForCheck();
       }

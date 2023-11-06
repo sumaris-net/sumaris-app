@@ -40,7 +40,7 @@ import {
   ProgressBarService,
   QueryVariables,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
@@ -52,7 +52,7 @@ import {
   OperationFromObjectOptions,
   POSITIONS_REGEXP,
   Trip,
-  VesselPositionUtils
+  VesselPositionUtils,
 } from '../trip/trip.model';
 import { Batch } from '../batch/common/batch.model';
 import { Sample } from '../sample/sample.model';
@@ -87,7 +87,6 @@ import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { PositionOptions } from '@capacitor/geolocation';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -137,65 +136,66 @@ export const OperationFragments = {
   ${DataCommonFragments.position},
   ${DataCommonFragments.location}`,
 
-  operation: gql`fragment OperationFragment on OperationVO {
-    id
-    startDateTime
-    endDateTime
-    fishingStartDateTime
-    fishingEndDateTime
-    rankOrder
-    rankOrderOnPeriod
-    controlDate
-    qualificationComments
-    qualityFlagId
-    physicalGearId
-    physicalGear {
+  operation: gql`
+    fragment OperationFragment on OperationVO {
       id
+      startDateTime
+      endDateTime
+      fishingStartDateTime
+      fishingEndDateTime
       rankOrder
-      gear {
-        ...LightReferentialFragment
+      rankOrderOnPeriod
+      controlDate
+      qualificationComments
+      qualityFlagId
+      physicalGearId
+      physicalGear {
+        id
+        rankOrder
+        gear {
+          ...LightReferentialFragment
+        }
       }
+      tripId
+      comments
+      hasCatch
+      updateDate
+      metier {
+        ...MetierFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      positions {
+        ...PositionFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      gearMeasurements {
+        ...MeasurementFragment
+      }
+      samples {
+        ...SampleFragment
+      }
+      batches {
+        ...BatchFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
+      parentOperationId
+      childOperationId
     }
-    tripId
-    comments
-    hasCatch
-    updateDate
-    metier {
-      ...MetierFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    positions {
-      ...PositionFragment
-    }
-    measurements {
-      ...MeasurementFragment
-    }
-    gearMeasurements {
-      ...MeasurementFragment
-    }
-    samples {
-      ...SampleFragment
-    }
-    batches {
-      ...BatchFragment
-    }
-    fishingAreas {
-      ...FishingAreaFragment
-    }
-    parentOperationId
-    childOperationId
-  }
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.metier}
-  ${ReferentialFragments.lightReferential}
-  ${DataCommonFragments.position}
-  ${DataCommonFragments.measurement}
-  ${DataFragments.sample}
-  ${DataFragments.batch}
-  ${DataFragments.fishingArea}`
-
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.metier}
+    ${ReferentialFragments.lightReferential}
+    ${DataCommonFragments.position}
+    ${DataCommonFragments.measurement}
+    ${DataFragments.sample}
+    ${DataFragments.batch}
+    ${DataFragments.fishingArea}
+  `,
 };
 
 
@@ -359,6 +359,7 @@ export declare interface OperationServiceLoadOptions extends EntityServiceLoadOp
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseGraphqlService<Operation, OperationFilter>
   implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
+    IEntityService<Operation, number, OperationServiceLoadOptions>,
     IDataEntityQualityService<Operation>,
     IEntityService<Operation> {
 
@@ -526,7 +527,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   canUserWrite(data: Operation, opts?: OperationValidatorOptions): boolean {
     const trip = opts?.trip;
     if (!trip) throw new Error('Missing required \'opts.trip\' argument');
-    return !!data && trip && this.tripService.canUserWrite(trip);
+    return !!data && trip && this.tripService.canUserWrite(trip, {program: opts?.program});
   }
 
   async controlAllByTrip(trip: Trip, opts?: OperationControlOptions): Promise<FormErrors> {

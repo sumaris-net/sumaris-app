@@ -19,6 +19,8 @@
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_DOWNLOAD_DOTS": "Télécharger...",
     "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
+    "BTN_DOWNLOAD_CSV": "Télécharger (CSV)",
+    "BTN_DOWNLOAD_GEOJSON": "Télécharger (GeoJSON)",
     "BTN_IMPORT": "Importer",
     "BTN_IMPORT_FROM_FILE_DOTS": "Importer depuis un fichier...",
     "BTN_DUPLICATE": "Dupliquer",
@@ -1529,7 +1531,7 @@
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
-      "TITLE": "Navire {{vessel}}",
+      "TITLE": "<span class=\"visible-mobile\">Navire </span>{{vessel}}",
       "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
       "BTN_REPORT": "Éditer le rapport..."
     },
@@ -2846,6 +2848,8 @@
   "DEVICE_POSITION": {
     "MAP": {
       "TITLE": "Cartes des positions",
+      "EXPORT_CSV_FILENAME": "Positions.csv",
+      "EXPORT_GEOJSON_FILENAME": "Positions.geojson",
       "FILTER": {
         "RECORDER_PERSON": "Saisisseur",
         "START_DATE": "Début de période",
@@ -3032,7 +3036,8 @@
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
-    "TEXT_PROGRESS": "{{current}} sur {{max}}"
+    "TEXT_PROGRESS": "{{current}} sur {{max}}",
+    "DOWNLOADING_DOTS": "Téléchargement en cours..."
   },
   "WARNING": {
     "ALERT_HEADER": "Avertissement",

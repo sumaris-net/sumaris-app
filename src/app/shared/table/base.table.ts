@@ -300,7 +300,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (this.pressHighlightDuration > 0) {
       if (this.selection.isSelected(row)) {
 
-        // Hightlight the row (only for the first row selected)
+        // Highlight the row (only for the first row selected)
         if (this.singleSelectedRow === row) {
           this.highlightedRowId = row.id;
         }

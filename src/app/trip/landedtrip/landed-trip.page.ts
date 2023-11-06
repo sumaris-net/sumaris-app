@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewCh
 
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -21,7 +21,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { TripSaveOptions, TripService } from '../trip/trip.service';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -58,7 +58,7 @@ import moment from 'moment';
   providers: [{ provide: APP_ENTITY_EDITOR, useExisting: LandedTripPage }],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit, OnDestroy {
+export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> implements OnInit, OnDestroy {
   private static TABS = {
     GENERAL: 0,
     OPERATION_GROUP: 1,
@@ -67,7 +67,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     EXPENSE: 4,
   };
 
-  readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
 
   showOperationGroupTab = false;
@@ -117,8 +116,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       tabCount: 5,
       enableListenChanges: true,
     });
-
-    this.mobile = this.settings.mobile;
+    this.acquisitionLevel = AcquisitionLevelCodes.TRIP;
     this.showCatchFilter = !this.mobile;
 
     // FOR DEV ONLY ----
@@ -139,7 +137,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     );
 
     // Init operationGroupFilter combobox
-    this.registerAutocompleteField('operationGroupFilter', {
+    this.tripForm.registerAutocompleteField('operationGroupFilter', {
       showAllOnFocus: true,
       items: this.$operationGroups,
       attributes: this.operationGroupAttributes,
@@ -283,7 +281,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
         // program
         data.program = observedLocation.program;
-        this.$programLabel.next(data.program.label);
+        this.programLabel = data.program.label;
 
         // location
         const location = observedLocation.location;
@@ -348,7 +346,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     // program
     const programLabel = data.program?.label;
-    if (programLabel) this.$programLabel.next(programLabel);
+    if (programLabel) this.programLabel = programLabel;
 
     this.$metiers.next(data.metiers);
     this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {
@@ -535,16 +533,16 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   protected async computeTitle(data: Trip) {
     // new data
     if (!data || isNil(data.id)) {
-      return await this.translate.get('TRIP.NEW.TITLE').toPromise();
+      return await firstValueFrom(this.translate.get('TRIP.NEW.TITLE'));
     }
 
     // Existing data
-    return await this.translate
-      .get('TRIP.EDIT.TITLE', {
+    return await firstValueFrom(
+      this.translate.get('TRIP.EDIT.TITLE', {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
         departureDateTime: data.departureDateTime && (this.dateFormat.transform(data.departureDateTime) as string),
       })
-      .toPromise();
+    );
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

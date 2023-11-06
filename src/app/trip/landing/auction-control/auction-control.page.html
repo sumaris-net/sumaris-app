@@ -59,7 +59,11 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'LANDING.EDIT.TAB_GENERAL' | translate }}">
+    <mat-tab label="{{ 'LANDING.EDIT.TAB_GENERAL' | translate }}"
+             appSubMenuTab
+             [parentPath]="defaultBackHref"
+             [subMenuTitle]="($title|async|noHtml)||''"
+             [subMenuIcon]="{icon: 'boat'}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
@@ -79,7 +83,7 @@
               <!-- landing form-->
               <app-landing-form
                 #landingForm
-                [programLabel]="$programLabel | async"
+                [programLabel]="programLabel$ | async"
                 [i18nSuffix]="i18nContext.suffix"
                 [showError]="false"
                 [showMeasurements]="false"
@@ -100,7 +104,9 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab #samplesTab [label]="'AUCTION_CONTROL.TAB_SAMPLES' | translate">
+    <mat-tab #samplesTab [label]="'AUCTION_CONTROL.TAB_SAMPLES' | translate"
+             appSubMenuTab
+             [subMenuIcon]="{icon: 'flag'}">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="icon-only" name="flag"></ion-icon>
@@ -172,7 +178,7 @@
                     [formControl]="taxonGroupControl"
                     [tabindex]="60"
                     [required]="false"
-                    [config]="autocompleteFields.taxonGroup"
+                    [config]="landingForm.autocompleteFields.taxonGroup"
                     [placeholder]="'AUCTION_CONTROL.EDIT.OTHER_TAXON_GROUP' | translate"
                   ></mat-autocomplete-field>
                 </ion-col>

@@ -1,5 +1,5 @@
-import {AppEnvironment} from '@environments/environment.class';
-import {StorageDrivers} from '@sumaris-net/ngx-components';
+import { AppEnvironment } from '@environments/environment.class';
+import { StorageDrivers } from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json');
 
@@ -87,6 +87,12 @@ export const environment = Object.freeze(<AppEnvironment>{
   program: {
     enableListenChanges: true,
     listenIntervalInSeconds: 30
+  },
+
+  menu: {
+    subMenu: {
+      enable: false
+    }
   }
 });
 /* tslint:enable */

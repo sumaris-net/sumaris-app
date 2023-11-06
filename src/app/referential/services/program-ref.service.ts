@@ -8,7 +8,9 @@ import {
   AccountService,
   arrayDistinct,
   BaseEntityGraphqlSubscriptions,
-  ConfigService, Configuration, Department,
+  ConfigService,
+  Configuration,
+  Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
   firstArrayValue,
@@ -22,7 +24,8 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService, PersonUtils,
+  NetworkService,
+  PersonUtils,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -30,7 +33,8 @@ import {
   StatusIds,
   suggestFromArray,
   SuggestService,
-  Toasts, UserProfileLabel,
+  Toasts,
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -60,7 +64,7 @@ import { ProgramPrivilege, ProgramPrivilegeEnum } from '@app/referential/service
 import { ProgramPrivilegeUtils } from '@app/referential/services/model/model.utils';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties

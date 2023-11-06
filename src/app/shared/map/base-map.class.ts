@@ -92,7 +92,8 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     protected _state: RxState<S>,
     @Optional() options?: {
       maxZoom: number;
-    }
+    },
+    initialState?: Partial<S>
   ) {
     this.zone = injector.get(NgZone);
     this.translate = injector.get(TranslateService);
@@ -110,7 +111,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
       this.sextantBaseLayer.options.maxZoom = this._maxZoom;
     }
 
-    this._state.set((s) => <S>{...s, loading: true});
+    this._state.set(initialState || <S>{loading: true});
   }
 
   ngOnInit() {
@@ -241,6 +242,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   protected registerSubscription(sub: Subscription) {
     this.subscription.add(sub);
+  }
+
+  protected unregisterSubscription(sub: Subscription) {
+    this.subscription.remove(sub);
   }
 
   protected markAsLoading(opts?: {emitEvent?: boolean}) {

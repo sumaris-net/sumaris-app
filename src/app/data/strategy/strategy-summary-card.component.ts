@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy
 import { merge, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '@environments/environment';
-import { AppRootDataEditor } from '../form/root-data-editor.class';
+import { AppRootDataEntityEditor } from '../form/root-data-editor.class';
 import { fadeInAnimation, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -45,7 +45,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     return this.data;
   }
 
-  @Input() editor: AppRootDataEditor<any, any>;
+  @Input() editor: AppRootDataEntityEditor<any, any>;
 
   constructor(
     protected router: Router,

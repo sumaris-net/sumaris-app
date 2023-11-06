@@ -260,9 +260,7 @@ export class MeasurementValuesUtils {
       || (m1 && !this.getPmfmIds({...m1, ...m2}).some(pmfmId => {
         const isSame = PmfmValueUtils.equals(m1[pmfmId], m2?.[pmfmId]);
         // DEBUG
-        if (!isSame) {
-          console.debug('TODO Value not equals, on pmfmId ' + pmfmId);
-        }
+        //if (!isSame) console.debug('TODO Value not equals, on pmfmId ' + pmfmId);
         return !isSame;
       }))
       || false;

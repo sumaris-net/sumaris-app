@@ -84,8 +84,9 @@
     <ion-row>
       <ion-col>
         <ion-item *ngIf="enabled" lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
-          <ion-toggle [checked]="showComment"></ion-toggle>
-          <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+          <ion-toggle [checked]="showComment" [disabled]="disabled" labelPlacement="end" justify="start">
+            <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+          </ion-toggle>
         </ion-item>
         <mat-form-field appearance="outline" *ngIf="showComment">
           <textarea

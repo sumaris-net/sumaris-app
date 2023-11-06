@@ -5,7 +5,6 @@ import { TripService } from '../trip/trip.service';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import {
   AppEditorOptions,
-  AppEntityEditor,
   AppErrorWithDetails,
   AppFormUtils,
   AppHelpModal,
@@ -42,7 +41,6 @@ import { OperationPasteFlags, ProgramProperties } from '@app/referential/service
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { from, merge, of, Subscription, timer } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
@@ -63,14 +61,12 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { AppBaseDataEntityEditor, BaseEditorState } from '@app/data/form/base-data-editor.class';
 
-export interface OperationState {
+export interface OperationState extends BaseEditorState {
   hasIndividualMeasures?: boolean;
   physicalGear: PhysicalGear;
   gearId: number;
-  acquisitionLevel: string;
-  programLabel: string;
-  program: Program;
   tripId: number;
   lastOperations: Operation[];
   lastEndDate: Moment;
@@ -89,7 +85,7 @@ export interface OperationState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationPage<S extends OperationState = OperationState>
-  extends AppEntityEditor<Operation, OperationService>
+  extends AppBaseDataEntityEditor<Operation, OperationService, number, S>
   implements IDataEntityQualityService<Operation>, AfterViewInit, OnInit, OnDestroy {
 
   protected static TABS = {
@@ -103,23 +99,17 @@ export class OperationPage<S extends OperationState = OperationState>
   private _sampleRowSubscription: Subscription;
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
-  protected readonly _state: RxState<S> = this.injector.get(RxState);
   protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
   protected readonly physicalGear$ = this._state.select('physicalGear');
   protected readonly gearId$ = this._state.select('gearId');
 
   protected tripService: TripService;
   protected context: TripContextService;
-  protected programRefService: ProgramRefService;
-  protected settings: LocalSettingsService;
   protected modalCtrl: ModalController;
   protected hotkeys: Hotkeys;
 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
-  readonly mobile: boolean;
-  readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
-  readonly programLabel$ = this._state.select( 'programLabel');
   readonly lastOperations$ = this._state.select('lastOperations');
   readonly lastEndDate$ = this._state.select('lastEndDate');
 
@@ -147,7 +137,6 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
-  newOperationUrl: string = null;
   readonly forceOptionalExcludedPmfmIds: number[];
 
 
@@ -191,20 +180,6 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.operationPasteFlags !== 0;
   }
 
-  get acquisitionLevel(): string {
-    return this._state.get('acquisitionLevel');
-  }
-  set acquisitionLevel(value: string) {
-    this._state.set('acquisitionLevel', () => value);
-  }
-
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
-  set programLabel(value: string) {
-    this._state.set('programLabel', () => value);
-  }
-
   get physicalGear(): PhysicalGear {
     return this._state.get('physicalGear');
   }
@@ -226,7 +201,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   constructor(
-    private injector: Injector,
+    injector: Injector,
     dataService: OperationService,
     @Optional() options?: AppEditorOptions
   ) {
@@ -240,15 +215,12 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.tripService = injector.get(TripService);
     this.context = injector.get(TripContextService);
-    this.programRefService = injector.get(ProgramRefService);
-    this.settings = injector.get(LocalSettingsService);
     this.modalCtrl = injector.get(ModalController);
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
     this.hotkeys = injector.get(Hotkeys);
 
     // Init defaults
-    this.mobile = this.settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
@@ -270,7 +242,7 @@ export class OperationPage<S extends OperationState = OperationState>
       );
       this.registerSubscription(
         this.hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
-          .pipe(filter(e => !this.disabled && this.showFabButton))
+          .pipe(filter(_ => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event)),
       );
     }
@@ -421,14 +393,18 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {
-    return isNil(this.trip?.validationDate) && this.dataService.canUserWrite(data, {...opts, trip: this.trip});
+    return isNil(this.trip?.validationDate) && this.dataService.canUserWrite(data, {
+      ...opts,
+      trip: this.trip,
+      program: this.program
+    });
   }
 
   qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
     return this.dataService.qualify(data, qualityFlagId);
   }
 
-  async openHelpModal(event) {
+  async openHelpModal(event: Event) {
     if (event) event.preventDefault();
     if (!this.helpUrl) return;
 
@@ -496,8 +472,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const queryParams = this.route.snapshot.queryParams;
     // Manage tab group
     {
-      const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
-      this.selectedSubTabIndex = subTabIndex;
+      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
     }
     // Manage toolbar color
     if (isNotNilOrBlank(queryParams['color'])) {
@@ -799,7 +774,6 @@ export class OperationPage<S extends OperationState = OperationState>
     else if (!this._defaultIsParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
     }
-
 
     if (this.batchTree) this.batchTree.program = program;
     if (this.sampleTree) this.sampleTree.program = program;
@@ -1630,6 +1604,7 @@ export class OperationPage<S extends OperationState = OperationState>
    * Navigate to other operation
    *
    * @param id
+   * @param opts
    * @protected
    */
   protected async navigateTo(id: number|'new', opts?: {queryParams?: any; replaceUrl?: boolean; tripId?: number}): Promise<boolean> {

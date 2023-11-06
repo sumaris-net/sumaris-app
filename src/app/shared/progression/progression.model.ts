@@ -1,7 +1,5 @@
-import { BehaviorSubject } from 'rxjs';
 import { RxState } from '@rx-angular/state';
 import { isNotNil } from '@sumaris-net/ngx-components';
-
 
 export interface IProgressionState {
   message: string;
@@ -76,5 +74,9 @@ export class ProgressionModel extends RxState<IProgressionState> {
 
   cancel() {
     this.set('cancelled', s_ => true);
+  }
+
+  next(current: number) {
+    this.current = current;
   }
 }

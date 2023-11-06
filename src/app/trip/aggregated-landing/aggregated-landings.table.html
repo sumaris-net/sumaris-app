@@ -96,12 +96,13 @@
       </td>
     </ng-container>
 
+    <!-- today (mobile) -->
     <ng-container *ngIf="mobile && ($currentDate | async) as currentDate; else allDates">
       <ng-container [matColumnDef]="currentDate.valueOf().toString()">
-        <th mat-header-cell *matHeaderCellDef>
+        <th mat-header-cell *matHeaderCellDef class="mat-column-day">
           <ion-label>{{ currentDate | dateFormat : { pattern: 'dddd L' } }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="td" (click)="clickCell($event, row, currentDate)">
+        <td mat-cell *matCellDef="let row" class="mat-column-day" (click)="clickCell($event, row, currentDate)">
           <ng-container *ngIf="getActivities(row, currentDate); let activities">
             <div *ngFor="let activity of activities">
               <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
@@ -123,15 +124,19 @@
         </td>
       </ng-container>
     </ng-container>
+
+    <!-- week (desktop) -->
     <ng-template #allDates>
-      <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container *ngFor="let date of $dates | async; odd as odd; even as even" [matColumnDef]="date.valueOf().toString()">
+        <th mat-header-cell *matHeaderCellDef class="mat-column-day" [class.odd]="odd" [class.even]="even">
           <ion-label>{{ date | dateFormat : { pattern: 'dddd L' } }}</ion-label>
         </th>
         <td
           mat-cell
           *matCellDef="let row"
-          class="td mat-cell-selected ion-padding-start"
+          class="ion-padding-start mat-column-day"
+          [class.odd]="odd"
+          [class.even]="even"
           (click)="clickCell($event, row, date)"
         >
           <div *ngFor="let activity of getActivities(row, date)" [class.mat-cell-error]="activity.invalid">
@@ -152,27 +157,29 @@
     </ng-template>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-      <th mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></th>
-      <td mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <app-actions-column [stickyEnd]="mobile && selection.hasValue()" [cellTemplate]="cellTemplate">
+      <ng-template #cellTemplate let-row>
+        <!-- Delete row button -->
         <button
           mat-icon-button
-          color="light"
-          *ngIf="row.editing"
-          [title]="'COMMON.BTN_UNDO' | translate"
+          *ngIf="mobile && enabled && singleSelectedRow === row"
+          [title]="'COMMON.BTN_DELETE' | translate"
           (click)="cancelOrDelete($event, row)"
         >
-          <mat-icon>undo</mat-icon>
+          <mat-icon>delete</mat-icon>
         </button>
-      </td>
-    </ng-container>
+      </ng-template>
+    </app-actions-column>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr
       mat-row
-      *matRowDef="let row; columns: displayedColumns"
-      class="tr mat-row-disabled tr mat-row-height-auto"
+      *matRowDef="let row; columns: displayedColumns; even as even"
+      class="mat-row-disabled mat-row-height-auto"
+      [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.even]="mobile && even"
       (click)="clickRow($event, row)"
+      (press)="pressRow($event, row)"
     ></tr>
   </table>
 

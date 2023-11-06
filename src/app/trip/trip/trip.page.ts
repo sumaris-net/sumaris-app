@@ -8,7 +8,7 @@ import { MeasurementsForm } from '@app/data/measurement/measurements.form.compon
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AccountService,
@@ -90,17 +90,15 @@ export const TripPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage
-  extends AppRootDataEditor<Trip, TripService> implements OnDestroy, AfterViewInit {
+  extends AppRootDataEntityEditor<Trip, TripService> implements OnDestroy, AfterViewInit {
 
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
 
-  readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
-  mobile = false;
   settingsId: string;
   devAutoFillData = false;
   enableReport: boolean;
@@ -151,9 +149,9 @@ export class TripPage
         i18nPrefix: 'TRIP.'
       });
     this.defaultBackHref = '/trips';
-    this.mobile = settings.mobile;
     this.settingsId = TripPageSettingsEnum.PAGE_ID;
     this.operationPasteFlags = this.operationPasteFlags || 0;
+    this.acquisitionLevel = AcquisitionLevelCodes.TRIP;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -208,7 +206,7 @@ export class TripPage
     // Auto fill form, in DEV mode
     if (!environment.production) {
       this.registerSubscription(
-        this.$program
+        this.program$
           .pipe(
             filter(isNotNil),
             filter(() => this.isNewData && this.devAutoFillData)
@@ -434,17 +432,15 @@ export class TripPage
 
     // Propagate program
     const programLabel = data.program && data.program.label;
-    this.$programLabel.next(programLabel);
+    this.programLabel = programLabel;
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
-    // program
-    const programLabel =  data.program?.label;
-    if (programLabel) this.$programLabel.next(programLabel);
-
+    const programLabel = data.program?.label;
+    if (programLabel) this.programLabel = programLabel;
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
     this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
@@ -458,13 +454,13 @@ export class TripPage
 
   updateTabsState(data: Trip) {
     // Enable gears tab if a program has been selected
-    this.showGearTable = !this.isNewData || isNotNilOrBlank(this.$programLabel.getValue());
+    this.showGearTable = !this.isNewData || isNotNilOrBlank(this.programLabel);
 
     // Enable operations tab if has gears
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport(event?: Event) {
+  async openReport(event: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -647,7 +643,7 @@ export class TripPage
     const withOffline = EntityUtils.isLocal(trip) || trip.synchronizationStatus === 'DIRTY';
     if (!vessel || !date) return; // Skip
 
-    const programLabel = this.$programLabel.getValue();
+    const programLabel = this.programLabel;
     const acquisitionLevel = event.type || this.physicalGearsTable.acquisitionLevel;
     const filter = <PhysicalGearFilter>{
       program: {label: programLabel},
@@ -862,7 +858,7 @@ export class TripPage
       await Alerts.showError('TRIP.WARNING.NO_HELP_URL', this.alertCtrl, this.translate, {
         titleKey: 'WARNING.OOPS_DOTS'
       }, {
-        programLabel: this.$programLabel.getValue()
+        programLabel: this.programLabel
       });
       return;
     }

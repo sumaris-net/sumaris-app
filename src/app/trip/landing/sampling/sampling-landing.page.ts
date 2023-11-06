@@ -133,7 +133,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
 
     try {
       const [program] = await Promise.all([
-        firstNotNilPromise(this.$program, { stop: this.destroySubject }),
+        firstNotNilPromise(this.program$, { stop: this.destroySubject }),
         this.landingForm.waitIdle({ stop: this.destroySubject }),
       ]);
 
@@ -272,7 +272,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL.toString()];
     if (strategyLabel) {
       // Propagate strategy
-      this.$strategyLabel.next(strategyLabel);
+      this.strategyLabel = strategyLabel;
 
       // Remove sample's TAG_ID prefix
       {
@@ -322,7 +322,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
-    const program = await firstNotNilPromise(this.$program, { stop: this.destroySubject });
+    const program = await firstNotNilPromise(this.program$, { stop: this.destroySubject });
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
@@ -342,7 +342,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
       return titlePrefix + this.translate.instant(`LANDING.NEW.${i18nSuffix}TITLE`);
     }
     // Existing data
-    const strategy = await firstNotNilPromise(this.$strategy, { stop: this.destroySubject });
+    const strategy = await firstNotNilPromise(this.strategy$, { stop: this.destroySubject });
 
     return (
       titlePrefix +

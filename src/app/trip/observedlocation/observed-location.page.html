@@ -61,7 +61,8 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_GENERAL' | translateContext : i18nContext.suffix">
+    <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_GENERAL' | translateContext : i18nContext.suffix"
+          appSubMenuTab [parentPath]="defaultBackHref" [subMenuTitle]="($title|async)||''">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
@@ -135,7 +136,7 @@
               <!-- observed location -->
               <app-form-observed-location
                 #observedLocationForm
-                [programLabel]="$programLabel | async"
+                [programLabel]="programLabel$ | async"
                 [showError]="false"
                 [showEndDateTime]="false"
                 [debug]="debug"
@@ -160,6 +161,8 @@
       #landingsTab
       [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
       [disabled]="!showLandingTab"
+      appSubMenuTab
+      [subMenuTitle]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
     >
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
@@ -194,7 +197,7 @@
             #aggregatedLandingsTable
             *ngSwitchCase="'aggregated'"
             [debug]="debug"
-            [programLabel]="$programLabel | async"
+            [programLabel]="programLabel$ | async"
             (onNewRow)="onNewAggregatedLanding($event)"
             [showToolbar]="!mobile"
             [useSticky]="true"
@@ -206,7 +209,7 @@
             #landingsTable
             *ngSwitchCase="'legacy'"
             [debug]="debug"
-            [programLabel]="$programLabel | async"
+            [programLabel]="programLabel$ | async"
             [showObserversColumn]="false"
             [showDateTimeColumn]="false"
             [showToolbar]="!mobile"

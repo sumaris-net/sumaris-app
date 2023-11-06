@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -11,7 +11,6 @@ import {
   EntitiesStorage,
   EntitySaveOptions,
   EntityUtils,
-  GraphqlService,
   IEntitiesService,
   IEntityService,
   isNil,
@@ -19,7 +18,6 @@ import {
   LoadResult,
   NetworkService,
   Person,
-  PlatformService,
   ReferentialAsObjectOptions,
   StatusIds,
 } from '@sumaris-net/ngx-components';
@@ -33,10 +31,8 @@ import { ProgramRefService } from './program-ref.service';
 import { BaseReferentialService } from './base-referential-service.class';
 import { StrategyRefService } from './strategy-ref.service';
 import { ProgramFilter } from './filter/program.filter';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { mergeMap } from 'rxjs/operators';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default
@@ -204,7 +200,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      console.warn('TODO: remove this local entities call. Use program-ref.servie instead !');
+      console.warn('[program-service] Remove this local entities call. Use ProgramRefService instead !');
       res = await this.entities.loadAll(Program.TYPENAME,
         {
           ...variables,

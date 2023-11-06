@@ -535,7 +535,7 @@
   },
   "TRIP": {
     "TITLE": "Fishing trip",
-    "PROGRAM": "Data collection programme",
+    "PROGRAM": "Data collection program",
     "VESSEL_SNAPSHOT": "Vessel",
     "BTN_ADD_VESSEL": "Add a vessel",
     "DEPARTURE": "Departure:",
@@ -577,7 +577,7 @@
     "TABLE": {
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
-      "PROGRAM": "Programme",
+      "PROGRAM": "Program",
       "DEPARTURE_DATE_TIME": "Departure date",
       "DEPARTURE_LOCATION": "Departure harbour",
       "RETURN_DATE_TIME": "Return date",
@@ -2780,6 +2780,7 @@
   "DEVICE_POSITION": {
     "MAP": {
       "TITLE": "Positions map",
+      "EXPORT_CSV_FILENAME": "Positions.csv",
       "FILTER": {
         "RECORDER_PERSON": "Recorder",
         "START_DATE": "Start date",
@@ -2966,7 +2967,8 @@
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
-    "TEXT_PROGRESS": "{{current}} of {{max}}"
+    "TEXT_PROGRESS": "{{current}} of {{max}}",
+    "DOWNLOADING_DOTS": "Download in progress..."
   },
   "WARNING": {
     "ALERT_HEADER": "Warning",

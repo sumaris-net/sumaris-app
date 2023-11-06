@@ -14,7 +14,7 @@ import {
   isNil,
   isNotNil,
   LocalSettingsService,
-  Toasts
+  Toasts,
 } from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
@@ -28,7 +28,7 @@ import { environment } from '@environments/environment';
 export const ProductPageTabs = {
   GENERAL: 0,
   DATASOURCE: 1,
-  RESULT: 2
+  RESULT: 2,
 };
 
 @Component({
@@ -119,7 +119,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
 
-    return setTimeout(() => 
+    return setTimeout(() =>
       // open the map
        this.router.navigate(['../../map'],
         {
@@ -169,7 +169,6 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
   /* -- protected -- */
 
   protected async setValue(data: ExtractionProduct) {
-    console.log('TODO setValue()');
 
     // Apply data to form
     await this.productForm.setValue(data.asObject());

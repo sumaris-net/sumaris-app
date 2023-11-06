@@ -5,22 +5,11 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { DevicePositionMapPage } from '@app/extraction/position/device-position-map-page.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { AppSharedProgressionModule } from '@app/shared/progression/progression.module';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    TranslateModule.forChild(),
-    LeafletModule,
-
-    AppCoreModule,
-    AppSharedModule,
-  ],
-  declarations: [
-    DevicePositionMapPage,
-  ],
-  exports: [
-    TranslateModule,
-    DevicePositionMapPage,
-  ],
+  imports: [CommonModule, TranslateModule.forChild(), LeafletModule, AppCoreModule, AppSharedModule, AppSharedProgressionModule],
+  declarations: [DevicePositionMapPage],
+  exports: [TranslateModule, DevicePositionMapPage],
 })
-export class DevicePositionModule { }
+export class DevicePositionModule {}

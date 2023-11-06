@@ -20,7 +20,7 @@ import {
   slideUpDownAnimation,
   StatusIds,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
@@ -43,7 +43,7 @@ import { LandingEditor, ProgramProperties } from '@app/referential/services/conf
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ISelectProgramModalOptions, SelectProgramModal } from '@app/referential/program/select-program.modal';
-import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_RESERVED_START_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
@@ -55,14 +55,25 @@ import { StrategyRefFilter, StrategyRefService } from '@app/referential/services
 import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
-
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
-  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
+  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
 };
 
-export const LANDING_PAGE_RESERVED_START_COLUMNS = ['program', ...LANDING_RESERVED_START_COLUMNS];
+export const LANDING_PAGE_RESERVED_START_COLUMNS = [
+  'quality',
+  'program',
+  'vessel',
+  'vesselType',
+  'vesselBasePortLocation',
+  'location',
+  'dateTime',
+  'observers',
+  'creationDate',
+  'recorderPerson',
+  'samplesCount'
+];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
 export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingServiceWatchOptions> {

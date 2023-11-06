@@ -69,7 +69,7 @@
     *ngIf="canDownload"
     [style]="'mat-menu-item'"
     [disabled]="network.offline"
-    [programLabel]="$programLabel | push"
+    [programLabel]="programLabel$ | push"
     (downloadAsJson)="downloadAsJson($event)"
     (downloadAsType)="openDownloadPage($event)"
   ></app-extraction-button>
@@ -231,7 +231,7 @@
                         [forceOptional]="forceMeasurementAsOptional"
                         [acquisitionLevel]="acquisitionLevel"
                         [debug]="debug"
-                        [programLabel]="$programLabel | async"
+                        [programLabel]="programLabel$ | async"
                         [tabindex]="30"
                         [mobile]="mobile"
                       ></app-form-measurements>
@@ -274,7 +274,7 @@
       <div class="ion-no-padding">
         <app-physical-gears-table
           #physicalGearsTable
-          [programLabel]="$programLabel | async"
+          [programLabel]="programLabel$ | async"
           [showToolbar]="!mobile"
           (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
           [useSticky]="!mobile"
@@ -318,7 +318,7 @@
           (onNewRow)="onNewOperation($event)"
           (duplicateRow)="onDuplicateOperation($event)"
           [canDuplicate]="operationPasteFlags !== 0"
-          [programLabel]="$programLabel | async"
+          [programLabel]="programLabel$ | async"
           [showToolbar]="!mobile"
           [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
           [defaultSortDirection]="mobile ? 'desc' : 'asc'"

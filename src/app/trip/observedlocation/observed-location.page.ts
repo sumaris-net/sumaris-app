@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild 
 import { ObservedLocationForm } from './form/observed-location.form';
 import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -67,7 +67,7 @@ type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | unde
     {provide: APP_ENTITY_EDITOR, useExisting: ObservedLocationPage}
   ],
 })
-export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
+export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocation, ObservedLocationService> implements OnInit {
 
   @ViewChild('observedLocationForm', {static: true}) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
@@ -303,7 +303,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
-    const programLabel = this.aggregatedLandingsTable?.programLabel || this.$programLabel.value || this.data.program.label;
+    const programLabel = this.aggregatedLandingsTable?.programLabel || this.programLabel || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
@@ -546,18 +546,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     // Propagate program
-    const programLabel = data.program && data.program.label;
-    this.$programLabel.next(programLabel);
+    const programLabel = data.program?.label;
+    this.programLabel = programLabel;
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-    // Propagate program
-    const programLabel = data.program && data.program.label;
-    this.$programLabel.next(programLabel);
-
+    const programLabel = data.program?.label;
+    if (programLabel) this.programLabel = programLabel;
     this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
