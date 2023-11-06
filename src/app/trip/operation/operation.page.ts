@@ -195,7 +195,10 @@ export class OperationPage<S extends OperationState = OperationState>
     this._state.set('lastEndDate', () => value);
   }
 
-  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppEditorOptions) {
+  constructor(injector: Injector,
+    dataService: OperationService,
+    @Optional() options?: AppEditorOptions
+  ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,

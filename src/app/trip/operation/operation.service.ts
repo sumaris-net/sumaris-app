@@ -39,7 +39,7 @@ import {
   ProgressBarService,
   QueryVariables,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
@@ -51,7 +51,7 @@ import {
   OperationFromObjectOptions,
   POSITIONS_REGEXP,
   Trip,
-  VesselPositionUtils
+  VesselPositionUtils,
 } from '../trip/trip.model';
 import { Batch } from '../batch/common/batch.model';
 import { Sample } from '../sample/sample.model';

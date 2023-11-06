@@ -8,7 +8,9 @@ import {
   AccountService,
   arrayDistinct,
   BaseEntityGraphqlSubscriptions,
-  ConfigService, Configuration, Department,
+  ConfigService,
+  Configuration,
+  Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
   firstArrayValue,
@@ -22,7 +24,8 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService, PersonUtils,
+  NetworkService,
+  PersonUtils,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -30,7 +33,8 @@ import {
   StatusIds,
   suggestFromArray,
   SuggestService,
-  Toasts, UserProfileLabel,
+  Toasts,
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
