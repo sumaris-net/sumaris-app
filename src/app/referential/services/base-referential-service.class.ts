@@ -7,7 +7,7 @@ import {
   BaseEntityService,
   BaseEntityServiceOptions,
   EntitiesServiceLoadOptions,
-  EntityServiceLoadOptions, EntityServiceWatchOptions,
+  EntityServiceLoadOptions,
   GraphqlService,
   IEntityService,
   IReferentialRef,
@@ -19,8 +19,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Directive, Injector } from '@angular/core';
 import { IReferentialFilter, ReferentialFilter } from './filter/referential.filter';
-import { EntitiesServiceWatchOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
-import { BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions } from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
 
 export const TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
@@ -49,14 +47,9 @@ export interface IReferentialEntityService<
 export abstract class BaseReferentialService<
   T extends IReferentialRef<T, ID>,
   F extends IReferentialFilter<F, T, ID>,
-  ID = number,
-  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-  LO extends EntitiesServiceLoadOptions = EntitiesServiceLoadOptions,
-  Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
-  M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
-  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions
+  ID = number
   >
-  extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
+  extends BaseEntityService<T, F, ID>
   implements SuggestService<T, F> {
 
 
@@ -64,7 +57,7 @@ export abstract class BaseReferentialService<
     injector: Injector,
     protected dataType: new() => T,
     protected filterType: new() => F,
-    options: BaseEntityServiceOptions<T, ID, Q, M, S>
+    options: BaseEntityServiceOptions<T, ID>
   ) {
     super(
       injector.get(GraphqlService),
@@ -76,7 +69,8 @@ export abstract class BaseReferentialService<
       });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: WO): Observable<LoadResult<T>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: {
+    fetchPolicy?: WatchQueryFetchPolicy; withTotal?: boolean; toEntity?: boolean; }): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter && filter.searchAttribute;
     // Call inherited function
@@ -87,7 +81,7 @@ export abstract class BaseReferentialService<
                 sortBy?: string | keyof T,
                 sortDirection?: SortDirection,
                 filter?: Partial<F>,
-                opts?: LO & { debug?: boolean }): Promise<LoadResult<T>> {
+                opts?: EntitiesServiceLoadOptions & { debug?: boolean }): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter?.searchAttribute;
 
@@ -95,7 +89,7 @@ export abstract class BaseReferentialService<
     return super.loadAll(offset, size, sortBy as string, sortDirection, filter, opts);
   }
 
-  async load(id: ID, opts?: LO): Promise<T> {
+  async load(id: ID, opts?: EntityServiceLoadOptions): Promise<T> {
     const query = opts && opts.query || this.queries.load;
     if (!query) {
       if (!this.queries.loadAll) throw new Error('Not implemented');
@@ -108,7 +102,10 @@ export abstract class BaseReferentialService<
   async suggest(value: any, filter?: Partial<F>,
                 sortBy?: string | keyof T,
                 sortDirection?: SortDirection,
-                opts?: LO & { fetchPolicy: FetchPolicy; debug?: boolean }): Promise<LoadResult<T>> {
+                opts?: {
+                  fetchPolicy?: FetchPolicy;
+                  [key: string]: any;
+                }): Promise<LoadResult<T>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === 'string' && value !== '*') && value || undefined;
     // Replace '*' character by undefined
