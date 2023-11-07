@@ -1,6 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  AbstractControlOptions,
+  AsyncValidatorFn,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { PositionValidatorService } from '@app/data/position/position.validator';
 import {
   AppFormUtils,
@@ -13,7 +23,7 @@ import {
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -33,9 +43,6 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import {PhysicalGearValidatorOptions} from '@app/trip/physicalgear/physicalgear.validator';
-
 
 export interface IPmfmForm {
   form: UntypedFormGroup;
@@ -49,6 +56,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   allowParentOperation?: boolean;
   isChild?: boolean;
   isParent?: boolean;
+  withMetier?: boolean;
   withPosition?: boolean;
   withFishingAreas?: boolean;
   withChildOperation?: boolean;
@@ -165,15 +173,19 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         tripId: [toNumber(data?.tripId, null)],
         rankOrder: [toNumber(data?.rankOrder, null)],
         rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
-        metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
-
+        // Parent / child
         parentOperation: [data && data.parentOperation || null], // Validators define later, in updateFormGroup
         parentOperationId: [toNumber(data && data.parentOperationId, null)],
         childOperationId: [toNumber(data && data.childOperationId, null)]
       });
+
+    // Add metier
+    if (opts.withMetier) {
+      formConfig['metier'] = [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])];
+    }
 
     return formConfig;
   }
@@ -232,16 +244,25 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     const previousOptions = getFormOptions(form);
 
-    // Skip if same
+    // Skip if same options
     if (equals(previousOptions, opts)) {
       console.debug('[operation-validator] Skipping form update (same options)');
       return;
     }
 
-    setFormOptions(form, opts);
-
     // DEBUG
     console.debug(`[operation-validator] Updating form group validators`);
+
+    // Remember options, for next call
+    setFormOptions(form, opts);
+
+    // Metier control
+    if (opts.withMetier) {
+      if (!form.controls.metier) form.addControl('metier', this.formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+    }
+    else {
+      if (form.controls.metier) form.removeControl('metier');
+    }
 
     const positionOpts = {
       __typename: VesselPosition.TYPENAME,
@@ -555,6 +576,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = super.fillDefaultOptions(opts);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
+    opts.withMetier = toBoolean(opts.withMetier, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE), true));
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, !opts.withPosition);
     opts.withChildOperation = toBoolean(opts.withChildOperation, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION), false));

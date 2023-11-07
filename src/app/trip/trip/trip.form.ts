@@ -51,7 +51,7 @@ import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
 import { Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -175,6 +175,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.controls.metiers as UntypedFormArray;
   }
 
+  @Output() departureDateTimeChanges = new EventEmitter<Moment>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
@@ -280,11 +281,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ngOnReady() {
     this.updateFormGroup();
 
+    const departureDateTime$ = this.form.get('departureDateTime').valueChanges;
+    const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
+
     this.registerSubscription(
-      combineLatest([this.form.get('departureDateTime').valueChanges, this.form.get('returnDateTime').valueChanges]).subscribe(([d1, d2]) => {
-        const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
-        this.maxDateChanges.next(max);
-      })
+      departureDateTime$.subscribe(departureDateTime => this.departureDateTimeChanges.next(departureDateTime))
+    );
+
+    this.registerSubscription(
+      combineLatest([departureDateTime$, returnDateTime$])
+        .pipe(map(([d1, d2]) => DateUtils.max(d1, d2)))
+        .subscribe(max => this.maxDateChanges.next(max))
     );
   }
 

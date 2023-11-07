@@ -201,6 +201,7 @@
                 [showError]="false"
                 [returnFieldsRequired]="usageMode | isOnDesk"
                 (onSubmit)="save($event)"
+                (departureDateTimeChanges)="strategyDateTime = $event"
                 (maxDateChanges)="saleForm.minDate = $event"
               >
                 <!-- sale -->
@@ -291,11 +292,11 @@
         <app-physical-gears-table
           #physicalGearsTable
           [programLabel]="programLabel$ | async"
-          [showToolbar]="!mobile"
           (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
+          [showToolbar]="!mobile"
           [useSticky]="!mobile"
-          [mobile]="mobile"
           [usageMode]="usageMode"
+          [mobile]="mobile"
           [debug]="debug"
         ></app-physical-gears-table>
       </div>

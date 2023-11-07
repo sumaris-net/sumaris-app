@@ -129,7 +129,7 @@
 
     <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
+        <ion-label class="ion-float-end">{{(this.showMetier ? 'TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES' : 'TRIP.OPERATION.EDIT.GEAR') | translate}}</ion-label>
       </ion-col>
 
       <!-- Physical gear -->
@@ -149,7 +149,7 @@
       </ion-col>
 
       <!-- Target species (using metier) -->
-      <ion-col size="12" size-sm="6" size-md="">
+      <ion-col size="12" size-sm="6" size-md="" *ngIf="showMetier">
         <mat-autocomplete-field
           #metierField
           formControlName="metier"

@@ -43,6 +43,8 @@
     "BTN_SAVE": "Sauvegarder",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>auvegarder",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Sauvegarder (Ctrl+S)",
+    "BTN_SAVE_AND_CLOSE": "Sauvegarder et fermer",
+    "BTN_SAVE_AND_NEXT": "Sauvegarder et suivant",
     "BTN_FILTER": "Filtrer",
     "BTN_RELOAD": "Recharger",
     "BTN_REFRESH": "Rafraichir",
@@ -116,6 +118,7 @@
 
     "YES": "Oui",
     "NO": "Non",
+    "DEBUG": "Debug",
 
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
@@ -333,6 +336,7 @@
         "TOKEN": "Cryptographique",
         "BASIC_AND_TOKEN": "Basique et cryptographique"
       },
+      "ENABLE_AUTH_API_TOKENS": "API > Activer les jetons d'authentification",
       "DATA_QUALITY_PROCESS_ENABLE": "Saisie > Activer le processus qualité ?",
       "DATA_SHOW_RECORDER": "Saisie > Afficher le saisisseur ?",
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",

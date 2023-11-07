@@ -64,7 +64,7 @@ export const APP_DATA_ENTITY_EDITOR = new InjectionToken<AppDataEntityEditor<any
 })
 export class EntityQualityFormComponent<
   T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
-  S extends IEntityService<T, ID> = IEntityService<any, any>,
+  S extends IEntityService<T, ID> = IEntityService<any>,
   ID = number>
   implements OnInit, OnDestroy {
 

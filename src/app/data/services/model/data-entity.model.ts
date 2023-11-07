@@ -1,8 +1,19 @@
 import { Moment } from 'moment';
-import { DateUtils, Department, Entity, removeEnd, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
-import {IWithObserversEntity, IWithRecorderDepartmentEntity} from './model.utils';
+import {
+  DateUtils,
+  Department,
+  Entity,
+  EntityAsObjectOptions,
+  fromDateISOString,
+  IEntity,
+  isNil,
+  isNotNil,
+  ReferentialAsObjectOptions,
+  removeEnd,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
+import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -95,6 +106,11 @@ export abstract class DataEntity<
     this.qualificationComments = source.qualificationComments;
     this.qualityFlagId = source.qualityFlagId;
   }
+
+  getStrategyDateTime(): Moment | undefined {
+    return undefined;
+  }
+
 }
 
 

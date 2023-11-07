@@ -209,6 +209,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_POSITION_BOUNDING_BOX',
     type: 'string' // expected BBox
   },
+  TRIP_OPERATION_METIER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.metier.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
     label: 'PROGRAM.OPTIONS.TRIP_POSITION_ENABLE',

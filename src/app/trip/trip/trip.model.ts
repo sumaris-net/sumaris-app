@@ -1,17 +1,7 @@
-import { isMoment, Moment } from "moment";
-import {
-  DataEntity,
-  DataEntityAsObjectOptions,
-  MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE
-} from "@app/data/services/model/data-entity.model";
-import {
-  Measurement,
-  MeasurementFormValues,
-  MeasurementModelValues,
-  MeasurementUtils,
-  MeasurementValuesUtils
-} from "@app/data/measurement/measurement.model";
-import { Sale } from "../sale/sale.model";
+import { isMoment, Moment } from 'moment';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
+import { Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { Sale } from '../sale/sale.model';
 import {
   DateUtils,
   EntityClass,
@@ -24,27 +14,27 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   toDateISOString
-} from "@sumaris-net/ngx-components";
-import { FishingArea } from "@app/data/fishing-area/fishing-area.model";
-import { DataRootVesselEntity } from "@app/data/services/model/root-vessel-entity.model";
-import { IWithObserversEntity } from "@app/data/services/model/model.utils";
-import { RootDataEntity } from "@app/data/services/model/root-data-entity.model";
-import { Landing } from "../landing/landing.model";
-import { Sample } from "../sample/sample.model";
-import { Batch } from "../batch/common/batch.model";
-import { IWithProductsEntity, Product } from "../product/product.model";
-import { IWithPacketsEntity, Packet } from "../packet/packet.model";
-import { ExpectedSale } from "@app/trip/sale/expected-sale.model";
-import { VesselSnapshot } from "@app/referential/services/model/vessel-snapshot.model";
-import { Metier } from "@app/referential/metier/metier.model";
-import { SortDirection } from "@angular/material/sort";
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import { VesselPosition } from "@app/data/position/vessel/vessel-position.model";
-import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
-import { OperationPasteFlags } from "@app/referential/services/config/program.config";
-import { hasFlag } from "@app/shared/flags.utils";
-import { PositionUtils } from "@app/data/position/position.utils";
-import { PmfmIds } from "@app/referential/services/model/model.enum";
+} from '@sumaris-net/ngx-components';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { Landing } from '../landing/landing.model';
+import { Sample } from '../sample/sample.model';
+import { Batch } from '../batch/common/batch.model';
+import { IWithProductsEntity, Product } from '../product/product.model';
+import { IWithPacketsEntity, Packet } from '../packet/packet.model';
+import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { Metier } from '@app/referential/metier/metier.model';
+import { SortDirection } from '@angular/material/sort';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { OperationPasteFlags } from '@app/referential/services/config/program.config';
+import { hasFlag } from '@app/shared/flags.utils';
+import { PositionUtils } from '@app/data/position/position.utils';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 /* -- Helper function -- */
 
@@ -451,6 +441,10 @@ export class Operation
   get abnormal() {
     return this.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
+
+  getStrategyDateTime() {
+    return this.endDateTime || this.fishingEndDateTime || this.fishingEndDateTime || this.startDateTime;
+  }
 }
 
 export class OperationUtils {
@@ -748,9 +742,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
         // Same departure date (or, if not set, same return date)
-        && ((this.departureDateTime === other.departureDateTime)
-          || (!this.departureDateTime && !other.departureDateTime && this.returnDateTime === other.returnDateTime))
+        && (DateUtils.equals(this.departureDateTime, other.departureDateTime)
+          || (!this.departureDateTime && !other.departureDateTime && DateUtils.equals(this.returnDateTime, other.returnDateTime)))
       );
+  }
+
+  getStrategyDateTime() {
+    return this.departureDateTime;
   }
 }
 

@@ -159,7 +159,7 @@ export class TripPage
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
-
+    
     // Cascade refresh to operation tables
     this.registerSubscription(
       this.onUpdateView

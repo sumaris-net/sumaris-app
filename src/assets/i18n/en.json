@@ -334,6 +334,7 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
+      "ENABLE_AUTH_API_TOKENS": "API > Enable auth tokens?",
       "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
       "DATA_SHOW_RECORDER": "Forms > Show recorder person?",
       "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
@@ -1276,6 +1277,15 @@
       "LOAD_ALL_ERROR": "Error while loading sales.",
       "SAVE_ERROR": "Error while saving the sale.",
       "SAVE_ALL_ERROR": "Error while saving sales."
+    }
+  },
+  "SCIENTIFIC_CRUISE": {
+    "TABLE": {
+      "NAME": "Name",
+      "MANAGER": "Manager"
+    },
+    "OPTIONS": {
+      "ENABLE": "Scientific cruise > Enable?"
     }
   },
   "OBSERVED_LOCATION": {

@@ -51,9 +51,10 @@ import { BaseTableConfig } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
@@ -303,7 +304,7 @@ export class LandingsPage extends AppRootDataTable<
     this.registerAutocompleteField('strategy', {
       suggestFn: (value, filter) => {
         const program = this.filterForm.get('program').value;
-        return this.strategyRefService.suggest(value, <StrategyRefFilter>{
+        return this.strategyRefService.suggest(value, <StrategyFilter>{
           ...filter,
           levelId: program?.id
         });

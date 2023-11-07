@@ -6,74 +6,75 @@ import {
   BaseEntityGraphqlQueries,
   EntitiesStorage,
   firstArrayValue,
-  firstNotNilPromise, fromDateISOString, isEmptyArray,
+  fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotNil,
   NetworkService,
-  toNumber
 } from '@sumaris-net/ngx-components';
 import { CacheService } from 'ionic-cache';
 import { ErrorCodes } from './errors';
-import { ReferentialFilter } from './filter/referential.filter';
 import { Strategy } from './model/strategy.model';
 import { StrategyFragments } from './strategy.fragments';
-import { defer, Observable, Subject, Subscription } from 'rxjs';
-import {filter, finalize, map} from 'rxjs/operators';
+import { defer, firstValueFrom, Observable, Subject, Subscription } from 'rxjs';
+import { filter, finalize, map } from 'rxjs/operators';
 import { BaseReferentialService } from './base-referential-service.class';
 import { Moment } from 'moment';
-
-
-export class StrategyRefFilter extends ReferentialFilter {
-  //entityName: 'Strategy';
-}
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { LoadResult } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 const Queries: BaseEntityGraphqlQueries = {
-  load: gql`query StrategyRef($id: Int!) {
-    data: strategy(id: $id) {
-      ...StrategyRefFragment
+  load: gql`
+    query StrategyRef($id: Int!) {
+      data: strategy(id: $id) {
+        ...StrategyRefFragment
+      }
     }
-  }
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
   `,
-  loadAll: gql`query StrategyRefs($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...StrategyRefFragment
+  loadAll: gql`
+    query StrategyRefs($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...StrategyRefFragment
+      }
     }
-  }
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`,
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
 
-  loadAllWithTotal: gql`query StrategyRefWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...StrategyRefFragment
+  loadAllWithTotal: gql`
+    query StrategyRefWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...StrategyRefFragment
+      }
+      total: strategiesCount(filter: $filter)
     }
-    total: strategiesCount(filter: $filter)
-  }
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.taxonName}`
+    ${StrategyFragments.strategyRef}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.denormalizedPmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonName}
+  `,
 };
 
 const SUBSCRIPTIONS = {
@@ -91,7 +92,7 @@ const StrategyRefCacheKeys = {
 
 
 @Injectable({providedIn: 'root'})
-export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
+export class StrategyRefService extends BaseReferentialService<Strategy, StrategyFilter> {
 
   private _subscriptionCache: {[key: string]: {
       subject: Subject<any>;
@@ -105,7 +106,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(injector, Strategy, StrategyRefFilter,
+    super(injector, Strategy, StrategyFilter,
       {
         queries: Queries
       });
@@ -115,93 +116,85 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
    * Watch strategy by label
    *
    * @param label
+   * @param dataFilter
    * @param opts
    */
-  watchByLabel(label: string, opts?: {
-    programId?: number;
-    toEntity?: boolean;
-    debug?: boolean;
-    cache?: boolean;
-    fetchPolicy?: WatchQueryFetchPolicy;
-  }): Observable<Strategy> {
+  watchByLabel(label: string,
+               dataFilter?: Partial<StrategyFilter>,
+               opts?: {
+                toEntity?: boolean;
+                debug?: boolean;
+                cache?: boolean;
+                fetchPolicy?: WatchQueryFetchPolicy;
+              }): Observable<Strategy> {
 
     if (!opts || opts.cache !== false) {
-      const cacheKey = [StrategyRefCacheKeys.STRATEGY_BY_LABEL, label, opts && opts.programId].join('|');
+      const cacheKey = [StrategyRefCacheKeys.STRATEGY_BY_LABEL, label, dataFilter?.programId].join('|');
       return this.cache.loadFromObservable(cacheKey,
-        defer(() => this.watchByLabel(label, {...opts, toEntity: false, cache: false})),
+        defer(() => this.watchByLabel(label, dataFilter, {...opts, toEntity: false, cache: false})),
         StrategyRefCacheKeys.CACHE_GROUP)
         .pipe(
           map(data => (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data)
         );
     }
 
-    let now;
+    let now: number;
     const debug = this._debug && (!opts || opts !== false);
     now = debug && Date.now();
     if (now) console.debug(`[strategy-ref-service] Watching strategy {${label}}...`);
-    let res: Observable<any>;
+    let watchAll$: Observable<LoadResult<Strategy>>;
+
+    dataFilter = this.asFilter({...dataFilter, label: label});
 
     if (this.network.offline) {
-      res = this.entities.watchAll<Strategy>(Strategy.TYPENAME, {
-        offset: 0,
-        size: 2,
-        filter: (p) => p.label ===  label && (!opts.programId || p.programId === opts.programId)
-      }).pipe(
-        map(res => {
-          if (isEmptyArray(res.data)) throw new Error('ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
-          if (res.data.length > 1) throw new Error('ERROR.STRATEGY_LABEL_DUPLICATED');
-          return firstArrayValue(res && res.data);
-        })
-      );
+      watchAll$ = this.entities.watchAll<Strategy>(Strategy.TYPENAME, {
+        offset: 0, size: 2, // fetch 2 item, to be able to detect duplicated label
+        filter: dataFilter?.asFilterFn()
+      });
     }
     else {
-      res = this.graphql.watchQuery<{data: any[]}>({
+      watchAll$ = this.graphql.watchQuery<{data: any[]}>({
         query: this.queries.loadAll,
         variables: {
-          offset: 0, size: 2,
-          filter: {
-            label,
-            levelId: toNumber(opts && opts.programId, undefined)
-          }
+          offset: 0, size: 2, // fetch 2 item, to be able to detect duplicated label
+          filter: dataFilter?.asPodObject()
         },
         // Important: do NOT using cache here, as default (= 'no-cache')
         // because cache is manage by Ionic cache (easier to clean)
         fetchPolicy: opts && opts.fetchPolicy || 'no-cache',
         error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'}
-      }).pipe(
+      });
+    }
+
+    return watchAll$.pipe(
+        filter(isNotNil),
         map(res => {
           if (isEmptyArray(res.data)) throw new Error('ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
           if (res.data.length > 1) throw new Error('ERROR.STRATEGY_LABEL_DUPLICATED');
           return firstArrayValue(res && res.data);
+        }),
+        map(data => {
+          const entity = (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data as Strategy;
+          if (now) {
+            console.debug(`[strategy-service] Watching strategy {${label}} [OK] in ${Date.now() - now}ms`);
+            now = undefined;
+          }
+          return entity;
         })
       );
-    }
-
-    return res
-      .pipe(
-      filter(isNotNil),
-      map(data => {
-        const entity = (!opts || opts.toEntity !== false) ? Strategy.fromObject(data) : data;
-        if (now) {
-          console.debug(`[strategy-service] Watching strategy {${label}} [OK] in ${Date.now() - now}ms`);
-          now = undefined;
-        }
-        return entity;
-      })
-    );
   }
 
   /**
    *
    * @param label
+   * @param filter
    * @param opts
    */
-  async loadByLabel(label: string, opts?: {
-    programId?: number;
+  async loadByLabel(label: string, filter?: Partial<StrategyFilter>, opts?: {
     fetchPolicy?: FetchPolicy;
     toEntity?: boolean;
   }): Promise<Strategy> {
-    return firstNotNilPromise(this.watchByLabel(label, opts));
+    return firstValueFrom(this.watchByLabel(label, filter, opts));
   }
 
   async clearCache() {
@@ -249,7 +242,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
 
           // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
           setTimeout(() => {
-            if (cache.subject.observers.length > 0) return; // Skip if has observers
+            if (cache.subject.observed) return; // Skip if still observed
             // DEBUG
             //console.debug(`[strategy-ref-service] Closing strategies changes for program {${id}}(${cache.subject.observers.length} observers)`);
             this._subscriptionCache[cacheKey] = undefined;

@@ -67,6 +67,7 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -94,6 +95,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _trip: Trip;
   private _$physicalGears = new BehaviorSubject<PhysicalGear[]>(undefined);
   private _$metiers = new BehaviorSubject<LoadResult<IReferentialRef>>(undefined);
+  private _showMetier = true;
   private _showMetierFilter = false;
   private _allowParentOperation = false;
   private _showPosition = true;
@@ -147,6 +149,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get usageMode(): UsageMode {
     return this._usageMode;
+  }
+
+
+  @Input() set showMetier(value: boolean) {
+    // Change metier filter button
+    if (this._showMetier !== value) {
+      this._showMetier = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showMetier(): boolean {
+    return this._showMetier;
   }
 
   @Input() set showMetierFilter(value: boolean) {
@@ -882,6 +897,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.allowParentOperation && this.isChildOperation,
+      withMetier: this._showMetier,
       withPosition: this._showPosition,
       withFishingAreas: this._showFishingArea,
       withFishingStart: this.fishingStartDateTimeEnable,
@@ -921,17 +937,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
 
     // Change metier status, if need
-    const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears) || this.allowParentOperation;
-    if (enableMetier) {
-      if (metierControl.disabled) metierControl.enable();
-    } else {
-      if (metierControl.enabled) metierControl.disable();
+    if (this._showMetier) {
+      const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears) || this.allowParentOperation;
+      if (enableMetier) {
+        if (metierControl.disabled) metierControl.enable();
+
+        // Refresh metiers
+        await this.loadMetiers(physicalGear);
+      } else {
+        if (metierControl.enabled) metierControl.disable();
+      }
     }
 
-    if (hasPhysicalGear && enableMetier) {
-      // Refresh metiers
-      await this.loadMetiers(physicalGear);
-    }
   }
 
   protected async loadMetiers(physicalGear?: PhysicalGear | any, opts = {
@@ -943,16 +960,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     if (isNotNil(this._$metiers.value)) this._$metiers.next(null);
 
     // No gears selected: skip
-    if (EntityUtils.isEmpty(physicalGear, 'id')) {
-      return undefined;
-    }
+    if (EntityUtils.isEmpty(physicalGear, 'id') || !this._showMetier) return;
 
     await this.ready();
 
     const gear = physicalGear?.gear;
     console.debug('[operation-form] Loading Metier ref items for the gear: ' + (gear?.label));
 
-    let res;
+    let res: LoadResult<Metier|ReferentialRef>;
     if (this.autocompleteFilters.metier) {
       res = await this.operationService.loadPracticedMetier(0, 30, null, null,
         {
@@ -960,7 +975,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           searchJoin: 'TaxonGroup',
           vesselId: this.trip.vesselSnapshot.id,
           startDate: this.startProgram as Moment,
-          endDate: moment().add(1, 'day'), // Tomorrow
+          endDate: DateUtils.moment().add(1, 'day'), // Tomorrow
           programLabel: this.programLabel,
           gearIds: gear && [gear.id],
           levelId: gear && gear.id || undefined
@@ -1029,8 +1044,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
 
     this._$metiers.next(res);
-
-    return res;
   }
 
   setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean }) {

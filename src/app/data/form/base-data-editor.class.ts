@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import { combineLatestWith, merge, Subscription } from 'rxjs';
+import { combineLatestWith, merge, Subscription, tap } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -25,6 +25,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { equals } from '@app/shared/functions';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { RxState } from '@rx-angular/state';
+import { Moment } from 'moment';
 
 export interface BaseEditorState {
   acquisitionLevel: string;
@@ -32,6 +33,7 @@ export interface BaseEditorState {
   program: Program;
   strategyLabel: string;
   strategy: Strategy;
+  strategyDateTime: Moment;
 }
 
 @Directive()
@@ -50,6 +52,7 @@ export abstract class AppBaseDataEntityEditor<
   protected readonly _onStrategyReload = new EventEmitter<void>();
 
   protected readonly mobile: boolean;
+  protected logPrefix: string = null;
 
   protected programRefService: ProgramRefService;
   protected strategyRefService: StrategyRefService;
@@ -62,6 +65,7 @@ export abstract class AppBaseDataEntityEditor<
   readonly programLabel$ = this._state.select( 'programLabel');
   readonly program$ = this._state.select('program');
   readonly strategyLabel$ = this._state.select( 'strategyLabel');
+  readonly strategyDateTime$ = this._state.select( 'strategyDateTime');
   readonly strategy$ = this._state.select('strategy');
 
 
@@ -98,6 +102,12 @@ export abstract class AppBaseDataEntityEditor<
   set strategy(value: Strategy) {
     this._state.set('strategy', () => value);
   }
+  get strategyDateTime(): Moment {
+    return this._state.get('strategyDateTime');
+  }
+  set strategyDateTime(value: Moment) {
+    this._state.set('strategyDateTime', () => value);
+  }
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
     super(injector, dataType, dataService, {
@@ -110,6 +120,7 @@ export abstract class AppBaseDataEntityEditor<
     this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
+    this.logPrefix = '[base-data-editor] ';
     //this.debug = !environment.production;
   }
 
@@ -146,21 +157,21 @@ export abstract class AppBaseDataEntityEditor<
           }))
       );
 
-    // Watch strategy
+    // Load strategy from strategyLabel (after program loaded)
     this._state.connect('strategy', programLoaded$.pipe(
           combineLatestWith(merge(
             this.strategyLabel$.pipe(distinctUntilChanged()),
 
-            // Allow to force reload (e.g. when strategy remotely changes - see startListenStrategyRemoteChanges() )
-            this._onStrategyReload.pipe(map(() => this.strategyLabel))))
+            // Allow to force reload
+            this._onStrategyReload.pipe(map(() => this.strategyLabel))
+          ))
         )
         .pipe(
+          filter(([program, strategyLabel]) => isNotNil(program) && isNotNilOrBlank(strategyLabel)),
           // DEBUG --
           //tap(([_, strategyLabel]) => console.debug('DEV - Getting programLabel=' + strategyLabel)),
-
-          mergeMap(([program, strategyLabel]) => isNotNil(program) && isNotNilOrBlank(strategyLabel)
-              ? this.strategyRefService.loadByLabel(strategyLabel, { programId: program.id })
-              : Promise.resolve(undefined)
+          mergeMap(([program, strategyLabel]) =>
+            this.strategyRefService.loadByLabel(strategyLabel, { programId: program.id })
           ),
           catchError((err, _) => {
             this.setError(err);
@@ -168,6 +179,26 @@ export abstract class AppBaseDataEntityEditor<
           }),
           filter((strategy) => isNotNil(strategy) && !equals(strategy, this.strategy))
         )
+    );
+
+    // Load strategy from strategyDateTime (after program loaded)
+    this._state.connect('strategy', programLoaded$.pipe(
+      combineLatestWith(merge(
+          this.strategyDateTime$,
+
+          // Allow to force reload
+          this._onStrategyReload.pipe(map(() => this.strategyDateTime))
+        ))
+      )
+      .pipe(
+        filter(([program, strategyDateTime]) => isNotNil(program) && isNotNil(strategyDateTime)),
+        // DEBUG --
+        tap(([program, strategyDateTime]) => console.debug('DEV - Getting strategyDateTime=' + strategyDateTime)),
+        mergeMap(async ([program, strategyDateTime]) => {
+          const {data} = await this.strategyRefService.loadAll(0, 1, null,  null, { programId: program.id })
+          return data?.[0];
+        })
+      )
     );
 
     this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
@@ -332,6 +363,7 @@ export abstract class AppBaseDataEntityEditor<
   }
 
   protected computeStrategy(data: T, program: Program): Strategy {
+    console.debug(this.logPrefix + 'Computing strategy');
     return null; // TODO BLA
   }
 }
