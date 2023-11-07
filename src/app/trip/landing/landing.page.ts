@@ -18,7 +18,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
-  LocalSettingsService,
   NetworkService,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -84,7 +83,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   protected network: NetworkService;
   private _rowValidatorSubscription: Subscription;
 
-  mobile: boolean;
   showParent = false;
   parentAcquisitionLevel: AcquisitionLevelType;
   showEntityMetadata = false;
@@ -108,7 +106,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   ) {
     super(injector, Landing, injector.get(LandingService), {
       pathIdAttribute: 'landingId',
-      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
@@ -121,7 +118,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.context = injector.get(ContextService);
     this.network = injector.get(NetworkService);
 
-    this.mobile = this.settings.mobile;
     this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
     this.showParent = !!this.parentAcquisitionLevel;
 

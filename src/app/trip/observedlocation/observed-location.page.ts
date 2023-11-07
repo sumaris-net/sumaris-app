@@ -17,7 +17,6 @@ import {
   firstNotNilPromise,
   HistoryPageReference,
   isNotNil,
-  LocalSettingsService,
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
@@ -73,7 +72,6 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
 
-  mobile: boolean;
   showLandingTab = false;
   $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
   $table = new BehaviorSubject<ILandingsTable>(undefined);
@@ -101,7 +99,6 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     protected configService: ConfigService,
     protected accountService: AccountService,
     protected vesselService: VesselService,
@@ -116,17 +113,13 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
       {
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
-        autoOpenNextTab: !settings.mobile,
         i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
         enableListenChanges: true
       });
     this.defaultBackHref = '/observations';
-    this.mobile = this.settings.mobile;
-
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-
   }
 
   ngOnInit() {
