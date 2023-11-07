@@ -41,6 +41,7 @@ import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { RxState } from '@rx-angular/state';
 
 const PROGRAM_TABS = {
   LOCATIONS: 1,
@@ -48,17 +49,28 @@ const PROGRAM_TABS = {
   OPTIONS: 3,
   PERSONS: 4,
 };
+
+export interface ProgramPageState {
+  strategiesTables: AppTable<Strategy>;
+}
+
 @Component({
   selector: 'app-program',
   templateUrl: 'program.page.html',
   styleUrls: ['./program.page.scss'],
-  providers: [{ provide: ValidatorService, useExisting: ProgramValidatorService }],
+  providers: [
+    {provide: ValidatorService, useExisting: ProgramValidatorService},
+    RxState
+  ],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
   readonly TABS = PROGRAM_TABS;
   readonly mobile: boolean;
+
+  protected readonly strategiesTable$ = this._state.select('strategiesTables');
+
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: UntypedFormGroup;
@@ -75,7 +87,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   @ViewChild('locationList', { static: true }) locationList: AppListForm<ReferentialRef>;
 
   get strategiesTable(): AppTable<Strategy> {
-    return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
+    return this._state.get('strategiesTables');
+  }
+
+  set strategiesTable(value: AppTable<Strategy>) {
+    this._state.set('strategiesTables', () => value);
   }
 
   constructor(
@@ -85,7 +101,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected _state: RxState<ProgramPageState>
   ) {
     super(injector, Program, programService, {
       pathIdAttribute: 'programId',
