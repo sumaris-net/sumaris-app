@@ -255,6 +255,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Remember options, for next call
     setFormOptions(form, opts);
+    const enabled = form.enabled;
 
     // Metier control
     if (opts.withMetier) {
@@ -458,10 +459,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           // If no endDateTime, add trip dates validator
           : [...tripDatesValidators, ...fishingEndDateTimeValidators]
         );
-        fishingEndDateTimeControl.enable();
+        if (enabled) {
+          fishingEndDateTimeControl.enable();
 
-        // Enable position
-        fishingEndPositionControl?.enable();
+          // Enable position
+          fishingEndPositionControl?.enable();
+        }
       } else {
         fishingEndDateTimeControl.clearValidators();
         fishingEndDateTimeControl.disable();
@@ -480,10 +483,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         endDateTimeControl.setValidators(opts.isOnFieldMode
           ? endDateTimeValidators
           : [Validators.required, ...endDateTimeValidators]);
-        endDateTimeControl.enable();
 
-        // Enable position
-        endPositionControl?.enable();
+        if (enabled) {
+          endDateTimeControl.enable();
+
+          // Enable position
+          endPositionControl?.enable();
+        }
       } else {
         endDateTimeControl.clearValidators();
         endDateTimeControl.disable();
@@ -527,10 +533,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         endDateTimeControl.setValidators(opts?.isOnFieldMode
           ? Validators.compose(endDateTimeValidators)
           : Validators.compose([Validators.required, ...endDateTimeValidators]));
-        endDateTimeControl.enable();
+        if (enabled) {
+          endDateTimeControl.enable();
 
-        // Enable position
-        endPositionControl?.enable();
+          // Enable position
+          endPositionControl?.enable();
+        }
       } else {
         endDateTimeControl.clearValidators();
         endDateTimeControl.disable();
