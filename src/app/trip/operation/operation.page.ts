@@ -22,7 +22,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   ReferentialUtils,
   sleep,
@@ -208,7 +207,6 @@ export class OperationPage<S extends OperationState = OperationState>
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       i18nPrefix: 'TRIP.OPERATION.EDIT.',
       ...options
     });

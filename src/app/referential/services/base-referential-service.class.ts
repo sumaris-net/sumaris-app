@@ -5,15 +5,17 @@ import { SortDirection } from '@angular/material/sort';
 
 import {
   BaseEntityService,
-  BaseEntityServiceOptions, EntitiesServiceLoadOptions,
+  BaseEntityServiceOptions,
+  EntitiesServiceLoadOptions,
   EntityServiceLoadOptions,
-  GraphqlService, IEntityService,
+  GraphqlService,
+  IEntityService,
   IReferentialRef,
   isNotNil,
   LoadResult,
   PlatformService,
   ReferentialUtils,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
 import { Directive, Injector } from '@angular/core';
 import { IReferentialFilter, ReferentialFilter } from './filter/referential.filter';
@@ -63,7 +65,6 @@ export abstract class BaseReferentialService<
       dataType,
       filterType,
       {
-        equalsFn: (e1, e2) => this.equals(e1, e2),
         ...options
       });
   }
@@ -125,9 +126,10 @@ export abstract class BaseReferentialService<
     );
   }
 
-  /* -- protected functions -- */
-
-  protected equals(e1: T, e2: T): boolean {
+  equals(e1: T, e2: T): boolean {
     return e1 && e2 && ((isNotNil(e1.id) && e1.id === e2.id) || (e1.label && e1.label === e2.label));
   }
+
+  /* -- protected functions -- */
+
 }

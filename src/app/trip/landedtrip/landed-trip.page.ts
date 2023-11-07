@@ -74,7 +74,6 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
   showSaleTab = false;
   showExpenseTab = false;
   showCatchFilter = false;
-  mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);

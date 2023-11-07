@@ -13,7 +13,6 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   SharedValidators,
 } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from './biological-sampling.validators';
@@ -50,7 +49,6 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       enableListenChanges: false,
     });
     this.i18nContext.suffix = 'SAMPLING.';

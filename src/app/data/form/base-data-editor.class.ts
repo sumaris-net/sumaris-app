@@ -15,6 +15,7 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
+  LocalSettingsService,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
@@ -99,10 +100,14 @@ export abstract class AppBaseDataEntityEditor<
   }
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
-    super(injector, dataType, dataService, options);
+    super(injector, dataType, dataService, {
+      autoOpenNextTab: !(injector.get(LocalSettingsService).mobile),
+      ...options
+    });
 
     this.programRefService = injector.get(ProgramRefService);
     this.strategyRefService = injector.get(StrategyRefService);
+    this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;

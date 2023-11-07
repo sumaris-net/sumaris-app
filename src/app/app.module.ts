@@ -35,6 +35,8 @@ import {
   Department,
   EntitiesStorageTypePolicies,
   ENVIRONMENT,
+  EnvironmentHttpLoader,
+  EnvironmentLoader,
   FormFieldDefinitionMap,
   isAndroid,
   isCapacitor,
@@ -160,7 +162,13 @@ import { AppEnvironment } from '@environments/environment.class';
     HammerModule,
 
     // functional modules
-    AppSharedModule.forRoot(environment),
+    AppSharedModule.forRoot({
+      loader: {
+        provide: EnvironmentLoader,
+        deps: [HttpClient],
+        useFactory: (httpClient: HttpClient) => new EnvironmentHttpLoader(httpClient, environment),
+      },
+    }),
     AppCoreModule.forRoot(),
     AppRoutingModule,
     UserEventModule,

@@ -28,7 +28,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   NetworkService,
   PromiseEvent,
@@ -130,7 +129,6 @@ export class TripPage
     injector: Injector,
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     protected operationService: OperationService,
     protected context: ContextService,
     protected tripContext: TripContextService,
@@ -144,7 +142,6 @@ export class TripPage
       {
         pathIdAttribute: 'tripId',
         tabCount: 3,
-        autoOpenNextTab: !settings.mobile,
         enableListenChanges: true,
         i18nPrefix: 'TRIP.'
       });
