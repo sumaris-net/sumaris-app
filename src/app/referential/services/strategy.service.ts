@@ -39,7 +39,7 @@ import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonName
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialRefService } from './referential-ref.service';
 import { StrategyFragments } from './strategy.fragments';
-import { BaseReferentialService } from './base-referential-service.class';
+import { BaseReferentialService, IReferentialEntityService } from './base-referential-service.class';
 import { Pmfm } from './model/pmfm.model';
 import { ProgramRefService } from './program-ref.service';
 import { StrategyRefService } from './strategy-ref.service';
@@ -206,7 +206,8 @@ export interface StrategyServiceLoadOptions extends EntitiesServiceLoadOptions {
 
 @Injectable({ providedIn: 'root' })
 export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter, number,
-  StrategyServiceWatchOptions, StrategyServiceLoadOptions> {
+  StrategyServiceWatchOptions, StrategyServiceLoadOptions>
+  implements IReferentialEntityService<Strategy, StrategyFilter, number, StrategyServiceLoadOptions> {
   $dbTimeZone = new BehaviorSubject<string>(null);
 
   get dbTimeZone(): string {
