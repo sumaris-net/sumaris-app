@@ -29,6 +29,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
   parameterIds?: number[];
   periods?: any[];
+  acquisitionLevel: string;
   acquisitionLevels: string[];
 
   fromObject(source: any) {
@@ -43,6 +44,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     this.parameterIds = source.parameterIds;
     this.periods = source.periods;
+    this.acquisitionLevel = source.acquisitionLevel;
     this.acquisitionLevels = source.acquisitionLevels;
   }
 
@@ -51,6 +53,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    target.acquisitionLevels = target.acquisitionLevel ? [target.acquisitionLevel] : target.acquisitionLevels;
 
     if (opts && opts.minify) {
       target.departmentIds = ReferentialUtils.isNotEmpty(this.department) ? [this.department.id] : undefined;
@@ -62,6 +65,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
       delete target.taxonName;
       delete target.analyticReference;
       delete target.programId;
+      delete target.acquisitionLevel;
     } else {
       target.department = this.department && this.department.asObject(opts);
       target.location = this.location && this.location.asObject(opts);
@@ -124,11 +128,12 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     }
 
     // Acquisition levels
-    if (isNotEmptyArray(this.acquisitionLevels)) {
+    const acquisitionLevels = this.acquisitionLevel ? [this.acquisitionLevel] : this.acquisitionLevels;
+    if (isNotEmptyArray(acquisitionLevels)) {
       filterFns.push((t) =>
         (t.denormalizedPmfms || t.pmfms || []).some((p) => {
           const acquisitionLevel = typeof p.acquisitionLevel === 'string' ? p.acquisitionLevel : p.acquisitionLevel?.label;
-          return this.acquisitionLevels.includes(acquisitionLevel);
+          return acquisitionLevels.includes(acquisitionLevel);
         })
       );
     }

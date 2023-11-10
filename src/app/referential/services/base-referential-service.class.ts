@@ -19,6 +19,11 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Directive, Injector } from '@angular/core';
 import { IReferentialFilter } from './filter/referential.filter';
+import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+} from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
 
 export const TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
@@ -49,9 +54,12 @@ export abstract class BaseReferentialService<
   F extends IReferentialFilter<F, T, ID>,
   ID = number,
   WO extends EntityServiceWatchOptions = EntityServiceWatchOptions,
-  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions
+  LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+  Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
+  M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
+  S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions
   >
-  extends BaseEntityService<T, F, ID, WO, LO>
+  extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
   implements SuggestService<T, F>,
     IReferentialEntityService<T, F, ID, LO> {
 
@@ -60,7 +68,7 @@ export abstract class BaseReferentialService<
     injector: Injector,
     protected dataType: new() => T,
     protected filterType: new() => F,
-    options: BaseEntityServiceOptions<T, ID>
+    options: BaseEntityServiceOptions<T, ID, Q, M, S>
   ) {
     super(
       injector.get(GraphqlService),

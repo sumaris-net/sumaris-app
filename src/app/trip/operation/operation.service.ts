@@ -86,7 +86,7 @@ import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { PositionOptions } from '@capacitor/geolocation';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { DataCommonFragments, DataFragments } from "@app/trip/common/data.fragments";
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

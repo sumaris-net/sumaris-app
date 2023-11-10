@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { AppReferentialModule } from '../referential/referential.module';
-import { CoreModule } from '@sumaris-net/ngx-components';
+import { CoreModule, MessageModule } from '@sumaris-net/ngx-components';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { IsMeasurementFormValuesPipe, IsMeasurementModelValuesPipe, MeasurementValueGetPipe } from '@app/data/measurement/measurements.pipe';
 import { AppImageAttachmentModule } from '@app/data/image/image-attachment.module';
@@ -18,7 +18,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppDataEntityPipesModule
+    AppDataEntityPipesModule,
+    MessageModule,
   ],
   declarations: [
     // Pipes
@@ -27,8 +28,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
-
+    StrategySummaryCardComponent,
+    //AppEditorFooterComponent,
   ],
   exports: [
     // Sub modules
@@ -42,11 +43,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
+    StrategySummaryCardComponent,
   ],
-  providers: [
-    DevicePositionService,
-  ],
+  providers: [DevicePositionService],
 })
-export class AppDataModule {
-}
+export class AppDataModule {}

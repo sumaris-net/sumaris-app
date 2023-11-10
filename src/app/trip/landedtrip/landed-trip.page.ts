@@ -46,9 +46,9 @@ import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { LandingService } from '@app/trip/landing/landing.service';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { LandedTripService } from '@app/trip/landedtrip/landed-trip.service';
 import moment from 'moment';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
 
 @Component({
   selector: 'app-landed-trip-page',

@@ -145,7 +145,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       console.debug('[program-page] Checking of label is unique...');
       const exists = await this.programService.existsByLabel(control.value, {
         excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
-      });
+      }, {fetchPolicy: 'network-only'});
       if (exists) {
         console.warn('[program-page] Label not unique!');
         return <ValidationErrors>{ unique: true };

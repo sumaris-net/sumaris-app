@@ -13,9 +13,8 @@ import {
   ReferentialRef,
   StatusIds,
   toDateISOString,
-  uncapitalizeFirstLetter
+  uncapitalizeFirstLetter,
 } from '@sumaris-net/ngx-components';
-
 
 export declare interface IReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,
@@ -23,8 +22,7 @@ export declare interface IReferentialFilter<
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
   FO = any
-  >
-  extends EntityFilter<F, T, ID, AO, FO> {
+> extends EntityFilter<F, T, ID, AO, FO> {
   entityName?: string;
 
   label?: string;

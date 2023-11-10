@@ -4,6 +4,7 @@ import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.m
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { DataStrategyResolutions } from '@app/data/form/base-data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 export type TripReportType = 'legacy' | 'selectivity';
@@ -32,12 +33,32 @@ export const OperationPasteFlags = Object.freeze({
 
 export const ProgramProperties = Object.freeze({
 
-  // Right
+  // Access right
   DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
     key: 'sumaris.data.observers.canWrite',
     label: 'PROGRAM.OPTIONS.DATA_OBSERVERS_CAN_WRITE',
     type: 'boolean',
     defaultValue: false,
+  },
+
+  // Strategies resolution
+  DATA_STRATEGY_RESOLUTION: <FormFieldDefinition>{
+    key: 'sumaris.data.strategy.resolution',
+    label: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION',
+    type: 'enum',
+    values: [
+      {
+        key: DataStrategyResolutions.LAST,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.LAST'
+      },
+      {
+        key: DataStrategyResolutions.LOCATION_AND_DATE,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.LOCATION_AND_DATE'
+      },
+    ],
+    // TODO
+    defaultValue: DataStrategyResolutions.LAST
+    //defaultValue: DataStrategyResolutions.LOCATION_AND_DATE
   },
 
   // Trip

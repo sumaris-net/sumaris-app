@@ -37,6 +37,8 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.co
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
 
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
@@ -52,7 +54,6 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
   controlledSpeciesPmfmId: number;
   errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  pmfms$: Observable<IPmfm[]>;
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
@@ -108,50 +109,53 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         })
     );
 
-    this.pmfms$ = filterNotNil(this.$taxonGroups).pipe(
-      switchMap(() => this.landingForm.pmfms$),
-      filter(isNotNil),
-      map((pmfms) =>
-        pmfms.map((pmfm) => {
-          // Controlled species PMFM
-          if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
-            console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
+    this._state.connect(
+      'pmfms',
+      filterNotNil(this.$taxonGroups).pipe(
+        switchMap(() => this.landingForm.pmfms$),
+        filter(isNotNil),
+        map((pmfms) =>
+          pmfms.map((pmfm) => {
+            // Controlled species PMFM
+            if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
+              console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
 
-            this.controlledSpeciesPmfmId = pmfm.id;
+              this.controlledSpeciesPmfmId = pmfm.id;
 
-            const taxonGroups = this.$taxonGroups.getValue();
-            if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
-              pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
+              const taxonGroups = this.$taxonGroups.getValue();
+              if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
+                pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
 
-              // Replace QV.name
-              pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
-                const taxonGroup = taxonGroups.find((tg) => tg.label === qv.label);
-                // If not found in strategy's taxonGroups: ignore
-                if (!taxonGroup) {
-                  console.warn(
-                    `Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`
-                  );
-                  return res;
-                }
-                // Replace the QV name, using the taxon group name
-                qv.name = taxonGroup.name;
-                qv.entityName = taxonGroup.entityName || 'QualitativeValue';
-                return res.concat(qv);
-              }, []);
-            } else {
-              console.debug(`[control] No qualitative values to replace, or no taxon groups in the strategy`);
+                // Replace QV.name
+                pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
+                  const taxonGroup = taxonGroups.find((tg) => tg.label === qv.label);
+                  // If not found in strategy's taxonGroups: ignore
+                  if (!taxonGroup) {
+                    console.warn(
+                      `Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`
+                    );
+                    return res;
+                  }
+                  // Replace the QV name, using the taxon group name
+                  qv.name = taxonGroup.name;
+                  qv.entityName = taxonGroup.entityName || 'QualitativeValue';
+                  return res.concat(qv);
+                }, []);
+              } else {
+                console.debug(`[control] No qualitative values to replace, or no taxon groups in the strategy`);
+              }
+
+              this.$taxonGroupPmfm.next(pmfm);
             }
 
-            this.$taxonGroupPmfm.next(pmfm);
-          }
-
-          // Force other Pmfm to optional (if in on field)
-          else if (this.isOnFieldMode) {
-            pmfm = pmfm.clone(); // Skip original pmfm safe
-            pmfm.required = false;
-          }
-          return pmfm;
-        })
+            // Force other Pmfm to optional (if in on field)
+            else if (this.isOnFieldMode) {
+              pmfm = pmfm.clone(); // Skip original pmfm safe
+              pmfm.required = false;
+            }
+            return pmfm;
+          })
+        )
       )
     );
 

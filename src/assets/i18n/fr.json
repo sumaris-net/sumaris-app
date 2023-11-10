@@ -144,6 +144,7 @@
     },
     "DEBUG": {
       "TITLE": "Debug",
+      "BTN_ENABLE_DEBUG": "Activer le debuggage ?",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
     },
@@ -2161,7 +2162,12 @@
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?",
-      "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?"
+      "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?",
+      "DATA_STRATEGY_RESOLUTION": "Saisie > Résolution de la stratégie",
+      "DATA_STRATEGY_RESOLUTION_ENUM": {
+        "LAST": "Rapide (la plus récente)",
+        "LOCATION_AND_DATE": "Complète (par lieu et date)"
+      }
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
@@ -2171,6 +2177,7 @@
       "TAXON_GROUPS": "Espèces commerciales",
       "TAXON_NAMES": "Espèce cible",
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
+      "BTN_OPEN_STRATEGY": "Ouvrir la stratégie",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-stratégie-{{label}}.json",
@@ -2327,6 +2334,9 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Erreur lors de chargement du label de la stratégie",
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erreur lors de chargement du label de l'échantillon de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
+        "LOAD_STRATEGY_ERROR": "Erreur lors de chargement de la stratégie",
+        "STRATEGY_DUPLICATED": "Doublon de stratégie",
+        "STRATEGY_NOT_FOUND_OR_ALLOWED": "Stratégie non autorisée ou non trouvée.",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "PARAMETERS.MISSING_FRACTION": "Au moins un pièce calcifiée est obligatoire",
@@ -3065,8 +3075,6 @@
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
-    "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategie non autorisée ou non trouvée.",
-    "STRATEGY_LABEL_DUPLICATED": "Doublon du label de la strategie",
     "SHARE_AS_PUBLIC_FAIL": "Échec du partage pulic"
   },
   "CONFIRM": {

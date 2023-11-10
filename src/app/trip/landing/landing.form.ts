@@ -8,7 +8,7 @@ import {
   PmfmIds,
 } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
-import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
@@ -71,7 +71,7 @@ const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureD
 
 type FilterableFieldName = 'fishingArea';
 
-interface LandingFormState extends MeasurementValuesState {
+interface LandingFormState extends MeasurementsFormState {
   showStrategy: boolean;
   canEditStrategy: boolean;
   showParent: boolean;

@@ -18,9 +18,11 @@
           <br />
         </ion-col>
         <ion-col>
+          acquisitionLevel: {{ acquisitionLevel }}
+          <br />
           programLabel: {{ programLabel }}
           <br />
-          strategyLabel: {{ strategyLabel }}
+          strategy: id={{ strategyId }}, label={{ strategyLabel }}
           <br />
           pmfms count: {{ (pmfms$ | push)?.length || 0 }}
         </ion-col>

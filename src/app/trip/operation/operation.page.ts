@@ -55,7 +55,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { RxState } from '@rx-angular/state';
-import { TripPageTabs } from '@app/trip/trip/trip.page';
+import { TripPage } from '@app/trip/trip/trip.page';
 import { PredefinedColors } from '@ionic/core';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -63,7 +63,7 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { AppDataEntityEditor, BaseEditorState } from '@app/data/form/data-editor.class';
 
-export interface OperationState extends BaseEditorState {
+export interface OperationState extends DataEditorState {
   hasIndividualMeasures?: boolean;
   physicalGear: PhysicalGear;
   gearId: number;
@@ -203,6 +203,7 @@ export class OperationPage<S extends OperationState = OperationState>
       pathIdAttribute: 'operationId',
       tabCount: 3,
       i18nPrefix: 'TRIP.OPERATION.EDIT.',
+      acquisitionLevel: AcquisitionLevelCodes.OPERATION,
       ...options,
     });
 
@@ -281,7 +282,7 @@ export class OperationPage<S extends OperationState = OperationState>
         tap((tripId) => {
           this._lastOperationsTripId = tripId; // Remember new trip id
           // Update back href
-          const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
+          const tripHref = `/trips/${tripId}?tab=${TripPage.TABS.OPERATIONS}`;
           if (this.defaultBackHref !== tripHref) {
             this.defaultBackHref = tripHref;
             this.markForCheck();
@@ -1124,7 +1125,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
-  async save(event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
+  async save(event: Event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
     if (this.loading || this.saving) {
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
@@ -1413,7 +1414,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, { acquisitionLevel: AcquisitionLevelCodes.TRIP });
       const pmfm = (tripPmfms || []).find((p) => p.id === PmfmIds.SELF_SAMPLING_PROGRAM);
-      const qualitativeValue = ((pmfm && pmfm.qualitativeValues) || []).find((qv) => qv.id === qvMeasurement.qualitativeValue.id);
+      const qualitativeValue = (pmfm?.qualitativeValues || []).find((qv) => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
       const contextualTaxonGroupLabels = qualitativeValue?.label
@@ -1543,7 +1544,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   /**
-   * S context, for batch validator
+   * Update context, for batch validator
    *
    * @protected
    */

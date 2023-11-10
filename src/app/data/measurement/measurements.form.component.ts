@@ -30,24 +30,12 @@ import {
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { PmfmFormReadySteps } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurement-values.form.class';
 import { RxState } from '@rx-angular/state';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedFormGroup}>;
 
-interface MeasurementsFormState {
-  ready: boolean;
-  readyStep: number;
-  programLabel: string;
-  acquisitionLevel: string;
-  strategyLabel: string;
-  requiredStrategy: boolean;
-  gearId: number;
-  requiredGear: boolean;
-  forceOptional: boolean;
-  pmfms: IPmfm[];
-}
 
 @Component({
   selector: 'app-form-measurements',
@@ -105,6 +93,13 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   get strategyLabel(): string {
     return this._state.get('strategyLabel');
   }
+  @Input()
+  set strategyId(value: number) {
+    this._state.set('strategyId', (_) => value);
+  }
+  get strategyId(): number {
+    return this._state.get('strategyId');
+  }
 
   @Input() set requiredStrategy(value: boolean) {
     this._state.set('requiredStrategy', _ => value);
@@ -161,7 +156,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: UntypedFormGroup}>();
 
   get starting(): boolean {
-    return this.readyStep === PmfmFormReadySteps.STARTING;
+    return this.readyStep === MeasurementsFormReadySteps.STARTING;
   }
 
   get formError(): string {
@@ -181,6 +176,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this._state.hold(merge(
         this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
         this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
+        this._state.select(['requiredStrategy', 'strategyId'], res => res),
         this._state.select(['requiredGear', 'gearId'], res => res),
       )
         .pipe(
@@ -197,12 +193,12 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
     this._state.connect('ready', this._state.select('readyStep')
       .pipe(
-        map(step => step >= PmfmFormReadySteps.FORM_GROUP_READY)
+        map(step => step >= MeasurementsFormReadySteps.FORM_GROUP_READY)
       ));
 
     // Initial state
     this._state.set(<Partial<S>>{
-      readyStep: PmfmFormReadySteps.STARTING,
+      readyStep: MeasurementsFormReadySteps.STARTING,
       forceOptional: false,
       requiredStrategy: false,
       requiredGear: false,
@@ -246,7 +242,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
     // Start loading pmfms
     if (this.starting) {
-      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
+      this.setReadyStep(MeasurementsFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 
@@ -338,7 +334,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   protected async updateView(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean }) {
     // Warn is form is NOT ready
-    if (this.debug && this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
+    if (this.debug && this.readyStep < MeasurementsFormReadySteps.FORM_GROUP_READY) {
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
@@ -376,7 +372,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   protected setReadyStep(step: number) {
     // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
-    step = toNumber(step, PmfmFormReadySteps.LOADING_PMFMS);
+    step = toNumber(step, MeasurementsFormReadySteps.LOADING_PMFMS);
 
     // Emit, if changed
     if (this.readyStep !== step) {
@@ -387,7 +383,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Call markAsLoading, if the step is the first step
-    if (this.loaded && step <= PmfmFormReadySteps.LOADING_PMFMS) {
+    if (this.loaded && step <= MeasurementsFormReadySteps.LOADING_PMFMS) {
       if (this.dirty) this.data = this.value;
       this.markAsLoading();
     }
@@ -400,7 +396,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     // Check if can load (must have: program, acquisition - and gear if required)
     if (isNil(this.programLabel)
       || isNil(this.acquisitionLevel)
-      || (this.requiredStrategy && isNil(this.strategyLabel))
+      || (this.requiredStrategy && isNil(this.strategyLabel) && isNil(this.strategyId))
       || (this.requiredGear && isNil(this.gearId))) {
 
       // DEBUG
@@ -418,7 +414,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
 
     if (!opts || opts.emitEvent !== false) {
-      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
+      this.setReadyStep(MeasurementsFormReadySteps.LOADING_PMFMS);
     }
 
     let pmfms;
@@ -428,6 +424,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       pmfms = this.programRefService.watchProgramPmfms(
         this.programLabel,
         {
+          strategyId: this.strategyId,
           strategyLabel: this.strategyLabel,
           acquisitionLevel: this.acquisitionLevel,
           gearId: this.gearId
@@ -453,7 +450,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
     // Mark as settings pmfms
     if (!opts || opts.emitEvent !== false) {
-      this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
+      this.setReadyStep(MeasurementsFormReadySteps.SETTING_PMFMS);
     }
 
     try {
@@ -481,7 +478,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       }
 
       // Call the map function
-      if (this.mapPmfms.observers.length) {
+      if (this.mapPmfms.observed) {
         const res = await emitPromiseEvent(this.mapPmfms, 'pmfms', {detail: {pmfms}});
         pmfms = Array.isArray(res) ? res : pmfms;
       }
@@ -492,7 +489,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
         if (this.debug) console.debug(`${this._logPrefix} Pmfms changed: `, pmfms);
 
         // next step
-        this.setReadyStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
+        this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
 
         // Apply pmfms to state
         this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
@@ -515,7 +512,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     if (this.debug) console.warn(`${this._logPrefix} Reset pmfms`);
 
     // Reset step
-    if (!this.starting && this.loaded) this.setReadyStep(PmfmFormReadySteps.STARTING);
+    if (!this.starting && this.loaded) this.setReadyStep(MeasurementsFormReadySteps.STARTING);
 
     // Update state
     this._state.set('pmfms', (_) => undefined);
@@ -531,7 +528,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Mark as loading
-    this.setReadyStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
+    this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
     if (this.debug) console.debug(`${this._logPrefix} Updating form controls, force_optional: ${this.forceOptional}}, using pmfms:`, pmfms);
 
     // No pmfms (= empty form)
@@ -546,12 +543,12 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Call options function
-    if (this.onUpdateFormGroup.observers.length) {
+    if (this.onUpdateFormGroup.observed) {
       await emitPromiseEvent(this.onUpdateFormGroup, 'onUpdateFormGroup', {detail: {form}});
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);
-    this.setReadyStep(PmfmFormReadySteps.FORM_GROUP_READY);
+    this.setReadyStep(MeasurementsFormReadySteps.FORM_GROUP_READY);
 
     // Data already set: apply value again to fill the form
     if (!this.applyingValue) {

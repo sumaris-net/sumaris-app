@@ -17,7 +17,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotNilOrNaN,
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
@@ -28,7 +27,7 @@ import {
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { LandingService } from './landing.service';
-import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
@@ -59,7 +58,13 @@ import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+
 export class LandingEditorOptions extends AppEditorOptions {}
+
+export interface LandingPageState extends RootDataEntityEditorState {
+
+}
 
 @Component({
   selector: 'app-landing-page',
@@ -68,6 +73,7 @@ export class LandingEditorOptions extends AppEditorOptions {}
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
+    {provide: APP_DATA_ENTITY_EDITOR, useExisting: LandingPage},
     {
       provide: AppEditorOptions,
       useValue: {
@@ -76,7 +82,10 @@ export class LandingEditorOptions extends AppEditorOptions {}
     }
   ]
 })
-export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService> implements OnInit, AfterViewInit {
+export class LandingPage<
+  ST extends LandingPageState = LandingPageState
+>
+  extends AppRootDataEntityEditor<Landing, LandingService, number, ST> implements OnInit, AfterViewInit {
 
   protected parent: Trip | ObservedLocation;
   protected observedLocationService: ObservedLocationService;
@@ -109,7 +118,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     @Optional() options: LandingEditorOptions,
   ) {
     super(injector, Landing, injector.get(LandingService), {
-      pathIdAttribute: 'landingId',
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
@@ -149,6 +157,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
         )
         .subscribe());
 
+    // TODO use _state.connect('strategyLabel', this.landingForm.strategyLabel$);
     this.registerSubscription(
       this.landingForm.strategyLabel$
         .pipe(

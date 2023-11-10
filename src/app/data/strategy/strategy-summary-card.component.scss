@@ -1,18 +1,38 @@
 ion-card {
+  .visible-hover {
+    visibility: hidden;
+  }
 
   ion-card-title {
-    .mouseover {
-      visibility: hidden;
-    }
-    &:hover {
+
+    &.tappable:hover {
       cursor: pointer;
-      .mouseover {
+      .visible-hover {
         visibility: visible;
       }
     }
   }
   ion-card-content {
     background-color: var(--ion-color-light-tint, whitesmoke);
+
+    &.compact {
+      padding-top: 6px;
+      padding-bottom: 6px;
+
+      input {
+        text-overflow: ellipsis;
+      }
+
+      .tappable {
+        cursor: pointer !important;
+        &:hover {
+          .visible-hover {
+            visibility: visible;
+          }
+        }
+      }
+
+    }
 
     ion-label.status {
       font-size: 12px !important;
@@ -21,6 +41,15 @@ ion-card {
       ul {
         padding-inline-start: 16px;
       }
+
+      &.tappable:hover {
+        cursor: pointer;
+        .visible-hover {
+          visibility: visible;
+        }
+      }
     }
+
+
   }
 }

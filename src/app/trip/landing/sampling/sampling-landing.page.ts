@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, mergeMap, Observable, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
@@ -10,13 +10,16 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
+  isEmptyArray,
   isNil,
   isNotNil,
   isNotNilOrBlank,
+  Referential,
+  ReferentialRef,
   SharedValidators,
 } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from './biological-sampling.validators';
-import { LandingPage } from '../landing.page';
+import { LandingPage, LandingPageState } from '../landing.page';
 import { Landing } from '../landing.model';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -25,20 +28,32 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
 import { Program } from '@app/referential/services/model/program.model';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, map } from 'rxjs/operators';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { Parameter } from '@app/referential/services/model/parameter.model';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+
+export interface SamplingLandingPageState extends LandingPageState {
+  ageParameterIds: number[];
+  ageFractions: ReferentialRef[];
+}
 
 @Component({
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
   styleUrls: ['./sampling-landing.page.scss'],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: SamplingLandingPage }],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SamplingLandingPage extends LandingPage implements OnInit, AfterViewInit {
+export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> implements OnInit, AfterViewInit {
   onRefreshEffort = new EventEmitter<any>();
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
+  fractionDisplayAttributes: string[];
+
+  readonly ageFractions$ = this._state.select('ageFractions');
 
   constructor(
     injector: Injector,
@@ -52,6 +67,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
       enableListenChanges: false,
     });
     this.i18nContext.suffix = 'SAMPLING.';
+    this.fractionDisplayAttributes = this.settings.getFieldDisplayAttributes('fraction', ['name']);
   }
 
   ngOnInit() {
@@ -61,7 +77,35 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
 
-    this.registerSubscription(this.onRefreshEffort.pipe(debounceTime(250)).subscribe((strategy) => this.checkStrategyEffort(strategy)));
+    this._state.hold(this.onRefreshEffort.pipe(debounceTime(250)), (strategy) => this.checkStrategyEffort(strategy));
+
+    // Load age parameter ids
+    this._state.connect(
+      'ageParameterIds',
+      of<string[]>(ParameterLabelGroups.AGE).pipe(
+        mergeMap((parameterLabels) => this.referentialRefService.loadAllByLabels(parameterLabels, Parameter.ENTITY_NAME)),
+        map((parameters) => parameters.map((p) => p.id))
+      )
+    );
+
+    // Load strategy's age fractions
+    this._state.connect(
+      'ageFractions',
+      this._state
+        .select(['strategy', 'ageParameterIds'], (s) => s)
+        .pipe(
+          mergeMap(async ({ strategy, ageParameterIds }) => {
+            const ageFractionIds = (strategy?.denormalizedPmfms || [])
+              .filter((pmfm) => isNotNil(pmfm.parameterId) && ageParameterIds.includes(pmfm.parameterId))
+              .map((pmfm) => pmfm.fractionId);
+
+            if (isEmptyArray(ageFractionIds)) return [];
+
+            const sortBy = this.fractionDisplayAttributes?.[0] || 'name';
+            return this.referentialRefService.loadAllByIds(ageFractionIds, 'Fraction', sortBy as keyof Referential<any>, 'asc');
+          })
+        )
+    );
   }
 
   ngAfterViewInit() {
@@ -94,6 +138,31 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
 
   protected async setProgram(program: Program): Promise<void> {
     return super.setProgram(program);
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    return this.landingForm.strategyChanges.pipe(
+      map(strategy => {
+        return <Partial<StrategyFilter>>{
+          programId: program.id,
+          includedIds: isNotNil(strategy?.id) ? [strategy.id] : undefined,
+          label: strategy?.label
+        };
+      })
+    );
+  }
+
+  protected canLoadStrategy(program: Program, strategyFilter?: Partial<StrategyFilter>): boolean {
+    return (
+      super.canLoadStrategy(program, strategyFilter) &&
+      // Check required label
+      isNotNilOrBlank(strategyFilter.label)
+    );
+  }
+
+  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
+    if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
+    return this.strategyRefService.loadByFilter(strategyFilter, { failIfMissing: true, debug: this.debug, fullLoad: true });
   }
 
   updateViewState(data: Landing, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

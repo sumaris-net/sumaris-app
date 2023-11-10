@@ -631,9 +631,10 @@ export abstract class AppBaseReport<
       throw new Error('Failed to upload report data!');
     }
 
-    await this.fileTransferService.shareAsPublic(fileName).then();
+    await this.fileTransferService.shareAsPublic(fileName);
 
-    return `${fileName.replace(/\.json$/, '')}`;
+    // return the UUID
+    return fileName.replace(/\.json$/, '');
   }
 
   protected getExportEncoding(format = 'json'): string {

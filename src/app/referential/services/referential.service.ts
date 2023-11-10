@@ -23,7 +23,7 @@ import {
   LocalSettingsService,
   Referential,
   StatusIds,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from './referential.fragments';
 import { environment } from '@environments/environment';
@@ -36,7 +36,7 @@ export interface ReferentialType {
   level?: string;
 }
 
-export const ReferentialQueries: BaseEntityGraphqlQueries & {loadAllFull?: any; count: any; loadTypes: any } = {
+export const ReferentialQueries: BaseEntityGraphqlQueries & {loadAllFull?: any; loadTypes: any } = {
   // Load
   load: gql`query Referential($entityName: String, $id: Int){
     data: referential(entityName: $entityName, id: $id){
@@ -70,7 +70,7 @@ export const ReferentialQueries: BaseEntityGraphqlQueries & {loadAllFull?: any; 
     }
     ${ReferentialFragments.referential}`,
 
-  count: gql`query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
+  countAll: gql`query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }`,
 
@@ -392,7 +392,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     filter.label = label;
 
     const {total} = await this.graphql.query<{ total: number }>({
-      query: this.queries.count,
+      query: this.queries.countAll,
       variables : {
         entityName: filter.entityName,
         filter: filter.asPodObject()

@@ -176,6 +176,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   @Output() departureDateTimeChanges = new EventEmitter<Moment>();
+  @Output() departureLocationChanges = new EventEmitter<ReferentialRef>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
@@ -281,9 +282,13 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ngOnReady() {
     this.updateFormGroup();
 
+    const departureLocation$ = this.form.get('departureLocation').valueChanges;
     const departureDateTime$ = this.form.get('departureDateTime').valueChanges;
     const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
 
+    this.registerSubscription(
+      departureLocation$.subscribe(departureLocation => this.departureLocationChanges.next(departureLocation as ReferentialRef))
+    );
     this.registerSubscription(
       departureDateTime$.subscribe(departureDateTime => this.departureDateTimeChanges.next(departureDateTime))
     );

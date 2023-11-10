@@ -41,13 +41,14 @@ import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { LandingFilter } from '../landing/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
+
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
@@ -24,7 +24,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { OperationService } from '@app/trip/operation/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
-interface PhysicalGearFormState extends MeasurementValuesState {
+interface PhysicalGearFormState extends MeasurementsFormState {
   gears: ReferentialRef[];
 }
 

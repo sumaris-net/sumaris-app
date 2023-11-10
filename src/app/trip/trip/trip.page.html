@@ -89,21 +89,29 @@
     </ion-label>
   </button>
 
-  <!-- DEV only -->
-  <ng-container *ngIf="debug">
-    <button mat-menu-item *ngIf="isNewData" (click)="devToggleAutoFillData()">
-      <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
-      <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-    </button>
-    <button mat-menu-item (click)="devToggleOfflineMode()">
-      <mat-icon *ngIf="network.offline">check_box</mat-icon>
-      <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
-      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-    </button>
-  </ng-container>
-
   <mat-divider></mat-divider>
+
+  <!-- DEV only -->
+  <ng-container *ngIf="canDebug">
+    <button mat-menu-item (click)="devToggleDebug()">
+      <mat-icon *ngIf="debug">check_box</mat-icon>
+      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
+    </button>
+    <ng-container *ngIf="debug">
+      <button mat-menu-item *ngIf="isNewData" (click)="devToggleAutoFillData()">
+        <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
+        <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
+      </button>
+      <button mat-menu-item (click)="devToggleOfflineMode()">
+        <mat-icon *ngIf="network.offline">check_box</mat-icon>
+        <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
+        <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+      </button>
+    </ng-container>
+    <mat-divider></mat-divider>
+  </ng-container>
 
   <!-- delete -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
@@ -201,7 +209,6 @@
                 [showError]="false"
                 [returnFieldsRequired]="usageMode | isOnDesk"
                 (onSubmit)="save($event)"
-                (departureDateTimeChanges)="strategyDateTime = $event"
                 (maxDateChanges)="saleForm.minDate = $event"
               >
                 <!-- sale -->
@@ -234,10 +241,12 @@
                         entityName="VesselUseMeasurement"
                         [forceOptional]="forceMeasurementAsOptional"
                         [acquisitionLevel]="acquisitionLevel"
-                        [debug]="debug"
                         [programLabel]="programLabel$ | async"
+                        [requiredStrategy]="strategyResolution === 'locationAndDate'"
+                        [strategyId]="(strategy$ | async)?.id"
                         [tabindex]="30"
                         [mobile]="mobile"
+                        [debug]="debug"
                       ></app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -247,6 +256,11 @@
 
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <!-- strategy summary -->
+              <app-strategy-summary-card>
+              </app-strategy-summary-card>
+
+              <!-- metadata -->
               <app-entity-metadata [value]="data">
 
                 <!-- Compose message -->
