@@ -472,7 +472,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     // Reapplied changed data
     if (this.isNewData && this.form.touched) {
-      console.warn('[landing-form] Merging form value and input data, before updateing view');
+      console.warn('[landing-form] Merging form value and input data, before updating view');
+
+      // Make sure to keep existing touched field's value
       const json = this.form.value;
       Object.keys(json).forEach((key) => {
         if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
@@ -695,7 +697,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
       console.debug('[landing-form] Selected observed location: ', value);
       control.setValue(value);
-      this.form.markAllAsTouched();
+      control.markAsTouched();
     } finally {
       control.enable();
     }
