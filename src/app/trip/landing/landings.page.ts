@@ -632,7 +632,7 @@ export class LandingsPage extends AppRootDataTable<
   protected async openNewRowDetail(event?: any): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onNewRow.observers.length) {
+    if (this.onNewRow.observed) {
       this.onNewRow.emit(event);
       return true;
     }
@@ -649,7 +649,8 @@ export class LandingsPage extends AppRootDataTable<
       relativeTo: this.route,
       queryParams: {
         program: program?.label,
-        parent: AcquisitionLevelCodes.OBSERVED_LOCATION
+        parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
+        tableId: this.settingsId
       }
     });
   }

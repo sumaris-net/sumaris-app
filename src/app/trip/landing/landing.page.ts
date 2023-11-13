@@ -19,6 +19,7 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   NetworkService,
+  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   ServerErrorCodes,
@@ -54,6 +55,8 @@ import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
+import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
+import { LandingFilter } from '@app/trip/landing/landing.filter';
 
 export class LandingEditorOptions extends AppEditorOptions {}
 
@@ -291,6 +294,10 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     // DEBUG
     //console.debug('DEV - Creating new landing entity');
 
+    // Mask quality cards
+    this.showEntityMetadata = false;
+    this.showQualityForm = false;
+
     if (this.isOnFieldMode) {
       data.dateTime = moment();
     }
@@ -298,13 +305,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     // Fill parent ids
     data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
     data.tripId = options && options.tripId && parseInt(options.tripId);
-
-    // Load parent
-    this.parent = await this.loadParent(data);
-
-    await this.fillPropertiesFromParent(data, this.parent);
-
-    const programLabel = data?.program?.label;
 
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
@@ -314,19 +314,50 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       data.rankOrder = 1;
     }
 
-    this.showEntityMetadata = false;
-    this.showQualityForm = false;
+    // Fill defaults, from table's filter.
+    const tableId = this.queryParams['tableId'];
+    const searchFilter = tableId && this.settings.getPageSettings<LandingFilter>(tableId, LandingsPageSettingsEnum.FILTER_KEY);
+    if (searchFilter) {
 
-    // Set contextual strategy
+      // Synchronization status
+      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+        data.synchronizationStatus = 'DIRTY';
+      }
+
+      // program
+      if (searchFilter.program && searchFilter.program.label) {
+        data.program = ReferentialRef.fromObject(searchFilter.program);
+      }
+
+      // Location
+      if (searchFilter.location && this.landingForm.showLocation) {
+        data.location = ReferentialRef.fromObject(searchFilter.location);
+      }
+
+      // Strategy
+      if (searchFilter.strategy) {
+        data.strategy = Strategy.fromObject(searchFilter.strategy);
+      }
+    }
+
+    // Load parent
+    this.parent = await this.loadParent(data);
+
+    await this.fillPropertiesFromParent(data, this.parent);
+
+    // Get contextual strategy
     const contextualStrategy = this.context.getValue('strategy') as Strategy;
-    const strategyLabel = contextualStrategy?.label;
+    const strategyLabel = data.strategy?.label || contextualStrategy?.label || queryParams['strategyLabel'];
     if (strategyLabel) {
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
-      data.strategy = contextualStrategy;
+      if (EntityUtils.isEmpty(data.strategy, 'id')) {
+        data.strategy = contextualStrategy || await this.strategyRefService.loadByLabel(strategyLabel);
+      }
     }
 
     // Emit program, strategy
+    const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
 
@@ -405,7 +436,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       data.observers = parent.observers;
 
       if (parent instanceof ObservedLocation) {
-        data.observedLocation = this.showParent ? this.parent : undefined;
+        data.observedLocation = this.showParent ? parent : undefined;
         data.observedLocationId = this.showParent ? null : this.parent.id;
         data.location = this.landingForm.showLocation && data.location || parent.location;
         data.dateTime = this.landingForm.showDateTime && data.dateTime || parent.startDateTime || parent.endDateTime;
@@ -419,34 +450,30 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
           data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
-
-        // Copy date to samples, if not set by user
-        if (!this.samplesTable.showSampleDateColumn) {
-          console.debug(`[landing-page] Updating samples...`);
-          (data.samples || []).forEach(sample => {
-            sample.sampleDate = data.dateTime;
-          });
-        }
-
       } else if (parent instanceof Trip) {
+        data.trip = this.showParent ? parent : undefined;
         data.vesselSnapshot = parent.vesselSnapshot;
         data.location = parent.returnLocation || parent.departureLocation;
         data.dateTime = parent.returnDateTime || parent.departureDateTime;
         data.observedLocation = undefined;
         data.observedLocationId = undefined;
       }
+
+      // Copy date to samples, if not set by user
+      if (!this.samplesTable.showSampleDateColumn) {
+        console.debug(`[landing-page] Updating samples...`);
+        (data.samples || []).forEach(sample => {
+          sample.sampleDate = data.dateTime;
+        });
+      }
     }
 
     // No parent
     else {
-      const programLabel = queryParams['program'];
+      const contextualProgram = this.context.getValue('program');
+      const programLabel = data.program?.label || contextualProgram?.label || queryParams['program'];
       if (programLabel && EntityUtils.isEmpty(data?.program, 'id')) {
-        data.program = await this.programRefService.loadByLabel(programLabel);
-      } else {
-        // Check is program is filled in clipboard and if is the case use-it
-        const program = this.context.getValue('program');
-        data.program = program;
-        this.context.resetValue('program');
+        data.program = contextualProgram || await this.programRefService.loadByLabel(programLabel);
       }
     }
   }

@@ -760,5 +760,20 @@ export abstract class AppRootDataTable<
         filter(isNotNil)
       );
   }
+
+
+  protected async openNewRowDetail(event?: any): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observed) {
+      this.onNewRow.emit(event);
+      return true;
+    }
+
+    return this.navController.navigateForward(`${this.router.url}/new`, {
+      // Pass the tableId, to be able to use search field as defaults
+      queryParams: this.settingsId && {tableId: this.settingsId}
+    });
+  }
 }
 

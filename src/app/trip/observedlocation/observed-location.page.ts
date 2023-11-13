@@ -47,6 +47,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
@@ -511,7 +512,8 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
     }
 
     // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648
-    const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+    const tableId = this.queryParams['tableId'];
+    const searchFilter = tableId && this.settings.getPageSettings<ObservedLocationFilter>(tableId, ObservedLocationsPageSettingsEnum.FILTER_KEY);
     if (searchFilter) {
 
       // Synchronization status
