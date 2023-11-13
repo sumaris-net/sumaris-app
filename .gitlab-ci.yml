@@ -83,9 +83,9 @@ build:env:
   needs: ["build:env"]
   script:
     # Show version
-    - npm version
     # FIXME fail since 13/11/2023
     #- ng version
+    - npm version
     # Build
     - npm run build.${BUILD_ENVIRONMENT}
   after_script:
@@ -165,7 +165,8 @@ failsafe-build:
       - ls -artl "${BUILD_CACHE_DIR}"
       - cp -R "${BUILD_CACHE_DIR}/node_modules" .
       # Show version
-      - ng version
+      # FIXME fail since 13/11/2023
+      #- ng version
       - npm version
       # Build
       - export NODE_OPTIONS=--max-old-space-size=4096
@@ -231,7 +232,8 @@ release:tags:
     - ls -artl "${BUILD_CACHE_DIR}"
     - cp -R "${BUILD_CACHE_DIR}/node_modules" .
     # Show version
-    - ng version
+    # FIXME fail since 13/11/2023
+    #- ng version
     - npm version
     # Build
     - export NODE_OPTIONS=--max-old-space-size=4096
