@@ -1,47 +1,48 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   Alerts,
   ConfigService,
- Configuration, HammerSwipeEvent,
- isNilOrBlank, isNotEmptyArray,
+  Configuration,
+  HammerSwipeEvent,
+  isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
- isNotNilOrBlank, PersonService,
+  isNotNilOrBlank,
+  PersonService,
   PersonUtils,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
-  StatusIds
-,
-  TranslateContextService
+  StatusIds,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import {ObservedLocationService} from '../observed-location.service';
-import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {ObservedLocation} from '../observed-location.model';
-import {AppRootDataTable} from '@app/data/table/root-table.class';
-import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../../trip.config';
-import {environment} from '@environments/environment';
-import {BehaviorSubject} from 'rxjs';
-import {ObservedLocationOfflineModal} from '../offline/observed-location-offline.modal';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {DATA_CONFIG_OPTIONS} from '@app/data/data.config';
-import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../observed-location.filter';
-import {filter} from 'rxjs/operators';
-import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
-import {ContextService} from '@app/shared/context.service';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Program} from '@app/referential/services/model/program.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {LANDING_TABLE_DEFAULT_I18N_PREFIX} from '@app/trip/landing/landings.table';
-import {AnimationController, IonSegment} from '@ionic/angular';
-import {LandingsPageSettingsEnum} from '@app/trip/landing/landings.page';
-
+import { ObservedLocationService } from '../observed-location.service';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ObservedLocation } from '../observed-location.model';
+import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
+import { environment } from '@environments/environment';
+import { BehaviorSubject } from 'rxjs';
+import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
+import { filter } from 'rxjs/operators';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { ContextService } from '@app/shared/context.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { AnimationController, IonSegment } from '@ionic/angular';
+import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: 'observedLocations',
   FILTER_KEY: 'filter',
-  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME
+  FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
 };
 
 @Component({
@@ -459,4 +460,5 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   protected resetContext() {
     this.context.reset();
   }
+
 }

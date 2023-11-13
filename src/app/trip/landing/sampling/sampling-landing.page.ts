@@ -197,17 +197,6 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     }
   }
 
-  protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-    await super.onNewEntity(data, options);
-
-    // By default, set location to parent location
-    if (this.parent instanceof ObservedLocation) {
-      this.landingForm.form.get('location').patchValue(data.location);
-    } else if (this.parent instanceof Trip) {
-      data.trip = this.parent;
-    }
-  }
-
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     //console.debug('Calling onEntityLoaded', data);
     await super.onEntityLoaded(data, options);

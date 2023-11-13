@@ -60,6 +60,7 @@ import moment from 'moment';
 import { PredefinedColors } from '@ionic/core';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { TripFilter } from '@app/trip/trip/trip.filter';
 
 export const TripPageTabs = {
   GENERAL: 0,
@@ -392,7 +393,8 @@ export class TripPage
     }
 
     // Fill defaults, from table's filter
-    const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+    const tableId = this.queryParams['tableId'];
+    const searchFilter = tableId && this.settings.getPageSettings<TripFilter>(tableId, TripsPageSettingsEnum.FILTER_KEY);
     if (searchFilter) {
 
       // Synchronization status

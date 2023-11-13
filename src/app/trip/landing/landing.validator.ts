@@ -1,14 +1,14 @@
-import {Injectable} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {LocalSettingsService, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {MeasurementsValidatorService} from '@app/data/measurement/measurement.validator';
-import {Landing} from './landing.model';
-import {DataRootEntityValidatorOptions} from '@app/data/services/validator/root-data-entity.validator';
-import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
-import {Strategy} from '@app/referential/services/model/strategy.model';
+import { Injectable } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { Landing } from './landing.model';
+import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
+import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
@@ -57,18 +57,18 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     const formConfig = Object.assign(super.getFormGroupConfig(data), {
       __typename: [Landing.TYPENAME],
-      location: [data && data.location || null, SharedValidators.entity],
-      dateTime: [data && data.dateTime || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
-      rankOrderOnVessel: [toNumber(data && data.rankOrderOnVessel, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
+      location: [data?.location || null, SharedValidators.entity],
+      dateTime: [data?.dateTime || null],
+      rankOrder: [toNumber(data?.rankOrder, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
+      rankOrderOnVessel: [toNumber(data?.rankOrderOnVessel, null), Validators.compose([SharedValidators.integer, Validators.min(1)])],
       measurementValues: this.formBuilder.group({}),
 
       // Parent id
-      observedLocationId: [toNumber(data && data.observedLocationId, null)],
-      tripId: [toNumber(data && data.tripId, null)],
+      observedLocationId: [toNumber(data?.observedLocationId, null)],
+      tripId: [toNumber(data?.tripId, null)],
 
-      // Computed values (e.g. for BIO-PARAM program)
-      samplesCount: [data && data.samplesCount, null]
+      // Computed values (e.g. for SIH-OBSBIO program)
+      samplesCount: [toNumber(data?.samplesCount, null), null]
     });
 
 
