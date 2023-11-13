@@ -83,8 +83,9 @@ build:env:
   needs: ["build:env"]
   script:
     # Show version
-    #- ng version
     - npm version
+    # FIXME fail since 13/11/2023
+    #- ng version
     # Build
     - npm run build.${BUILD_ENVIRONMENT}
   after_script:
