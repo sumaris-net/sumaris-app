@@ -27,7 +27,7 @@ variables:
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
   ENV_FILE: variables.env
   IONIC_CLI_VERSION: 7.1.1
-  ANGULAR_CLI_VERSION: 14.2.12
+  ANGULAR_CLI_VERSION: 14.2.13
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
@@ -83,7 +83,7 @@ build:env:
   needs: ["build:env"]
   script:
     # Show version
-    - ng version
+    #- ng version
     - npm version
     # Build
     - npm run build.${BUILD_ENVIRONMENT}
