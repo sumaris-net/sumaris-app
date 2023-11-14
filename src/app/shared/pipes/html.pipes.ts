@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { noHtml } from '@app/shared/functions';
 
 @Pipe({
   name: 'noHtml',
@@ -8,11 +9,6 @@ import { Pipe, PipeTransform } from '@angular/core';
  */
 export class NoHtmlPipe implements PipeTransform {
   transform(value: string): string {
-    if (value && typeof value === 'string') {
-      // Use regular expression to remove all HTML tags
-      return value.replace(/<[^>]*>.*?<\/[^>]*>|<[^>]+>/g, '');
-    } else {
-      return value;
-    }
+    return noHtml(value);
   }
 }

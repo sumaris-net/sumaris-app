@@ -14,7 +14,6 @@ import {
 import { startWith } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
-import { Strategy } from '@app/referential/services/model/strategy.model';
 import { UntypedFormControl } from '@angular/forms';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { AppBaseDataEntityEditor } from '@app/data/form/base-data-editor.class';
@@ -106,9 +105,5 @@ export abstract class AppRootDataEntityEditor<
     data.program = ReferentialRef.fromObject(this.programControl.value);
 
     return data;
-  }
-
-  protected computeStrategy(data: T, program: Program): Strategy {
-    return super.computeStrategy(data, program);
   }
 }

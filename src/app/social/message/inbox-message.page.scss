@@ -7,4 +7,18 @@ ion-avatar .avatar svg {
 p.body {
   white-space: pre-line;
   user-select: text !important;
+
+
+}
+markdown {
+  ::ng-deep blockquote {
+    margin: 0;
+    padding-inline-start: 16px;
+    border-inline-start: rgba(var(--ion-color-dark-rgb), 0.2) solid 1px;
+    p {
+      margin-block-start: 0;
+      margin-block-end: 0;
+      color: rgba(var(--ion-color-dark-rgb), 0.8);
+    }
+  }
 }

@@ -1,18 +1,21 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import {
   AppEntityEditor,
+  fromDateISOString,
+  isNotNilOrBlank,
   LocalSettingsService,
   Message,
-  MessageModal,
-  MessageModalOptions,
   MessageService,
   Person,
   PersonService,
+  PersonUtils,
 } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment/moment';
 
 @Component({
   selector: 'app-message-page',
@@ -24,6 +27,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   form: UntypedFormGroup;
 
   @Input() bodyAutoHeight = true;
+  readonly mobile: boolean;
 
   constructor(
     injector: Injector,
@@ -31,6 +35,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
     protected messageService: MessageService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
+    protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: UntypedFormBuilder
   ) {
     super(injector, UserEvent, injector.get(UserEventService), {
@@ -45,6 +50,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       recipients: formBuilder.array([]),
       creationDate: [],
     });
+    this.mobile = this.settings.mobile;
   }
 
   ngOnInit() {
@@ -67,28 +73,49 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       subject = subjectPrefix + subject;
     }
 
-    const hasTopModal = !!(await this.modalCtrl.getTop());
-    const modal = await this.modalCtrl.create({
-      component: MessageModal,
-      componentProps: <MessageModalOptions>{
-        suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, null, sortBy, sortDirection),
-        data: <Message>{
-          recipients: [recipient],
-          subject,
-        },
+    const body =
+      '\n\n' +
+      source.body
+        .split('\n')
+        .filter(isNotNilOrBlank)
+        .map((line) => '> ' + line)
+        .join('\n');
+
+    return this.messageService.openComposeModal({
+      suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, filter, sortBy, sortDirection),
+      data: <Message>{
+        recipients: [recipient],
+        subject,
+        body,
       },
-      cssClass: hasTopModal && 'stack-modal',
     });
+  }
 
-    // Open the modal
-    await modal.present();
+  async forward(event?: Event): Promise<any> {
+    const json = this.form.value;
+    const source = Message.fromObject(json);
+    const creationDate = fromDateISOString(json['creationDate']);
 
-    // On dismiss
-    const { data } = await modal.onDidDismiss();
-    if (!data || !(data instanceof Message)) return; // CANCELLED
+    // Prepare subject
+    const subjectPrefix = this.translate.instant('SOCIAL.MESSAGE.INBOX.FORWARD_SUBJECT_PREFIX');
+    let subject = source.subject || '';
+    if (!subject.trim().startsWith(subjectPrefix)) {
+      subject = subjectPrefix + subject;
+    }
 
-    console.info('[users] received message to send: ', data);
-    await this.messageService.send(data);
+    const body =
+      this.translate.instant('SOCIAL.MESSAGE.INBOX.FORWARD_BODY_PREFIX', {
+        issuer: PersonUtils.personToString(source.issuer),
+        date: this.dateAdapter.format(creationDate, this.translate.instant('COMMON.DATE_TIME_PATTERN')),
+      }) + source.body;
+
+    return this.messageService.openComposeModal({
+      suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, filter, sortBy, sortDirection),
+      data: <Message>{
+        subject,
+        body,
+      },
+    });
   }
 
   get isNewData(): boolean {

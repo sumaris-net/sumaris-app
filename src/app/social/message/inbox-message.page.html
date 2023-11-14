@@ -50,13 +50,61 @@
       </ion-grid>
 
       <ion-buttons slot="end">
-        <button mat-icon-button [title]="'SOCIAL.MESSAGE.INBOX.BTN_REPLY' | translate" (click)="reply($event)">
-          <mat-icon>reply</mat-icon>
-        </button>
+        <!-- reply -->
+        <ion-button [title]="'SOCIAL.MESSAGE.INBOX.BTN_REPLY' | translate" (click)="reply($event)">
+          <mat-icon slot="icon-only">reply</mat-icon>
+        </ion-button>
+
+        <!-- option menu -->
+        <ion-button
+          [matMenuTriggerFor]="optionsMenu"
+          [title]="'COMMON.BTN_OPTIONS' | translate"
+        >
+          <mat-icon slot="icon-only">more_vert</mat-icon>
+        </ion-button>
+
+        <!-- Options menu -->
+        <mat-menu #optionsMenu="matMenu">
+
+          <!-- forward -->
+          <button mat-menu-item (click)="forward($event)">
+            <ion-label>
+              <span translate>SOCIAL.MESSAGE.INBOX.BTN_FORWARD</span>
+            </ion-label>
+          </button>
+        </mat-menu>
+
       </ion-buttons>
     </ion-item>
 
     <!-- Body -->
-    <p class="body" [innerHTML]="data.body"></p>
+    <p class="body">
+      <markdown [data]="data.body" emoji></markdown>
+    </p>
+
   </div>
 </ion-content>
+
+<ion-footer *ngIf="!mobile">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+
+        </ion-col>
+
+        <ion-col size="auto">
+          <!-- close -->
+          <ion-button (click)="goBack($event)" color="dark" fill="clear">
+            {{'COMMON.BTN_CLOSE' | translate}}
+          </ion-button>
+
+          <!-- reply -->
+          <ion-button (click)="reply($event)" color="tertiary" fill="solid">
+            {{'SOCIAL.MESSAGE.INBOX.BTN_REPLY' | translate}}
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

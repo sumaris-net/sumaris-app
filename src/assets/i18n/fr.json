@@ -70,7 +70,7 @@
     "BTN_CLEAN_TRASH": "Vider la corbeille",
     "BTN_RESTORE": "Restaurer",
     "BTN_LOGOUT": "Quitter",
-    "CREATED_ON": "Créé le ",
+    "CREATED_ON": "Créé le",
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
@@ -117,7 +117,7 @@
     "YES": "Oui",
     "NO": "Non",
 
-    "UPDATED_ON": "Mise à jour le",
+    "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
@@ -125,10 +125,8 @@
     "PLEASE_WAIT": "Veuillez patienter...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
-
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",
-
     "FORM": {
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
@@ -242,6 +240,9 @@
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
+        "ACQUISITION_LEVEL_TRIP_LABEL": "Référentiel > Niveau d'acquisition > Marée",
+        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Référentiel > Niveau d'acquisition > Engin physique",
+        "ACQUISITION_LEVEL_OPERATION_LABEL": "Référentiel > Niveau d'acquisition > Opération",
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
@@ -327,6 +328,7 @@
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
       "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
+      "DATA_VESSEL_TYPE_IDS": "Saisie > Navire : Type(s) de navire (ids)",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
@@ -477,6 +479,7 @@
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
+    "BTN_RESET_PROPERTY": "Réinitialiser l'option",
     "FIELDS": {
       "DEPARTMENT": "Liste déroulante > Organismes",
       "LOCATION": "Liste déroulante > Lieux (port, etc.)",
@@ -535,6 +538,10 @@
         "SEARCH": "Recherche : nom, prénom..."
       }
     }
+  },
+  "DATA": {
+    "BTN_WRITE_TO_RECORDER": "Écrire au saisisseur",
+    "MESSAGE_BODY": "Bonjour,\n\nà propos de [{{title}}]({{url}}),\n\n..."
   },
   "TRIP": {
     "TITLE": "Marée",
@@ -711,6 +718,7 @@
       }
     },
     "OPERATION": {
+      "TITLE": "OP #{{rankOrder}}",
       "BTN_SHOW_ALL": "Voir tout",
       "BTN_HISTORY": "Historique",
       "BTN_SHOW_MAP": "Carte des opérations",
@@ -747,6 +755,7 @@
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
+        "GEAR": "Engin :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "START_DATE_TIME": "Début d'opération",
@@ -2056,6 +2065,7 @@
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité châlut",
+      "TRIP_OPERATION_METIER_ENABLE": "Marée > Opération : Métier ?",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",
@@ -2743,6 +2753,9 @@
       "UNKNOWN_JOB": "Traitement sans nom",
       "BTN_REPORT": "Rapport",
       "BTN_REPORT_HELP": "Voir le rapport d'exécution",
+      "JOB_TYPE": "Traitement",
+      "JOB_STATUS": "État d'exécution",
+      "JOB_ISSUER": "Utilisateur",
       "PROGRESSION": {
         "TITLE": "Liste des tâches en cours",
         "EMPTY": "Aucune tâche en cours"
@@ -2765,7 +2778,13 @@
           "DELETES": "Suppression(s) : {{deletes}}",
           "DISABLES": "Désactivé(s) : {{disables}}",
           "WARNINGS": "Avertissement(s) : {{warnings}}",
-          "ERRORS": "Erreur(s) : {{errors}}"
+          "ERRORS": "Erreur(s) : {{errors}}",
+          "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
+          "VESSELS": "Navire(s): {{vessels}}"
+        },
+        "ERROR": {
+          "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",
+          "RUN_JOB_ERROR": "Erreur lors du lancement du traitement"
         }
       }
     },
@@ -2781,7 +2800,10 @@
         "TITLE": "Messagerie",
         "FROM": "De : ",
         "BTN_REPLY": "Répondre",
-        "REPLY_SUBJECT_PREFIX": "Re: "
+        "BTN_FORWARD": "Transférer",
+        "REPLY_SUBJECT_PREFIX": "Re: ",
+        "FORWARD_SUBJECT_PREFIX": "Tr: ",
+        "FORWARD_BODY_PREFIX": "---------- Message transféré ---------\nDe: {{issuer}}\nDate: ({{date}})\n\n\n"
       },
       "TYPE_ENUM": {
         "INBOX_MESSAGE": "Messagerie interne",
