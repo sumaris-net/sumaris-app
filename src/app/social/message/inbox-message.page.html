@@ -1,4 +1,7 @@
-<app-toolbar [title]="'SOCIAL.MESSAGE.INBOX.TITLE' | translate" [canGoBack]="false"></app-toolbar>
+<app-toolbar [title]="'SOCIAL.MESSAGE.VIEW.TITLE' | translate"
+             [canGoBack]="!!defaultBackHref"
+             [defaultBackHref]="defaultBackHref">
+</app-toolbar>
 
 <ion-content>
   <!-- actions -->
@@ -68,9 +71,14 @@
 
           <!-- forward -->
           <button mat-menu-item (click)="forward($event)">
-            <ion-label>
-              <span translate>SOCIAL.MESSAGE.INBOX.BTN_FORWARD</span>
-            </ion-label>
+            <mat-icon></mat-icon>
+            <ion-label translate>SOCIAL.MESSAGE.INBOX.BTN_FORWARD_DOTS</ion-label>
+          </button>
+
+          <!-- delete -->
+          <button mat-menu-item (click)="delete($event)">
+            <mat-icon>delete</mat-icon>
+            <ion-label translate>COMMON.BTN_DELETE</ion-label>
           </button>
         </mat-menu>
 
@@ -78,11 +86,8 @@
     </ion-item>
 
     <!-- Body -->
-    <p markdown
-       class="body"
-       [data]="data.body"
-       [inline]="true">
-    </p>
+    <div class="body" markdown [data]="data.body" emoji>
+    </div>
 
   </div>
 </ion-content>

@@ -1,21 +1,11 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
-import {
-  AppEntityEditor,
-  fromDateISOString,
-  isNotNilOrBlank,
-  LocalSettingsService,
-  Message,
-  MessageService,
-  Person,
-  PersonService,
-  PersonUtils,
-} from '@sumaris-net/ngx-components';
+import { AppEntityEditor, HistoryPageReference, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment/moment';
+import { InboxMessageService } from '@app/social/message/inbox-message.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-message-page',
@@ -31,11 +21,9 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
 
   constructor(
     injector: Injector,
-    protected personService: PersonService,
-    protected messageService: MessageService,
+    protected inboxMessageService: InboxMessageService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
-    protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: UntypedFormBuilder
   ) {
     super(injector, UserEvent, injector.get(UserEventService), {
@@ -43,6 +31,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       tabCount: 1,
     });
     this.form = formBuilder.group({
+      id: [],
       subject: [],
       body: [],
       type: [],
@@ -51,6 +40,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       creationDate: [],
     });
     this.mobile = this.settings.mobile;
+    this.defaultBackHref = '/inbox';
   }
 
   ngOnInit() {
@@ -60,62 +50,13 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   }
 
   async reply(event?: Event): Promise<any> {
-    const source = this.form.value as Message;
-
-    // Prepare recipient
-    const recipient = source.issuer && Person.fromObject(source.issuer).asObject({ minify: true });
-    if (recipient?.department) recipient.department = recipient.department.asObject();
-
-    // Prepare subject
-    const subjectPrefix = this.translate.instant('SOCIAL.MESSAGE.INBOX.REPLY_SUBJECT_PREFIX');
-    let subject = source.subject || '';
-    if (!subject.trim().startsWith(subjectPrefix)) {
-      subject = subjectPrefix + subject;
-    }
-
-    const body =
-      '\n\n' +
-      source.body
-        .split('\n')
-        .filter(isNotNilOrBlank)
-        .map((line) => '> ' + line)
-        .join('\n');
-
-    return this.messageService.openComposeModal({
-      suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, filter, sortBy, sortDirection),
-      data: <Message>{
-        recipients: [recipient],
-        subject,
-        body,
-      },
-    });
+    const source = this.form.value;
+    return this.inboxMessageService.reply(source);
   }
 
   async forward(event?: Event): Promise<any> {
-    const json = this.form.value;
-    const source = Message.fromObject(json);
-    const creationDate = fromDateISOString(json['creationDate']);
-
-    // Prepare subject
-    const subjectPrefix = this.translate.instant('SOCIAL.MESSAGE.INBOX.FORWARD_SUBJECT_PREFIX');
-    let subject = source.subject || '';
-    if (!subject.trim().startsWith(subjectPrefix)) {
-      subject = subjectPrefix + subject;
-    }
-
-    const body =
-      this.translate.instant('SOCIAL.MESSAGE.INBOX.FORWARD_BODY_PREFIX', {
-        issuer: PersonUtils.personToString(source.issuer),
-        date: this.dateAdapter.format(creationDate, this.translate.instant('COMMON.DATE_TIME_PATTERN')),
-      }) + source.body;
-
-    return this.messageService.openComposeModal({
-      suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, filter, sortBy, sortDirection),
-      data: <Message>{
-        subject,
-        body,
-      },
-    });
+    const source = this.form.value;
+    return this.inboxMessageService.forward(source);
   }
 
   get isNewData(): boolean {
@@ -127,7 +68,11 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   }
 
   protected computeTitle(data: UserEvent): Promise<string> {
-    return this.translate.get('SOCIAL.MESSAGE.INBOX.TITLE').toPromise();
+    return firstValueFrom(this.translate.get('SOCIAL.MESSAGE.INBOX.TITLE'));
+  }
+
+  protected computePageHistory(title: string): Promise<HistoryPageReference> {
+    return null; // Skip page history
   }
 
   protected async setValue(data: UserEvent): Promise<void> {

@@ -14,6 +14,7 @@ import {
   IUserEventQueries,
   IUserEventSubscriptions,
   LoadResult,
+  MenuService,
   NetworkService,
   Page,
   Person,
@@ -28,16 +29,17 @@ import { Observable } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
 import { UserEvent, UserEventFilter, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 import { environment } from '@environments/environment';
-import { ToastController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { SortDirection } from '@angular/material/sort';
 import { UserEventFragments } from './user-event.fragments';
-import { Router } from '@angular/router';
+import { UrlTree } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
 import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 import { isNonEmptyArray } from '@apollo/client/utilities';
+import { NavigationOptions } from '@ionic/angular/providers/nav-controller';
 
 const queries: IUserEventQueries & { loadContent: any } = {
   loadContent: gql`
@@ -128,7 +130,8 @@ export class UserEventService extends
     protected personService: PersonService,
     protected cache: CacheService,
     protected jobService: JobService,
-    protected router: Router
+    protected menuService: MenuService,
+    protected navController: NavController
   ) {
     super(graphql, accountService, network, translate,
       {
@@ -390,7 +393,7 @@ export class UserEventService extends
           issuer: this.personToString(issuer, {withDepartment: true})
         } );
         source.addDefaultAction({
-          executeAction: () => this.router.navigate(['admin', 'config'], {queryParams: {tab: '2'}})
+          executeAction: () => this.navigate(['admin', 'config'], {queryParams: {tab: '2'}})
         });
         break;
 
@@ -413,7 +416,7 @@ export class UserEventService extends
         source.icon = { matIcon: 'inbox', color: 'success'};
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.INBOX_MESSAGE', {issuer: this.personToString(issuer)} );
         source.addDefaultAction({
-          executeAction: (e) => this.router.navigate(['inbox', e.id])
+          executeAction: (e) => this.navigate(['inbox', e.id])
         });
         break;
 
@@ -495,7 +498,7 @@ export class UserEventService extends
     console.debug('[user-event-service] Decorate user event on Job:', job);
 
     source.addDefaultAction({
-      executeAction: (e) => this.router.navigate(['vessels'])
+      executeAction: (e) => this.navigate(['vessels'])
     });
 
     if (job.report) {
@@ -503,8 +506,16 @@ export class UserEventService extends
         name: 'SOCIAL.JOB.BTN_REPORT',
         title: 'SOCIAL.JOB.BTN_REPORT_HELP',
         iconRef: {icon: 'document-outline'},
-        executeAction: (e) => this.jobService.openJobReport(job)
+        executeAction: (e) => {
+          this.menuService.close();
+          this.jobService.openJobReport(job);
+        }
       });
     }
+  }
+
+  protected async navigate(commands: string | any[] | UrlTree, options?: NavigationOptions) {
+    await this.navController.navigateRoot(commands, options);
+    await this.menuService.close();
   }
 }

@@ -1,0 +1,45 @@
+<app-toolbar [title]="'SOCIAL.MESSAGE.INBOX.TITLE' | translate" [canGoBack]="false">
+
+</app-toolbar>
+
+<ion-content>
+  <app-user-events-table [filter]="filter"
+                         (onOpenRow)="clickRow($event)"
+                         (onNewRow)="openComposeMessageModal($event)">
+  </app-user-events-table>
+</ion-content>
+
+<ion-footer *ngIf="!mobile">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+
+        </ion-col>
+
+        <ion-col size="auto">
+          <!-- close -->
+          <ion-button (click)="goBack($event)" color="dark" fill="clear">
+            {{'COMMON.BTN_CLOSE' | translate}}
+          </ion-button>
+
+          <!-- reply -->
+          <ion-button (click)="openComposeMessageModal($event)" color="tertiary" fill="solid">
+            {{'SOCIAL.MESSAGE.INBOX.BTN_COMPOSE' | translate}}
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>
+
+<!-- Add button (mobile) -->
+<ion-fab vertical="bottom" horizontal="end" *ngIf="mobile">
+  <ion-fab-button
+    color="tertiary"
+    [disabled]="networkService.offline"
+    (click)="openComposeMessageModal($event)"
+  >
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

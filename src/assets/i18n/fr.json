@@ -2796,11 +2796,15 @@
       "NEW": {
         "TITLE": "Nouveau message"
       },
+      "VIEW": {
+        "TITLE": "Message"
+      },
       "INBOX": {
         "TITLE": "Messagerie",
         "FROM": "De : ",
+        "BTN_COMPOSE": "Nouveau message",
         "BTN_REPLY": "Répondre",
-        "BTN_FORWARD": "Transférer",
+        "BTN_FORWARD_DOTS": "Transférer...",
         "REPLY_SUBJECT_PREFIX": "Re: ",
         "FORWARD_SUBJECT_PREFIX": "Tr: ",
         "FORWARD_BODY_PREFIX": "---------- Message transféré ---------\nDe: {{issuer}}\nDate: ({{date}})\n\n\n"

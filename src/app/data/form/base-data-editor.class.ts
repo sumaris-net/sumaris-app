@@ -185,7 +185,10 @@ export abstract class AppBaseDataEntityEditor<
 
     this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
 
-    this._state.hold(this.configService.config, config => this.onConfigLoaded(config));
+    if (!this.mobile) {
+      // Listen config
+      this._state.hold(this.configService.config, config => this.onConfigLoaded(config));
+    }
   }
 
   ngOnDestroy() {

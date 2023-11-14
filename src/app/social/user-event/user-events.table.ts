@@ -6,19 +6,19 @@ import { SortDirection } from '@angular/material/sort';
 import { PredefinedColors } from '@ionic/core';
 import {
   AccountService,
+  APP_USER_EVENT_SERVICE,
   AppTable,
   EntitiesStorage,
   EntitiesTableDataSource,
   IconRef,
   IEntity,
+  IUserEventAction,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
-  APP_USER_EVENT_SERVICE,
-  IUserEventAction
 } from '@sumaris-net/ngx-components';
 import { UserEvent, UserEventFilter } from '@app/social/user-event/user-event.model';
-
+import { debounceTime, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 
 export interface UserEventDetail<T extends IEntity<T>> {
   title: string;
@@ -100,7 +100,6 @@ export class UserEventsTable
     this.i18nColumnPrefix = 'SOCIAL.USER_EVENT.';
     this.autoLoad = false; // this.start()
     this.inlineEdition = false;
-    this.allowRowDetail = false;
     this.defaultSortBy = 'creationDate';
     this.defaultSortDirection = 'desc';
 
@@ -121,6 +120,7 @@ export class UserEventsTable
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || pubkey === this.recipient;
     this.canDelete = this.canEdit;
+    this.allowRowDetail = this.onOpenRow.observed;
 
     this.setDatasource(new EntitiesTableDataSource(UserEvent,
       this.userEvenService,
@@ -133,11 +133,30 @@ export class UserEventsTable
         }
       }));
 
-    const filter = this.filter || new UserEventFilter();
-    if (this.recipient) {
-      filter.recipients = [this.recipient];
+
+    this.registerSubscription(
+      this.onRefresh.pipe(
+        debounceTime(200),
+        mergeMap(_ => this.waitIdle({stop: this.destroySubject})),
+        map(_ => this.filter),
+        switchMap(filter => this.userEvenService.listenCountChanges({...filter, excludeRead: false})),
+        filter(count => !this.loading && count !== this.totalRowCount)
+      )
+      .subscribe(count => {
+        this.onRefresh.emit();
+      })
+    );
+
+     // Apply filter
+    {
+      const filter = this.filter || new UserEventFilter();
+      if (this.recipient) {
+        filter.recipients = [this.recipient];
+      }
+      this.setFilter(filter, { emitEvent: true });
     }
-    this.setFilter(filter, { emitEvent: true });
+
+
   }
 
   async start() {

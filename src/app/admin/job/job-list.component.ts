@@ -4,9 +4,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { RxState } from '@rx-angular/state';
 import { Job, JobFilter, JobStatusEnum, JobStatusUtils } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
-import { filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { first, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { APP_JOB_PROGRESSION_SERVICE, IJobProgressionService, JobProgression } from '@sumaris-net/ngx-components';
-import { merge, Subject, Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 interface JobListState {
@@ -121,7 +121,7 @@ export class JobListComponent implements OnInit{
   }
 
   openAddJobMenu() {
-    const buttons = this.state.get('types')
+    const buttons = (this.state.get('types') || [])
       .map(({ label, name }) => ({
         text: label,
         handler: () => this.addJob(name),

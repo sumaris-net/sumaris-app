@@ -2727,10 +2727,15 @@
       "NEW": {
         "TITLE": "New message"
       },
+      "VIEW": {
+        "TITLE": "Message"
+      },
       "INBOX": {
         "TITLE": "Inbox",
         "FROM": "From : ",
+        "BTN_COMPOSE": "New message",
         "BTN_REPLY": "Reply",
+        "BTN_FORWARD_DOTS": "Forward...",
         "REPLY_SUBJECT_PREFIX": "Rep: ",
         "FORWARD_SUBJECT_PREFIX": "Fwd: ",
         "FORWARD_BODY_PREFIX": "---------- Forwarded message ---------\nDe: {{issuer}}\nDate: ({{date}})\n\n"

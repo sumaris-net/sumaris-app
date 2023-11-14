@@ -10,6 +10,14 @@
 <!-- top header -->
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- add -->
+    <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate"
+            *ngIf="onNewRow.observed"
+            (click)="onNewRow.emit()">
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- refresh -->
     <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
