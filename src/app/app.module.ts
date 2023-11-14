@@ -151,6 +151,7 @@ import { AppEnvironment } from '@environments/environment.class';
           pedantic: false,
           smartLists: true,
           smartypants: false,
+          emoji: true,
         },
       },
     }),
