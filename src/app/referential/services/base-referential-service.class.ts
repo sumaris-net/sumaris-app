@@ -125,9 +125,9 @@ export abstract class BaseReferentialService<
     );
   }
 
-  /* -- protected functions -- */
-
-  protected equals(e1: T, e2: T): boolean {
+  equals(e1: T, e2: T): boolean {
     return e1 && e2 && ((isNotNil(e1.id) && e1.id === e2.id) || (e1.label && e1.label === e2.label));
   }
+
+  /* -- protected functions -- */
 }

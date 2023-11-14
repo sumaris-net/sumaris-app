@@ -97,6 +97,7 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
 
 @NgModule({
   declarations: [AppComponent],
@@ -169,7 +170,13 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
     Network,
     AudioManagement,
     Downloader,
-
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        //appearance: 'outline',
+        //subscriptSizing: 'dynamic'
+      }
+    },
     {
       provide: APP_BASE_HREF,
       useFactory: () => {
