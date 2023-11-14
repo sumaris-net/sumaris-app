@@ -530,6 +530,7 @@
     "LIST": {
       "TITLE": "Utilisateurs",
       "BTN_SEND_MESSAGE": "Envoyer un message",
+      "BTN_ACTIONS": "Actions",
       "FILTER": {
         "SEARCH": "Recherche : nom, prénom..."
       }

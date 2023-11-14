@@ -530,6 +530,7 @@
     "LIST": {
       "TITLE": "Users",
       "BTN_SEND_MESSAGE": "Send a message",
+      "BTN_ACTIONS": "Actions",
       "FILTER": {
         "SEARCH": "Search"
       }
