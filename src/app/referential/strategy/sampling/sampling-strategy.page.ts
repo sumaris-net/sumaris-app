@@ -151,22 +151,20 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       withPrefix?: boolean;
     }
   ): Promise<string> {
-    const program = await firstNotNilPromise(this.$program);
+    const program = await firstNotNilPromise(this.$program, { stop: this.destroySubject });
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
     // new strategy
     if (!data || isNil(data.id)) {
-      return await this.translate.get(`PROGRAM.STRATEGY.NEW.${i18nSuffix}TITLE`).toPromise();
+      return this.translate.instant(`PROGRAM.STRATEGY.NEW.${i18nSuffix}TITLE`);
     }
 
     // Existing strategy
-    return (await this.translate
-      .get(`PROGRAM.STRATEGY.EDIT.${i18nSuffix}TITLE`, {
-        program: program.label,
-        label: data && data.label,
-      })
-      .toPromise()) as string;
+    return this.translate.instant(`PROGRAM.STRATEGY.EDIT.${i18nSuffix}TITLE`, {
+      program: program.label,
+      label: data && data.label,
+    }) as string;
   }
 
   protected getFirstInvalidTabIndex(): number {

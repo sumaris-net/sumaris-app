@@ -2200,6 +2200,7 @@
           "TAXON_NAME_PLACEHOLDER": "Espèce cible",
           "QUARTER_PLACEHOLDER": "Trimestre ",
           "EFFORT": "Effort :",
+          "REALIZED_EFFORT": "(réalisé: {{count}})",
           "PARAMETERS_DIVIDER": "Paramètres à mesurer :",
           "AGE": "Age :",
           "AGE_PLACEHOLDER": "Age",

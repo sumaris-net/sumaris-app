@@ -151,7 +151,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
         // Add validator errors on expected effort for this sampleRow (issue #175)
         const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, dateTime, {
           // Not need realized effort (issue #492)
-          withRealized: false
+          withRealized: false,
         });
 
         // DEBUG
