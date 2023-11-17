@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
-import { AppEntityEditor, HistoryPageReference, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { AppEntityEditor, HistoryPageReference, LocalSettingsService, slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -12,6 +12,7 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: 'inbox-message.page.html',
   styleUrls: ['inbox-message.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [slideUpDownAnimation],
 })
 export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> implements OnInit {
   form: UntypedFormGroup;

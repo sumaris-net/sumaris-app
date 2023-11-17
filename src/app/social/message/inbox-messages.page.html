@@ -1,9 +1,49 @@
-<app-toolbar [title]="'SOCIAL.MESSAGE.INBOX.TITLE' | translate" [canGoBack]="false">
+<app-toolbar [title]="'SOCIAL.MESSAGE.INBOX.TITLE' | translate" #toolbar
+             [canGoBack]="false"
+             [hasSearch]="canSearch"
+             (onSearch)="search($event)">
+  <ion-buttons slot="end">
+    <ng-container *ngIf="!table.selection.hasValue(); else hasSelection">
+      <!-- add -->
+      <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate"
+              *ngIf="!mobile"
+              (click)="openComposeMessageModal($event)">
+        <mat-icon>add</mat-icon>
+      </button>
 
+      <!-- refresh -->
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="table.onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </ng-container>
+
+    <!-- if row selection -->
+    <ng-template #hasSelection>
+      <!-- delete -->
+      <button
+        mat-icon-button
+        class="hidden-xs hidden-sm"
+        *ngIf="table.canDelete"
+        [title]="'COMMON.BTN_DELETE' | translate"
+        (click)="table.deleteSelection($event)"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
+  </ion-buttons>
 </app-toolbar>
 
 <ion-content>
-  <app-user-events-table [filter]="filter"
+
+  <!-- error -->
+  <ion-item *ngIf="mobile && table.errorSubject | async; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-user-events-table #table [filter]="filter"
+                         showToolbar="false"
+                         [recipient]="recipient"
                          (onOpenRow)="clickRow($event)"
                          (onNewRow)="openComposeMessageModal($event)">
   </app-user-events-table>
@@ -15,11 +55,17 @@
       <ion-row>
         <ion-col>
 
+          <!-- error -->
+          <ion-item *ngIf="!mobile && table.errorSubject | async; let error" lines="none">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+          </ion-item>
+
         </ion-col>
 
         <ion-col size="auto">
           <!-- close -->
-          <ion-button (click)="goBack($event)" color="dark" fill="clear">
+          <ion-button *ngIf="toolbar.canGoBack" (click)="toolbar.goBack()" color="dark" fill="clear">
             {{'COMMON.BTN_CLOSE' | translate}}
           </ion-button>
 

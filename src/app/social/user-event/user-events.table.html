@@ -84,10 +84,10 @@
 
     <!-- creationDate -->
     <ng-container matColumnDef="creationDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit">
         <ion-label translate>SOCIAL.USER_EVENT.CREATION_DATE</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit">
         <ion-text>
           {{ row.currentData.creationDate | dateFromNow }}
           <br />
