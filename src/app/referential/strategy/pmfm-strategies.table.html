@@ -11,14 +11,10 @@
     >
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-      <mat-icon>delete</mat-icon>
-    </button>
 
     <!-- refresh (debug only) -->
     <button
       mat-icon-button
-      color="light"
       *ngIf="debug"
       [title]="'COMMON.BTN_REFRESH' | translate"
       (click)="onRefresh.emit()"
@@ -29,6 +25,10 @@
 
   <ng-template #hasSelection>
 
+    <!-- delete -->
+    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
 
     <!-- duplicate (if desktop) -->
     <button
