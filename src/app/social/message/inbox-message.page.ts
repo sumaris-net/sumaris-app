@@ -1,34 +1,28 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
-import {
-  AppEntityEditor,
-  LocalSettingsService,
-  Message,
-  MessageModal,
-  MessageModalOptions,
-  MessageService,
-  Person,
-  PersonService,
-} from '@sumaris-net/ngx-components';
+import { AppEntityEditor, HistoryPageReference, LocalSettingsService, slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
+import { InboxMessageService } from '@app/social/message/inbox-message.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-message-page',
   templateUrl: 'inbox-message.page.html',
   styleUrls: ['inbox-message.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [slideUpDownAnimation],
 })
 export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> implements OnInit {
   form: UntypedFormGroup;
 
   @Input() bodyAutoHeight = true;
+  readonly mobile: boolean;
 
   constructor(
     injector: Injector,
-    protected personService: PersonService,
-    protected messageService: MessageService,
+    protected inboxMessageService: InboxMessageService,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected formBuilder: UntypedFormBuilder
@@ -38,6 +32,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       tabCount: 1,
     });
     this.form = formBuilder.group({
+      id: [],
       subject: [],
       body: [],
       type: [],
@@ -45,6 +40,8 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
       recipients: formBuilder.array([]),
       creationDate: [],
     });
+    this.mobile = this.settings.mobile;
+    this.defaultBackHref = '/inbox';
   }
 
   ngOnInit() {
@@ -54,41 +51,13 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   }
 
   async reply(event?: Event): Promise<any> {
-    const source = this.form.value as Message;
+    const source = this.form.value;
+    return this.inboxMessageService.reply(source);
+  }
 
-    // Prepare recipient
-    const recipient = source.issuer && Person.fromObject(source.issuer).asObject({ minify: true });
-    if (recipient?.department) recipient.department = recipient.department.asObject();
-
-    // Prepare subject
-    const subjectPrefix = this.translate.instant('SOCIAL.MESSAGE.INBOX.REPLY_SUBJECT_PREFIX');
-    let subject = source.subject || '';
-    if (!subject.trim().startsWith(subjectPrefix)) {
-      subject = subjectPrefix + subject;
-    }
-
-    const hasTopModal = !!(await this.modalCtrl.getTop());
-    const modal = await this.modalCtrl.create({
-      component: MessageModal,
-      componentProps: <MessageModalOptions>{
-        suggestFn: (value, filter, sortBy, sortDirection) => this.personService.suggest(value, null, sortBy, sortDirection),
-        data: <Message>{
-          recipients: [recipient],
-          subject,
-        },
-      },
-      cssClass: hasTopModal && 'stack-modal',
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // On dismiss
-    const { data } = await modal.onDidDismiss();
-    if (!data || !(data instanceof Message)) return; // CANCELLED
-
-    console.info('[users] received message to send: ', data);
-    await this.messageService.send(data);
+  async forward(event?: Event): Promise<any> {
+    const source = this.form.value;
+    return this.inboxMessageService.forward(source);
   }
 
   get isNewData(): boolean {
@@ -100,7 +69,11 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   }
 
   protected computeTitle(data: UserEvent): Promise<string> {
-    return this.translate.get('SOCIAL.MESSAGE.INBOX.TITLE').toPromise();
+    return firstValueFrom(this.translate.get('SOCIAL.MESSAGE.INBOX.TITLE'));
+  }
+
+  protected computePageHistory(title: string): Promise<HistoryPageReference> {
+    return null; // Skip page history
   }
 
   protected async setValue(data: UserEvent): Promise<void> {

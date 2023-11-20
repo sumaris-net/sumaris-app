@@ -282,6 +282,9 @@
                 autocomplete="off"
                 (click)="selectInputContent($event)"
               />
+              <mat-hint *ngIf="data.effortByQuarter[i+1]?.realizedEffort; let realizedEffort">
+                {{i18nFieldPrefix + 'REALIZED_EFFORT'|translate: {count: realizedEffort} }}
+              </mat-hint>
             </mat-form-field>
           </form>
         </ion-col>

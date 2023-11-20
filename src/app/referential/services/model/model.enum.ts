@@ -222,7 +222,7 @@ export const ParameterLabelGroups = {
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
   AGE: ['AGE'],
 
-  DRESSING: ['DRESSING'], // USe by round weight conversion
+  DRESSING: ['DRESSING'], // Use by round weight conversion
   PRESERVATION: ['PRESERVATION']
 };
 

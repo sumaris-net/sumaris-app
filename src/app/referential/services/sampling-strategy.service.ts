@@ -261,14 +261,14 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       map((res) => (res.data || []).map(p => p.id)));
   }
 
-  async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment): Promise<StrategyEffort> {
+  async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment, opts?: {withRealized?: boolean}): Promise<StrategyEffort> {
     if (!programLabel || !strategyLabel || !date) throw new Error('Missing a required argument');
 
     const {data} = await this.loadAll(0, 1, 'label', 'asc', {
       label: strategyLabel,
       levelLabel: programLabel
     }, {
-      withEffort: true,
+      withEffort: opts?.withRealized,
       withTotal: false,
       withParameterGroups: false,
       fetchPolicy: 'cache-first'

@@ -1,23 +1,30 @@
 import { NgModule } from '@angular/core';
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
-import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { AppObservedLocationRoutingModule } from '@app/trip/observedlocation/observed-location-routing.module';
+import { RouterModule, Routes } from '@angular/router';
 import { InboxMessagePage } from '@app/social/message/inbox-message.page';
 import { AppInboxMessageModule } from '@app/social/message/inbox-message.module';
-import { OperationPage } from '@app/trip/operation/operation.page';
 import { AppCoreModule } from '@app/core/core.module';
+import { InboxMessagesPage } from '@app/social/message/inbox-messages.page';
 
 const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    runGuardsAndResolvers: 'pathParamsChange',
+    data: {
+      profile: 'USER',
+    },
+    component: InboxMessagesPage,
+  },
   {
     path: ':messageId',
     pathMatch: 'full',
     runGuardsAndResolvers: 'pathParamsOrQueryParamsChange',
     data: {
-      pathIdParam: 'messageId'
+      pathIdParam: 'messageId',
+      profile: 'USER',
     },
     component: InboxMessagePage,
-  }
+  },
 ];
 
 @NgModule({

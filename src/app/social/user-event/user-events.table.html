@@ -10,6 +10,14 @@
 <!-- top header -->
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- add -->
+    <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate"
+            *ngIf="onNewRow.observed"
+            (click)="onNewRow.emit()">
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- refresh -->
     <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
@@ -76,10 +84,10 @@
 
     <!-- creationDate -->
     <ng-container matColumnDef="creationDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit">
         <ion-label translate>SOCIAL.USER_EVENT.CREATION_DATE</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit">
         <ion-text>
           {{ row.currentData.creationDate | dateFromNow }}
           <br />

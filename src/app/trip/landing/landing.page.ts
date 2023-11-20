@@ -42,7 +42,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
-import { firstValueFrom, merge, Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -680,10 +680,10 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      await firstValueFrom(this.translate.get('LANDING.TITLE_PREFIX', {
+      this.translate.instant('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      })) || '';
+      }) || '';
 
     // new data
     if (!data || isNil(data.id)) {

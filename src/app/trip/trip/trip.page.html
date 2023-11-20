@@ -7,7 +7,7 @@
   (onValidate)="save($event)"
   (onValidateAndClose)="saveAndClose($event)"
   (onClose)="close($event)"
-  [backHref]="defaultBackHref"
+  [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
   <ion-title [innerHTML]="$title | async"></ion-title>
@@ -244,6 +244,17 @@
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
               <app-entity-metadata [value]="data">
+
+                <!-- Compose message -->
+                <ion-button recorderSuffix *ngIf="canSendMessage"
+                            slot="end" size="small" fill="clear" color="tertiary"
+                        class="visible-hover ion-no-margin"
+                        [title]="'DATA.BTN_WRITE_TO_RECORDER'|translate"
+                        (click)="openComposeMessageModal(data?.recorderPerson)">
+                  <ion-icon slot="icon-only" name="mail"></ion-icon>
+                </ion-button>
+
+                <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>

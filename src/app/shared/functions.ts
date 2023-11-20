@@ -127,3 +127,12 @@ export function intersectArrays<T = any>(values: T[][]): T[] {
   // Utilise la méthode reduce pour obtenir l'intersection des tableaux
   return values.reduce((acc, curr) => acc.filter(x => curr.includes(x)), values[0].slice());
 }
+
+export function noHtml(value: string): string {
+  if (value && typeof value === 'string') {
+    // Use regular expression to remove all HTML tags
+    return value.replace(/<[^>]*>.*?<\/[^>]*>|<[^>]+>/g, '');
+  } else {
+    return value;
+  }
+}

@@ -1,4 +1,4 @@
-import {TypePolicies} from '@apollo/client/core';
+import { TypePolicies } from '@apollo/client/core';
 import { FormFieldDefinition, joinProperties, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -80,4 +80,10 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     }
   },
 
+  EXTRACTION_STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.extraction.strat.monitoring.scientificCruise.enable',
+    label: 'EXTRACTION.OPTIONS.STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 });

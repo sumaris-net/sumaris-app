@@ -8,6 +8,8 @@ import {
   AppErrorWithDetails,
   BaseEntityService,
   changeCaseToUnderscore,
+  ConfigService,
+  Configuration,
   DateUtils,
   fromDateISOString,
   HistoryPageReference,
@@ -16,15 +18,20 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  Message,
+  MessageService,
+  Person,
+  PersonService,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { equals } from '@app/shared/functions';
+import { equals, noHtml } from '@app/shared/functions';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { RxState } from '@rx-angular/state';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 export interface BaseEditorState {
   acquisitionLevel: string;
@@ -48,14 +55,16 @@ export abstract class AppBaseDataEntityEditor<
   protected readonly _state: RxState<ST> = new RxState<ST>();
   protected readonly _onReloadProgram = new Subject<void>();
   protected readonly _onStrategyReload = new Subject<void>();
-
+  protected readonly programRefService: ProgramRefService;
+  protected readonly strategyRefService: StrategyRefService;
+  protected readonly configService: ConfigService;
+  protected readonly messageService: MessageService;
+  protected readonly personService: PersonService;
   protected readonly mobile: boolean;
-
-  protected programRefService: ProgramRefService;
-  protected strategyRefService: StrategyRefService;
 
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
+  protected canSendMessage = false;
 
 
   readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
@@ -107,6 +116,9 @@ export abstract class AppBaseDataEntityEditor<
 
     this.programRefService = injector.get(ProgramRefService);
     this.strategyRefService = injector.get(StrategyRefService);
+    this.messageService = injector.get(MessageService);
+    this.personService = injector.get(PersonService);
+    this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
@@ -125,6 +137,7 @@ export abstract class AppBaseDataEntityEditor<
       )
         .pipe(
           filter(isNotNilOrBlank),
+
           // DEBUG --
           //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
 
@@ -172,6 +185,10 @@ export abstract class AppBaseDataEntityEditor<
 
     this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
 
+    if (!this.mobile) {
+      // Listen config
+      this._state.hold(this.configService.config, config => this.onConfigLoaded(config));
+    }
   }
 
   ngOnDestroy() {
@@ -232,7 +249,6 @@ export abstract class AppBaseDataEntityEditor<
     const i18nKey = (this.i18nContext.prefix || '') + changeCaseToUnderscore(controlPath).toUpperCase();
     return this.translate.instant(i18nKey);
   }
-
 
   protected startListenProgramRemoteChanges(program: Program) {
     if (!program || isNil(program.id)) return; // Skip if program is missing
@@ -331,7 +347,31 @@ export abstract class AppBaseDataEntityEditor<
     return super.addToPageHistory(page, opts);
   }
 
-  protected computeStrategy(data: T, program: Program): Strategy {
-    return null; // TODO BLA
+  protected async onConfigLoaded(config: Configuration) {
+    console.info('[base-data-editor] Init using config', config);
+    const canSendMessage = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
+    if (this.canSendMessage !== canSendMessage) {
+      this.canSendMessage = canSendMessage;
+      this.markForCheck();
+    }
   }
+
+  protected async openComposeMessageModal(recipient?: Person, opts?: {title?: string }) {
+    if (!this.canSendMessage) return; // Skip if disabled
+
+    console.debug('[base-data-editor] Writing a message to:', recipient);
+    const title = noHtml(opts?.title || this.titleSubject.value)?.toLowerCase();
+    const url = this.router.url;
+    const body = this.translate.instant('DATA.MESSAGE_BODY', {title, url})
+
+    await this.messageService.openComposeModal({
+      suggestFn: (value, filter) => this.personService.suggest(value, filter),
+      data: <Message>{
+        subject: title,
+        recipients: recipient ? [recipient] : [],
+        body
+      }
+    })
+  }
+
 }

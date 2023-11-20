@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -65,7 +65,6 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
 import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
@@ -101,6 +100,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { AppEnvironment } from '@environments/environment.class';
+import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -140,20 +140,7 @@ import { AppEnvironment } from '@environments/environment.class';
         deps: [HttpClient],
       },
     }),
-    MarkdownModule.forRoot({
-      loader: HttpClient, // Allow to load using [src]
-      sanitize: SecurityContext.NONE,
-      markedOptions: {
-        provide: MarkedOptions,
-        useValue: <MarkedOptions>{
-          gfm: true,
-          breaks: false,
-          pedantic: false,
-          smartLists: true,
-          smartypants: false,
-        },
-      },
-    }),
+    AppMarkdownModule.forRoot(),
     NgChartsModule.forRoot({
       plugins: [],
     }),
@@ -378,6 +365,7 @@ import { AppEnvironment } from '@environments/environment.class';
         // Settings
         { title: '' /*empty divider*/, cssClass: 'flex-spacer' },
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
+        { title: 'MENU.INBOX', path: '/inbox', icon: 'mail', profile: 'USER', ifProperty: 'sumaris.social.notification.icons.enable' },
         { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },
         { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile' },
 
