@@ -2306,7 +2306,7 @@
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "PARAMETERS.MISSING_FRACTION": "Au moins un pièce calcifiée est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
-        "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
+        "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour le(s) trimestre(s) {{quarters}} ayant des mesures individuelles",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
         "LABEL.ZERO": "L'incrément minimal est 001",
         "STRATEGY_HAS_DATA": "La ligne de plan {{ label }} est liée à une ou plusieurs observations individuelles",
@@ -2586,7 +2586,8 @@
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
       "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?",
-      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Mensurations (HL) : PSFM(s) de longueur"
+      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Mensurations (HL) : PSFM(s) de longueur",
+      "STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE": "Extraction > Suivi des stratégies (SM) : Activer le suivi des campagne en mer ?"
     },
     "PRODUCT": {
       "NEW": {

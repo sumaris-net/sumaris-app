@@ -13,7 +13,8 @@ import {
   QualitativeValueIds,
   QualityFlagIds,
   TaxonGroupTypeIds,
-  TaxonomicLevelIds
+  TaxonomicLevelIds,
+  UnitIds
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
@@ -571,7 +572,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
-    defaultValue: MatrixIds.INDIVIDUAL
+    defaultValue: UnitIds.NONE
   },
   QUALITATIVE_VALUE_LANDING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.LANDING.id',

@@ -2269,7 +2269,7 @@
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is required",
         "PARAMETERS.MISSING_FRACTION": "At least one fraction is required",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
-        "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
+        "EFFORT.REALIZED_EFFORT": "Mandatory effort on quarter(s) {{quarters}} having individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
         "LABEL.ZERO": "The minimum increment is 001",
         "STRATEGY_HAS_DATA": "Sampling scheme {{label}} used by observed locations",
@@ -2517,7 +2517,8 @@
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions",
       "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
-      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Trips > Individual length (HL): Length PMFM(s)"
+      "SPECIES_LENGTH_PMFM_IDS": "Extraction > Trips > Individual length (HL): Length PMFM(s)",
+      "STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE": "Extraction > Strategy Monitoring (SM): Enable scientific cruise monitoring?"
     },
     "PRODUCT": {
       "NEW": {
