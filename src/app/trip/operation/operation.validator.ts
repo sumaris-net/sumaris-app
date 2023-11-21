@@ -44,6 +44,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 
+
 export interface IPmfmForm {
   form: UntypedFormGroup;
   pmfms: IPmfm[];

@@ -67,6 +67,7 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
@@ -519,7 +520,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       this.fishingAreasHelper.resize(Math.max(data.fishingAreas.length, 1));
     }
 
-    if (isParentOperation && isNil(data.qualityFlagId)) {
+    if (isParentOperation && DataEntityUtils.hasNoQualityFlag(data)) {
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
 
