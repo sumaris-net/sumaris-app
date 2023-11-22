@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import {
+  AppFormArray,
   LocalSettingsService,
+  ReferentialRef,
+  ReferentialUtils,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
@@ -87,12 +90,12 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // Add observers
     if (opts.withObservers) {
-      formConfig.observers = this.getObserversFormArray(data);
+      formConfig.observers = this.getObserversFormArray(data?.observers);
     }
 
     // Add metiers
     if (opts.withMetiers) {
-      formConfig.metiers = this.getMetiersArray(data);
+      formConfig.metiers = this.getMetiersArray(data?.metiers);
     }
 
     // Add fishing Ares
@@ -116,8 +119,25 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
+    const enabled = form.enabled;
     form.get('returnDateTime').setValidators(this.getReturnDateTimeValidator(opts));
     form.get('returnLocation').setValidators(this.getReturnLocationValidator(opts));
+
+    // Metier array
+    if (opts?.withMetiers) {
+      if (!form.controls.metiers) form.addControl('metiers', this.getMetiersArray(null, {required: true}));
+    }
+    else {
+      if (form.controls.metiers) form.removeControl('metiers');
+    }
+
+    // Observers
+    if (opts?.withObservers) {
+      if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray(null, {required: true}));
+    }
+    else {
+      if (form.controls.observers) form.removeControl('observers');
+    }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
@@ -127,14 +147,22 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
 
-  getMetiersArray(data?: Trip, opts?: {required?: boolean}) {
-    return this.formBuilder.array(
-      (data && data.metiers || []).map(metier => this.getMetierControl(metier, opts)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
+  getMetiersArray(data?: ReferentialRef<any>[], opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray<ReferentialRef<any>, UntypedFormControl>(
+      (metier) => this.getMetierControl(metier, {required}),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null,
+      }
     );
+    if (data)formArray.patchValue(data);
+    return formArray;
   }
 
-  getMetierControl(value: any, opts?: {required?: boolean}) {
+  getMetierControl(value: any, opts?: {required?: boolean}): UntypedFormControl {
     const required = !opts || opts.required !== false;
     return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }

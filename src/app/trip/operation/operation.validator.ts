@@ -13,6 +13,7 @@ import {
 } from '@angular/forms';
 import { PositionValidatorService } from '@app/data/position/position.validator';
 import {
+  AppFormArray,
   AppFormUtils,
   equals,
   FormErrors,
@@ -20,6 +21,7 @@ import {
   isNil,
   isNotNil,
   LocalSettingsService,
+  SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
@@ -43,7 +45,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export interface IPmfmForm {
   form: UntypedFormGroup;
@@ -146,7 +148,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data, {required: true}));
+      form.addControl('fishingAreas', this.getFishingAreasArray(data?.fishingAreas, {required: true}));
     }
 
     // Add child operation
@@ -637,12 +639,19 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected getFishingAreasArray(data?: Operation, opts?: { required?: boolean }) {
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
     const required = !opts || opts.required !== false;
-    return this.formBuilder.array(
-      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa, {required})),
-      required ? OperationValidators.requiredArrayMinLength(1) : undefined
+    const formArray = new AppFormArray(
+      (fa) => this.fishingAreaValidator.getFormGroup(fa, {required}),
+      FishingArea.equals,
+      FishingArea.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+      }
     );
+    if (data) formArray.patchValue(data);
+    return formArray;
   }
 
   protected createChildOperationControl(data?: Operation): AbstractControl {

@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AppFormArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
@@ -124,10 +124,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       (image) => this.imageAttachmentValidator.getFormGroup(image),
       ImageAttachment.equals,
       ImageAttachment.isEmpty);
-    if (isNotEmptyArray(data)) {
-      formArray.patchValue(data);
-    }
-
+    if (data) formArray.patchValue(data);
     return formArray;
   }
 }

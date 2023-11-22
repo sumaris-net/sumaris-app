@@ -1,10 +1,15 @@
-import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import {
+  AppFormArray,
+  LocalSettingsService,
+  Person,
+  ReferentialUtils,
+  SharedFormArrayValidators,
+  SharedValidators,
+} from '@sumaris-net/ngx-components';
 import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { RootDataEntity } from '../model/root-data-entity.model';
-import { IWithObserversEntity } from '../model/model.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
-import {OperationValidators} from '@app/trip/operation/operation.validator';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
@@ -39,14 +44,24 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
       });
   }
 
-  getObserversFormArray(data?: IWithObserversEntity<T>) {
-    return this.formBuilder.array(
-      (data && data.observers || [null]).map(observer => this.getObserverControl(observer)),
-      OperationValidators.requiredArrayMinLength(1)
+  getObserversFormArray(data?: Person[], opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray<Person, UntypedFormControl>(
+      (value) => this.getObserverControl(value, {required}),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null
+      }
     );
+    if (data) {
+      formArray.patchValue(data);
+    }
+    return formArray;
   }
 
-  getObserverControl(observer?: Person): UntypedFormControl {
-    return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
+  getObserverControl(observer?: Person, opts?: {required?: boolean}): UntypedFormControl {
+    return this.formBuilder.control(observer || null, opts?.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 }

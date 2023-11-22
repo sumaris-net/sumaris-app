@@ -1,5 +1,13 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControlOptions,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from './observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
@@ -51,11 +59,11 @@ export class ObservedLocationValidatorService
     return {
       ...super.getFormGroupConfig(data),
       __typename: [ObservedLocation.TYPENAME],
-      location: [data && data.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      startDateTime: [data && data.startDateTime || null, this.createStartDateValidator(opts)],
-      endDateTime: [data && data.endDateTime || null],
+      location: [data?.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      startDateTime: [data?.startDateTime || null, this.createStartDateValidator(opts)],
+      endDateTime: [data?.endDateTime || null],
       measurementValues: this.formBuilder.group({}),
-      observers: this.getObserversFormArray(data)
+      observers: this.getObserversFormArray(data?.observers)
     };
 
   }

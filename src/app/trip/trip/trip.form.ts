@@ -17,13 +17,12 @@ import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/servic
 
 import {
   AppForm,
+  AppFormArray,
   DateUtils,
   EntityUtils,
   equals,
-  FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -45,7 +44,7 @@ import {
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
@@ -79,11 +78,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   readonly mobile = this.settings.mobile;
   //readonly appearance = this.mobile ? 'outline' : 'legacy';
 
-  observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   enableMetierFilter = false;
   metierFilter: Partial<MetierFilter>;
-  metiersHelper: FormArrayHelper<ReferentialRef>;
   metierFocusIndex = -1;
   canFilterMetier = false;
 
@@ -96,8 +93,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
-      this.initObserversHelper();
-      this.markForCheck();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -108,8 +104,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() set showMetiers(value: boolean) {
     if (this._showMetiers !== value) {
       this._showMetiers = value;
-      this.initMetiersHelper();
-      this.markForCheck();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -167,12 +162,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.setValue(json);
   }
 
-  get observersForm(): UntypedFormArray {
-    return this.form.controls.observers as UntypedFormArray;
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
-  get metiersForm(): UntypedFormArray {
-    return this.form.controls.metiers as UntypedFormArray;
+  get metiersForm() {
+    return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
 
   @Output() departureDateTimeChanges = new EventEmitter<Moment>();
@@ -333,20 +328,16 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Resize observers array
     if (this._showObservers) {
       data.observers = data.observers && data.observers.length ? data.observers : [null];
-      this.observersHelper.resize(Math.max(1, data.observers.length));
     } else {
       data.observers = [];
-      this.observersHelper?.resize(0);
     }
 
     // Make sure to have (at least) one metier
     this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, data.metiers.length), { emitEvent: false });
     } else {
       data.metiers = [];
-      this.metiersHelper?.resize(0, { emitEvent: false });
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
@@ -389,16 +380,16 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   addObserver() {
-    this.observersHelper.add();
+    this.observersForm.add();
     if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
+      this.observerFocusIndex = this.observersForm.length - 1;
     }
   }
 
   addMetier() {
-    this.metiersHelper.add();
+    this.metiersForm.add();
     if (!this.mobile) {
-      this.metierFocusIndex = this.metiersHelper.size() - 1;
+      this.metierFocusIndex = this.metiersForm.length - 1;
     }
   }
 
@@ -476,63 +467,13 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     });
   }
 
-  protected initObserversHelper() {
-    if (isNil(this._showObservers)) return; // skip if not loading yet
-
-    // Create helper, if need
-    if (!this.observersHelper) {
-      this.observersHelper = new FormArrayHelper<Person>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-        (person) => this.validatorService.getObserverControl(person),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        { allowEmptyArray: !this._showObservers }
-      );
-    }
-
-    // Helper exists: update options
-    else {
-      this.observersHelper.allowEmptyArray = !this._showObservers;
-    }
-
-    if (this._showObservers) {
-      // Create at least one observer
-      if (this.observersHelper.size() === 0) {
-        this.observersHelper.resize(1);
-      }
-    } else if (this.observersHelper.size() > 0) {
-      this.observersHelper.resize(0);
-    }
-  }
-
-  protected initMetiersHelper() {
-    if (isNil(this._showMetiers)) return; // skip if not loading yet
-
-    if (!this.metiersHelper) {
-      this.metiersHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
-        (metier) => this.validatorService.getMetierControl(metier),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        { allowEmptyArray: !this._showMetiers }
-      );
-    } else {
-      this.metiersHelper.allowEmptyArray = !this._showMetiers;
-    }
-    if (this._showMetiers) {
-      if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1, { emitEvent: false });
-      }
-    } else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0, { emitEvent: false });
-    }
-  }
-
   updateFormGroup() {
     const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours,
+      withMetiers: this.showMetiers,
+      withObservers: this.showObservers
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {

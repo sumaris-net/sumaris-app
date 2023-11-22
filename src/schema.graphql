@@ -1773,6 +1773,18 @@ type UserSettingsVO {
 
 type UserTokenVO {
     creationDate: Date
+    expirationDate: SqlTimestamp
+    flags: Int
+    id: Int
+    lastUsedDate: SqlTimestamp
+    name: String
+    pubkey: String
+    token: String
+    updateDate: Date
+}
+
+type UserTokenVO {
+    creationDate: Date
     expirationDate: Date
     flags: Int
     id: Int
@@ -2026,6 +2038,9 @@ scalar ObjectScalar
 
 "A 16-bit signed integer"
 scalar Short
+
+"Built-in scalar representing a SQL compliant local date-time"
+scalar SqlTimestamp
 
 input AccountVOInput {
     avatar: String
@@ -3560,6 +3575,18 @@ input UserSettingsVOInput {
     latLongFormat: String
     locale: String
     nonce: String
+    updateDate: Date
+}
+
+input UserTokenVOInput {
+    creationDate: Date
+    expirationDate: SqlTimestamp
+    flags: Int
+    id: Int
+    lastUsedDate: SqlTimestamp
+    name: String
+    pubkey: String
+    token: String
     updateDate: Date
 }
 

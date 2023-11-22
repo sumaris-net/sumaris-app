@@ -79,7 +79,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     // Add observers
     if (opts.withObservers) {
-      formConfig.observers = this.getObserversFormArray(data);
+      formConfig.observers = this.getObserversFormArray(data?.observers);
     }
 
     return formConfig;
