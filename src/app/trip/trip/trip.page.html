@@ -271,18 +271,16 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="physicalGearsTable.invalid"></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
-        <app-physical-gears-table
-          #physicalGearsTable
-          [programLabel]="$programLabel | async"
-          [showToolbar]="!mobile"
-          (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
-          [useSticky]="!mobile"
-          [mobile]="mobile"
-          [usageMode]="usageMode"
-          [debug]="debug"
-        ></app-physical-gears-table>
-      </div>
+      <app-physical-gears-table
+        #physicalGearsTable
+        [programLabel]="$programLabel | async"
+        [showToolbar]="!mobile"
+        (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
+        [useSticky]="!mobile"
+        [mobile]="mobile"
+        [usageMode]="usageMode"
+        [debug]="debug"
+      ></app-physical-gears-table>
     </mat-tab>
 
     <!-- TAB: operations -->
@@ -311,19 +309,18 @@
         </mat-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
-        <app-operations-table
-          #operationsTable
-          (onOpenRow)="onOpenOperation($event)"
-          (onNewRow)="onNewOperation($event)"
-          (duplicateRow)="onDuplicateOperation($event)"
-          [canDuplicate]="operationPasteFlags !== 0"
-          [programLabel]="$programLabel | async"
-          [showToolbar]="!mobile"
-          [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
-          [defaultSortDirection]="mobile ? 'desc' : 'asc'"
-        ></app-operations-table>
-      </div>
+      <app-operations-table
+        #operationsTable
+        (onOpenRow)="onOpenOperation($event)"
+        (onNewRow)="onNewOperation($event)"
+        (duplicateRow)="onDuplicateOperation($event)"
+        [canDuplicate]="operationPasteFlags !== 0"
+        [programLabel]="$programLabel | async"
+        [showToolbar]="!mobile"
+        [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
+        [defaultSortDirection]="mobile ? 'desc' : 'asc'"
+      ></app-operations-table>
+
     </mat-tab>
   </mat-tab-group>
 </ion-content>

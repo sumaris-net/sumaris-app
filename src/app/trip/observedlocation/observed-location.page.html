@@ -181,43 +181,41 @@
         </ng-template>
       </ng-template>
 
-      <div class="ion-no-padding">
-        <!-- error -->
-        <ion-item *ngIf="($table | async)?.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="($table | async)?.error | translate"></ion-label>
-        </ion-item>
+      <!-- error -->
+      <ion-item *ngIf="($table | async)?.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="($table | async)?.error | translate"></ion-label>
+      </ion-item>
 
-        <ng-container [ngSwitch]="$landingTableType | async">
-          <!-- aggregated landings -->
-          <app-aggregated-landings-table
-            #aggregatedLandingsTable
-            *ngSwitchCase="'aggregated'"
-            [debug]="debug"
-            [programLabel]="$programLabel | async"
-            (onNewRow)="onNewAggregatedLanding($event)"
-            [showToolbar]="!mobile"
-            [useSticky]="true"
-            (ngInit)="$table.next(aggregatedLandingsTable)"
-          ></app-aggregated-landings-table>
+      <ng-container [ngSwitch]="$landingTableType | async">
+        <!-- aggregated landings -->
+        <app-aggregated-landings-table
+          #aggregatedLandingsTable
+          *ngSwitchCase="'aggregated'"
+          [debug]="debug"
+          [programLabel]="$programLabel | async"
+          (onNewRow)="onNewAggregatedLanding($event)"
+          [showToolbar]="!mobile"
+          [useSticky]="true"
+          (ngInit)="$table.next(aggregatedLandingsTable)"
+        ></app-aggregated-landings-table>
 
-          <!-- landings -->
-          <app-landings-table
-            #landingsTable
-            *ngSwitchCase="'legacy'"
-            [debug]="debug"
-            [programLabel]="$programLabel | async"
-            [showObserversColumn]="false"
-            [showDateTimeColumn]="false"
-            [showToolbar]="!mobile"
-            (onOpenRow)="onOpenLanding($event)"
-            (onNewRow)="onNewLanding($event)"
-            (openTrip)="onOpenTrip($event)"
-            (newTrip)="onNewTrip($event)"
-            (ngInit)="$table.next(landingsTable)"
-          ></app-landings-table>
-        </ng-container>
-      </div>
+        <!-- landings -->
+        <app-landings-table
+          #landingsTable
+          *ngSwitchCase="'legacy'"
+          [debug]="debug"
+          [programLabel]="$programLabel | async"
+          [showObserversColumn]="false"
+          [showDateTimeColumn]="false"
+          [showToolbar]="!mobile"
+          (onOpenRow)="onOpenLanding($event)"
+          (onNewRow)="onNewLanding($event)"
+          (openTrip)="onOpenTrip($event)"
+          (newTrip)="onNewTrip($event)"
+          (ngInit)="$table.next(landingsTable)"
+        ></app-landings-table>
+      </ng-container>
     </mat-tab>
   </mat-tab-group>
 </ion-content>
