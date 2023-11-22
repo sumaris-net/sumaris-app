@@ -6,7 +6,6 @@ import { VesselModal } from './modal/vessel-modal';
 import { VesselsPage } from './list/vessels.page';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppDataModule } from '../data/data.module';
 import { VesselFeaturesHistoryComponent } from './page/vessel-features-history.component';
@@ -17,13 +16,14 @@ import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
 import { SharedModule } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
 import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-color.pipe';
+import {MaskitoModule} from '@maskito/angular';
 
 @NgModule({
   imports: [
     SharedModule,
     CommonModule,
     IonicModule,
-    TextMaskModule,
+    MaskitoModule,
     TranslateModule.forChild(),
 
     // App modules

@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { ProgramPage } from './program.page';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { ProgramsPage } from './programs.page';
 import { AppCoreModule } from '@app/core/core.module';
@@ -12,11 +11,12 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 import { SelectProgramModal } from '@app/referential/program/select-program.modal';
+import {MaskitoModule} from '@maskito/angular';
 
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
+    MaskitoModule,
     TranslateModule.forChild(),
 
     AppCoreModule,

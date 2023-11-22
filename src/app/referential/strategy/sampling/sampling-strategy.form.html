@@ -24,7 +24,7 @@
             [formControl]="labelControl"
             autocomplete="off"
             type="text"
-            [textMask]="{ mask: labelMask, keepCharPositions: true, showMask: true, guide: true }"
+            [maskito]="'__ _______ ___' | maskitoPlaceholder : labelMask"
             (click)="selectMask(matInput)"
             placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}"
           />
