@@ -98,6 +98,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
+import {MAT_TABS_CONFIG, MatTabsConfig} from '@angular/material/tabs';
 
 @NgModule({
   declarations: [AppComponent],
@@ -174,7 +175,14 @@ import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: {
         //appearance: 'outline',
-        //subscriptSizing: 'dynamic'
+        // subscriptSizing: 'dynamic',
+      }
+    },
+    {
+      provide: MAT_TABS_CONFIG,
+      useValue: <MatTabsConfig> {
+        stretchTabs: false,
+        // preserveContent: true
       }
     },
     {
