@@ -38,13 +38,22 @@ import {
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
-import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
+import {ControlOptions, CRS, MapOptions, WMSParams} from 'leaflet';
 import { Feature } from 'geojson';
 import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { ChartConfiguration, ChartOptions, DefaultDataPoint, LegendOptions, PluginOptionsByType, ScaleType, TitleOptions } from 'chart.js';
+import {
+  ChartConfiguration,
+  ChartOptions,
+  ChartTypeRegistry,
+  DefaultDataPoint,
+  LegendOptions,
+  PluginOptionsByType,
+  ScaleType,
+  TitleOptions
+} from 'chart.js';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
 import { MapGraticule } from '@app/shared/map/map.graticule';
@@ -66,7 +75,11 @@ declare interface CustomLegendOptions {
   startColor?: string;
   endColor?: string;
 }
-declare type TechChartType = 'pie' | 'bar' | 'doughnut';
+// TODO : Incumpatible type with ChartConfiguration<keyof ChartTypeRegistry, (number | number[] | ScatterDataPoint | BubbleDataPoint | (Partial<IBoxPlot> & IBaseStats) | (Partial<...> & IBaseStats))[], unknown>'
+// declare type TechChartType = 'pie' | 'bar' | 'doughnut';
+// declare type TechChartType = Extract<keyof ChartTypeRegistry, 'pie' | 'bar' | 'doughnut'>;
+// TODO : quick and dirty fix for the problem above
+declare type TechChartType = keyof ChartTypeRegistry;
 
 declare type TechChartOptions<TType extends TechChartType = TechChartType> = ChartOptions<TType> & {
   // Legend
@@ -81,13 +94,15 @@ declare type TechChartOptions<TType extends TechChartType = TechChartType> = Cha
   aggMin?: number;
   aggMax?: number;
 };
-declare type TechChartConfiguration<
+
+export declare interface TechChartConfiguration<
   TType extends TechChartType = TechChartType,
   TData = DefaultDataPoint<TType>,
   TLabel = string
-> = ChartConfiguration<TType, TData, TLabel> & {
+> extends ChartConfiguration<TType, TData, TLabel> {
   options?: TechChartOptions<TType>;
-};
+}
+
 
 const maxZoom = 18;
 const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/;
@@ -1676,7 +1691,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       onAdd(map: L.Map) {
         return element.nativeElement;
       },
-      onRemove(map: L.Map) {}
+      // onRemove(map: L.Map) {}
     });
     return new CustomControl({
       position: 'topleft',
