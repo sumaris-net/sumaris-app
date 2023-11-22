@@ -322,6 +322,32 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     return (rows || []).map((row) => row.currentData.vesselSnapshot.id);
   }
 
+  backwardDay(event?: Event) {
+    const dates = this.$dates.value;
+    const currentDate = this.$currentDate.value;
+    if (!dates || !currentDate) return; // Skip
+
+    const currentIndex = dates.findIndex((d) => DateUtils.equals(d, currentDate));
+    if (currentIndex > 0) {
+      this.$currentDate.next(dates[currentIndex - 1]);
+    } else {
+      this.$currentDate.next(dates[dates.length - 1]);
+    }
+  }
+
+  forwardDay(event?: Event) {
+    const dates = this.$dates.value;
+    const currentDate = this.$currentDate.value;
+    if (!dates || !currentDate) return; // Skip
+
+    const currentIndex = dates.findIndex((d) => DateUtils.equals(d, currentDate));
+    if (currentIndex < dates.length - 1) {
+      this.$currentDate.next(dates[currentIndex + 1]);
+    } else {
+      this.$currentDate.next(dates[0]);
+    }
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {

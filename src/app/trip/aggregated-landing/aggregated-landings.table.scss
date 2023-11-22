@@ -27,6 +27,10 @@
   .mat-header-row,
   .mat-row {
 
+    .mat-column-vessel {
+
+    }
+
     .comments-italic {
       font-style: italic;
     }
@@ -41,6 +45,15 @@
       }
     }
 
+    .mat-header-cell.mat-column-day {
+      ion-label {
+        margin-inline-start: 4px;
+        margin-inline-end: 4px;
+        display: block;
+        text-align: center;
+        white-space: break-spaces;
+      }
+    }
     .mat-cell.mat-column-day:hover {
       background-color: var(--ion-color-secondary) !important;
       color: var(--ion-color-secondary-contrast);

@@ -100,7 +100,15 @@
     <ng-container *ngIf="mobile && ($currentDate | async) as currentDate; else allDates">
       <ng-container [matColumnDef]="currentDate.valueOf().toString()">
         <th mat-header-cell *matHeaderCellDef class="mat-column-day">
-          <ion-label>{{ currentDate | dateFormat : { pattern: 'dddd L' } }}</ion-label>
+          <ion-label>
+            <button mat-icon-button (click)="backwardDay($event)" [title]="'COMMON.BTN_BACKWARD' | translate">
+              <ion-icon slot="icon-only" name="chevron-back-circle-outline"></ion-icon>
+            </button>
+            <ion-text>{{ currentDate | dateFormat : { pattern: 'dddd L' } }}</ion-text>
+            <button mat-icon-button (click)="forwardDay($event)" [title]="'COMMON.BTN_FORWARD' | translate">
+              <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
+            </button>
+          </ion-label>
         </th>
         <td mat-cell *matCellDef="let row" class="mat-column-day" (click)="clickCell($event, row, currentDate)">
           <ng-container *ngIf="getActivities(row, currentDate); let activities">
@@ -127,15 +135,14 @@
 
     <!-- week (desktop) -->
     <ng-template #allDates>
-      <ng-container *ngFor="let date of $dates | async; odd as odd; even as even" [matColumnDef]="date.valueOf().toString()">
-        <th mat-header-cell *matHeaderCellDef class="mat-column-day" [class.odd]="odd" [class.even]="even">
+      <ng-container *ngFor="let date of $dates | async; even as even" [matColumnDef]="date.valueOf().toString()">
+        <th mat-header-cell *matHeaderCellDef class="mat-column-day" [class.even]="even">
           <ion-label>{{ date | dateFormat : { pattern: 'dddd L' } }}</ion-label>
         </th>
         <td
           mat-cell
           *matCellDef="let row"
           class="ion-padding-start mat-column-day"
-          [class.odd]="odd"
           [class.even]="even"
           (click)="clickCell($event, row, date)"
         >
