@@ -47,6 +47,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselTypeIds,
 } from "./model/model.enum";
 import { ReferentialFragments } from "./referential.fragments";
 import { SortDirection } from "@angular/material/sort";
@@ -897,8 +898,11 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     TaxonGroupTypeIds.NATIONAL_METIER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_NATIONAL_METIER_ID);
     TaxonGroupTypeIds.DCF_METIER_LVL_5 = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID);
 
+    // Vessel types
+    VesselTypeIds.FISHING_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_FISHING_VESSEL);
+    VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL);
 
-    // TODO: add all enumerations
+    // TODO: add other enumerations
 
     // Force an update default values (e.g. when using LocationLevelId)
     ModelEnumUtils.refreshDefaultValues();

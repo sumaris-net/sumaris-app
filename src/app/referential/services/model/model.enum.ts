@@ -43,6 +43,11 @@ export const GearLevelIds = {
   FAO: 1
 };
 
+export const VesselTypeIds = {
+  FISHING_VESSEL: 1,
+  SCIENTIFIC_RESEARCH_VESSEL: 2
+}
+
 export const TaxonGroupTypeIds = {
   FAO: 2,
   DCF_METIER_LVL_5: 3,

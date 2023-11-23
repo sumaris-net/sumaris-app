@@ -2165,8 +2165,10 @@
       "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?",
       "DATA_STRATEGY_RESOLUTION": "Saisie > Résolution de la stratégie",
       "DATA_STRATEGY_RESOLUTION_ENUM": {
-        "LAST": "Rapide (la plus récente)",
-        "LOCATION_AND_DATE": "Complète (par lieu et date)"
+        "LAST": "La plus récente",
+        "USER_SELECT": "Sélection par utilisateur",
+        "SPATIO_TEMPORAL": "Spatio-temporelle",
+        "NONE": "Aucune"
       }
     },
     "STRATEGY": {

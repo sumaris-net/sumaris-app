@@ -14,7 +14,9 @@ import {
   fromDateISOString,
   HistoryPageReference,
   IEntityService,
+  isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -23,7 +25,7 @@ import {
   MessageService,
   Person,
   PersonService,
-  ReferentialRef,
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
@@ -36,9 +38,8 @@ import { RxState } from '@rx-angular/state';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { Moment } from 'moment';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
 
@@ -52,12 +53,9 @@ export interface DataEditorState {
 
   acquisitionLevel: AcquisitionLevelType;
 
-  strategy: Strategy;
+  strategyResolution: DataStrategyResolution;
   requiredStrategy: boolean;
-  strategyLabel: string;
-  strategyDateTime: Moment;
-  strategyLocation: ReferentialRef;
-
+  strategy: Strategy;
   strategyFilter: Partial<StrategyFilter>;
 
   pmfms: IPmfm[];
@@ -83,9 +81,8 @@ export abstract class AppDataEntityEditor<
   protected readonly messageService: MessageService;
   protected readonly personService: PersonService;
   protected readonly mobile: boolean;
-  protected readonly logPrefix: string = null;
   protected readonly canDebug: boolean;
-  protected strategyResolution: DataStrategyResolution = 'last';
+  protected logPrefix: string = null;
 
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
@@ -94,14 +91,11 @@ export abstract class AppDataEntityEditor<
   readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
   readonly programLabel$ = this._state.select('programLabel');
   readonly program$ = this._state.select('program');
-  readonly strategyLabel$ = this._state.select( 'strategyLabel');
-  readonly strategyFilter$ = this._state.select( 'strategyFilter');
+  readonly strategyResolution$ = this._state.select( 'strategyResolution');
   readonly requiredStrategy$ = this._state.select( 'requiredStrategy');
-  readonly strategyDateTime$ = this._state.select( 'strategyDateTime');
-  readonly strategyLocation$ = this._state.select( 'strategyLocation');
+  readonly strategyFilter$ = this._state.select( 'strategyFilter');
   readonly strategy$ = this._state.select('strategy');
   readonly pmfms$ = this._state.select('pmfms');
-
 
   get acquisitionLevel(): AcquisitionLevelType {
     return this._state.get('acquisitionLevel');
@@ -124,12 +118,19 @@ export abstract class AppDataEntityEditor<
     this._state.set('program', () => value);
   }
 
-  get strategyLabel(): string {
-    return this._state.get('strategyLabel');
+  get strategyResolution(): DataStrategyResolution {
+    return this._state.get('strategyResolution');
   }
-  set strategyLabel(value: string) {
-    this._state.set('strategyLabel', () => value);
+  set strategyResolution(value: DataStrategyResolution) {
+    this._state.set('strategyResolution', () => value);
   }
+  get requiredStrategy(): boolean {
+    return this._state.get('requiredStrategy');
+  }
+  set requiredStrategy(value: boolean) {
+    this._state.set('requiredStrategy', () => value);
+  }
+
   get strategyFilter(): Partial<StrategyFilter> {
     return this._state.get('strategyFilter');
   }
@@ -224,8 +225,14 @@ export abstract class AppDataEntityEditor<
       mergeMap((strategyFilter) => this.loadStrategy(strategyFilter))
     ));
 
+    this._state.connect('requiredStrategy', this.strategyResolution$.pipe(map(r => r && r !== DataStrategyResolutions.NONE)))
+
     this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
 
+    // Listen config
+    if (!this.mobile) {
+      this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
+    }
   }
 
   ngOnDestroy() {
@@ -248,36 +255,63 @@ export abstract class AppDataEntityEditor<
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    return this.acquisitionLevel$.pipe(
-      map(acquisitionLevel => {
-        return <Partial<StrategyFilter>>{
-          programId: program.id,
-          acquisitionLevel,
-        }
-      })
-    );
+    if (!this.strategyResolution) throw new Error('Missing strategy resolution. Please check super.setProgram() has been called')
+    switch (this.strategyResolution) {
+
+      // Most recent
+      case DataStrategyResolutions.LAST:
+      default:
+        return this.acquisitionLevel$.pipe(
+          map(acquisitionLevel => {
+            return <Partial<StrategyFilter>>{
+              programId: program.id,
+              acquisitionLevel,
+            }
+          })
+        );
+    }
   }
 
   protected canLoadStrategy(program: Program, strategyFilter?: Partial<StrategyFilter>): boolean {
 
-    // Check acquisition level
-    return isNotNilOrBlank(strategyFilter?.acquisitionLevel) || isNotEmptyArray(strategyFilter?.acquisitionLevels);
+    // None: avoid to load
+    if (this.strategyResolution === DataStrategyResolutions.NONE) return false;
 
-    /*// Check location + date
-    switch (this.strategyResolution) {
-      case 'locationAndDate':
-        return ReferentialUtils.isNotEmpty(strategyFilter.location) && isNotNil(strategyFilter.startDate);
-      case 'label':
-        return isNotNilOrBlank(strategyFilter.label);
-      case 'last':
-      default:
-        return true;
-    }*/
+    // Check program
+    if (!program) return false;
+
+    // Check acquisition level
+    if (isNilOrBlank(strategyFilter?.acquisitionLevel) && isEmptyArray(strategyFilter?.acquisitionLevels)) {
+      return false;
+    }
+
+    // Spatio-temporal
+    if (this.strategyResolution === DataStrategyResolutions.SPATIO_TEMPORAL) {
+      return ReferentialUtils.isNotEmpty(strategyFilter?.location) && isNotNil(strategyFilter?.startDate);
+    }
+
+    // User select
+    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
+      return isNotEmptyArray(strategyFilter?.includedIds) || isNotNilOrBlank(strategyFilter?.label);
+    }
+
+    // Last
+    return true;
   }
 
   protected async loadStrategy(strategyFilter: Partial<StrategyFilter>) {
     if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
-    return this.strategyRefService.loadByFilter(strategyFilter, {failIfMissing: true, debug: this.debug, fullLoad: false});
+    try {
+      return await this.strategyRefService.loadByFilter(strategyFilter, {
+        fullLoad: false, // Not need anymore all pmfms
+        failIfMissing: this.requiredStrategy,
+        debug: this.debug
+      });
+    }
+    catch(err) {
+      console.error(err?.message || err, err);
+      return undefined;
+    }
   }
 
   protected async setProgram(program: Program) {
@@ -287,14 +321,17 @@ export abstract class AppDataEntityEditor<
     // DEBUG
     if (this.debug) console.debug(this.logPrefix + `Program ${program.label} loaded`);
 
-    this.strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+    // Set strategy resolution
+    const strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION) as DataStrategyResolution;
+    console.info(this.logPrefix + 'Strategy resolution: ' + strategyResolution);
+    this.strategyResolution = strategyResolution;
   }
 
   protected async setStrategy(strategy: Strategy) {
     // Can be overridden by subclasses
 
     // DEBUG
-    if (strategy && this.debug) console.debug(`[base-data-editor] Strategy ${strategy.label} loaded`, strategy);
+    if (strategy && this.debug) console.debug(this.logPrefix + `Strategy #${strategy.id} loaded`, strategy);
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {

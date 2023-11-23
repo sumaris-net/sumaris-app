@@ -15,7 +15,8 @@ import {
   QualityFlagIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
-  UnitIds
+  UnitIds,
+  VesselTypeIds
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
@@ -755,6 +756,32 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString()
+  },
+  VESSEL_TYPE_FISHING_VESSEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.VesselType.FISHING_VESSEL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_TYPE_FISHING_VESSEL_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: VesselTypeIds.FISHING_VESSEL.toString()
+  },
+  VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.VesselType.SCIENTIFIC_RESEARCH_VESSEL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL.toString()
   }
 });
 

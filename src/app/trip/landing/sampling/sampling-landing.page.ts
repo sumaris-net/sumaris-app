@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { firstValueFrom, mergeMap, Observable, of, Subscription } from 'rxjs';
+import { firstValueFrom, merge, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
@@ -27,8 +27,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
-import { Program } from '@app/referential/services/model/program.model';
-import { debounceTime, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
@@ -77,7 +76,12 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
     this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
 
-    this._state.hold(this.onRefreshEffort.pipe(debounceTime(250)), (strategy) => this.checkStrategyEffort(strategy));
+    this._state.hold(this.strategy$.pipe(debounceTime(250)), (strategy) => this.checkStrategyEffort(strategy));
+
+    this._state.connect('strategyLabel', merge(
+      this.landingForm.strategyLabel$,
+      this.landingForm.strategyChanges.pipe(map((s) => s?.label))
+    ).pipe(distinctUntilChanged(), filter(isNotNilOrBlank)));
 
     // Load age parameter ids
     this._state.connect(
@@ -136,33 +140,13 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
 
   /* -- protected functions -- */
 
-  protected async setProgram(program: Program): Promise<void> {
-    return super.setProgram(program);
-  }
-
-  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    return this.landingForm.strategyChanges.pipe(
-      map(strategy => {
-        return <Partial<StrategyFilter>>{
-          programId: program.id,
-          includedIds: isNotNil(strategy?.id) ? [strategy.id] : undefined,
-          label: strategy?.label
-        };
-      })
-    );
-  }
-
-  protected canLoadStrategy(program: Program, strategyFilter?: Partial<StrategyFilter>): boolean {
-    return (
-      super.canLoadStrategy(program, strategyFilter) &&
-      // Check required label
-      isNotNilOrBlank(strategyFilter.label)
-    );
-  }
-
   protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
     if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
-    return this.strategyRefService.loadByFilter(strategyFilter, { failIfMissing: true, debug: this.debug, fullLoad: true });
+    return this.strategyRefService.loadByFilter(strategyFilter, {
+      failIfMissing: true,
+      fullLoad: true, // Need a full load
+      debug: this.debug,
+    });
   }
 
   updateViewState(data: Landing, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

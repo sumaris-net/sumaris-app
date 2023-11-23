@@ -52,13 +52,21 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.LAST'
       },
       {
-        key: DataStrategyResolutions.LOCATION_AND_DATE,
-        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.LOCATION_AND_DATE'
+        key: DataStrategyResolutions.USER_SELECT,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.USER_SELECT'
+      },
+      {
+        key: DataStrategyResolutions.SPATIO_TEMPORAL,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.SPATIO_TEMPORAL'
+      },
+      {
+        key: DataStrategyResolutions.NONE,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.NONE'
       },
     ],
     // TODO
-    defaultValue: DataStrategyResolutions.LAST
-    //defaultValue: DataStrategyResolutions.LOCATION_AND_DATE
+    //defaultValue: DataStrategyResolutions.LAST
+    defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
 
   // Trip

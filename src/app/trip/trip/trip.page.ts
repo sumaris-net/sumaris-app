@@ -20,6 +20,7 @@ import {
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
+  equals,
   fadeInOutAnimation,
   FilesUtils,
   HistoryPageReference,
@@ -48,7 +49,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
-import { combineLatest, from, merge, Observable, Subscription } from 'rxjs';
+import { from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
@@ -62,7 +63,7 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { TripFilter } from '@app/trip/trip/trip.filter';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
@@ -160,9 +161,29 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    this.logPrefix = '[trip-page] ';
 
     // eslint-disable-next-line eqeqeq
     this.devAutoFillData = (this.debug && this.settings.getPageSettings(this.settingsId, 'devAutoFillData') == true) || false;
+  }
+
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    // Listen some field
+    this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter(d => d?.isValid())));
+    this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
+
+    // Update the data context
+    this.registerSubscription(
+      merge(
+        this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === TripPage.TABS.OPERATIONS && this.showOperationTable)),
+        from(this.ready())
+      )
+        .pipe(debounceTime(500), throttleTime(500))
+        .subscribe((_) => this.updateDataContext())
+    );
   }
 
   ngAfterViewInit() {
@@ -223,19 +244,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     }
   }
 
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Update the data context
-    this.registerSubscription(
-      merge(
-        this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === TripPage.TABS.OPERATIONS && this.showOperationTable)),
-        from(this.ready())
-      )
-        .pipe(debounceTime(500), throttleTime(500))
-        .subscribe((_) => this.updateDataContext())
-    );
-  }
 
   ngOnDestroy() {
     super.ngOnDestroy();
@@ -391,23 +399,31 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
 
-    console.debug(this.logPrefix + 'Creating strategy filter, using resolution=' + this.strategyResolution);
+    console.debug(this.logPrefix + 'Using strategy resolution: ' + this.strategyResolution);
 
     switch (this.strategyResolution) {
-      // Check location + date
-      case 'locationAndDate':
-        return combineLatest([this.acquisitionLevel$, this.tripForm.departureDateTimeChanges, this.tripForm.departureLocationChanges])
-          .pipe(map(
-          ([ acquisitionLevel, departureDateTime, departureLocation ]) => {
-            return <Partial<StrategyFilter>>{
-              acquisitionLevel,
-              programId: program.id,
-              startDate: departureDateTime,
-              endDate: departureDateTime,
-              location: departureLocation,
-            };
-          }
-        ));
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state.select(['acquisitionLevel', 'departureDateTime', 'departureLocation'], (_) => _, {
+          acquisitionLevel: equals,
+          departureDateTime: DateUtils.equals,
+          departureLocation: ReferentialUtils.equals
+        })
+          .pipe(
+              map(
+            ({ acquisitionLevel, departureDateTime, departureLocation}) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                startDate: departureDateTime,
+                endDate: departureDateTime,
+                location: departureLocation,
+              };
+            }),
+            // DEBUG
+            tap(values => console.debug(this.logPrefix + 'Strategy filter changed:', values)),
+
+          );
       default:
         return super.watchStrategyFilter(program);
     }
@@ -415,7 +431,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   protected canLoadStrategy(program: Program, strategyFilter: Partial<StrategyFilter>): boolean {
     switch (this.strategyResolution) {
-      case 'locationAndDate':
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
         return super.canLoadStrategy(program, strategyFilter) && ReferentialUtils.isNotEmpty(strategyFilter?.location) && isNotNil(strategyFilter?.startDate);
       default:
         return super.canLoadStrategy(program, strategyFilter);
@@ -504,7 +520,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
     this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
 
-    this._state.set({ strategyDateTime: data.departureDateTime, strategyLocation: data.departureLocation });
+    this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
+
+    console.log('TODO loaded', this.program);
   }
 
   updateViewState(data: Trip, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

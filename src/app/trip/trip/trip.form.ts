@@ -282,10 +282,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
 
     this.registerSubscription(
-      departureLocation$.subscribe(departureLocation => this.departureLocationChanges.next(departureLocation as ReferentialRef))
+      departureLocation$.subscribe(departureLocation => this.departureLocationChanges.next(ReferentialRef.fromObject(departureLocation)))
     );
     this.registerSubscription(
-      departureDateTime$.subscribe(departureDateTime => this.departureDateTimeChanges.next(departureDateTime))
+      departureDateTime$
+        .subscribe(departureDateTime => this.departureDateTimeChanges.next(fromDateISOString(departureDateTime)))
     );
 
     this.registerSubscription(

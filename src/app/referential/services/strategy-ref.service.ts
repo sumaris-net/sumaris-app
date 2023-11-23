@@ -126,6 +126,7 @@ const StrategyRefCacheKeys = {
   LAST_UPDATE_DATE_BY_PROGRAM_ID: 'strategiesByProgramId'
 };
 
+const STRATEGY_NOT_FOUND = Object.freeze(<Strategy>{});
 
 @Injectable({providedIn: 'root'})
 export class StrategyRefService extends BaseReferentialService<
@@ -159,20 +160,24 @@ export class StrategyRefService extends BaseReferentialService<
    */
   watchByFilter(dataFilter?: Partial<StrategyFilter>,
                 opts?: StrategyRefWatchOptions & {failIfMissing?: boolean; failIfMany?: boolean }): Observable<Strategy> {
-    if (!dataFilter) {
-      console.error('[strategy-ref-service] Missing \'filter\'');
+    if (isNil(dataFilter?.programId)) {
+      console.error('[strategy-ref-service] Missing \'filter.programId\'');
       throw {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ERROR'};
     }
 
-    const toEntity = opts?.toEntity !== false ? Strategy.fromObject : (source: any) => source as Strategy;
+    const toEntityOrError = (data: Strategy|string) => {
+      if (typeof data === 'string') throw new Error(data);
+      if (!data) return undefined;
+      return opts?.toEntity !== false ? Strategy.fromObject(data) : data as Strategy;
+    };
 
     // Load from cache
     if (!opts || opts.cache !== false) {
-      const cacheKey = [StrategyRefCacheKeys.STRATEGY_BY_FILTER, dataFilter.programId, JSON.stringify({...opts, cache: undefined, toEntity: undefined, debug: undefined})].join('|');
+      const cacheKey = [StrategyRefCacheKeys.STRATEGY_BY_FILTER, dataFilter.programId, JSON.stringify({...dataFilter, location: dataFilter?.location?.id, ...opts, cache: undefined, toEntity: undefined, debug: undefined})].join('|');
       return this.cache.loadFromObservable<Strategy>(cacheKey,
         defer(() => this.watchByFilter(dataFilter, {...opts, toEntity: false, cache: false, debug: false})),
         StrategyRefCacheKeys.CACHE_GROUP)
-        .pipe(map(toEntity));
+        .pipe(map(toEntityOrError));
     }
 
     // DEBUG
@@ -217,11 +222,11 @@ export class StrategyRefService extends BaseReferentialService<
     return res.pipe(
       filter(isNotNil),
       map(({data, total}) => {
-        if (opts?.failIfMissing && isEmptyArray(data)) throw new Error('PROGRAM.STRATEGY.ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED');
-        if (opts?.failIfMany && isNotNil(total) && total > 1) throw new Error('PROGRAM.STRATEGY.ERROR.STRATEGY_DUPLICATED');
-        return firstArrayValue(data);
+        if (opts?.failIfMissing && isEmptyArray(data)) return 'PROGRAM.STRATEGY.ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED';
+        if (opts?.failIfMany && isNotNil(total) && total > 1) return 'PROGRAM.STRATEGY.ERROR.STRATEGY_DUPLICATED';
+        return firstArrayValue(data) || STRATEGY_NOT_FOUND;
       }),
-      map(toEntity),
+      map(toEntityOrError),
 
       // DEBUG
       tap(_ => {

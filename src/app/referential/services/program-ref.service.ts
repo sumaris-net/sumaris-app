@@ -460,7 +460,7 @@ export class ProgramRefService
 
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, opts && JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
+      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
       // FIXME - BLA - using loadFromDelayedObservable() as a workaround for offline mode+mobile, when cache is empty. Avoid to get an empty result
       return this.cache.loadFromDelayedObservable(cacheKey,
           defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
@@ -514,11 +514,11 @@ export class ProgramRefService
         mergeMap(async (program) => {
           if (program && opts?.withStrategies) {
             const strategy = await this.strategyRefService.loadByFilter({...opts?.strategyFilter, programId: program.id},
-              {toEntity: false, cache: undefined, failIfMissing: true, fullLoad: true});
+              {toEntity: false, cache: undefined, failIfMissing: false, fullLoad: true});
             // /!\ Make sure to clone the strategy, to keep cache object unchanged
             program = {
               ...program,
-              strategies: [strategy]
+              strategies: strategy && [strategy] || []
             };
           }
           return program;
