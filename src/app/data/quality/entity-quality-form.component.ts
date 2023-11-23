@@ -138,16 +138,18 @@ export class EntityQualityFormComponent<
     this._isRootDataQualityService = isRootDataQualityService(this.service);
     this._isSynchroService = isDataSynchroService(this.service);
 
-    // Subscribe to refresh events
+    // Subscribe to update events
+    let updateViewEvents = merge(
+      this.editor.onUpdateView,
+      this.accountService.onLogin,
+      this.network.onNetworkStatusChanges
+    )
+
+    // Add a debounce time
+    if (this._mobile) updateViewEvents = updateViewEvents.pipe(debounceTime(500));
+
     this._subscription.add(
-      merge(
-        this.editor.onUpdateView,
-        this.accountService.onLogin,
-        this.network.onNetworkStatusChanges
-      )
-      // Add a debounce time
-      .pipe(debounceTime(this._mobile ? 500 : 0))
-      .subscribe(() => this.updateView(this.editor.data))
+      updateViewEvents.subscribe(() => this.updateView(this.editor.data))
     );
   }
 
@@ -262,7 +264,8 @@ export class EntityQualityFormComponent<
 
       // Emit event (refresh editor -> will refresh component also)
       if (!opts || opts.emitEvent !== false) {
-        this.updateEditor(data);
+        this.busy = false;
+        await this.updateEditor(data);
       }
       else {
         this.data = data;
@@ -331,7 +334,8 @@ export class EntityQualityFormComponent<
       opts.progression.increment(progressionStep); // Increment progression
 
       // Update the editor (Will refresh the component)
-      this.updateEditor(data, {updateRoute: true});
+      this.busy = false;
+      await this.updateEditor(data, {updateRoute: true});
     }
     catch (error) {
       this.editor.setError(error);
@@ -379,7 +383,10 @@ export class EntityQualityFormComponent<
 
       console.debug('[entity-quality] Mark entity as validated...');
       const data = await this.serviceForRootEntity.validate(this.data);
-      this.updateEditor(data);
+
+      // Update the editor (Will refresh the component)
+      this.busy = false;
+      await this.updateEditor(data);
     }
     catch (error) {
       this.editor.setError(error);
@@ -388,23 +395,23 @@ export class EntityQualityFormComponent<
         error,
         context
       });
-    }
-    finally {
       this.editor.enable();
       this.busy = false;
       this.markForCheck();
+    }
+    finally {
       progressionSubscription?.unsubscribe();
     }
   }
 
   async unvalidate(event: Event) {
     const data = await this.serviceForRootEntity.unvalidate(this.data);
-    this.updateEditor(data);
+    await this.updateEditor(data);
   }
 
   async qualify(event: Event, qualityFlagId: number ) {
     const data = await this.service.qualify(this.data, qualityFlagId);
-    this.updateEditor(data);
+    await this.updateEditor(data);
   }
 
   /* -- protected method -- */
@@ -476,12 +483,12 @@ export class EntityQualityFormComponent<
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 
-  protected updateEditor(data: T, opts?: {
+  protected async updateEditor(data: T, opts?: {
       emitEvent?: boolean;
       openTabIndex?: number;
       updateRoute?: boolean;
     }) {
-    this.editor.updateView(data, opts);
+    return this.editor.updateView(data, opts);
   }
 
   protected markForCheck() {
