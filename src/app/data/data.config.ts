@@ -1,12 +1,12 @@
 import { TypePolicies } from '@apollo/client/core';
-import {FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds} from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   DataReferenceVO: {
-    keyFields: ['entityName', 'id']
-  }
+    keyFields: ['entityName', 'id'],
+  },
 };
 
 export const DATA_IMPORT_PERIODS: readonly { value: number; unit: DurationConstructor }[] = Object.freeze([

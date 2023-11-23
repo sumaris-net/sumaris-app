@@ -26,13 +26,15 @@
   <ng-template #hasSelection>
 
     <!-- delete -->
-    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+    <button mat-icon-button *ngIf="canEdit"
+            [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
 
     <!-- duplicate (if desktop) -->
     <button
       mat-icon-button
+      *ngIf="canEdit"
       [disabled]="invalid"
       [title]="'COMMON.BTN_DUPLICATE' | translate"
       (click)="duplicateSelection($event)"

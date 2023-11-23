@@ -43,7 +43,7 @@ export interface BaseEditorState {
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AppBaseDataEntityEditor<
+export abstract class AppDataEntityEditor<
     T extends DataEntity<T, ID>,
     S extends IEntityService<T, ID, any> = BaseEntityService<T, any, any>,
     ID = number,
@@ -66,13 +66,11 @@ export abstract class AppBaseDataEntityEditor<
   protected remoteStrategySubscription: Subscription;
   protected canSendMessage = false;
 
-
   readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
-  readonly programLabel$ = this._state.select( 'programLabel');
+  readonly programLabel$ = this._state.select('programLabel');
   readonly program$ = this._state.select('program');
-  readonly strategyLabel$ = this._state.select( 'strategyLabel');
+  readonly strategyLabel$ = this._state.select('strategyLabel');
   readonly strategy$ = this._state.select('strategy');
-
 
   get acquisitionLevel(): string {
     return this._state.get('acquisitionLevel');
@@ -110,8 +108,8 @@ export abstract class AppBaseDataEntityEditor<
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
     super(injector, dataType, dataService, {
-      autoOpenNextTab: !(injector.get(LocalSettingsService).mobile),
-      ...options
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
+      ...options,
     });
 
     this.programRefService = injector.get(ProgramRefService);
@@ -129,49 +127,57 @@ export abstract class AppBaseDataEntityEditor<
     super.ngOnInit();
 
     // Watch program, to configure tables from program properties
-    this._state.connect('program',
+    this._state.connect(
+      'program',
       merge(
         this.programLabel$.pipe(distinctUntilChanged()),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
         this._onReloadProgram.pipe(map(() => this.programLabel))
+      ).pipe(
+        filter(isNotNilOrBlank),
+
+        // DEBUG --
+        //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
+
+        switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
+        catchError((err, _) => {
+          this.setError(err);
+          return Promise.resolve(null);
+        })
       )
-        .pipe(
-          filter(isNotNilOrBlank),
-
-          // DEBUG --
-          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
-
-          switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
-          catchError((err, _) => {
-            this.setError(err);
-            return Promise.resolve(null);
-          })
-        )
     );
-    const programLoaded$ = this.program$
-      .pipe(
-        filter(isNotNil),
-        mergeMap((program) => this.setProgram(program)
+    const programLoaded$ = this.program$.pipe(
+      filter(isNotNil),
+      mergeMap((program) =>
+        this.setProgram(program)
           .then(() => program)
-          .catch(err => {
+          .catch((err) => {
             this.setError(err);
-            return undefined
-          }))
-      );
+            return undefined;
+          })
+      )
+    );
 
     // Watch strategy
-    this._state.connect('strategy', programLoaded$.pipe(
-          combineLatestWith(merge(
-            this.strategyLabel$.pipe(distinctUntilChanged()),
+    this._state.connect(
+      'strategy',
+      programLoaded$
+        .pipe(
+          combineLatestWith(
+            merge(
+              this.strategyLabel$.pipe(distinctUntilChanged()),
 
-            // Allow to force reload (e.g. when strategy remotely changes - see startListenStrategyRemoteChanges() )
-            this._onStrategyReload.pipe(map(() => this.strategyLabel))))
+              // Allow to force reload (e.g. when strategy remotely changes - see startListenStrategyRemoteChanges() )
+              this._onStrategyReload.pipe(map(() => this.strategyLabel))
+            )
+          )
         )
         .pipe(
           // DEBUG --
           //tap(([_, strategyLabel]) => console.debug('DEV - Getting programLabel=' + strategyLabel)),
 
-          mergeMap(([program, strategyLabel]) => isNotNil(program) && isNotNilOrBlank(strategyLabel)
+          mergeMap(([program, strategyLabel]) =>
+            isNotNil(program) && isNotNilOrBlank(strategyLabel)
               ? this.strategyRefService.loadByLabel(strategyLabel, { programId: program.id })
               : Promise.resolve(undefined)
           ),
@@ -183,11 +189,11 @@ export abstract class AppBaseDataEntityEditor<
         )
     );
 
-    this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
+    this._state.hold(this.strategy$, (strategy) => this.setStrategy(strategy));
 
     if (!this.mobile) {
       // Listen config
-      this._state.hold(this.configService.config, config => this.onConfigLoaded(config));
+      this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
     }
   }
 
@@ -226,17 +232,27 @@ export abstract class AppBaseDataEntityEditor<
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
-    if (typeof error !== 'string' && error?.details?.errors) {
-      // Create a details message, from errors in forms (e.g. returned by control())
-      const formErrors = error.details.errors;
-      if (formErrors) {
-        const i18FormError = this.errorTranslator.translateErrors(formErrors, {
-          separator: ', ',
-          controlPathTranslator: this,
-        });
-        if (isNotNilOrBlank(i18FormError)) {
-          error.details.message = i18FormError;
+    if (error && typeof error !== 'string') {
+
+      // Convert form errors
+      if (error.details?.errors) {
+        // Create a details message, from errors in forms (e.g. returned by control())
+        const formErrors = error.details.errors;
+        if (formErrors) {
+          const i18FormError = this.errorTranslator.translateErrors(formErrors, {
+            separator: ', ',
+            controlPathTranslator: this,
+          });
+          if (isNotNilOrBlank(i18FormError)) {
+            error.details.message = i18FormError;
+          }
         }
+      }
+
+      // Keep details message, if main message is the default message
+      if (error.message === 'COMMON.FORM.HAS_ERROR' && isNotNilOrBlank(error.details?.message)) {
+        error.message = error.details.message;
+        delete error.details;
       }
     }
 
@@ -356,22 +372,21 @@ export abstract class AppBaseDataEntityEditor<
     }
   }
 
-  protected async openComposeMessageModal(recipient?: Person, opts?: {title?: string }) {
+  protected async openComposeMessageModal(recipient?: Person, opts?: { title?: string }) {
     if (!this.canSendMessage) return; // Skip if disabled
 
     console.debug('[base-data-editor] Writing a message to:', recipient);
     const title = noHtml(opts?.title || this.titleSubject.value)?.toLowerCase();
     const url = this.router.url;
-    const body = this.translate.instant('DATA.MESSAGE_BODY', {title, url})
+    const body = this.translate.instant('DATA.MESSAGE_BODY', { title, url });
 
     await this.messageService.openComposeModal({
       suggestFn: (value, filter) => this.personService.suggest(value, filter),
       data: <Message>{
         subject: title,
         recipients: recipient ? [recipient] : [],
-        body
-      }
-    })
+        body,
+      },
+    });
   }
-
 }

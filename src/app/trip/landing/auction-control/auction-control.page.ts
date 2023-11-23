@@ -33,7 +33,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { TaxonGroupLabels, TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
 
@@ -42,7 +42,7 @@ import { AppColors } from '@app/shared/colors.utils';
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_ENTITY_EDITOR, useExisting: AuctionControlPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlPage extends LandingPage implements OnInit, AfterViewInit {

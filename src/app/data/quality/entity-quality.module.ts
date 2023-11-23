@@ -6,36 +6,34 @@ import { AppSharedProgressionModule } from '@app/shared/progression/progression.
 import { QualityFlagToColorPipe } from '@app/data/quality/quality-flag-to-color.pipe';
 import { QualityFlagToIconPipe } from '@app/data/quality/quality-flag-to-icon.pipe';
 import { QualityFlagInvalidPipe } from '@app/data/quality/quality-flag-invalid.pipe';
-import {QualityFlagValidPipePipe} from '@app/data/quality/quality-flag-not-invalid.pipe';
+import { QualityFlagValidPipePipe } from '@app/data/quality/quality-flag-not-invalid.pipe';
+import { QualityFlagToI18nPipe } from '@app/data/quality/quality-flag-to-i18n.pipe';
 
 @NgModule({
-  imports: [
-    AppSharedModule,
-    AppSharedProgressionModule
-  ],
+  imports: [AppSharedModule, AppSharedProgressionModule],
   declarations: [
     // Pipes
     QualityFlagToColorPipe,
     QualityFlagToIconPipe,
+    QualityFlagToI18nPipe,
     QualityFlagInvalidPipe,
     QualityFlagValidPipePipe,
 
     // Components
     EntityQualityFormComponent,
-    EntityQualityIconComponent
+    EntityQualityIconComponent,
   ],
   exports: [
     // Pipes
     QualityFlagToColorPipe,
     QualityFlagToIconPipe,
+    QualityFlagToI18nPipe,
     QualityFlagInvalidPipe,
     QualityFlagValidPipePipe,
 
     // Components
     EntityQualityFormComponent,
-    EntityQualityIconComponent
-  ]
+    EntityQualityIconComponent,
+  ],
 })
-export class AppEntityQualityModule {
-
-}
+export class AppEntityQualityModule {}

@@ -159,7 +159,9 @@
                 </ion-button>
 
                 <!-- quality process -->
-                <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
+                <app-entity-quality-form *ngIf="showQualityForm"
+                  [program]="program$|async">
+                </app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
           </ion-row>

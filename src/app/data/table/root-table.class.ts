@@ -35,6 +35,7 @@ import { BaseValidatorService } from '@app/shared/service/base.validator.service
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -46,7 +47,7 @@ export interface IRootDataEntitiesService<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number
-  > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID> {
+  > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID>, IDataEntityQualityService<T, ID> {
 
   featureName: string;
 }
@@ -99,6 +100,19 @@ export abstract class AppRootDataTable<
 
   get isLogin(): boolean {
     return this.accountService.isLogin();
+  }
+
+  get canDeleteSelection(): boolean {
+    // Cannot delete if not connected
+    if (!this.isLogin || this.selection.isEmpty()) {
+      return false;
+    }
+
+    // Find a row that user CANNOT delete
+    const invalidRow = this.selection.selected
+      .find(row => !this._dataService.canUserWrite(row.currentData));
+
+    return !invalidRow;
   }
 
   @Input() showUpdateOfflineFeature = true;

@@ -46,7 +46,7 @@ import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
 import { TripContextService } from '@app/trip/trip-context.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
@@ -60,7 +60,7 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { AppBaseDataEntityEditor, BaseEditorState } from '@app/data/form/base-data-editor.class';
+import { AppDataEntityEditor, BaseEditorState } from '@app/data/form/data-editor.class';
 
 export interface OperationState extends BaseEditorState {
   hasIndividualMeasures?: boolean;
@@ -76,17 +76,13 @@ export interface OperationState extends BaseEditorState {
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [
-    { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
-    { provide: ContextService, useExisting: TripContextService},
-    RxState
-  ],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: OperationPage }, { provide: ContextService, useExisting: TripContextService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationPage<S extends OperationState = OperationState>
-  extends AppBaseDataEntityEditor<Operation, OperationService, number, S>
-  implements IDataEntityQualityService<Operation>, AfterViewInit, OnInit, OnDestroy {
-
+  extends AppDataEntityEditor<Operation, OperationService, number, S>
+  implements IDataEntityQualityService<Operation>, AfterViewInit, OnInit, OnDestroy
+{
   protected static TABS = {
     GENERAL: 0,
     CATCH: 1,
@@ -137,7 +133,6 @@ export class OperationPage<S extends OperationState = OperationState>
   helpUrl: string;
   _defaultIsParentOperation = true;
   readonly forceOptionalExcludedPmfmIds: number[];
-
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -199,16 +194,12 @@ export class OperationPage<S extends OperationState = OperationState>
     this._state.set('lastEndDate', () => value);
   }
 
-  constructor(
-    injector: Injector,
-    dataService: OperationService,
-    @Optional() options?: AppEditorOptions
-  ) {
+  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppEditorOptions) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
       i18nPrefix: 'TRIP.OPERATION.EDIT.',
-      ...options
+      ...options,
     });
 
     this.tripService = injector.get(TripService);
@@ -235,19 +226,22 @@ export class OperationPage<S extends OperationState = OperationState>
     // Add shortcut
     if (!this.mobile) {
       this.registerSubscription(
-        this.hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
-          .subscribe((event) => this.openHelpModal(event)),
+        this.hotkeys
+          .addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+          .subscribe((event) => this.openHelpModal(event))
       );
       this.registerSubscription(
-        this.hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
-          .pipe(filter(_ => !this.disabled && this.showFabButton))
-          .subscribe((event) => this.onNewFabButtonClick(event)),
+        this.hotkeys
+          .addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
+          .pipe(filter((_) => !this.disabled && this.showFabButton))
+          .subscribe((event) => this.onNewFabButtonClick(event))
       );
     }
 
     // Watch program, to configure tables from program properties
-    this._state.connect('program', this._state.select('programLabel')
-      .pipe(
+    this._state.connect(
+      'program',
+      this._state.select('programLabel').pipe(
         filter(isNotNilOrBlank),
         switchMap((programLabel: string) => {
           // Try to load by context
@@ -256,13 +250,13 @@ export class OperationPage<S extends OperationState = OperationState>
             return of(contextualProgram);
           }
           // Load by service
-          return this.programRefService.watchByLabel(programLabel, {debug: this.debug});
+          return this.programRefService.watchByLabel(programLabel, { debug: this.debug });
         })
       )
     );
 
     // Apply program
-    this._state.hold(this._state.select('program'), program => {
+    this._state.hold(this._state.select('program'), (program) => {
       // Update the context (to avoid a reload, when opening the another operation)
       if (this.context && this.context.program !== program) {
         this.context.setValue('program', program);
@@ -272,13 +266,14 @@ export class OperationPage<S extends OperationState = OperationState>
     });
 
     // Watch trip
-    this._state.connect('lastOperations', this._state.select('tripId')
-      .pipe(
+    this._state.connect(
+      'lastOperations',
+      this._state.select('tripId').pipe(
         // Only if tripId changes
-        filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
+        filter((tripId) => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
 
         // Update default back Href
-        tap(tripId => {
+        tap((tripId) => {
           this._lastOperationsTripId = tripId; // Remember new trip id
           // Update back href
           const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
@@ -293,17 +288,23 @@ export class OperationPage<S extends OperationState = OperationState>
 
         filter(isNotNil),
         //debounceTime(500),
-        switchMap(tripId => this.dataService.watchAll(
-          0, 5,
-          'startDateTime', 'desc',
-          {tripId}, {
-            withBatchTree: false,
-            withSamples: false,
-            computeRankOrder: false,
-            withTotal: true,
-            fetchPolicy: 'cache-and-network'
-          })),
-        map(res => res && res.data || [])
+        switchMap((tripId) =>
+          this.dataService.watchAll(
+            0,
+            5,
+            'startDateTime',
+            'desc',
+            { tripId },
+            {
+              withBatchTree: false,
+              withSamples: false,
+              computeRankOrder: false,
+              withTotal: true,
+              fetchPolicy: 'cache-and-network',
+            }
+          )
+        ),
+        map((res) => (res && res.data) || [])
       )
     );
 
@@ -318,18 +319,19 @@ export class OperationPage<S extends OperationState = OperationState>
     console.debug('[menu] Screen size (px): ' + this._screenWidth);
   }*/
 
-  async saveAndControl(event?: Event, opts?: {emitEvent?: false}) {
+  async saveAndControl(event?: Event, opts?: { emitEvent?: false }) {
     if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.mobile || this.isOnFieldMode) && this.dirty && this.valid
-      // If on field mode AND valid: save silently
-      ? await this.save(event, {openTabIndex: -1})
-      // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
+    const saved =
+      (this.mobile || this.isOnFieldMode) && this.dirty && this.valid
+        ? // If on field mode AND valid: save silently
+          await this.save(event, { openTabIndex: -1 })
+        : // Else If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, { openTabIndex: -1 });
     if (!saved) return; // not saved
 
     // Control (using a clone)
@@ -344,7 +346,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Load data with error (e.g. quality flags)
       await this.updateView(data, opts);
 
-      errors.message = errors.message || 'QUALITY.ERROR.INVALID_FORM';
+      errors.message = errors.message || 'COMMON.FORM.HAS_ERROR';
 
       this.setError(errors, opts);
       this.markAllAsTouched(opts);
@@ -358,27 +360,27 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
-
     const errors = await this.service.control(data, {
       ...opts,
-      trip: this.trip
+      trip: this.trip,
     });
 
     if (errors) {
-      const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, {stop: this.destroySubject});
+      const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, { stop: this.destroySubject });
       const errorMessage = this.errorTranslator.translateErrors(errors, {
         controlPathTranslator: {
-          translateControlPath: (path) => this.service.translateControlPath(path, {
-            i18nPrefix: this.i18nContext.prefix,
-            pmfms
-          })
-        }
+          translateControlPath: (path) =>
+            this.service.translateControlPath(path, {
+              i18nPrefix: this.i18nContext.prefix,
+              pmfms,
+            }),
+        },
       });
       return {
         details: {
           errors,
-          message: errorMessage
-        }
+          message: errorMessage,
+        },
       };
     }
 
@@ -390,12 +392,19 @@ export class OperationPage<S extends OperationState = OperationState>
     return; // No errors
   }
 
+  translateControlPath(controlPath: string): string {
+    return this.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms});
+  }
+
   canUserWrite(data: Operation, opts?: any): boolean {
-    return isNil(this.trip?.validationDate) && this.dataService.canUserWrite(data, {
-      ...opts,
-      trip: this.trip,
-      program: this.program
-    });
+    return (
+      isNil(this.trip?.validationDate) &&
+      this.dataService.canUserWrite(data, {
+        ...opts,
+        trip: this.trip,
+        program: this.program,
+      })
+    );
   }
 
   qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
@@ -411,9 +420,9 @@ export class OperationPage<S extends OperationState = OperationState>
       component: AppHelpModal,
       componentProps: <AppHelpModalOptions>{
         title: this.translate.instant('COMMON.HELP.TITLE'),
-        markdownUrl: this.helpUrl
+        markdownUrl: this.helpUrl,
       },
-      backdropDismiss: true
+      backdropDismiss: true,
     });
     return modal.present();
   }
@@ -423,33 +432,29 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Update the data context
     this.registerSubscription(
-      merge(
-        this.selectedTabIndexChange
-          .pipe(
-            filter(tabIndex => tabIndex === OperationPage.TABS.CATCH && this.showBatchTables)
-          ),
-        from(this.ready())
-      )
-        .pipe(
-          debounceTime(500),
-          throttleTime(500)
-        )
-        .subscribe(_ => this.updateDataContext())
+      merge(this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === OperationPage.TABS.CATCH && this.showBatchTables)), from(this.ready()))
+        .pipe(debounceTime(500), throttleTime(500))
+        .subscribe((_) => this.updateDataContext())
     );
 
     // Get physical gear by form
-    this._state.connect('physicalGear', this.opeForm.physicalGearControl.valueChanges
-      .pipe(
+    this._state.connect(
+      'physicalGear',
+      this.opeForm.physicalGearControl.valueChanges.pipe(
         // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
         filter((_) => !this.loading)
       )
     );
 
-    this._state.connect('gearId', this.physicalGear$,
-      (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
+    this._state.connect('gearId', this.physicalGear$, (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
 
-    this._state.hold(this.gearId$
-      .pipe(filter(gearId => isNotNil(gearId) && this.loaded), debounceTime(450)), () => this.markForCheck());
+    this._state.hold(
+      this.gearId$.pipe(
+        filter((gearId) => isNotNil(gearId) && this.loaded),
+        debounceTime(450)
+      ),
+      () => this.markForCheck()
+    );
   }
 
   ngAfterViewInit() {
@@ -460,10 +465,10 @@ export class OperationPage<S extends OperationState = OperationState>
         this.measurementsForm.pmfms$
           .pipe(
             filter(isNotNil),
-            mergeMap(_ => this.measurementsForm.ready$),
-            filter(ready => ready === true)
+            mergeMap((_) => this.measurementsForm.ready$),
+            filter((ready) => ready === true)
           )
-          .subscribe(_ => this.onMeasurementsFormReady())
+          .subscribe((_) => this.onMeasurementsFormReady())
       );
     }
 
@@ -482,7 +487,6 @@ export class OperationPage<S extends OperationState = OperationState>
    * Configure specific behavior
    */
   protected async onMeasurementsFormReady() {
-
     // Wait program to be loaded
     //await this.ready();
 
@@ -507,11 +511,10 @@ export class OperationPage<S extends OperationState = OperationState>
             debounceTime(400),
             startWith<any, any>(samplingTypeControl.value),
             filter(ReferentialUtils.isNotEmpty),
-            map(qv => qv.label),
+            map((qv) => qv.label),
             distinctUntilChanged()
           )
           .subscribe((qvLabel) => {
-
             switch (qvLabel as string) {
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
                 if (this.debug) console.debug('[operation] Enable samples tables');
@@ -532,7 +535,7 @@ export class OperationPage<S extends OperationState = OperationState>
             this.showBatchTables = this.showBatchTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.showSamplesTab = this.showSampleTablesByProgram;
-            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
+            this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
 
             // Force first sub tab index, if modification was done from the form
             // This condition avoid to change subtab, when reloading the page
@@ -552,21 +555,15 @@ export class OperationPage<S extends OperationState = OperationState>
       hasAccidentalCatchesControl.setValidators(Validators.required);
       this._measurementSubscription.add(
         hasAccidentalCatchesControl.valueChanges
-          .pipe(
-            debounceTime(400),
-            startWith<any, any>(hasAccidentalCatchesControl.value),
-            filter(isNotNil),
-            distinctUntilChanged()
-          )
-          .subscribe(hasAccidentalCatches => {
-
+          .pipe(debounceTime(400), startWith<any, any>(hasAccidentalCatchesControl.value), filter(isNotNil), distinctUntilChanged())
+          .subscribe((hasAccidentalCatches) => {
             if (this.debug) console.debug('[operation] Enable/Disable samples table, because HAS_ACCIDENTAL_CATCHES=' + hasAccidentalCatches);
 
             // Enable samples, when has accidental catches
             this.showSampleTablesByProgram = hasAccidentalCatches;
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
-            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
+            this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
 
             // Force first tab index
             if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
@@ -584,7 +581,7 @@ export class OperationPage<S extends OperationState = OperationState>
         this.opeForm.parentChanges
           .pipe(
             startWith<Operation>(this.opeForm.parentControl.value as Operation),
-            map(parent => !!parent), // Convert to boolean
+            map((parent) => !!parent), // Convert to boolean
             distinctUntilChanged()
           )
           .subscribe(async (hasParent) => {
@@ -594,7 +591,7 @@ export class OperationPage<S extends OperationState = OperationState>
               this.showBatchTables = this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
               this.showSamplesTab = this.showSampleTablesByProgram;
-              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
+              this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
@@ -628,14 +625,11 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotNil(hasIndividualMeasuresControl) && this.batchTree) {
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
-          .pipe(
-            startWith<any, any>(hasIndividualMeasuresControl.value),
-            filter(isNotNil)
-          )
-          .subscribe(value => this._state.set('hasIndividualMeasures', (_) => value))
+          .pipe(startWith<any, any>(hasIndividualMeasuresControl.value), filter(isNotNil))
+          .subscribe((value) => this._state.set('hasIndividualMeasures', (_) => value))
       );
       this._measurementSubscription.add(
-        this.hasIndividualMeasures$.subscribe(value => {
+        this.hasIndividualMeasures$.subscribe((value) => {
           // Will be done by the template
           this.batchTree.allowSpeciesSampling = value;
           this.batchTree.defaultHasSubBatches = value;
@@ -650,8 +644,7 @@ export class OperationPage<S extends OperationState = OperationState>
           this.updateTablesState();
         })
       );
-    }
-    else {
+    } else {
       this._state.set('hasIndividualMeasures', (_) => true);
     }
 
@@ -661,7 +654,7 @@ export class OperationPage<S extends OperationState = OperationState>
       this.showBatchTables = this.showBatchTablesByProgram;
       this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
       this.showSamplesTab = this.showSampleTablesByProgram;
-      this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
+      this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
       this.updateTablesState();
       this.markForCheck();
 
@@ -676,26 +669,13 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotNil(tripProgressControl)) {
       this._measurementSubscription.add(
         tripProgressControl.valueChanges
-          .pipe(
-            debounceTime(400),
-            startWith<any, any>(tripProgressControl.value),
-            filter(isNotNilOrBlank),
-            distinctUntilChanged()
-          )
-          .subscribe(normalProgress => {
+          .pipe(debounceTime(400), startWith<any, any>(tripProgressControl.value), filter(isNotNilOrBlank), distinctUntilChanged())
+          .subscribe((normalProgress) => {
             if (!normalProgress) console.debug('[operation] abnormal progress: force comment as required');
             this.opeForm.requiredComment = !normalProgress;
             this.markForCheck();
           })
       );
-    }
-
-
-    // If has errors from context, applies it on form.
-    const error = isNil(this.data?.controlDate) && this.data?.qualificationComments;
-    if (error) {
-      console.info('[operation-page] Operation errors: ', error);
-     // this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
     }
   }
 
@@ -746,9 +726,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (this.debug && this.operationPasteFlags !== 0) {
       console.debug(`[operation-page] Enable duplication with paste flags: ${flagsToString(this.operationPasteFlags, OperationPasteFlags)}`);
     }
-    this.helpUrl = program.getProperty(ProgramProperties.TRIP_OPERATION_HELP_URL)
-      || program.getProperty(ProgramProperties.TRIP_HELP_URL);
-
+    this.helpUrl = program.getProperty(ProgramProperties.TRIP_OPERATION_HELP_URL) || program.getProperty(ProgramProperties.TRIP_HELP_URL);
 
     this.measurementsForm.i18nSuffix = i18nSuffix;
     this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
@@ -756,7 +734,8 @@ export class OperationPage<S extends OperationState = OperationState>
     this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
-    this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+    this.saveOptions.computeBatchIndividualCount =
+      !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
     this.saveOptions.computeBatchWeight = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
 
     // NOT need here, while 'updateLinkedOperation' is forced in save()
@@ -782,14 +761,16 @@ export class OperationPage<S extends OperationState = OperationState>
     this.markAsReady();
   }
 
-  load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }): Promise<void> {
-    return super.load(id, {...opts, withLinkedOperation: true});
+  load(
+    id?: number,
+    opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }
+  ): Promise<void> {
+    return super.load(id, { ...opts, withLinkedOperation: true });
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
-      isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
-    if (isNil(tripId)) throw new Error('Missing argument \'options.tripId\'!');
+    const tripId = options && isNotNil(options.tripId) ? +options.tripId : isNotNil(this.trip && this.trip.id) ? this.trip.id : data && data.tripId;
+    if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
     data.tripId = tripId;
 
     // Load parent trip
@@ -807,19 +788,17 @@ export class OperationPage<S extends OperationState = OperationState>
     // Paste clipboard, if not already a duplicated operation
     const clipboard = this.context?.clipboard;
     if (OperationUtils.isOperation(clipboard?.data)) {
-
       // Do NOT copy dates, when in the on field mode (will be filled later)
       if (this.isOnFieldMode) {
         data.paste(clipboard?.data, removeFlag(this.operationPasteFlags, OperationPasteFlags.DATE));
-      }
-      else {
+      } else {
         data.paste(clipboard?.data, this.operationPasteFlags);
       }
 
       // Reset clipboard
       this.context?.setValue('clipboard', {
         data: null, // Reset data
-        pasteFlags: this.operationPasteFlags // Keep flags
+        pasteFlags: this.operationPasteFlags, // Keep flags
       });
 
       this.isDuplicatedData = true;
@@ -831,17 +810,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
       if (!this.isDuplicatedData) {
         // Wait last operations to be loaded
-        const previousOperations = await firstNotNilPromise(this.lastOperations$, {stop: this.destroySubject});
+        const previousOperations = await firstNotNilPromise(this.lastOperations$, { stop: this.destroySubject });
 
         // Copy from previous operation only if is not a duplicated operation
-        const previousOperation = (previousOperations || [])
-          .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
+        const previousOperation = (previousOperations || []).find((ope) => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
         if (previousOperation) {
-          data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
+          data.physicalGear = (trip.gears || []).find((g) => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
           data.metier = previousOperation.metier;
           data.rankOrder = previousOperation.rankOrder + 1;
-        }
-        else {
+        } else {
           data.rankOrder = 1;
         }
       }
@@ -857,15 +834,14 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
-    const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
-      isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
-    if (isNil(tripId)) throw new Error('Missing argument \'options.tripId\'!');
+    const tripId = options && isNotNil(options.tripId) ? +options.tripId : isNotNil(this.trip && this.trip.id) ? this.trip.id : data && data.tripId;
+    if (isNil(tripId)) throw new Error("Missing argument 'options.tripId'!");
     data.tripId = tripId;
 
     const trip = await this.loadTrip(tripId);
 
     // Replace physical gear by the real entity
-    data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
+    data.physicalGear = (trip.gears || []).find((g) => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
 
@@ -899,15 +875,23 @@ export class OperationPage<S extends OperationState = OperationState>
    * @param data
    * @param opts
    */
-  protected async computeTitle(data: Operation, opts?: {
-    withPrefix?: boolean;
-  }): Promise<string> {
-
+  protected async computeTitle(
+    data: Operation,
+    opts?: {
+      withPrefix?: boolean;
+    }
+  ): Promise<string> {
     // Trip exists
-    const titlePrefix = (!opts || opts.withPrefix !== false) && this.trip && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
-      vessel: this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name) || '',
-      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || ''
-    }).toPromise()) || '';
+    const titlePrefix =
+      ((!opts || opts.withPrefix !== false) &&
+        this.trip &&
+        (await this.translate
+          .get('TRIP.OPERATION.TITLE_PREFIX', {
+            vessel: (this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name)) || '',
+            departureDateTime: (this.trip && this.trip.departureDateTime && (this.dateFormat.transform(this.trip.departureDateTime) as string)) || '',
+          })
+          .toPromise())) ||
+      '';
 
     // new ope
     if (!data || isNil(data.id)) {
@@ -922,10 +906,11 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Format date:
     // - if mobile: display time only if today
-    const startDateTime = titleDateTime && (
-        this.mobile && DateUtils.moment().isSame(titleDateTime, 'day')
-          ? this.dateFormat.transform(titleDateTime, {pattern: 'HH:mm'})
-          : this.dateFormat.transform(titleDateTime, {time: true})) as string;
+    const startDateTime =
+      titleDateTime &&
+      ((this.mobile && DateUtils.moment().isSame(titleDateTime, 'day')
+        ? this.dateFormat.transform(titleDateTime, { pattern: 'HH:mm' })
+        : this.dateFormat.transform(titleDateTime, { time: true })) as string);
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
     let rankOrder = !this.mobile && this.context?.operation?.rankOrder;
@@ -934,28 +919,27 @@ export class OperationPage<S extends OperationState = OperationState>
       const now = this.debug && Date.now();
       if (this.debug) console.debug('[operation-page] Computing rankOrder...');
       rankOrder = await this.service.computeRankOrder(data, { fetchPolicy: 'cache-first' });
-      if (this.debug) console.debug(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
+      if (this.debug) console.debug(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now() - now}ms`);
 
       // Update data, and form
       data.rankOrder = rankOrder;
-      this.opeForm?.form.patchValue({rankOrder}, {emitEvent: false});
+      this.opeForm?.form.patchValue({ rankOrder }, { emitEvent: false });
     }
     if (rankOrder) {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {startDateTime,rankOrder}).toPromise()) as string;
+      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', { startDateTime, rankOrder }).toPromise())) as string;
     }
     // No rankOrder (e.g. if mobile)
     else {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {startDateTime}).toPromise()) as string;
+      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', { startDateTime }).toPromise())) as string;
     }
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
-
     if (this.mobile) return; // Skip if mobile
 
     return {
       ...(await super.computePageHistory(title)),
-      icon: 'navigate'
+      icon: 'navigate',
     };
   }
 
@@ -988,11 +972,12 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
-      // If on field mode: try to save silently
-      ? await this.save(event, {openTabIndex: -1})
-      // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode: try to save silently
+          await this.save(event, { openTabIndex: -1 })
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, { openTabIndex: -1 });
 
     if (!saved) return; // Skip
 
@@ -1006,17 +991,17 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
-      // If on field mode AND valid: save silently
-      ? await this.save(event, {openTabIndex: -1})
-      // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode AND valid: save silently
+          await this.save(event, { openTabIndex: -1 })
+        : // Else If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, { openTabIndex: -1 });
     if (!saved) return; // not saved
 
     // Redirect to /new
     return await this.navigateTo('new');
   }
-
 
   async duplicate(event: Event): Promise<any> {
     if (event?.defaultPrevented || !this.context) return; // Skip
@@ -1025,18 +1010,19 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = ((this.mobile || this.isOnFieldMode) && this.dirty && this.valid)
-      // If on field mode AND valid: save silently
-      ? await this.save(event, {openTabIndex: -1})
-      // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
+    const saved =
+      (this.mobile || this.isOnFieldMode) && this.dirty && this.valid
+        ? // If on field mode AND valid: save silently
+          await this.save(event, { openTabIndex: -1 })
+        : // Else If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, { openTabIndex: -1 });
 
     if (!saved) return; // User cancelled, or cannot saved => skip
 
     // Fill context's clipboard
     this.context.setValue('clipboard', {
       data: this.data,
-      pasteFlags: this.operationPasteFlags
+      pasteFlags: this.operationPasteFlags,
     });
 
     // Open new operation
@@ -1046,9 +1032,7 @@ export class OperationPage<S extends OperationState = OperationState>
   async setValue(data: Operation) {
     try {
       const isNewData = isNil(data?.id);
-      const jobs: Promise<any>[] = [
-          this.opeForm.setValue(data)
-      ];
+      const jobs: Promise<any>[] = [this.opeForm.setValue(data)];
 
       // Get gear, from the physical gear
       const gearId = toNumber(data?.physicalGear?.gear?.id, null);
@@ -1067,18 +1051,18 @@ export class OperationPage<S extends OperationState = OperationState>
         this.acquisitionLevel = acquisitionLevel;
       }
 
-      jobs.push(this.measurementsForm.setValue(data && data.measurements || []));
+      jobs.push(this.measurementsForm.setValue((data && data.measurements) || []));
 
       // Set batch tree
       if (this.batchTree) {
         //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
         this.batchTree.gearId = gearId;
-        jobs.push(this.batchTree.setValue(data && data.catchBatch || null));
+        jobs.push(this.batchTree.setValue((data && data.catchBatch) || null));
       }
 
       // Set sample tree
-      if (this.sampleTree) jobs.push(this.sampleTree.setValue(data && data.samples || []));
+      if (this.sampleTree) jobs.push(this.sampleTree.setValue((data && data.samples) || []));
 
       await Promise.all(jobs);
 
@@ -1086,11 +1070,9 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // If new data, auto fill the table
       if (isNewData) {
-        if (this.autoFillDatesFromTrip && !this.isDuplicatedData)
-          this.opeForm.fillWithTripDates();
+        if (this.autoFillDatesFromTrip && !this.isDuplicatedData) this.opeForm.fillWithTripDates();
       }
-    }
-    catch (err) {
+    } catch (err) {
       const error = err?.message || err;
       console.debug('[operation] Error during setValue(): ' + error, err);
       this.setError(error);
@@ -1098,7 +1080,6 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   cancel(event): Promise<void> {
-
     // Avoid to reload/unload if page destroyed
     timer(500)
       .pipe(takeUntil(this.destroySubject))
@@ -1127,17 +1108,17 @@ export class OperationPage<S extends OperationState = OperationState>
         this.markAllAsTouched();
         this.form.updateValueAndValidity();
 
-        const error: AppErrorWithDetails = {details: {message: errorMessage}};
+        const error: AppErrorWithDetails = { details: { message: errorMessage } };
         if (isNil(data.catchBatch?.controlDate) && data.catchBatch?.qualificationComments) {
-          error.details.errors = {catch: {invalidOrIncomplete: true}};
+          error.details.errors = { catch: { invalidOrIncomplete: true } };
         }
 
-        this.setError({message: 'COMMON.FORM.HAS_ERROR', ...error}, {detailsCssClass: 'error-details'});
+        this.setError({ message: 'COMMON.FORM.HAS_ERROR', ...error }, { detailsCssClass: 'error-details' });
       });
     }
   }
 
-  async save(event, opts?: OperationSaveOptions & {emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number}): Promise<boolean> {
+  async save(event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
     if (this.loading || this.saving) {
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
@@ -1151,7 +1132,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (this.mobile) await sleep(50);
 
     // Save new gear to the trip
-    const physicalGear = await this.getOrAddPhysicalGear({emitEvent: false});
+    const physicalGear = await this.getOrAddPhysicalGear({ emitEvent: false });
     if (!physicalGear) {
       this.markForCheck();
       return false; // Stop if failed
@@ -1161,7 +1142,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
-      ...opts
+      ...opts,
     });
 
     // Continue to mark as saving, to avoid option menu to open
@@ -1177,16 +1158,13 @@ export class OperationPage<S extends OperationState = OperationState>
         if (this.opeForm.invalid) {
           error = this.opeForm.formError;
         }
-        if (this.measurementsForm.invalid){
+        if (this.measurementsForm.invalid) {
           error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
         }
 
         this.setError(error);
         this.scrollToTop();
-      }
-
-      else {
-
+      } else {
         // Workaround, to make sure the editor is not dirty anymore
         // => mark components as pristine
         if (this.dirty) {
@@ -1205,17 +1183,16 @@ export class OperationPage<S extends OperationState = OperationState>
       }
 
       return saved;
-    }
-    finally {
+    } finally {
       this.markAsSaved();
     }
   }
 
   async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent?: boolean; openTabIndex?: number }): Promise<boolean> {
-    return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
+    return super.saveIfDirtyAndConfirm(event, { ...this.saveOptions, ...opts });
   }
 
-  async getOrAddPhysicalGear(opts?: {emitEvent: boolean}): Promise<boolean> {
+  async getOrAddPhysicalGear(opts?: { emitEvent: boolean }): Promise<boolean> {
     if (this.loading || this.saving) return false;
     if (!this.dirty) return true; // Skip
 
@@ -1232,10 +1209,10 @@ export class OperationPage<S extends OperationState = OperationState>
       const savedPhysicalGear = await this.tripService.getOrAddGear(this.trip.id, physicalGear);
 
       // Update form with the new gear
-      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, {emitEvent: false});
+      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, { emitEvent: false });
 
       // Update the current trip object
-      if (!this.trip.gears?.some(g => PhysicalGear.equals(g, savedPhysicalGear))) {
+      if (!this.trip.gears?.some((g) => PhysicalGear.equals(g, savedPhysicalGear))) {
         this.trip.gears.push(savedPhysicalGear);
       }
 
@@ -1256,16 +1233,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
-    this.children?.forEach(c => c.markAsLoaded(opts));
+    this.children?.forEach((c) => c.markAsLoaded(opts));
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string}) {
-
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     // If errors in operations
     if (typeof error === 'object' && error?.details?.errors?.catch) {
       // Show error in batch tree
       this.batchTree.setError('ERROR.INVALID_OR_INCOMPLETE_FILL', {
-         //showOnlyInvalidRows: true
+        //showOnlyInvalidRows: true
       });
 
       // Open the operation tab
@@ -1274,7 +1250,6 @@ export class OperationPage<S extends OperationState = OperationState>
       // Reset other errors
       super.setError(undefined, opts);
     } else {
-
       super.setError(error, opts);
 
       // Reset batch tree error
@@ -1283,7 +1258,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   // change visibility to public
-  resetError(opts?:  {emitEvent?: boolean}) {
+  resetError(opts?: { emitEvent?: boolean }) {
     this.setError(undefined, opts);
   }
 
@@ -1294,7 +1269,6 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   protected async loadTrip(tripId: number): Promise<Trip> {
-
     // Update trip id (will cause last operations to be watched, if need)
     this.tripId = +tripId;
 
@@ -1302,7 +1276,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // If not the expected trip: reload
     if (trip?.id !== tripId) {
-      trip = await this.tripService.load(tripId, {fullLoad: true});
+      trip = await this.tripService.load(tripId, { fullLoad: true });
       // Update the context
       this.context.setValue('trip', trip);
     }
@@ -1318,8 +1292,8 @@ export class OperationPage<S extends OperationState = OperationState>
     // find invalids tabs (keep order)
     const invalidTabs = [
       this.opeForm.invalid || this.measurementsForm.invalid,
-      this.showCatchTab && this.batchTree?.invalid || false,
-      this.showSamplesTab && this.sampleTree?.invalid || false
+      (this.showCatchTab && this.batchTree?.invalid) || false,
+      (this.showSamplesTab && this.sampleTree?.invalid) || false,
     ];
 
     // Open the first invalid tab
@@ -1344,22 +1318,16 @@ export class OperationPage<S extends OperationState = OperationState>
     if (contextualUsageMode) return contextualUsageMode;
 
     // Read the settings
-    return this.settings.isUsageMode('FIELD')
-      && (
-        isNil(this.trip) || (
-          isNotNil(this.trip.departureDateTime)
-          && fromDateISOString(this.trip.departureDateTime).diff(DateUtils.moment(), 'day') < 15))
-        ? 'FIELD' : 'DESK';
+    return this.settings.isUsageMode('FIELD') &&
+      (isNil(this.trip) ||
+        (isNotNil(this.trip.departureDateTime) && fromDateISOString(this.trip.departureDateTime).diff(DateUtils.moment(), 'day') < 15))
+      ? 'FIELD'
+      : 'DESK';
   }
 
   protected registerForms() {
     // Register sub forms & table
-    this.addChildForms([
-      this.opeForm,
-      this.measurementsForm,
-      this.batchTree,
-      this.sampleTree
-    ]);
+    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree, this.sampleTree]);
   }
 
   protected waitWhilePending(): Promise<void> {
@@ -1406,16 +1374,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Mark as not controlled (remove control date, etc.)
     // BUT keep qualityFlag (e.g. need to keep it when = NOT_COMPLETED - see below)
-    DataEntityUtils.markAsNotControlled(json as Operation, {keepQualityFlag: true});
+    DataEntityUtils.markAsNotControlled(json as Operation, { keepQualityFlag: true });
 
     // Make sure parent operation has quality flag
-    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id')
-      && DataEntityUtils.hasNoQualityFlag(json)){
+    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && DataEntityUtils.hasNoQualityFlag(json)) {
       console.warn('[operation-page] Parent operation does not have quality flag id. Changing to NOT_COMPLETED ');
       json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
 
       // Propage this change to the form
-      this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
+      this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, { emitEvent: false });
     }
 
     // Clean childOperation if empty
@@ -1435,26 +1402,29 @@ export class OperationPage<S extends OperationState = OperationState>
     let availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
-    const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
+    const qvMeasurement = (this.trip.measurements || []).find((m) => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
     if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
-
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel: AcquisitionLevelCodes.TRIP});
-      const pmfm = (tripPmfms || []).find(p => p.id === PmfmIds.SELF_SAMPLING_PROGRAM);
-      const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
+      const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, { acquisitionLevel: AcquisitionLevelCodes.TRIP });
+      const pmfm = (tripPmfms || []).find((p) => p.id === PmfmIds.SELF_SAMPLING_PROGRAM);
+      const qualitativeValue = ((pmfm && pmfm.qualitativeValues) || []).find((qv) => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
       const contextualTaxonGroupLabels = qualitativeValue?.label
         .split(/[^\w]+/) // Split by separator (= not a word)
         .filter(isNotNilOrBlank)
-        .map(label => label.trim().toUpperCase());
+        .map((label) => label.trim().toUpperCase());
 
       // Limit the program list, using the restricted list
       if (isNotEmptyArray(contextualTaxonGroupLabels)) {
-        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroupLabels.some(label =>
-          label === tg.label
-          // Contextual 'RJB' must match RJB_1, RJB_2
-          || tg.label.startsWith(label)));
+        availableTaxonGroups = availableTaxonGroups.filter((tg) =>
+          contextualTaxonGroupLabels.some(
+            (label) =>
+              label === tg.label ||
+              // Contextual 'RJB' must match RJB_1, RJB_2
+              tg.label.startsWith(label)
+          )
+        );
       }
     }
 
@@ -1491,16 +1461,14 @@ export class OperationPage<S extends OperationState = OperationState>
     } else if (this.showSamplesTab && this.sampleTree && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.sampleTree.setSelectedTabIndex(this.selectedSubTabIndex);
     }
-
   }
 
   protected async loadLinkedOperation(data: Operation): Promise<void> {
-
     const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
     // Load child operation
     if (isNotNil(childOperationId)) {
       try {
-        data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+        data.childOperation = await this.dataService.load(childOperationId, { fetchPolicy: 'cache-first' });
         data.childOperationId = undefined;
       } catch (err) {
         console.error('Cannot load child operation: reset', err);
@@ -1508,24 +1476,26 @@ export class OperationPage<S extends OperationState = OperationState>
         data.childOperationId = undefined;
         data.parentOperation = undefined;
       }
-    }
-
-    else {
-
+    } else {
       // Load parent operation
       const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
       if (isNotNil(parentOperationId)) {
         let validParent = true;
         try {
-          data.parentOperation = await this.dataService.load(parentOperationId, {fullLoad: false, fetchPolicy: 'cache-first'});
+          data.parentOperation = await this.dataService.load(parentOperationId, { fullLoad: false, fetchPolicy: 'cache-first' });
           data.parentOperationId = undefined;
 
           // Check parent operation is not already associated to another remote child operation
-          if (data.parentOperation && EntityUtils.isRemoteId(data.parentOperation.childOperationId) && data.parentOperation.childOperationId !== data.id) {
-            console.error(`Parent operation exists, but already linked to another remote operation: #${data.parentOperation.childOperationId}: mark parent has missing, to force user to fix it`);
+          if (
+            data.parentOperation &&
+            EntityUtils.isRemoteId(data.parentOperation.childOperationId) &&
+            data.parentOperation.childOperationId !== data.id
+          ) {
+            console.error(
+              `Parent operation exists, but already linked to another remote operation: #${data.parentOperation.childOperationId}: mark parent has missing, to force user to fix it`
+            );
             validParent = false;
           }
-
         } catch (err) {
           console.error('Cannot load parent operation: keep existing, to force user to fix it', err);
           validParent = false;
@@ -1538,7 +1508,7 @@ export class OperationPage<S extends OperationState = OperationState>
             id: parentOperationId,
             startDateTime: data.startDateTime,
             fishingStartDateTime: data.fishingStartDateTime,
-            qualityFlagId: QualityFlagIds.MISSING
+            qualityFlagId: QualityFlagIds.MISSING,
           });
         }
       }
@@ -1557,8 +1527,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected computeNextTabIndex(): number | undefined {
     if (this.selectedTabIndex > 0) return undefined; // Already on the next tab
 
-    return this.showCatchTab ? OperationPage.TABS.CATCH :
-      (this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined);
+    return this.showCatchTab ? OperationPage.TABS.CATCH : this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined;
   }
 
   startListenChanges() {
@@ -1580,19 +1549,16 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Fishing area
     if (this.opeForm.showFishingArea) {
-
-      const fishingAreas = this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value
-        || this.data?.fishingAreas;
+      const fishingAreas = (this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value) || this.data?.fishingAreas;
       this.context.setValue('fishingAreas', fishingAreas);
       this.context.resetValue('vesselPositions');
     }
 
     // Or vessel positions
     else if (this.opeForm.showPosition) {
-      const positions = [
-        this.opeForm.firstActivePositionControl?.value,
-        this.opeForm.lastActivePositionControl?.value
-      ].filter(position => PositionUtils.isNotNilAndValid(position));
+      const positions = [this.opeForm.firstActivePositionControl?.value, this.opeForm.lastActivePositionControl?.value].filter((position) =>
+        PositionUtils.isNotNilAndValid(position)
+      );
       this.context.setValue('vesselPositions', positions);
       this.context.resetValue('fishingAreas');
     }
@@ -1605,12 +1571,10 @@ export class OperationPage<S extends OperationState = OperationState>
    * @param opts
    * @protected
    */
-  protected async navigateTo(id: number|'new', opts?: {queryParams?: any; replaceUrl?: boolean; tripId?: number}): Promise<boolean> {
-
+  protected async navigateTo(id: number | 'new', opts?: { queryParams?: any; replaceUrl?: boolean; tripId?: number }): Promise<boolean> {
     const path = this.computePageUrl(id);
-    const commands: any[] = (path && typeof path === 'string') ? path.split('/').slice(1) : path as any[];
+    const commands: any[] = path && typeof path === 'string' ? path.split('/').slice(1) : (path as any[]);
     if (isNotEmptyArray(commands)) {
-
       // Change the trip id in path
       if (isNotNil(opts?.tripId) && commands[0] === 'trips' && +commands[1] === this.tripId) {
         commands[1] = opts.tripId;
@@ -1620,35 +1584,33 @@ export class OperationPage<S extends OperationState = OperationState>
       let replaceUrl = !opts || opts.replaceUrl !== false;
       const queryParams = opts?.queryParams || {};
 
-
       // Workaround, to force angular to reload a new page
       if (id === 'new') {
         const ok = await this.goBack();
         if (!ok) return;
         await sleep(450);
         replaceUrl = false; // No more need to replace the current page in history
-      }
-      else {
-        queryParams[this.pathIdAttribute] = ''+id;
+      } else {
+        queryParams[this.pathIdAttribute] = '' + id;
       }
 
       return await this.router.navigate(commands, {
         replaceUrl,
-        queryParams
+        queryParams,
       });
     }
     return Promise.reject('Missing page URL');
   }
 
   async openParentOperation(parent: Operation): Promise<boolean> {
-
-    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
-      // If on field mode: try to save silently
-      ? await this.save(null, {openTabIndex: -1})
-      // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {
-        openTabIndex: -1
-      });
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode: try to save silently
+          await this.save(null, { openTabIndex: -1 })
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, {
+            openTabIndex: -1,
+          });
 
     if (!saved) return; // Skip
 
@@ -1657,10 +1619,9 @@ export class OperationPage<S extends OperationState = OperationState>
       return this.navigateTo(parent.id, {
         replaceUrl: false, // IMPORTANT: back button will return to the curren OP
         tripId: parent.tripId,
-        queryParams: {color: <PredefinedColors>'secondary'}
+        queryParams: { color: <PredefinedColors>'secondary' },
       });
-    }
-    else {
+    } else {
       // Open, and replace the current OP
       return this.navigateTo(parent.id);
     }
@@ -1673,14 +1634,14 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!EntityUtils.isRemoteId(this.data?.id)) return; // Skip
 
     // Create file content
-    const data = await this.dataService.load(this.data.id, {fullLoad: true});
+    const data = await this.dataService.load(this.data.id, { fullLoad: true });
     const json = data.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE);
     const content = JSON.stringify([json]);
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
       filename: this.translate.instant('TRIP.OPERATION.LIST.DOWNLOAD_JSON_FILENAME'),
-      type: 'application/json'
+      type: 'application/json',
     });
   }
 
@@ -1700,6 +1661,6 @@ export class OperationPage<S extends OperationState = OperationState>
     const queryParams = ExtractionUtils.asQueryParams(type, filter);
 
     // Open extraction
-    await this.router.navigate(['extraction', 'data'], {queryParams});
+    await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 }

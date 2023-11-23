@@ -52,14 +52,11 @@ const PROGRAM_TABS = {
   selector: 'app-program',
   templateUrl: 'program.page.html',
   styleUrls: ['./program.page.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: ProgramValidatorService}
-  ],
+  providers: [{ provide: ValidatorService, useExisting: ProgramValidatorService }],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
-
   readonly TABS = PROGRAM_TABS;
   readonly mobile: boolean;
   propertyDefinitions: FormFieldDefinition[];
@@ -77,7 +74,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   @ViewChild('personsTable', { static: true }) personsTable: PersonPrivilegesTable;
   @ViewChild('locationList', { static: true }) locationList: AppListForm<ReferentialRef>;
 
-
   get strategiesTable(): AppTable<Strategy> {
     return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
   }
@@ -91,13 +87,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
-    super(injector,
-      Program,
-      programService, {
-        pathIdAttribute: 'programId',
-        autoOpenNextTab: false,
-        tabCount: 5
-      });
+    super(injector, Program, programService, {
+      pathIdAttribute: 'programId',
+      autoOpenNextTab: false,
+      tabCount: 5,
+    });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -105,14 +99,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.defaultBackHref = '/referential/list?entity=Program';
     this._enabled = this.accountService.isAdmin();
 
-    this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
+    this.propertyDefinitions = Object.values(ProgramProperties).map((def) => {
       // Add default configuration for entity/entities
       if (def.type === 'entity' || def.type === 'entities') {
         def = Object.assign({}, def); // Copy
         def.autocomplete = {
           suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
           attributes: ['label', 'name'],
-          ...(def.autocomplete || {})
+          ...(def.autocomplete || {}),
         };
       }
       return def;
@@ -131,28 +125,27 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // TODO BLA: FIXME: le control reste en pending !
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators(async (control) => {
-        console.debug('[program-page] Checking of label is unique...');
-        const exists = await this.programService.existsByLabel(control.value, {
-          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
-        });
-        if (exists) {
-          console.warn('[program-page] Label not unique!');
-          return <ValidationErrors>{ unique: true };
-        }
-
-        console.debug('[program-page] Checking of label is unique [OK]');
-        SharedValidators.clearError(control, 'unique');
+      console.debug('[program-page] Checking of label is unique...');
+      const exists = await this.programService.existsByLabel(control.value, {
+        excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
+      });
+      if (exists) {
+        console.warn('[program-page] Label not unique!');
+        return <ValidationErrors>{ unique: true };
       }
-    );
+
+      console.debug('[program-page] Checking of label is unique [OK]');
+      SharedValidators.clearError(control, 'unique');
+    });
 
     this.registerFormField('gearClassification', {
       type: 'entity',
       autocomplete: {
         suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
         filter: {
-          entityName: 'GearClassification'
-        }
-      }
+          entityName: 'GearClassification',
+        },
+      },
     });
 
     this.registerFormField('taxonGroupType', {
@@ -161,22 +154,20 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       autocomplete: {
         suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
         filter: {
-          entityName: 'TaxonGroupType'
-        }
-      }
+          entityName: 'TaxonGroupType',
+        },
+      },
     });
 
     this.markAsReady();
   }
 
-
   load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: 'network-only'});
+    return super.load(id, { ...opts, fetchPolicy: 'network-only' });
   }
 
-
-  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     // TODO BLA remove this ?
@@ -190,20 +181,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.propertiesForm,
-      this.locationClassificationList,
-      this.locationList,
-      this.personsTable
-    ]);
+    this.addChildForms([this.referentialForm, this.propertiesForm, this.locationClassificationList, this.locationList, this.personsTable]);
   }
 
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
     const definition = <FormFieldDefinition>{
       key: fieldName,
       label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
-      ...def
+      ...def,
     };
     this.fieldDefinitions[fieldName] = definition;
   }
@@ -217,7 +202,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     await this.loadEntityProperties(data);
     await super.onEntityLoaded(data, options);
 
-    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
+    this.strategyEditor = (data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR)) || 'legacy';
     this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
     this.cd.detectChanges();
@@ -232,13 +217,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected setValue(data: Program) {
     data = data || new Program();
 
-    this.form.patchValue({...data,
-      properties: [],
-      locationClassifications: [],
-      strategies: [],
-      persons: []
-      },
-      {emitEvent: false});
+    this.form.patchValue({ ...data, properties: [], locationClassifications: [], strategies: [], persons: [] }, { emitEvent: false });
 
     // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
@@ -256,46 +235,50 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected async loadEntityProperties(data: Program | null) {
-
-    await Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitions.find(def => def.key === key
-        && (def.type === 'entity' || def.type === 'entities' || def.type === 'enums')))
-      .filter(isNotNil)
-      .map(async (def) => {
-        let value = data.properties[def.key];
-        switch (def.type) {
-          case 'entity': {
-            value = typeof value === 'string' ? value.trim() : value;
-            if (isNotNilOrBlank(value)) {
-              const entity = await this.resolveEntity(def, value);
-              data.properties[def.key] = entity;
-            } else {
-              data.properties[def.key] = null;
+    await Promise.all(
+      Object.keys(data.properties)
+        .map((key) =>
+          this.propertyDefinitions.find((def) => def.key === key && (def.type === 'entity' || def.type === 'entities' || def.type === 'enums'))
+        )
+        .filter(isNotNil)
+        .map(async (def) => {
+          let value = data.properties[def.key];
+          switch (def.type) {
+            case 'entity': {
+              value = typeof value === 'string' ? value.trim() : value;
+              if (isNotNilOrBlank(value)) {
+                const entity = await this.resolveEntity(def, value);
+                data.properties[def.key] = entity;
+              } else {
+                data.properties[def.key] = null;
+              }
+              break;
             }
-            break;
-          }
-          case 'entities': {
-            const values = (value || '').trim().split(/[|,]+/);
-            if (isNotEmptyArray(values)) {
-              const entities = await Promise.all(values.map(v => this.resolveEntity(def, v)));
-              data.properties[def.key] = entities;
-            } else {
-              data.properties[def.key] = null;
+            case 'entities': {
+              const values = (value || '').trim().split(/[|,]+/);
+              if (isNotEmptyArray(values)) {
+                const entities = await Promise.all(values.map((v) => this.resolveEntity(def, v)));
+                data.properties[def.key] = entities;
+              } else {
+                data.properties[def.key] = null;
+              }
+              break;
             }
-            break;
-          }
-          case 'enums': {
-            const keys = (value || '').trim().split(/[|,]+/);
-            if (isNotEmptyArray(keys)) {
-              const enumValues = keys.map(key => (def.values as (string|Property)[])?.find(defValue => defValue && key === (defValue['key'] || defValue)));
-              data.properties[def.key] = enumValues || null;
-            } else {
-              data.properties[def.key] = null;
+            case 'enums': {
+              const keys = (value || '').trim().split(/[|,]+/);
+              if (isNotEmptyArray(keys)) {
+                const enumValues = keys.map((key) =>
+                  (def.values as (string | Property)[])?.find((defValue) => defValue && key === (defValue['key'] || defValue))
+                );
+                data.properties[def.key] = enumValues || null;
+              } else {
+                data.properties[def.key] = null;
+              }
+              break;
             }
-            break;
           }
-        }
-      }));
+        })
+    );
   }
 
   protected async resolveEntity(def: FormFieldDefinition, value: any): Promise<any> {
@@ -309,8 +292,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     if (joinAttribute === 'id') {
       filter.id = parseInt(value);
       value = '*';
-    }
-    else {
+    } else {
       filter.searchAttribute = joinAttribute;
     }
     const suggestFn: SuggestFn<any, any> = def.autocomplete.suggestFn || this.referentialRefService.suggest;
@@ -318,11 +300,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       // Fetch entity, as a referential
       const res = await suggestFn(value, filter);
       const data = Array.isArray(res) ? res : res.data;
-      return (data && data[0] || {id: value,  label: '??'}) as any;
-    }
-    catch (err) {
+      return ((data && data[0]) || { id: value, label: '??' }) as any;
+    } catch (err) {
       console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
-      return {id: value,  label: '??'};
+      return { id: value, label: '??' };
     }
   }
 
@@ -335,22 +316,26 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Transform properties
     data.properties = this.propertiesForm.value;
     data.properties
-      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
-      .forEach(property => {
+      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
+      .forEach((property) => {
         if (Array.isArray(property.value)) {
-          property.value = property.value.map(v => v?.id).filter(isNotNil).join(',');
-        }
-        else {
+          property.value = property.value
+            .map((v) => v?.id)
+            .filter(isNotNil)
+            .join(',');
+        } else {
           property.value = (property.value as any)?.id;
         }
       });
     data.properties
-      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'enums')))
-      .forEach(property => {
+      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && def.type === 'enums'))
+      .forEach((property) => {
         if (Array.isArray(property.value)) {
-          property.value = property.value.map(v => v?.key).filter(isNotNil).join(',');
-        }
-        else {
+          property.value = property.value
+            .map((v) => v?.key)
+            .filter(isNotNil)
+            .join(',');
+        } else {
           property.value = (property.value as any)?.key;
         }
       });
@@ -379,7 +364,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       ...(await super.computePageHistory(title)),
       icon: 'contract',
       title: `${this.data.label} - ${this.data.name}`,
-      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM',
     };
   }
 
@@ -398,42 +383,43 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     const items = await this.openSelectReferentialModal({
       allowMultipleSelection: true,
       filter: {
-        entityName: 'LocationClassification'
-      }
+        entityName: 'LocationClassification',
+      },
     });
 
     // Add to list
-    (items || []).forEach(item => this.locationClassificationList.add(item));
+    (items || []).forEach((item) => this.locationClassificationList.add(item));
 
     this.markForCheck();
   }
 
-
   async addLocation() {
     if (this.disabled) return; // Skip
 
-    const classificationIds = (this.locationClassificationList.value || []).map(item => item.id);
+    const classificationIds = (this.locationClassificationList.value || []).map((item) => item.id);
     const rectangleLocationLevelIds = LocationLevels.getStatisticalRectangleLevelIds();
-    const levelIds = (await this.referentialRefService.loadAll(0, 1000, null, null, {
-      entityName: 'LocationLevel',
-      levelIds: classificationIds,
-      statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
-    }))?.data
-      .map(item => item.id)
+    const levelIds = (
+      await this.referentialRefService.loadAll(0, 1000, null, null, {
+        entityName: 'LocationLevel',
+        levelIds: classificationIds,
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      })
+    )?.data
+      .map((item) => item.id)
       // Exclude rectangle level ids
-      .filter(levelId => !rectangleLocationLevelIds.includes(levelId));
-    const excludedIds = (this.locationList.value || []).map(item => item.id);
+      .filter((levelId) => !rectangleLocationLevelIds.includes(levelId));
+    const excludedIds = (this.locationList.value || []).map((item) => item.id);
     const items = await this.openSelectReferentialModal({
       filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
         levelIds,
-        excludedIds
-      }
+        excludedIds,
+      },
     });
 
     // Add to list
-    (items || []).forEach(item => this.locationList.add(item));
+    (items || []).forEach((item) => this.locationList.add(item));
 
     this.markForCheck();
   }
@@ -445,8 +431,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markAsLoading();
 
     setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs',  this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
-        queryParams: {}
+      await this.router.navigate(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
+        queryParams: {},
       });
       this.markAsLoaded();
     });
@@ -458,8 +444,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, 'new'], {
-          queryParams: {}
+        await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, 'new'], {
+          queryParams: {},
         });
         this.markAsLoaded();
       });
@@ -467,11 +453,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected async openSelectReferentialModal(opts: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
-
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectReferentialModal,
-      componentProps:opts,
+      componentProps: opts,
       keyboardClose: true,
       backdropDismiss: false,
       cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
@@ -479,7 +464,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     await modal.present();
 
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     return data;
   }
@@ -490,5 +475,4 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   referentialToString = referentialToString;
   referentialEquals = ReferentialUtils.equals;
-
 }

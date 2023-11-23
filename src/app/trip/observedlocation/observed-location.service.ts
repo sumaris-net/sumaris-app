@@ -1,41 +1,59 @@
-import {Injectable, Injector, Optional} from '@angular/core';
+import { Injectable, Injector, Optional } from '@angular/core';
 import {
-  AccountService, AppErrorWithDetails,
+  AccountService,
+  AppErrorWithDetails,
   AppFormUtils,
-  arrayDistinct, BaseEntityGraphqlQueries,
+  arrayDistinct,
+  BaseEntityGraphqlQueries,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
+  EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
-  FormErrors, FormErrorTranslator, FormErrorTranslatorOptions,
+  FormErrors,
+  FormErrorTranslator,
+  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   JobUtils,
   LoadResult,
-  NetworkService, ProgressBarService, ShowToastOptions, Toasts,
-  toNumber
+  NetworkService,
+  ProgressBarService,
+  ShowToastOptions,
+  Toasts,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 
-import {  gql } from '@apollo/client/core';
+import { gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
-import {COPY_LOCALLY_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
+import {
+  COPY_LOCALLY_AS_OBJECT_OPTIONS,
+  MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  SAVE_AS_OBJECT_OPTIONS,
+} from '@app/data/services/model/data-entity.model';
 import { ObservedLocation } from './observed-location.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
-import {IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions} from '@app/data/services/data-quality-service.class';
+import {
+  IDataEntityQualityService,
+  IProgressionOptions,
+  IRootDataTerminateOptions,
+  IRootDataValidateOptions,
+} from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from '../landing/landing.service';
-import {IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
+import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from '../landing/landing.model';
-import {ObservedLocationValidatorOptions, ObservedLocationValidatorService} from './observed-location.validator';
+import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from './observed-location.validator';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
@@ -53,17 +71,15 @@ import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landi
 import { AggregatedLandingService } from '@app/trip/aggregated-landing/aggregated-landing.service';
 import moment from 'moment';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
-import {Trip} from '@app/trip/trip/trip.model';
-import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {OverlayEventDetail} from '@ionic/core';
-import {ToastController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components';
-import {ProgressionModel} from '@app/shared/progression/progression.model';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {MEASUREMENT_VALUES_PMFM_ID_REGEXP} from '@app/data/measurement/measurement.model';
-
+import { Trip } from '@app/trip/trip/trip.model';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { OverlayEventDetail } from '@ionic/core';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -794,7 +810,7 @@ export class ObservedLocationService
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 
         return {
-          message: 'QUALITY.ERROR.INVALID_FORM',
+          message: 'COMMON.FORM.HAS_ERROR',
           details: {
             errors,
           },

@@ -46,7 +46,7 @@ import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { LandingService } from '@app/trip/landing/landing.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { LandedTripService } from '@app/trip/landedtrip/landed-trip.service';
 import moment from 'moment';
 
@@ -55,7 +55,7 @@ import moment from 'moment';
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_ENTITY_EDITOR, useExisting: LandedTripPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: LandedTripPage }],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> implements OnInit, OnDestroy {
