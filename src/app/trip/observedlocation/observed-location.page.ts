@@ -48,7 +48,7 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,

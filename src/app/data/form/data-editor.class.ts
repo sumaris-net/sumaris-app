@@ -1,6 +1,6 @@
-import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, EventEmitter, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import { combineLatestWith, merge, Subject, Subscription } from 'rxjs';
+import { merge, Observable, Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -15,6 +15,7 @@ import {
   HistoryPageReference,
   IEntityService,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
@@ -22,23 +23,44 @@ import {
   MessageService,
   Person,
   PersonService,
+  ReferentialRef,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { equals, noHtml } from '@app/shared/functions';
+import { noHtml } from '@app/shared/functions';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { RxState } from '@rx-angular/state';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { Moment } from 'moment';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { environment } from '@environments/environment';
 
-export interface BaseEditorState {
-  acquisitionLevel: string;
+export abstract class DataEditorOptions extends AppEditorOptions {
+  acquisitionLevel?: AcquisitionLevelType;
+}
+
+export interface DataEditorState {
   programLabel: string;
   program: Program;
-  strategyLabel: string;
+
+  acquisitionLevel: AcquisitionLevelType;
+
   strategy: Strategy;
+  requiredStrategy: boolean;
+  strategyLabel: string;
+  strategyDateTime: Moment;
+  strategyLocation: ReferentialRef;
+
+  strategyFilter: Partial<StrategyFilter>;
+
+  pmfms: IPmfm[];
 }
 
 @Directive()
@@ -47,20 +69,23 @@ export abstract class AppDataEntityEditor<
     T extends DataEntity<T, ID>,
     S extends IEntityService<T, ID, any> = BaseEntityService<T, any, any>,
     ID = number,
-    ST extends BaseEditorState = BaseEditorState
+    ST extends DataEditorState = DataEditorState
   >
   extends AppEntityEditor<T, S, ID>
   implements OnInit, OnDestroy
 {
   protected readonly _state: RxState<ST> = new RxState<ST>();
-  protected readonly _onReloadProgram = new Subject<void>();
-  protected readonly _onStrategyReload = new Subject<void>();
+  protected readonly _reloadProgramSubject = new EventEmitter<void>();
+  protected readonly _reloadStrategySubject = new EventEmitter<void>();
   protected readonly programRefService: ProgramRefService;
   protected readonly strategyRefService: StrategyRefService;
   protected readonly configService: ConfigService;
   protected readonly messageService: MessageService;
   protected readonly personService: PersonService;
   protected readonly mobile: boolean;
+  protected readonly logPrefix: string = null;
+  protected readonly canDebug: boolean;
+  protected strategyResolution: DataStrategyResolution = 'last';
 
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
@@ -69,13 +94,19 @@ export abstract class AppDataEntityEditor<
   readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
   readonly programLabel$ = this._state.select('programLabel');
   readonly program$ = this._state.select('program');
-  readonly strategyLabel$ = this._state.select('strategyLabel');
+  readonly strategyLabel$ = this._state.select( 'strategyLabel');
+  readonly strategyFilter$ = this._state.select( 'strategyFilter');
+  readonly requiredStrategy$ = this._state.select( 'requiredStrategy');
+  readonly strategyDateTime$ = this._state.select( 'strategyDateTime');
+  readonly strategyLocation$ = this._state.select( 'strategyLocation');
   readonly strategy$ = this._state.select('strategy');
+  readonly pmfms$ = this._state.select('pmfms');
 
-  get acquisitionLevel(): string {
+
+  get acquisitionLevel(): AcquisitionLevelType {
     return this._state.get('acquisitionLevel');
   }
-  set acquisitionLevel(value: string) {
+  set acquisitionLevel(value: AcquisitionLevelType) {
     this._state.set('acquisitionLevel', () => value);
   }
 
@@ -99,6 +130,12 @@ export abstract class AppDataEntityEditor<
   set strategyLabel(value: string) {
     this._state.set('strategyLabel', () => value);
   }
+  get strategyFilter(): Partial<StrategyFilter> {
+    return this._state.get('strategyFilter');
+  }
+  set strategyFilter(value: Partial<StrategyFilter>) {
+    this._state.set('strategyFilter', () => value);
+  }
   get strategy(): Strategy {
     return this._state.get('strategy');
   }
@@ -106,10 +143,17 @@ export abstract class AppDataEntityEditor<
     this._state.set('strategy', () => value);
   }
 
-  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
+  get pmfms(): IPmfm[] {
+    return this._state.get('pmfms');
+  }
+  set pmfms(value: IPmfm[]) {
+    this._state.set('pmfms', () => value);
+  }
+
+  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: DataEditorOptions) {
     super(injector, dataType, dataService, {
-      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
-      ...options,
+      autoOpenNextTab: !(injector.get(LocalSettingsService).mobile),
+      ...options
     });
 
     this.programRefService = injector.get(ProgramRefService);
@@ -118,6 +162,15 @@ export abstract class AppDataEntityEditor<
     this.personService = injector.get(PersonService);
     this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
+    this.logPrefix = '[base-data-editor] ';
+    this.canDebug = !environment.production;
+
+    // Initial state
+    if (options?.acquisitionLevel) {
+      this._state.set(<Partial<ST>>{
+        acquisitionLevel: options.acquisitionLevel
+      });
+    }
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -127,84 +180,61 @@ export abstract class AppDataEntityEditor<
     super.ngOnInit();
 
     // Watch program, to configure tables from program properties
-    this._state.connect(
-      'program',
+    this._state.connect('program',
       merge(
         this.programLabel$.pipe(distinctUntilChanged()),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._onReloadProgram.pipe(map(() => this.programLabel))
-      ).pipe(
-        filter(isNotNilOrBlank),
-
-        // DEBUG --
-        //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
-
-        switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
-        catchError((err, _) => {
-          this.setError(err);
-          return Promise.resolve(null);
-        })
+        this._reloadProgramSubject.pipe(map(() => this.programLabel))
       )
-    );
-    const programLoaded$ = this.program$.pipe(
-      filter(isNotNil),
-      mergeMap((program) =>
-        this.setProgram(program)
-          .then(() => program)
-          .catch((err) => {
-            this.setError(err);
-            return undefined;
-          })
-      )
-    );
-
-    // Watch strategy
-    this._state.connect(
-      'strategy',
-      programLoaded$
         .pipe(
-          combineLatestWith(
-            merge(
-              this.strategyLabel$.pipe(distinctUntilChanged()),
+          filter(isNotNilOrBlank),
 
-              // Allow to force reload (e.g. when strategy remotely changes - see startListenStrategyRemoteChanges() )
-              this._onStrategyReload.pipe(map(() => this.strategyLabel))
-            )
-          )
-        )
-        .pipe(
           // DEBUG --
-          //tap(([_, strategyLabel]) => console.debug('DEV - Getting programLabel=' + strategyLabel)),
+          //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
 
-          mergeMap(([program, strategyLabel]) =>
-            isNotNil(program) && isNotNilOrBlank(strategyLabel)
-              ? this.strategyRefService.loadByLabel(strategyLabel, { programId: program.id })
-              : Promise.resolve(undefined)
-          ),
+          switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
           catchError((err, _) => {
             this.setError(err);
             return Promise.resolve(null);
-          }),
-          filter((strategy) => isNotNil(strategy) && !equals(strategy, this.strategy))
+          })
         )
     );
+    const programLoaded$ = this.program$.pipe(
+      filter(isNotNil),
+      mergeMap((program) => this.setProgram(program)
+        .then(() => program)
+        .catch(err => {
+          this.setError(err);
+          return undefined;
+        })),
+      filter(isNotNil)
+    );
 
-    this._state.hold(this.strategy$, (strategy) => this.setStrategy(strategy));
+    this._state.connect('strategyFilter', programLoaded$.pipe(
+      mergeMap(program => this.watchStrategyFilter(program))
+    ));
 
-    if (!this.mobile) {
-      // Listen config
-      this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
-    }
+    // Load strategy from strategyLabel (after program loaded)
+    this._state.connect('strategy', merge(
+      this.strategyFilter$,
+      this._reloadStrategySubject.pipe(map(_ => this.strategyFilter))
+    )
+    .pipe(
+      filter(strategyFilter => this.canLoadStrategy(this.program, strategyFilter)),
+      mergeMap((strategyFilter) => this.loadStrategy(strategyFilter))
+    ));
+
+    this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
+
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
     this._state.ngOnDestroy();
-
-    this._onReloadProgram.complete();
-    this._onReloadProgram.unsubscribe();
-    this._onStrategyReload.complete();
-    this._onStrategyReload.unsubscribe();
+    this._reloadProgramSubject.complete();
+    this._reloadProgramSubject.unsubscribe();
+    this._reloadStrategySubject.complete();
+    this._reloadStrategySubject.unsubscribe();
   }
 
   canUserWrite(data: T, opts?: any): boolean {
@@ -217,11 +247,47 @@ export abstract class AppDataEntityEditor<
     return true;
   }
 
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    return this.acquisitionLevel$.pipe(
+      map(acquisitionLevel => {
+        return <Partial<StrategyFilter>>{
+          programId: program.id,
+          acquisitionLevel,
+        }
+      })
+    );
+  }
+
+  protected canLoadStrategy(program: Program, strategyFilter?: Partial<StrategyFilter>): boolean {
+
+    // Check acquisition level
+    return isNotNilOrBlank(strategyFilter?.acquisitionLevel) || isNotEmptyArray(strategyFilter?.acquisitionLevels);
+
+    /*// Check location + date
+    switch (this.strategyResolution) {
+      case 'locationAndDate':
+        return ReferentialUtils.isNotEmpty(strategyFilter.location) && isNotNil(strategyFilter.startDate);
+      case 'label':
+        return isNotNilOrBlank(strategyFilter.label);
+      case 'last':
+      default:
+        return true;
+    }*/
+  }
+
+  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>) {
+    if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
+    return this.strategyRefService.loadByFilter(strategyFilter, {failIfMissing: true, debug: this.debug, fullLoad: false});
+  }
+
   protected async setProgram(program: Program) {
     // Can be overridden by subclasses
+    if (!program) return; // Skip
 
     // DEBUG
-    if (program && this.debug) console.debug(`[base-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
+    if (this.debug) console.debug(this.logPrefix + `Program ${program.label} loaded`);
+
+    this.strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION);
   }
 
   protected async setStrategy(strategy: Strategy) {
@@ -333,7 +399,7 @@ export abstract class AppDataEntityEditor<
       await this.programRefService.clearCache();
     }
 
-    this._onReloadProgram.next();
+    this._reloadProgramSubject.next();
   }
 
   /**
@@ -344,12 +410,12 @@ export abstract class AppDataEntityEditor<
   protected async reloadStrategy(opts = { clearCache: true }) {
     if (this.debug) console.debug(`[base-data-editor] Force strategy reload...`);
 
-    // Cache clear
-    if (opts?.clearCache !== false) {
+    // Cache clear (by default)
+    if (!opts || opts.clearCache !== false) {
       await this.strategyRefService.clearCache();
     }
 
-    this._onStrategyReload.next();
+    this._reloadStrategySubject.next();
   }
 
   /**
@@ -375,7 +441,8 @@ export abstract class AppDataEntityEditor<
   protected async openComposeMessageModal(recipient?: Person, opts?: { title?: string }) {
     if (!this.canSendMessage) return; // Skip if disabled
 
-    console.debug('[base-data-editor] Writing a message to:', recipient);
+    console.debug(this.logPrefix + 'Writing a message to:', recipient);
+
     const title = noHtml(opts?.title || this.titleSubject.value)?.toLowerCase();
     const url = this.router.url;
     const body = this.translate.instant('DATA.MESSAGE_BODY', { title, url });
@@ -388,5 +455,10 @@ export abstract class AppDataEntityEditor<
         body,
       },
     });
+  }
+
+  protected devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
   }
 }

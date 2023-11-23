@@ -62,7 +62,7 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { TripFilter } from '@app/trip/trip/trip.filter';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 

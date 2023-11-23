@@ -9,7 +9,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 import { debounceTime } from 'rxjs/operators';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
 

@@ -51,8 +51,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
-
-export const APP_DATA_ENTITY_EDITOR = new InjectionToken<AppDataEntityEditor<any, any, any>>('AppEntityEditor');
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -136,11 +135,7 @@ export class EntityQualityFormComponent<
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to update events
-    let updateViewEvents = merge(
-      this.editor.onUpdateView,
-      this.accountService.onLogin,
-      this.network.onNetworkStatusChanges
-    )
+    let updateViewEvents = merge(this.editor.onUpdateView, this.accountService.onLogin, this.network.onNetworkStatusChanges);
 
     // Add a debounce time
     if (this._mobile) updateViewEvents = updateViewEvents.pipe(debounceTime(500));
@@ -224,14 +219,10 @@ export class EntityQualityFormComponent<
     const endProgression = opts.progression.current + opts.maxProgression;
 
     // Control data
-    const controlled = await this.control(event, {...opts,
-      emitEvent: false,
-      maxProgression: opts?.maxProgression * 0.9
-    });
+    const controlled = await this.control(event, { ...opts, emitEvent: false, maxProgression: opts?.maxProgression * 0.9 });
 
     // Control failed
     if (!controlled || event?.defaultPrevented || opts.progression?.cancelled) {
-
       progressionSubscription?.unsubscribe();
 
       // If mode was on field: force desk mode, to show errors
@@ -381,8 +372,7 @@ export class EntityQualityFormComponent<
       this.editor.enable();
       this.busy = false;
       this.markForCheck();
-    }
-    finally {
+    } finally {
       progressionSubscription?.unsubscribe();
     }
   }
@@ -415,7 +405,8 @@ export class EntityQualityFormComponent<
       this.canUnvalidate = false;
       this.canQualify = false;
       this.canUnqualify = false;
-    } else if (data instanceof DataEntity) {console.debug('[entity-quality] Updating view...');
+    } else if (data instanceof DataEntity) {
+      console.debug('[entity-quality] Updating view...');
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
       const canWrite = isLocalData || this.editor.canUserWrite(data);
@@ -430,8 +421,7 @@ export class EntityQualityFormComponent<
         const program = this.editor.program;
         const isValidator = isAdmin || this.programRefService.canUserValidate(program);
         const isQualifier = isAdmin || this.programRefService.canUserQualify(program);
-        this.canValidate =
-          canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNil(data.validationDate);
+        this.canValidate = canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNil(data.validationDate);
         this.canUnvalidate =
           !canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
         this.canQualify = !canWrite && isQualifier && isNotNil(data.validationDate) && isNil(data.qualificationDate);
@@ -449,12 +439,11 @@ export class EntityQualityFormComponent<
 
     // Load available quality flags
     if ((this.canQualify || this.canUnqualify) && !this.qualityFlags) {
-      this.referentialRefService.loadQualityFlags().then(items => {
+      this.referentialRefService.loadQualityFlags().then((items) => {
         this.qualityFlags = items;
         this.markForCheck();
       });
-    }
-    else {
+    } else {
       this.markForCheck();
     }
   }

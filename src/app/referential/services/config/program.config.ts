@@ -4,7 +4,7 @@ import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.m
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { DataStrategyResolutions } from '@app/data/form/base-data-editor.utils';
+import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 export type TripReportType = 'legacy' | 'selectivity';

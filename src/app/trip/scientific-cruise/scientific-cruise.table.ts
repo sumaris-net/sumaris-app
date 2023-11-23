@@ -83,7 +83,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
 
   constructor(
     injector: Injector,
-    protected _dataService: ScientificCruiseService,
+    dataService: ScientificCruiseService,
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -99,7 +99,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
       ScientificCruise,
       ScientificCruiseFilter,
       ['quality', 'program', 'name', 'vessel', 'departureLocation', 'departureDateTime', 'returnDateTime', 'managerPerson', 'comments'],
-      _dataService,
+      dataService,
       null
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';

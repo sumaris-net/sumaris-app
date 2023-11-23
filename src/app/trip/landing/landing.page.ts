@@ -58,7 +58,7 @@ import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 export class LandingEditorOptions extends AppEditorOptions {}
 

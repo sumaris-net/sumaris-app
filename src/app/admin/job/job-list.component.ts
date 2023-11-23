@@ -10,7 +10,7 @@ import {
   Optional,
   ViewChild,
 } from '@angular/core';
-import { ActionSheetController, AlertController } from '@ionic/angular';
+import { ActionSheetButton, ActionSheetController, AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { RxState } from '@rx-angular/state';
 import { IJobStatus, Job, JobFilter, JobStatusLabel, JobStatusLabels, JobStatusList, JobStatusUtils, JobTypeLabel } from '@app/social/job/job.model';
@@ -28,6 +28,7 @@ import {
   JobProgression,
   LocalSettingsService,
   MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig,
   Person,
   PersonService,
@@ -317,8 +318,8 @@ export class JobListComponent implements OnInit, OnDestroy {
   async openAddJobMenu() {
     console.debug('[job-list] Click button to add new job');
 
-    const actionButtons = (this.availableTypes || []) || [])
-      .map(({ label, name }) => ({
+    const actionButtons = (this.availableTypes || [])
+      .map(({ label, name }) => (<ActionSheetButton>{
         text: this.translate.instant(name),
         handler: () => this.runJob(label),
       }));

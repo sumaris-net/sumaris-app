@@ -47,7 +47,6 @@ import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
 import { TripContextService } from '@app/trip/trip-context.service';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
@@ -61,7 +60,8 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { AppDataEntityEditor, BaseEditorState } from '@app/data/form/data-editor.class';
+import { AppDataEntityEditor, DataEditorState } from '@app/data/form/data-editor.class';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 export interface OperationState extends DataEditorState {
   hasIndividualMeasures?: boolean;

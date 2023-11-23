@@ -33,11 +33,10 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { TaxonGroupLabels, TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 @Component({
   selector: 'app-auction-control',

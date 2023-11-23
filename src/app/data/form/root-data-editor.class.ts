@@ -15,8 +15,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { UntypedFormControl } from '@angular/forms';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
-import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
-import { DataEditorOptions, DataEditorState } from '@app/data/form/base-data-editor.class';
+import { AppDataEntityEditor, DataEditorOptions, DataEditorState } from '@app/data/form/data-editor.class';
 
 export interface RootDataEntityEditorState extends DataEditorState {}
 

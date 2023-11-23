@@ -29,7 +29,7 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { debounceTime, map } from 'rxjs/operators';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/base-data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
