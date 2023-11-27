@@ -147,7 +147,7 @@
 <div
   #tableContainer
   class="table-container"
-  *rxIf="$pmfms; let pmfms; strategy: 'native'"
+  *rxIf="pmfms$; let pmfms; strategy: 'native'"
   (ngInit)="initTableContainer(tableContainer)"
   [class.mobile]="mobile"
   [class.has-toolbar]="showToolbar && !showGroupHeader"

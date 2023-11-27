@@ -32,7 +32,7 @@ import { Operation, Trip } from '@app/trip/trip/trip.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, QualityFlagIds, VesselTypeIds } from '@app/referential/services/model/model.enum';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { TripTrashModal, TripTrashModalOptions } from '@app/trip/trip/trash/trip-trash.modal';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
@@ -140,7 +140,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: TRIP_FEATURE_DEFAULT_PROGRAM_FILTER,
-      mobile: this.mobile,
+      mobile: this.mobile
     });
 
     // Locations combo (filter)
@@ -154,7 +154,13 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {...opts,
+      filter: {
+        ...opts.filter,
+        vesselTypeId: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL
+      }})
+    });
 
     // Combo: recorder department
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {

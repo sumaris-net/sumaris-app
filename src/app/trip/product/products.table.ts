@@ -140,7 +140,7 @@ export class ProductsTable
     });
 
     this.registerSubscription(
-      filterNotNil(this.$pmfms)
+      filterNotNil(this.pmfms$)
         // if main pmfms are loaded, then other pmfm can be loaded
         .pipe(
           mergeMap(() => this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE}))

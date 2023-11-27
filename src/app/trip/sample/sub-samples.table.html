@@ -61,7 +61,7 @@
 <div
   #tableContainer
   class="table-container"
-  *ngIf="$pmfms | async | arrayFilter : isNotHiddenPmfm; let pmfms"
+  *ngIf="pmfms$ | async | arrayFilter : isNotHiddenPmfm; let pmfms"
   [class.mobile]="mobile"
   [class.has-toolbar]="showToolbar"
   [class.has-pmfm-header-details]="showPmfmDetails"

@@ -1,7 +1,18 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
-import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  AppFormUtils,
+  AudioProvider,
+  firstNotNilPromise,
+  isEmptyArray,
+  isNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  PlatformService,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
@@ -20,14 +31,13 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 
 export interface ISubBatchesModalOptions {
-
   disabled: boolean;
   showParentGroup: boolean;
   showTaxonNameColumn: boolean;
   showIndividualCount: boolean;
   showWeightColumn?: boolean;
 
-  weightDisplayUnit?: WeightUnitSymbol|'auto';
+  weightDisplayUnit?: WeightUnitSymbol | 'auto';
   weightDisplayDecimals?: number;
 
   // UI options
@@ -174,7 +184,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     try {
       // Wait for table pmfms
-      const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject, stopError: false });
+      const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject, stopError: false });
 
       await this.initForm(pmfms);
 

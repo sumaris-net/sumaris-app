@@ -1,9 +1,10 @@
-import { BehaviorSubject, isObservable, mergeMap, Observable } from 'rxjs';
-import {distinctUntilChanged, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
-import {IEntityWithMeasurement, MeasurementValuesUtils} from './measurement.model';
+import { firstValueFrom, isObservable, Observable } from 'rxjs';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import {
   EntityUtils,
-  firstNotNil, firstNotNilPromise,
+  firstNotNil,
+  firstNotNilPromise,
   IEntitiesService,
   IEntityFilter,
   InMemoryEntitiesService,
@@ -12,13 +13,28 @@ import {
   LoadResult,
   StartableService,
   waitForFalse,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import {Directive, EventEmitter, Injector, Optional} from '@angular/core';
-import {IPmfm, PMFM_ID_REGEXP} from '@app/referential/services/model/pmfm.model';
-import {SortDirection} from '@angular/material/sort';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {equals} from '@app/shared/functions';
+import { Directive, Injector, Optional } from '@angular/core';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
+import { SortDirection } from '@angular/material/sort';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { equals } from '@app/shared/functions';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+
+export interface MeasurementsTableEntitiesServiceState {
+  programLabel: string;
+  acquisitionLevel: AcquisitionLevelType;
+  requiredStrategy: boolean;
+  strategyLabel: string;
+  strategyId: number;
+  requiredGear: boolean;
+  gearId: number;
+  pmfms: IPmfm[];
+  loading: boolean;
+}
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -26,107 +42,30 @@ export class MeasurementsTableEntitiesService<
   T extends IEntityWithMeasurement<T, ID>,
   F extends IEntityFilter<any, T, any>,
   S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
-  ID = number
+  ID = number,
+  ST extends MeasurementsTableEntitiesServiceState = MeasurementsTableEntitiesServiceState
   >
   extends StartableService<IPmfm[]>
   implements IEntitiesService<T, F> {
 
-  private _programLabel: string;
-  private _acquisitionLevel: string;
-  private _requiredStrategy: boolean;
-  private _strategyLabel: string;
-  private _requiredGear: boolean;
-  private _gearId: number;
-  private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: S;
-  private _$pmfms = new BehaviorSubject<IPmfm[]>(undefined);
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-
   protected programRefService: ProgramRefService;
 
-  hasRankOrder = false;
+  @RxStateRegister() protected _state: RxState<ST>;
 
-  set programLabel(value: string) {
-    if (this._programLabel !== value && isNotNil(value)) {
-      this._programLabel = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set program');
-    }
-  }
+  @RxStateSelect() pmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() loading$: Observable<boolean>;
 
-  get programLabel(): string {
-    return this._programLabel;
-  }
 
-  set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value && isNotNil(value)) {
-      this._acquisitionLevel = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
-    }
-  }
-
-  get acquisitionLevel(): string {
-    return this._acquisitionLevel;
-  }
-
-  set strategyLabel(value: string) {
-    if (this._strategyLabel !== value && isNotNil(value)) {
-      this._strategyLabel = value;
-      if (!this.loading) this._onRefreshPmfms.emit();
-    }
-  }
-
-  get strategyLabel(): string {
-    return this._strategyLabel;
-  }
-
-  set requiredStrategy(value: boolean) {
-    if (this._requiredStrategy !== value && isNotNil(value)) {
-      this._requiredStrategy = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set required strategy');
-    }
-  }
-
-  get requiredStrategy(): boolean {
-    return this._requiredStrategy;
-  }
-
-  set gearId(value: number) {
-    if (this._gearId !== value) {
-      this._gearId = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set gear id');
-    }
-  }
-
-  get gearId(): number {
-    return this._gearId;
-  }
-
-  set requiredGear(value: boolean) {
-    if (this._requiredGear !== value && isNotNil(value)) {
-      this._requiredGear = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set required gear');
-    }
-  }
-
-  get requiredGear(): boolean {
-    return this._requiredGear;
-  }
-
-  set $pmfms(pmfms: Observable<IPmfm[]>) {
-    this.applyPmfms(pmfms);
-  }
-
-  get $pmfms(): Observable<IPmfm[]> {
-    return this._$pmfms;
-  }
-
-  get pmfms(): IPmfm[] {
-    return this._$pmfms.value;
-  }
-
-  set pmfms(pmfms: IPmfm[]) {
-    this.applyPmfms(pmfms);
-  }
+  @RxStateProperty() programLabel: string;
+  @RxStateProperty() acquisitionLevel: string;
+  @RxStateProperty() requiredStrategy: boolean;
+  @RxStateProperty() strategyId: number;
+  @RxStateProperty() strategyLabel: string;
+  @RxStateProperty() requiredGear: boolean;
+  @RxStateProperty() gearId: number;
+  @RxStateProperty() pmfms: IPmfm[];
+  @RxStateProperty() loading: boolean;
 
   set delegate(value: S) {
     this._delegate = value;
@@ -136,12 +75,8 @@ export class MeasurementsTableEntitiesService<
     return this._delegate;
   }
 
-  get loading(): boolean {
-    return this.loadingSubject.value;
-  }
-
   get stopped(): boolean {
-    return super.stopped || this._$pmfms?.closed || false;
+    return super.stopped || this.pmfms === undefined || false;
   }
 
   constructor(
@@ -151,35 +86,43 @@ export class MeasurementsTableEntitiesService<
     @Optional() protected options?: {
       mapPmfms: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
       requiredStrategy?: boolean;
+      requiredGear?: boolean;
       debug?: boolean;
     }) {
     super(null);
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
-    this._requiredStrategy = options && options.requiredStrategy || false;
-    this._debug = options && options.debug;
 
-    // Detect rankOrder on the entity class
-    this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).some(key => key === 'rankOrder');
+    // Init state defaults
+    const requiredGear = options?.requiredGear === true;
+    this._state.set(<Partial<ST>>{
+      requiredStrategy: options?.requiredStrategy,
+      strategyId: null,
+      strategyLabel: null,
+      requiredGear,
+      gearId: requiredGear ? undefined: null,
+    });
 
-    this.registerSubscription(
-      this._onRefreshPmfms
+    // Load pmfms
+    this._state.connect('pmfms',
+      this._state.select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], s => s)
         .pipe(
-          map(() => this.generatePmfmWatchKey()),
-          filter(isNotNil),
-          distinctUntilChanged(),
-          switchMap(() => this.watchProgramPmfms()),
-          tap(pmfms => this.applyPmfms(pmfms))
+          filter((s) => this.canLoadPmfms(s as Partial<ST>)),
+          switchMap((s) => this.watchProgramPmfms(s as Partial<ST>))
         )
-        .subscribe()
     );
+
+    // Apply pmfms
+    this._state.hold(this.pmfms$,(pmfms) => this.applyPmfms(pmfms));
+
+    // DEBUG
+    this._debug = options && options.debug;
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
     if (this.stopped) throw Error('MeasurementService is not restartable!');
-    if (!this.loading) this._onRefreshPmfms.emit('start');
     try {
-      return await firstNotNil(this._$pmfms).toPromise();
+      return await firstValueFrom(firstNotNil(this.pmfms$));
     }
     catch(err) {
       if (this.stopped) {
@@ -192,14 +135,14 @@ export class MeasurementsTableEntitiesService<
   }
 
   protected async ngOnStop() {
-    this._$pmfms.complete();
-    this._$pmfms.unsubscribe();
-    this._onRefreshPmfms.complete();
-    this._onRefreshPmfms.unsubscribe();
-    this.loadingSubject.unsubscribe();
+    this._state.ngOnDestroy();
     if (this._delegate instanceof InMemoryEntitiesService) {
       await this._delegate.stop();
     }
+  }
+
+  set(state: Partial<ST>) {
+    this._state.set(state);
   }
 
   watchAll(
@@ -213,7 +156,7 @@ export class MeasurementsTableEntitiesService<
 
     if (!this.started) this.start();
 
-    return this._$pmfms
+    return this.pmfms$
       .pipe(
         filter(isNotNil),
         switchMap(pmfms => {
@@ -256,7 +199,7 @@ export class MeasurementsTableEntitiesService<
   async saveAll(data: T[], options?: any): Promise<T[]> {
 
     if (this._debug) console.debug('[meas-service] converting measurement values before saving...');
-    const pmfms = this._$pmfms.getValue() || [];
+    const pmfms = this.pmfms || [];
     const dataToSaved = data.map(json => {
       const entity = new this.dataType() as T;
       entity.fromObject(json);
@@ -279,40 +222,43 @@ export class MeasurementsTableEntitiesService<
   }
 
   async waitIdle(opts: WaitForOptions): Promise<void> {
-    await waitForFalse(this.loadingSubject, opts);
+    await waitForFalse(this.loading$, opts);
   }
 
   /* -- private methods -- */
 
-  private generatePmfmWatchKey(): string | undefined {
-    if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) {
-      return;
+  private canLoadPmfms(state: Partial<ST>): boolean {
+    if (isNil(state.programLabel) || isNil(state.acquisitionLevel)) {
+      return false;
     }
 
-    if (this._requiredStrategy && isNil(this._strategyLabel)) {
-      if (this._debug) console.debug('[meas-service] Cannot watch Pmfms yet. Missing required \'strategyLabel\'.');
-      return;
+    if (state.requiredStrategy && isNil(state.strategyLabel) && isNil(state.strategyId)) {
+      //if (this._debug)
+        console.debug('[meas-service] Cannot watch Pmfms yet. Missing required strategy.');
+      return false;
     }
 
-    if (this._requiredGear && isNil(this._gearId)) {
+    if (state.requiredGear && isNil(state.gearId)) {
       if (this._debug) console.debug('[meas-service] Cannot watch Pmfms yet. Missing required \'gearId\'.');
-      return;
+      return false;
     }
 
-    return `${this._programLabel}|${this._acquisitionLevel}|${this._strategyLabel}|${this._gearId}`;
+    return true;
   }
 
-  private watchProgramPmfms(): Observable<IPmfm[]> {
+  private watchProgramPmfms(state: Partial<ST>): Observable<IPmfm[]> {
     this.markAsLoading();
 
     // DEBUG
-    if (this._debug) console.debug(`[meas-service] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}̀̀`);
+    //if (this._debug)
+      console.debug(`[meas-service] Loading pmfms... {program: '${state.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyId: ${state.strategyId} (required? ${state.requiredStrategy}), gearId: ${state.gearId}}}̀̀`);
 
     // Watch pmfms
-    let pmfm$ = this.programRefService.watchProgramPmfms(this._programLabel, {
-        acquisitionLevel: this._acquisitionLevel,
-        strategyLabel: this._strategyLabel || undefined,
-        gearId: this._gearId || undefined
+    let pmfm$ = this.programRefService.watchProgramPmfms(state.programLabel, {
+        acquisitionLevel: state.acquisitionLevel,
+        strategyId: state.strategyId,
+        strategyLabel: state.strategyLabel,
+        gearId: state.gearId
       })
       .pipe(
         takeUntil(this.stopSubject)
@@ -323,9 +269,9 @@ export class MeasurementsTableEntitiesService<
       pmfm$ = pmfm$.pipe(
         tap(pmfms => {
           if (!pmfms.length) {
-            console.debug(`[meas-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}. Please fill program's strategies !`);
+            console.debug(`[meas-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}. Please fill program's strategies !`);
           } else {
-            console.debug(`[meas-service] Pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);
+            console.debug(`[meas-service] Pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}`, pmfms);
           }
         })
       );
@@ -359,12 +305,12 @@ export class MeasurementsTableEntitiesService<
       }
 
       // Check if changes
-      if (equals(pmfms, this._$pmfms.value)) return false; // Skip if same
+      if (equals(pmfms, this.pmfms)) return false; // Skip if same
 
       // DEBUG log
       //if (this._debug) console.debug(`[meas-service] Pmfms to applied: `, pmfms);
 
-      this._$pmfms.next(pmfms);
+      this.pmfms = pmfms;
       return true;
     } catch (err) {
       if (!this.stopped) {
@@ -378,14 +324,14 @@ export class MeasurementsTableEntitiesService<
   }
 
   private markAsLoading() {
-    if (!this.loadingSubject.value) {
-      this.loadingSubject.next(true);
+    if (!this.loading) {
+      this.loading = true;
     }
   }
 
   private markAsLoaded() {
-    if (this.loadingSubject.value) {
-      this.loadingSubject.next(false);
+    if (this.loading) {
+      this.loading = false
     }
   }
 }

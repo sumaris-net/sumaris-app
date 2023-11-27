@@ -60,7 +60,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
   }
 
   async updateProducts(value: Product[]) {
-    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms)).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm));
+    const pmfms = (await firstNotNilPromise(this.productsTable.pmfms$)).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm));
     let products = (value || []).slice();
     this.totalPriceCalculated = 0;
 

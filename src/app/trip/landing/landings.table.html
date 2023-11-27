@@ -208,7 +208,7 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
         <ion-label>
           {{ pmfm | pmfmName : { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}

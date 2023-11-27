@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
-import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
+import {
+  AbstractBatchesTableConfig,
+  AbstractBatchesTableState,
+  BATCH_RESERVED_END_COLUMNS,
+  BATCH_RESERVED_START_COLUMNS,
+} from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -47,8 +52,8 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
-import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -120,17 +125,16 @@ declare interface GroupColumnDefinition {
   qvIndex: number;
   colSpan?: number;
 }
-interface BatchGroupsTableState {
+export interface BatchGroupsTableState extends AbstractBatchesTableState {
   showAutoFillButton: boolean;
   showSamplingBatchColumns: boolean;
-  individualCountColumns: boolean;
+  showIndividualCountColumns: boolean;
 }
 
 @Component({
   selector: 'app-batch-groups-table',
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
-  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchGroupsTable extends AbstractBatchesTable<
@@ -138,7 +142,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   BatchFilter,
   InMemoryEntitiesService<BatchGroup, BatchFilter>,
   BatchGroupValidatorService,
-  AbstractBatchesTableConfig<BatchGroup>,
+  BatchGroupsTableState,
+  AbstractBatchesTableConfig<BatchGroup, BatchGroupsTableState>,
   BatchGroupValidatorOptions
 > {
   static BASE_DYNAMIC_COLUMNS: Partial<BatchGroupColumnDefinition>[] = [
@@ -269,19 +274,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
-  @Input() set showAutoFillButton(value: boolean) {
-    this._state.set('showAutoFillButton', (_) => value);
-  }
-  get showAutoFillButton(): boolean {
-    return this._state.get('showAutoFillButton');
-  }
-
-  @Input() set showSamplingBatchColumns(value: boolean) {
-    this._state.set('showSamplingBatchColumns', (_) => value);
-  }
-  get showSamplingBatchColumns(): boolean {
-    return this._state.get('showSamplingBatchColumns');
-  }
 
   @Input() set showWeightColumns(value: boolean) {
     if (this._showWeightColumns !== value) {
@@ -313,12 +305,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() taxonGroupsNoWeight: string[] = [];
   @Input() taxonGroupsNoLanding: string[] = [];
 
-  @Input() set showIndividualCountColumns(value: boolean) {
-    this._state.set('individualCountColumns', (_) => value);
-  }
-  get showIndividualCountColumns(): boolean {
-    return this._state.get('individualCountColumns');
-  }
+  @Input() @RxStateProperty() showAutoFillButton: boolean
+  @Input() @RxStateProperty() showSamplingBatchColumns: boolean;
+  @Input() @RxStateProperty() showIndividualCountColumns: boolean;
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -326,8 +315,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     injector: Injector,
     validatorService: BatchGroupValidatorService,
     protected context: TripContextService,
-    protected pmfmNamePipe: PmfmNamePipe,
-    protected _state: RxState<BatchGroupsTableState>
+    protected pmfmNamePipe: PmfmNamePipe
   ) {
     super(
       injector,

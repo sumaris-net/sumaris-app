@@ -196,7 +196,7 @@ export class PhysicalGearModal
       this._state.connect('childrenPmfms', this._state.select('childrenTable')
         .pipe(
           filter(isNotNil),
-          switchMap((table) => table.$pmfms)
+          switchMap((table) => table.pmfms$)
         ), (_, pmfms) => {
         console.debug('[physical-gear-modal] Receiving new pmfms', pmfms);
         return pmfms;

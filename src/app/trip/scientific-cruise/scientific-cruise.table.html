@@ -133,7 +133,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col>
+          <ion-col size="12" size-lg="6">
             <!-- Program -->
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
@@ -144,9 +144,7 @@
               <ion-icon matPrefix name="contract"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
-        </ion-row>
 
-        <ion-row>
           <ion-col size="12" size-lg="6">
             <!-- Vessel -->
             <mat-autocomplete-field

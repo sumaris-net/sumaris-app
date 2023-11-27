@@ -244,8 +244,8 @@
                         [acquisitionLevel]="acquisitionLevel"
                         [programLabel]="programLabel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [pmfms]="pmfms$|async"
                         [strategyId]="(strategy$ | async)?.id"
+                        [pmfms]="pmfms$|async"
                         [tabindex]="30"
                         [mobile]="mobile"
                         [debug]="debug"
@@ -308,6 +308,9 @@
         <app-physical-gears-table
           #physicalGearsTable
           [programLabel]="programLabel$ | async"
+          [requiredStrategy]="requiredStrategy$ | async"
+          [strategyId]="(strategy$ | async)?.id"
+          [requiredGear]="false"
           (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
           [showToolbar]="!mobile"
           [useSticky]="!mobile"

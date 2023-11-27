@@ -29,7 +29,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from './sample.model';
@@ -85,7 +85,8 @@ export class SamplesTable
     SampleFilter,
     InMemoryEntitiesService<Sample, SampleFilter>,
     SampleValidatorService,
-    BaseMeasurementsTableConfig<Sample>,
+    BaseMeasurementsTableState,
+    BaseMeasurementsTableConfig<Sample, BaseMeasurementsTableState>,
     SampleValidatorOptions>
 implements OnInit, AfterViewInit, OnDestroy {
 
@@ -265,7 +266,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
 
     // Set default value
-    this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
+    this.acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
     this.excludesColumns = ['images']; // Hide images by default
 
     //this.debug = false;
@@ -287,7 +288,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     // Add footer listener
     this.registerSubscription(
-      this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms))
+      this.pmfms$.subscribe(pmfms => this.addFooterListener(pmfms))
     );
   }
 
@@ -413,7 +414,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
+    const pmfms = await firstNotNilPromise(this.pmfms$, {stop: this.destroySubject});
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -793,7 +794,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     let tagIdGenerationMode = this.tagIdGenerationMode;
     if (this.tagIdPmfm && tagIdGenerationMode !== 'none') {
       // Force previous row, if offline
-      if (this.networkService.offline || !this._strategyLabel || this.tagIdMinLength <= 0) {
+      if (this.networkService.offline || !this.strategyLabel || this.tagIdMinLength <= 0) {
         tagIdGenerationMode = 'previousRow';
       }
 
@@ -811,7 +812,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
         // Remote generation
         case 'remote':
-          const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength);
+          const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this.strategyLabel, '-', this.tagIdMinLength);
           const nextTagIdSuffix = parseInt(nextTagIdComplete.slice(-1 * this.tagIdMinLength));
           newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix)
             .padStart(this.tagIdMinLength, '0');

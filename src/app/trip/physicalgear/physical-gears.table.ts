@@ -136,7 +136,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       {
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        requiredStrategy: true
       });
 
     this.filterForm = formBuilder.group({

@@ -13,9 +13,9 @@ import {
   ReferentialUtils,
   removeDuplicatesFromArray,
   splitByProperty,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../landing/landing.model';
@@ -35,10 +35,17 @@ import { IEntityWithMeasurement } from '@app/data/measurement/measurement.model'
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export interface AbstractBatchesTableConfig<T extends IEntityWithMeasurement<T>>
-  extends BaseMeasurementsTableConfig<T> {
+export interface AbstractBatchesTableState extends BaseMeasurementsTableState {
+}
+
+export interface AbstractBatchesTableConfig<
+  T extends IEntityWithMeasurement<T>,
+  ST extends AbstractBatchesTableState = AbstractBatchesTableState
+> extends BaseMeasurementsTableConfig<T, ST> {
+
   mapPmfms?: undefined; // Avoid to override mapPmfms
 }
+
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -47,9 +54,10 @@ export abstract class AbstractBatchesTable<
   F extends BatchFilter = BatchFilter,
   S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
   V extends BatchValidatorService<T, VO> = BatchValidatorService<T, any>,
-  O extends AbstractBatchesTableConfig<T> = AbstractBatchesTableConfig<T>,
-  VO extends BatchValidatorOptions = BatchValidatorOptions
-  > extends BaseMeasurementsTable<T, F, S, V, O, VO>
+  ST extends AbstractBatchesTableState = AbstractBatchesTableState,
+  O extends AbstractBatchesTableConfig<T, ST> = AbstractBatchesTableConfig<T, ST>,
+  VO extends BatchValidatorOptions = BatchValidatorOptions,
+  > extends BaseMeasurementsTable<T, F, S, V, ST, O, VO>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: IPmfm[];
@@ -108,7 +116,7 @@ export abstract class AbstractBatchesTable<
       filterType,
       dataService,
       validatorService,
-      {
+      <O>{
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
         i18nColumnPrefix: 'TRIP.BATCH.TABLE.',

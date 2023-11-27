@@ -31,15 +31,22 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
+import { RxStateRegister } from '@app/shared/state/state.decorator';
+import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
   filterKey: 'filter',
   compactRowsKey: 'compactRows',
 };
 
+export interface BaseTableState {
+
+}
+
 export interface BaseTableConfig<
   T extends Entity<T, ID>,
   ID = number,
+  ST extends BaseTableState = BaseTableState,
   WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
   SO = any>
   extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
@@ -47,7 +54,9 @@ export interface BaseTableConfig<
   restoreCompactMode?: boolean;
   restoreColumnWidths?: boolean;
   i18nColumnPrefix?: string;
+  initialState?: ST;
 }
+
 
 @Directive()
 export abstract class AppBaseTable<
@@ -56,7 +65,8 @@ export abstract class AppBaseTable<
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
+    ST extends BaseTableState = BaseTableState,
+    O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>
   >
   extends AppTable<T, F, ID>
   implements OnInit, AfterViewInit
@@ -69,6 +79,8 @@ export abstract class AppBaseTable<
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
+
+  @RxStateRegister() protected _state: RxState<ST>;
 
   @Input() canGoBack = false;
   @Input() showTitle = true;
@@ -190,6 +202,11 @@ export abstract class AppBaseTable<
     super.ngAfterViewInit();
 
     this.initTableContainer(this.tableContainerRef?.nativeElement);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._state.ngOnDestroy();
   }
 
   initTableContainer(element: any) {

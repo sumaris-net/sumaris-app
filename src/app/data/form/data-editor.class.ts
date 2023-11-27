@@ -42,6 +42,7 @@ import { AcquisitionLevelType } from '@app/referential/services/model/model.enum
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export abstract class DataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -72,7 +73,8 @@ export abstract class AppDataEntityEditor<
   extends AppEntityEditor<T, S, ID>
   implements OnInit, OnDestroy
 {
-  protected readonly _state: RxState<ST> = new RxState<ST>();
+  @RxStateRegister() protected readonly _state: RxState<ST>;
+
   protected readonly _reloadProgramSubject = new EventEmitter<void>();
   protected readonly _reloadStrategySubject = new EventEmitter<void>();
   protected readonly programRefService: ProgramRefService;
@@ -88,68 +90,23 @@ export abstract class AppDataEntityEditor<
   protected remoteStrategySubscription: Subscription;
   protected canSendMessage = false;
 
-  readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
-  readonly programLabel$ = this._state.select('programLabel');
-  readonly program$ = this._state.select('program');
-  readonly strategyResolution$ = this._state.select( 'strategyResolution');
-  readonly requiredStrategy$ = this._state.select( 'requiredStrategy');
-  readonly strategyFilter$ = this._state.select( 'strategyFilter');
-  readonly strategy$ = this._state.select('strategy');
-  readonly pmfms$ = this._state.select('pmfms');
+  @RxStateSelect<ST>('acquisitionLevel') acquisitionLevel$: Observable<AcquisitionLevelType>;
+  @RxStateSelect() programLabel$: Observable<string>;
+  @RxStateSelect() program$: Observable<Program>;
+  @RxStateSelect() strategyResolution$: Observable<DataStrategyResolution>;
+  @RxStateSelect() requiredStrategy$: Observable<boolean>;
+  @RxStateSelect() strategyFilter$: Observable<StrategyFilter>;
+  @RxStateSelect() strategy$: Observable<Strategy>;
+  @RxStateSelect() pmfms$: Observable<IPmfm[]>;
 
-  get acquisitionLevel(): AcquisitionLevelType {
-    return this._state.get('acquisitionLevel');
-  }
-  set acquisitionLevel(value: AcquisitionLevelType) {
-    this._state.set('acquisitionLevel', () => value);
-  }
-
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
-  set programLabel(value: string) {
-    this._state.set('programLabel', () => value);
-  }
-
-  get program(): Program {
-    return this._state.get('program');
-  }
-  set program(value: Program) {
-    this._state.set('program', () => value);
-  }
-
-  get strategyResolution(): DataStrategyResolution {
-    return this._state.get('strategyResolution');
-  }
-  set strategyResolution(value: DataStrategyResolution) {
-    this._state.set('strategyResolution', () => value);
-  }
-  get requiredStrategy(): boolean {
-    return this._state.get('requiredStrategy');
-  }
-  set requiredStrategy(value: boolean) {
-    this._state.set('requiredStrategy', () => value);
-  }
-
-  get strategyFilter(): Partial<StrategyFilter> {
-    return this._state.get('strategyFilter');
-  }
-  set strategyFilter(value: Partial<StrategyFilter>) {
-    this._state.set('strategyFilter', () => value);
-  }
-  get strategy(): Strategy {
-    return this._state.get('strategy');
-  }
-  set strategy(value: Strategy) {
-    this._state.set('strategy', () => value);
-  }
-
-  get pmfms(): IPmfm[] {
-    return this._state.get('pmfms');
-  }
-  set pmfms(value: IPmfm[]) {
-    this._state.set('pmfms', () => value);
-  }
+  @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
+  @RxStateProperty() programLabel: string
+  @RxStateProperty() program: Program;
+  @RxStateProperty() strategyResolution: DataStrategyResolution;
+  @RxStateProperty() requiredStrategy: boolean;
+  @RxStateProperty() strategyFilter: Partial<StrategyFilter>;
+  @RxStateProperty() strategy: Strategy;
+  @RxStateProperty() pmfms: Partial<IPmfm[]>;
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: DataEditorOptions) {
     super(injector, dataType, dataService, {
@@ -163,17 +120,12 @@ export abstract class AppDataEntityEditor<
     this.personService = injector.get(PersonService);
     this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
-    this.logPrefix = '[base-data-editor] ';
-    this.canDebug = !environment.production;
-
-    // Initial state
-    if (options?.acquisitionLevel) {
-      this._state.set(<Partial<ST>>{
-        acquisitionLevel: options.acquisitionLevel
-      });
-    }
+    this.acquisitionLevel = options?.acquisitionLevel;
+    this.requiredStrategy = true;
 
     // FOR DEV ONLY ----
+    this.logPrefix = '[base-data-editor] ';
+    this.canDebug = !environment.production;
     //this.debug = !environment.production;
   }
 
@@ -222,10 +174,17 @@ export abstract class AppDataEntityEditor<
     )
     .pipe(
       filter(strategyFilter => this.canLoadStrategy(this.program, strategyFilter)),
-      mergeMap((strategyFilter) => this.loadStrategy(strategyFilter))
+      mergeMap((strategyFilter) => this.loadStrategy(strategyFilter)
+        .catch(err => {
+          this.setError(err);
+          return undefined;
+        }))
     ));
 
-    this._state.connect('requiredStrategy', this.strategyResolution$.pipe(map(r => r && r !== DataStrategyResolutions.NONE)))
+    this._state.connect('requiredStrategy', this.strategyResolution$.pipe(
+      filter(isNotNil),
+      map(r => r !== DataStrategyResolutions.NONE))
+    )
 
     this._state.hold(this.strategy$, strategy => this.setStrategy(strategy));
 

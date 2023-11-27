@@ -24,7 +24,7 @@ import {
   mergeLoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
@@ -51,9 +51,9 @@ import { JobFragments } from '@app/social/job/job.service';
 import { Job } from '@app/social/job/job.model';
 import { TranslateService } from '@ngx-translate/core';
 
-
 export const VesselFragments = {
-  lightVessel: gql`fragment VesselFragment on VesselVO {
+  lightVessel: gql`
+    fragment VesselFragment on VesselVO {
       id
       comments
       statusId
@@ -83,38 +83,41 @@ export const VesselFragments = {
       recorderPerson {
         ...LightPersonFragment
       }
-    }`,
-  vessel: gql`fragment VesselFragment on VesselVO {
+    }
+  `,
+  vessel: gql`
+    fragment VesselFragment on VesselVO {
+      id
+      comments
+      statusId
+      creationDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualificationComments
+      updateDate
+      comments
+      program {
         id
-        comments
-        statusId
-        creationDate
-        controlDate
-        validationDate
-        qualificationDate
-        qualificationComments
-        updateDate
-        comments
-        program {
-          id
-          label
-        }
-        vesselType {
-            ...LightReferentialFragment
-        }
-        vesselFeatures {
-            ...VesselFeaturesFragment
-        }
-        vesselRegistrationPeriod {
-            ...VesselRegistrationPeriodFragment
-        }
-        recorderDepartment {
-            ...LightDepartmentFragment
-        }
-        recorderPerson {
-            ...LightPersonFragment
-        }
-    }`
+        label
+      }
+      vesselType {
+        ...LightReferentialFragment
+      }
+      vesselFeatures {
+        ...VesselFeaturesFragment
+      }
+      vesselRegistrationPeriod {
+        ...VesselRegistrationPeriodFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+    }
+  `,
 };
 
 

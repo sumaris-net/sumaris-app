@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { SubSampleValidatorService } from './sub-sample.validator';
@@ -14,7 +14,7 @@ import {
   PlatformService,
   suggestFromArray,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { Sample } from './sample.model';
@@ -135,8 +135,8 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.registerSubscription(
       merge(
         this.onParentChanges
-          .pipe(mergeMap(() => this.$pmfms)),
-        this.$pmfms.pipe(
+          .pipe(mergeMap(() => this.pmfms$)),
+        this.pmfms$.pipe(
           filter(isNotEmptyArray),
           distinctUntilChanged(),
           tap(pmfms => this.onPmfmsLoaded(pmfms))
@@ -218,7 +218,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[sub-samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
+    const pmfms = await firstNotNilPromise(this.pmfms$, {stop: this.destroySubject});
 
     const isNew = !dataToOpen && true;
     if (isNew) {

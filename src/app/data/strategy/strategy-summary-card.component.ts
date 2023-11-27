@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 // import fade in animation
-import { merge, Subscription } from 'rxjs';
+import { mergeMap, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AppRootDataEntityEditor } from '../form/root-data-editor.class';
 import { fadeInAnimation, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
@@ -78,12 +78,12 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
     // Subscribe to refresh events
     this._subscription.add(
-      merge(
-        this.editor.strategy$,
-        this.editor.onUpdateView
+      this.editor.onUpdateView
+        .pipe(mergeMap(_ => this.editor.strategy$))
+      .pipe(
+        debounceTime(450)
       )
-      .pipe(debounceTime(450))
-      .subscribe(() => this.updateView())
+      .subscribe((data: T) => this.updateView(data))
     );
   }
 
@@ -95,6 +95,8 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
 
   protected updateView(data?: T) {
     data = data || this.data || (this.editor && this.editor.strategy as T);
+
+    console.log('TODO updating strategy #' +  data?.id);
 
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;

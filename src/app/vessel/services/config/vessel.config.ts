@@ -5,7 +5,9 @@ import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 export const VESSEL_FEATURE_NAME = 'vessel';
 
 export const VESSEL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-
+  VesselSnapshotVO: {
+    keyFields: ['id'/*, 'vesselId'*/]
+  },
 };
 
 export const VESSEL_CONFIG_OPTIONS = {

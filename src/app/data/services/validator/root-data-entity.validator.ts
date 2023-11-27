@@ -55,8 +55,8 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
         validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null
       }
     );
-    if (data) {
-      formArray.patchValue(data);
+    if (data || required) {
+      formArray.patchValue(data || [null]);
     }
     return formArray;
   }
