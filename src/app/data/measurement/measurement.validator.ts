@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
-import { AppFormArray, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormArray, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from './measurement.model';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -71,7 +71,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
               }
           );
           if (Array.isArray(value)) {
-            formArray.setValue(value, {emitEvent: false});
+            formArray.setValue(value.map(v => isNil(v) ? null : v), {emitEvent: false});
           }
           else {
             formArray.setValue([null], {emitEvent: false});
