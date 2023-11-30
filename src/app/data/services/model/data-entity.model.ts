@@ -147,7 +147,15 @@ export abstract class DataEntityUtils {
   }
 
   /**
-   * Set controlDat, and reset quality fLag and comment
+   * Check if an entity has been controlled
+   *
+   * @param entity
+   */
+  static isControlled(entity: DataEntity<any, any>|undefined): boolean {
+    return !!entity?.controlDate;
+  }
+  /**
+   * Set controlDate, and reset quality fLag and comment
    *
    * @param entity
    * @param opts

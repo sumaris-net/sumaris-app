@@ -10,7 +10,7 @@ import {
   Optional,
   Output,
 } from '@angular/core';
-import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
+import { DataEntity, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
@@ -135,7 +135,12 @@ export class EntityQualityFormComponent<
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to update events
-    let updateViewEvents = merge(this.editor.onUpdateView, this.accountService.onLogin, this.network.onNetworkStatusChanges);
+    let updateViewEvents = merge(
+      this.editor.onUpdateView,
+      this.editor.dirtySubject,
+      this.accountService.onLogin,
+      this.network.onNetworkStatusChanges
+    );
 
     // Add a debounce time
     if (this._mobile) updateViewEvents = updateViewEvents.pipe(debounceTime(500));
@@ -356,6 +361,11 @@ export class EntityQualityFormComponent<
     try {
       this.busy = true;
 
+      if (!DataEntityUtils.isControlled(this.data)) {
+        console.debug('[entity-quality] Terminate entity input...');
+        this.data = await this.serviceForRootEntity.terminate(this.data);
+      }
+
       console.debug('[entity-quality] Mark entity as validated...');
       const data = await this.serviceForRootEntity.validate(this.data);
 
@@ -412,7 +422,7 @@ export class EntityQualityFormComponent<
       const canWrite = isLocalData || this.editor.canUserWrite(data);
 
       // Terminate and control
-      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate));
+      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate) || this.editor.dirty);
       this.canTerminate = this.canControl && this._isRootDataQualityService && (!isLocalData || data.synchronizationStatus === 'DIRTY');
 
       // Validation and qualification

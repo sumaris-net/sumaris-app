@@ -96,7 +96,8 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   protected updateView(data?: T) {
     data = data || this.data || (this.editor && this.editor.strategy as T);
 
-    console.log('TODO updating strategy #' +  data?.id);
+    // DEBUG
+    //console.debug('[strategy-summary-card] updating strategy #' +  data?.id);
 
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;
@@ -105,7 +106,9 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
       this.markForCheck();
     }
     else if (this.data !== data || this.loading){
-      console.debug('[strategy-summary-card] Updating view using strategy:', data);
+      // DEBUG
+      //console.debug('[strategy-summary-card] Updating view using strategy:', data);
+
       this.data = data;
       this.canOpenLink = this.showOpenLink && isNotNil(data.programId);
       this.loading = false;
