@@ -91,8 +91,8 @@
 >
   <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
     <ion-grid>
-      <ion-row>
-        <ion-col *ngIf="!showSearchbar || !showToolbar" size="12" size-lg="6">
+      <ion-row *ngIf="!(showSearchbar && showToolbar) || showVesselTypeFilter">
+        <ion-col *ngIf="!showSearchbar || !showToolbar" size="12" size-lg="">
           <!-- search text -->
           <mat-form-field>
             <ion-icon matPrefix name="search"></ion-icon>
@@ -116,7 +116,7 @@
           </mat-form-field>
         </ion-col>
 
-        <ion-col size="12" size-lg="6">
+        <ion-col size="12" size-lg="" *ngIf="showVesselTypeFilter">
           <!-- Vessel Type  -->
           <mat-autocomplete-field
             [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
