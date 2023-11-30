@@ -6,13 +6,13 @@ import {
   Alerts,
   ConfigService,
   FilesUtils,
-  HammerSwipeEvent,
+  HammerSwipeEvent, isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   referentialToString,
-  StatusIds,
-} from '@sumaris-net/ngx-components';
+  StatusIds
+} from "@sumaris-net/ngx-components";
 import { Location } from '@angular/common';
 import { VesselsTable } from './vessels.table';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -46,6 +46,7 @@ export class VesselsPage implements OnInit, OnDestroy {
   mobile: boolean;
   enableReplacement = false;
   enableFileImport = false;
+  vesselTypeId: number;
 
   private _subscription = new Subscription();
 
@@ -86,7 +87,11 @@ export class VesselsPage implements OnInit, OnDestroy {
       this.configService.config.subscribe((config) => {
         this.enableReplacement = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
         this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.REFERENTIAL_VESSEL_IMPORT_ENABLE);
-        this.markForCheck();
+        const vesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
+        this.table.vesselTypeId = vesselTypeId;
+        this.table.showVesselTypeFilter = isNil(vesselTypeId);
+        this.table.showVesselTypeColumn = isNil(vesselTypeId);
+        this.table.markAsReady();
       })
     );
   }
