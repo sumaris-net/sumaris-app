@@ -91,33 +91,45 @@
 
   <mat-divider></mat-divider>
 
-  <!-- DEV only -->
-  <ng-container *ngIf="canDebug">
-    <button mat-menu-item (click)="devToggleDebug()">
-      <mat-icon *ngIf="debug">check_box</mat-icon>
-      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
-    </button>
-    <ng-container *ngIf="debug">
-      <button mat-menu-item *ngIf="isNewData" (click)="devToggleAutoFillData()">
-        <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
-        <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
-        <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-      </button>
-      <button mat-menu-item (click)="devToggleOfflineMode()">
-        <mat-icon *ngIf="network.offline">check_box</mat-icon>
-        <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
-        <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-      </button>
-    </ng-container>
-    <mat-divider></mat-divider>
-  </ng-container>
-
   <!-- delete -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
     <mat-icon>delete</mat-icon>
     <ion-label translate>TRIP.EDIT.BTN_DELETE</ion-label>
   </button>
+
+  <!-- DEV only -->
+  <ng-container *ngIf="canDebug">
+    <mat-divider></mat-divider>
+    <button mat-menu-item [matMenuTriggerFor]="debugMenu">
+      <mat-icon><ion-icon name="bug"></ion-icon></mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_DEBUG_DOTS</ion-label>
+    </button>
+  </ng-container>
+</mat-menu>
+
+<!-- debug menu -->
+<mat-menu #debugMenu="matMenu">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="devToggleDebug()">
+      <mat-icon *ngIf="debug">check_box</mat-icon>
+      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
+    </button>
+    <button mat-menu-item
+            [disabled]="!debug || !isNewData"
+            (click)="devToggleAutoFillData()">
+      <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
+      <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
+    </button>
+    <button mat-menu-item
+            [disabled]="!debug"
+            (click)="devToggleOfflineMode()">
+      <mat-icon *ngIf="network.offline">check_box</mat-icon>
+      <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
+      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 <ion-content>

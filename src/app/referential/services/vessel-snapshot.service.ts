@@ -6,7 +6,8 @@ import {
   BaseGraphqlService,
   ConfigService,
   EntitiesStorage,
-  EntityServiceLoadOptions, EntityStorageLoadOptions,
+  EntityServiceLoadOptions,
+  EntityStorageLoadOptions,
   firstNotNilPromise,
   GraphqlService,
   isEmptyArray,
@@ -19,7 +20,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from './referential.fragments';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
@@ -33,52 +34,59 @@ import { debounceTime, filter, map } from 'rxjs/operators';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { mergeLoadResult } from '@app/shared/functions';
 
-
 export const VesselSnapshotFragments = {
-  lightVesselSnapshot: gql`fragment LightVesselSnapshotFragment on VesselSnapshotVO {
-    id: vesselId
-    name
-    exteriorMarking
-    registrationCode
-    intRegistrationCode
-    vesselType {
-      ...LightReferentialFragment
+  lightVesselSnapshot: gql`
+    fragment LightVesselSnapshotFragment on VesselSnapshotVO {
+      id: vesselId
+      name
+      exteriorMarking
+      registrationCode
+      intRegistrationCode
+      updateDate
+      vesselType {
+        ...LightReferentialFragment
+      }
+      vesselStatusId
     }
-    vesselStatusId
-  }`,
-  lightVesselSnapshotWithPort: gql`fragment LightVesselSnapshotWithPortFragment on VesselSnapshotVO {
-    id: vesselId
-    name
-    exteriorMarking
-    registrationCode
-    intRegistrationCode
-    startDate
-    endDate
-    basePortLocation {
-      ...LocationFragment
+  `,
+  lightVesselSnapshotWithPort: gql`
+    fragment LightVesselSnapshotWithPortFragment on VesselSnapshotVO {
+      id: vesselId
+      name
+      exteriorMarking
+      registrationCode
+      intRegistrationCode
+      startDate
+      endDate
+      updateDate
+      basePortLocation {
+        ...LocationFragment
+      }
+      vesselType {
+        ...LightReferentialFragment
+      }
+      vesselStatusId
     }
-    vesselType {
-      ...LightReferentialFragment
+  `,
+  vesselSnapshot: gql`
+    fragment VesselSnapshotFragment on VesselSnapshotVO {
+      id: vesselId
+      name
+      exteriorMarking
+      registrationCode
+      intRegistrationCode
+      startDate
+      endDate
+      updateDate
+      basePortLocation {
+        ...LocationFragment
+      }
+      vesselType {
+        ...LightReferentialFragment
+      }
+      vesselStatusId
     }
-    vesselStatusId
-  }`,
-  vesselSnapshot: gql`fragment VesselSnapshotFragment on VesselSnapshotVO {
-    id: vesselId
-    name
-    exteriorMarking
-    registrationCode
-    intRegistrationCode
-    startDate
-    endDate
-    updateDate
-    basePortLocation {
-      ...LocationFragment
-    }
-    vesselType {
-      ...LightReferentialFragment
-    }
-    vesselStatusId
-  }`
+  `,
 };
 
 const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
@@ -504,8 +512,9 @@ export class VesselSnapshotService
 
     const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE);
 
-    // Set filter, with registration location
+    // Set default filter (registration location, vessel type)
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
+    const defaultVesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
 
     const settingsAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
 
@@ -513,7 +522,8 @@ export class VesselSnapshotService
     this.defaultFilter = {
       ...this.defaultFilter,
       searchAttributes: settingsAttributes,
-      registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{id: defaultRegistrationLocationId} : undefined
+      registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{id: defaultRegistrationLocationId} : undefined,
+      vesselTypeId: isNotNil(defaultVesselTypeId) ? defaultVesselTypeId : undefined
     };
 
     // Update default options

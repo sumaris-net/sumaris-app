@@ -144,6 +144,7 @@
     },
     "DEBUG": {
       "TITLE": "Debug",
+      "BTN_DEBUG_DOTS": "Débogage...",
       "BTN_ENABLE_DEBUG": "Activer le debuggage ?",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
@@ -187,6 +188,7 @@
     },
     "OPTIONS": {
       "ANDROID_INSTALL_URL": "Android > URL d'installation App",
+      "DB_TIMEZONE": "Persistance > Timezone de la base de données (option non modifiable)",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
       "GRAVATAR_URL": "Utilisateur > URL Gravatar (avec '{md5}')",
@@ -205,6 +207,9 @@
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
+      "ACCOUNT": {
+        "READONLY": "Compte > Profil en lecture seule ? (option non modifiable)"
+      },
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",

@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { isObservable, merge, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
 import {
@@ -32,6 +32,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurement-values.form.class';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedFormGroup}>;
@@ -47,7 +48,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   protected readonly _state: RxState<S> = new RxState<S>();
   protected _logPrefix: string;
-  protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: Measurement[];
   protected applyingValue = false;
   protected keepRankOrder = false;
@@ -55,8 +55,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   protected skipComputedPmfmControl = true;
   protected cd: ChangeDetectorRef = null;
 
-  readonly pmfms$ = this._state.select('pmfms');
-  readonly ready$ = this._state.select('ready');
+  @RxStateProperty() protected readyStep: number;
+
+  @RxStateSelect() pmfms$ : Observable<IPmfm[]>;
+  @RxStateSelect() ready$ : Observable<boolean>;
 
   @Input() showError = false;
   @Input() compact = false;
@@ -69,58 +71,23 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() showButtonIcons: boolean;
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;
+  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
 
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
-  }
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() acquisitionLevel: string;
+  @Input() @RxStateProperty() strategyLabel: string;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() gearId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() forceOptional: boolean;
 
-  @Input()
-  set acquisitionLevel(value: string) {
-    this._state.set('acquisitionLevel', (_) => value);
+  //@Input() @RxStateProperty() pmfms: IPmfm[];
+  @Input() set pmfms(pmfms: IPmfm[]) {
+    this.setPmfms(pmfms, {emitEvent: false});
   }
-  get acquisitionLevel(): string {
-    return this._state.get('acquisitionLevel');
-  }
-
-  @Input()
-  set strategyLabel(value: string) {
-    this._state.set('strategyLabel', (_) => value);
-  }
-  get strategyLabel(): string {
-    return this._state.get('strategyLabel');
-  }
-  @Input()
-  set strategyId(value: number) {
-    this._state.set('strategyId', (_) => value);
-  }
-  get strategyId(): number {
-    return this._state.get('strategyId');
-  }
-
-  @Input() set requiredStrategy(value: boolean) {
-    this._state.set('requiredStrategy', _ => value);
-  }
-  get requiredStrategy(): boolean {
-    return this._state.get('requiredStrategy');
-  }
-
-  @Input()
-  set gearId(value: number) {
-    this._state.set('gearId', _ => value);
-  }
-  get gearId(): number {
-    return this._state.get('gearId');
-  }
-
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', _ => value);
-  };
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
+  get pmfms(): IPmfm[] {
+    return this._state.get('pmfms');
   }
 
   @Input()
@@ -131,26 +98,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     return this.getValue();
   }
 
-  @Input() set pmfms(pmfms: IPmfm[]) {
-    this.setPmfms(pmfms);
-  }
-  get pmfms(): IPmfm[] {
-    return this._state.get('pmfms');
-  }
-
-  @Input()
-  set forceOptional(value: boolean) {
-    this._state.set('forceOptional', (_) => value);
-  }
-  get forceOptional(): boolean {
-    return this._state.get('forceOptional');
-  }
-
-  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
-
-  protected get readyStep(): number {
-    return this._state.get('readyStep');
-  }
 
   @Output() mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
   @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: UntypedFormGroup}>();
@@ -193,6 +140,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
     this._state.connect('ready', this._state.select('readyStep')
       .pipe(
+        distinctUntilChanged(),
         map(step => step >= MeasurementsFormReadySteps.FORM_GROUP_READY)
       ));
 
@@ -377,9 +325,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     // Emit, if changed
     if (this.readyStep !== step) {
       // DEBUG
-      if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
-
-      this._state.set('readyStep', (_) => step);
+      //if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
+      this.readyStep = step;
     }
 
     // Call markAsLoading, if the step is the first step
@@ -489,10 +436,12 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
         if (this.debug) console.debug(`${this._logPrefix} Pmfms changed: `, pmfms);
 
         // next step
-        this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
+        if (!opts || opts.emitEvent !== false) {
+          this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
+        }
 
         // Apply pmfms to state
-        this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
+        this._state.set('pmfms', () => pmfms as IPmfm[]);
       }
 
       return pmfms;
@@ -515,7 +464,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     if (!this.starting && this.loaded) this.setReadyStep(MeasurementsFormReadySteps.STARTING);
 
     // Update state
-    this._state.set('pmfms', (_) => undefined);
+    this.pmfms = undefined;
   }
 
   private async updateFormGroup(pmfms?: IPmfm[]) {
@@ -573,18 +522,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
     else {
       this.disable(opts);
-    }
-  }
-
-  private async waitIdleThenRefreshPmfms(event?: any) {
-    try {
-      // Wait previous loading is finished
-      await this.waitIdle({stop: this.destroySubject, stopError: false});
-      // Then refresh pmfms
-      await this.loadPmfms();
-    }
-    catch(err) {
-      console.error(err);
     }
   }
 

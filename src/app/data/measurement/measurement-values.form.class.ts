@@ -11,6 +11,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 export interface IMeasurementsFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -59,6 +60,8 @@ export abstract class MeasurementValuesForm<
   protected options: IMeasurementsFormOptions;
   protected cd: ChangeDetectorRef = null;
 
+  @RxStateProperty() protected readyStep: number;
+
   readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
   readonly programLabel$ = this._state.select('programLabel');
   readonly strategyId$ = this._state.select('strategyId');
@@ -70,68 +73,16 @@ export abstract class MeasurementValuesForm<
   @Input() floatLabel: FloatLabelType = 'auto';
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;
+  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
 
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
-  }
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
-
-  @Input()
-  set acquisitionLevel(value: string) {
-    this._state.set('acquisitionLevel', (_) => value);
-  }
-  get acquisitionLevel(): string {
-    return this._state.get('acquisitionLevel');
-  }
-
-  @Input()
-  set strategyLabel(value: string) {
-    this._state.set('strategyLabel', (_) => value);
-  }
-  get strategyLabel(): string {
-    return this._state.get('strategyLabel');
-  }
-  @Input()
-  set strategyId(value: number) {
-    this._state.set('strategyId', (_) => value);
-  }
-  get strategyId(): number {
-    return this._state.get('strategyId');
-  }
-
-  @Input() set requiredStrategy(value: boolean) {
-    this._state.set('requiredStrategy', _ => value);
-  }
-  get requiredStrategy(): boolean {
-    return this._state.get('requiredStrategy');
-  }
-
-  @Input()
-  set gearId(value: number) {
-    this._state.set('gearId', _ => value);
-  }
-  get gearId(): number {
-    return this._state.get('gearId');
-  }
-
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', _ => value);
-  };
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
-  }
-
-  @Input()
-  set value(value: T) {
-    this.applyValue(value);
-  }
-
-  get value(): T {
-    return this.getValue();
-  }
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() acquisitionLevel: string;
+  @Input() @RxStateProperty() strategyLabel: string;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() gearId: number
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() forceOptional: boolean
 
   @Input() set pmfms(pmfms: IPmfm[]) {
     // /!\ DO NOT emit event if not loaded.
@@ -141,20 +92,14 @@ export abstract class MeasurementValuesForm<
   get pmfms(): IPmfm[] {
     return this._state.get('pmfms');
   }
+
   @Input()
-  set forceOptional(value: boolean) {
-    this._state.set('forceOptional', (_) => value);
-  }
-  get forceOptional(): boolean {
-    return this._state.get('forceOptional');
+  set value(value: T) {
+    this.applyValue(value);
   }
 
-  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
-
-  @Output() valueChanges = new EventEmitter<any>();
-
-  protected get readyStep(): number {
-    return this._state.get('readyStep');
+  get value(): T {
+    return this.getValue();
   }
 
   get starting(): boolean {
@@ -172,6 +117,8 @@ export abstract class MeasurementValuesForm<
   get measurementValuesForm(): UntypedFormGroup {
     return this._measurementValuesForm || (this.form.controls.measurementValues as UntypedFormGroup);
   }
+
+  @Output() valueChanges = new EventEmitter<any>();
 
   protected constructor(injector: Injector,
                         protected measurementsValidatorService: MeasurementsValidatorService,
@@ -438,7 +385,7 @@ export abstract class MeasurementValuesForm<
       // DEBUG
       if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
 
-      this._state.set('readyStep', (_) => step);
+      this.readyStep = step;
     }
 
     // Call markAsLoading, if the step is the first step
@@ -547,10 +494,12 @@ export abstract class MeasurementValuesForm<
         if (this.debug) console.debug(`${this._logPrefix} Pmfms changed: `, pmfms);
 
         // next step
-        this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
+        if (!opts || opts.emitEvent !== false) {
+          this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
+        }
 
         // Apply pmfms to state
-        this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
+        this._state.set('pmfms', () => pmfms as IPmfm[]);
       }
 
       return pmfms;

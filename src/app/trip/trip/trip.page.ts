@@ -35,6 +35,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   sleep,
+  toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -108,7 +109,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
-  settingsId: string;
   devAutoFillData = false;
   enableReport: boolean;
   operationEditor: OperationEditor;
@@ -154,17 +154,14 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       enableListenChanges: true,
       i18nPrefix: 'TRIP.',
       acquisitionLevel: AcquisitionLevelCodes.TRIP,
+      settingsId: TripPageSettingsEnum.PAGE_ID
     });
     this.defaultBackHref = '/trips';
-    this.settingsId = TripPageSettingsEnum.PAGE_ID;
     this.operationPasteFlags = this.operationPasteFlags || 0;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
     this.logPrefix = '[trip-page] ';
-
-    // eslint-disable-next-line eqeqeq
-    this.devAutoFillData = (this.debug && this.settings.getPageSettings(this.settingsId, 'devAutoFillData') == true) || false;
+    this.devAutoFillData = this.debug && toBoolean(this.settings.getPageSettings(this.settingsId, 'devAutoFillData'), false);
   }
 
 

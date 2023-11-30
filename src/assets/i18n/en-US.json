@@ -43,8 +43,6 @@
     "BTN_SAVE": "Save",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>ave",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Save (Ctrl+S)",
-    "BTN_SAVE_AND_CLOSE": "Save and close",
-    "BTN_SAVE_AND_NEXT": "Save and next",
     "BTN_FILTER": "Filter",
     "BTN_RELOAD": "Reload",
     "BTN_REFRESH": "Refresh",

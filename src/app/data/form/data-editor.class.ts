@@ -26,6 +26,7 @@ import {
   Person,
   PersonService,
   ReferentialUtils,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
@@ -46,6 +47,7 @@ import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/sta
 
 export abstract class DataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
+  settingsId?: string;
 }
 
 export interface DataEditorState {
@@ -84,8 +86,9 @@ export abstract class AppDataEntityEditor<
   protected readonly personService: PersonService;
   protected readonly mobile: boolean;
   protected readonly canDebug: boolean;
-  protected logPrefix: string = null;
+  protected readonly settingsId: string;
 
+  protected logPrefix: string = null;
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
   protected canSendMessage = false;
@@ -121,12 +124,13 @@ export abstract class AppDataEntityEditor<
     this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
     this.acquisitionLevel = options?.acquisitionLevel;
+    this.settingsId = options?.settingsId || this.acquisitionLevel || `editor-${this.constructor.name}`;
     this.requiredStrategy = true;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[base-data-editor] ';
     this.canDebug = !environment.production;
-    //this.debug = !environment.production;
+    this.debug = toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), this.canDebug);
   }
 
   ngOnInit() {
@@ -456,5 +460,8 @@ export abstract class AppDataEntityEditor<
   protected devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
+
+    // Save it into local settings
+    this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 }
