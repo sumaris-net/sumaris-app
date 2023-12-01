@@ -41,7 +41,10 @@ export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestr
       memoryDataService,
       validatorService,
       {
-        reservedStartColumns: BATCH_RESERVED_START_COLUMNS
+        reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
+        initialState: {
+          requiredStrategy: true
+        }
       }
     );
   }

@@ -107,8 +107,7 @@ export class SubBatchesTable
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   protected enableWeightConversion = false;
-
-  weightPmfm: IPmfm;
+  protected weightPmfm: IPmfm;
 
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
@@ -238,7 +237,10 @@ export class SubBatchesTable
         i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
         i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        initialState: {
+          //requiredStrategy: true
+        }
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);

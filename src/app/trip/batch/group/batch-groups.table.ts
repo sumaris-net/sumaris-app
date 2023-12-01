@@ -52,7 +52,7 @@ import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { environment } from '@environments/environment';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
@@ -224,11 +224,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
   private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
 
+  @RxStateSelect<BatchGroupsTableState>('showSamplingBatchColumns') protected showSamplingBatchColumns$: Observable<boolean>;
+  @RxStateSelect<BatchGroupsTableState>('showAutoFillButton') showAutoFillButton$: Observable<boolean>;
+
   weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
-  showSamplingBatchColumns$ = this._state.select('showSamplingBatchColumns');
-  showAutoFillButton$ = this._state.select('showAutoFillButton');
+
 
   groupColumns: GroupColumnDefinition[];
   groupColumnNames: string[];
@@ -650,7 +652,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   protected prepareChildToSave(source: BatchGroup, qv?: ReferentialRef, qvIndex?: number): Batch {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-    const isEstimatedWeight = this.weightMethodForm?.controls[qvIndex].value || false;
+    const isEstimatedWeight = qvIndex !== -1 && this.weightMethodForm.controls[qvIndex].value || false;
     const childLabel = qv ? `${source.label}.${qv.label}` : source.label;
 
     // If qv, add sub level at sorting batch for each qv value
@@ -671,6 +673,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (isNotNilOrNaN(batch.weight?.value)) {
       batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
+      if (!weightPmfm) throw new Error('No Weight PMFM found in the strategy. Cannot save batch');
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value?.toString();
     }
 
@@ -1115,6 +1118,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       component: SubBatchesModal,
       componentProps: <ISubBatchesModalOptions>{
         programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategyId,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
         showParentGroup,

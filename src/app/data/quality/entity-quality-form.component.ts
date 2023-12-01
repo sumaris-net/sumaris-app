@@ -183,11 +183,11 @@ export class EntityQualityFormComponent<
         // Construct error with details
         if (isNil(errors.details)) {
           errors = <AppErrorWithDetails>{
-            message: errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR',
+            message: errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR',
             details: { errors: errors as FormErrors },
           };
         } else {
-          errors.message = errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR';
+          errors.message = errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR';
         }
 
         this.editor.setError(errors as AppErrorWithDetails);

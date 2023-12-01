@@ -41,7 +41,6 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Landing } from '../landing/landing.model';
 import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { LandingService } from '@app/trip/landing/landing.service';

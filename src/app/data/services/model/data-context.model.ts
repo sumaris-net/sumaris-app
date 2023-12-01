@@ -3,7 +3,7 @@ import { VesselPosition } from '../../position/vessel/vessel-position.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { CONTEXT_DEFAULT_STATE, ContextService } from '@app/shared/context.service';
+import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { Inject, Injectable, Optional } from '@angular/core';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -27,8 +27,8 @@ export interface DataContext {
 @Injectable()
 export abstract class DataContextService<C extends DataContext = DataContext> extends ContextService<C> {
 
-  protected constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
-    super(defaultState || <C>{});
+  protected constructor(@Optional() @Inject(APP_MAIN_CONTEXT_SERVICE) defaultState: Partial<C>) {
+    super(defaultState);
   }
 
 }

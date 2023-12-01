@@ -42,12 +42,17 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { slideDownAnimation } from '@app/shared/material/material.animation';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 
 export interface IPhysicalGearModalOptions extends IEntityEditorModalOptions<PhysicalGear> {
   helpMessage: string;
 
   acquisitionLevel: string;
   programLabel: string;
+  requiredStrategy: boolean;
+  strategyId: number;
   tripId: number;
 
   showSearchButton: boolean;
@@ -60,6 +65,8 @@ export interface IPhysicalGearModalOptions extends IEntityEditorModalOptions<Phy
   // UI
   maxVisibleButtons?: number;
   maxItemCountForButtons?: number;
+
+  debug?: boolean;
 }
 
 const INVALID_GEAR_ID = -999;
@@ -68,7 +75,7 @@ interface ComponentState {
   gear: ReferentialRef;
   gearId: number;
   showChildrenTable: boolean;
-  childrenTable: PhysicalGearTable;
+  childrenTable: BaseMeasurementsTable<PhysicalGear, any>;
   childrenPmfms: IPmfm[];
 }
 
@@ -95,15 +102,20 @@ export class PhysicalGearModal
   extends AppEntityEditorModal<PhysicalGear>
   implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
-  gear$ = this._state.select('gear');
-  gearId$ = this._state.select('gearId');
-  childrenTable$ = this._state.select('childrenTable');
-  showChildrenTable$ = this._state.select('showChildrenTable');
+  @RxStateProperty() protected childrenTable: BaseMeasurementsTable<PhysicalGear, any>;
+  @RxStateProperty() protected showChildrenTable: boolean;
+
+  @RxStateSelect() protected gear$: Observable<ReferentialRef>;
+  @RxStateSelect() protected gearId$: Observable<number>;
+  @RxStateSelect() protected childrenTable$: Observable<BaseMeasurementsTable<PhysicalGear, any>>;
+  @RxStateSelect() protected showChildrenTable$: Observable<boolean>;
 
   @Input() helpMessage: string;
   @Input() acquisitionLevel: string;
   @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
   @Input() tripId: number;
   @Input() canEditGear = false;
   @Input() canEditRankOrder = false;
@@ -113,6 +125,7 @@ export class PhysicalGearModal
   @Input() showSearchButton = true;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons = 12;
+  @Input() debug = !environment.production;
 
   @Output() searchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 
@@ -121,23 +134,6 @@ export class PhysicalGearModal
   get form(): UntypedFormGroup {
     return this.physicalGearForm.form;
   }
-
-  get childrenTable(): PhysicalGearTable {
-    return this._state.get('childrenTable');
-  }
-
-  set childrenTable(table: PhysicalGearTable) {
-    this._state.set('childrenTable', () => table);
-  }
-
-  get showChildrenTable(): boolean {
-    return this._state.get('showChildrenTable');
-  }
-
-  set showChildrenTable(value: boolean) {
-    this._state.set('showChildrenTable', _ => value);
-  }
-
 
   constructor(injector: Injector,
               protected translateContext: TranslateContextService,
@@ -155,9 +151,6 @@ export class PhysicalGearModal
     this._logPrefix = '[physical-gear-modal] ';
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.tabGroupAnimationDuration = this.mobile ? this.tabGroupAnimationDuration : '0s';
-
-    // TODO: for DEV only
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -193,7 +186,7 @@ export class PhysicalGearModal
 
     if (this.allowChildrenGears) {
 
-      this._state.connect('childrenPmfms', this._state.select('childrenTable')
+      this._state.connect('childrenPmfms', this.childrenTable$
         .pipe(
           filter(isNotNil),
           switchMap((table) => table.pmfms$)

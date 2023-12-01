@@ -49,7 +49,6 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
 import { from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
-import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { Sale } from '@app/trip/sale/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -139,7 +138,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected operationService: OperationService,
-    protected context: ContextService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
@@ -286,14 +284,14 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip load Trip
-    if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Important: should load the strategy resolution
+    await super.setProgram(program);
 
     // Update the context
     if (this.tripContext.program !== program) {
       this.tripContext.setValue('program', program);
     }
-
-    this.strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -380,7 +378,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-
     console.debug(this.logPrefix + 'Using strategy resolution: ' + this.strategyResolution);
 
     switch (this.strategyResolution) {
@@ -479,7 +476,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context.getValue('program') as Program;
+      const contextualProgram = this.tripContext.getValue('program') as Program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }

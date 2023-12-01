@@ -15,6 +15,8 @@
           <br />
           editor.strategyResolution: {{strategyResolution$|async}}
           <br />
+          editor.strategy {{requiredStrategy && '(required)'}}: {{(strategy$|async)?.id}}
+          <br />
           editor.showLandingTab: {{ showLandingTab }}
           <br />
           editor.landingTableType: {{ $landingTableType | async }}
@@ -34,7 +36,7 @@
           <br />
           form.programLabel: {{ observedLocationForm.programLabel }}
           <br />
-          form.strategy ({{ observedLocationForm.requiredStrategy ? 'required' : 'optional' }}): id={{ observedLocationForm.strategyId }}, label={{ observedLocationForm.strategyLabel }}
+          form.strategy {{ observedLocationForm.requiredStrategy && '(required)' }}): id={{ observedLocationForm.strategyId }}, label={{ observedLocationForm.strategyLabel }}
           <br />
           form.gear ({{ observedLocationForm.requiredGear ? 'required' : 'optional' }}): id={{ observedLocationForm.gearId }}
           <br />

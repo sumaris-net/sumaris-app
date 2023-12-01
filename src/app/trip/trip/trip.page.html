@@ -57,7 +57,8 @@
   </button>
 
   <!-- reset -->
-  <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
+  <button mat-menu-item *ngIf="mobile"
+          [disabled]="disabled || !dirty" (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
       <span translate>COMMON.BTN_RESET</span>
@@ -287,9 +288,9 @@
 
       <app-physical-gears-table
         #physicalGearsTable
-        [programLabel]="programLabel$ | push"
-        [requiredStrategy]="requiredStrategy$ | push"
-        [strategyId]="(strategy$ | push)?.id"
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="(strategy$ | async)?.id"
         [requiredGear]="false"
         (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
         [showToolbar]="!mobile"

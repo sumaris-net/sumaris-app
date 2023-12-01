@@ -1,5 +1,6 @@
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
+import { ProjectValueReducer } from '@rx-angular/state/lib/rx-state.service';
 
 declare type Constructor = new (...args: any[]) => any;
 const STATE_VAR_NAME_KEY = '__stateName';
@@ -24,7 +25,7 @@ export function RxStateRegister(): PropertyDecorator {
 }
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-export function RxStateProperty<T = any>(statePropertyName?: string|keyof T, opts?: {stateName?: string}): PropertyDecorator {
+export function RxStateProperty<T = any, K extends keyof T = any, V extends T[K] = any>(statePropertyName?: string|K, projectValueReducer?: ProjectValueReducer<T, K, V>): PropertyDecorator {
 
 
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
@@ -33,19 +34,23 @@ export function RxStateProperty<T = any>(statePropertyName?: string|keyof T, opt
     //console.debug(`${target.constructor?.name} @StateProperty() ${key}`);
 
     statePropertyName = statePropertyName as string || key;
-    const state = (target instanceof RxState) ? null : (target[STATE_VAR_NAME_KEY] || opts?.stateName || DEFAULT_STATE_VAR_NAME);
+    const state = (target instanceof RxState) ? null : (target[STATE_VAR_NAME_KEY] || DEFAULT_STATE_VAR_NAME);
     const stateObj = state ? `this.${state}` : `this`;
 
     // property getter
     const getMethodName = '_get' + key.charAt(0).toUpperCase() + key.slice(1);
     const setMethodName = '_set' + key.charAt(0).toUpperCase() + key.slice(1);
+    const reducerMethodName = '_reduce' + key.charAt(0).toUpperCase() + key.slice(1);
 
     const checkStateExists = (state && !environment.production) ? `  if (!this.${state}) throw new Error('Missing state! Please add a RxState in class: ' + this.constructor.name);\n` : '';
+
+    const reducer = projectValueReducer ? `(state) => this.${reducerMethodName}(state, value)` : '_ => value';
     const getter = new Function(`return function ${getMethodName}(){\n  return ${stateObj}.get('${statePropertyName}');\n}`)();
-    const setter = new Function(`return function ${setMethodName}(value){\n${checkStateExists}  ${stateObj}.set('${statePropertyName}', _ => value);\n}`)()
+    const setter = new Function(`return function ${setMethodName}(value){\n${checkStateExists}  ${stateObj}.set('${statePropertyName}', ${reducer});\n}`)()
 
     target[getMethodName] = getter;
     target[setMethodName] = setter;
+    if (projectValueReducer) target[reducerMethodName] = projectValueReducer;
 
     Object.defineProperty(target, key, {
       get: getter,

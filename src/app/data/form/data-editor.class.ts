@@ -44,6 +44,7 @@ import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { ContextService } from '@app/shared/context.service';
 
 export abstract class DataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -78,13 +79,14 @@ export abstract class AppDataEntityEditor<
 {
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState);
 
-  protected readonly _reloadProgramSubject = new EventEmitter<void>();
-  protected readonly _reloadStrategySubject = new EventEmitter<void>();
-  protected readonly programRefService: ProgramRefService;
-  protected readonly strategyRefService: StrategyRefService;
-  protected readonly configService: ConfigService;
-  protected readonly messageService: MessageService;
-  protected readonly personService: PersonService;
+  protected readonly _reloadProgram = new EventEmitter<void>();
+  protected readonly _reloadStrategy = new EventEmitter<void>();
+  protected readonly programRefService = inject(ProgramRefService);
+  protected readonly strategyRefService = inject(StrategyRefService);
+  protected readonly configService = inject(ConfigService);
+  protected readonly messageService = inject(MessageService);
+  protected readonly personService = inject(PersonService);
+  protected readonly context = inject(ContextService);
   protected readonly mobile: boolean;
   protected readonly settingsId: string;
 
@@ -118,7 +120,7 @@ export abstract class AppDataEntityEditor<
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: DataEditorOptions) {
     super(injector, dataType, dataService, {
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
-      ...options,
+      ...options
     });
 
     this.programRefService = injector.get(ProgramRefService);
@@ -148,39 +150,56 @@ export abstract class AppDataEntityEditor<
       merge(
         this.programLabel$.pipe(distinctUntilChanged()),
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
-        this._reloadProgramSubject.pipe(map(() => this.programLabel))
+        this._reloadProgram.pipe(map(() => this.programLabel))
       ).pipe(
         filter(isNotNilOrBlank),
 
         // DEBUG --
         //tap(programLabel => console.debug('DEV - Getting programLabel=' + programLabel)),
 
-        switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { debug: this.debug })),
+        switchMap((programLabel) => {
+
+          // Try to load by context
+          const contextualProgram = this.context?.program;
+          if (contextualProgram?.label === programLabel) {
+            console.log('TODO: program found in the main context: should use it !')
+            //return of(contextualProgram);
+          }
+
+          return this.programRefService.watchByLabel(programLabel, { debug: this.debug })
+        }),
         catchError((err, _) => {
           this.setError(err);
           return Promise.resolve(null);
         })
       )
     );
-    const programLoaded$ = this.program$.pipe(
+    const programLoaded$: Observable<Program> = this.program$.pipe(
       filter(isNotNil),
-      mergeMap((program) =>
-        this.setProgram(program)
-          .then(() => program)
-          .catch((err) => {
-            this.setError(err);
-            return undefined;
-          })
-      ),
+      mergeMap(async (program) => {
+        // Make sure to load strategy resolution
+        this.strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+
+        // Call setProgram() (should have been overriden by subclasses)
+        try {
+          await this.setProgram(program);
+          return program;
+        } catch (err) {
+          this.setError(err);
+          return null;
+        }
+      }),
       filter(isNotNil)
     );
 
-    this._state.connect('strategyFilter', programLoaded$.pipe(mergeMap((program) => this.watchStrategyFilter(program))));
+    this._state.connect('strategyFilter', programLoaded$.pipe(
+      mergeMap((program) => this.watchStrategyFilter(program)))
+    );
 
     // Load strategy from strategyLabel (after program loaded)
     this._state.connect(
       'strategy',
-      merge(this.strategyFilter$, this._reloadStrategySubject.pipe(map((_) => this.strategyFilter))).pipe(
+      merge(this.strategyFilter$, this._reloadStrategy.pipe(map((_) => this.strategyFilter))).pipe(
         filter((strategyFilter) => this.canLoadStrategy(this.program, strategyFilter)),
         mergeMap((strategyFilter) =>
           this.loadStrategy(strategyFilter).catch((err) => {
@@ -226,10 +245,10 @@ export abstract class AppDataEntityEditor<
   ngOnDestroy() {
     super.ngOnDestroy();
     this._state.ngOnDestroy();
-    this._reloadProgramSubject.complete();
-    this._reloadProgramSubject.unsubscribe();
-    this._reloadStrategySubject.complete();
-    this._reloadStrategySubject.unsubscribe();
+    this._reloadProgram.complete();
+    this._reloadProgram.unsubscribe();
+    this._reloadStrategy.complete();
+    this._reloadStrategy.unsubscribe();
   }
 
   canUserWrite(data: T, opts?: any): boolean {
@@ -243,7 +262,6 @@ export abstract class AppDataEntityEditor<
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    if (!this.strategyResolution) throw new Error('Missing strategy resolution. Please check super.setProgram() has been called');
     switch (this.strategyResolution) {
       // Most recent
       case DataStrategyResolutions.LAST:
@@ -376,7 +394,7 @@ export abstract class AppDataEntityEditor<
       )
       .subscribe();
     // DEBUG
-    //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
+    //subscription.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
     subscription.add(() => this.unregisterSubscription(subscription));
     this.registerSubscription(subscription);
     this.remoteProgramSubscription = subscription;
@@ -422,7 +440,7 @@ export abstract class AppDataEntityEditor<
       await this.programRefService.clearCache();
     }
 
-    this._reloadProgramSubject.next();
+    this._reloadProgram.next();
   }
 
   /**
@@ -438,7 +456,7 @@ export abstract class AppDataEntityEditor<
       await this.strategyRefService.clearCache();
     }
 
-    this._reloadStrategySubject.next();
+    this._reloadStrategy.next();
   }
 
   /**

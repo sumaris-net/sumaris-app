@@ -29,6 +29,7 @@ import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
+import { RxState } from '@rx-angular/state';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -48,6 +49,9 @@ export interface ISubBatchesModalOptions {
   showBluetoothIcon: boolean;
 
   programLabel: string;
+  requiredStrategy: boolean;
+  strategyId: number;
+
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
@@ -73,7 +77,8 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
         })
-    }
+    },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

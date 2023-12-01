@@ -1,4 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import {
   AppTabEditor,
   AppTable,
@@ -19,7 +30,7 @@ import { SamplesTable } from '@app/trip/sample/samples.table';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
@@ -29,12 +40,26 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { IPmfmForm } from '@app/trip/operation/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+
+export interface SampleTreeState {
+  programLabel: string;
+  program: Program;
+  physicalGear: PhysicalGear;
+  requiredStrategy: boolean;
+  strategyId: number;
+  //requiredGear: boolean;
+  //gearId: number;
+}
 
 @Component({
   selector: 'app-sample-tree',
   templateUrl: './sample-tree.component.html',
   styleUrls: ['./sample-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnInit, AfterViewInit {
   private static TABS = {
@@ -43,11 +68,20 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     INDIVIDUAL_RELEASE: 2,
   };
 
+  private _listenProgramChanges = true;
+  protected _logPrefix = '[sample-tree] ';
+
+  @RxStateRegister() protected _state: RxState<SampleTreeState> = inject(RxState, { self: true });
+
+  @RxStateSelect() readonly programLabel$: Observable<string>;
+  @RxStateSelect() readonly program$: Observable<Program>;
+  @RxStateSelect() readonly requiredStrategy$: Observable<boolean>;
+  @RxStateSelect() readonly strategyLabel$: Observable<string>;
+  @RxStateSelect() readonly strategyId$: Observable<number>;
+  //@RxStateSelect() readonly requiredGear$: Observable<boolean>;
+  //@RxStateSelect() readonly gearId$: Observable<number>;
+
   data: Sample[];
-  $programLabel = new BehaviorSubject<string>(null);
-  $strategyLabel = new BehaviorSubject<string>(null);
-  $program = new BehaviorSubject<Program>(null);
-  listenProgramChanges = true;
   showIndividualMonitoringTable = false;
   showIndividualReleaseTable = false;
 
@@ -55,7 +89,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @Input() useSticky = false;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() requiredStrategy = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() showGroupHeader = false;
   @Input() showLabelColumn: boolean; // By default, resolved from program properties
@@ -73,32 +106,21 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     return this.samplesTable.defaultSampleDate;
   }
 
-  @Input()
-  set programLabel(value: string) {
-    if (this.$programLabel.value !== value) {
-      this.$programLabel.next(value);
-    }
-  }
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() strategyLabel: string;
+  @Input() @RxStateProperty() strategyId: number;
+  //@Input() @RxStateProperty() requiredGear: boolean;
+  //@Input() @RxStateProperty() gearId: number;
 
-  get programLabel(): string {
-    return this.$programLabel.value;
-  }
-
-  @Input()
-  set strategyLabel(value: string) {
-    if (this.$strategyLabel.value !== value) {
-      this.$strategyLabel.next(value);
-    }
-  }
-
-  get strategyLabel(): string {
-    return this.$strategyLabel.value;
-  }
-
+  // TODO
   @Input()
   set program(value: Program) {
-    this.listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
-    this.$program.next(value);
+    this._listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
+    this._state.set('program', (_) => value);
+  }
+  get program(): Program {
+    return this._state.get('program');
   }
 
   @Input()
@@ -116,10 +138,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
   get availableTaxonGroups(): TaxonGroupRef[] {
     return this.samplesTable.availableTaxonGroups;
-  }
-
-  get dirty(): boolean {
-    return super.dirty || false;
   }
 
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
@@ -162,83 +180,43 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
   ngAfterViewInit() {
     // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$programLabel
-        .pipe(
-          filter(() => this.listenProgramChanges), // Avoid to watch program, if was already set
-          filter(isNotNilOrBlank),
-          distinctUntilChanged(),
-          switchMap((programLabel) => this.programRefService.watchByLabel(programLabel))
-        )
-        .subscribe((program) => this.$program.next(program))
+    this._state.connect(
+      'program',
+      this.programLabel$.pipe(
+        filter(() => this._listenProgramChanges), // Avoid to watch program, if was already set
+        filter(isNotNilOrBlank),
+        distinctUntilChanged(),
+        switchMap((programLabel) => this.programRefService.watchByLabel(programLabel))
+      )
     );
 
-    const programChanged$ = this.$program.pipe(
+    const programLoaded$ = this.program$.pipe(
       distinctUntilChanged((p1, p2) => p1 && p2 && p1.label === p2.label && p1.updateDate.isSame(p2.updateDate)),
-      filter(isNotNil)
+      filter(isNotNil),
+      mergeMap(async (program) => {
+        await this.setProgram(program);
+        return program;
+      })
     );
-
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(programChanged$.subscribe((program) => this.setProgram(program)));
 
     // Configure sub sample buttons, in root table
     if (!this.mobile) {
+      this._state.hold(programLoaded$);
       // If sub tables exists (desktop mode), check if there have some pmfms
-      this.registerSubscription(
-        combineLatest([this.individualMonitoringTable.hasPmfms$, this.individualReleasesTable.hasPmfms$]).subscribe(
-          ([hasMonitoringPmfms, hasReleasePmfms]) => {
-            this.showIndividualMonitoringTable = hasMonitoringPmfms;
-            this.showIndividualReleaseTable = hasReleasePmfms;
-            this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
-            this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
-            this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
-            this.tabCount = hasReleasePmfms ? 3 : hasMonitoringPmfms ? 2 : 1;
-            this.markForCheck();
-          }
-        )
+      this._state.hold(
+        combineLatest([this.individualMonitoringTable.hasPmfms$, this.individualReleasesTable.hasPmfms$]),
+        ([hasMonitoringPmfms, hasReleasePmfms]) => {
+          this.showIndividualMonitoringTable = hasMonitoringPmfms;
+          this.showIndividualReleaseTable = hasReleasePmfms;
+          this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
+          this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
+          this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
+          this.tabCount = hasReleasePmfms ? 3 : hasMonitoringPmfms ? 2 : 1;
+          this.markForCheck();
+        }
       );
-    } else {
-      // If mobile (no sub tables), should load pmfms
-      // We create an observer for program (wait strategy if required)
-      const loadSubPmfms$ = this.requiredStrategy
-        ? programChanged$.pipe(
-            mergeMap((_) => this.$strategyLabel),
-            map((strategyLabel) => [this.$program.value.label, strategyLabel])
-          )
-        : programChanged$.pipe(map((program) => [program.label, undefined]));
-      this.registerSubscription(
-        loadSubPmfms$
-          .pipe(
-            mergeMap(([programLabel, strategyLabel]) =>
-              Promise.all([
-                this.programRefService
-                  .loadProgramPmfms(programLabel, {
-                    acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_MONITORING,
-                    strategyLabel,
-                  })
-                  .then(isNotEmptyArray),
-                this.programRefService
-                  .loadProgramPmfms(programLabel, {
-                    acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
-                    strategyLabel,
-                  })
-                  .then(isNotEmptyArray),
-              ])
-            )
-          )
-          .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
-            this.showIndividualMonitoringTable = hasMonitoringPmfms;
-            this.showIndividualReleaseTable = hasReleasePmfms;
-            this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
-            this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
-            this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
-            this.markForCheck();
-          })
-      );
-    }
 
-    // Update available parent on sub-sample table, when samples changes
-    if (!this.mobile) {
+      // Update available parent on sub-sample table, when samples changes
       this.registerSubscription(
         this.samplesTable.dataSource.rowsSubject
           .pipe(
@@ -247,11 +225,49 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
             map(() => this.samplesTable.dataSource.getData())
           )
           .subscribe((samples) => {
-            console.debug('[sample-tree] Propagate root samples to sub-samples tables', samples);
+            console.debug(this._logPrefix + 'Propagate root samples to sub-samples tables', samples);
             // Will refresh the tables (inside the setter):
             if (this.showIndividualMonitoringTable) this.individualMonitoringTable.availableParents = samples;
             if (this.showIndividualReleaseTable) this.individualReleasesTable.availableParents = samples;
           })
+      );
+    } else {
+      // If mobile (no sub tables), should load pmfms
+      // We create an observer for program (wait strategy if required)
+      const loadSubPmfms$ = combineLatest([programLoaded$, this.requiredStrategy$]).pipe(
+        mergeMap(async ([program, requiredStrategy]) => {
+          const strategyLabel = requiredStrategy ? await firstValueFrom(this.strategyLabel$) : undefined;
+          return [program.label, strategyLabel];
+        })
+      );
+
+      this._state.hold(
+        loadSubPmfms$.pipe(
+          mergeMap(([programLabel, strategyLabel]) =>
+            Promise.all([
+              this.programRefService
+                .loadProgramPmfms(programLabel, {
+                  acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_MONITORING,
+                  strategyLabel,
+                })
+                .then(isNotEmptyArray),
+              this.programRefService
+                .loadProgramPmfms(programLabel, {
+                  acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
+                  strategyLabel,
+                })
+                .then(isNotEmptyArray),
+            ])
+          )
+        ),
+        ([hasMonitoringPmfms, hasReleasePmfms]) => {
+          this.showIndividualMonitoringTable = hasMonitoringPmfms;
+          this.showIndividualReleaseTable = hasReleasePmfms;
+          this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
+          this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
+          this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
+          this.markForCheck();
+        }
       );
     }
   }
@@ -261,7 +277,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   }
 
   async setValue(data: Sample[], opts?: { emitEvent?: boolean }) {
-    if (this.debug) console.debug('[sample-tree] Set value', data);
+    if (this.debug) console.debug(this._logPrefix + 'Set value', data);
 
     const waitOpts = { stop: this.destroySubject, stopError: false };
 
@@ -278,15 +294,21 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
       if (!this.mobile) {
         // Set root samples
+        this.samplesTable.requiredStrategy = this.requiredStrategy;
+        this.samplesTable.strategyId = this.strategyId;
         this.samplesTable.markAsReady();
         this.samplesTable.value = rootSamples;
 
         // Set sub-samples (individual monitoring)
+        this.individualMonitoringTable.requiredStrategy = this.requiredStrategy;
+        this.individualMonitoringTable.strategyId = this.strategyId;
         this.individualMonitoringTable.availableParents = rootSamples;
         this.individualMonitoringTable.markAsReady();
         this.individualMonitoringTable.value = SampleUtils.filterByAcquisitionLevel(samples, this.individualMonitoringTable.acquisitionLevel);
 
         // Set sub-samples (individual release)
+        this.individualReleasesTable.requiredStrategy = this.requiredStrategy;
+        this.individualReleasesTable.strategyId = this.strategyId;
         this.individualReleasesTable.availableParents = rootSamples;
         this.individualReleasesTable.markAsReady();
         this.individualReleasesTable.value = SampleUtils.filterByAcquisitionLevel(samples, this.individualReleasesTable.acquisitionLevel);
@@ -297,11 +319,17 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
           this.individualMonitoringTable.ready(waitOpts),
           this.individualReleasesTable.ready(waitOpts),
         ]);
-      } else {
+      }
+
+      // Mobile
+      else {
         // Set children
         rootSamples.forEach((parent) => {
           parent.children = samples.filter((s) => s.parentId === parent.id || (s.parent && parent.equals(s.parent)));
         });
+        this.samplesTable.requiredStrategy = this.requiredStrategy;
+        this.samplesTable.strategyId = this.strategyId;
+        this.samplesTable.markAsReady();
         this.samplesTable.value = rootSamples;
         await this.samplesTable.ready(waitOpts); // Wait loaded (because of markAsLoaded() in finally)
 
@@ -319,7 +347,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {
-    console.debug('[sample-tree] Saving samples...');
+    console.debug(this._logPrefix + 'Saving samples...');
 
     let target: Sample[];
 
@@ -432,7 +460,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     const programLabel = program.label;
-    if (this.debug) console.debug(`[sample-tree] Program ${programLabel} loaded, with properties: `, program.properties);
+    if (this.debug) console.debug(this._logPrefix + ` Program ${programLabel} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -470,14 +498,17 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
     // Mobile mode
     else {
+      // No sub tables
     }
 
     // Propagate to children tables, if need
     // This should be need when $program has been set by parent, and not from the $programLabel observable
-    if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+    if (this.programLabel !== program?.label) this.programLabel = program?.label;
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected readonly IndividualMonitoringTable = IndividualMonitoringTable;
 }

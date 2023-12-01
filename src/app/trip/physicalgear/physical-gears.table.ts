@@ -278,7 +278,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onNewRow.observers.length) {
+    if (this.onNewRow.observed) {
       this.onNewRow.emit();
       return true;
     }
@@ -294,7 +294,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   protected async openRow(id: number, row: TableElement<PhysicalGear>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -326,14 +326,16 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     dataToOpen.tripId = this.tripId;
 
     const subscription = new Subscription();
-    const showSearchButton = isNew && this.openSelectPreviousGearModal.observers.length > 0;
+    const showSearchButton = isNew && this.openSelectPreviousGearModal.observed;
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
       componentProps: <IPhysicalGearModalOptions>{
-        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
+        programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategyId,
         disabled: this.disabled,
         data: dataToOpen.clone(), // Do a copy, because edition can be cancelled
         isNew,
@@ -351,6 +353,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
         usageMode: this.usageMode,
+        debug: this.debug,
         // Override using given options
         ...this.modalOptions
       },

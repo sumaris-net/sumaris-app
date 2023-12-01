@@ -10,17 +10,9 @@
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
-  <ion-title [innerHTML]="$title | async"></ion-title>
+  <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
   <ion-buttons slot="end">
-    <!-- Control operation
-    <ion-button fill="solid" color="tertiary" *ngIf="mobile"
-                hidden-xxs hidden-xs
-                [disabled]="invalid || vars.loading || vars.saving"
-                (click)="saveAndControl($event)">
-      <ion-icon slot="start" name="checkmark-circle"></ion-icon>
-      {{'TRIP.OPERATION.EDIT.BTN_CONTROL'|translate}}
-    </ion-button>  -->
 
     <!-- New operation -->
     <ion-button
@@ -181,6 +173,14 @@
       </ion-label>
     </button>
 
+    <!-- reset -->
+    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
+      <ion-label>
+        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
+        <span translate>COMMON.BTN_RESET</span>
+      </ion-label>
+    </button>
+
     <!-- Control -->
     <button mat-menu-item *ngIf="enabled" (click)="saveAndControl($event)">
       <ion-label>
@@ -208,13 +208,8 @@
 
     <mat-divider *ngIf="mobile && enabled"></mat-divider>
 
-    <!-- reset -->
-    <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
-        <span translate>COMMON.BTN_RESET</span>
-      </ion-label>
-    </button>
+
+    <mat-divider></mat-divider>
 
     <!-- delete -->
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
@@ -289,14 +284,18 @@
                       <app-form-measurements
                         #measurementsForm
                         entityName="VesselUseMeasurement"
-                        [acquisitionLevel]="acquisitionLevel$ | push : 'immediate'"
-                        [gearId]="gearId$ | push : 'immediate'"
+                        [acquisitionLevel]="acquisitionLevel$ | async"
+                        [requiredStrategy]="requiredStrategy$ | async"
+                        [strategyId]="(strategy$ | async)?.id"
+                        [requiredGear]="true"
+                        [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
                         [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                         [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                         [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
                         [mobile]="mobile"
+                        [debug]="debug"
                       ></app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -350,6 +349,8 @@
         [showBatchTables]="showBatchTables"
         [selectedTabIndex]="selectedSubTabIndex"
         [usageMode]="usageMode"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="(strategy$ | async)?.id"
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         [physicalGear]="physicalGear$ | async"
@@ -447,6 +448,15 @@
           <br />
           editor.saving: {{ saving }}
           <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$|async }}
+          <br />
+          editor.program: {{ programLabel$|async }}
+          <br />
+          editor.strategyResolution: {{ strategyResolution$|async }}
+          <br />
+          editor.strategy {{requiredStrategy ? '(required)' : ''}}: {{ (strategy$|async)?.id }} (context: {{tripContext.strategy?.id }})
+          <br />
         </ion-col>
         <ion-col>
           opeForm.ready: {{ opeForm.readySubject | async }}
@@ -491,35 +501,48 @@
             <br />
           </span>
         </ion-col>
-        <ion-col>
-          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
+
+        <!-- Batch debug -->
+        <ion-col *ngIf="batchTree">
+          batchTree.ready: {{ batchTree.readySubject | async }}
           <br />
-          measurementsForm.loading: {{ measurementsForm.loading }}
+          batchTree.loading: {{ batchTree.loadingSubject|async }}
           <br />
-          measurementsForm.enabled: {{ measurementsForm.enabled }}
+          batchTree.enabled: {{ batchTree.enabled }}
           <br />
-          measurementsForm.dirty: {{ measurementsForm.dirty }}
+          batchTree.dirty: {{ batchTree.dirty }}
           <br />
-          measurementsForm.valid: {{ measurementsForm.valid }}
           <br />
-          measurementsForm.gearId: {{ measurementsForm.gearId }}
+          batchTree.program: {{ batchTree.programLabel || batchTree.program?.label }}
           <br />
-          measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
+          batchTree.strategy {{batchTree.requiredStrategy && '(required)'}}: {{ batchTree.strategyId$ | async }}
           <br />
-          measurementsForm.i18nSuffix: {{ measurementsForm.i18nSuffix }}
+          batchTree.catchBatchForm.loading : {{batchTree.catchBatchForm.loading}}
           <br />
-          <!-- Sample debug -->
-          <span *ngIf="sampleTree">
-            <br />
-            sampleTree.ready: {{ sampleTree.readySubject | async }}
-            <br />
-            sampleTree.loading: {{ sampleTree.loading }}
-            <br />
-            sampleTree.enabled: {{ sampleTree.enabled }}
-            <br />
-            sampleTree.dirty: {{ sampleTree.dirty }}
-            <br />
-          </span>
+          batchTree.batchGroupsTable.loading : {{batchTree.batchGroupsTable.loading }}
+          <br />
+          batchTree.subBatchesTable.loading : {{batchTree.subBatchesTable?.loadingSubject|async}}
+
+        </ion-col>
+
+        <!-- Sample debug -->
+        <ion-col *ngIf="sampleTree">
+          sampleTree.ready: {{ sampleTree.readySubject | async }}
+          <br />
+          sampleTree.loading: {{ sampleTree.loadingSubject|async }}
+          <br />
+          sampleTree.enabled: {{ sampleTree.enabled }}
+          <br />
+          sampleTree.dirty: {{ sampleTree.dirty }}
+          <br />
+          <br />
+          sampleTree.program: {{ sampleTree.programLabel || sampleTree.program?.label }}
+          <br />
+          sampleTree.strategy {{sampleTree.requiredStrategy && '(required)'}}: {{ sampleTree.strategyId$ |async }}
+          <br />
+          sampleTree.showIndividualMonitoringTable ? {{sampleTree.showIndividualMonitoringTable}}
+          <br />
+          sampleTree.showIndividualReleaseTable ? {{sampleTree.showIndividualReleaseTable}}
         </ion-col>
       </ion-row>
     </ion-grid>

@@ -1,3 +1,93 @@
+<app-debug *ngIf="debug" [title]="'Sample tree'">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        loading: {{ loading }} (subject: {{ loadingSubject | async }})
+        <br />
+        ready: {{ readySubject | async }}
+        <br />
+        dirty: {{ dirty }}
+        <br />
+        valid: {{ valid }}
+        <br />
+        disabled: {{ disabled }}
+        <br />
+        program: {{ programLabel$ | async }}
+        <br />
+        strategy {{requiredStrategy ? '(required)' : ''}}: {{ strategyId$ | async }}
+        <br />
+        <br />
+        i18nContext.suffix: {{ i18nContext.suffix }}
+        <br />
+        showIndividualMonitoringTable: {{ showIndividualMonitoringTable }}
+        <br />
+        showIndividualReleaseTable: {{ showIndividualReleaseTable }}
+      </ion-col>
+
+      <ion-col *ngIf="samplesTable">
+        samplesTable.loading: {{ samplesTable.loading }}
+        <br />
+        samplesTable.ready: {{ samplesTable.readySubject | async }}
+        <br />
+        samplesTable.dirty: {{ samplesTable.dirtySubject | async }}
+        <br />
+        samplesTable.valid: {{ samplesTable.valid }}
+        <br />
+        samplesTable.disabled: {{ samplesTable.disabled }}
+        <br />
+        samplesTable.program: {{ samplesTable.programLabel }}
+        <br />
+        samplesTable.strategy {{samplesTable.requiredStrategy ? '(required)' : ''}}: {{ samplesTable.strategyId }}
+        <br />
+        <br />
+        samplesTable.showLabelColumn: {{ samplesTable.showLabelColumn }}
+        <br />
+        samplesTable.hasRankOrder: {{ samplesTable.hasRankOrder }}
+      </ion-col>
+      <ion-col *ngIf="individualMonitoringTable">
+        individualMonitoringTable.loading: {{ individualMonitoringTable.loading }}
+        <br />
+        individualMonitoringTable.ready: {{ individualMonitoringTable.readySubject | async }}
+        <br />
+        individualMonitoringTable.dirty: {{ individualMonitoringTable.dirtySubject | async }}
+        <br />
+        individualMonitoringTable.valid: {{ individualMonitoringTable.valid }}
+        <br />
+        individualMonitoringTable.disabled: {{ individualMonitoringTable.disabled }}
+        <br />
+        individualMonitoringTable.program: {{ individualMonitoringTable.programLabel }}
+        <br />
+        individualMonitoringTable.strategy {{individualMonitoringTable.requiredStrategy ? '(required)' : ''}}: {{ individualMonitoringTable.strategyId }}
+        <br />
+        <br />
+        individualMonitoringTable.showLabelColumn: {{ individualMonitoringTable.showLabelColumn }}
+        <br />
+        individualMonitoringTable.hasRankOrder: {{ individualMonitoringTable.hasRankOrder }}
+      </ion-col>
+      <ion-col *ngIf="individualReleasesTable">
+        individualReleasesTable.loading: {{ individualReleasesTable.loadingSubject | async }}
+        <br />
+        individualReleasesTable.ready: {{ individualReleasesTable.readySubject | async }}
+        <br />
+        individualReleasesTable.dirty: {{ individualReleasesTable.dirtySubject | async }}
+        <br />
+        individualReleasesTable.valid: {{ individualReleasesTable.valid }}
+        <br />
+        individualReleasesTable.disabled: {{ individualReleasesTable.disabled }}
+        <br />
+        individualReleasesTable.program: {{ individualReleasesTable.programLabel }}
+        <br />
+        individualReleasesTable.strategy {{individualReleasesTable.requiredStrategy ? '(required)' : ''}}: {{ individualReleasesTable.strategyId }}
+        <br />
+        <br />
+        individualReleasesTable.showLabelColumn: {{ individualReleasesTable.showLabelColumn }}
+        <br />
+        individualReleasesTable.hasRankOrder: {{ individualReleasesTable.hasRankOrder }}
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
+
 <mat-tab-group
   #tabGroup
   class="mat-tab-group-header-pagination-hidden mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-samples"
@@ -17,10 +107,9 @@
 
     <app-samples-table
       #samplesTable
-      [debug]="debug"
       acquisitionLevel="SAMPLE"
-      [programLabel]="$programLabel | async"
-      [requiredStrategy]="requiredStrategy"
+      [programLabel]="programLabel$ | async"
+      [requiredStrategy]="requiredStrategy$|async"
       [usageMode]="usageMode"
       [disabled]="disabled"
       [showToolbar]="!mobile"
@@ -32,6 +121,7 @@
       (prepareRowForm)="prepareRowForm.emit($event)"
       [weightDisplayedUnit]="weightDisplayedUnit"
       [mobile]="mobile"
+      [debug]="debug"
     ></app-samples-table>
   </mat-tab>
 
@@ -65,14 +155,14 @@
     <app-individual-monitoring-table
       #individualMonitoringTable
       (ngInit)="onInitTable(individualMonitoringTable)"
-      [debug]="debug"
-      [programLabel]="$programLabel | async"
+      [programLabel]="programLabel$ | async"
       [usageMode]="usageMode"
       [useSticky]="useSticky"
       [showToolbar]="true"
       [showLabelColumn]="showLabelColumn"
       [weightDisplayedUnit]="weightDisplayedUnit"
       [mobile]="false"
+      [debug]="debug"
     ></app-individual-monitoring-table>
   </mat-tab>
 
@@ -106,12 +196,13 @@
     <app-individual-releases-table
       #individualReleaseTable
       (ngInit)="onInitTable(individualReleaseTable)"
-      [programLabel]="$programLabel | async"
+      [programLabel]="programLabel$ | async"
       [usageMode]="usageMode"
       [useSticky]="useSticky"
       [showToolbar]="true"
       [showLabelColumn]="showLabelColumn"
       [mobile]="false"
+      [debug]="debug"
     ></app-individual-releases-table>
     <!-- final space-->
     <p visible-xs visible-sm visible-mobile>&nbsp;</p>

@@ -122,7 +122,7 @@
 <mat-menu #tagIdMenu="matMenu">
   <ng-template matMenuContent>
     <ng-container *rxLet="tagIdGenerationMode; let mode">
-      <button mat-menu-item (click)="setTagIdGenerationMode('remote')" [disabled]="networkService.offline">
+      <button mat-menu-item (click)="setTagIdGenerationMode('remote')" [disabled]="network.offline">
         <ion-icon [name]="mode === 'remote' ? 'checkmark' : ''"></ion-icon>
         {{ 'TRIP.SAMPLE.TABLE.TAG_ID_GENERATION_MODE.REMOTE' | translate }}
       </button>

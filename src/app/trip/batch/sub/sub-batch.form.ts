@@ -60,6 +60,7 @@ import { IonButton } from '@ionic/angular';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;
@@ -67,6 +68,7 @@ export interface SubBatchFormState extends MeasurementsFormState {
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormState>

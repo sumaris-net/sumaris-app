@@ -2,7 +2,7 @@ import { ModuleWithProviders, NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { SharedDebugModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
-import { Context, ContextService } from './context.service';
+import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
@@ -74,7 +74,11 @@ export class AppSharedModule {
         // A context service
         {
           provide: ContextService,
-          useValue: new ContextService<Context>({}),
+          useFactory: () => new ContextService<Context>({}),
+        },
+        {
+          provide: APP_MAIN_CONTEXT_SERVICE,
+          useExisting: ContextService,
         },
       ],
     };

@@ -347,7 +347,7 @@
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
           <button
             mat-icon-button
-            *ngIf="_enabled && showAutoFillButton && availableTaxonGroups | isNotEmptyArray"
+            *ngIf="_enabled && showAutoFillButton && (availableTaxonGroups | isNotEmptyArray)"
             [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
             (click)="autoFillTable()"
           >

@@ -36,7 +36,6 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { LandingFilter } from '../landing/landing.filter';
-import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -109,7 +108,6 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected translateContext: TranslateContextService,
-    protected context: ContextService,
     protected observedLocationContext: ObservedLocationContextService
   ) {
     super(injector,
@@ -403,7 +401,7 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
 
     // Update the context
     if (this.observedLocationContext.program !== program) {
-      this.observedLocationContext.setValue('program', program);
+      this.observedLocationContext.program = program;
     }
 
     try {

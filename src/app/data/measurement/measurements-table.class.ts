@@ -142,7 +142,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   get loading(): boolean {
-    return super.loading || this._dataService.loading;
+    return super.loading || this._dataService.loading || false;
   }
 
   get loaded(): boolean {

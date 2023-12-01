@@ -19,9 +19,9 @@
         <br />
         programLabel: {{ programLabel }}
         <br />
-        strategy ({{ requiredStrategy ? 'required' : 'optional' }}): id={{ strategyId }}, label={{ strategyLabel }}
+        strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId || strategyLabel }}
         <br />
-        gearId ({{requiredStrategy? 'required' : 'optional'}}): {{ gearId }}
+        gearId {{requiredStrategy ? '(required)' : ''}}): {{ gearId }}
         <br />
         visibleRowCount: {{ visibleRowCount }}
         <br />
@@ -43,7 +43,7 @@
         <br />
         service.programLabel: {{ _dataService.programLabel }}
         <br />
-        service.strategy ({{_dataService.requiredStrategy ? 'required' : 'optional'}}): id={{ _dataService.strategyId }}, label={{ _dataService.strategyLabel }}
+        service.strategy {{_dataService.requiredStrategy && '(required)'}}: id={{ _dataService.strategyId }}, label={{ _dataService.strategyLabel }}
         <br />
         service.gear ({{_dataService.requiredGear ? 'required' : 'optional'}}): id={{ _dataService.gearId }}
         <br />

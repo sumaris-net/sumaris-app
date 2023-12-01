@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && (dirty || saving)"
   [hasClose]="!loading && !dirty && !saving"
@@ -280,23 +280,28 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
           editor.loading: {{ loading }}
           <br />
           editor.enabled: {{ enabled }}
-          <br />
-          editor.ready: {{ readySubject | async }}
           <br />
           editor.dirty: {{ dirty }}
           <br />
           editor.saving: {{ savingSubject | async }}
           <br />
+          editor.program: {{ programLabel$ | async }}
+          <br />
+          editor.strategyResolution: {{ strategyResolution$|async }}
+          <br />
+          editor.strategy {{requiredStrategy ? '(required)' : ''}}: {{ (strategy$|async)?.id }} (context: {{context.strategy?.id }})
         </ion-col>
         <ion-col>
+          landingForm.ready: {{ landingForm.readySubject | async }}
+          <br />
           landingForm.loading: {{ landingForm.loading }}
           <br />
           landingForm.enabled: {{ landingForm.enabled }}
-          <br />
-          landingForm.ready: {{ landingForm.readySubject | async }}
           <br />
           landingForm.dirty: {{ landingForm.dirty }}
           <br />
@@ -312,15 +317,12 @@
           <br />
         </ion-col>
         <ion-col>
-          samplesTable.loading: {{ samplesTable.loading }}
-          <br />
-          samplesTable.loadingSubject: {{ samplesTable.loadingSubject | async }}
-          <br />
           samplesTable.ready: {{ samplesTable.readySubject | async }}
           <br />
-          samplesTable.dirty: {{ samplesTable.dirty }}
+          samplesTable.loading: {{ samplesTable.loading }} (subject: {{ samplesTable.loadingSubject | async }})
           <br />
-          samplesTable.dirtySubject: {{ samplesTable.dirtySubject | async }}
+          samplesTable.dirty: {{ samplesTable.dirty }} (subject: {{ samplesTable.dirtySubject | async }})
+          <br />
           <br />
           samplesTable.showIndividualMonitoringButton: {{ samplesTable.showIndividualMonitoringButton }}
           <br />

@@ -44,7 +44,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 import moment from 'moment';
@@ -94,7 +93,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
-  protected context = inject(ContextService);
   private _rowValidatorSubscription: Subscription;
 
   showParent = false;

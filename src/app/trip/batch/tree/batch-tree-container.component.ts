@@ -60,6 +60,7 @@ import { ContextService } from '@app/shared/context.service';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 interface BadgeState {
   hidden: boolean;
@@ -114,48 +115,30 @@ export class BatchTreeContainerComponent
   protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
+  protected _errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  protected readonly allowSamplingBatches$ = this._state.select('allowSpeciesSampling');
-  protected readonly allowSubBatches$ = this._state.select('allowSubBatches');
-  protected readonly programLabel$ = this._state.select('programLabel');
-  protected readonly program$ = this._state.select('program');
-  protected readonly requiredGear$ = this._state.select('requiredGear');
-  protected readonly gearId$ = this._state.select('gearId');
-  protected readonly form$ = this._state.select('form');
-  protected readonly editingBatch$ = this._state.select('editingBatch');
-  protected readonly currentBadge$ = this._state.select('currentBadge');
-  protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
-  protected readonly model$ = this._state.select('model');
-  protected readonly batchTreeStatus$ = this._state.select('batchTreeStatus');
+  @RxStateSelect() protected readonly allowSamplingBatches$: Observable<boolean>;
+  @RxStateSelect() protected readonly allowSubBatches$: Observable<boolean>;
+  @RxStateSelect() protected readonly programLabel$: Observable<string>;
+  @RxStateSelect() protected readonly program$: Observable<Program>;
+  @RxStateSelect() protected readonly requiredStrategy$: Observable<boolean>;
+  @RxStateSelect() protected readonly strategyId$: Observable<number>;
+  @RxStateSelect() protected readonly requiredGear$: Observable<boolean>;
+  @RxStateSelect() protected readonly gearId$: Observable<number>;
+  @RxStateSelect() protected readonly form$: Observable<UntypedFormGroup>;
+  @RxStateSelect() protected readonly editingBatch$: Observable<BatchModel>;
+  @RxStateSelect() protected readonly currentBadge$: Observable<BadgeState>;
+  @RxStateSelect() protected readonly treePanelFloating$: Observable<boolean>;
+  @RxStateSelect() protected readonly model$: Observable<BatchModel>;
+  @RxStateSelect() protected readonly batchTreeStatus$: Observable<IBatchTreeStatus>;
 
-  protected get model(): BatchModel {
-    return this._state.get('model');
-  }
-
-  protected set editingBatch(value: BatchModel) {
-    this._state.set('editingBatch', _ => value);
-  }
-
-  protected get editingBatch(): BatchModel {
-    return this._state.get('editingBatch');
-  }
-
-  protected get catchPmfms(): IPmfm[]{
-    return this._state.get('catchPmfms');
-  }
-
-  protected get sortingPmfms(): IPmfm[]{
-    return this._state.get('sortingPmfms');
-  }
-
-  protected set data(value: Batch){
-    this._state.set('data', (_) => value);
-  }
-
-  protected get data(): Batch{
-    return this._state.get('data');
-  }
-  errorTranslatorOptions: FormErrorTranslatorOptions;
+  @RxStateProperty() protected model: BatchModel;
+  @RxStateProperty() protected programAllowMeasure: boolean;
+  @RxStateProperty() protected editingBatch: BatchModel;
+  @RxStateProperty() protected catchPmfms: IPmfm[];
+  @RxStateProperty() protected sortingPmfms: IPmfm[];
+  @RxStateProperty() protected data: Batch;
+  @RxStateProperty() protected treePanelFloating: boolean;
 
   @ViewChild('batchTree') batchTree: BatchTreeComponent;
   @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
@@ -182,29 +165,16 @@ export class BatchTreeContainerComponent
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
 
-  @Input() set allowSpeciesSampling(value: boolean) {
-    this._state.set('allowSpeciesSampling', (_) => value);
-  }
-  get allowSpeciesSampling(): boolean {
-    return this._state.get('allowSpeciesSampling') ;
-  }
-
-  @Input() set allowSubBatches(value: boolean) {
-    this._state.set('allowSubBatches', (_) => value);
-  }
-  get allowSubBatches(): boolean {
-    return this._state.get('allowSubBatches');
-  }
-
-
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
-  }
-
-  get programLabel(): string {
-    return this._state.get('programLabel') || this.program?.label;
-  }
+  @Input() @RxStateProperty() programLabel: string
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() gearId: number;
+  @Input() @RxStateProperty() allowSpeciesSampling: boolean
+  @Input() @RxStateProperty() allowSubBatches: boolean
+  @Input() @RxStateProperty() allowDiscard: boolean;
+  @Input() @RxStateProperty() showCatchForm: boolean;
+  @Input() @RxStateProperty() showBatchTables: boolean;
 
   @Input()
   set program(value: Program) {
@@ -213,25 +183,8 @@ export class BatchTreeContainerComponent
     this._listenProgramChanges = false;
     this._state.set('program', (_) => value);
   }
-
   get program(): Program {
     return this._state.get('program');
-  }
-
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', (_) => value);
-  }
-
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
-  }
-
-  @Input() set gearId(value: number) {
-    this._state.set('gearId', (_) => value);
-  }
-
-  get gearId(): number {
-    return this._state.get('gearId');
   }
 
   @Input() set physicalGear(value: PhysicalGear) {
@@ -245,40 +198,8 @@ export class BatchTreeContainerComponent
       gearId: toNumber(value?.gear?.id, null)
     });
   }
-
   get physicalGear(): PhysicalGear {
     return this._state.get('physicalGear');
-  }
-
-  @Input() set showCatchForm(value: boolean) {
-    this._state.set('showCatchForm', (_) => value);
-  }
-  get showCatchForm(): boolean {
-    return this._state.get('showCatchForm') || false;
-  }
-
-  @Input() set showBatchTables(value: boolean) {
-    this._state.set('showBatchTables', (_) => value);
-  }
-
-  get showBatchTables(): boolean {
-    return this._state.get('showBatchTables') || false;
-  }
-
-  @Input() set allowDiscard(value: boolean) {
-    this._state.set('allowDiscard', _ => value);
-  }
-
-  get allowDiscard(): boolean {
-    return this._state.get('allowDiscard');
-  }
-
-  get programAllowMeasure(): boolean {
-    return this._state.get('programAllowMeasure');
-  }
-
-  set programAllowMeasure(value: boolean) {
-    this._state.set('programAllowMeasure', _ => value);
   }
 
   get touched(): boolean {
@@ -331,13 +252,7 @@ export class BatchTreeContainerComponent
     return this.usageMode === 'FIELD';
   }
 
-  set treePanelFloating(value: boolean) {
-    this._state.set('treePanelFloating', _ => value);
-  }
 
-  get treePanelFloating(): boolean {
-    return this._state.get('treePanelFloating');
-  }
 
   constructor(injector: Injector,
               route: ActivatedRoute,
@@ -362,7 +277,7 @@ export class BatchTreeContainerComponent
       prefix: '',
       suffix: ''
     };
-    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
+    this._errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
       treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
@@ -444,7 +359,7 @@ export class BatchTreeContainerComponent
 
     this._state.connect('batchTreeStatus', this.watchBatchTreeStatus());
 
-    this._state.connect('currentBadge', this.batchTreeStatus$, (state, status) => {
+    this._state.connect('currentBadge', this.batchTreeStatus$, (_, status) => {
       if (!status.valid) {
         return {
           text: '!',

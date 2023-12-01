@@ -82,9 +82,9 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                modal.loading: {{ loading }}
-                <br />
                 modal.ready: {{ readySubject | async }}
+                <br />
+                modal.loading: {{ loading }}
                 <br />
                 modal.dirty: {{ dirty }}
                 <br />
@@ -111,15 +111,14 @@
                 form.valid: {{ physicalGearForm.valid }}
                 <br />
               </ion-col>
-
               <ion-col>
                 form.acquisitionLevel: {{ physicalGearForm.acquisitionLevel$ | async }}
                 <br />
                 form.programLabel: {{ physicalGearForm.programLabel$ | async }}
                 <br />
-                form.strategy ({{ physicalGearForm.requiredStrategy ? 'required' : 'optional' }}): id={{physicalGearForm.strategyId}}, label={{physicalGearForm.strategyLabel}}
+                form.strategy {{ physicalGearForm.requiredStrategy ? '(required)' : '' }}: {{physicalGearForm.strategyId || physicalGearForm.strategyLabel}}
                 <br />
-                form.gear ({{ physicalGearForm.requiredGear ? 'required' : 'optional' }}): id={{physicalGearForm.gearId}}
+                form.gear {{ physicalGearForm.requiredGear ? '(required)' : '' }}: {{physicalGearForm.gearId}}
                 <br />
                 form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
                 <br />
@@ -131,8 +130,10 @@
         <!-- base form -->
         <app-physical-gear-form
           #physicalGearForm
-          [programLabel]="programLabel"
           [acquisitionLevel]="acquisitionLevel"
+          [programLabel]="programLabel"
+          [requiredStrategy]="requiredStrategy"
+          [strategyId]="strategyId"
           [canEditGear]="canEditGear"
           [canEditRankOrder]="canEditRankOrder"
           [showGear]="showGear"
@@ -178,6 +179,8 @@
         (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
         [acquisitionLevel]="childAcquisitionLevel"
         [programLabel]="programLabel"
+        [requiredStrategy]="requiredStrategy"
+        [strategyId]="strategyId"
         [tripId]="tripId"
         [showGearColumn]="false"
         [defaultGear]="gear$ | push : 'immediate'"

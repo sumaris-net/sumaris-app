@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
@@ -12,6 +12,7 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
+  equals,
   fadeInOutAnimation,
   FilesUtils,
   firstNotNilPromise,
@@ -19,6 +20,7 @@ import {
   HistoryPageReference,
   Hotkeys,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -40,7 +42,7 @@ import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
-import { from, merge, of, Subscription, timer } from 'rxjs';
+import { from, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -60,13 +62,16 @@ import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.m
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { AppDataEntityEditor, DataEditorState } from '@app/data/form/data-editor.class';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export interface OperationState extends DataEditorState {
   hasIndividualMeasures?: boolean;
   physicalGear: PhysicalGear;
   gearId: number;
   tripId: number;
+  trip: Trip;
   lastOperations: Operation[];
   lastEndDate: Moment;
 }
@@ -98,17 +103,16 @@ export class OperationPage<S extends OperationState = OperationState>
   protected readonly physicalGear$ = this._state.select('physicalGear');
   protected readonly gearId$ = this._state.select('gearId');
 
-  protected tripService: TripService;
-  protected context: TripContextService;
-  protected modalCtrl: ModalController;
-  protected hotkeys: Hotkeys;
+  protected readonly tripService = inject(TripService);
+  protected readonly tripContext = inject(TripContextService);
+  protected readonly modalCtrl = inject(ModalController);
+  protected readonly hotkeys = inject(Hotkeys);
 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly lastOperations$ = this._state.select('lastOperations');
   readonly lastEndDate$ = this._state.select('lastEndDate');
 
-  trip: Trip;
   measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
@@ -134,14 +138,10 @@ export class OperationPage<S extends OperationState = OperationState>
   _defaultIsParentOperation = true;
   readonly forceOptionalExcludedPmfmIds: number[];
 
-  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
-  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-
-  // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
-
-  // Sample tables
-  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
+  @RxStateProperty() tripId: number;
+  @RxStateProperty() trip: Trip;
+  @RxStateProperty() physicalGear: PhysicalGear;
+  @RxStateProperty() lastEndDate: Moment;
 
   get form(): UntypedFormGroup {
     return this.opeForm.form;
@@ -174,30 +174,16 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.operationPasteFlags !== 0;
   }
 
-  get physicalGear(): PhysicalGear {
-    return this._state.get('physicalGear');
-  }
-  set physicalGear(value: PhysicalGear) {
-    this._state.set('physicalGear', () => value);
-  }
+  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  get tripId(): number {
-    return this._state.get('tripId');
-  }
-  set tripId(value: number) {
-    this._state.set('tripId', () => value);
-  }
-  get lastEndDate(): Moment {
-    return this._state.get('lastEndDate');
-  }
-  set lastEndDate(value: Moment) {
-    this._state.set('lastEndDate', () => value);
-  }
+  // Catch batch, sorting batches, individual measure
+  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
 
-  constructor(injector: Injector,
-    dataService: OperationService,
-    @Optional() options?: AppEditorOptions
-  ) {
+  // Sample tables
+  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
+
+  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppEditorOptions) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
@@ -206,12 +192,8 @@ export class OperationPage<S extends OperationState = OperationState>
       ...options,
     });
 
-    this.tripService = injector.get(TripService);
-    this.context = injector.get(TripContextService);
-    this.modalCtrl = injector.get(ModalController);
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
-    this.hotkeys = injector.get(Hotkeys);
 
     // Init defaults
     this.showLastOperations = this.settings.isUsageMode('FIELD');
@@ -398,7 +380,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms});
+    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {
@@ -768,6 +750,37 @@ export class OperationPage<S extends OperationState = OperationState>
     this.markAsReady();
   }
 
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+
+    console.log(this.logPrefix + "TODO watchStrategyFilter")
+
+    switch (this.strategyResolution) {
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state.select(['acquisitionLevel', 'trip'], (_) => _, {
+          acquisitionLevel: equals,
+          trip: (t1, t2) => t1 === t2 || t1 && t1.equals(t2)
+        })
+          .pipe(
+            map(
+              ({ acquisitionLevel, trip}) => {
+                return <Partial<StrategyFilter>>{
+                  acquisitionLevel,
+                  programId: program.id,
+                  startDate: trip.departureDateTime,
+                  endDate: trip.departureDateTime,
+                  location: trip.departureLocation,
+                };
+              }),
+            // DEBUG
+            tap(values => console.debug(this.logPrefix + 'Strategy filter changed:', values)),
+
+          );
+      default:
+        return super.watchStrategyFilter(program);
+    }
+  }
+
   load(
     id?: number,
     opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }
@@ -892,17 +905,15 @@ export class OperationPage<S extends OperationState = OperationState>
     const titlePrefix =
       ((!opts || opts.withPrefix !== false) &&
         this.trip &&
-        (await this.translate
-          .get('TRIP.OPERATION.TITLE_PREFIX', {
-            vessel: (this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name)) || '',
-            departureDateTime: (this.trip && this.trip.departureDateTime && (this.dateFormat.transform(this.trip.departureDateTime) as string)) || '',
-          })
-          .toPromise())) ||
+        (await this.translate.instant('TRIP.OPERATION.TITLE_PREFIX', {
+          vessel: (this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name)) || '',
+          departureDateTime: (this.trip && this.trip.departureDateTime && (this.dateFormat.transform(this.trip.departureDateTime) as string)) || '',
+        }))) ||
       '';
 
     // new ope
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
+      return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE'));
     }
 
     // Select the date to use for title
@@ -920,7 +931,7 @@ export class OperationPage<S extends OperationState = OperationState>
         : this.dateFormat.transform(titleDateTime, { time: true })) as string);
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
-    let rankOrder = !this.mobile && this.context?.operation?.rankOrder;
+    let rankOrder = !this.mobile && this.tripContext?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
       // Compute the rankOrder
       const now = this.debug && Date.now();
@@ -933,11 +944,11 @@ export class OperationPage<S extends OperationState = OperationState>
       this.opeForm?.form.patchValue({ rankOrder }, { emitEvent: false });
     }
     if (rankOrder) {
-      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', { startDateTime, rankOrder }).toPromise())) as string;
+      return (titlePrefix + (await this.translate.instant('TRIP.OPERATION.EDIT.TITLE', { startDateTime, rankOrder }))) as string;
     }
     // No rankOrder (e.g. if mobile)
     else {
-      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', { startDateTime }).toPromise())) as string;
+      return (titlePrefix + (await this.translate.instant('TRIP.OPERATION.EDIT.TITLE_NO_RANK', { startDateTime }))) as string;
     }
   }
 
@@ -1064,12 +1075,18 @@ export class OperationPage<S extends OperationState = OperationState>
       if (this.batchTree) {
         //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
+        this.batchTree.requiredStrategy = this.requiredStrategy;
+        this.batchTree.strategyId = this.strategy?.id;
         this.batchTree.gearId = gearId;
         jobs.push(this.batchTree.setValue((data && data.catchBatch) || null));
       }
 
       // Set sample tree
-      if (this.sampleTree) jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+      if (this.sampleTree) {
+        this.sampleTree.requiredStrategy = this.requiredStrategy;
+        this.sampleTree.strategyId = this.strategy?.id;
+        jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+      }
 
       await Promise.all(jobs);
 
@@ -1148,6 +1165,7 @@ export class OperationPage<S extends OperationState = OperationState>
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
+      trip: this.trip,
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts,
     });
@@ -1158,18 +1176,20 @@ export class OperationPage<S extends OperationState = OperationState>
     try {
       // Display form error on top
       if (!saved) {
-        // DEBUG
-        console.debug('[operation] Computing form error...');
+        let error = this.error;
+        if (isNilOrBlank(error)) {
+          // DEBUG
+          //console.debug('[operation] Computing form error...');
 
-        let error = '';
-        if (this.opeForm.invalid) {
-          error = this.opeForm.formError;
-        }
-        if (this.measurementsForm.invalid) {
-          error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
-        }
+          if (this.opeForm.invalid) {
+            error = this.opeForm.formError;
+          }
+          if (this.measurementsForm.invalid) {
+            error += (isNotNilOrBlank(error) ? ', ' : '') + this.measurementsForm.formError;
+          }
 
-        this.setError(error);
+          this.setError(error);
+        }
         this.scrollToTop();
       } else {
         // Workaround, to make sure the editor is not dirty anymore
@@ -1279,16 +1299,28 @@ export class OperationPage<S extends OperationState = OperationState>
     // Update trip id (will cause last operations to be watched, if need)
     this.tripId = +tripId;
 
-    let trip = this.context.getValue('trip') as Trip;
+    // Check if trip exists in the context
+    let trip = this.tripContext.trip;
 
-    // If not the expected trip: reload
-    if (trip?.id !== tripId) {
+    if (trip?.id === tripId) {
+      if (this.tripContext.strategy) {
+        this.strategy = this.tripContext.strategy;
+      }
+    }
+
+    // Reload if not the expected trip
+    else {
       trip = await this.tripService.load(tripId, { fullLoad: true });
       // Update the context
-      this.context.setValue('trip', trip);
+      this.tripContext.trip = trip;
     }
+
+    // Remember the trip
     this.trip = trip;
-    this.saveOptions.trip = trip;
+
+    // NOT need here, as it force in save() function
+    //this.saveOptions.trip = trip;
+
     return trip;
   }
 

@@ -16,15 +16,21 @@
           <br />
           dirty: {{ dirty }}
           <br />
+          valid: {{ valid }}
+          <br />
+          <br />
+          i18nPmfmPrefix: {{ i18nPmfmPrefix }}
+          <br />
+          i18nSuffix: {{ i18nSuffix }}
         </ion-col>
         <ion-col>
           acquisitionLevel: {{ acquisitionLevel }}
           <br />
-          programLabel: {{ programLabel }}
+          program: {{ programLabel }}
           <br />
-          strategy ({{ requiredStrategy ? 'required' : 'optional' }}): id={{ strategyId }}, label={{ strategyLabel }}
+          strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId || strategyLabel }}
           <br />
-          gear ({{ requiredGear ? 'required' : 'optional' }}): id={{ gearId }}
+          gear {{ requiredGear ? '(required)' : '' }}: {{ gearId }}
           <br />
           pmfms count: {{ (pmfms$ | push)?.length || 0 }}
         </ion-col>
@@ -36,7 +42,6 @@
   <ion-item *rxIf="showError && (errorSubject | push); let error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-    >
   </ion-item>
 
   <!-- pmfms -->
