@@ -47,6 +47,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { RxState } from '@rx-angular/state';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -86,6 +87,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
         reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS,
       }),
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -236,7 +238,7 @@ export class SubBatchesTable
         i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
         i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);

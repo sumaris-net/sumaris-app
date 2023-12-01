@@ -76,7 +76,7 @@
   #tableContainer
   class="table-container"
   [class.has-toolbar]="showToolbar"
-  [class.has-paginator]="paginator && true"
+  [class.has-paginator]="showPaginator"
 >
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
@@ -290,8 +290,8 @@
   </ng-template>
 </div>
 
-<ion-footer *ngIf="showPaginator">
-  <mat-paginator
+<ion-footer>
+  <mat-paginator [class.cdk-visually-hidden]="!showPaginator"
     #paginator
     class="mat-paginator-footer"
     [length]="totalRowCount"

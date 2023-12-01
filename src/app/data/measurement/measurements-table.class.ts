@@ -55,11 +55,6 @@ export interface BaseMeasurementsTableConfig<
   onPrepareRowForm?: (form: UntypedFormGroup) => void | Promise<void>;
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   i18nPmfmPrefix?: string;
-
-  // Initial state
-  // TODO move into initialState
-  requiredStrategy?: boolean;
-  requiredGear?: boolean;
 }
 
 @Directive()
@@ -102,7 +97,6 @@ export abstract class BaseMeasurementsTable<
   @Input()
   @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
 
-
   @Input()
   @RxStateProperty() strategyLabel: string;
 
@@ -136,7 +130,6 @@ export abstract class BaseMeasurementsTable<
 
   set dataService(value: S) {
     if (this._dataService.delegate !== value) {
-      console.warn("TODO: check if 'get dataService()' is need", new Error());
       this._dataService.delegate = value;
       if (!this.loading) {
         this.onRefresh.emit('new dataService');

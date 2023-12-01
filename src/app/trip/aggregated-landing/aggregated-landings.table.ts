@@ -103,7 +103,6 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     this.setParent(value);
   }
 
-  @Input() showToolbar = true;
   @Input() useSticky = true;
 
   constructor(

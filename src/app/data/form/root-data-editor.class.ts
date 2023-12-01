@@ -1,4 +1,4 @@
-import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
 import { Subscription } from 'rxjs';
 import {
@@ -7,6 +7,7 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
+  NetworkService,
   ReferentialRef,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
@@ -33,6 +34,7 @@ export abstract class AppRootDataEntityEditor<
   implements OnInit, OnDestroy
 {
   protected programChangesSubscription: Subscription;
+  protected readonly network = inject(NetworkService);
 
   get programControl(): UntypedFormControl {
     return this.form.controls.program as UntypedFormControl;

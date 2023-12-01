@@ -26,6 +26,7 @@ import { SampleFilter } from './sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
+import { RxState } from '@rx-angular/state';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -37,7 +38,8 @@ export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   templateUrl: 'sub-samples.table.html',
   styleUrls: ['sub-samples.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: SubSampleValidatorService}
+    {provide: ValidatorService, useExisting: SubSampleValidatorService},
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -76,7 +78,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   @Input() showLabelColumn = false;
-  @Input() showToolbar = true;
   @Input() modalOptions: Partial<ISubSampleModalOptions>;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;

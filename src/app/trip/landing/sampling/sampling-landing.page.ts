@@ -3,7 +3,6 @@ import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { firstValueFrom, merge, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
 import {
   AccountService,
   EntityServiceLoadOptions,
@@ -31,6 +30,7 @@ import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators'
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
 
 export interface SamplingLandingPageState extends LandingPageState {
   ageParameterIds: number[];
@@ -41,7 +41,7 @@ export interface SamplingLandingPageState extends LandingPageState {
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
   styleUrls: ['./sampling-landing.page.scss'],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: SamplingLandingPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: SamplingLandingPage }, RxState],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,7 +57,6 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
-    protected pmfmService: PmfmService,
     protected accountService: AccountService,
     protected landingService: LandingService
   ) {
@@ -67,6 +66,9 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
     });
     this.i18nContext.suffix = 'SAMPLING.';
     this.fractionDisplayAttributes = this.settings.getFieldDisplayAttributes('fraction', ['name']);
+
+    // FOR DEV ONLY ----
+    this.logPrefix = '[sampling-landing-page] ';
   }
 
   ngOnInit() {

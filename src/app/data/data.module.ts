@@ -8,6 +8,7 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
+import { AppDataEditorDebugButtonComponent } from '@app/data/form/data-editor-debug-button/data-editor-debug-button.component';
 
 @NgModule({
   imports: [
@@ -29,7 +30,7 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
 
     // Components
     StrategySummaryCardComponent,
-    //AppEditorFooterComponent,
+    AppDataEditorDebugButtonComponent,
   ],
   exports: [
     // Sub modules
@@ -44,6 +45,7 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
 
     // Components
     StrategySummaryCardComponent,
+    AppDataEditorDebugButtonComponent,
   ],
   providers: [DevicePositionService],
 })

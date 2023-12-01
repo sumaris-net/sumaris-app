@@ -19,6 +19,7 @@ import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
+import { RxState } from '@rx-angular/state';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -42,7 +43,8 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
   providers: [
-    {provide: AppValidatorService, useExisting: LandingValidatorService}
+    {provide: AppValidatorService, useExisting: LandingValidatorService},
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -65,8 +67,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() includedPmfmIds: number[] = null;
 
@@ -204,9 +204,11 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        requiredStrategy: false,
         i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
-        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX
+        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
+        initialState: {
+          requiredStrategy: false
+        }
       });
     this.cd = injector.get(ChangeDetectorRef);
 
@@ -217,6 +219,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
 
+    this.requiredGear = false;
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 
     this.vesselSnapshotService = injector.get(VesselSnapshotService);

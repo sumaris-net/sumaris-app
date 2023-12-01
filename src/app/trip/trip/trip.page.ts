@@ -30,12 +30,10 @@ import {
   isNotNil,
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
-  NetworkService,
   PromiseEvent,
   ReferentialRef,
   ReferentialUtils,
   sleep,
-  toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -48,7 +46,6 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap, throttleTime } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
 import { from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
@@ -67,6 +64,7 @@ import { TripFilter } from '@app/trip/trip/trip.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -93,6 +91,7 @@ export interface TripPageState extends RootDataEntityEditorState {
           sortByReplacement: { id: 'rankOrder' },
         }),
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -109,11 +108,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
-  devAutoFillData = false;
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
-  canCopyLocally = false;
   canDownload = false;
   helpUrl: string;
 
@@ -145,7 +142,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     protected context: ContextService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
-    public network: NetworkService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector, Trip, injector.get(TripService), {
@@ -154,14 +150,14 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       enableListenChanges: true,
       i18nPrefix: 'TRIP.',
       acquisitionLevel: AcquisitionLevelCodes.TRIP,
-      settingsId: TripPageSettingsEnum.PAGE_ID
+      settingsId: TripPageSettingsEnum.PAGE_ID,
+      canCopyLocally: accountService.isAdmin()
     });
     this.defaultBackHref = '/trips';
     this.operationPasteFlags = this.operationPasteFlags || 0;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[trip-page] ';
-    this.devAutoFillData = this.debug && toBoolean(this.settings.getPageSettings(this.settingsId, 'devAutoFillData'), false);
   }
 
 
@@ -228,17 +224,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       );
     }
 
-    // Auto fill form, in DEV mode
-    if (!environment.production) {
-      this.registerSubscription(
-        this.program$
-          .pipe(
-            filter(isNotNil),
-            filter(() => this.isNewData && this.devAutoFillData)
-          )
-          .subscribe((program) => this.setTestValue(program))
-      );
-    }
   }
 
 
@@ -515,11 +500,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
-    this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
 
     this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
 
-    console.log('TODO loaded', this.program);
   }
 
   updateViewState(data: Trip, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -537,7 +520,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport(event: Event) {
+  async openReport() {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -657,47 +640,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     await this.onNewOperation(event);
   }
 
-  // For DEV only
-  setTestValue(program: Program) {
-    const departureDate = moment().startOf('minutes');
-    const returnDate = departureDate.clone().add(15, 'day');
-    const trip = Trip.fromObject({
-      program,
-      departureDateTime: departureDate,
-      departureLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
-      returnDateTime: returnDate,
-      returnLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
-      vesselSnapshot: {
-        id: 1,
-        vesselId: 1,
-        name: 'Vessel 1',
-        basePortLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO' },
-        __typename: 'VesselSnapshotVO',
-      },
-      measurements: [
-        { numericalValue: 1, pmfmId: 21 }, // NB fisherman
-        { numericalValue: 1, pmfmId: 188 }, // GPS_USED
-      ],
-      // Keep existing synchronizationStatus
-      synchronizationStatus: this.data?.synchronizationStatus,
-    });
 
-    this.measurementsForm.value = trip.measurements;
-    this.form.patchValue(trip);
-  }
-
-  devToggleAutoFillData() {
-    this.devAutoFillData = !this.devAutoFillData;
-    this.settings.savePageSetting(this.settingsId, this.devAutoFillData, 'devAutoFillData');
-  }
-
-  devToggleOfflineMode() {
-    if (this.network.offline) {
-      this.network.setForceOffline(false);
-    } else {
-      this.network.setForceOffline();
-    }
-  }
 
   async copyLocally() {
     if (!this.data) return;
@@ -972,6 +915,35 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       backdropDismiss: true,
     });
     return modal.present();
+  }
+
+  // For DEV only
+  protected async devFillTestValue(program: Program) {
+    const departureDate = moment().startOf('minutes');
+    const returnDate = departureDate.clone().add(15, 'day');
+    const trip = Trip.fromObject({
+      program,
+      departureDateTime: departureDate,
+      departureLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
+      returnDateTime: returnDate,
+      returnLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
+      vesselSnapshot: {
+        id: 1,
+        vesselId: 1,
+        name: 'Vessel 1',
+        basePortLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO' },
+        __typename: 'VesselSnapshotVO',
+      },
+      measurements: [
+        { numericalValue: 1, pmfmId: 21 }, // NB fisherman
+        { numericalValue: 1, pmfmId: 188 }, // GPS_USED
+      ],
+      // Keep existing synchronizationStatus
+      synchronizationStatus: this.data?.synchronizationStatus,
+    });
+
+    this.measurementsForm.value = trip.measurements;
+    this.form.patchValue(trip);
   }
 
   protected markForCheck() {

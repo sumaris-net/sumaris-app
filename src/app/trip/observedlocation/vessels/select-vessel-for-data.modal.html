@@ -52,6 +52,7 @@
         [canDelete]="false"
         (onOpenRow)="selectRow($event)"
         (onNewRow)="close($event)"
+        [debug]="debug"
       ></app-landings-table>
     </mat-tab>
 
@@ -73,6 +74,8 @@
         [showToolbar]="true"
         [showSearchbar]="true"
         [showVesselTypeColumn]="showVesselTypeColumn"
+        [showVesselTypeFilter]="showVesselTypeFilter"
+        [vesselTypeId]="vesselTypeId"
         [restoreFilterSources]="false"
         [showOfflineMode]="showOfflineVessels"
         [showBasePortLocationColumn]="showBasePortLocationColumn"

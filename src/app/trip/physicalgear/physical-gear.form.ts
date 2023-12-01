@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
-import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
@@ -23,6 +23,10 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
 
 interface PhysicalGearFormState extends MeasurementsFormState {
   gears: ReferentialRef[];
@@ -32,11 +36,12 @@ interface PhysicalGearFormState extends MeasurementsFormState {
   selector: 'app-physical-gear-form',
   templateUrl: './physical-gear.form.html',
   styleUrls: ['./physical-gear.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, PhysicalGearFormState> implements OnInit {
 
-  gears$ = this._state.select('gears');
+  @RxStateSelect() gears$: Observable<ReferentialRef[]>;
 
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
@@ -49,12 +54,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   @Input() i18nSuffix: string = null;
   @Input() mobile: boolean;
 
-  @Input() set gears(value: ReferentialRef[]) {
-    this._state.set('gears', (_) => value);
-  }
-  get gears(): ReferentialRef[] {
-    return this._state.get('gears');
-  }
+  @Input() @RxStateProperty() gears: ReferentialRef[];
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 

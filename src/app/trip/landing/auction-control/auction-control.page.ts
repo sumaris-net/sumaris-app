@@ -37,13 +37,14 @@ import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlPage extends LandingPage implements OnInit, AfterViewInit {
@@ -56,7 +57,6 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
-  showSamplesTable = false;
   helpContent: string;
 
   constructor(
@@ -69,10 +69,14 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
       pathIdAttribute: 'controlId',
       tabGroupAnimationDuration: '0s', // Disable tab animation
       i18nPrefix: 'AUCTION_CONTROL.EDIT.',
+      settingsId: 'auctionControl',
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
     this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+
+    // FOR DEV ONLY ----
+    this.logPrefix = '[auction-control-page] ';
   }
 
   ngOnInit() {
@@ -148,7 +152,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
             }
 
             // Force other Pmfm to optional (if in on field)
-            else if (this.isOnFieldMode) {
+            else if (this.isOnFieldMode && pmfm.required) {
               pmfm = pmfm.clone(); // Skip original pmfm safe
               pmfm.required = false;
             }

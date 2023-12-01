@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -17,7 +17,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -39,7 +38,6 @@ import { Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
 import { merge, Observable, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -60,6 +58,8 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 
@@ -81,6 +81,7 @@ export interface LandingPageState extends RootDataEntityEditorState {
         pathIdAttribute: 'landingId',
       },
     },
+    RxState
   ],
 })
 export class LandingPage<ST extends LandingPageState = LandingPageState>
@@ -88,31 +89,25 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   implements OnInit, AfterViewInit
 {
   protected parent: Trip | ObservedLocation;
-  protected observedLocationService: ObservedLocationService;
-  protected tripService: TripService;
-  protected pmfmService: PmfmService;
-  protected referentialRefService: ReferentialRefService;
-  protected vesselService: VesselSnapshotService;
-  protected network: NetworkService;
+  protected observedLocationService = inject(ObservedLocationService);
+  protected tripService = inject(TripService);
+  protected pmfmService = inject(PmfmService);
+  protected referentialRefService = inject(ReferentialRefService);
+  protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected context = inject(ContextService);
   private _rowValidatorSubscription: Subscription;
 
   showParent = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
   showEntityMetadata = false;
   showQualityForm = false;
-  context: ContextService;
   showSamplesTable = false;
   enableReport = false;
+  parentAcquisitionLevel: AcquisitionLevelType;
+
+  @RxStateProperty() strategyLabel: string
 
   get form(): UntypedFormGroup {
     return this.landingForm.form;
-  }
-
-  get strategyLabel(): string {
-    return this._state.get('strategyLabel');
-  }
-  set strategyLabel(value: string) {
-    this._state.set('strategyLabel', () => value);
   }
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
@@ -125,20 +120,13 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.LANDING,
+      settingsId: AcquisitionLevelCodes.LANDING.toLowerCase(),
       ...options,
     });
-    this.observedLocationService = injector.get(ObservedLocationService);
-    this.tripService = injector.get(TripService);
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.vesselService = injector.get(VesselSnapshotService);
-    this.context = injector.get(ContextService);
-    this.network = injector.get(NetworkService);
-
     this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
     this.showParent = !!this.parentAcquisitionLevel;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
     this.logPrefix = '[landing-page] ';
   }
 
@@ -462,7 +450,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
         if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
-          data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
+          data.vesselSnapshot = await this.vesselSnapshotService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
       } else if (parent instanceof Trip) {
         data.trip = this.showParent ? parent : undefined;
@@ -644,7 +632,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
         samplesPmfms = samplesPmfms.concat(additionalPmfms);
       }
 
-      // Give it to samples table (but exclude STRATEGY_LABEL)
+      // Give it to samples table (without the STRATEGY_LABEL pmfm)
       table.pmfms = samplesPmfms.filter((p) => p.id !== PmfmIds.STRATEGY_LABEL);
       // Avoid to load by program, because PMFM are already known
       //table.programLabel = programLabel;

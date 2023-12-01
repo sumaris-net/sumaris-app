@@ -45,7 +45,6 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
@@ -54,6 +53,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { environment } from '@environments/environment';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxState } from '@rx-angular/state';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -136,6 +136,7 @@ export interface BatchGroupsTableState extends AbstractBatchesTableState {
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class BatchGroupsTable extends AbstractBatchesTable<
   BatchGroup,
@@ -229,7 +230,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   showSamplingBatchColumns$ = this._state.select('showSamplingBatchColumns');
   showAutoFillButton$ = this._state.select('showAutoFillButton');
 
-  showToolbar = true; // False only if no group columns AND mobile
   groupColumns: GroupColumnDefinition[];
   groupColumnNames: string[];
   groupColumnStartColSpan: number;
@@ -314,8 +314,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   constructor(
     injector: Injector,
     validatorService: BatchGroupValidatorService,
-    protected context: TripContextService,
-    protected pmfmNamePipe: PmfmNamePipe
+    protected context: TripContextService
   ) {
     super(
       injector,

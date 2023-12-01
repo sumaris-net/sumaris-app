@@ -11,7 +11,7 @@ import {
   ViewChildren,
 } from '@angular/core';
 import { Batch } from '../common/batch.model';
-import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -59,6 +59,7 @@ import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;

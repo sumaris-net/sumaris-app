@@ -155,11 +155,14 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
-      this.registerAutocompleteField('vesselSnapshot', {...opts,
-      filter: {
-        ...opts.filter,
-        vesselTypeId: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL
-      }})
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        attributes: ['name'],
+        filter: {
+          ...opts.filter,
+          searchAttributes: ['name'],
+          vesselTypeId: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL
+        }})
     });
 
     // Combo: recorder department

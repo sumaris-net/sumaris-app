@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && (dirty || saving)"
   [hasClose]="!loading && !dirty && !saving"
@@ -31,14 +31,6 @@
     </ion-label>
   </button>
 
-  <mat-divider></mat-divider>
-
-  <!-- delete -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
-    <ion-label translate>COMMON.BTN_DELETE</ion-label>
-  </button>
-
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
     <ion-label>
@@ -47,7 +39,19 @@
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
+
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group

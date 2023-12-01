@@ -51,7 +51,6 @@ export class ProductsTable
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
 
-  @Input() showToolbar = true;
   @Input() showIdColumn = true;
   @Input() showActionButtons = true;
   @Input() useSticky = false;

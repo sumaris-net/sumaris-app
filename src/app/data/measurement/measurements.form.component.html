@@ -24,6 +24,8 @@
           <br />
           strategy ({{ requiredStrategy ? 'required' : 'optional' }}): id={{ strategyId }}, label={{ strategyLabel }}
           <br />
+          gear ({{ requiredGear ? 'required' : 'optional' }}): id={{ gearId }}
+          <br />
           pmfms count: {{ (pmfms$ | push)?.length || 0 }}
         </ion-col>
       </ion-row>

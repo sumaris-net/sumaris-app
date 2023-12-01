@@ -26,6 +26,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { RxState } from '@rx-angular/state';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -35,7 +36,8 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed',
   selector: 'app-physical-gears-table',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
@@ -46,7 +48,6 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
-  @Input() showToolbar = true;
   @Input() useSticky = false;
   @Input() title: string = null;
   @Input() defaultGear: ReferentialRef = null;
@@ -137,7 +138,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        requiredStrategy: true
+        initialState: {
+          requiredStrategy: true
+        }
       });
 
     this.filterForm = formBuilder.group({

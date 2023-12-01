@@ -34,7 +34,7 @@ import {
   StatusList,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
@@ -88,15 +88,12 @@ export class ReferentialTable<
 
   private _entityName: string;
 
-  filterForm: UntypedFormGroup;
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
   i18nParentName: string;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
   readonly detailsPath = {
     Program: '/referential/programs/:id',
     Software: '/referential/software/:id?label=:label',

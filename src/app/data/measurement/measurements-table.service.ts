@@ -51,11 +51,10 @@ export class MeasurementsTableEntitiesService<
   private _delegate: S;
   protected programRefService: ProgramRefService;
 
-  @RxStateRegister() protected _state: RxState<ST>;
+  @RxStateRegister() protected _state: RxState<ST> = new RxState<ST>();
 
   @RxStateSelect() pmfms$: Observable<IPmfm[]>;
   @RxStateSelect() loading$: Observable<boolean>;
-
 
   @RxStateProperty() programLabel: string;
   @RxStateProperty() acquisitionLevel: string;

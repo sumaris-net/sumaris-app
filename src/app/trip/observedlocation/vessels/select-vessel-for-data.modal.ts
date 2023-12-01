@@ -1,4 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
 
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -21,10 +31,13 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { debounceTime, mergeMap } from 'rxjs/operators';
 
 export interface SelectVesselsForDataModalOptions {
-  landingFilter: LandingFilter|null;
-  vesselFilter: VesselFilter|null;
+  debug?: boolean;
+  landingFilter: LandingFilter | null;
+  vesselFilter: VesselFilter | null;
   allowMultiple: boolean;
   allowAddNewVessel: boolean;
+  vesselTypeId?: number;
+  showVesselTypeFilter?: boolean;
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
   showSamplesCountColumn: boolean;
@@ -55,6 +68,8 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @Input() vesselFilter: VesselFilter|null = null;
   @Input() allowMultiple: boolean;
   @Input() allowAddNewVessel: boolean;
+  @Input() vesselTypeId: number;
+  @Input() showVesselTypeFilter: boolean;
   @Input() showVesselTypeColumn: boolean;
   @Input() showBasePortLocationColumn: boolean;
   @Input() showSamplesCountColumn: boolean;
@@ -64,6 +79,8 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @Input() withNameRequired: boolean;
   @Input() maxDateVesselRegistration: Moment;
   @Input() showOfflineVessels: boolean;
+
+  @Input() debug: boolean;
 
   get loading(): boolean {
     const table = this.table;
@@ -119,6 +136,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
     this.allowAddNewVessel = toBoolean(this.allowAddNewVessel, true);
+    this.showVesselTypeFilter = toBoolean(this.showVesselTypeFilter, isNil(this.vesselTypeId))
     this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
     this.showBasePortLocationColumn = toBoolean(this.showBasePortLocationColumn, true);
 
@@ -157,6 +175,8 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
                 this.withNameRequired = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_NAME_REQUIRED);
                 this.vesselForm.withNameRequired = this.withNameRequired;
               }
+
+              this.vesselsTable.markAsReady();
             })
           )
           .subscribe()

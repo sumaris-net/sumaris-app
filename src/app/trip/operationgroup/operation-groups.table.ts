@@ -53,7 +53,6 @@ export class OperationGroupTable
     return this.memoryDataService.value;
   }
 
-  @Input() showToolbar = true;
   @Input() useSticky = false;
 
   constructor(

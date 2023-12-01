@@ -306,6 +306,22 @@
       </td>
     </ng-container>
 
+    <!-- Status column  -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header
+        [class.ion-padding-start]="!canEdit && !showIdColumn">
+        <ion-label translate>REFERENTIAL.STATUS</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit && !showIdColumn">
+        <ion-icon
+          *ngIf="statusById[row.currentData.statusId]; let status"
+          [color]="status.id | vesselStatusToColorPipe"
+          [name]="status.icon"
+          [title]="status.label | translate"
+        ></ion-icon>
+      </td>
+    </ng-container>
+
     <!-- Start date column -->
     <ng-container matColumnDef="vesselFeatures.startDate">
       <th mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
@@ -316,20 +332,6 @@
       </td>
     </ng-container>
 
-    <!-- Status column  -->
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>REFERENTIAL.STATUS</ion-label>
-      </th>
-      <td mat-cell *matCellDef="let row">
-        <ion-icon
-          *ngIf="statusById[row.currentData.statusId]; let status"
-          [color]="status.id | vesselStatusToColorPipe"
-          [name]="status.icon"
-          [title]="status.label | translate"
-        ></ion-icon>
-      </td>
-    </ng-container>
 
     <!-- End date column -->
     <ng-container matColumnDef="vesselFeatures.endDate">

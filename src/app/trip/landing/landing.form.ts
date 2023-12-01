@@ -8,7 +8,7 @@ import {
   PmfmIds,
 } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from './landing.validator';
-import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
@@ -66,6 +66,8 @@ import {
 import { Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyService } from '@app/referential/services/strategy.service';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
 
@@ -88,6 +90,7 @@ interface LandingFormState extends MeasurementsFormState {
   templateUrl: './landing.form.html',
   styleUrls: ['./landing.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState> implements OnInit {
   private _showObservers: boolean; // Disable by default

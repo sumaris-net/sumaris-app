@@ -64,9 +64,10 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.NONE'
       },
     ],
-    // TODO
-    //defaultValue: DataStrategyResolutions.LAST
-    defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
+
+    defaultValue: DataStrategyResolutions.LAST // Need for backward compatibility
+    // DEV only ---
+    // defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
 
   // Trip

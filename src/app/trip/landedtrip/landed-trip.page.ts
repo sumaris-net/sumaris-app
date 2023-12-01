@@ -16,7 +16,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  NetworkService,
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -107,19 +106,20 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     protected vesselService: VesselSnapshotService,
     protected landingService: LandingService,
     protected accountService: AccountService,
-    public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
     protected formBuilder: UntypedFormBuilder
   ) {
     super(injector, Trip, dataService, {
       pathIdAttribute: 'tripId',
       tabCount: 5,
       enableListenChanges: true,
+      settingsId: 'landedTrip',
+      canCopyLocally: accountService.isAdmin(),
+      acquisitionLevel: AcquisitionLevelCodes.TRIP,
     });
-    this.acquisitionLevel = AcquisitionLevelCodes.TRIP;
     this.showCatchFilter = !this.mobile;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[landed-trip-page] ';
   }
 
   ngOnInit() {

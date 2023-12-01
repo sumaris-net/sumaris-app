@@ -56,6 +56,7 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
+import { RxState } from '@rx-angular/state';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -76,7 +77,8 @@ export declare type TagIdGenerationMode = 'none' | 'previousRow' | 'remote';
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService}
+    {provide: AppValidatorService, useExisting: SampleValidatorService},
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -104,7 +106,6 @@ implements OnInit, AfterViewInit, OnDestroy {
   pmfmGroupColumns$ = new BehaviorSubject<GroupColumnDefinition[]>([]);
   groupHeaderColumnNames: string[] = [];
   footerColumns: string[] = ['footer-start'];
-  showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
   existingPmfmIdsToCopy: number[];
@@ -115,7 +116,6 @@ implements OnInit, AfterViewInit, OnDestroy {
   @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
   @Input() showError = true;
-  @Input() showToolbar: boolean;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showIdColumn = true;
@@ -244,12 +244,14 @@ implements OnInit, AfterViewInit, OnDestroy {
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
-        requiredStrategy: false,
         i18nColumnPrefix: 'TRIP.SAMPLE.TABLE.',
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        initialState: <BaseMeasurementsTableState>{
+          requiredStrategy: false,
+        }
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -266,6 +268,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
 
     // Set default value
+    this.showFooter = false;
     this.acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
     this.excludesColumns = ['images']; // Hide images by default
 
@@ -1010,7 +1013,6 @@ implements OnInit, AfterViewInit, OnDestroy {
             if (!this.showReadonlyPmfms && this._enabled) {
               pmfm.hidden = true;
               groupPmfmCount--;
-              console.log('TODO HIDE pmfm ', pmfm);
             }
           }
 

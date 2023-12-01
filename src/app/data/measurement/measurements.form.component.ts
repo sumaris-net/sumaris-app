@@ -3,11 +3,11 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Injector,
   Input,
   OnDestroy,
   OnInit,
-  Optional,
   Output,
 } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
@@ -30,9 +30,9 @@ import {
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurement-values.form.class';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedFormGroup}>;
@@ -42,11 +42,12 @@ export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedForm
   selector: 'app-form-measurements',
   templateUrl: './measurements.form.component.html',
   styleUrls: ['./measurements.form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsFormState> extends AppForm<Measurement[]> implements OnInit, OnDestroy {
 
-  protected readonly _state: RxState<S> = new RxState<S>();
+  @RxStateRegister() protected readonly _state: RxState<S> = inject(RxState, {self: true});
   protected _logPrefix: string;
   protected data: Measurement[];
   protected applyingValue = false;
@@ -82,7 +83,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() @RxStateProperty() requiredGear: boolean;
   @Input() @RxStateProperty() forceOptional: boolean;
 
-  //@Input() @RxStateProperty() pmfms: IPmfm[];
   @Input() set pmfms(pmfms: IPmfm[]) {
     this.setPmfms(pmfms, {emitEvent: false});
   }
@@ -113,8 +113,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   constructor(injector: Injector,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: UntypedFormBuilder,
-              protected programRefService: ProgramRefService,
-              @Optional() private __state?: RxState<S>
+              protected programRefService: ProgramRefService
   ) {
     super(injector, measurementValidatorService.getFormGroup([]));
     this.cd = injector.get(ChangeDetectorRef);
@@ -201,7 +200,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   markAsLoaded(opts?: {
     emitEvent?: boolean;
   }) {
-    // Wait form ready, before mark as ready
+    // Wait form ready, before mark as loaded
     this.doWhenReady(() => super.markAsLoaded(opts));
   }
 
@@ -258,7 +257,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       await this.ready({stop: this.destroySubject});
 
       // Data is still the same (not changed : applying)
-      if (data === this.data) {
+      if (data && data === this.data) {
         // Applying value to form (that should be ready).
         await this.updateView(data, opts);
         this.markAsLoaded();
@@ -285,6 +284,9 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     if (this.debug && this.readyStep < MeasurementsFormReadySteps.FORM_GROUP_READY) {
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
+
+    // DEBUG
+    if (this.debug) console.debug(`${this._logPrefix} updateView() with value:`, data);
 
     const pmfms = this.pmfms;
     this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName, this.keepRankOrder);
@@ -364,7 +366,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
       this.setReadyStep(MeasurementsFormReadySteps.LOADING_PMFMS);
     }
 
-    let pmfms;
+    let pmfms: Observable<IPmfm[]>;
     try {
       // Load pmfms
       // DO NOT call loadProgramPmfms(). Next setPmfms() will call a firstNotNilPromise() with options.stop
@@ -464,7 +466,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     if (!this.starting && this.loaded) this.setReadyStep(MeasurementsFormReadySteps.STARTING);
 
     // Update state
-    this.pmfms = undefined;
+    this._state.set('pmfms', () => undefined);
   }
 
   private async updateFormGroup(pmfms?: IPmfm[]) {

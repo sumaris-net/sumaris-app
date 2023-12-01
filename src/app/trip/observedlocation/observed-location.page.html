@@ -1,3 +1,58 @@
+<ng-template #debugPanel>
+  <app-debug title="Editor and Form">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.data: {{ !!data }}
+          <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategyResolution: {{strategyResolution$|async}}
+          <br />
+          editor.showLandingTab: {{ showLandingTab }}
+          <br />
+          editor.landingTableType: {{ $landingTableType | async }}
+        </ion-col>
+        <ion-col>
+          form.ready: {{ observedLocationForm.readySubject | async }}
+          <br />
+          form.loading: {{ observedLocationForm.loading }}
+          <br />
+          form.enabled: {{ observedLocationForm.enabled }}
+          <br />
+          form.data: {{ !!observedLocationForm.value }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.acquisitionLevel: {{ observedLocationForm.acquisitionLevel }}
+          <br />
+          form.programLabel: {{ observedLocationForm.programLabel }}
+          <br />
+          form.strategy ({{ observedLocationForm.requiredStrategy ? 'required' : 'optional' }}): id={{ observedLocationForm.strategyId }}, label={{ observedLocationForm.strategyLabel }}
+          <br />
+          form.gear ({{ observedLocationForm.requiredGear ? 'required' : 'optional' }}): id={{ observedLocationForm.gearId }}
+          <br />
+          form.pmfms count: {{ (pmfms$ | push)?.length || 0 }}
+        </ion-col>
+        <ion-col>
+          form.startDateTime:
+          {{ observedLocationForm.form | formGetValue : 'startDateTime' | dateFormat : { time: true } }}
+          <br />
+          form.endDateTime:
+          {{ observedLocationForm.form | formGetValue : 'endDateTime' | dateFormat : { time: true } }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
+
 <app-toolbar
   *ngIf="showToolbar"
   [title]="$title | async"
@@ -24,14 +79,17 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport()">
     <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
     <ion-label translate>OBSERVED_LOCATION.EDIT.BTN_REPORT</ion-label>
   </button>
 
-  <button mat-menu-item *ngIf="canCopyLocally" (click)="copyLocally()">
-    <mat-icon>file_copy</mat-icon>
-    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+  <!-- reset -->
+  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
+    <mat-icon>
+      <ion-icon slot="start" name="refresh"></ion-icon>
+    </mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
 
   <mat-divider></mat-divider>
@@ -42,13 +100,8 @@
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 
-  <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
-    <mat-icon>
-      <ion-icon slot="start" name="refresh"></ion-icon>
-    </mat-icon>
-    <ion-label translate>COMMON.BTN_RESET</ion-label>
-  </button>
+  <!-- DEV only -->
+  <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
 
 <ion-content>
@@ -88,47 +141,9 @@
         </ion-item>
 
         <!-- DEBUG -->
-        <app-debug *ngIf="debug" title="Observed location form">
-          <ion-grid>
-            <ion-row>
-              <ion-col>
-                editor.ready: {{ readySubject | async }}
-                <br />
-                editor.loading: {{ loading }}
-                <br />
-                editor.enabled: {{ enabled }}
-                <br />
-                editor.data: {{ !!data }}
-                <br />
-              </ion-col>
-              <ion-col>
-                form.ready: {{ observedLocationForm.readySubject | async }}
-                <br />
-                form.loading: {{ observedLocationForm.loading }}
-                <br />
-                form.enabled: {{ observedLocationForm.enabled }}
-                <br />
-                form.data: {{ !!observedLocationForm.value }}
-                <br />
-              </ion-col>
-              <ion-col>
-                form.startDateTime:
-                {{ observedLocationForm.form | formGetValue : 'startDateTime' | dateFormat : { time: true } }}
-                <br />
-                form.endDateTime:
-                {{ observedLocationForm.form | formGetValue : 'endDateTime' | dateFormat : { time: true } }}
-                <br />
-                form.program: {{ observedLocationForm.form | formGetValue : 'program' | propertyGet : 'label' }}
-                <br />
-                <br />
-                showLandingTab: {{ showLandingTab }}
-                <br />
-                landingTableType: {{ $landingTableType | async }}
-                <br />
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -136,9 +151,13 @@
               <!-- observed location -->
               <app-form-observed-location
                 #observedLocationForm
+                [acquisitionLevel]="acquisitionLevel"
                 [programLabel]="programLabel$ | async"
+                [requiredStrategy]="requiredStrategy$ | async"
+                [strategyId]="(strategy$ | async)?.id"
                 [showError]="false"
                 [showEndDateTime]="false"
+                [mobile]="mobile"
                 [debug]="debug"
                 (onSubmit)="save($event)"
                 [timezone]="dbTimeZone"
@@ -159,7 +178,7 @@
                 </ion-button>
 
                 <!-- quality process -->
-                <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
+                <app-entity-quality-form></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
           </ion-row>
@@ -218,16 +237,19 @@
           <app-landings-table
             #landingsTable
             *ngSwitchCase="'legacy'"
-            [debug]="debug"
             [programLabel]="programLabel$ | async"
+            [requiredStrategy]="requiredStrategy$|async"
+            [strategyId]="(strategy$|async)?.id"
             [showObserversColumn]="false"
             [showDateTimeColumn]="false"
             [showToolbar]="!mobile"
+            [showPaginator]="true"
             (onOpenRow)="onOpenLanding($event)"
             (onNewRow)="onNewLanding($event)"
             (openTrip)="onOpenTrip($event)"
             (newTrip)="onNewTrip($event)"
             (ngInit)="$table.next(landingsTable)"
+            [debug]="debug"
           ></app-landings-table>
         </ng-container>
       </div>

@@ -40,7 +40,6 @@ import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
-import { environment } from '@environments/environment';
 import { from, merge, of, Subscription, timer } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
@@ -315,7 +314,7 @@ export class OperationPage<S extends OperationState = OperationState>
     );
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[operation-page] ';
   }
 
   // TODO Hide lastOperation on to small screen
@@ -693,7 +692,8 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+
+    await super.setProgram(program);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';

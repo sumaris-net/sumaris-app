@@ -6,13 +6,14 @@ import {
   Alerts,
   ConfigService,
   FilesUtils,
-  HammerSwipeEvent, isNil,
+  HammerSwipeEvent,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   referentialToString,
-  StatusIds
-} from "@sumaris-net/ngx-components";
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 import { Location } from '@angular/common';
 import { VesselsTable } from './vessels.table';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -87,10 +88,10 @@ export class VesselsPage implements OnInit, OnDestroy {
       this.configService.config.subscribe((config) => {
         this.enableReplacement = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
         this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.REFERENTIAL_VESSEL_IMPORT_ENABLE);
-        const vesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
-        this.table.vesselTypeId = vesselTypeId;
-        this.table.showVesselTypeFilter = isNil(vesselTypeId);
-        this.table.showVesselTypeColumn = isNil(vesselTypeId);
+        this.vesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
+        this.table.vesselTypeId = this.vesselTypeId;
+        this.table.showVesselTypeFilter = isNil(this.vesselTypeId);
+        this.table.showVesselTypeColumn = isNil(this.vesselTypeId);
         this.table.markAsReady();
       })
     );
@@ -132,7 +133,7 @@ export class VesselsPage implements OnInit, OnDestroy {
           onlyWithRegistration: true
         },
         disableStatusFilter: true,
-        showVesselTypeColumn: true,
+        showVesselTypeColumn: isNil(this.vesselTypeId),
         showBasePortLocationColumn: true,
       },
       keyboardClose: true,

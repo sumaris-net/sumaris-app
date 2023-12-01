@@ -92,7 +92,7 @@
         <br />
       </ion-col>
       <ion-col *ngIf="showSubBatchesTable && subBatchesTable">
-        subBatchesTable.loading: {{ subBatchesTable.loading }}
+        subBatchesTable.loading: {{ subBatchesTable.loadingSubject | async }}
         <br />
         subBatchesTable.ready: {{ subBatchesTable.readySubject | async }}
         <br />

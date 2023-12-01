@@ -40,12 +40,7 @@
   </button>
 
   <!-- DEV only -->
-  <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0" (click)="copyLocally()">
-    <ion-label>Save locally (#developer)</ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug && network.online" (click)="devToggleOfflineMode()">
-    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-  </button>
+  <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">

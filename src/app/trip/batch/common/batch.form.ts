@@ -11,7 +11,7 @@ import {
   Optional,
 } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
-import { MeasurementsFormState, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -46,6 +46,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 
 export interface BatchFormState extends MeasurementsFormState {
   defaultWeightPmfm: IPmfm;

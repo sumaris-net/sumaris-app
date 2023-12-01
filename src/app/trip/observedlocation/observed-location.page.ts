@@ -8,7 +8,6 @@ import {
   AccountService,
   Alerts,
   AppTable,
-  ConfigService,
   CORE_CONFIG_OPTIONS,
   DateUtils,
   EntityServiceLoadOptions,
@@ -17,7 +16,6 @@ import {
   firstNotNilPromise,
   HistoryPageReference,
   isNotNil,
-  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
@@ -36,7 +34,6 @@ import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
-import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { LandingFilter } from '../landing/landing.filter';
 import { ContextService } from '@app/shared/context.service';
@@ -49,6 +46,14 @@ import { ObservedLocationContextService } from '@app/trip/observedlocation/obser
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { RxState } from '@rx-angular/state';
+
+export const ObservedLocationPageSettingsEnum = {
+  PAGE_ID: 'observedLocation',
+  FEATURE_ID: OBSERVED_LOCATION_FEATURE_NAME,
+};
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
@@ -65,7 +70,8 @@ type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | unde
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: APP_DATA_ENTITY_EDITOR, useExisting: ObservedLocationPage}
+    {provide: APP_DATA_ENTITY_EDITOR, useExisting: ObservedLocationPage},
+    RxState
   ],
 })
 export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocation, ObservedLocationService> implements OnInit {
@@ -86,7 +92,6 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
   showObservers = true;
   landingEditor: LandingEditor;
   enableReport: boolean;
-  canCopyLocally = false;
 
   get table(): ILandingsTable {
     return this.$table.value;
@@ -101,13 +106,11 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
-    protected configService: ConfigService,
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected translateContext: TranslateContextService,
     protected context: ContextService,
-    protected observedLocationContext: ObservedLocationContextService,
-    public network: NetworkService
+    protected observedLocationContext: ObservedLocationContextService
   ) {
     super(injector,
       ObservedLocation,
@@ -116,12 +119,15 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
         i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
-        enableListenChanges: true
+        enableListenChanges: true,
+        acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
+        settingsId: ObservedLocationPageSettingsEnum.PAGE_ID,
+        canCopyLocally: accountService.isAdmin()
       });
     this.defaultBackHref = '/observations';
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[observed-location-page] ';
   }
 
   ngOnInit() {
@@ -375,7 +381,7 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
     }
   }
 
-  async openReport(event?: Event) {
+  async openReport() {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -393,11 +399,10 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
+    await super.setProgram(program);
 
     // Update the context
     if (this.observedLocationContext.program !== program) {
-      console.debug('TODO setting context program', program.label);
       this.observedLocationContext.setValue('program', program);
     }
 
@@ -552,7 +557,6 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
-    this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
   protected async setValue(data: ObservedLocation) {

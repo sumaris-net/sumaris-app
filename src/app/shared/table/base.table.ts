@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -17,7 +17,6 @@ import {
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -54,7 +53,7 @@ export interface BaseTableConfig<
   restoreCompactMode?: boolean;
   restoreColumnWidths?: boolean;
   i18nColumnPrefix?: string;
-  initialState?: ST;
+  initialState?: Partial<ST>;
 }
 
 
@@ -80,12 +79,12 @@ export abstract class AppBaseTable<
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
 
-  @RxStateRegister() protected _state: RxState<ST>;
+  @RxStateRegister() protected _state: RxState<ST> = inject(RxState, {optional: true, self: true});
 
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
-  @Input() showPaginator: boolean;
+  @Input() showPaginator = true;
   @Input() showFooter = true;
   @Input() showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -159,7 +158,6 @@ export abstract class AppBaseTable<
 
   ngOnInit() {
     super.ngOnInit();
-    this.showPaginator = toBoolean(this.showPaginator, !!this.paginator);
 
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
@@ -206,7 +204,7 @@ export abstract class AppBaseTable<
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this._state.ngOnDestroy();
+    this._state?.ngOnDestroy();
   }
 
   initTableContainer(element: any) {
@@ -255,7 +253,7 @@ export abstract class AppBaseTable<
     filter = this.asFilter(filter);
 
     // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria();
+    const criteriaCount = this.countNotEmptyCriteria(filter as F);
     if (criteriaCount !== this.filterCriteriaCount) {
       this.filterCriteriaCount = criteriaCount;
       this.markForCheck();
@@ -621,6 +619,10 @@ export abstract class AppBaseTable<
     const target = new this.filterType();
     if (source) target.fromObject(source);
     return target;
+  }
+
+  protected countNotEmptyCriteria(filter: F) {
+    return filter?.countNotEmptyCriteria() || 0;
   }
 
   protected asEntity(source: Partial<T>): T {

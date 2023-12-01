@@ -13,6 +13,7 @@ import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { RxState } from '@rx-angular/state';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -30,6 +31,7 @@ export interface CatchBatchFormState extends BatchFormState {
   providers: [
     { provide: BatchValidatorService, useClass: BatchValidatorService},
     { provide: BatchForm, useExisting: forwardRef(() => CatchBatchForm)},
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
