@@ -1,22 +1,11 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import {
-  AppInMemoryTable,
-  InMemoryEntitiesService,
-  PersonFilter,
-  PersonService,
-  PersonUtils,
-  Referential,
-  ReferentialRef,
-  ReferentialUtils,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  StatusIds,
-} from '@sumaris-net/ngx-components';
+import { InMemoryEntitiesService, PersonService, PersonUtils, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import { ReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { ProgramPersonValidatorService } from '@app/referential/program/privilege/program-person.validator';
-import { ProgramPerson } from '@app/referential/services/model/program.model';
+import { ProgramPerson, ProgramPersonFilter } from '@app/referential/services/model/program.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 @Component({
   selector: 'app-person-privileges-table',
@@ -27,43 +16,53 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
     {
       provide: InMemoryEntitiesService,
       useFactory: () =>
-        new InMemoryEntitiesService(Referential, ReferentialFilter, {
-          equals: ReferentialUtils.equals,
+        new InMemoryEntitiesService(ProgramPerson, ProgramPersonFilter, {
+          equals: ProgramPerson.equals,
         }),
     },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, PersonFilter> implements OnInit {
+export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPersonFilter> implements OnInit {
+  protected displayAttributes = {
+    department: undefined,
+  };
+
   @Input() showToolbar = true;
+  @Input() showPaginator = true;
   @Input() showError = true;
   @Input() useSticky = false;
   @Input() title: string = null;
   @Input() locationLevelIds: number[] = null;
 
-  displayAttributes = {
-    department: undefined,
-  };
+  set value(data: ProgramPerson[]) {
+    this.setValue(data);
+  }
+
+  get value(): ProgramPerson[] {
+    return this.getValue();
+  }
 
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<ProgramPerson, PersonFilter>,
+    protected memoryDataService: InMemoryEntitiesService<ProgramPerson, ProgramPersonFilter>,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(
-      injector,
-      RESERVED_START_COLUMNS.concat(['person', 'department', 'privilege', 'location']).concat(RESERVED_END_COLUMNS),
-      ProgramPerson,
-      memoryDataService,
-      validatorService
-    );
+    super(injector, ProgramPerson, ProgramPersonFilter, ['person', 'department', 'privilege', 'location'], memoryDataService, validatorService);
 
-    this.defaultSortDirection = 'asc';
     this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
     this.i18nColumnPrefix = 'PROGRAM.PRIVILEGES.';
     this.inlineEdition = true;
+    this.confirmBeforeDelete = false;
+    this.confirmBeforeCancel = false;
+    this.undoableDeletion = false;
+
+    this.saveBeforeDelete = true;
+    this.saveBeforeSort = true;
+    this.saveBeforeFilter = true;
   }
 
   ngOnInit() {
@@ -111,5 +110,22 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
       mobile: this.mobile,
     });
     this.memoryDataService.addSortByReplacement('location', 'location.' + this.autocompleteFields.location.attributes[0]);
+  }
+
+  /**
+   * Allow to set value
+   *
+   * @param data
+   * @param opts
+   */
+  setValue(data: ProgramPerson[], opts?: { emitEvent?: boolean }) {
+    this.memoryDataService.value = data;
+    //this.markAsLoaded();
+  }
+
+  /* -- protected methods -- */
+
+  protected getValue(): ProgramPerson[] {
+    return this.memoryDataService.value;
   }
 }

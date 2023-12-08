@@ -549,8 +549,9 @@
         mat-row
         *matRowDef="let row; columns: displayedColumns"
         [class.mat-row-error]="row.validator.invalid"
-        [class.mat-row-disabled]="!row.editing"
         [class.mat-row-dirty]="row.validator.dirty"
+        [class.mat-row-disabled]="!row.editing"
+        [class.mat-row-selected]="row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.validator?.valid"

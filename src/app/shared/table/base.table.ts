@@ -6,10 +6,10 @@ import {
   EntitiesTableDataSource,
   EntitiesTableDataSourceConfig,
   Entity,
-  EntityFilter,
   EntityUtils,
   Hotkeys,
   IEntitiesService,
+  IEntityFilter,
   InMemoryEntitiesService,
   isNil,
   isNilOrBlank,
@@ -18,7 +18,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -50,14 +50,17 @@ export interface BaseTableConfig<
 }
 
 @Directive()
-export abstract class AppBaseTable<T extends Entity<T, ID>,
-  F extends EntityFilter<any, T, any>,
-  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
-  V extends BaseValidatorService<T, ID> = any,
-  ID = number,
-  O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>>
-  extends AppTable<T, F, ID> implements OnInit, AfterViewInit {
-
+export abstract class AppBaseTable<
+    T extends Entity<T, ID>,
+    F extends IEntityFilter<F, T, any>,
+    S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+    V extends BaseValidatorService<T, ID> = any,
+    ID = number,
+    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
+  >
+  extends AppTable<T, F, ID>
+  implements OnInit, AfterViewInit
+{
   private _canEdit: boolean;
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
@@ -81,7 +84,6 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() pressHighlightDuration = 10000; // 10s
   @Input() highlightedRowId: number;
 
-
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
   }
@@ -91,7 +93,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   }
 
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   filterForm: UntypedFormGroup = null;
   filterCriteriaCount = 0;
@@ -117,29 +119,26 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   ) {
     super(
       injector,
-      RESERVED_START_COLUMNS
-        .concat(columnNames)
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(columnNames).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
-          prependNewElements: false,
-          restoreOriginalDataOnCancel: false,
-          suppressErrors: environment.production,
-          onRowCreated: (row) => this.onDefaultRowCreated(row),
-          ...options
-        }),
-        null
+        prependNewElements: false,
+        restoreOriginalDataOnCancel: false,
+        suppressErrors: environment.production,
+        onRowCreated: (row) => this.onDefaultRowCreated(row),
+        ...options,
+      }),
+      null
     );
 
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
     this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext =  injector.get(TranslateContextService);
+    this.translateContext = injector.get(TranslateContextService);
     this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
-    this.memoryDataService = (this._dataService instanceof InMemoryEntitiesService)
-      ? this._dataService as InMemoryEntitiesService<T, F, ID> : null;
+    this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
 
     // DEBUG
     this.logPrefix = '[base-table] ';
@@ -153,11 +152,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
       this.registerSubscription(
-        this.memoryDataService.dirtySubject
-          .pipe(
-            filter(dirty => dirty === true && !this.dirty)
-          )
-          .subscribe(_ => this.markAsDirty())
+        this.memoryDataService.dirtySubject.pipe(filter((dirty) => dirty === true && !this.dirty)).subscribe((_) => this.markAsDirty())
       );
     }
 
@@ -166,13 +161,14 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
       this.registerSubscription(
         this.onStartEditingRow
           .pipe(
-            filter(row => row.id !== -1 && !!row.validator && !this.dirty),
-            switchMap(row => row.validator.valueChanges
-              .pipe(
+            filter((row) => row.id !== -1 && !!row.validator && !this.dirty),
+            switchMap((row) =>
+              row.validator.valueChanges.pipe(
                 filter(() => row.dirty),
                 first(),
                 takeUntil(this.onStartEditingRow)
-              ))
+              )
+            )
           )
           .subscribe(() => {
             console.debug(this.logPrefix + 'Mark table as dirty, because row is dirty');
@@ -200,31 +196,30 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (!element) return; // Skip if already done
 
     if (!this.mobile) {
-
       // Add shortcuts
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element, preventDefault: false /*will prevent default only if no row editing */})
+          .addShortcut({ keys: 'control.a', element, preventDefault: false /*will prevent default only if no row editing */ })
           .pipe(
-            filter(() => this.canEdit && !this.focusColumn),
+            filter(() => this.canEdit && !this.focusColumn && !this.editedRow),
             tap((event: Event) => event?.preventDefault()),
             map(() => this.dataSource?.getRows()),
             filter(isNotEmptyArray)
           )
-          .subscribe(rows => {
+          .subscribe((rows) => {
             if (this.isAllSelected()) {
               this.selection.clear();
-            }
-            else {
+            } else {
               this.selection.select(...rows);
             }
             this.markForCheck();
           })
       );
       this.registerSubscription(
-        this.hotkeys.addShortcut({keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element})
-          .pipe(filter(e => !this.disabled && this.canEdit))
+        this.hotkeys
+          .addShortcut({ keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element })
+          .pipe(filter((e) => !this.disabled && this.canEdit))
           .subscribe((event) => this.addRow(event))
       );
     }
@@ -240,7 +235,6 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
-
     filter = this.asFilter(filter);
 
     // Update criteria count
@@ -252,7 +246,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     // Update the form content
     if (this.filterForm && (!opts || opts.emitEvent !== false)) {
-      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
+      this.filterForm.patchValue(filter.asObject(), { emitEvent: false });
     }
 
     super.setFilter(filter as F, opts);
@@ -265,7 +259,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
   applyFilterAndClosePanel(event?: Event) {
     const filter = this.filterForm.value;
-    this.setFilter(filter, {emitEvent: false});
+    this.setFilter(filter, { emitEvent: false });
     this.onRefresh.emit(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -281,14 +275,14 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event | undefined, row: TableElement<T>): boolean {
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
   }
 
-  pressRow(event: Event|undefined, row: TableElement<T>): boolean {
+  pressRow(event: Event | undefined, row: TableElement<T>): boolean {
     if (!this.mobile) return; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
@@ -299,7 +293,6 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     // Unselect after 4s
     if (this.pressHighlightDuration > 0) {
       if (this.selection.isSelected(row)) {
-
         // Highlight the row (only for the first row selected)
         if (this.singleSelectedRow === row) {
           this.highlightedRowId = row.id;
@@ -333,15 +326,14 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     this.markForCheck();
   }
 
-  async addOrUpdateEntityToTable(data: T, opts?: {confirmEditCreate?: boolean}){
+  async addOrUpdateEntityToTable(data: T, opts?: { confirmEditCreate?: boolean }) {
     // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
     // THis find should use a equals() function
     const row = await this.findRowByEntity(data);
-    if (!row){
-      await this.addEntityToTable(data, opts && {confirmCreate: opts.confirmEditCreate});
-    }
-    else {
-      await this.updateEntityToTable(data, row, opts && {confirmEdit: opts.confirmEditCreate});
+    if (!row) {
+      await this.addEntityToTable(data, opts && { confirmCreate: opts.confirmEditCreate });
+    } else {
+      await this.updateEntityToTable(data, row, opts && { confirmEdit: opts.confirmEditCreate });
     }
   }
 
@@ -383,7 +375,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (!canAdd) return undefined;
 
     // Create a row
-    const row = await this.addRowToTable(null, {editing: opts?.editing});
+    const row = await this.addRowToTable(null, { editing: opts?.editing });
     if (!row) throw new Error('Could not add row to table');
 
     // Adapt measurement values to row
@@ -401,8 +393,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (row.editing && (!opts || opts.confirmCreate !== false)) {
       const confirmed = this.confirmEditCreate(null, row);
       if (confirmed) this.editedRow = null; // Forget the edited row
-    }
-    else {
+    } else {
       this.editedRow = row;
     }
 
@@ -424,7 +415,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (!canAdd) return undefined;
 
     // Prepare entities
-    await Promise.all(data.map(entity => this.onNewEntity(entity)));
+    await Promise.all(data.map((entity) => this.onNewEntity(entity)));
 
     // Bulk add
     const rows = await this.dataSource.addMany(data, null, opts);
@@ -486,8 +477,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     if (!opts || opts.confirmEdit !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
-    }
-    else if (this.inlineEdition) {
+    } else if (this.inlineEdition) {
       this.editedRow = row;
     }
 
@@ -505,44 +495,48 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     const confirmed = await this.canDeleteRows([row]);
     if (!confirmed) return false;
 
-    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    const deleted = await this.deleteRow(null, row, { interactive: false /*already confirmed*/ });
     if (!deleted) event?.preventDefault(); // Mark as cancelled
 
     return deleted;
   }
 
+  deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
+    return super.deleteSelection(event, opts);
+  }
+
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: ('settings'|'queryParams')[] }) {
+  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: ('settings' | 'queryParams')[] }) {
     this.markAsLoading();
 
     const sources = opts?.sources || ['settings', 'queryParams'];
-    const json = sources.map(source => {
-      switch (source) {
-        case 'settings':
-          if (isNilOrBlank(this.settingsId)) return;
-          console.debug(this.logPrefix + 'Restoring filter from settings...');
-          return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
-        case 'queryParams':
-          const {q} = this.route.snapshot.queryParams;
-          if (q) {
-            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
-            try {
-              return JSON.parse(q);
+    const json = sources
+      .map((source) => {
+        switch (source) {
+          case 'settings':
+            if (isNilOrBlank(this.settingsId)) return;
+            console.debug(this.logPrefix + 'Restoring filter from settings...');
+            return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
+          case 'queryParams':
+            const { q } = this.route.snapshot.queryParams;
+            if (q) {
+              console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+              try {
+                return JSON.parse(q);
+              } catch (err) {
+                console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+              }
             }
-            catch(err) {
-              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
-            }
-          }
-          break;
-      }
-      return null;
-    }).find(isNotNil);
+            break;
+        }
+        return null;
+      })
+      .find(isNotNil);
 
     if (json) {
       this.setFilter(json, opts);
-    }
-    else if (!opts || opts.emitEvent !== false){
+    } else if (!opts || opts.emitEvent !== false) {
       this.onRefresh.emit();
     }
   }
@@ -564,14 +558,13 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   }
 
   async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
-
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
-    const {data} = await Popovers.showText(this.popoverController, event, {
+    const { data } = await Popovers.showText(this.popoverController, event, {
       editing: this.inlineEdition && this.enabled,
       autofocus: this.enabled,
       multiline: true,
       text: row.currentData.comments,
-      placeholder
+      placeholder,
     });
 
     // User cancel
@@ -579,10 +572,9 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     if (this.inlineEdition) {
       if (row.validator) {
-        row.validator.patchValue({comments: data});
+        row.validator.patchValue({ comments: data });
         row.validator.markAsDirty();
-      }
-      else {
+      } else {
         row.currentData.comments = data;
       }
     }
@@ -625,8 +617,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
     // Make sure using an entity class, to be able to use equals()
     data = this.asEntity(data);
 
-    return this.dataSource.getRows()
-      .find(r => data.equals(r.currentData));
+    return this.dataSource.getRows().find((r) => data.equals(r.currentData));
   }
 
   protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: any) {
@@ -653,10 +644,8 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   protected getI18nColumnName(columnName: string): string {
     if (this.i18nColumnSuffix) {
       return this.translateContext.instant((this.i18nColumnPrefix || '') + changeCaseToUnderscore(columnName).toUpperCase(), this.i18nColumnSuffix);
-    }
-    else {
+    } else {
       return super.getI18nColumnName(columnName);
     }
   }
-
 }

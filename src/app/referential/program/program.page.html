@@ -120,8 +120,8 @@
       <ng-template mat-tab-label *ngVar="strategiesTable as table">
         <mat-icon>date_range</mat-icon>
         <ion-label
-          [matBadge]="(table && table.visibleRowCount) || 0"
-          [matBadgeHidden]="!table || table.invalid || !table.visibleRowCount"
+          [matBadge]="(table && table.totalRowCount) || 0"
+          [matBadgeHidden]="!table || table.invalid || !table.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
@@ -206,8 +206,8 @@
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="table.visibleRowCount"
-          [matBadgeHidden]="table.invalid || !table.visibleRowCount"
+          [matBadge]="table.totalRowCount"
+          [matBadgeHidden]="table.invalid || !table.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
@@ -222,7 +222,6 @@
           #personsTable
           [title]="'PROGRAM.PRIVILEGES.TITLE' | translate"
           [canEdit]="enabled"
-          [canDelete]="enabled"
         ></app-person-privileges-table>
       </div>
     </mat-tab>

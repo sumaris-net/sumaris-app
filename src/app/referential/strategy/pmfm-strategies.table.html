@@ -252,6 +252,7 @@
       [class.mat-row-dirty]="row.validator.dirty"
       [class.mat-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
+      (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="row.editing && row.validator.invalid"
     ></tr>
   </table>
