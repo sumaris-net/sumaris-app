@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
@@ -18,27 +18,22 @@ import { ContextService } from '@app/shared/context.service';
   styleUrls: ['../operation.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_ENTITY_EDITOR, useExisting: SelectivityOperationPage },
-    { provide: ContextService, useExisting: TripContextService},
-    RxState
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: SelectivityOperationPage },
+    { provide: ContextService, useExisting: TripContextService },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectivityOperationPage extends OperationPage {
-
   get invalid(): boolean {
     // Allow batchTree to be invalid, if on field mode
-    return this.opeForm?.invalid
-      || this.measurementsForm?.invalid
-      || (!this.isOnFieldMode && this.batchTree.invalid)
-      || false;
+    return this.opeForm?.invalid || this.measurementsForm?.invalid || (!this.isOnFieldMode && this.batchTree.invalid) || false;
   }
 
-  constructor(injector: Injector,
-              dataService: OperationService) {
+  constructor(injector: Injector, dataService: OperationService) {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
-      tabCount: 2
+      tabCount: 2,
     });
 
     // FOR DEV ONLY ----
@@ -47,11 +42,7 @@ export class SelectivityOperationPage extends OperationPage {
 
   protected registerForms() {
     // Register sub forms & table
-    this.addChildForms([
-      this.opeForm,
-      this.measurementsForm,
-      this.batchTree
-    ]);
+    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree]);
   }
 
   protected async mapPmfms(event: MapPmfmEvent) {
@@ -60,7 +51,7 @@ export class SelectivityOperationPage extends OperationPage {
 
     // If PMFM date/time, set default date, in on field mode
     if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
-      pmfms = pmfms.map(p => {
+      pmfms = pmfms.map((p) => {
         if (PmfmUtils.isDate(p)) {
           p = p.clone();
           p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
@@ -80,8 +71,7 @@ export class SelectivityOperationPage extends OperationPage {
     const selectedTabIndex = this.selectedTabIndex;
     if (selectedTabIndex === OperationPage.TABS.CATCH) {
       this.batchTree.addRow(event);
-    }
-    else {
+    } else {
       super.onNewFabButtonClick(event);
     }
   }
@@ -92,7 +82,7 @@ export class SelectivityOperationPage extends OperationPage {
 
   async saveAndControl(event?: Event, opts?: { emitEvent?: false }): Promise<boolean> {
     if (this.batchTree.dirty) {
-       const saved = await this.batchTree.save();
+      await this.batchTree.save();
     }
     return super.saveAndControl(event, opts);
   }
@@ -121,10 +111,7 @@ export class SelectivityOperationPage extends OperationPage {
 
   protected getFirstInvalidTabIndex(): number {
     // find invalids tabs (keep order)
-    const invalidTabs = [
-      this.opeForm.invalid || this.measurementsForm.invalid,
-      this.showCatchTab && this.batchTree?.invalid || false
-    ];
+    const invalidTabs = [this.opeForm.invalid || this.measurementsForm.invalid, (this.showCatchTab && this.batchTree?.invalid) || false];
 
     // Open the first invalid tab
     const invalidTabIndex = invalidTabs.indexOf(true);

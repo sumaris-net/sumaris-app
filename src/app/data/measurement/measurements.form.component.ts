@@ -288,10 +288,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
         const errorMsg = Object.keys(fieldErrors).map(errorKey => {
           const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
           return this.translate.instant(key, fieldErrors[key]);
-        }).join(',');
+        }).join(', ');
 
         return fieldName + ': ' + errorMsg;
-      }).join(',');
+      }).join(', ');
   }
 
   /**

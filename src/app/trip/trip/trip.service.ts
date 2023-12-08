@@ -1270,7 +1270,7 @@ export class TripService
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
         return {
-          message: 'QUALITY.ERROR.INVALID_FORM',
+          message: 'COMMON.FORM.HAS_ERROR',
           details: {
             errors
           }

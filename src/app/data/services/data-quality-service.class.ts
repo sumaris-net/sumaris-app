@@ -2,8 +2,7 @@ import { DataEntity } from './model/data-entity.model';
 import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import {Program} from '@app/referential/services/model/program.model';
-
+import { Program } from '@app/referential/services/model/program.model';
 
 export interface IProgressionOptions {
   // Progression
@@ -19,8 +18,8 @@ export interface IDataEntityQualityService<
   canUserWrite(data: T, opts?: any): boolean;
   control(data: T, opts?: CO): Promise<AppErrorWithDetails|FormErrors>;
   qualify(data: T, qualityFlagId: number): Promise<T>;
-
 }
+
 const DataQualityServiceFnName: (keyof IDataEntityQualityService<any>)[] = ['canUserWrite', 'control', 'qualify'];
 export function isDataQualityService(object: any): object is IDataEntityQualityService<any> {
   return object && DataQualityServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))

@@ -1,10 +1,10 @@
 /* -- Extraction -- */
 
 import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '@app/data/services/model/model.utils';
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from '../type/extraction-type.model';
-import {AggregationStrata} from '@app/extraction/strata/strata.model';
+import { Moment } from 'moment';
+import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '@app/data/services/model/model.utils';
+import { ExtractionColumn, ExtractionFilter, ExtractionType } from '../type/extraction-type.model';
+import { AggregationStrata } from '@app/extraction/strata/strata.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
@@ -74,7 +74,7 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
     super(ExtractionProduct.TYPENAME);
   }
 
-  fromObject(source: any, opts?: EntityAsObjectOptions) {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.documentation = source.documentation;
     this.creationDate = fromDateISOString(source.creationDate);

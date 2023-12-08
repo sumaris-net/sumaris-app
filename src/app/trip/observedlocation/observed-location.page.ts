@@ -41,7 +41,7 @@ import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { LandingFilter } from '../landing/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -64,7 +64,7 @@ type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | unde
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: APP_ENTITY_EDITOR, useExisting: ObservedLocationPage}
+    {provide: APP_DATA_ENTITY_EDITOR, useExisting: ObservedLocationPage}
   ],
 })
 export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocation, ObservedLocationService> implements OnInit {

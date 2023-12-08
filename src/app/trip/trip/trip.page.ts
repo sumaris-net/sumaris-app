@@ -51,7 +51,7 @@ import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sale } from '@app/trip/sale/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
@@ -78,7 +78,7 @@ export const TripPageSettingsEnum = {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    {provide: APP_ENTITY_EDITOR, useExisting: TripPage},
+    {provide: APP_DATA_ENTITY_EDITOR, useExisting: TripPage},
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {

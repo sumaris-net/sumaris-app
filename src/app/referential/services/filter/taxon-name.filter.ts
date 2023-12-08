@@ -1,4 +1,4 @@
-import { EntityAsObjectOptions, EntityClass, FilterFn } from '@sumaris-net/ngx-components';
+import { EntityClass, FilterFn } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 
@@ -8,7 +8,7 @@ export class TaxonNameFilter extends BaseReferentialFilter<TaxonNameFilter, Taxo
 
   withSynonyms: boolean = null;
 
-  fromObject(source: any, opts?: EntityAsObjectOptions) {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.withSynonyms = source.withSynonyms;
   }
@@ -18,7 +18,7 @@ export class TaxonNameFilter extends BaseReferentialFilter<TaxonNameFilter, Taxo
 
     // Filter by spatial
     if (this.withSynonyms === false) {
-      filterFns.push(entity => entity.isReferent);
+      filterFns.push((entity) => entity.isReferent);
     }
 
     return filterFns;

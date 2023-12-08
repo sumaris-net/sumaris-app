@@ -16,7 +16,7 @@ import {
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
-  TranslateContextService,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -322,40 +322,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     // Use inherited function, when no sample
     return super.deleteSelection(event, {interactive: false /*already confirmed*/});
   }
-
-  get canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-
-    // Cannot delete if not connected
-    if (!this.accountService.isLogin() || this.selection.isEmpty()) {
-      return false;
-    }
-
-    // When connected user is an admin
-    if (this.accountService.isAdmin()) {
-      return true;
-    }
-
-    const user = this.accountService.person;
-
-    // Find a row that user CANNOT delete
-    const invalidRow = this.selection.selected
-      .find(row => {
-        const entity = row.currentData;
-
-        // When observed location has been recorded by connected user
-        if (user.id === entity?.recorderPerson?.id) {
-          return false; // OK
-        }
-
-        // When connected user is in observed location observers
-        return !(entity.observers || []).some(observer => (user.id === observer?.id));
-      });
-
-    //
-    return !invalidRow;
-  }
-
 
   /* -- protected functions -- */
 

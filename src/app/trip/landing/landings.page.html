@@ -82,7 +82,7 @@
       <button
         mat-icon-button
         class="hidden-xs hidden-sm"
-        *ngIf="canDelete && canUserCancelOrDelete"
+        *ngIf="canDelete"
         [title]="'COMMON.BTN_DELETE' | translate"
         (click)="deleteSelection($event)"
       >

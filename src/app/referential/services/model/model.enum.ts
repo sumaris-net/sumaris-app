@@ -1,7 +1,7 @@
 import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
 
 export const ProgramLabel = {
-  SIH: 'SIH' // Used for vessel's filter
+  SIH: 'SIH', // Used for vessel's filter
 };
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
@@ -385,7 +385,10 @@ export const SaleTypeIds = {
 export type ProgramPrivilege = 'MANAGER'|'OBSERVER'|'VIEWER'|'VALIDATOR'|'QUALIFIER';
 export const ProgramPrivilegeEnum = Object.freeze({
   MANAGER: <ProgramPrivilege>'MANAGER',
-  OBSERVER: <ProgramPrivilege>'OBSERVER'
+  OBSERVER: <ProgramPrivilege>'OBSERVER',
+  VIEWER: <ProgramPrivilege>'VIEWER',
+  VALIDATOR: <ProgramPrivilege>'VALIDATOR',
+  QUALIFIER: <ProgramPrivilege>'QUALIFIER',
 });
 export const ProgramPrivilegeIds = {
   MANAGER: 1,
@@ -396,11 +399,11 @@ export const ProgramPrivilegeIds = {
 };
 
 export const ProgramPrivilegeHierarchy = Object.freeze({
-  MANAGER: <ProgramPrivilege[]>['MANAGER', 'OBSERVER', 'VIEWER', 'VALIDATOR', 'QUALIFIER'],
+  MANAGER: <ProgramPrivilege[]>['MANAGER', 'OBSERVER', 'VALIDATOR', 'VIEWER', 'QUALIFIER'],
+  VALIDATOR: <ProgramPrivilege[]>['VALIDATOR', 'OBSERVER', 'VIEWER'],
   OBSERVER: <ProgramPrivilege[]>['OBSERVER', 'VIEWER'],
+  QUALIFIER: <ProgramPrivilege[]>['QUALIFIER', 'VIEWER'], // Not used yet
   VIEWER: <ProgramPrivilege[]>['VIEWER'],
-  VALIDATOR: <ProgramPrivilege[]>['VALIDATOR', 'VIEWER'],
-  QUALIFIER: <ProgramPrivilege[]>['QUALIFIER', 'VIEWER'],
 });
 
 export const ObjectTypeLabels = {

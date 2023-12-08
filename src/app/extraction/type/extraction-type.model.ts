@@ -64,7 +64,7 @@ export class ExtractionType<
     this.recorderDepartment = null;
   }
 
-  fromObject(source: any, opts?: EntityAsObjectOptions) {
+  fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.format = source.format;
     this.version = source.version;

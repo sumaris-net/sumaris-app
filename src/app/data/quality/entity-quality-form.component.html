@@ -77,52 +77,53 @@
   </ion-button>
 </p>
 
-<ng-container *ngIf="qualityFlags as qualityFlags">
-  <p *ngIf="qualityFlags.length && (canQualify || canUnqualify)" class="ion-padding-top">
-    <!-- flags menu -->
-    <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
-      <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
-      <ion-button
-        *rxFor="let qualityFlag of qualityFlags"
-        size="small"
-        expand="block"
-        [color]="qualityFlag.id | qualityFlagToColor"
-        (click)="qualify($event, qualityFlag.id)"
-      >
-        {{ qualityFlag.label | translate }}
-      </ion-button>
-    </mat-menu>
+<p *ngIf="qualityFlags?.length && (canQualify || canUnqualify)" class="ion-padding-top">
+  <!-- qualify -->
+  <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
+    <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
+    <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
+    <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
+  </ion-button>
 
-    <ion-button *ngIf="canQualify" [matMenuTriggerFor]="qualityFlagMenu" expand="block" color="tertiary">
+  <!-- if already qualified -->
+  <ng-container *ngIf="canUnqualify">
+    <ion-label class="ion-text-wrap status">
+      <ion-text>
+        <ion-icon name="ribbon"></ion-icon>
+        &nbsp;
+        <span translate>QUALITY.QUALIFIED_ON</span>
+        <span>
+          <b>{{ data.qualificationDate | dateFormat : { time: true } }}</b>
+        </span>
+      </ion-text>
+      <br />
+    </ion-label>
+    <ion-button
+      [matMenuTriggerFor]="qualityFlagMenu"
+      expand="block"
+      [color]="data.qualityFlagId | qualityFlagToColor"
+    >
       <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
-      <ion-text translate>QUALITY.BTN_QUALIFY</ion-text>
+      <ion-text>
+        {{ data.qualityFlagId|qualityFlagToI18n: qualityFlags | translate }}
+      </ion-text>
       <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
     </ion-button>
+  </ng-container>
+</p>
 
-    <!-- if already qualified -->
-    <ng-container *ngIf="canUnqualify">
-      <ion-label class="ion-text-wrap status">
-        <ion-text>
-          <ion-icon name="ribbon"></ion-icon>
-          &nbsp;
-          <span translate>QUALITY.QUALIFIED_ON</span>
-          <span>
-            <b>{{ data.qualificationDate | dateFormat : { time: true } }}</b>
-          </span>
-        </ion-text>
-        <br />
-      </ion-label>
-      <ion-button
-        [matMenuTriggerFor]="qualityFlagMenu"
-        expand="block"
-        [color]="data.qualityFlagId | qualityFlagToColor"
-      >
-        <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
-        <ion-text>
-          {{ translateQualityFlag(data.qualityFlagId, qualityFlags) | translate }}
-        </ion-text>
-        <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
-      </ion-button>
-    </ng-container>
-  </p>
-</ng-container>
+<!-- flags menu -->
+<mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
+  <ng-template matMenuContent>
+    <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
+    <ion-button
+      *rxFor="let qualityFlag of qualityFlags"
+      size="small"
+      expand="block"
+      [color]="qualityFlag.id | qualityFlagToColor"
+      (click)="qualify($event, qualityFlag.id)"
+    >
+      {{ qualityFlag.label | translate }}
+    </ion-button>
+  </ng-template>
+</mat-menu>

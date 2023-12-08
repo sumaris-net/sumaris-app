@@ -235,8 +235,13 @@ export class ProgramRefService
     };} = {};
   private _listenAuthorizedSubscription: Subscription = null;
 
-  private accessNotSelfDataDepartementIds: number[] = [];
-  private accessNotSelfDataMinProfile: UserProfileLabel = 'ADMIN';
+  private _enableQualityProcess = false;
+  private _accessNotSelfDataDepartmentIds: number[] = [];
+  private _accessNotSelfDataMinProfile: UserProfileLabel = 'ADMIN';
+
+  get enableQualityProcess(): boolean  {
+    return this._enableQualityProcess;
+  }
 
   constructor(
     injector: Injector,
@@ -301,14 +306,15 @@ export class ProgramRefService
   canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
     if (!entity) return false;
 
-    // Manager can write data (IMAGINE - issue #465)
-    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.MANAGER)) {
+    // Validator and Manager can write data
+    // (IMAGINE - issue #465)
+    if (this.hasUpperOrEqualPrivilege(opts?.program, ProgramPrivilegeEnum.VALIDATOR)) {
       return true;
     }
 
     // If user has observer privileges and the option to allow observer to write data is enabled
     // OBSERVER = User has write access to program
-    if (this.hasExactPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
+    if (this.hasUpperOrEqualPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
 
       // If the user is the recorder: can write
       if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
@@ -338,7 +344,7 @@ export class ProgramRefService
 
     // Should be login, and status ENABLE
     const account = this.accountService.account;
-    if (account?.statusId !== StatusIds.ENABLE) return false;
+    if (account?.statusId !== StatusIds.ENABLE) return false; // Should never occur, because account if watched elsewhere
 
     if (ReferentialUtils.isEmpty(account.department)) {
       console.warn('User account has no department! Unable to check write right against recorderDepartment');
@@ -346,7 +352,7 @@ export class ProgramRefService
     }
 
     // Should have min role to access not self data
-    if (!this.accountService.hasMinProfile(this.accessNotSelfDataMinProfile)) {
+    if (!this.accountService.hasMinProfile(this._accessNotSelfDataMinProfile)) {
      return false;
     }
 
@@ -356,7 +362,34 @@ export class ProgramRefService
     }
 
     // Not same department: should be inside a department that can access not self data
-    return this.accessNotSelfDataDepartementIds.includes(account.department.id);
+    return this._accessNotSelfDataDepartmentIds.includes(account.department.id);
+  }
+
+  canUserValidate(program: Program): boolean {
+    if (!this._enableQualityProcess) return false; // Quality process disabled
+
+    // Manager
+    if (this.hasExactPrivilege(program, ProgramPrivilegeEnum.MANAGER)) {
+      return true;
+    }
+
+    // Supervisor profile + Validator privilege
+    return this.accountService.isSupervisor()
+      && (!program || this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.VALIDATOR));
+  }
+
+  canUserQualify(program: Program): boolean {
+    if (!this._enableQualityProcess) return false; // Quality process disabled
+
+    // Manager
+    if (this.hasExactPrivilege(program, ProgramPrivilegeEnum.MANAGER)) {
+      return true;
+    }
+
+    // Supervisor profile (TODO replace with a new Qualifier profile?)
+    //  + Qualifier privilege
+    return this.accountService.isSupervisor()
+      && this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.QUALIFIER);
   }
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -994,8 +1027,9 @@ export class ProgramRefService
 
   private onConfigChanged(config: Configuration) {
     // const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
-    this.accessNotSelfDataDepartementIds = config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS) || [];
-    this.accessNotSelfDataMinProfile = PersonUtils.roleToProfile(config.getProperty(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_ROLE)?.replace(/^ROLE_/, ''), 'ADMIN');
+    this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this._accessNotSelfDataDepartmentIds = config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS) || [];
+    this._accessNotSelfDataMinProfile = PersonUtils.roleToProfile(config.getProperty(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_ROLE)?.replace(/^ROLE_/, ''), 'ADMIN');
   }
 
   protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number }) {

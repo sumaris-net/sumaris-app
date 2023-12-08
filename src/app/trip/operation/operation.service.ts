@@ -40,7 +40,7 @@ import {
   ProgressBarService,
   QueryVariables,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
@@ -52,7 +52,7 @@ import {
   OperationFromObjectOptions,
   POSITIONS_REGEXP,
   Trip,
-  VesselPositionUtils,
+  VesselPositionUtils
 } from '../trip/trip.model';
 import { Batch } from '../batch/common/batch.model';
 import { Sample } from '../sample/sample.model';
@@ -1523,27 +1523,27 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return (usedGearIds.length === 0);
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
+  translateControlPath(controlPath: string, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
     opts = opts || {};
     if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.OPERATION.EDIT.';
     // Translate PMFM field
-    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
-      const pmfmId = parseInt(path.split('.').pop());
+    if (MEASUREMENT_PMFM_ID_REGEXP.test(controlPath) && opts.pmfms) {
+      const pmfmId = parseInt(controlPath.split('.').pop());
       const pmfm = opts.pmfms.find(p => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Translate location, inside any fishing areas
-    if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
+    if (FISHING_AREAS_LOCATION_REGEXP.test(controlPath)) {
       return this.translate.instant(opts.i18nPrefix + 'FISHING_AREAS');
     }
 
     // Translate location, inside any fishing areas
-    if (POSITIONS_REGEXP.test(path)) {
+    if (POSITIONS_REGEXP.test(controlPath)) {
       return this.translate.instant(opts.i18nPrefix + 'POSITIONS');
     }
 
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateControlPath(controlPath, opts);
   }
 
   /* -- protected methods -- */
