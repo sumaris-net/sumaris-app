@@ -65,4 +65,14 @@
     visibility: hidden;
     display: none;
   }
+
+  .visible-hover {
+    visibility: hidden;
+  }
+
+  .mat-row:hover {
+    .visible-hover {
+      visibility: unset;
+    }
+  }
 }

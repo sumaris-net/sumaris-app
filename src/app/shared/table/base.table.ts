@@ -577,6 +577,8 @@ export abstract class AppBaseTable<
       } else {
         row.currentData.comments = data;
       }
+      this.markAsDirty({emitEvent: false});
+      this.markForCheck();
     }
   }
 
