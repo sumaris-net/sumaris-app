@@ -17,7 +17,7 @@ import {
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  TranslateContextService,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
