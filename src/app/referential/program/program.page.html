@@ -19,7 +19,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}">
+    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}"
+             appSubMenuTab
+             [subMenuTitle]="(data?.label)||''"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
@@ -83,7 +86,7 @@
     </mat-tab>
 
     <!-- TAB: locations  -->
-    <mat-tab label="{{ 'PROGRAM.TAB_LOCATIONS' | translate }}">
+    <mat-tab [label]="'PROGRAM.TAB_LOCATIONS' | translate" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>room</mat-icon>
         <ion-label
@@ -116,7 +119,10 @@
     </mat-tab>
 
     <!-- TAB: strategies -->
-    <mat-tab [label]="'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate" [disabled]="isNewData">
+    <mat-tab #strategiesTab
+             [label]="'PROGRAM.TAB_STRATEGIES' | translateContext: i18nTabStrategiesSuffix"
+             [disabled]="isNewData"
+             appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>date_range</mat-icon>
         <ng-container *rxIf="strategiesTable$; let table; suspense: suspense">
@@ -127,7 +133,7 @@
             matBadgeOverlap="false"
             matBadgeSize="small"
           >
-            {{ 'PROGRAM.TAB_STRATEGIES' | translateContext: i18nTabStrategiesSuffix }}
+            {{ strategiesTab.textLabel }}
           </ion-label>
           <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && table?.invalid"></ion-icon>
         </ng-container>
@@ -180,7 +186,7 @@
     </mat-tab>
 
     <!-- TAB: properties -->
-    <mat-tab label="{{ 'PROGRAM.TAB_PROPERTIES' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.TAB_PROPERTIES' | translate" [disabled]="isNewData" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
         <ion-label
@@ -207,7 +213,7 @@
     </mat-tab>
 
     <!-- TAB: privilege -->
-    <mat-tab label="{{ 'PROGRAM.TAB_PRIVILEGES' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.TAB_PRIVILEGES' | translate" [disabled]="isNewData" appSubMenuTab>
       <ng-template mat-tab-label *ngVar="personsTable as table">
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>

@@ -30,7 +30,7 @@ import {
   ReferentialUtils,
   SharedValidators,
   StatusIds,
-  SuggestFn,
+  SuggestFn
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
@@ -43,7 +43,7 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 
-const PROGRAM_TABS = {
+export const PROGRAM_TABS = {
   LOCATIONS: 1,
   STRATEGIES: 2,
   OPTIONS: 3,
@@ -53,6 +53,8 @@ const PROGRAM_TABS = {
 export interface ProgramPageState {
   strategiesTables: AppTable<Strategy>;
 }
+
+
 
 @Component({
   selector: 'app-program',
@@ -113,7 +115,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // default values
     this.mobile = this.settings.mobile;
-    this.defaultBackHref = '/referential/list?entity=Program';
+    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
 
     this.propertyDefinitions = Object.values(ProgramProperties).map((def) => {
@@ -220,7 +222,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     await super.onEntityLoaded(data, options);
 
     this.strategyEditor = (data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR)) || 'legacy';
-    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? 'SAMPLING.' : '';
 
     this.cd.detectChanges();
     this.markAsReady();
@@ -461,7 +463,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       this.markAsLoading();
 
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, 'new'], {
+        await this.router.navigate(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, 'new'], {
           queryParams: {},
         });
         this.markAsLoaded();

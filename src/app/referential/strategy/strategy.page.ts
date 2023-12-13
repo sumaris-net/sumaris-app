@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
-import {Strategy} from '../services/model/strategy.model';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Strategy } from '../services/model/strategy.model';
 import {
   AccountService,
   Alerts,
@@ -12,31 +12,29 @@ import {
   isNil,
   isNotNil,
 } from '@sumaris-net/ngx-components';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {ModalController} from '@ionic/angular';
-import {StrategyForm} from './strategy.form';
-import {StrategyValidatorService} from '../services/validator/strategy.validator';
-import {StrategyService} from '../services/strategy.service';
-import {BehaviorSubject} from 'rxjs';
-import {Program} from '../services/model/program.model';
-import {ReferentialForm} from '../form/referential.form';
-import {debounceTime, filter, tap} from 'rxjs/operators';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '../services/program-ref.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { StrategyForm } from './strategy.form';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { StrategyService } from '../services/strategy.service';
+import { BehaviorSubject } from 'rxjs';
+import { Program } from '../services/model/program.model';
+import { ReferentialForm } from '../form/referential.form';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '../services/program-ref.service';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
-
+import { PROGRAM_TABS } from '@app/referential/program/program.page';
+import { PROGRAMS_PAGE_PATH } from '@app/referential/program/programs.page';
 
 @Component({
   selector: 'app-strategy',
   templateUrl: 'strategy.page.html',
   styleUrls: ['./strategy.page.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: StrategyValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
-
   private initialPmfmCount: number;
 
   $program = new BehaviorSubject<Program>(null);
@@ -59,15 +57,11 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
-    super(injector,
-      Strategy,
-      dataService,
-      {
-        pathIdAttribute: 'strategyId'
-      });
+    super(injector, Strategy, dataService, {
+      pathIdAttribute: 'strategyId',
+    });
 
     // default values
-    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -77,27 +71,20 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   ngOnInit() {
     super.ngOnInit();
 
-    // Update back href, when program changed
-    this.registerSubscription(
-      this.$program.subscribe(program => {
-        if (program && isNotNil(program.id)) {
-          this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
-        }
-        this.markAsReady();
-        this.markForCheck();
-      }));
-
     this.registerSubscription(
       this.referentialForm.form.valueChanges
         .pipe(
           debounceTime(100),
           filter(() => this.referentialForm.valid),
           // DEBUG
-          tap(value => console.debug('[strategy-page] referentialForm value changes:', value))
+          tap((value) => console.debug('[strategy-page] referentialForm value changes:', value))
         )
-        .subscribe(value => this.strategyForm.form.patchValue({...value, entityName: undefined})));
-  }
+        .subscribe((value) => this.strategyForm.form.patchValue({ ...value, entityName: undefined }))
+    );
 
+    // Update back href, when program changed
+    this.registerSubscription(this.$program.subscribe((program) => this.setProgram(program)));
+  }
 
   setError(err: any) {
     // Special case when user cancelled save. See strategy form
@@ -111,17 +98,18 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
-    return super.load(id, {...opts, fetchPolicy: 'network-only'});
+    return super.load(id, { ...opts, fetchPolicy: 'network-only' });
   }
 
   canUserWrite(data: Strategy, opts?: any): boolean {
-    return super.canUserWrite(data, {...opts,
+    return super.canUserWrite(data, {
+      ...opts,
       // Important: sent the opts.program, to check if user is a program manager
-      program: this.$program.value
+      program: this.$program.value,
     });
   }
 
-  enable(opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
     if (!this.isNewData) {
@@ -129,14 +117,10 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     }
   }
 
-
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.strategyForm
-    ]);
+    this.addChildForms([this.referentialForm, this.strategyForm]);
   }
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
@@ -153,6 +137,16 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.$program.next(program);
   }
 
+  protected setProgram(program: Program) {
+    this.markForCheck();
+    if (program && isNotNil(program.id)) {
+      const programPath = [PROGRAMS_PAGE_PATH, program.id].join('/');
+      this.defaultBackHref = `${programPath}?tab=${PROGRAM_TABS.STRATEGIES}`;
+      this.markAsReady();
+      this.markForCheck();
+    }
+  }
+
   protected async setValue(data: Strategy) {
     if (!data) return; // Skip
 
@@ -167,7 +161,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-
     if (this.strategyForm.dirty) {
       const saved = await this.strategyForm.save();
       if (!saved) return; // Skip
@@ -182,34 +175,36 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     // Workaround to avoid to many PMFM_STRATEGY deletion
     const deletedPmfmCount = (this.initialPmfmCount || 0) - (data.pmfms?.length || 0);
     if (deletedPmfmCount > 1) {
-      const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.MANY_PMFM_DELETED',
-        this.alertCtrl, this.translate, null, {count: deletedPmfmCount});
+      const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.MANY_PMFM_DELETED', this.alertCtrl, this.translate, null, {
+        count: deletedPmfmCount,
+      });
       if (!confirm) throw 'CANCELLED'; // Stop
     }
 
     return data;
   }
 
-
-  protected async downloadAsJson(event?: Event, opts = {keepRemoteId: false}) {
+  protected async downloadAsJson(event?: Event, opts = { keepRemoteId: false }) {
     if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation
 
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = this.dirty && this.valid
-      // If on field mode AND valid: save silently
-      ? await this.save(event)
-      // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm();
+    const saved =
+      this.dirty && this.valid
+        ? // If on field mode AND valid: save silently
+          await this.save(event)
+        : // Else If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
     if (!saved) return; // not saved
 
     // Download as JSON
     await this.service.downloadAsJson(this.data, {
       keepRemoteId: false,
       ...opts,
-      program: this.$program.value});
+      program: this.$program.value,
+    });
   }
 
   protected async askConfirmationToReload() {
@@ -229,7 +224,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     const program = await firstNotNilPromise(this.$program);
     return this.translate.instant('PROGRAM.STRATEGY.EDIT.TITLE', {
       program: program.label,
-      label: data.label || ('#' + data.id)
+      label: data.label || '#' + data.id,
     });
   }
 
@@ -238,7 +233,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       ...(await super.computePageHistory(title)),
       matIcon: 'date_range',
       title: `${this.data.label} - ${this.data.name}`,
-      subtitle: 'REFERENTIAL.ENTITY.PROGRAM'
+      subtitle: 'REFERENTIAL.ENTITY.PROGRAM',
     };
   }
 
@@ -252,12 +247,8 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.cd.markForCheck();
   }
 
-  protected initTranscribingItemTable(table: TranscribingItemTable) {
+  protected initTranscribingItemTable(table: TranscribingItemTable) {}
 
-  }
-
-  protected startImport(event?: Event){
-
-  }
+  protected startImport(event?: Event) {}
 }
 

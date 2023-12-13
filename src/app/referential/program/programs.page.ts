@@ -11,6 +11,8 @@ export const ProgramsPageSettingsEnum = {
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
 };
 
+export const PROGRAMS_PAGE_PATH = '/referential/programs';
+
 @Component({
   selector: 'app-program-page',
   templateUrl: './programs.page.html',

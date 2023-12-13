@@ -12,6 +12,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 import { SelectProgramModal } from '@app/referential/program/select-program.modal';
+import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -19,21 +20,21 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     TextMaskModule,
     TranslateModule.forChild(),
 
+    AppSharedModule,
     AppCoreModule,
 
     // Sub modules
     AppReferentialFormModule,
     AppReferentialTableModule,
     AppReferentialPipesModule,
-    AppStrategyModule
+    AppStrategyModule,
   ],
   declarations: [
-
     // Components
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
   exports: [
     TranslateModule,
@@ -42,8 +43,7 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
 })
-export class AppProgramModule {
-}
+export class AppProgramModule {}

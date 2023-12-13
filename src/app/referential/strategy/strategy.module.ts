@@ -20,6 +20,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
+import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -29,6 +30,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     MatSidenavModule,
 
     // App modules
+    AppSharedModule,
     AppCoreModule,
     AppReferentialFormModule,
     AppReferentialPipesModule,
@@ -48,7 +50,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     SamplingStrategyPage,
     SamplingStrategyForm,
     SamplingStrategiesTable,
-    StrategyModal
+    StrategyModal,
   ],
   exports: [
     TranslateModule,
@@ -61,8 +63,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     StrategiesTable,
     SamplingStrategyPage,
     SamplingStrategiesTable,
-    PmfmStrategiesTable
-  ]
+    PmfmStrategiesTable,
+  ],
 })
-export class AppStrategyModule {
-}
+export class AppStrategyModule {}

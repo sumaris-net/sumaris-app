@@ -21,10 +21,10 @@
     dynamicHeight
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}"
+    <mat-tab [label]="'PROGRAM.TAB_GENERAL' | translate"
              appSubMenuTab
-             [parentPath]="defaultBackHref"
-             [subMenuTitle]="($title|async)||''">
+             [subMenuTitle]="isNewData ? ('PROGRAM.STRATEGY.NEW.SAMPLING.TITLE'|translate) : (data?.label||'')"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
