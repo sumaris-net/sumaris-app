@@ -176,9 +176,8 @@ const StrategySubscriptions: BaseEntityGraphqlSubscriptions = {
   ${ReferentialFragments.lightReferential}`
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
-
   $dbTimeZone = new BehaviorSubject<string>(null);
 
   get dbTimeZone(): string {
@@ -198,24 +197,26 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected referentialRefService: ReferentialRefService,
     protected configService: ConfigService
   ) {
-    super(injector, Strategy, StrategyFilter,
-      {
-        queries: StrategyQueries,
-        mutations: StrategyMutations,
-        subscriptions: StrategySubscriptions
-      });
+    super(injector, Strategy, StrategyFilter, {
+      queries: StrategyQueries,
+      mutations: StrategyMutations,
+      subscriptions: StrategySubscriptions,
+    });
 
-    this.configService.config.subscribe(config => this.onConfigChanged(config));
+    this.configService.config.subscribe((config) => this.onConfigChanged(config));
   }
 
-  async getDateRangeByLabel(label: string): Promise<{startDate: Moment; endDate: Moment}> {
+  async getDateRangeByLabel(label: string): Promise<{ startDate: Moment; endDate: Moment }> {
     const strategy = await this.loadByLabel(label);
-    return strategy.appliedStrategies
-      .reduce((res1, appliedStrategy) => appliedStrategy.appliedPeriods.reduce((res2, period) => {
+    return strategy.appliedStrategies.reduce(
+      (res1, appliedStrategy) =>
+        appliedStrategy.appliedPeriods.reduce((res2, period) => {
           res2.startDate = DateUtils.min(res2.startDate, period.startDate).clone();
           res2.endDate = DateUtils.max(res2.endDate, period.endDate).clone();
           return res2;
-        }, res1), {startDate: undefined, endDate: undefined});
+        }, res1),
+      { startDate: undefined, endDate: undefined }
+    );
   }
 
   private onConfigChanged(config: Configuration) {
@@ -223,23 +224,26 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     this.$dbTimeZone.next(dbTimeZone);
   }
 
-  async existsByLabel(label: string, opts?: {
-    programId?: number;
-    excludedIds?: number[];
-    fetchPolicy?: FetchPolicy;
-  }): Promise<boolean> {
-    if (isNilOrBlank(label)) throw new Error('Missing argument \'label\' ');
+  async existsByLabel(
+    label: string,
+    opts?: {
+      programId?: number;
+      excludedIds?: number[];
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<boolean> {
+    if (isNilOrBlank(label)) throw new Error("Missing argument 'label' ");
 
     const filter: Partial<StrategyFilter> = {
       label,
       levelId: opts && isNotNil(opts.programId) ? opts.programId : undefined,
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     };
-    const {total} = await this.graphql.query<{ total: number }>({
+    const { total } = await this.graphql.query<{ total: number }>({
       query: StrategyQueries.count,
       variables: { filter },
-      error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR'},
-      fetchPolicy: opts && opts.fetchPolicy || undefined
+      error: { code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR' },
+      fetchPolicy: (opts && opts.fetchPolicy) || undefined,
     });
     return toNumber(total, 0) > 0;
   }
@@ -252,10 +256,10 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       variables: {
         programId,
         labelPrefix,
-        nbDigit
+        nbDigit,
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR'},
-      fetchPolicy: 'network-only'
+      error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_LABEL_ERROR' },
+      fetchPolicy: 'network-only',
     });
     return res && res.data;
   }
@@ -268,29 +272,29 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       variables: {
         strategyLabel,
         labelSeparator,
-        nbDigit
+        nbDigit,
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR'},
-      fetchPolicy: 'network-only'
+      error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR' },
+      fetchPolicy: 'network-only',
     });
     return res && res.data;
   }
 
   async loadByLabel(label: string) {
-    const filter = StrategyFilter.fromObject({label});
+    const filter = StrategyFilter.fromObject({ label });
     const result = await this.loadAll(0, 1, 'id', 'asc', filter);
-    return isNotEmptyArray(result.data) && result.data[0] || null;
+    return (isNotEmptyArray(result.data) && result.data[0]) || null;
   }
 
   async loadStrategiesReferentials<T extends IReferentialRef = ReferentialRef>(
-       programId: number,
-       entityName: string,
-       locationClassification?: string,
-       offset?: number,
-       size?: number,
-       sortBy?: string,
-       sortDirection?: SortDirection
-       ): Promise<T[]> {
+    programId: number,
+    entityName: string,
+    locationClassification?: string,
+    offset?: number,
+    size?: number,
+    sortBy?: string,
+    sortDirection?: SortDirection
+  ): Promise<T[]> {
     if (this._debug) console.debug(`[strategy-service] Loading strategies referential (predoc) for ${entityName}...`);
 
     const res = await this.graphql.query<LoadResult<T>>({
@@ -302,10 +306,10 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         offset: offset || 0,
         size: size || 100,
         sortBy: sortBy || 'label',
-        sortDirection: sortDirection || 'asc'
+        sortDirection: sortDirection || 'asc',
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR'},
-      fetchPolicy: 'network-only'
+      error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_SAMPLE_LABEL_ERROR' },
+      fetchPolicy: 'network-only',
     });
 
     return (res?.data || []) as T[];
@@ -320,36 +324,34 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     opts?: {
       withTotal?: boolean;
       toEntity?: boolean;
-    }): Promise<LoadResult<ReferentialRef>> {
-
+    }
+  ): Promise<LoadResult<ReferentialRef>> {
     filter = ReferentialRefFilter.fromObject(filter);
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter && filter.asPodObject()
+      filter: filter && filter.asPodObject(),
     };
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[strategy-service] Loading analytic references...`, variables);
 
-    const withTotal = (!opts || opts.withTotal !== false);
+    const withTotal = !opts || opts.withTotal !== false;
     const query = withTotal ? LoadAllAnalyticReferencesWithTotalQuery : LoadAllAnalyticReferencesQuery;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
       error: { code: ErrorCodes.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR, message: 'PROGRAM.STRATEGY.ERROR.LOAD_STRATEGY_ANALYTIC_REFERENCES_ERROR' },
-      fetchPolicy: 'cache-first'
+      fetchPolicy: 'cache-first',
     });
 
-    const entities = (!opts || opts.toEntity !== false)
-      ? data && data.map(ReferentialRef.fromObject)
-      : data as ReferentialRef[];
+    const entities = !opts || opts.toEntity !== false ? data && data.map(ReferentialRef.fromObject) : (data as ReferentialRef[]);
 
     const res: LoadResult<ReferentialRef> = {
       data: entities,
-      total
+      total,
     };
 
     // Add fetch more capability, if total was fetched
@@ -365,17 +367,18 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res;
   }
 
-  async suggestAnalyticReferences(value: any, filter?: ReferentialRefFilter, sortBy?: keyof Referential, sortDirection?: SortDirection): Promise<LoadResult<ReferentialRef>> {
-    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
-    return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection,
-      { ...filter, searchText: value},
-      {withTotal: true}
-    );
+  async suggestAnalyticReferences(
+    value: any,
+    filter?: ReferentialRefFilter,
+    sortBy?: keyof Referential,
+    sortDirection?: SortDirection
+  ): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
+    return this.loadAllAnalyticReferences(0, !value ? 30 : 10, sortBy, sortDirection, { ...filter, searchText: value }, { withTotal: true });
   }
 
-  canUserWrite(data?: Strategy, opts?: {program: Program}): boolean {
-
+  canUserWrite(data?: Strategy, opts?: { program: Program }): boolean {
     // user is admin: ok
     if (this.accountService.isAdmin()) return true;
 
@@ -390,7 +393,6 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }
 
   copyIdAndUpdateDate(source: Strategy, target: Strategy) {
-
     EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Make sure tp copy programId (need by equals)
@@ -398,24 +400,24 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
     // Applied strategies
     if (source.appliedStrategies && target.appliedStrategies) {
-      target.appliedStrategies.forEach(targetAppliedStrategy => {
+      target.appliedStrategies.forEach((targetAppliedStrategy) => {
         // Make sure to copy strategyId (need by equals)
         targetAppliedStrategy.strategyId = source.id;
 
         // Copy id and update date
-        const savedAppliedStrategy = (source.appliedStrategies || []).find(as => targetAppliedStrategy.equals(as));
+        const savedAppliedStrategy = (source.appliedStrategies || []).find((as) => targetAppliedStrategy.equals(as));
         EntityUtils.copyIdAndUpdateDate(savedAppliedStrategy, targetAppliedStrategy);
       });
     }
 
     // Pmfm strategies
     if (source.pmfms && target.pmfms) {
-      target.pmfms.forEach(targetPmfmStrategy => {
+      target.pmfms.forEach((targetPmfmStrategy) => {
         // Make sure to copy strategyId (need by equals)
         targetPmfmStrategy.strategyId = source.id;
 
         // Copy id and update date
-        const savedPmfmStrategy = source.pmfms.find(srcPmfmStrategy => targetPmfmStrategy.equals(srcPmfmStrategy));
+        const savedPmfmStrategy = source.pmfms.find((srcPmfmStrategy) => targetPmfmStrategy.equals(srcPmfmStrategy));
         EntityUtils.copyIdAndUpdateDate(savedPmfmStrategy, targetPmfmStrategy);
 
         // Copy pmfm
@@ -424,9 +426,12 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }
   }
 
-  async saveAll(data: Strategy[], opts?: EntitySaveOptions & {
-    clearCache?: boolean;
-  }): Promise<Strategy[]> {
+  async saveAll(
+    data: Strategy[],
+    opts?: EntitySaveOptions & {
+      clearCache?: boolean;
+    }
+  ): Promise<Strategy[]> {
     if (!data) return data;
 
     // Clear cache (once)
@@ -434,13 +439,15 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       await this.clearCache();
     }
 
-    return await Promise.all(data.map(entity => this.save(entity, {...opts, clearCache: true})));
+    return await Promise.all(data.map((entity) => this.save(entity, { ...opts, clearCache: true })));
   }
 
-  async save(entity: Strategy, opts?: EntitySaveOptions & {
-    clearCache?: boolean;
-  }): Promise<Strategy> {
-
+  async save(
+    entity: Strategy,
+    opts?: EntitySaveOptions & {
+      clearCache?: boolean;
+    }
+  ): Promise<Strategy> {
     // Clear cache
     if (!opts || opts.clearCache !== false) {
       await this.clearCache();
@@ -448,9 +455,10 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
 
     return super.save(entity, {
       ...opts,
-      refetchQueries: this._mutableWatchQueries
-        .filter(query => query.query === this.queries.loadAllWithTotal || query.query === this.queries.loadAllWithTotal),
-      awaitRefetchQueries: true
+      refetchQueries: this._mutableWatchQueries.filter(
+        (query) => query.query === this.queries.loadAllWithTotal || query.query === this.queries.loadAllWithTotal
+      ),
+      awaitRefetchQueries: true,
     });
   }
 
@@ -467,7 +475,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     for (const source of sources) {
       const duplicatedSource = await this.cloneToYear(source, year);
 
-      const savedEntity =  await this.save(duplicatedSource, {clearCache: false /*already done*/});
+      const savedEntity = await this.save(duplicatedSource, { clearCache: false /*already done*/ });
 
       savedEntities.push(savedEntity);
     }
@@ -478,7 +486,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   async cloneToYear(source: Strategy, year: number, newLabel?: string): Promise<Strategy> {
     if (!source || isNil(source.programId)) throw Error('Missing strategy or strategy.programId, or newLabel argument');
     if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
-    newLabel = newLabel || source.label && `${source.label} (bis)`;
+    newLabel = newLabel || (source.label && `${source.label} (bis)`);
     if (isNilOrBlank(newLabel)) throw Error('Missing strategy.label or newLabel argument');
 
     const target = new Strategy();
@@ -489,51 +497,60 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     target.analyticReference = source.analyticReference;
     target.programId = source.programId;
 
-    const dbTimeZone = await firstNotNilPromise(this.$dbTimeZone, {stop: this.stopSubject});
+    const dbTimeZone = await firstNotNilPromise(this.$dbTimeZone, { stop: this.stopSubject });
 
-    target.appliedStrategies = (source.appliedStrategies || []).map(sourceAppliedStrategy => {
+    target.appliedStrategies = (source.appliedStrategies || []).map((sourceAppliedStrategy) => {
       const targetAppliedStrategy = new AppliedStrategy();
       targetAppliedStrategy.id = undefined;
       targetAppliedStrategy.updateDate = undefined;
       targetAppliedStrategy.location = sourceAppliedStrategy.location;
-      targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map(sourceAppliedPeriod =>
-
+      targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map((sourceAppliedPeriod) => {
         // DEBUG
-        //console.debug(`[strategy-service] Duplicate applied period, into year ${year}`, sourceAppliedPeriod);
+        console.debug(`[strategy-service] Duplicate applied period, into year ${year}`, sourceAppliedPeriod);
 
-         ({
+        return AppliedPeriod.fromObject({
           acquisitionNumber: sourceAppliedPeriod.acquisitionNumber,
-          startDate: sourceAppliedPeriod.startDate?.clone()
+          startDate: sourceAppliedPeriod.startDate
+            ?.clone()
             // Keep DB local time, because the DB can use a local time - fix ObsBio-79
-            .tz(dbTimeZone)
+            .tz(dbTimeZone, true)
             .year(year),
-          endDate: sourceAppliedPeriod.endDate?.clone()
+          endDate: sourceAppliedPeriod.endDate
+            ?.clone()
             // Keep the local time, because the DB can use a local time - fix ObsBio-79
-            .tz(dbTimeZone)
-            .year(year)
-        })
-      )
-      .map(AppliedPeriod.fromObject);
+            .tz(dbTimeZone, true)
+            .year(year),
+        });
+      });
       return targetAppliedStrategy;
     });
 
-    target.pmfms = source.pmfms && source.pmfms.map(pmfmStrategy => {
-      const pmfmStrategyCloned = pmfmStrategy.clone();
-      pmfmStrategyCloned.id = undefined;
-      pmfmStrategyCloned.strategyId = undefined;
-      return PmfmStrategy.fromObject(pmfmStrategyCloned);
-    }) || [];
-    target.departments = source.departments && source.departments.map(department => {
-      const departmentCloned = department.clone();
-      departmentCloned.id = undefined;
-      departmentCloned.strategyId = undefined;
-      return StrategyDepartment.fromObject(departmentCloned);
-    }) || [];
-    target.taxonNames = source.taxonNames && source.taxonNames.map(taxonNameStrategy => {
-      const taxonNameStrategyCloned = taxonNameStrategy.clone();
-      taxonNameStrategyCloned.strategyId = undefined;
-      return TaxonNameStrategy.fromObject(taxonNameStrategyCloned);
-    }) || [];
+    target.pmfms =
+      (source.pmfms &&
+        source.pmfms.map((pmfmStrategy) => {
+          const pmfmStrategyCloned = pmfmStrategy.clone();
+          pmfmStrategyCloned.id = undefined;
+          pmfmStrategyCloned.strategyId = undefined;
+          return PmfmStrategy.fromObject(pmfmStrategyCloned);
+        })) ||
+      [];
+    target.departments =
+      (source.departments &&
+        source.departments.map((department) => {
+          const departmentCloned = department.clone();
+          departmentCloned.id = undefined;
+          departmentCloned.strategyId = undefined;
+          return StrategyDepartment.fromObject(departmentCloned);
+        })) ||
+      [];
+    target.taxonNames =
+      (source.taxonNames &&
+        source.taxonNames.map((taxonNameStrategy) => {
+          const taxonNameStrategyCloned = taxonNameStrategy.clone();
+          taxonNameStrategyCloned.strategyId = undefined;
+          return TaxonNameStrategy.fromObject(taxonNameStrategyCloned);
+        })) ||
+      [];
     target.id = undefined;
     target.updateDate = undefined;
     target.comments = source.comments;
@@ -551,67 +568,65 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   }
 
   async clearCache() {
-
     // Make sure to clean all strategy references (.e.g Pmfm cache, etc)
-    await Promise.all([
-      this.programRefService.clearCache(),
-      this.strategyRefService.clearCache()
-    ]);
+    await Promise.all([this.programRefService.clearCache(), this.strategyRefService.clearCache()]);
   }
 
-  async downloadAsJsonByIds(ids: number[], opts?: {keepRemoteId: boolean; program?: Program}) {
+  async downloadAsJsonByIds(ids: number[], opts?: { keepRemoteId: boolean; program?: Program }) {
     if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
 
     // Load entities
-    const { data } = await this.loadAll(0, 999, 'creationDate', 'asc', <Partial<StrategyFilter>>{
-      includedIds: ids
-    }, {withTotal: false});
+    const { data } = await this.loadAll(
+      0,
+      999,
+      'creationDate',
+      'asc',
+      <Partial<StrategyFilter>>{
+        includedIds: ids,
+      },
+      { withTotal: false }
+    );
 
     if (!data.length) throw Error('COMMON.NO_RESULT');
 
     // To json
-    const jsonArray = data.map(entity => entity.asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false}));
+    const jsonArray = data.map((entity) => entity.asObject({ ...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false }));
 
     const program = opts.program || (await this.programRefService.load(data[0].programId));
     const filename = this.translate.instant('PROGRAM.STRATEGY.DOWNLOAD_MANY_JSON_FILENAME', {
-      programLabel: program?.label
+      programLabel: program?.label,
     });
 
     // Export to file
-    JsonUtils.exportToFile(jsonArray, {filename});
+    JsonUtils.exportToFile(jsonArray, { filename });
   }
 
-  async downloadAsJson(entity: Strategy, opts?: {keepRemoteId: boolean; program?: Program}) {
-    if (!entity) throw new Error('Missing required \'entity\' argument');
-    if (isNilOrNaN(entity.programId)) throw new Error('Missing required \'entity.programId\'');
+  async downloadAsJson(entity: Strategy, opts?: { keepRemoteId: boolean; program?: Program }) {
+    if (!entity) throw new Error("Missing required 'entity' argument");
+    if (isNilOrNaN(entity.programId)) throw new Error("Missing required 'entity.programId'");
 
     // Convert strategy into JSON
-    const json = Strategy.fromObject(entity)
-      .asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false});
+    const json = Strategy.fromObject(entity).asObject({ ...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false });
     delete json.denormalizedPmfms; // Not used, because we already have pmfms
 
     const program = opts.program || (await this.programRefService.load(entity.programId));
     const filename = this.translate.instant('PROGRAM.STRATEGY.DOWNLOAD_JSON_FILENAME', {
       programLabel: program?.label,
-      label: entity.label
+      label: entity.label,
     });
 
     // Export to file
-    JsonUtils.exportToFile(json, {filename});
+    JsonUtils.exportToFile(json, { filename });
   }
-
-  /* -- protected functions -- */
 
   protected asObject(entity: Strategy, opts?: EntityAsObjectOptions): StoreObject {
     const target: any = super.asObject(entity, opts);
 
-    (target.pmfms || []).forEach(pmfmStrategy => {
+    (target.pmfms || []).forEach((pmfmStrategy) => {
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
       delete pmfmStrategy.pmfm;
     });
 
     return target;
   }
-
-
 }

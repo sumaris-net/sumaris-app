@@ -1,8 +1,18 @@
-import { BaseReferential, Entity, EntityClass, EntityUtils, fromDateISOString, isNotNil, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {TaxonGroupRef} from './taxon-group.model';
-import {DenormalizedPmfmStrategy, PmfmStrategy} from './pmfm-strategy.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {
+  BaseReferential,
+  Entity,
+  EntityClass,
+  EntityUtils,
+  fromDateISOString,
+  isNotNil,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { TaxonGroupRef } from './taxon-group.model';
+import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AppReferentialUtils, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export interface StrategyAsObjectOptions extends ReferentialAsObjectOptions {

@@ -8,7 +8,8 @@ import {
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString, toNumber
+  toDateISOString,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { AppliedPeriod, Strategy } from '@app/referential/services/model/strategy.model';
@@ -117,10 +118,10 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     if (this.startDate || this.endDate) {
       const startDate = this.startDate && this.startDate.clone();
       const endDate = this.endDate && this.endDate.clone().add(1, 'day').startOf('day');
-      const appliedPeriodTest = (ap: AppliedPeriod) => (
+      const appliedPeriodPredicate = (ap: AppliedPeriod) => (
         (!startDate || startDate.isSameOrBefore(ap.endDate)) && (!endDate || endDate.isAfter(ap.startDate))
       );
-      filterFns.push(t => t.appliedStrategies && t.appliedStrategies.some(as => as.appliedPeriods && as.appliedPeriods.some(appliedPeriodTest)));
+      filterFns.push(t => t.appliedStrategies && t.appliedStrategies.some(as => as.appliedPeriods && as.appliedPeriods.some(appliedPeriodPredicate)));
     }
 
     // Acquisition levels

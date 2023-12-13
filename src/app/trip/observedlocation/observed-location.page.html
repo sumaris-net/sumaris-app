@@ -62,7 +62,7 @@
   >
     <!-- TAB: general -->
     <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_GENERAL' | translateContext : i18nContext.suffix"
-          appSubMenuTab [parentPath]="defaultBackHref" [subMenuTitle]="($title|async)||''">
+          appSubMenuTab [parentPath]="defaultBackHref" [subMenuTitle]="(titleSubject|async|noHtml)||''">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
@@ -174,7 +174,6 @@
       [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
       [disabled]="!showLandingTab"
       appSubMenuTab
-      [subMenuTitle]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
     >
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>

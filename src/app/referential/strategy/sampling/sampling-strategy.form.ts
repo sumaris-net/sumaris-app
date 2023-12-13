@@ -27,7 +27,7 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
 import { Program } from '../../services/model/program.model';
@@ -44,7 +44,7 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramPrivilegeIds,
-  TaxonomicLevelIds,
+  TaxonomicLevelIds
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
 import { BehaviorSubject, merge } from 'rxjs';
@@ -88,7 +88,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   private _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
 
-  initJobs = [];
   mobile: boolean;
   $program = new BehaviorSubject<Program>(null);
   labelMask: (string | RegExp)[] = [/\d/, /\d/, ' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/];
@@ -967,15 +966,18 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       const appliedPeriods = appliedStrategyWithPeriods.appliedPeriods || [];
 
       // Find year, from applied period, or use current
-      const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.tz(dbTimeZone).year())) || DateUtils.moment().year();
+      const year: number = appliedPeriods.map(ap => ap.startDate).find(isNotNil)?.clone().tz(dbTimeZone).year() || DateUtils.moment().tz(dbTimeZone).year();
 
       // format periods for applied period in view and init default period by quarter if no set
       appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
         const startMonth = (quarter - 1) * 3 + 1;
         // INFO CLT : #IMAGINE-643 [Ligne de plan] Décalage heure de début et de fin des efforts
         // We use local timezone for Imagine instead of utc
-        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000`).tz(dbTimeZone);
-        const endDate = startDate.clone().add(2, 'month').endOf('month').endOf('day');
+        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000`) // Should be a local time (No 'Z' at the end)
+          .tz(dbTimeZone, true); // /!\ Need to keep local hour (00:00:00) from the parsed date string
+        const endDate = startDate.clone()
+          .add(2, 'month').endOf('month').startOf('day'); // Fix issue # - END_DATE should have no hour (00:00:00)
+
         // Find the existing entity, or create a new one
         const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
           || AppliedPeriod.fromObject({acquisitionNumber: undefined});
@@ -991,7 +993,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       // Get first period
       const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-      data.year = firstAppliedPeriod ? firstAppliedPeriod.startDate : moment();
+      data.year = firstAppliedPeriod ? firstAppliedPeriod.startDate.clone().local(true) : DateUtils.moment().tz(dbTimeZone, true);
 
       data.pmfms = data.pmfms || [];
 
@@ -1083,7 +1085,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     // Compute year
     const dbTimeZone = this.strategyService.dbTimeZone;
-    const year = isNotNil(this.form.controls.year.value) ? DateUtils.moment(this.form.controls.year.value).tz(dbTimeZone).year() : DateUtils.moment().year();
+    const year = isNotNil(this.form.controls.year.value) ? DateUtils.moment(this.form.controls.year.value).tz(dbTimeZone, true).year() : DateUtils.moment().tz(dbTimeZone, true).year();
 
     // Fishing Area + Efforts --------------------------------------------------------------------------------------------
     const appliedStrategyWithPeriods = firstArrayValue((target.appliedStrategies || []).filter(as => isNotEmptyArray(as.appliedPeriods)));

@@ -46,7 +46,7 @@
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
-      <ion-row *ngIf="control.touched">
+      <ion-row *ngIf="!isNewData || control.touched">
         <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3" class="mat-form-field-errors">
           <ng-content select="[afterStrategy]"></ng-content>
         </ion-col>
