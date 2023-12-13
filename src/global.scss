@@ -18,6 +18,7 @@
 :root {
   @include css-app-variables-to-root();
 
+  // FIXME: Ceci empêche la surcharge des couleurs. Voir si cela est encore nécessaire
   ion-app {
     @include css-variables-to-root();
   }

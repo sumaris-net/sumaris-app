@@ -1,5 +1,5 @@
 <!-- Top toolbar -->
-<app-toolbar
+<app-toolbar #toolbar
   *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
   [color]="toolbarColor"
   [hasValidate]="!vars.loading && (dirty || vars.saving)"
@@ -115,7 +115,7 @@
     <!-- TAB: general -->
     <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}"
              appSubMenuTab
-             [subMenuTitle]="($title|async|noHtml)||''"
+             [subMenuTitle]="(titleSubject|async|noHtml)||''"
              [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>

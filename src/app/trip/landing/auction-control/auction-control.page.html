@@ -280,11 +280,11 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
           editor.loading: {{ loading }}
           <br />
           editor.enabled: {{ enabled }}
-          <br />
-          editor.ready: {{ readySubject | async }}
           <br />
           editor.dirty: {{ dirty }}
           <br />
@@ -292,11 +292,11 @@
           <br />
         </ion-col>
         <ion-col>
+          landingForm.ready: {{ landingForm.readySubject | async }}
+          <br />
           landingForm.loading: {{ landingForm.loading }}
           <br />
           landingForm.enabled: {{ landingForm.enabled }}
-          <br />
-          landingForm.ready: {{ landingForm.readySubject | async }}
           <br />
           landingForm.dirty: {{ landingForm.dirty }}
           <br />
@@ -318,9 +318,7 @@
           <br />
         </ion-col>
         <ion-col>
-          samplesTable.loading: {{ samplesTable.loading }}
-          <br />
-          samplesTable.loadingSubject: {{ samplesTable.loadingSubject | async }}
+          samplesTable.loading: {{ samplesTable.loading }} (subject: {{ samplesTable.loadingSubject | async }})
           <br />
           samplesTable.ready: {{ samplesTable.readySubject | async }}
           <br />
