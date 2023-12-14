@@ -24,7 +24,15 @@
     "resources": "cordova-res ios && cordova-res android && node scripts/node/resources.js",
     "test": "ng test",
     "lint": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint",
-    "lint.fix": "npm run lint --fix"
+    "lint.fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,html}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "src/**/*.{css,json,md,scss}": "prettier --write"
   },
   "peerDependencies": {
     "@angular-devkit/build-angular": "^16.2.7",
@@ -166,16 +174,18 @@
     "eslint-plugin-jsdoc": "~39.6.4",
     "eslint-plugin-prefer-arrow": "~1.2.3",
     "eslint-plugin-prettier": "~4.2.1",
-    "jasmine-core": "~3.8.0",
+    "husky": "^8.0.3",
+    "jasmine-core": "~4.2.0",
     "jasmine-spec-reporter": "~7.0.0",
     "jetifier": "^2.0.0",
     "karma": "~6.4.2",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage-istanbul-reporter": "~3.0.3",
-    "karma-jasmine": "~4.0.2",
-    "karma-jasmine-html-reporter": "^1.6.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "^2.0.0",
+    "lint-staged": "^15.2.0",
     "postcss": "^8.4.23",
-    "prettier": "~2.8.8",
+    "prettier": "~3.1.1",
     "protractor": "7.0.0",
     "tar": "^5.0.11",
     "ts-node": "~8.10.2",
