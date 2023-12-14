@@ -1291,7 +1291,7 @@
       "TITLE": "{{location}} - {{dateTime}}",
       "OTHER_FEATURES": "Caractéristiques :",
       "TAB_LANDINGS": "Navires observés",
-      "DATE_TIME": "Date/heure",
+      "DATE_TIME": "Date",
       "START_DATE": "Date début",
       "START_DATE_TIME": "Date/heure de début",
       "END_DATE": "Date fin",
@@ -3079,6 +3079,7 @@
   "WARNING": {
     "ALERT_HEADER": "Avertissement",
     "OOPS_DOTS": "Oups...",
-    "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
+    "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
+    "DATE_IN_THE_FUTURE": "Date dans le futur"
   }
 }

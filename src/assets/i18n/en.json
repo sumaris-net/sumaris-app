@@ -1282,7 +1282,7 @@
       "TITLE": "{{location}} - {{dateTime}}",
       "OTHER_FEATURES": "Other features:",
       "TAB_LANDINGS": "Observed vessels",
-      "DATE_TIME": "Date/Time",
+      "DATE_TIME": "Date",
       "START_DATE": "Start date",
       "START_DATE_TIME": "Start date/time ",
       "END_DATE": "End date",
@@ -3011,6 +3011,7 @@
   "WARNING": {
     "ALERT_HEADER": "Warning",
     "OOPS_DOTS": "Oops...",
-    "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>"
+    "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>",
+    "DATE_IN_THE_FUTURE": "Date in the future"
   }
 }

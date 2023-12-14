@@ -49,6 +49,10 @@
           required
         >
           <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
+          <mat-hint *ngIf="isStartDateInTheFuture">
+            <mat-icon color="warn">warning</mat-icon>
+            {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+          </mat-hint>
         </mat-date-time-field>
         <ng-template #startDateOnly>
           <mat-date-field
@@ -59,6 +63,10 @@
             required
           >
             <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
+            <mat-hint *ngIf="isStartDateInTheFuture">
+              <mat-icon color="warn">warning</mat-icon>
+              {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+            </mat-hint>
           </mat-date-field>
         </ng-template>
       </ion-col>
@@ -99,6 +107,10 @@
           >
             <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
             <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
+            <mat-hint *ngIf="isStartDateInTheFuture">
+              <mat-icon color="warn">warning</mat-icon>
+              {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+            </mat-hint>
           </mat-date-time-field>
           <ng-template #startDate>
             <mat-date-field
@@ -111,6 +123,10 @@
             >
               <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
               <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
+              <mat-hint *ngIf="isStartDateInTheFuture">
+                <mat-icon color="warn">warning</mat-icon>
+                {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+              </mat-hint>
             </mat-date-field>
           </ng-template>
         </ion-col>
