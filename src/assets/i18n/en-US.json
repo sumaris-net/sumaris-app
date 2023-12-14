@@ -184,6 +184,7 @@
     },
     "OPTIONS": {
       "ANDROID_INSTALL_URL": "Android > Install App URL",
+      "DB_TIMEZONE": "Persistence > Database timezone (readonly option)",
       "LOGO": "Menu > Logo (max width: 110px)",
       "FAVICON": "favicon",
       "GRAVATAR_URL": "User > Gravatar URL (with '{md5}')",
@@ -310,13 +311,17 @@
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Referential > Qualitative value > Sorting batch / Non Bulk",
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Referential > Qualitative value > Sex / Unsexed",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
-        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Taxon group type / National metier",
-        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5"
+        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Referential > Taxon group type / National metier",
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5",
+        "VESSEL_TYPE_FISHING_VESSEL_ID": "Referential > Vessel type > Professional fishing vessels",
+        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Referential > Vessel type > Scientific vessels"
       },
       "TESTING": "Developer mode?",
       "ENTITY_TRASH": "Enable trash on pod?",
       "UPDATE_TECHNICAL_TABLES": "Automatically update technical tables?",
       "GEOMETRY_SRID": "Pod > Geometries: SRID (0=None, 4326=WGS84)",
+      "ELASTICSEARCH_ENABLED": "Elasticsearch > Enable?",
+      "ELASTICSEARCH_URIS": "Elasticsearch > Node URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Security > Authentication type",
       "AUTH_TOKEN_TYPE": {
@@ -2715,6 +2720,9 @@
           "ERRORS": "Error(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
           "VESSELS": "Vessel(s): {{vessels}}"
+        },
+        "TYPE_ENUM": {
+          "VESSEL_SNAPSHOTS_INDEXATION": "Vessel indexation into ElasticSearch"
         },
         "ERROR": {
           "LOAD_TYPES_ERROR": "Error while loading job types",

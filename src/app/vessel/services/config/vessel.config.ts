@@ -1,5 +1,6 @@
 import { TypePolicies } from '@apollo/client/core';
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 export const VESSEL_FEATURE_NAME = 'vessel';
 
@@ -24,9 +25,22 @@ export const VESSEL_CONFIG_OPTIONS = {
     ]
   },
   VESSEL_FILTER_DEFAULT_COUNTRY_ID: <FormFieldDefinition>{
-    key: 'sumaris.vessel.filter.registrationCountry.Id',
+    key: 'sumaris.vessel.filter.registrationCountry.id',
     label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_FILTER_COUNTRY_ID',
-    type: 'integer'
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: { entityName: 'Location', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] , levelId: LocationLevelIds.COUNTRY}
+    },
+  },
+  VESSEL_FILTER_DEFAULT_TYPE_ID: <FormFieldDefinition>{
+    key: 'sumaris.vessel.filter.type.id',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_FILTER_TYPE_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: { entityName: 'VesselType', statusIds:[StatusIds.ENABLE, StatusIds.TEMPORARY] }
+    },
   },
   VESSEL_FILTER_MIN_LENGTH: <FormFieldDefinition>{
     key: 'sumaris.vessel.filter.searchText.minLength',
@@ -97,3 +111,12 @@ export const VESSEL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
       ]
     }
 });
+
+
+export class VesselConfigUtils {
+  static refreshDefaultValues() {
+    // 'entity' options: update autocomplete filter 
+    VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
+  }
+
+}

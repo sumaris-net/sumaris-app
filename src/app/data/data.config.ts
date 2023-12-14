@@ -1,6 +1,6 @@
-import { TypePolicies } from '@apollo/client/core';
-import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { TypePolicies } from "@apollo/client/core";
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from "@sumaris-net/ngx-components";
+import { ReferentialRefFilter } from "@app/referential/services/filter/referential-ref.filter";
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -148,5 +148,16 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.DATA_IMAGES_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
-  }
+  },
+  DATA_VESSEL_TYPE_IDS: <FormFieldDefinition> {
+    key: 'sumaris.data.vessel.type.ids',
+    label: 'CONFIGURATION.OPTIONS.DATA_VESSEL_TYPE_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'VesselType',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    }
+  },
 });

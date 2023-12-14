@@ -230,13 +230,14 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
-        "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
+        "DEFAULT_FILTER_COUNTRY_ID": "Saisie > Navire: Pavillon",
+        "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
-        "NAME_REQUIRED": "Navires: Nom obligatoire ?",
-        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Navires: Tri naturel des immatriculations ?"
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Saisie > Navire: Nb caract. min pour recherche",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Saisie > Navire: Recherche d'immatriculation par préfixe (immat, nom) ?",
+        "NAME_REQUIRED": "Navire: Nom obligatoire ?",
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Saisie > Navire: Tri naturel des immatriculations ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -309,13 +310,17 @@
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
-        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
-        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
+        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
+        "VESSEL_TYPE_FISHING_VESSEL_ID": "Référentiel > Type de navire > Navire professionnel",
+        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Référentiel > Type de navire > Navire scientifique"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
       "UPDATE_TECHNICAL_TABLES": "Pod > Tables techniques : mise à jour auto  ?",
       "GEOMETRY_SRID": "Pod > Géometries : SRID (0=Aucun, 4326=WGS84)",
+      "ELASTICSEARCH_ENABLED": "Elasticsearch > Activer ?",
+      "ELASTICSEARCH_URIS": "Elasticsearch > URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
@@ -1976,7 +1981,6 @@
     "TAB_GENERAL": "Détails",
     "TAB_LOCATIONS": "Lieux",
     "TAB_STRATEGIES": "Stratégies",
-    "TAB_STRATEGIES.SAMPLING": "Lignes de plan",
     "TAB_PRIVILEGES": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Type d'espèces commerciales",
@@ -2001,6 +2005,9 @@
       "DEPARTMENT": "Service",
       "LOCATION": "Lieu/Zone",
       "PRIVILEGE": "Privilège"
+    },
+    "SAMPLING": {
+      "TAB_STRATEGIES": "Lignes de plan"
     },
     "OPTIONS": {
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",

@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ErrorCodes } from './errors';
+import { Injectable } from "@angular/core";
+import { FetchPolicy, gql } from "@apollo/client/core";
+import { BehaviorSubject, Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { ErrorCodes } from "./errors";
 import {
   AccountService,
   BaseEntityGraphqlQueries,
@@ -28,8 +28,8 @@ import {
   ReferentialUtils,
   StatusIds,
   SuggestService
-} from '@sumaris-net/ngx-components';
-import { ReferentialService } from './referential.service';
+} from "@sumaris-net/ngx-components";
+import { ReferentialService } from "./referential.service";
 import {
   FractionIdGroups,
   LocationLevelGroups,
@@ -41,55 +41,78 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
-  QualitativeValueIds, QualityFlagIds,
+  QualitativeValueIds,
+  QualityFlagIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds
-} from './model/model.enum';
-import { ReferentialFragments } from './referential.fragments';
-import { SortDirection } from '@angular/material/sort';
-import { Moment } from 'moment';
-import { environment } from '@environments/environment';
-import { ReferentialRefFilter } from './filter/referential-ref.filter';
-import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
-import { Metier } from '@app/referential/metier/metier.model';
-import { MetierService } from '@app/referential/services/metier.service';
-import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
-import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
-import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
-import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
-import { RoundWeightConversionRefService } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service';
-import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
-import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
-import { BBox } from 'geojson';
-import { translateQualityFlag } from '@app/data/services/model/model.utils';
+} from "./model/model.enum";
+import { ReferentialFragments } from "./referential.fragments";
+import { SortDirection } from "@angular/material/sort";
+import { Moment } from "moment";
+import { environment } from "@environments/environment";
+import { ReferentialRefFilter } from "./filter/referential-ref.filter";
+import { REFERENTIAL_CONFIG_OPTIONS } from "./config/referential.config";
+import { Metier } from "@app/referential/metier/metier.model";
+import { MetierService } from "@app/referential/services/metier.service";
+import {
+  WeightLengthConversion
+} from "@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model";
+import {
+  WeightLengthConversionRefService
+} from "@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service";
+import { ProgramPropertiesUtils } from "@app/referential/services/config/program.config";
+import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from "@app/referential/services/base-referential-service.class";
+import {
+  RoundWeightConversionRefService
+} from "@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service";
+import { TaxonNameRefService } from "@app/referential/services/taxon-name-ref.service";
+import { TaxonGroupRefService } from "@app/referential/services/taxon-group-ref.service";
+import { BBox } from "geojson";
+import { translateQualityFlag } from "@app/data/services/model/model.utils";
+import { VesselConfigUtils } from "@app/vessel/services/config/vessel.config";
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any }>{
-  lastUpdateDate: gql`query LastUpdateDate{
-    lastUpdateDate
-  }`,
-
-  loadAll: gql`query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightReferentialFragment
+  lastUpdateDate: gql`
+    query LastUpdateDate {
+      lastUpdateDate
     }
-  }
-  ${ReferentialFragments.lightReferential}`,
+  `,
 
-  loadAllWithTotal: gql`query ReferentialRefsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightReferentialFragment
+  loadAll: gql`
+    query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...LightReferentialFragment
+      }
     }
-    total: referentialsCount(entityName: $entityName, filter: $filter)
-  }
-  ${ReferentialFragments.lightReferential}`,
+    ${ReferentialFragments.lightReferential}
+  `,
 
-  loadLevels: gql`query ReferentialLevels($entityName: String) {
-    data: referentialLevels(entityName: $entityName){
-      ...LightReferentialFragment
+  loadAllWithTotal: gql`
+    query ReferentialRefsWithTotal(
+      $entityName: String
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+      $filter: ReferentialFilterVOInput
+    ) {
+      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...LightReferentialFragment
+      }
+      total: referentialsCount(entityName: $entityName, filter: $filter)
     }
-  }
-  ${ReferentialFragments.lightReferential}`
+    ${ReferentialFragments.lightReferential}
+  `,
+
+  loadLevels: gql`
+    query ReferentialLevels($entityName: String) {
+      data: referentialLevels(entityName: $entityName) {
+        ...LightReferentialFragment
+      }
+    }
+    ${ReferentialFragments.lightReferential}
+  `,
 };
 
 
@@ -784,6 +807,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Force an update default values (e.g. when using LocationLevelId)
     ModelEnumUtils.refreshDefaultValues();
+    VesselConfigUtils.refreshDefaultValues();
 
     // Location level groups
     //  /!\ should be call AFTER ModelEnumUtils.refreshDefaultValues()
