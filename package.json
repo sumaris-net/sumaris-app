@@ -30,13 +30,9 @@
   "lint-staged": {
     "src/**/*.{ts,html}": [
       "prettier --write",
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ],
-    "src/**/*.{css,json,md,scss}": [
-      "prettier --write",
-      "git add"
-    ]
+    "src/**/*.{css,json,md,scss}": "prettier --write"
   },
   "peerDependencies": {
     "@angular-devkit/build-angular": "^16.2.7",
@@ -172,12 +168,12 @@
     "@typescript-eslint/eslint-plugin": "5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "cordova-res": "^0.15.4",
-    "eslint": "~8.31.0",
-    "eslint-config-prettier": "~8.6.0",
-    "eslint-plugin-import": "~2.26.0",
-    "eslint-plugin-jsdoc": "~39.6.4",
+    "eslint": "~8.55.0",
+    "eslint-config-prettier": "~9.1.0",
+    "eslint-plugin-import": "~2.29.0",
+    "eslint-plugin-jsdoc": "~46.9.1",
     "eslint-plugin-prefer-arrow": "~1.2.3",
-    "eslint-plugin-prettier": "~4.2.1",
+    "eslint-plugin-prettier": "~5.0.1",
     "husky": "^8.0.3",
     "jasmine-core": "~4.2.0",
     "jasmine-spec-reporter": "~7.0.0",
