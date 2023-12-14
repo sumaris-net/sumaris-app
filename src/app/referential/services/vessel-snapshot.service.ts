@@ -37,7 +37,7 @@ import { mergeLoadResult } from '@app/shared/functions';
 export const VesselSnapshotFragments = {
   lightVesselSnapshot: gql`
     fragment LightVesselSnapshotFragment on VesselSnapshotVO {
-      id: vesselId
+      id
       name
       exteriorMarking
       registrationCode
@@ -51,7 +51,7 @@ export const VesselSnapshotFragments = {
   `,
   lightVesselSnapshotWithPort: gql`
     fragment LightVesselSnapshotWithPortFragment on VesselSnapshotVO {
-      id: vesselId
+      id
       name
       exteriorMarking
       registrationCode
@@ -70,7 +70,7 @@ export const VesselSnapshotFragments = {
   `,
   vesselSnapshot: gql`
     fragment VesselSnapshotFragment on VesselSnapshotVO {
-      id: vesselId
+      id
       name
       exteriorMarking
       registrationCode

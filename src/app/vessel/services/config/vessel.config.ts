@@ -5,9 +5,6 @@ import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 export const VESSEL_FEATURE_NAME = 'vessel';
 
 export const VESSEL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  VesselSnapshotVO: {
-    keyFields: ['id'/*, 'vesselId'*/]
-  },
 };
 
 export const VESSEL_CONFIG_OPTIONS = {
@@ -117,7 +114,7 @@ export const VESSEL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 
 export class VesselConfigUtils {
   static refreshDefaultValues() {
-    // 'entity' options: update autocomplete filter 
+    // 'entity' options: update autocomplete filter
     VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
   }
 
