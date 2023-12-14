@@ -8,14 +8,14 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node v16 (e.g. v16.17.0)
+2. Install Node v18 (e.g. v18.18.2)
 ```bash
-nvm install 16.17.0
+nvm install 18.18.2
 ```
 
 3. Install global dependency: 
 ```bash
-npm install -g @ionic/cli @angular/cli 
+npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.13
 ```
 
 4. Get sources (clone the repo) : `git clone ...`
