@@ -30,9 +30,13 @@
   "lint-staged": {
     "src/**/*.{ts,html}": [
       "prettier --write",
-      "eslint --fix"
+      "eslint --fix",
+      "git add"
     ],
-    "src/**/*.{css,json,md,scss}": "prettier --write"
+    "src/**/*.{css,json,md,scss}": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "peerDependencies": {
     "@angular-devkit/build-angular": "^16.2.7",
@@ -205,7 +209,7 @@
     "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues"
   },
   "engines": {
-    "node": ">= 16.17.0",
-    "npm": ">= 9.1.1"
+    "node": ">= 18.18.2",
+    "npm": ">= 9.9.1"
   }
 }
