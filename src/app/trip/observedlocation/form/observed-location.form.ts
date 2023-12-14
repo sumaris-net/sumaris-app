@@ -55,6 +55,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   observerFocusIndex = -1;
   startDatePickerFilter: DateFilterFn<Moment>;
   mobile: boolean;
+  isStartDateInTheFuture: boolean;
 
   @Input() locationLevelIds: number[];
 
@@ -196,6 +197,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
             // add expected number of days
             endDateTimeControl.patchValue(toDateISOString(endDate), { emitEvent: false });
           }
+
+          // Warning if date is in the future
+          this.isStartDateInTheFuture = startDateTime.isAfter();
+          this.markForCheck();
         })
     );
   }
