@@ -11,8 +11,7 @@
 import 'zone.js/plugins/zone-error';
 
 // Environment to use only with unit tests
-
-import {Environment, StorageDrivers} from '@sumaris-net/ngx-components';
+import { Environment, StorageDrivers } from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json');
 
@@ -28,7 +27,7 @@ export const environment = Object.freeze(<Environment>{
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '2.4.3',
+  peerMinVersion: '2.9.0',
 
   checkAppVersionIntervalInSeconds: 0, // Not need for DEV
 
@@ -48,6 +47,14 @@ export const environment = Object.freeze(<Environment>{
     {
       host: 'server.e-is.pro',
       port: 8080
+    },
+    {
+      host: 'test.sumaris.net',
+      port: 443
+    },
+    {
+      host: 'obsmer.sumaris.net',
+      port: 443
     }
   ],
 
