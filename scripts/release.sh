@@ -35,7 +35,7 @@ fi
 ### Control that the script is run on `dev` branch
 resumeRelease=0
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "develop" ]]
+if [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^features?/.* ]]
 then
   if [[ "$branch" = "release/$version" ]]
   then
