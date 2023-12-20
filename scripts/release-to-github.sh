@@ -13,18 +13,28 @@ source ${PROJECT_DIR}/scripts/env-global.sh
 
 ### Variables
 task=$1
-release_description=$2
+if [[ -n $2 ]]; then
+    release_branch=$2
+else
+    release_branch="develop"
+fi
+if [[ $release_branch = "develop" ]]; then
+    target_commitish="master"
+else
+    target_commitish=$release_branch
+fi
+
 
 ### Control that the script is run on `dev` branch
 branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! "$branch" = "master" ]] && [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
+if [[ ! "$branch" = "master" ]] && [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]] && [[ ! "$branch" =~ ^features?/.*$ ]];
 then
   echo ">> This script must be run under \`master\` or a \`release\` branch"
   exit 1
 fi
 
 ### Get version to release
-version=$(grep -m1 -P "version\": \"\d+.\d+.\d+(-\w+[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-\w+[0-9]+)?")
+version=$(grep -m1 -P "version\": \"\d+\.\d+\.\d+(-\w+[0-9]+)?" package.json | grep -oP "\d+\.\d+\.\d+(-\w+[0-9]+)?")
 if [[ "_$version" == "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'package.json'."
   echo " - Make sure the file 'package.json' exists and is readable."
@@ -32,11 +42,8 @@ if [[ "_$version" == "_" ]]; then
   exit 1
 fi
 
-# Compute description, if missing
-description=`echo $release_description` # force quote interpretation
-if [[ "_${description}" == "_" ]]; then
-    description="Release $version"
-fi
+# Compute description
+description="Release $version"
 
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
@@ -56,8 +63,8 @@ fi
 ### check arguments
 case "$task" in
   del)
-    result=`curl -i "$REPO_API_URL/releases/tags/$version"`
-    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
+    result=$(curl -i "$REPO_API_URL/releases/tags/$version")
+    release_url=$(echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+")
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
         curl -H ''"$GITHUT_AUTH"'' -XDELETE $release_url
@@ -91,8 +98,8 @@ case "$task" in
     echo "Creating new release..."
     echo " - tag: $version"
     echo " - description: $description"
-    result=`curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
-    upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+    result=$(curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "'"$target_commitish"'","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}')
+    upload_url=$(echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
 
     if [[ "_$upload_url" = "_" ]]; then
       echo "Failed to create new release for repo $REPO."
@@ -148,7 +155,7 @@ case "$task" in
   *)
     echo "Wrong arguments"
     echo "Usage:"
-    echo " > ./release-to-github.sh del|pre|rel <release_description>"
+    echo " > ./release-to-github.sh del|pre|rel <release_branch>"
     echo "With:"
     echo " - del: delete existing release"
     echo " - pre: use for pre-release"
