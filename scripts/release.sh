@@ -174,15 +174,17 @@ cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
+
 echo "**********************************"
 echo " /!\ You should now :"
 echo " - Open Android Studio and Build the release APK..."
 echo " - Then run: "
 echo ""
 echo "cd $PROJECT_DIR/scripts"
- if [[ "$branch" =~ ^features?/.* ]]; then
+if [[ "$branch" =~ ^features?/.* ]]; then
   echo "./release-android-sign.sh && ./release-finish.sh $version $branch && ./release-to-github.sh $task $branch"
 else
-  echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task
+  echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task"
 fi
+
 exit 1
