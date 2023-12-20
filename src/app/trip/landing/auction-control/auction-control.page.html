@@ -59,11 +59,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'LANDING.EDIT.TAB_GENERAL' | translate }}"
+    <mat-tab [label]="'LANDING.EDIT.TAB_GENERAL' | translate"
              appSubMenuTab
              [parentPath]="defaultBackHref"
-             [subMenuTitle]="($title|async|noHtml)||''"
-             [subMenuIcon]="{icon: 'boat'}">
+             [subMenuTitle]="(titleSubject|async|noHtml)||''">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
@@ -105,8 +104,7 @@
 
     <!-- TAB: samples -->
     <mat-tab #samplesTab [label]="'AUCTION_CONTROL.TAB_SAMPLES' | translate"
-             appSubMenuTab
-             [subMenuIcon]="{icon: 'flag'}">
+             appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="icon-only" name="flag"></ion-icon>

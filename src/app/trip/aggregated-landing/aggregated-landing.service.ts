@@ -83,8 +83,8 @@ const Mutations: BaseEntityGraphqlMutations = {
     }
     ${AggregatedLandingFragment}`,
 
-  deleteAll: gql`mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselSnapshotIds: [Int]){
-      deleteAggregatedLandings(filter: $filter, vesselSnapshotIds: $vesselSnapshotIds)
+  deleteAll: gql`mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselIds: [Int]){
+      deleteAggregatedLandings(filter: $filter, vesselIds: $vesselIds)
     }`
 };
 
@@ -330,7 +330,7 @@ export class AggregatedLandingService
       mutation: Mutations.deleteAll,
       variables: {
         filter: this._lastFilter && this._lastFilter.asPodObject(),
-        vesselSnapshotIds: entities.map(value => value.vesselSnapshot.id)
+        vesselIds: entities.map(value => value.vesselSnapshot.id)
       },
       update: (proxy) => {
 

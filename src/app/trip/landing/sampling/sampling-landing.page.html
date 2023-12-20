@@ -59,11 +59,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'LANDING.EDIT.TAB_GENERAL' | translate }}"
+    <mat-tab [label]="'LANDING.EDIT.TAB_GENERAL' | translate"
              appSubMenuTab
              [parentPath]="defaultBackHref"
-             [subMenuTitle]="($title|async|noHtml)||''"
-             [subMenuIcon]="{icon: 'boat'}">
+             [subMenuTitle]="(titleSubject|async|noHtml)||''">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
@@ -71,10 +70,10 @@
           slot="end"
           name="alert-circle"
           color="danger"
-          *ngIf="submitted && landingForm.invalid; else warningIcon"
+          *ngIf="noEffortError || (submitted && landingForm.invalid); else warningIcon"
         ></ion-icon>
         <ng-template #warningIcon>
-          <mat-icon *ngIf="warning" [style.color]="'var(--ion-color-tertiary)'" [title]="warning | translate">
+          <mat-icon *ngIf="warning || zeroEffortWarning" [style.color]="'var(--ion-color-tertiary)'" [title]="warning | translate">
             warning
           </mat-icon>
         </ng-template>
@@ -118,7 +117,7 @@
                 [debug]="debug"
               >
                 <!-- zero effort (warning) -->
-                <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
+                <mat-hint afterStrategy *ngIf="!landingForm.strategyControl.invalid && zeroEffortWarning">
                   <ion-icon color="tertiary" name="warning"></ion-icon>
                   &nbsp;
                   <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
