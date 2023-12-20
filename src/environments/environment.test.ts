@@ -88,6 +88,12 @@ export const environment = Object.freeze(<Environment>{
   defaultAuthValues: {
     pubkey: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP',
     token: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA=='
+  },
+
+  menu: {
+    subMenu: {
+      enable: true
+    }
   }
 });
 
