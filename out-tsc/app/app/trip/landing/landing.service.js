@@ -1,0 +1,1178 @@
+import { __awaiter, __decorate, __metadata } from "tslib";
+import { Injectable, Injector } from '@angular/core';
+import { AppFormUtils, chainPromises, DateUtils, EntitiesStorage, Entity, EntityUtils, firstNotNilPromise, FormErrorTranslator, fromDateISOString, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, JobUtils, LocalSettingsService, MINIFY_ENTITY_FOR_POD, NetworkService, ProgressBarService, toDateISOString, toNumber, } from '@sumaris-net/ngx-components';
+import { EMPTY, firstValueFrom } from 'rxjs';
+import { Landing } from './landing.model';
+import { gql } from '@apollo/client/core';
+import { filter, map } from 'rxjs/operators';
+import { Sample } from '../sample/sample.model';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { LandingFilter } from './landing.filter';
+import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE, } from '@app/data/services/model/data-entity.model';
+import { TripFragments, TripService } from '@app/trip/trip/trip.service';
+import { Trip } from '@app/trip/trip/trip.model';
+import { DataErrorCodes } from '@app/data/services/errors';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { TripFilter } from '@app/trip/trip/trip.filter';
+import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
+import { ProgramUtils } from '@app/referential/services/model/program.model';
+import { LandingValidatorService } from '@app/trip/landing/landing.validator';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+export const LandingFragments = {
+    lightLanding: gql `fragment LightLandingFragment on LandingVO {
+    id
+    program {
+      id
+      label
+    }
+    dateTime
+    location {
+      ...LocationFragment
+    }
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    comments
+    rankOrder
+    observedLocationId
+    tripId
+    vesselSnapshot {
+      ...VesselSnapshotFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
+    measurementValues
+    samplesCount
+  }
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${ReferentialFragments.lightReferential}`,
+    landing: gql `fragment LandingFragment on LandingVO {
+    id
+    program {
+      id
+      label
+    }
+    dateTime
+    location {
+      ...LocationFragment
+    }
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    comments
+    rankOrder
+    observedLocationId
+    tripId
+    trip {
+      ...EmbeddedLandedTripFragment
+    }
+    vesselSnapshot {
+      ...VesselSnapshotFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
+    observers {
+      ...LightPersonFragment
+    }
+    measurementValues
+    samples {
+      ...SampleFragment
+    }
+    samplesCount
+  }`
+};
+const LandingQueries = {
+    load: gql `query Landing($id: Int!){
+    data: landing(id: $id){
+      ...LandingFragment
+    }
+  }
+  ${LandingFragments.landing}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}
+  ${TripFragments.embeddedLandedTrip}`,
+    loadAll: gql `query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightLandingFragment
+    }
+  }
+  ${LandingFragments.lightLanding}`,
+    loadAllWithTotal: gql `query LightLandingsWithTotal($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightLandingFragment
+    }
+    total: landingsCount(filter: $filter)
+  }
+  ${LandingFragments.lightLanding}`,
+    loadAllFullWithTotal: gql `query Landings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LandingFragment
+    }
+    total: landingsCount(filter: $filter)
+  }
+  ${LandingFragments.landing}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}
+  ${TripFragments.embeddedLandedTrip}`,
+    loadNearbyTripDates: gql `query LandingNearbyTripDates($filter: TripFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+      id
+      departureDateTime
+    }
+  }`,
+};
+const LandingMutations = {
+    save: gql `mutation SaveLanding($data:LandingVOInput!){
+    data: saveLanding(landing: $data){
+      ...LandingFragment
+    }
+  }
+  ${LandingFragments.landing}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}
+  ${TripFragments.embeddedLandedTrip}`,
+    saveAll: gql `mutation SaveLandings($data:[LandingVOInput!]!){
+    data: saveLandings(landings: $data){
+      ...LandingFragment
+    }
+  }
+  ${LandingFragments.landing}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}
+  ${TripFragments.embeddedLandedTrip}`,
+    terminate: gql `mutation TerminateLanding($data: LandingVOInput!){
+    data: controlLanding(landing: $data){
+      ...LightLandingFragment
+    }
+  }
+  ${LandingFragments.lightLanding}`,
+    deleteAll: gql `mutation DeleteLandings($ids:[Int!]!){
+    deleteLandings(ids: $ids)
+  }`
+};
+const LandingSubscriptions = {
+    listenChanges: gql `subscription UpdateLanding($id: Int!, $interval: Int){
+    data: updateLanding(id: $id, interval: $interval) {
+      ...LandingFragment
+    }
+  }
+  ${LandingFragments.landing}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${VesselSnapshotFragments.vesselSnapshot}
+  ${DataFragments.sample}
+  ${TripFragments.embeddedLandedTrip}
+  ${ReferentialFragments.metier}
+  ${DataFragments.fishingArea}
+  `
+};
+const sortByDateOrIdFn = (n1, n2) => n1.dateTime.isSame(n2.dateTime)
+    ? (n1.id === n2.id ? 0 : Math.abs(n1.id) > Math.abs(n2.id) ? 1 : -1)
+    : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
+const sortByAscRankOrder = (n1, n2) => n1.rankOrder === n2.rankOrder
+    ? 0 :
+    (n1.rankOrder > n2.rankOrder ? 1 : -1);
+const sortByDescRankOrder = (n1, n2) => n1.rankOrder === n2.rankOrder ? 0 :
+    (n1.rankOrder > n2.rankOrder ? -1 : 1);
+let LandingService = class LandingService extends RootDataSynchroService {
+    constructor(injector, network, entities, programRefService, strategyRefService, tripService, validatorService, progressBarService, formErrorTranslator, settings) {
+        super(injector, Landing, LandingFilter, {
+            queries: LandingQueries,
+            mutations: LandingMutations,
+            subscriptions: LandingSubscriptions
+        });
+        this.network = network;
+        this.entities = entities;
+        this.programRefService = programRefService;
+        this.strategyRefService = strategyRefService;
+        this.tripService = tripService;
+        this.validatorService = validatorService;
+        this.progressBarService = progressBarService;
+        this.formErrorTranslator = formErrorTranslator;
+        this.settings = settings;
+        this.loading = false;
+        // /!\ should be same as observed location service
+        this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
+        this._logPrefix = '[landing-service] ';
+    }
+    hasSampleWithTagId(landingIds) {
+        // TODO
+        console.warn('TODO: implement LandingService.hasSampleWithTagId()');
+        return Promise.resolve(false);
+    }
+    loadAllByObservedLocation(filter, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return firstValueFrom(this.watchAllByObservedLocation(filter, opts));
+        });
+    }
+    watchAllByObservedLocation(filter, opts) {
+        return this.watchAll(0, -1, null, null, filter, opts);
+    }
+    watchAll(offset, size, sortBy, sortDirection, dataFilter, opts) {
+        dataFilter = this.asFilter(dataFilter);
+        //if (!dataFilter || dataFilter.isEmpty()) {
+        //console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
+        //return EMPTY;
+        //}
+        // Load offline
+        const offline = this.network.offline
+            || (dataFilter && ((dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC')
+                || EntityUtils.isLocalId(dataFilter.observedLocationId)
+                || EntityUtils.isLocalId(dataFilter.tripId))) || false;
+        if (offline) {
+            return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+        }
+        // Fix sortBy (id -> rankOrder)
+        let afterSortBy = sortBy;
+        sortBy = (sortBy !== 'id' && sortBy) || 'dateTime';
+        if (sortBy === 'vessel') {
+            sortBy = 'vesselSnapshot.' + this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES)[0];
+            // If fetching all rows: do NOT sort on pod
+            if (size === -1) {
+                afterSortBy = sortBy;
+                sortBy = 'dateTime';
+            }
+            else {
+                console.warn(this._logPrefix + `Pod sorting on '${sortBy}' can be long... Please make sure you need a page size=${size}, instead of all rows (that allow to sort in App side)`);
+            }
+        }
+        const groupByVessel = (dataFilter === null || dataFilter === void 0 ? void 0 : dataFilter.groupByVessel) === true;
+        if (groupByVessel || size === -1) {
+            // sortBy = 'dateTime';
+            // sortDirection = 'desc';
+            size = 1000;
+        }
+        const variables = {
+            offset: offset || 0,
+            size: size || 20,
+            sortBy,
+            sortDirection: sortDirection || 'asc',
+            filter: dataFilter && dataFilter.asPodObject()
+        };
+        let now = this._debug && Date.now();
+        if (this._debug)
+            console.debug('[landing-service] Watching landings... using variables:', variables);
+        const fullLoad = (opts && opts.fullLoad === true); // false by default
+        const withTotal = (!opts || opts.withTotal !== false);
+        const query = fullLoad ? LandingQueries.loadAllFullWithTotal :
+            (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
+        return this.mutableWatchQuery({
+            queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+            query,
+            arrayFieldName: 'data',
+            totalFieldName: withTotal ? 'total' : undefined,
+            insertFilterFn: dataFilter === null || dataFilter === void 0 ? void 0 : dataFilter.asFilterFn(),
+            variables,
+            error: { code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
+            fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+        })
+            .pipe(
+        // Skip update during load()
+        filter(() => !this.loading), map(({ data, total }) => {
+            let entities = (!opts || opts.toEntity !== false)
+                ? (data || []).map(Landing.fromObject)
+                : (data || []);
+            if (this._debug) {
+                if (now) {
+                    console.debug(`[landing-service] Loaded {${entities.length || 0}} landings in ${Date.now() - now}ms`, entities);
+                    now = undefined;
+                }
+            }
+            // Group by vessel (keep last landing)
+            if (isNotEmptyArray(entities) && groupByVessel) {
+                const landingByVesselMap = new Map();
+                entities.forEach(landing => {
+                    const existingLanding = landingByVesselMap.get(landing.vesselSnapshot.id);
+                    if (!existingLanding || fromDateISOString(existingLanding.dateTime).isBefore(landing.dateTime)) {
+                        landingByVesselMap.set(landing.vesselSnapshot.id, landing);
+                    }
+                });
+                entities = Array.from(landingByVesselMap.values());
+                total = entities.length;
+            }
+            // Compute rankOrder, by tripId or observedLocationId
+            if (!opts || opts.computeRankOrder !== false) {
+                this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter);
+            }
+            return { data: entities, total };
+        }));
+    }
+    loadAll(offset, size, sortBy, sortDirection, filter, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
+            if (offlineData) {
+                return yield this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+            }
+            return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, filter, opts));
+        });
+    }
+    loadAllLocally(offset, size, sortBy, sortDirection, filter, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            filter = this.asFilter(filter);
+            const variables = {
+                offset: offset || 0,
+                size: size >= 0 ? size : 1000,
+                sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
+                sortDirection: sortDirection || 'asc',
+                filter: filter.asFilterFn()
+            };
+            const res = yield this.entities.loadAll('LandingVO', variables, { fullLoad: opts && opts.fullLoad });
+            const entities = (!opts || opts.toEntity !== false) ?
+                (res.data || []).map(json => this.fromObject(json)) :
+                (res.data || []);
+            return { data: entities, total: res.total };
+        });
+    }
+    load(id, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (isNil(id))
+                throw new Error('Missing argument \'id\'');
+            const now = Date.now();
+            if (this._debug)
+                console.debug(`[landing-service] Loading landing {${id}}...`);
+            this.loading = true;
+            try {
+                let data;
+                // If local entity
+                if (id < 0) {
+                    data = yield this.entities.load(id, Landing.TYPENAME);
+                }
+                else {
+                    // Load remotely
+                    const res = yield this.graphql.query({
+                        query: this.queries.load,
+                        variables: { id },
+                        error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+                        fetchPolicy: options && options.fetchPolicy || undefined
+                    });
+                    data = res && res.data;
+                }
+                // Transform to entity
+                const entity = data && Landing.fromObject(data);
+                if (entity && this._debug)
+                    console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, entity);
+                entity.trip = Trip.fromObject(data.trip);
+                return entity;
+            }
+            finally {
+                this.loading = false;
+            }
+        });
+    }
+    saveAll(entities, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!entities)
+                return entities;
+            const localEntities = entities.filter(entity => entity
+                && ((entity.id < 0)
+                    || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC')
+                    || ((opts === null || opts === void 0 ? void 0 : opts.observedLocationId) && opts.observedLocationId < 0)));
+            if (isNotEmptyArray(localEntities)) {
+                return this.saveAllLocally(localEntities, opts);
+            }
+            const json = entities
+                .map(entity => {
+                // Fill default properties (as recorder department and person)
+                this.fillDefaultProperties(entity, opts);
+                // Reset quality properties
+                this.resetQualityProperties(entity);
+                return this.asObject(entity, MINIFY_ENTITY_FOR_POD);
+            });
+            const now = Date.now();
+            if (this._debug)
+                console.debug('[landing-service] Saving landings...', json);
+            yield this.graphql.mutate({
+                mutation: this.mutations.saveAll,
+                variables: {
+                    data: json
+                },
+                error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
+                update: (proxy, { data }) => {
+                    if (this._debug)
+                        console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`);
+                    // For each result, copy ID+updateDate to source entity
+                    // Then filter to keep only new landings (need to cache update)
+                    const newSavedLandings = (data.data && entities || [])
+                        .map(entity => {
+                        const savedEntity = data.data.find(obj => entity.equals(obj));
+                        const isNew = isNil(entity.id);
+                        this.copyIdAndUpdateDate(savedEntity, entity);
+                        return isNew ? savedEntity : null;
+                    }).filter(isNotNil);
+                    // Add to cache
+                    if (isNotEmptyArray(newSavedLandings)) {
+                        this.insertIntoMutableCachedQueries(proxy, {
+                            queries: this.getLoadQueries(),
+                            data: newSavedLandings
+                        });
+                    }
+                }
+            });
+            return entities;
+        });
+    }
+    saveAllLocally(entities, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!entities)
+                return entities;
+            if (this._debug)
+                console.debug(`[landing-service] Saving ${entities.length} landings locally...`);
+            const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, Object.assign({}, opts)));
+            return chainPromises(jobsFactories);
+        });
+    }
+    save(entity, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isNew = isNil(entity.id);
+            // If parent is a local entity: force to save locally
+            // If is a local entity: force a local save
+            const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
+            if (offline) {
+                return yield this.saveLocally(entity, opts);
+            }
+            const now = Date.now();
+            if (this._debug)
+                console.debug('[landing-service] Saving a landing...', entity);
+            // Prepare to save
+            this.fillDefaultProperties(entity, opts);
+            // Reset quality properties
+            this.resetQualityProperties(entity);
+            // When offline, provide an optimistic response
+            const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
+                (context) => __awaiter(this, void 0, void 0, function* () {
+                    // Make sure to fill id, with local ids
+                    yield this.fillOfflineDefaultProperties(entity);
+                    // For the query to be tracked (see tracked query link) with a unique serialization key
+                    context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
+                    if (isNotNil(entity.id))
+                        context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
+                    return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+                }) : undefined;
+            // Transform into json
+            const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
+            //if (this._debug)
+            console.debug('[landing-service] Saving landing (minified):', json);
+            yield this.graphql.mutate({
+                mutation: this.mutations.save,
+                variables: {
+                    data: json
+                },
+                offlineResponse,
+                error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
+                update: (proxy, { data }) => __awaiter(this, void 0, void 0, function* () {
+                    const savedEntity = data && data.data;
+                    // Local entity: save it
+                    if (savedEntity.id < 0) {
+                        if (this._debug)
+                            console.debug('[landing-service] [offline] Saving landing locally...', savedEntity);
+                        // Save response locally
+                        yield this.entities.save(savedEntity);
+                    }
+                    // Update the entity and update GraphQL cache
+                    else {
+                        // Remove existing entity from the local storage
+                        if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+                            if (this._debug)
+                                console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
+                            yield this.entities.delete(entity);
+                        }
+                        this.copyIdAndUpdateDate(savedEntity, entity);
+                        if (this._debug)
+                            console.debug(`[landing-service] Landing saved remotely in ${Date.now() - now}ms`, entity);
+                        // Add to cache
+                        if (isNew) {
+                            // Cache load by parent
+                            this.insertIntoMutableCachedQueries(proxy, {
+                                queries: this.getLoadQueries(),
+                                data: savedEntity
+                            });
+                        }
+                    }
+                })
+            });
+            return entity;
+        });
+    }
+    /**
+     * Delete landing locally (from the entity storage)
+     *
+     * @param filter (required observedLocationId)
+     */
+    deleteLocally(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!filter || isNil(filter.observedLocationId))
+                throw new Error('Missing arguments \'filter.observedLocationId\'');
+            const dataFilter = this.asFilter(filter);
+            const variables = {
+                filter: dataFilter && dataFilter.asFilterFn()
+            };
+            try {
+                // Find landing to delete
+                const res = yield this.entities.loadAll(Landing.TYPENAME, variables, { fullLoad: false });
+                const ids = (res && res.data || []).map(o => o.id);
+                if (isEmptyArray(ids))
+                    return undefined; // Skip
+                // Apply deletion
+                return yield this.entities.deleteMany(ids, { entityName: Landing.TYPENAME });
+            }
+            catch (err) {
+                console.error(`[landing-service] Failed to delete landings ${JSON.stringify(filter)}`, err);
+                throw err;
+            }
+        });
+    }
+    /**
+     * Load many local landings
+     */
+    watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts) {
+        dataFilter = LandingFilter.fromObject(dataFilter);
+        if (!dataFilter || dataFilter.isEmpty()) {
+            console.warn('[landing-service] Trying to watch landings without \'filter\': skipping.');
+            return EMPTY;
+        }
+        if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0)
+            throw new Error('Invalid \'filter.observedLocationId\': must be a local ID (id<0)!');
+        if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0)
+            throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');
+        const variables = {
+            offset: offset || 0,
+            size: size >= 0 ? size : 20,
+            sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'dateTime'),
+            sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+            trash: opts && opts.trash || false,
+            filter: dataFilter.asFilterFn()
+        };
+        const entityName = (!dataFilter.synchronizationStatus || dataFilter.synchronizationStatus !== 'SYNC')
+            ? Landing.TYPENAME // Local entities
+            : EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME; // Remote entities
+        if (this._debug)
+            console.debug(`[landing-service] Loading ${entityName} locally... using options:`, variables);
+        return this.entities.watchAll(entityName, variables, { fullLoad: opts === null || opts === void 0 ? void 0 : opts.fullLoad })
+            .pipe(map(({ data, total }) => {
+            const entities = (!opts || opts.toEntity !== false)
+                ? (data || []).map(Landing.fromObject)
+                : (data || []);
+            total = total || entities.length;
+            // Compute rankOrder, by tripId or observedLocationId
+            if (!opts || opts.computeRankOrder !== false) {
+                this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+            }
+            return {
+                data: entities,
+                total
+            };
+        }));
+    }
+    deleteAll(entities, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Get local entity ids, then delete id
+            const localIds = entities === null || entities === void 0 ? void 0 : entities.filter(EntityUtils.isLocal).map(t => t.id);
+            if (isNotEmptyArray(localIds)) {
+                if (this._debug)
+                    console.debug('[landing-service] Deleting landings locally... ids:', localIds);
+                yield this.entities.deleteMany(localIds, { entityName: Landing.TYPENAME });
+            }
+            const ids = entities.filter(EntityUtils.isRemote).map(t => t.id);
+            if (isEmptyArray(ids))
+                return; // stop, if nothing else to do
+            const now = Date.now();
+            if (this._debug)
+                console.debug('[landing-service] Deleting landings... ids:', ids);
+            yield this.graphql.mutate({
+                mutation: this.mutations.deleteAll,
+                variables: {
+                    ids
+                },
+                update: (proxy) => {
+                    // Remove from cache
+                    this.removeFromMutableCachedQueriesByIds(proxy, { queries: this.getLoadQueries(), ids });
+                    if (this._debug)
+                        console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
+                }
+            });
+        });
+    }
+    listenChanges(id, opts) {
+        if (isNil(id))
+            throw new Error('Missing argument \'id\'');
+        // Should not need to watch local entity
+        if (EntityUtils.isLocalId(id)) {
+            return EMPTY;
+        }
+        if (this._debug)
+            console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
+        return this.graphql.subscribe({
+            query: this.subscriptions.listenChanges,
+            fetchPolicy: opts && opts.fetchPolicy || undefined,
+            variables: { id, interval: toNumber(opts && opts.interval, 10) },
+            error: {
+                code: DataErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+                message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
+            }
+        })
+            .pipe(map(({ data }) => {
+            const entity = data && Landing.fromObject(data);
+            if (entity && this._debug)
+                console.debug(`[landing-service] Landing {${id}} updated on server!`, entity);
+            return entity;
+        }));
+    }
+    translateControlPath(path, opts) {
+        opts = Object.assign({ i18nPrefix: 'LANDING.EDIT.' }, opts);
+        // Translate PMFM field
+        if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+            const pmfmId = parseInt(path.split('.').pop());
+            const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+            return PmfmUtils.getPmfmName(pmfm);
+        }
+        // Default translation
+        return this.formErrorTranslator.translateControlPath(path, opts);
+    }
+    synchronizeById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const entity = yield this.load(id);
+            if (!entity || entity.id >= 0)
+                return; // skip
+            return yield this.synchronize(entity);
+        });
+    }
+    synchronize(entity, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            opts = Object.assign({ enableOptimisticResponse: false }, opts);
+            const localId = entity === null || entity === void 0 ? void 0 : entity.id;
+            if (isNil(localId) || localId >= 0)
+                throw new Error('Entity must be a local entity');
+            if (this.network.offline)
+                throw new Error('Could not synchronize if network if offline');
+            // Clone (to keep original entity unchanged)
+            entity = entity instanceof Entity ? entity.clone() : entity;
+            entity.synchronizationStatus = 'SYNC';
+            entity.id = undefined;
+            // Synchronize trip
+            if (EntityUtils.isLocalId(entity.tripId)) {
+                // Load the local trip
+                const trip = yield this.tripService.load(entity.tripId, { fullLoad: true, rankOrderOnPeriod: false });
+                // Link to parent observed location
+                trip.observedLocationId = entity.observedLocationId;
+                // Copy vessel from landing (Could be different if Vessel has been synchronized previously, without updating the trip).
+                trip.vesselSnapshot = entity.vesselSnapshot;
+                // Synchronize the trip
+                const savedTrip = yield this.tripService.synchronize(trip, { withLanding: false, withOperation: false, withOperationGroup: true });
+                entity.tripId = savedTrip.id;
+            }
+            entity.trip = undefined;
+            try {
+                entity = yield this.save(entity, opts);
+                // Check return entity has a valid id
+                if (isNil(entity.id) || entity.id < 0) {
+                    throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
+                }
+            }
+            catch (err) {
+                throw Object.assign(Object.assign({}, err), { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR, message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR', context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE) });
+            }
+            try {
+                if (this._debug)
+                    console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
+                yield this.entities.deleteById(localId, { entityName: ObservedLocation.TYPENAME });
+            }
+            catch (err) {
+                console.error(`[landing-service] Failed to locally delete landing {${entity.id}}`, err);
+                // Continue
+            }
+            return entity;
+        });
+    }
+    control(entity, opts) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = this._debug && Date.now();
+            const maxProgression = toNumber(opts === null || opts === void 0 ? void 0 : opts.maxProgression, 100);
+            opts = Object.assign(Object.assign({}, opts), { maxProgression });
+            opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
+            const progressionStep = maxProgression / 3;
+            if (this._debug)
+                console.debug(`[landing-service] Control {${entity.id}} ...`);
+            opts = yield this.fillControlOptions(entity, opts);
+            const form = this.validatorService.getFormGroup(entity, Object.assign(Object.assign({}, opts), { withMeasurements: true }));
+            if (!form.valid) {
+                // Wait end of validation (e.g. async validators)
+                yield AppFormUtils.waitWhilePending(form);
+                // Get form errors
+                if (form.invalid) {
+                    const errors = AppFormUtils.getFormErrors(form);
+                    if (this._debug)
+                        console.debug(`[landing-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+                    return errors;
+                }
+            }
+            if (this._debug)
+                console.debug(`[landing-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
+            if (opts === null || opts === void 0 ? void 0 : opts.progression)
+                opts.progression.increment(progressionStep);
+            // Also control trip
+            if (isNotNil(entity.tripId)) {
+                const trip = yield this.tripService.load(entity.tripId, { isLandedTrip: true });
+                // Should never occur
+                if (isNil(trip))
+                    return undefined;
+                // control the trip
+                const errors = yield this.tripService.control(trip, {
+                    progression: opts === null || opts === void 0 ? void 0 : opts.progression,
+                    maxProgression: (opts === null || opts === void 0 ? void 0 : opts.maxProgression) - progressionStep,
+                });
+                if (errors) {
+                    return {
+                        trip: (_a = errors === null || errors === void 0 ? void 0 : errors.details) === null || _a === void 0 ? void 0 : _a.errors
+                    };
+                }
+                // terminate the trip
+                if (isNil(trip.controlDate))
+                    yield this.tripService.terminate(trip);
+            }
+            else if (opts === null || opts === void 0 ? void 0 : opts.progression)
+                opts.progression.increment(progressionStep);
+            return undefined; // No error
+        });
+    }
+    controlAllByObservedLocation(observedLocation, opts) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const maxProgression = toNumber(opts === null || opts === void 0 ? void 0 : opts.maxProgression, 100);
+            opts = Object.assign(Object.assign({}, opts), { maxProgression });
+            opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
+            const endProgression = opts.progression.current + maxProgression;
+            // Increment
+            this.progressBarService.increase();
+            try {
+                const { data } = yield this.loadAllByObservedLocation(LandingFilter.fromObject({
+                    observedLocationId: observedLocation.id,
+                }));
+                if (isEmptyArray(data))
+                    return undefined;
+                const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
+                let errorsById = null;
+                for (const entity of data) {
+                    opts = yield this.fillControlOptions(entity, opts);
+                    const errors = yield this.control(entity, Object.assign(Object.assign({}, opts), { maxProgression: progressionStep }));
+                    if (errors) {
+                        errorsById = errorsById || {};
+                        errorsById[entity.id] = errors;
+                        const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+                        entity.controlDate = null;
+                        entity.qualificationComments = errorMessage;
+                        if ((_a = opts.progression) === null || _a === void 0 ? void 0 : _a.cancelled)
+                            return; // Cancel
+                        // Save entity
+                        yield this.save(entity);
+                    }
+                    else {
+                        if ((_b = opts.progression) === null || _b === void 0 ? void 0 : _b.cancelled)
+                            return; // Cancel
+                        // Need to exclude data that already validated (else got exception when pod control already validated data)
+                        if (isNil(entity.validationDate))
+                            yield this.terminate(entity);
+                    }
+                    // increment, after save/terminate
+                    opts.progression.increment(progressionStep);
+                }
+                return errorsById;
+            }
+            catch (err) {
+                console.error(err && err.message || err);
+                throw err;
+            }
+            finally {
+                this.progressBarService.decrease();
+                if (opts.progression.current < endProgression) {
+                    opts.progression.current = endProgression;
+                }
+            }
+        });
+    }
+    executeImport(filter, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = this._debug && Date.now();
+            const maxProgression = opts && opts.maxProgression || 100;
+            filter = Object.assign({ startDate: DateUtils.moment().startOf('day').add(-15, 'day') }, filter);
+            console.info('[landing-service] Importing remote landings...', filter);
+            const { data } = yield JobUtils.fetchAllPages((offset, size) => this.loadAll(offset, size, 'id', null, filter, {
+                fetchPolicy: 'no-cache',
+                fullLoad: false,
+                toEntity: false
+            }), {
+                progression: opts === null || opts === void 0 ? void 0 : opts.progression,
+                maxProgression: maxProgression * 0.9,
+                logPrefix: this._logPrefix,
+                fetchSize: 5
+            });
+            // Save locally
+            yield this.entities.saveAll(data || [], {
+                entityName: EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME,
+                reset: true
+            });
+            if (this._debug)
+                console.debug(`[landing-service] Importing remote landings [OK] in ${Date.now() - now}ms`, data);
+        });
+    }
+    copyIdAndUpdateDate(source, target) {
+        if (!source)
+            return;
+        // DEBUG
+        //console.debug('[landing-service] copyIdAndUpdateDate', source, target);
+        super.copyIdAndUpdateDate(source, target);
+        // Update samples (recursively)
+        if (target.samples && source.samples) {
+            this.copyIdAndUpdateDateOnSamples(source, source.samples, target.samples);
+        }
+        // Update trip
+        if (target.trip && source.trip) {
+            // DEBUG
+            //console.debug('[landing-service] copyIdAndUpdateDate -> trip', source.trip, target.trip);
+            this.copyIdAndUpdateDateOnTrip(target, source.trip, target.trip);
+        }
+    }
+    /**
+     * Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
+     *
+     * @param entity
+     */
+    fixLandingTripDate(entity) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!entity)
+                throw new Error('Invalid landing');
+            const observedLocationId = entity.observedLocationId;
+            const vesselId = (_a = entity.vesselSnapshot) === null || _a === void 0 ? void 0 : _a.id;
+            const program = entity.program;
+            const trip = entity.trip;
+            const tripId = toNumber(trip === null || trip === void 0 ? void 0 : trip.id, entity.tripId);
+            const departureDateTime = fromDateISOString(trip.departureDateTime || entity.dateTime);
+            // Skip if no trip or no observed location
+            // or if trip already saved remotely
+            if (!trip || isNil(observedLocationId) || EntityUtils.isRemoteId(tripId))
+                return;
+            if (isNil(vesselId) || !program || isNil(departureDateTime)) {
+                throw new Error('Invalid landing: missing vessel, program or dateTime');
+            }
+            const offline = this.network.offline
+                || EntityUtils.isLocalId(entity.id)
+                || EntityUtils.isLocalId(observedLocationId)
+                || EntityUtils.isLocalId(tripId)
+                || false;
+            let otherDepartureDateTimes;
+            if (offline) {
+                const { data: landings } = (yield this.loadAllByObservedLocation({ observedLocationId, vesselId, program }, { computeRankOrder: false, fetchPolicy: 'no-cache', toEntity: false, withTotal: false }));
+                // Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
+                otherDepartureDateTimes = (landings || [])
+                    .filter(l => l.id !== entity.id && l.trip && l.trip.id !== entity.trip.id)
+                    .map(l => l.trip.departureDateTime)
+                    .map(fromDateISOString);
+            }
+            else {
+                const tripFilter = TripFilter.fromObject({
+                    program,
+                    observedLocationId,
+                    vesselId,
+                    excludedIds: isNotNil(tripId) ? [tripId] : undefined
+                });
+                const { data: trips } = yield this.tripService.loadAll(0, 999, 'id', 'asc', tripFilter, {
+                    query: LandingQueries.loadNearbyTripDates,
+                    // CLT - We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
+                    // They doesn't wait server result to return client side result.
+                    fetchPolicy: 'no-cache',
+                    withTotal: false
+                });
+                otherDepartureDateTimes = (trips || [])
+                    .filter(t => t.id !== entity.trip.id)
+                    .map(t => t.departureDateTime)
+                    .map(fromDateISOString);
+            }
+            const hasDuplicate = otherDepartureDateTimes.some(d => DateUtils.isSame(d, departureDateTime));
+            if (hasDuplicate) {
+                // Compute max(existing date)
+                const maxDatetime = otherDepartureDateTimes.reduce(DateUtils.max, null);
+                // Apply 1s to the max(existing date)
+                trip.departureDateTime = maxDatetime.add(1, 'seconds');
+                console.info('[landing-service] Trip\'s departureDateTime has been changed, to avoid integrity constraint error. New date is: ' + toDateISOString(trip.departureDateTime));
+            }
+        });
+    }
+    /* -- protected methods -- */
+    /**
+     * List of importation jobs.
+     *
+     * @protected
+     * @param opts
+     */
+    getImportJobs(filter, opts) {
+        var _a, _b;
+        const offlineFilter = (_a = this.settings.getOfflineFeature(this.featureName)) === null || _a === void 0 ? void 0 : _a.filter;
+        if (!filter) {
+            const observedLocationFilter = ObservedLocationFilter.fromObject(offlineFilter);
+            filter = ObservedLocationFilter.toLandingFilter(observedLocationFilter);
+        }
+        filter = this.asFilter(filter);
+        const programLabel = (_b = filter === null || filter === void 0 ? void 0 : filter.program) === null || _b === void 0 ? void 0 : _b.label;
+        if (programLabel) {
+            return [
+                // Store program to opts, for other services (e.g. used by OperationService)
+                JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' })
+                    .then(program => {
+                    opts.program = program;
+                    opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+                })),
+                ...super.getImportJobs(filter, opts),
+                // Landing (historical data)
+                JobUtils.defer(o => this.executeImport(filter, o), opts)
+            ];
+        }
+        else {
+            return super.getImportJobs(null, opts);
+        }
+    }
+    /**
+     * Save into the local storage
+     *
+     * @param entity
+     * @param opts
+     */
+    saveLocally(entity, opts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (EntityUtils.isRemoteId(entity.observedLocationId))
+                throw new Error('Must be linked to a local observed location');
+            // Fill default properties (as recorder department and person)
+            this.fillDefaultProperties(entity, opts);
+            // Make sure to fill id, with local ids
+            yield this.fillOfflineDefaultProperties(entity);
+            const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
+            if (this._debug)
+                console.debug('[landing-service] [offline] Saving landing locally...', json);
+            // Save response locally
+            yield this.entities.save(json);
+            return entity;
+        });
+    }
+    asObject(source, opts) {
+        opts = Object.assign(Object.assign({}, MINIFY_OPTIONS), opts);
+        const target = source.asObject(opts);
+        if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
+            // Clean vessel features object, before saving
+            //copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+            // Comment because need to keep recorder person
+            target.recorderPerson = source.recorderPerson && {
+                id: source.recorderPerson.id,
+                firstName: source.recorderPerson.firstName,
+                lastName: source.recorderPerson.lastName
+            };
+            // Keep id only, on recorder department
+            target.recorderDepartment = source.recorderDepartment && { id: source.recorderDepartment && source.recorderDepartment.id } || undefined;
+            // Fill trip properties
+            const targetTrip = target.trip;
+            if (targetTrip) {
+                // Fill defaults
+                targetTrip.departureDateTime = targetTrip.departureDateTime || target.dateTime;
+                targetTrip.returnDateTime = targetTrip.returnDateTime || targetTrip.departureDateTime || target.dateTime;
+                targetTrip.departureLocation = targetTrip.departureLocation || target.location;
+                targetTrip.returnLocation = targetTrip.returnLocation || targetTrip.departureLocation || target.location;
+                // Always override recorder department/person
+                targetTrip.program = target.program;
+                targetTrip.vesselSnapshot = target.vesselSnapshot;
+                targetTrip.recorderDepartment = target.recorderDepartment;
+                targetTrip.recorderPerson = target.recorderPerson;
+            }
+        }
+        return target;
+    }
+    fillDefaultProperties(entity, opts) {
+        super.fillDefaultProperties(entity);
+        // Fill parent id, if not already set
+        if (!entity.tripId && !entity.observedLocationId && opts) {
+            entity.observedLocationId = opts.observedLocationId;
+            entity.tripId = opts.tripId;
+        }
+        // Make sure to set all samples attributes
+        (entity.samples || []).forEach(s => {
+            // Always fill label
+            if (isNilOrBlank(s.label)) {
+                s.label = `#${s.rankOrder}`;
+            }
+        });
+        // Measurement: compute rankOrder
+        // fillRankOrder(entity.measurements); // todo ? use measurements instead of measurementValues
+    }
+    fillOfflineDefaultProperties(entity) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isNew = isNil(entity.id);
+            // If new, generate a local id
+            if (isNew) {
+                entity.id = yield this.entities.nextValue(entity);
+            }
+            // Fill default synchronization status
+            entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
+            // Fill all sample ids
+            const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
+            yield EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
+        });
+    }
+    fillControlOptions(entity, opts) {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            opts = opts || { strategy: null };
+            // If program is not filled by a parent (an ObservedLocation)
+            const programLabel = entity.program && entity.program.label || null;
+            if (((_a = opts.program) === null || _a === void 0 ? void 0 : _a.label) !== programLabel) {
+                opts.program = yield this.programRefService.loadByLabel(programLabel);
+            }
+            // Load the strategy from measurementValues (if exists)
+            if (!opts.strategy) {
+                const strategyLabel = (_b = entity.measurementValues) === null || _b === void 0 ? void 0 : _b[PmfmIds.STRATEGY_LABEL];
+                opts.strategy = isNotNilOrBlank(strategyLabel)
+                    && (yield this.strategyRefService.loadByLabel(strategyLabel, { programId: (_c = opts.program) === null || _c === void 0 ? void 0 : _c.id }))
+                    || null;
+                if (opts.strategy) {
+                    // TODO check this
+                    //opts.withStrategy = true;
+                }
+                else {
+                    opts.withStrategy = false;
+                    console.debug(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
+                }
+            }
+            if (!(opts === null || opts === void 0 ? void 0 : opts.translatorOptions)) {
+                opts.translatorOptions = {
+                    controlPathTranslator: {
+                        translateControlPath: (path) => { var _a; return this.translateControlPath(path, { pmfms: (_a = opts.strategy) === null || _a === void 0 ? void 0 : _a.denormalizedPmfms }); }
+                    }
+                };
+            }
+            return opts;
+        });
+    }
+    /**
+     * Copy Id and update, in sample tree (recursively)
+     *
+     * @param sources
+     * @param targets
+     */
+    copyIdAndUpdateDateOnSamples(savedLanding, sources, targets) {
+        var _a;
+        // Update samples
+        if (sources && targets) {
+            const operationId = (_a = savedLanding.samples[0]) === null || _a === void 0 ? void 0 : _a.operationId;
+            targets.forEach(target => {
+                // Set the landing id (required by equals function) => Obsolete : there is no more direct link between sample and landing
+                target.landingId = savedLanding.id;
+                // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing (see issue #IMAGINE-569)
+                // Set the operation id (required by equals function)
+                target.operationId = operationId;
+                const source = sources.find(s => target.equals(s));
+                EntityUtils.copyIdAndUpdateDate(source, target);
+                RootDataEntityUtils.copyControlAndValidationDate(source, target);
+                // Copy parent Id (need for link to parent)
+                target.parentId = source === null || source === void 0 ? void 0 : source.parentId;
+                target.parent = null;
+                // Apply to children
+                if (target.children && target.children.length) {
+                    this.copyIdAndUpdateDateOnSamples(savedLanding, sources, target.children); // recursive call
+                }
+                // Update images
+                if (target.images && source.images) {
+                    this.copyIdAndUpdateDateOnImages(source, source.images, target.images); // recursive call
+                }
+            });
+        }
+    }
+    /**
+     * Copy Id and update, on images
+     *
+     * @param sources
+     * @param targets
+     */
+    copyIdAndUpdateDateOnImages(savedSample, sources, targets) {
+        if (sources && targets && sources.length === targets.length && sources.length > 0) {
+            sources.forEach((source, index) => {
+                // Find by index, as order should not be changed during saving
+                const target = targets[index];
+                EntityUtils.copyIdAndUpdateDate(source, target);
+                DataEntityUtils.copyControlDate(source, target);
+                DataEntityUtils.copyQualificationDateAndFlag(source, target);
+            });
+        }
+    }
+    copyIdAndUpdateDateOnTrip(savedLanding, source, target) {
+        this.tripService.copyIdAndUpdateDate(source, target);
+        savedLanding.tripId = target.id;
+    }
+    computeRankOrderAndSort(data, offset, total, sortBy, sortDirection, filter) {
+        // DEBUG
+        console.debug('[landing-service] DEV - filtering landings - sortBy=' + sortBy);
+        // Compute rankOrder, by tripId or observedLocationId
+        if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
+            const asc = (!sortDirection || sortDirection === 'asc');
+            let rankOrder = asc ? 1 + offset : (total - offset - data.length + 1);
+            // apply a sorted copy (do NOT change original order), then compute rankOrder
+            data.slice().sort(sortByDateOrIdFn)
+                .forEach(o => o.rankOrder = rankOrder++);
+            // Sort by rankOrder (even if 'id' because never used)
+            if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id' || sortBy === 'dateTime') {
+                data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
+            }
+        }
+    }
+};
+LandingService = __decorate([
+    Injectable({ providedIn: 'root' }),
+    __metadata("design:paramtypes", [Injector,
+        NetworkService,
+        EntitiesStorage,
+        ProgramRefService,
+        StrategyRefService,
+        TripService,
+        LandingValidatorService,
+        ProgressBarService,
+        FormErrorTranslator,
+        LocalSettingsService])
+], LandingService);
+export { LandingService };
+//# sourceMappingURL=landing.service.js.map
