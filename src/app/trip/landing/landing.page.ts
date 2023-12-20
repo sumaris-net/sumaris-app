@@ -693,7 +693,10 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.samplesTable.value = data.samples || [];
 
     // Set batches to table
-    this.batchTree.value = new Batch();
+    // FIXME: hard code value. Add batch to landing ?
+    this.batchTree.value = Batch.fromObject({
+      label: 'CATCH_BATCH', rankOrder: 1
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
