@@ -1443,6 +1443,7 @@
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OTHER_FEATURES": "Autres caractéristiques :",
       "TAB_SAMPLES": "Echantillons",
+      "TAB_BATCHES": "Lots",
       "SAMPLING": {
         "TITLE": "<span class=\"hidden-xs hidden-sm\">Ligne de plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
         "STRATEGY": "Ligne de plan :",

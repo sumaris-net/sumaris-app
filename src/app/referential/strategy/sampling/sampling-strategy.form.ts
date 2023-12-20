@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from "@angular/core";
+import {
+  AsyncValidatorFn,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from "@angular/forms";
 import {
   AppForm,
   AppFormUtils,
@@ -28,13 +36,19 @@ import {
   suggestFromArray,
   toBoolean,
   toNumber
-} from '@sumaris-net/ngx-components';
-import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
-import { Program } from '../../services/model/program.model';
-import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from '../../services/model/strategy.model';
-import { ReferentialRefService } from '../../services/referential-ref.service';
-import { StrategyService } from '../../services/strategy.service';
-import { StrategyValidatorService } from '../../services/validator/strategy.validator';
+} from "@sumaris-net/ngx-components";
+import { PmfmStrategy } from "../../services/model/pmfm-strategy.model";
+import { Program } from "../../services/model/program.model";
+import {
+  AppliedPeriod,
+  AppliedStrategy,
+  Strategy,
+  StrategyDepartment,
+  TaxonNameStrategy
+} from "../../services/model/strategy.model";
+import { ReferentialRefService } from "../../services/referential-ref.service";
+import { StrategyService } from "../../services/strategy.service";
+import { StrategyValidatorService } from "../../services/validator/strategy.validator";
 import {
   AcquisitionLevelCodes,
   autoCompleteFractions,
@@ -45,23 +59,23 @@ import {
   PmfmIds,
   ProgramPrivilegeIds,
   TaxonomicLevelIds
-} from '../../services/model/model.enum';
-import { ProgramProperties } from '../../services/config/program.config';
-import { BehaviorSubject, merge } from 'rxjs';
-import { PmfmService } from '../../services/pmfm.service';
-import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
-import { TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
-import { TaxonNameService } from '@app/referential/services/taxon-name.service';
-import { PmfmStrategyValidatorService } from '@app/referential/services/validator/pmfm-strategy.validator';
-import { Pmfm } from '@app/referential/services/model/pmfm.model';
-import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
-import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
-import { filter, map } from 'rxjs/operators';
-import { environment } from '@environments/environment';
-import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
-import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import moment from 'moment';
-import { Parameter } from '@app/referential/services/model/parameter.model';
+} from "../../services/model/model.enum";
+import { ProgramProperties } from "../../services/config/program.config";
+import { BehaviorSubject, merge } from "rxjs";
+import { PmfmService } from "../../services/pmfm.service";
+import { SamplingStrategy, StrategyEffort } from "@app/referential/services/model/sampling-strategy.model";
+import { TaxonNameRef, TaxonUtils } from "@app/referential/services/model/taxon-name.model";
+import { TaxonNameService } from "@app/referential/services/taxon-name.service";
+import { PmfmStrategyValidatorService } from "@app/referential/services/validator/pmfm-strategy.validator";
+import { Pmfm } from "@app/referential/services/model/pmfm.model";
+import { TaxonNameRefFilter } from "@app/referential/services/filter/taxon-name-ref.filter";
+import { TaxonNameFilter } from "@app/referential/services/filter/taxon-name.filter";
+import { filter, map } from "rxjs/operators";
+import { environment } from "@environments/environment";
+import { TaxonNameRefService } from "@app/referential/services/taxon-name-ref.service";
+import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
+import moment from "moment";
+import { Parameter } from "@app/referential/services/model/parameter.model";
 
 type FilterableFieldName =
   | 'analyticReference'
@@ -436,7 +450,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Department autocomplete
     this.registerAutocompleteField('department', {
       suggestFn: (value, filter) => this.suggestDepartments(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        ...filter,
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 8],
       mobile: this.mobile

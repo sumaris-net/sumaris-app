@@ -59,6 +59,8 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { Batch } from '@app/trip/batch/common/batch.model';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 
@@ -87,6 +89,13 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   extends AppRootDataEntityEditor<Landing, LandingService, number, ST>
   implements OnInit, AfterViewInit
 {
+
+  static TABS = {
+    GENERAL: 0,
+    SAMPLES: 1,
+    BATCHES: 2,
+  };
+
   protected parent: Trip | ObservedLocation;
   protected observedLocationService = inject(ObservedLocationService);
   protected tripService = inject(TripService);
@@ -94,13 +103,18 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
+  protected selectedSubTabIndex = 0;
 
   showParent = false;
   showEntityMetadata = false;
   showQualityForm = false;
-  showSamplesTable = false;
   enableReport = false;
   parentAcquisitionLevel: AcquisitionLevelType;
+
+  showBatchTablesByProgram = false;
+  showSampleTablesByProgram = false;
+  showSamplesTable = false;
+  showBatchesTable = false;
 
   @RxStateProperty() strategyLabel: string
 
@@ -110,11 +124,12 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
+  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
   @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
 
   constructor(injector: Injector, @Optional() options: LandingEditorOptions) {
     super(injector, Landing, injector.get(LandingService), {
-      tabCount: 2,
+      tabCount: 3,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.LANDING,
@@ -159,6 +174,10 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
         .pipe(debounceTime(500))
         .subscribe(() => (this.landingForm.canEditStrategy = this.samplesTable.empty))
     );
+
+    // Manage sub tab group
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
   }
 
   canUserWrite(data: Landing, opts?: any): boolean {
@@ -290,7 +309,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
+    this.addChildForms([this.landingForm, this.samplesTable, this.batchTree]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -529,6 +548,9 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
 
+    this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_BATCH_ENABLE);
+    this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_ENABLE);
+
     if (this.samplesTable) {
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
@@ -545,6 +567,12 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       if (!enableStrategy) {
         await this.setTablePmfms(this.samplesTable, program.label);
       }
+    }
+
+    if (this.batchTree) {
+      this.batchTree.requiredStrategy = enableStrategy;
+      this.batchTree.program = program;
+      //this.batchTree.markAsReady();
     }
 
     if (this.strategyCard) {
@@ -663,6 +691,9 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
+
+    // Set batches to table
+    this.batchTree.value = new Batch();
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

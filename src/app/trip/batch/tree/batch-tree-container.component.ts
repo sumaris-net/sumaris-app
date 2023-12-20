@@ -158,10 +158,10 @@ export class BatchTreeContainerComponent
   @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
   @Input() useSticky = true;
   @Input() mobile: boolean;
+  @Input() showToolbar = true;
   @Input() debug: boolean;
   @Input() filter: BatchFilter;
   @Input() style: 'tabs'|'menu' = 'menu';
-  @Input() showToolbar = true;
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
 

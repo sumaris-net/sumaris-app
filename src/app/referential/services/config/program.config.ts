@@ -794,6 +794,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  LANDING_BATCH_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.batch.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_BATCH_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  LANDING_SAMPLE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.sample.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   LANDING_SAMPLES_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.samplesCount.enable',
     label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE',

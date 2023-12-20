@@ -55,6 +55,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   program: Program;
   requiredStrategy: boolean;
   strategyId: number;
+  requiredGear: boolean;
   gearId: number;
   physicalGear: PhysicalGear;
   usageMode: UsageMode;
@@ -65,6 +66,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   allowSubBatches: boolean;
   availableTaxonGroups: TaxonGroupRef[];
   showAutoFillButton: boolean;
+  showToolbar?: boolean;
   mobile: boolean;
   modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
@@ -153,6 +155,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   @Input() rootAcquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
   @Input() mobile: boolean;
+  @Input() showToolbar: boolean;
   @Input() useSticky = false;
   @Input() usageMode: UsageMode;
   @Input() enableWeightLengthConversion: boolean;
@@ -338,6 +341,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   ngOnInit() {
     // Set defaults
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
     this.tabCount = this.mobile ? 1 : 2;
     this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
