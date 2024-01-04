@@ -807,6 +807,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     AcquisitionLevelCodes.TRIP = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_TRIP_LABEL);
     AcquisitionLevelCodes.PHYSICAL_GEAR = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL);
     AcquisitionLevelCodes.OPERATION = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_OPERATION_LABEL);
+    // TODO: override need for Adagio BDD
 
     // Location Levels
     LocationLevelIds.COUNTRY = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);

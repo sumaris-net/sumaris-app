@@ -15,11 +15,12 @@ import { AppEnvironment } from '@environments/environment.class';
 const pkg = require('../../package.json');
 
 export const environment = Object.freeze(<AppEnvironment>{
-  name: pkg.name as string,
-  version: pkg.version as string,
+  name: (pkg.name as string),
+  version: (pkg.version as string),
   production: false,
   baseUrl: '/',
   useHash: false,
+  connectionTimeout: 5000,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
