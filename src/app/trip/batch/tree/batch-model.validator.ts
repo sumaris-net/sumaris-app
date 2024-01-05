@@ -158,9 +158,11 @@ export class BatchModelValidatorService<
           batch.hidden = true;
 
           // Add 'discard' into the children name
-          batch.children?.forEach(child => {
-            child.name = [batch.name, child.name].join(', ');
-          });
+          if (batch.hidden) {
+            batch.children?.forEach(child => {
+              child.name = [batch.name, child.name].join(', ');
+            });
+          }
         });
 
         // Enable sampling batch, in VRAC batches
