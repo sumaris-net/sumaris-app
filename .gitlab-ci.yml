@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: node:16-slim
+image: node:18-slim
 
 stages:
   - environment

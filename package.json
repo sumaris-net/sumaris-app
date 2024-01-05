@@ -24,7 +24,19 @@
     "resources": "cordova-res ios && cordova-res android && node scripts/node/resources.js",
     "test": "ng test",
     "lint": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint",
-    "lint.fix": "npm run lint --fix"
+    "lint.fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,html}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ],
+    "src/**/*.{css,json,md,scss}": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "peerDependencies": {
     "@angular-devkit/build-angular": "^16.2.7",
@@ -155,30 +167,32 @@
     "@types/jasmine": "~3.10.6",
     "@types/jasminewd2": "~2.0.10",
     "@types/leaflet": "^1.8.0",
-    "@types/node": "^16.18.38",
+    "@types/node": "^18.19.4",
     "@types/uuid": "^7.0.5",
     "@typescript-eslint/eslint-plugin": "5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "cordova-res": "^0.15.4",
-    "eslint": "~8.31.0",
-    "eslint-config-prettier": "~8.6.0",
-    "eslint-plugin-import": "~2.26.0",
-    "eslint-plugin-jsdoc": "~39.6.4",
+    "eslint": "~8.55.0",
+    "eslint-config-prettier": "~9.1.0",
+    "eslint-plugin-import": "~2.29.0",
+    "eslint-plugin-jsdoc": "~46.9.1",
     "eslint-plugin-prefer-arrow": "~1.2.3",
-    "eslint-plugin-prettier": "~4.2.1",
-    "jasmine-core": "~3.8.0",
+    "eslint-plugin-prettier": "~5.0.1",
+    "husky": "^8.0.3",
+    "jasmine-core": "~4.2.0",
     "jasmine-spec-reporter": "~7.0.0",
     "jetifier": "^2.0.0",
     "karma": "~6.4.2",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage-istanbul-reporter": "~3.0.3",
-    "karma-jasmine": "~4.0.2",
-    "karma-jasmine-html-reporter": "^1.6.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "^2.0.0",
+    "lint-staged": "^15.2.0",
     "postcss": "^8.4.23",
-    "prettier": "~2.8.8",
+    "prettier": "~3.1.1",
     "protractor": "7.0.0",
     "tar": "^5.0.11",
-    "ts-node": "~8.10.2",
+    "ts-node": "~10.9.2",
     "typescript": "~4.8.4",
     "webpack": "~5.76.3"
   },
@@ -195,7 +209,7 @@
     "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues"
   },
   "engines": {
-    "node": ">= 16.17.0",
-    "npm": ">= 8.19.0"
+    "node": ">= 18.17.0",
+    "npm": ">= 9.9.0"
   }
 }
