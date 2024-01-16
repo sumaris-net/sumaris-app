@@ -28,6 +28,7 @@ variables:
   ENV_FILE: variables.env
   IONIC_CLI_VERSION: 7.1.1
   ANGULAR_CLI_VERSION: 14.2.13
+
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
@@ -81,13 +82,17 @@ build:env:
   stage: build
   tags: [sih_public_runner]
   needs: ["build:env"]
-  script:
+  before_script:
+    # Get project dependencies
+    - ls -artl ${BUILD_CACHE_DIR}
+    - cp -R ${BUILD_CACHE_DIR}/node_modules .
     # Show version
     # FIXME fail since 13/11/2023
     #- ng version
     - npm version
+  script:
     # Build
-    - npm run build.${BUILD_ENVIRONMENT}
+    - npm run build:${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
@@ -102,20 +107,12 @@ build:env:
 build:
   extends: .build
   image: ${CI_BUILD_IMAGE}
-  before_script:
-    # Get project dependencies
-    - ls -artl ${BUILD_CACHE_DIR}
-    - cp -R ${BUILD_CACHE_DIR}/node_modules .
   only:
     - develop
 
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
-  before_script:
-    # Get project dependencies
-    - ls -artl ${BUILD_CACHE_DIR}
-    - cp -R ${BUILD_CACHE_DIR}/node_modules .
   only:
     - /^feature\/.*/
     - /^features\/.*/
@@ -127,7 +124,7 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.12
+    - npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
     # Update project dependencies
     - npm install --force
   only:
@@ -170,10 +167,10 @@ failsafe-build:
       - npm version
       # Build
       - export NODE_OPTIONS=--max-old-space-size=4096
-      - npm run build.prod
+      - npm run build:prod
       # Git process for release (ISO gitflow)
       - git add .
-      - git commit -m "Prepare release ${RELEASE_VERSION}"
+      - git commit -m "Prepare release ${RELEASE_VERSION}" --no-verify
       - git checkout master
       - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
       - git tag -a "${RELEASE_VERSION}" -m "${RELEASE_VERSION}"
@@ -237,7 +234,7 @@ release:tags:
     - npm version
     # Build
     - export NODE_OPTIONS=--max-old-space-size=4096
-    - npm run build.prod
+    - npm run build:prod
   artifacts:
     paths:
       - www
