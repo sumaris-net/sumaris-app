@@ -21,6 +21,7 @@ npm-debug.log*
 .versions/
 .local/
 .local/android
+.gitlab-ci-local
 coverage/
 dist/
 node_modules/
@@ -43,3 +44,4 @@ resources/android/build/local
 resources/android/icon/
 resources/android/splash/
 resources/ios/
+ressources/windows/build/tmp/
