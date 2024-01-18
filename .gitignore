@@ -44,4 +44,5 @@ resources/android/build/local
 resources/android/icon/
 resources/android/splash/
 resources/ios/
-ressources/windows/build/tmp/
+
+target/

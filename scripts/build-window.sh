@@ -3,14 +3,8 @@
 source $(dirname $0)/inc-common.sh
 source $(dirname $0)/inc-nwjs.sh
 
-BUILD_DIR="${PROJECT_DIR}/resources/windows/build/tmp/"
+BUILD_DIR="${PROJECT_DIR}/target/windows/"
 MK_PACKAGE_DIR="${BUILD_DIR}/mk_package/"
-
-APP_ID="sumaris-desktop"
-APP_NAME="SUMARiS Desktop"
-DESKTOP_RESOURCES_DIR="${PROJECT_DIR}/resources/desktop/"
-SPLASH_IMG="${PROJECT_DIR}/resources/desktop/splash.png"
-ICON_IMG="${PROJECT_DIR}/resources/icon.png"
 
 NWJS_VERSION="0.83.0"
 NWJS_PLATFORM="win-x64"
@@ -34,11 +28,6 @@ f_check_deps() {
 
   if [ -z "$(which sed)" ] ; then
     f_msg E "\"sed\" is missing : install it with \"apt install sed\""
-    missing=1
-  fi
-
-  if [ -z "$(which unzip)" ] ; then
-    f_msg E "\"unzip\" is missing : install it with \"apt install unzip\""
     missing=1
   fi
 
@@ -124,6 +113,7 @@ f_setup_nsis() {
   f_msg I "Setup nsis"
   f_substitute_app_vars "${NSIS_RESOURCES_DIR}/installer-config.nsi" "${MK_PACKAGE_DIR}/installer-config.nsi"
   cp "${NSIS_RESOURCES_DIR}/icon.ico" "${MK_PACKAGE_DIR}"
+  cp "${PROJECT_DIR}/LICENSE" "${MK_PACKAGE_DIR}/LICENSE.txt"
   set +e
 }
 
