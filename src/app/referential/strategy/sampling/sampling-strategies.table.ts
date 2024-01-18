@@ -234,7 +234,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: {
         entityName: 'Department',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        includedIds: Number.isNaN(DepartmentGroups.RECORDER_DEPARTMENT[0]) ? null : DepartmentGroups.RECORDER_DEPARTMENT,
+        includedIds: DepartmentGroups.RECORDER_DEPARTMENT,
       },
       mobile: this.mobile,
     });

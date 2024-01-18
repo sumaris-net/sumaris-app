@@ -447,6 +447,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         this.suggestDepartments(value, {
           ...filter,
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          includedIds: DepartmentGroups.RECORDER_DEPARTMENT,
         }),
       columnSizes: [4, 8],
       mobile: this.mobile,
