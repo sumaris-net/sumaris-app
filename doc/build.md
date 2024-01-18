@@ -32,12 +32,7 @@ sudo apt-get install chromium-browser docker.io
 1. Install project's dependencies:
 ```bash
 cd sumaris-app
-npm install --force
-```
-OR, alternatively: 
-```bash
-cd sumaris-app/scripts
-./env-global.sh
+npm install
 ```
 
 2. Check environment configuration:
@@ -66,9 +61,9 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
    - Edit the file `src/environment/environment-prod.ts`
 
-2. Create the release:
+2. Build:
     ```bash
-    npm run build --prod --release
+    npm run build:prod
     ```
 
 ## Android build 
