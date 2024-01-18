@@ -36,6 +36,7 @@
       ],
       "rules": {
         "prettier/prettier": "error",
+        "jsdoc/newline-after-description": "off",
         "@angular-eslint/component-class-suffix": "off",
         "@angular-eslint/no-output-rename": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
