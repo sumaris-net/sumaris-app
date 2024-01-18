@@ -361,6 +361,7 @@
         "PARAMETER_GROUP_LENGTH_LABELS": "Référentiel > Ensemble de paramètre > Longueur (codes)",
         "PARAMETER_GROUP_MATURITY_LABELS": "Référentiel > Ensemble de paramètre > Maturité (codes)",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Référentiel > Fraction > Pièces calcifiées (ids)",
+        "RECORDERS_DEPARTMENTS_IDS": "Référentiel > Laboratoires saisisseurs (ids)",
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
         "QUALITY_FLAG_NOT_COMPLETED_ID": "Référentiel > Flag qualité > Incomplet",
         "QUALITY_FLAG_MISSING_ID": "Référentiel > Flag qualité > Manquant",

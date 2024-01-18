@@ -3,6 +3,7 @@ import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig
 import {
   AcquisitionLevelCodes,
   FractionIdGroups,
+  DepartmentGroups,
   LocationLevelGroups,
   LocationLevelIds,
   MatrixIds,
@@ -847,6 +848,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS',
     type: 'string',
     defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(','),
+  },
+  RECORDERS_DEPARTMENTS_IDS: <FormFieldDefinition>{
+    key: 'sumaris.list.departmentGroup.ids',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.RECORDERS_DEPARTMENTS_IDS',
+    type: 'string',
+    defaultValue: DepartmentGroups.RECORDER_DEPARTMENT.join(','),
   },
   UNIT_NONE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Unit.NONE.id',

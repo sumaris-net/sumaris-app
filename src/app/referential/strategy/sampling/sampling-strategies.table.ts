@@ -23,7 +23,7 @@ import {
   toBoolean,
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
-import { LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { DepartmentGroups, LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
 import { environment } from '@environments/environment';
@@ -234,6 +234,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: {
         entityName: 'Department',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        includedIds: Number.isNaN(DepartmentGroups.RECORDER_DEPARTMENT[0]) ? null : DepartmentGroups.RECORDER_DEPARTMENT,
       },
       mobile: this.mobile,
     });

@@ -35,6 +35,7 @@ import { ReferentialService } from './referential.service';
 import {
   AcquisitionLevelCodes,
   FractionIdGroups,
+  DepartmentGroups,
   LocationLevelGroups,
   LocationLevelIds,
   MatrixIds,
@@ -962,6 +963,7 @@ export class ReferentialRefService
 
     // Fractions Groups
     FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
+    DepartmentGroups.RECORDER_DEPARTMENT = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.RECORDERS_DEPARTMENTS_IDS);
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration

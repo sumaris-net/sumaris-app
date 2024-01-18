@@ -389,6 +389,10 @@ export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13], // Pièces calcifiées (need by SIH-OBSBIO)
 };
 
+export const DepartmentGroups = {
+  RECORDER_DEPARTMENT: [], // Laboratoires saisisseurs
+};
+
 export const FractionId = {
   ALL: 1,
 };

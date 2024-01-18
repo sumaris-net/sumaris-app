@@ -327,6 +327,7 @@
         "PARAMETER_GROUP_LENGTH_LABELS": "Referential > Parameter > Length labels (codes)",
         "PARAMETER_GROUP_MATURITY_LABELS": "Referential > Parameter > Maturity labels (codes)",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Referential > Fraction > Calcified structure (ids)",
+        "RECORDERS_DEPARTMENTS_IDS": "Referential > Recorders departments (ids)",
         "UNIT_NONE_ID": "Referential > Unit > None (hide by default)",
         "QUALITY_FLAG_NOT_COMPLETED_ID": "Referential > Quality flag > Not completed",
         "QUALITY_FLAG_MISSING_ID": "Referential > Quality flag > Missing",
