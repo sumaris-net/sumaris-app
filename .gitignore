@@ -11,6 +11,7 @@ log.txt
 *.sublime-project
 *.sublime-workspace
 .out-tsc/
+out-tsc/
 .vscode/
 npm-debug.log*
 .angular/

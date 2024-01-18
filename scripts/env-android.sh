@@ -49,7 +49,7 @@ if [[ "_" == "_$(which gradle)" || ! -d "${GRADLE_HOME}" ]]; then
   test -e "gradle-${GRADLE_VERSION}-all.zip" || wget -kL ${CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL}
   GRADLE_PARENT=$(dirname $GRADLE_HOME)
   test -e "${GRADLE_PARENT}" || mkdir -p ${GRADLE_PARENT}
-  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" || unzip -qq gradle-${GRADLE_VERSION}-all.zip -d "${GRADLE_PARENT}"
+  test -e "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" || unzip -q gradle-${GRADLE_VERSION}-all.zip -d "${GRADLE_PARENT}"
   [[ $? -ne 0 ]] && exit 1
   test -e "${GRADLE_HOME}" || mv "${GRADLE_PARENT}/gradle-${GRADLE_VERSION}" "${GRADLE_HOME}"
   [[ $? -ne 0 ]] && exit 1

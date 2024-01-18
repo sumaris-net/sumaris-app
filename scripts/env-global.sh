@@ -44,7 +44,7 @@ ANDROID_OUTPUT_APK=${PROJECT_DIR}/android/${ANDROID_OUTPUT_APK_PREFIX}/build/out
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
 ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
 ANDROID_OUTPUT_MIN_SDK_VERSION=22
-ANDROID_OUTPUT_MAX_SDK_VERSION=32
+ANDROID_OUTPUT_MAX_SDK_VERSION=33
 
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
@@ -72,7 +72,7 @@ if [[ "_" == "_${JAVA_HOME}" ]]; then
   fi
 
   # Check the Java version
-  JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
+  JAVA_VERSION=$(java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \")
   if [[ $? -ne 0 ]]; then
     echo "No Java JRE 11.0 found in machine. This is required for Android artifacts."
     exit 1
