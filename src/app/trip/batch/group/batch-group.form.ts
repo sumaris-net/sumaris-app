@@ -23,6 +23,7 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { merge } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { RxState } from '@rx-angular/state';
 
 export interface BatchGroupFormState extends BatchFormState {
   childrenPmfmsByQvId: { [key: number]: IPmfm[] };
@@ -37,6 +38,7 @@ export interface BatchGroupFormState extends BatchFormState {
   styleUrls: ['batch-group.form.scss'],
   providers: [
     { provide: BatchForm, useExisting: forwardRef(() => BatchGroupForm)},
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
