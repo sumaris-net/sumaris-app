@@ -28,7 +28,7 @@ import {
   ReferentialUtils,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { catchError, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
@@ -46,13 +46,13 @@ import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { ContextService } from '@app/shared/context.service';
 
-export abstract class DataEditorOptions extends AppEditorOptions {
+export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
   settingsId?: string;
   canCopyLocally?: boolean;
 }
 
-export interface DataEditorState {
+export interface AppDataEditorState {
   programLabel: string;
   program: Program;
 
@@ -72,7 +72,7 @@ export abstract class AppDataEntityEditor<
     T extends DataEntity<T, ID>,
     S extends IEntityService<T, ID, any> = BaseEntityService<T, any, any>,
     ID = number,
-    ST extends DataEditorState = DataEditorState
+    ST extends AppDataEditorState = AppDataEditorState
   >
   extends AppEntityEditor<T, S, ID>
   implements OnInit, OnDestroy
@@ -117,7 +117,7 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() strategy: Strategy;
   @RxStateProperty() pmfms: Partial<IPmfm[]>;
 
-  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: DataEditorOptions) {
+  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
     super(injector, dataType, dataService, {
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       ...options
@@ -137,8 +137,8 @@ export abstract class AppDataEntityEditor<
     // FOR DEV ONLY ----
     this.logPrefix = '[base-data-editor] ';
     this.canDebug = !environment.production;
-    this.debug = toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), this.canDebug);
-    this.devAutoFillData = this.debug && toBoolean(this.settings.getPageSettings(this.settingsId, 'devAutoFillData'), false);
+    this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
+    this.devAutoFillData = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'devAutoFillData'), false);
   }
 
   ngOnInit() {
@@ -230,14 +230,16 @@ export abstract class AppDataEntityEditor<
     super.ngAfterViewInit();
 
     // Auto fill form, in DEV mode
-    if (!environment.production) {
+    if (this.canDebug) {
       this.registerSubscription(
         this.program$
           .pipe(
             filter(isNotNil),
+            distinctUntilKeyChanged('label'),
+            mergeMap(() => this.waitIdle({stop: this.destroySubject})),
             filter(() => this.isNewData && this.devAutoFillData)
           )
-          .subscribe((program) => this.devFillTestValue(program))
+          .subscribe(() => this.devFillTestValue(this.program))
       );
     }
   }
@@ -364,6 +366,11 @@ export abstract class AppDataEntityEditor<
     }
 
     super.setError(error, opts);
+  }
+
+  async copyLocally() {
+    if (!this.data) return;
+    // Can be overridden by subclasses
   }
 
   /* -- protected methods -- */
@@ -506,17 +513,15 @@ export abstract class AppDataEntityEditor<
     this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 
-  devToggleAutoFillData() {
+  async devToggleAutoFillData() {
     this.devAutoFillData = !this.devAutoFillData;
-    this.settings.savePageSetting(this.settingsId, this.devAutoFillData, 'devAutoFillData');
+    await this.settings.savePageSetting(this.settingsId, this.devAutoFillData, 'devAutoFillData');
+    if (this.devAutoFillData && this.loaded && this.isNewData && this.program) {
+      await this.devFillTestValue(this.program);
+    }
   }
 
-  async copyLocally() {
-    if (!this.data) return;
-    // Can be overridden by subclasses
-  }
-
-  protected async devFillTestValue(program: Program) {
+  async devFillTestValue(program: Program) {
     // Can be overridden by subclasses
   }
 }

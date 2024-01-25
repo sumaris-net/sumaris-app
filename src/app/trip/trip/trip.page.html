@@ -36,7 +36,7 @@
 
     <!-- option menu -->
     <ion-button
-      *ngIf="!isNewData || canCopyLocally || debug"
+      *ngIf="!isNewData || canCopyLocally || canDebug"
       [disabled]="vars.loading || vars.saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"

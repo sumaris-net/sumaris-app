@@ -1,4 +1,4 @@
-<ng-container *ngIf="debug && false">
+<ng-container *ngIf="debug">
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
 </ng-container>
 
@@ -139,7 +139,7 @@
 <mat-menu #childrenMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-node="node" let-selected="selected">
     <!-- if hidden, show parent children -->
-    <ng-container *ngIf="node.hidden && node?.parent; let parent">
+    <ng-container *ngIf="node?.hidden && node.parent; let parent">
       <ng-container *ngFor="let item of parent.children">
         <ng-container
           *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"
@@ -276,6 +276,7 @@
     </ng-template>
   </button>
 </ng-template>
+
 <ng-template #batchTreePanel>
   <app-batch-tree
     #batchTree

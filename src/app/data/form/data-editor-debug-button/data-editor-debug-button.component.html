@@ -27,16 +27,12 @@
       <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
     </button>
 
-    <button mat-menu-item
-            [disabled]="!editor.debug"
-            (click)="editor.devToggleAutoFillData()">
+    <button mat-menu-item (click)="editor.devToggleAutoFillData()">
       <mat-icon *ngIf="editor.devAutoFillData">check_box</mat-icon>
       <mat-icon *ngIf="!editor.devAutoFillData">check_box_outline_blank</mat-icon>
       <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
     </button>
-    <button mat-menu-item
-            [disabled]="!editor.debug"
-            (click)="devToggleOfflineMode()">
+    <button mat-menu-item (click)="devToggleOfflineMode()">
       <mat-icon *ngIf="network.offline">check_box</mat-icon>
       <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
       <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>

@@ -10,7 +10,7 @@
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
-  <ion-title [innerHTML]="$title | async"></ion-title>
+  <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
   <ion-buttons slot="end">
     <!-- New operation -->
@@ -58,7 +58,7 @@
 
     <!-- option menu -->
     <ion-button
-      *ngIf="!isNewData || debug"
+      *ngIf="!isNewData || canDebug"
       [disabled]="disabled || vars.loading || vars.saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
@@ -197,10 +197,10 @@
       </ion-label>
     </button>
 
-    <mat-divider *ngIf="mobile && enabled"></mat-divider>
+    <mat-divider *ngIf="mobile"></mat-divider>
 
     <!-- reset -->
-    <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
+    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
       <ion-label>
         <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_RESET</span>
@@ -212,6 +212,9 @@
       <mat-icon>delete</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
+
+    <!-- DEV only -->
+    <app-data-editor-debug-button></app-data-editor-debug-button>
   </ng-template>
 </mat-menu>
 
@@ -226,7 +229,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate }}">
+    <mat-tab [label]="'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate"
+             appSubMenuTab
+             [subMenuTitle]="(titleSubject|async|noHtml) || ''"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
@@ -276,8 +282,11 @@
                       <app-form-measurements
                         #measurementsForm
                         entityName="VesselUseMeasurement"
-                        [acquisitionLevel]="acquisitionLevel$ | push : 'immediate'"
-                        [gearId]="gearId$ | push : 'immediate'"
+                        [acquisitionLevel]="acquisitionLevel$ | async"
+                        [requiredStrategy]="requiredStrategy$ | async"
+                        [strategyId]="(strategy$ | async)?.id"
+                        [requiredGear]="true"
+                        [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
                         [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                         (mapPmfms)="mapPmfms($event)"
@@ -285,6 +294,7 @@
                         [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
                         [mobile]="mobile"
+                        [debug]="debug"
                       ></app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -307,7 +317,8 @@
     <mat-tab
       #catchTab
       [label]="'TRIP.OPERATION.EDIT.TAB_CATCH' | translateContext : i18nContext.suffix"
-      [disabled]="!(physicalGear$ | push)"
+      [disabled]="!showCatchTab || !(physicalGear$ | push)"
+      appSubMenuTab
     >
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>

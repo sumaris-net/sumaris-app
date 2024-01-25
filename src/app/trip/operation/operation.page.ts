@@ -4,7 +4,6 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import {
-  AppEditorOptions,
   AppErrorWithDetails,
   AppFormUtils,
   AppHelpModal,
@@ -25,6 +24,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  ReferentialRef,
   ReferentialUtils,
   sleep,
   toBoolean,
@@ -43,7 +43,7 @@ import { OperationPasteFlags, ProgramProperties } from '@app/referential/service
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { from, merge, Observable, of, Subscription, timer } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
@@ -61,12 +61,17 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { AppDataEntityEditor, DataEditorState } from '@app/data/form/data-editor.class';
+import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 
-export interface OperationState extends DataEditorState {
+export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
   physicalGear: PhysicalGear;
   gearId: number;
@@ -105,6 +110,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected readonly tripService = inject(TripService);
   protected readonly tripContext = inject(TripContextService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
   protected readonly modalCtrl = inject(ModalController);
   protected readonly hotkeys = inject(Hotkeys);
 
@@ -113,7 +119,6 @@ export class OperationPage<S extends OperationState = OperationState>
   readonly lastOperations$ = this._state.select('lastOperations');
   readonly lastEndDate$ = this._state.select('lastEndDate');
 
-  measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
   allowParentOperation = false;
@@ -183,7 +188,7 @@ export class OperationPage<S extends OperationState = OperationState>
   // Sample tables
   @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
 
-  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppEditorOptions) {
+  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppDataEditorOptions) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
@@ -1701,5 +1706,58 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Open extraction
     await this.router.navigate(['extraction', 'data'], { queryParams });
+  }
+
+  // For DEV only
+  async devFillTestValue() {
+    console.debug(this.logPrefix + 'DEV auto fill data');
+    await this.ready();
+    await this.waitIdle({stop: this.destroySubject});
+
+    const startDateTime = this.trip?.departureDateTime?.clone().add(1, 'hour') || DateUtils.moment().startOf('hour');
+    const fishingStartDateTime = startDateTime.clone().add(1, 'hour');
+    const fishingEndDateTime = fishingStartDateTime.clone().add(2, 'hour');
+    const endDateTime = fishingEndDateTime.clone().add(1, 'hour');
+
+    const physicalGear = this.data?.physicalGear?.asObject();
+    const gearId = physicalGear?.gear?.id;
+    let metiers: ReferentialRef[];
+    if (isNotNil(gearId)) {
+      metiers = (await this.referentialRefService.loadAll(0, 1, null, null,  <Partial<ReferentialRefFilter>>{
+        ...METIER_DEFAULT_FILTER,
+        searchJoin: 'TaxonGroup',
+        searchJoinLevelIds: this.opeForm.metierTaxonGroupTypeIds,
+        levelId: gearId
+      }, {withTotal: false}))?.data;
+    }
+    const operation = Operation.fromObject(<Operation>{
+      trip: this.trip.asObject(),
+      physicalGear,
+      metier: metiers?.[0],
+      startDateTime,
+      fishingStartDateTime: this.opeForm.fishingStartDateTimeEnable ? fishingStartDateTime : undefined,
+      fishingEndDateTime: this.opeForm.fishingEndDateTimeEnable ? fishingEndDateTime : undefined,
+      endDateTime: this.opeForm.endDateTimeEnable ? endDateTime : undefined,
+      positions: [
+        <VesselPosition>{ dateTime: startDateTime, latitude: 49.5, longitude: -6.8},
+        <VesselPosition>{ dateTime: fishingStartDateTime, latitude: 49.505, longitude: -6.85},
+        <VesselPosition>{ dateTime: fishingEndDateTime, latitude: 49.52, longitude: -6.95},
+        <VesselPosition>{ dateTime: endDateTime, latitude: 49.525, longitude: -6.98}
+      ],
+      measurements: [
+        { numericalValue: 1, pmfmId: PmfmIds.TRIP_PROGRESS },
+        { numericalValue: 1, pmfmId: PmfmIds.HAS_INDIVIDUAL_MEASURES },
+        // APASE
+        { numericalValue: 1, pmfmId: PmfmIds.DIURNAL_OPERATION },
+        //{ numericalValue: 1, pmfmId: 188 }, // GPS_USED
+      ],
+      catchBatch: <Batch>{
+        label: AcquisitionLevelCodes.CATCH_BATCH,
+        rankOrder: 1
+      }
+    });
+
+    this.measurementsForm.value = operation.measurements;
+    this.form.patchValue(operation);
   }
 }

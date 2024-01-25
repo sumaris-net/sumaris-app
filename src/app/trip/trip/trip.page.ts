@@ -47,14 +47,14 @@ import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, start
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
-import { from, merge, Observable, Subscription } from 'rxjs';
+import { firstValueFrom, from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { Sale } from '@app/trip/sale/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { PredefinedColors } from '@ionic/core';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
@@ -431,7 +431,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     console.debug('[trip] New entity: applying defaults...');
 
     if (this.isOnFieldMode) {
-      data.departureDateTime = moment();
+      data.departureDateTime = DateUtils.moment();
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
@@ -666,7 +666,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       program: { label: programLabel },
       vesselId: vessel.id,
       excludeTripId: trip.id,
-      startDate: DateUtils.min(moment(), date && date.clone()).add(-1, 'month'),
+      startDate: DateUtils.min(DateUtils.moment(), date && date.clone()).add(-1, 'month'),
       endDate: date && date.clone(),
       excludeChildGear: acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR,
       excludeParentGear: acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR,
@@ -741,16 +741,15 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected computeTitle(data: Trip): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
-      return this.translate.get('TRIP.NEW.TITLE').toPromise();
+      return firstValueFrom(this.translate.get('TRIP.NEW.TITLE'));
     }
 
     // Existing data
-    return this.translate
+    return firstValueFrom(this.translate
       .get('TRIP.EDIT.TITLE', {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
         departureDateTime: data.departureDateTime && (this.dateFormat.transform(data.departureDateTime) as string),
-      })
-      .toPromise();
+      }));
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -915,15 +914,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   // For DEV only
-  protected async devFillTestValue(program: Program) {
-    const departureDate = moment().startOf('minutes');
-    const returnDate = departureDate.clone().add(15, 'day');
+  async devFillTestValue(program: Program) {
+    console.debug(this.logPrefix + 'DEV auto fill data');
+    const departureDateTime = DateUtils.moment().startOf('minutes');
+    const returnDateTime = departureDateTime.clone().add(15, 'day');
     const trip = Trip.fromObject({
       program,
-      departureDateTime: departureDate,
-      departureLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
-      returnDateTime: returnDate,
-      returnLocation: { id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
+      departureDateTime,
+      departureLocation: <ReferentialRef>{ id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
+      returnDateTime,
+      returnLocation: <ReferentialRef>{ id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO' },
       vesselSnapshot: {
         id: 1,
         vesselId: 1,
@@ -932,7 +932,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         __typename: 'VesselSnapshotVO',
       },
       measurements: [
-        { numericalValue: 1, pmfmId: 21 }, // NB fisherman
+        { numericalValue: 1, pmfmId: PmfmIds.NB_FISHERMEN }, // NB fisherman
         { numericalValue: 1, pmfmId: 188 }, // GPS_USED
       ],
       // Keep existing synchronizationStatus

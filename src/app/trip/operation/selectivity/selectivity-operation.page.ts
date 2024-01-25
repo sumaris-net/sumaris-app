@@ -6,7 +6,6 @@ import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
-import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
@@ -34,10 +33,8 @@ export class SelectivityOperationPage extends OperationPage {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
       tabCount: 2,
+      settingsId: 'selectivity-operation',
     });
-
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
   }
 
   protected registerForms() {

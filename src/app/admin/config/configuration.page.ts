@@ -101,7 +101,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     const confirm = await Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
     if (confirm) {
       await this.network.clearCache();
-      await this.settings.removeOfflineFeatures();
+      this.settings.removeOfflineFeatures();
       await this.dataService.clearCache({cacheName});
       await this.loadCacheStat();
     }

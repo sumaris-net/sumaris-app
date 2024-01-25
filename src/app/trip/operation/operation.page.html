@@ -59,7 +59,7 @@
 
     <!-- option menu -->
     <ion-button
-      *ngIf="!isNewData || debug"
+      *ngIf="!isNewData || canDebug"
       [disabled]="disabled || vars.loading || vars.saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
@@ -173,14 +173,6 @@
       </ion-label>
     </button>
 
-    <!-- reset -->
-    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
-        <span translate>COMMON.BTN_RESET</span>
-      </ion-label>
-    </button>
-
     <!-- Control -->
     <button mat-menu-item *ngIf="enabled" (click)="saveAndControl($event)">
       <ion-label>
@@ -206,16 +198,24 @@
       </ion-label>
     </button>
 
-    <mat-divider *ngIf="mobile && enabled"></mat-divider>
+    <mat-divider *ngIf="mobile"></mat-divider>
 
-
-    <mat-divider></mat-divider>
+    <!-- reset -->
+    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
+      <ion-label>
+        <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
+        <span translate>COMMON.BTN_RESET</span>
+      </ion-label>
+    </button>
 
     <!-- delete -->
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
       <mat-icon>delete</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
+
+    <!-- DEV only -->
+    <app-data-editor-debug-button></app-data-editor-debug-button>
   </ng-template>
 </mat-menu>
 

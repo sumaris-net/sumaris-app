@@ -16,11 +16,11 @@ import { Program } from '@app/referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { UntypedFormControl } from '@angular/forms';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
-import { AppDataEntityEditor, DataEditorOptions, DataEditorState } from '@app/data/form/data-editor.class';
+import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
 
-export interface RootDataEntityEditorState extends DataEditorState {}
+export interface RootDataEntityEditorState extends AppDataEditorState {}
 
-export abstract class RootDataEditorOptions extends DataEditorOptions {}
+export abstract class RootDataEditorOptions extends AppDataEditorOptions {}
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
