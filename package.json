@@ -82,7 +82,7 @@
     "@rx-angular/state": "^14.0.0",
     "@rx-angular/template": "^14.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "2.6.22",
+    "@sumaris-net/ngx-components": "2.6.25",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.2.1",
@@ -195,7 +195,7 @@
     "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues"
   },
   "engines": {
-    "node": ">= 16.17.0",
+    "node": ">= 18.18.2",
     "npm": ">= 9.1.1"
   }
 }
