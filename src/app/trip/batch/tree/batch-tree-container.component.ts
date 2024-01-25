@@ -399,7 +399,7 @@ export class BatchTreeContainerComponent
     }
 
     // DEBUG
-    this._logger = loggingService.getLogger('batch-tree-container');
+    this._logger = loggingService?.getLogger('batch-tree-container');
     this.debug = !environment.production;
   }
 
@@ -412,6 +412,9 @@ export class BatchTreeContainerComponent
     this.allowSpeciesSampling = toBoolean(this._state.get('allowSpeciesSampling'), this.programAllowMeasure);
     this.allowDiscard = toBoolean(this.allowDiscard, true);
     this.treePanelFloating = toBoolean(this.treePanelFloating, true);
+
+    // FIXME: try this this
+    //this.disable();
   }
 
   // Change visibility to public
@@ -854,6 +857,8 @@ export class BatchTreeContainerComponent
         ...model.state
       });
 
+      //
+      console.log('TODO MARK AS READY');
       this.batchTree.markAsReady();
 
       const jobs: Promise<void>[] = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];

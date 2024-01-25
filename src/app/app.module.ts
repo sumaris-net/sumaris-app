@@ -1,12 +1,12 @@
-import { APP_BASE_HREF } from "@angular/common";
-import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from "@angular/platform-browser";
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from "@angular/core";
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from "@angular/material/core";
-import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from "@angular/material-moment-adapter";
+import { APP_BASE_HREF } from '@angular/common';
+import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
 // App modules
-import { AppComponent } from "./app.component";
-import { AppRoutingModule } from "./app-routing.module";
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
@@ -71,42 +71,35 @@ import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './e
 import {
   REFERENTIAL_CONFIG_OPTIONS,
   REFERENTIAL_GRAPHQL_TYPE_POLICIES,
-  REFERENTIAL_LOCAL_SETTINGS_OPTIONS
-} from "./referential/services/config/referential.config";
-import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from "./data/data.config";
-import {
-  VESSEL_CONFIG_OPTIONS,
-  VESSEL_GRAPHQL_TYPE_POLICIES,
-  VESSEL_LOCAL_SETTINGS_OPTIONS
-} from "./vessel/services/config/vessel.config";
-import { JDENTICON_CONFIG } from "ngx-jdenticon";
-import { REFERENTIAL_TESTING_PAGES } from "./referential/referential.testing.module";
-import { TranslateHttpLoader } from "@ngx-translate/http-loader";
-import { AppSharedModule } from "@app/shared/shared.module";
-import { APP_CORE_CONFIG_OPTIONS } from "@app/core/services/config/core.config";
-import { AppCoreModule } from "@app/core/core.module";
-import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from "@app/trip/sample/sample.validator";
-import { Downloader } from "@ionic-native/downloader/ngx";
-import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from "@app/trip/operation/operation.validator";
-import { APP_SHARED_TESTING_PAGES } from "@app/shared/shared.testing.module";
-import { UserEventService } from "@app/social/user-event/user-event.service";
-import { ApolloModule } from "apollo-angular";
-import { DATA_TESTING_PAGES } from "@app/data/data.testing.module";
-import { JobProgressionService } from "@app/social/job/job-progression.service";
-import { APP_SOCIAL_CONFIG_OPTIONS } from "@app/social/config/social.config";
-import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from "@app/trip/batch/common/batch.validator";
-import {
-  DEVICE_POSITION_CONFIG_OPTION,
-  DEVICE_POSITION_ENTITY_SERVICES
-} from "@app/data/position/device/device-position.config";
-import { TripService } from "@app/trip/trip/trip.service";
-import { ObservedLocationService } from "@app/trip/observedlocation/observed-location.service";
-import { DevicePositionService } from "@app/data/position/device/device-position.service";
-import { SHARED_LOCAL_SETTINGS_OPTIONS } from "@app/shared/shared.config";
-import { NgChartsModule } from "ng2-charts";
-import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from "@app/referential/services/validator/pmfm.validators";
-import { IchthyometerService } from "@app/shared/ichthyometer/ichthyometer.service";
-import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from "@app/trip/scientific-cruise/scientific-cruise.config";
+  REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+} from './referential/services/config/referential.config';
+import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/data.config';
+import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
+import { JDENTICON_CONFIG } from 'ngx-jdenticon';
+import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { AppSharedModule } from '@app/shared/shared.module';
+import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
+import { AppCoreModule } from '@app/core/core.module';
+import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/sample/sample.validator';
+import { Downloader } from '@ionic-native/downloader/ngx';
+import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/operation/operation.validator';
+import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
+import { UserEventService } from '@app/social/user-event/user-event.service';
+import { ApolloModule } from 'apollo-angular';
+import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
+import { JobProgressionService } from '@app/social/job/job-progression.service';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
+import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/position/device/device-position.config';
+import { TripService } from '@app/trip/trip/trip.service';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { DevicePositionService } from '@app/data/position/device/device-position.service';
+import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
+import { NgChartsModule } from 'ng2-charts';
+import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
+import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 
@@ -314,7 +307,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
       useFactory: (environment: AppEnvironment) =>
         <MenuOptions>{
           enableSubMenus: true,
-        enableSubMenuIcon: true,
+          enableSubMenuIcon: true,
           ...environment?.menu,
           ...environment?.menu,
         },
@@ -382,7 +375,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         { title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN' },
 
         // Settings
-        { title: '' /*empty divider*/, cssClass: 'flex-spacer' },
+        { title: ' ' /*empty divider*/, cssClass: 'flex-spacer' },
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
         { title: 'MENU.INBOX', path: '/inbox', icon: 'mail', profile: 'USER', ifProperty: 'sumaris.social.notification.icons.enable' },
         { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },

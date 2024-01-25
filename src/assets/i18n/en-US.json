@@ -203,6 +203,9 @@
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
+      "ACCOUNT": {
+        "READONLY": "Account > Readonly profile? (readonly option)"
+      },
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -287,6 +290,7 @@
         "PMFM_AVERAGE_PACKAGING_PRICE_ID": "Referential > PMFM > Average price (product)",
         "PMFM_SALE_ESTIMATED_RATIO_ID": "Referential > PMFM > Sale ratio (product)",
         "PMFM_SALE_RANK_ORDER_ID": "Referential > PMFM > Rank order of the sale",
+        "PMFM_LANDING_CATEGORY_ID": "Referential > PMFM > Landing product destination",
         "PARAMETER_HULL_MATERIAL_ID": "Referential > Parameter > Hull material",
         "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",

@@ -65,6 +65,7 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   GEAR_SPEED: 9,
+  NB_FISHERMEN: 21,
   SEA_STATE: 33,
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
@@ -136,11 +137,15 @@ export const PmfmIds = {
   /* APASE */
   CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
+  DIURNAL_OPERATION: 417,
   TRAWL_SIZE_CAT: 418,
   BATCH_SORTING: 176, // Vrac/Hors Vrac
   DISCARD_WEIGHT: 56,
   CATCH_WEIGHT: 57,
-  HULL_MATERIAL: 433
+  HULL_MATERIAL: 433,
+
+  /* OBSMER */
+  LANDING_CATEGORY: 436,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

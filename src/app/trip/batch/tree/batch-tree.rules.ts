@@ -44,6 +44,13 @@ export class BatchRules {
         value: PmfmIds.TRAWL_SIZE_CAT.toString(),
         message: 'Trawl size category not allowed',
       }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-landing-category-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.LANDING_CATEGORY.toString(), // Industry, Human consumption, etc.
+        message: 'Landing category not allowed',
+      }),
     ];
   }
 
@@ -53,8 +60,8 @@ export class BatchRules {
         label: 'no-batch-sorting-pmfm',
         controlledAttribute: `${pmfmPath}id`,
         operator: '!=',
-        value: PmfmIds.BATCH_SORTING.toString(),
-        message: 'Discard sorting pmfm not allowed',
+        value: PmfmIds.BATCH_SORTING.toString(), // Vrac/Hors-Vrac
+        message: 'Batch sorting pmfm not allowed',
       }),
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-discard-weight-pmfm',

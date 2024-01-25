@@ -1,9 +1,29 @@
-import {DateUtils, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
-import {Parameter, ParameterType} from './parameter.model';
-import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
-import {Moment} from 'moment';
-import {FullReferential} from '@app/referential/services/model/referential.model';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  IEntity,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialRef,
+  toNumber,
+} from '@sumaris-net/ngx-components';
+import {
+  MethodIdGroups,
+  PmfmIds,
+  PmfmLabelPatterns,
+  UnitLabel,
+  UnitLabelGroups,
+  UnitLabelPatterns,
+  WeightKgConversion,
+  WeightUnitSymbol,
+} from './model.enum';
+import { Parameter, ParameterType } from './parameter.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { Moment } from 'moment';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -294,6 +314,7 @@ export abstract class PmfmUtils {
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts: {
     excludeHidden?: boolean;
     excludePmfmIds?: number[];
+    includePmfmIds?: number[];
     minQvCount?: number;
     maxQvCount?: number;
     filterFn?: (IPmfm, index) => boolean;
@@ -303,11 +324,14 @@ export abstract class PmfmUtils {
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => p.type === 'qualitative_value'
-          && p.qualitativeValues
-          // Exclude if no enough qualitative values
-          && p.qualitativeValues.length >= opts.minQvCount
-          // Exclude if too many qualitative values
-          && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
+        && p.qualitativeValues
+        && (opts.includePmfmIds?.includes(p.id)
+          || (
+            // Exclude if no enough qualitative values
+            p.qualitativeValues.length >= opts.minQvCount
+            // Exclude if too many qualitative values
+            && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
+          ))
           // Apply the first function, if any
           && (!opts.filterFn || opts.filterFn(p, index)));
     return qvPmfm;

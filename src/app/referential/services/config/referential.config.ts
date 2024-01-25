@@ -16,7 +16,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
-  VesselTypeIds
+  VesselTypeIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
@@ -277,6 +277,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
+  PMFM_NB_FISHERMEN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.NB_FISHERMEN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_NB_FISHERMEN_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.NB_FISHERMEN
+  },
+  PMFM_GPS_USED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.GPS_USED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GPS_USED_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.GPS_USED
+  },
   PMFM_TRIP_PROGRESS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
@@ -290,6 +304,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.STRATEGY_LABEL
+  },
+  PMFM_SEA_STATE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SEA_STATE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEA_STATE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SEA_STATE
   },
   PMFM_TAG_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TAG_ID.id',
@@ -318,6 +339,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TRAWL_SIZE_CAT
+  },
+  PMFM_DIURNAL_OPERATION_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DIURNAL_OPERATION.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DIURNAL_OPERATION_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DIURNAL_OPERATION
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
@@ -424,6 +452,27 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES
   },
+  PMFM_BATCH_MEASURED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_MEASURED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_MEASURED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_MEASURED_WEIGHT
+  },
+  PMFM_BATCH_CALCULATED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT
+  },
+  PMFM_BATCH_ESTIMATED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_ESTIMATED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_ESTIMATED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_ESTIMATED_WEIGHT
+  },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID',
@@ -458,6 +507,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SELECTIVITY_DEVICE
+  },
+  PMFM_LANDING_CATEGORY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.LANDING_CATEGORY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_LANDING_CATEGORY_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.LANDING_CATEGORY
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

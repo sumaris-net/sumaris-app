@@ -549,7 +549,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     // DEBUG
     //console.debug(this._logPrefix + 'setValue()', source);
     this.markAsLoading({emitEvent: false});
-    this.markAsNotReady({emitEvent: false});
+    const wasReady = this.readySubject.value;
+    this.markChildrenAsNotReady({emitEvent: false});
 
     try {
       this.data = source;
@@ -609,6 +610,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     } finally {
       this.markAsPristine();
       this.markAsUntouched();
+      if (wasReady) this.markAsReady();
       this.markAsLoaded({ emitEvent: false });
     }
 
@@ -748,6 +750,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
+  }
+
+  markChildrenAsNotReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    // Emit to children
+    this.children
+      ?.map(c => (c as any)['readySubject'])
+      .filter((readySubject) => readySubject && readySubject.value !== false)
+      .forEach((readySubject) => readySubject.next(false));
   }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {

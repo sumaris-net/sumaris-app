@@ -8,7 +8,7 @@ import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 export type TripReportType = 'legacy' | 'selectivity';
-export type OperationEditor = 'legacy' | 'selectivity';
+export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
@@ -535,6 +535,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: <OperationEditor>'selectivity',
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_SELECTIVITY'
+      },
+      {
+        key: <OperationEditor>'advanced',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_ADVANCED'
       }
     ],
     defaultValue: <OperationEditor>'legacy'

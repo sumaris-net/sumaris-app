@@ -83,6 +83,7 @@ export class BatchModel
       minQvCount: 2,
       maxQvCount: 3,
       excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
+      includePmfmIds: [PmfmIds.LANDING_CATEGORY]
       //filterFn: pmfm => RuleUtils.valid({model, pmfm: pmfm}, rules)
     });
     if (qvPmfm) {

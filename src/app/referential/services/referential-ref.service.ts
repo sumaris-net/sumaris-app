@@ -1,8 +1,8 @@
-import { Injectable } from "@angular/core";
-import { FetchPolicy, gql } from "@apollo/client/core";
-import { BehaviorSubject, Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { ErrorCodes } from "./errors";
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
 import {
   AccountService,
   BaseEntityGraphqlQueries,
@@ -28,8 +28,8 @@ import {
   ReferentialUtils,
   StatusIds,
   SuggestService,
-} from "@sumaris-net/ngx-components";
-import { ReferentialService } from "./referential.service";
+} from '@sumaris-net/ngx-components';
+import { ReferentialService } from './referential.service';
 import {
   AcquisitionLevelCodes,
   FractionIdGroups,
@@ -48,31 +48,25 @@ import {
   TaxonomicLevelIds,
   UnitIds,
   VesselTypeIds,
-} from "./model/model.enum";
-import { ReferentialFragments } from "./referential.fragments";
-import { SortDirection } from "@angular/material/sort";
-import { Moment } from "moment";
-import { environment } from "@environments/environment";
-import { ReferentialRefFilter } from "./filter/referential-ref.filter";
-import { REFERENTIAL_CONFIG_OPTIONS } from "./config/referential.config";
-import { Metier } from "@app/referential/metier/metier.model";
-import { MetierService } from "@app/referential/services/metier.service";
-import {
-  WeightLengthConversion
-} from "@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model";
-import {
-  WeightLengthConversionRefService
-} from "@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service";
-import { ProgramPropertiesUtils } from "@app/referential/services/config/program.config";
-import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from "@app/referential/services/base-referential-service.class";
-import {
-  RoundWeightConversionRefService
-} from "@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service";
-import { TaxonNameRefService } from "@app/referential/services/taxon-name-ref.service";
-import { TaxonGroupRefService } from "@app/referential/services/taxon-group-ref.service";
-import { BBox } from "geojson";
-import { translateQualityFlag } from "@app/data/services/model/model.utils";
-import { VesselConfigUtils } from "@app/vessel/services/config/vessel.config";
+} from './model/model.enum';
+import { ReferentialFragments } from './referential.fragments';
+import { SortDirection } from '@angular/material/sort';
+import { Moment } from 'moment';
+import { environment } from '@environments/environment';
+import { ReferentialRefFilter } from './filter/referential-ref.filter';
+import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
+import { Metier } from '@app/referential/metier/metier.model';
+import { MetierService } from '@app/referential/services/metier.service';
+import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
+import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
+import { RoundWeightConversionRefService } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
+import { BBox } from 'geojson';
+import { translateQualityFlag } from '@app/data/services/model/model.utils';
+import { VesselConfigUtils } from '@app/vessel/services/config/vessel.config';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any }>{
   lastUpdateDate: gql`
@@ -834,12 +828,16 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration
+    PmfmIds.NB_FISHERMEN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_NB_FISHERMEN_ID);
+    PmfmIds.GPS_USED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GPS_USED_ID);
     PmfmIds.TRIP_PROGRESS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRIP_PROGRESS);
+    PmfmIds.SEA_STATE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEA_STATE_ID);
+    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
     PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
     PmfmIds.PRESERVATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PRESERVATION);
     PmfmIds.TRAWL_SIZE_CAT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRAWL_SIZE_CAT_ID);
-    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
+    PmfmIds.DIURNAL_OPERATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DIURNAL_OPERATION_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
     PmfmIds.PACKAGING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PACKAGING_ID);
@@ -852,14 +850,18 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
     PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL_ID);
     PmfmIds.HAS_ACCIDENTAL_CATCHES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HAS_ACCIDENTAL_CATCHES_ID);
-    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
-    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
+    PmfmIds.CATCH_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CATCH_WEIGHT_ID);
     PmfmIds.BATCH_SORTING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_SORTING_ID);
     PmfmIds.DISCARD_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DISCARD_WEIGHT_ID);
-    PmfmIds.CATCH_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CATCH_WEIGHT_ID);
+    PmfmIds.BATCH_MEASURED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_MEASURED_WEIGHT_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_ID);
+    PmfmIds.BATCH_ESTIMATED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_ESTIMATED_WEIGHT_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
     PmfmIds.CHILD_GEAR = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CHILD_GEAR_ID);
     PmfmIds.HULL_MATERIAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HULL_MATERIAL_ID);
     PmfmIds.SELECTIVITY_DEVICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SELECTIVITY_DEVICE_ID);
+    PmfmIds.LANDING_CATEGORY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_LANDING_CATEGORY_ID);
 
     // Methods
     MethodIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_UNKNOWN_ID);
