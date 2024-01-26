@@ -24,6 +24,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  PlatformService,
   ReferentialRef,
   ReferentialUtils,
   sleep,
@@ -63,7 +64,7 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { Batch } from '@app/trip/batch/common/batch.model';
@@ -104,20 +105,22 @@ export class OperationPage<S extends OperationState = OperationState>
   private _sampleRowSubscription: Subscription;
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
-  protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
-  protected readonly physicalGear$ = this._state.select('physicalGear');
-  protected readonly gearId$ = this._state.select('gearId');
+  @RxStateSelect() protected readonly hasIndividualMeasures$: Observable<boolean>;
+  @RxStateSelect() protected readonly physicalGear$: Observable<PhysicalGear>;
+  @RxStateSelect() protected readonly gearId$: Observable<number>;
+  @RxStateSelect() protected readonly lastOperations$: Observable<Operation[]>;
+  @RxStateSelect() protected readonly lastEndDate$: Observable<Moment>;
 
   protected readonly tripService = inject(TripService);
   protected readonly tripContext = inject(TripContextService);
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected readonly modalCtrl = inject(ModalController);
   protected readonly hotkeys = inject(Hotkeys);
+  protected readonly platformService = inject(PlatformService);
 
-  readonly dateTimePattern: string;
-  readonly showLastOperations: boolean;
-  readonly lastOperations$ = this._state.select('lastOperations');
-  readonly lastEndDate$ = this._state.select('lastEndDate');
+  protected readonly dateTimePattern: string;
+  protected readonly showLastOperations: boolean;
+  protected readonly xsMobile: boolean;
 
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
@@ -199,6 +202,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
+    this.xsMobile = this.mobile && !this.platformService.is('tablet');
 
     // Init defaults
     this.showLastOperations = this.settings.isUsageMode('FIELD');
@@ -281,15 +285,12 @@ export class OperationPage<S extends OperationState = OperationState>
           }
         }),
 
-        // Load last operations (if enabled)
-        //filter(_ => this.showLastOperations),
-
+        // Load last operations
         filter(isNotNil),
-        //debounceTime(500),
         switchMap((tripId) =>
           this.dataService.watchAll(
             0,
-            5,
+            this.showLastOperations ? 5 : 1, // Load one if only need to fill defaults
             'startDateTime',
             'desc',
             { tripId },

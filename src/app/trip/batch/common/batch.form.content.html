@@ -12,7 +12,7 @@
 
   <ion-grid class="ion-no-padding">
     <!-- Taxon group and/or taxon name and/or exhaustive inventory -->
-    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName || delegate.showExhaustiveInventory">
+    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName">
       <!-- Taxon group -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonGroup">
         <mat-autocomplete-field
@@ -41,28 +41,6 @@
         >
           <ion-icon matPrefix *ngIf="delegate.mobile && !delegate.showTaxonGroup" name="fish"></ion-icon>
         </mat-autocomplete-field>
-      </ion-col>
-
-      <!-- is Exhaustive inventory ?-->
-      <ion-col size="12" size-md="6" *ngIf="delegate.showExhaustiveInventory">
-        <mat-form-field floatLabel="never">
-          <!-- fake input -->
-          <input matInput hidden />
-
-          <ion-label>&nbsp;</ion-label>
-
-          <!-- checkbox, when compact -->
-          <mat-checkbox
-            matPrefix
-            [formControl]="delegate.form | formGetControl : 'exhaustiveInventory'"
-            labelPosition="after"
-            [tabindex]="delegate.tabindex + 2"
-          >
-            <ion-text>
-              {{ 'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY' | translateContext : delegate.i18nSuffix }}
-            </ion-text>
-          </mat-checkbox>
-        </mat-form-field>
       </ion-col>
 
       <ng-content select="[afterSpecies]"></ng-content>
@@ -303,6 +281,30 @@
           </mat-form-field>
         </ion-col>
       </ng-container>
+    </ion-row>
+
+    <ion-row  *ngIf="delegate.showExhaustiveInventory">
+      <!-- is Exhaustive inventory ?-->
+      <ion-col size="12" size-md="6">
+        <mat-form-field floatLabel="never">
+          <!-- fake input -->
+          <input matInput hidden />
+
+          <ion-label>&nbsp;</ion-label>
+
+          <!-- checkbox, when compact -->
+          <mat-checkbox
+            matPrefix
+            [formControl]="delegate.form | formGetControl : 'exhaustiveInventory'"
+            labelPosition="after"
+            [tabindex]="delegate.tabindex + 2"
+          >
+            <ion-text>
+              {{ 'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY' | translateContext : delegate.i18nSuffix }}
+            </ion-text>
+          </mat-checkbox>
+        </mat-form-field>
+      </ion-col>
     </ion-row>
   </ion-grid>
 

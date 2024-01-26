@@ -64,7 +64,7 @@
             (click)="toggleTreePanel()"
             [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
             matBadge="!"
-            [matBadgeHidden]="model.valid && model.childrenValid"
+            [matBadgeHidden]="model?.valid && model.childrenValid"
             matBadgeOverlap="true"
             matBadgeColor="accent"
             matBadgeSize="small"

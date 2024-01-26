@@ -147,6 +147,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   );
   @RxStateSelect() readonly showCatchForm$: Observable<boolean>;
   @RxStateSelect() readonly showBatchTables$: Observable<boolean>;
+  @RxStateSelect() readonly showSubBatchesTable$: Observable<boolean>;
+  @RxStateSelect() readonly programAllowMeasure$: Observable<boolean>;
   @RxStateSelect() readonly allowSubBatches$: Observable<boolean>;
   @RxStateSelect() readonly requiredStrategy$: Observable<boolean>;
   @RxStateSelect() readonly strategyId$: Observable<number>;
@@ -341,15 +343,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   ngOnInit() {
+    const useSubBatchesService = this.mobile || !this.allowQvPmfmGroup;
     // Set defaults
     this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
-    this.tabCount = this.mobile ? 1 : 2;
+    this.tabCount = useSubBatchesService ? 1 : 2;
     this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
     this.allowSpeciesSampling = toBoolean(this.allowSpeciesSampling, true);
     this.allowSubBatches = toBoolean(this.allowSubBatches, true);
 
-    this._subBatchesService = this.mobile
+    this._subBatchesService = useSubBatchesService
       ? new InMemoryEntitiesService(SubBatch, SubBatchFilter, {
           equals: Batch.equals,
           sortByReplacement: { id: 'rankOrder' },
@@ -378,15 +381,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       )
     );
 
-    this._state.connect(
-      'showSubBatchesTable',
-      this._state.select(
-        ['allowSubBatches', 'programAllowMeasure'],
-        ({ allowSubBatches, programAllowMeasure }) => allowSubBatches && programAllowMeasure
-      )
-    );
-
-    this._state.hold(this._state.select('showSubBatchesTable'), (showSubBatchesTable) => {
+    this._state.hold(this.showSubBatchesTable$, (showSubBatchesTable) => {
       // If disabled
       if (!showSubBatchesTable) {
         // Reset existing sub batches
@@ -425,7 +420,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           this.subBatchesTable.readySubject,
           this.batchGroupsTable.dataSource.rowsSubject.pipe(map(isNotEmptyArray)),
           this.allowSubBatches$,
-        ]).pipe(map(([hasPmfms, ready, howBatchGroupRows, allowSubBatches]) => (hasPmfms && ready && howBatchGroupRows && allowSubBatches) || false))
+          this.programAllowMeasure$
+        ]).pipe(
+          filter(([_, ready]) => ready),
+          map(([hasPmfms, ready, howBatchGroupRows, allowSubBatches, programAllowMeasure]) => (hasPmfms && ready && howBatchGroupRows && allowSubBatches && programAllowMeasure) || false)
+        )
       );
 
       // Update available parent on individual batch table, when batch group changes
@@ -436,6 +435,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           map((_) => this.batchGroupsTable.dataSource.getData())
         ),
         (parents) => (this.subBatchesTable.availableParents = parents)
+      );
+    }
+    else {
+      this._state.connect(
+        'showSubBatchesTable',
+        combineLatest([
+          this.batchGroupsTable.dataSource.rowsSubject.pipe(map(isNotEmptyArray)),
+          this.allowSubBatches$,
+          this.programAllowMeasure$
+        ]).pipe(
+          map(([howBatchGroupRows, allowSubBatches, programAllowMeasure]) => (howBatchGroupRows && allowSubBatches && programAllowMeasure) || false)
+        )
       );
     }
   }
@@ -650,8 +661,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     const programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
     this.programAllowMeasure = programAllowMeasure;
-    this.allowSpeciesSampling = this.allowSpeciesSampling && programAllowMeasure;
-    this.allowSubBatches = this.allowSubBatches && programAllowMeasure;
+    this.allowSpeciesSampling = programAllowMeasure && this.allowSpeciesSampling;
+    this.allowSubBatches = programAllowMeasure && this.allowSubBatches;
     this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
     const samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT) as SamplingRatioFormat;
     this.samplingRatioFormat = samplingRatioFormat;

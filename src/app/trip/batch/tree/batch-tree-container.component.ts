@@ -777,7 +777,7 @@ export class BatchTreeContainerComponent
 
     // Keep the editing batch
     const editingBatch = isNotNil(this._lastEditingBatchPath) ? model.get(this._lastEditingBatchPath) : undefined;
-    if (!editingBatch?.hidden) {
+    if (!editingBatch?.hidden && !this.useModal) {
 
       // Force a reload to update the batch id (e.g. after a save(), to force batch id to be applied)
       if (this.editingBatch === editingBatch) await this.stopEditBatch();

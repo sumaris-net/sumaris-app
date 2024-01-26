@@ -236,7 +236,7 @@ export class BatchModelValidatorService<
             }
           });
 
-        // Activer le champ "Inventaire exhaustif des espèces ?"
+        // Initialize exhaustiveInventory, on each leaf
         TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
           hidden: false, // Exclude if no pmfms
           isLeaf: true

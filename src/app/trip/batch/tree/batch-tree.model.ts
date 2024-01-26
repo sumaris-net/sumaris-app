@@ -74,6 +74,7 @@ export class BatchModel
       // Build rules
       RuleUtils.build(rules, false /*keep previous compilation*/);
 
+      // Filter pmfms, by applying all rules
       pmfms = pmfms.filter(pmfm => RuleUtils.valid({model, pmfm}, rules));
     }
 
@@ -160,7 +161,9 @@ export class BatchModel
     model.isLeaf = isEmptyArray(model.children) || isNotEmptyArray(model.childrenPmfms);
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
-    model.state.showExhaustiveInventory = false;
+    if (!model.isLeaf) {
+      model.state.showExhaustiveInventory = false;
+    }
 
     return model;
   }

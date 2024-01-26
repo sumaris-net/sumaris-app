@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, Injector } from '@angular/core';
-import { DateUtils, fadeInOutAnimation, PlatformService } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
@@ -24,9 +24,6 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdvancedOperationPage extends OperationPage {
-  protected readonly platformService = inject(PlatformService);
-  protected smallScreen: boolean;
-
   get invalid(): boolean {
     // Allow batchTree to be invalid
     return this.opeForm?.invalid || this.measurementsForm?.invalid || false;
@@ -38,7 +35,6 @@ export class AdvancedOperationPage extends OperationPage {
       tabCount: 2,
       settingsId: 'advanced-operation',
     });
-    this.smallScreen = this.platformService.mobile && !this.platformService.is('tablet');
   }
 
   protected registerForms() {

@@ -292,6 +292,7 @@
       (backward)="confirmAndBackward($event.event, $event.row)"
       (forward)="confirmAndForward($event.event, $event.row)"
       [canCancel]="false"
+      [cellTemplate]="actionCellTemplate"
     >
       <!-- Options menu -->
       <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
@@ -540,38 +541,7 @@
       <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let row">
-          <ng-container *ngIf="mobile">
-            <!-- Delete row button -->
-            <button
-              mat-icon-button
-              *ngIf="enabled && singleSelectedRow === row; else otherButtons"
-              [title]="'COMMON.BTN_DELETE' | translate"
-              (click)="cancelOrDelete($event, row)"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-
-            <ng-template #otherButtons>
-              <!-- open individual measures -->
-              <button
-                mat-icon-button
-                *ngIf="allowSubBatches"
-                [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
-                [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
-                (click)="onSubBatchesClick($event, row, { showParent: false })"
-              >
-                <mat-icon
-                  [matBadge]="row.currentData.observedIndividualCount"
-                  [matBadgeHidden]="!row.currentData.observedIndividualCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after"
-                >
-                  assessment
-                </mat-icon>
-              </button>
-            </ng-template>
-          </ng-container>
+          <ng-container *ngTemplateOutlet="actionCellTemplate; context: { $implicit: row }"></ng-container>
         </td>
       </ng-container>
 
@@ -614,4 +584,39 @@
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>
   </span>
+</ng-template>
+
+<ng-template #actionCellTemplate let-row>
+  <ng-container *ngIf="mobile; else otherButtons">
+    <!-- Delete row button -->
+    <button
+      mat-icon-button
+      *ngIf="enabled && singleSelectedRow === row; else otherButtons"
+      [title]="'COMMON.BTN_DELETE' | translate"
+      (click)="cancelOrDelete($event, row)"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+  </ng-container>
+
+  <ng-template #otherButtons>
+    <!-- open individual measures -->
+    <button
+      mat-icon-button
+      *ngIf="allowSubBatches"
+      [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
+      [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
+      (click)="onSubBatchesClick($event, row, { showParent: false })"
+    >
+      <mat-icon
+        [matBadge]="row.currentData.observedIndividualCount"
+        [matBadgeHidden]="!row.currentData.observedIndividualCount"
+        matBadgeColor="accent"
+        matBadgeSize="small"
+        matBadgePosition="above after"
+      >
+        assessment
+      </mat-icon>
+    </button>
+  </ng-template>
 </ng-template>
