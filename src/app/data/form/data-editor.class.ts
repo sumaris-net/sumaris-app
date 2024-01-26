@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import { merge, Observable, Subscription } from 'rxjs';
+import { merge, Observable, of, Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -162,8 +162,8 @@ export abstract class AppDataEntityEditor<
           // Try to load by context
           const contextualProgram = this.context?.program;
           if (contextualProgram?.label === programLabel) {
-            console.log('TODO: program found in the main context: should use it !')
-            //return of(contextualProgram);
+            console.debug(this.logPrefix + `Program ${programLabel} found in editor context: will use it`);
+            return of(contextualProgram);
           }
 
           return this.programRefService.watchByLabel(programLabel, { debug: this.debug })

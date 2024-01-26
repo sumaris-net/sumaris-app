@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  Injector,
+  Input,
+  OnInit,
+  Optional,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -140,10 +152,10 @@ export class BatchTreeContainerComponent
   @RxStateProperty() protected data: Batch;
   @RxStateProperty() protected treePanelFloating: boolean;
 
-  @ViewChild('batchTree') batchTree: BatchTreeComponent;
-  @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
   @ViewChild('sidenav') sidenav: MatSidenav;
-  @ViewChild('modal') modal!: IonModal;
+  @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
+  @ViewChild('batchTree', {static: false}) batchTree: BatchTreeComponent;
+  @ViewChild('modal', {static: false}) modal: IonModal;
 
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -164,6 +176,7 @@ export class BatchTreeContainerComponent
   @Input() style: 'tabs'|'menu' = 'menu';
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
+  @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
 
   @Input() @RxStateProperty() programLabel: string
   @Input() @RxStateProperty() requiredStrategy: boolean;
@@ -252,7 +265,7 @@ export class BatchTreeContainerComponent
     return this.usageMode === 'FIELD';
   }
 
-
+  @Output() control = new EventEmitter<Event>();
 
   constructor(injector: Injector,
               route: ActivatedRoute,
@@ -405,15 +418,16 @@ export class BatchTreeContainerComponent
 
   ngOnInit() {
     super.ngOnInit();
-    this.showCatchForm = toBoolean(this._state.get('showCatchForm'), true);
-    this.showBatchTables = toBoolean(this._state.get('showBatchTables'), true);
-    this.programAllowMeasure = toBoolean(this._state.get('programAllowMeasure'), this.showBatchTables);
-    this.allowSubBatches = toBoolean(this._state.get('allowSubBatches'), this.programAllowMeasure);
-    this.allowSpeciesSampling = toBoolean(this._state.get('allowSpeciesSampling'), this.programAllowMeasure);
+    this.showCatchForm = toBoolean(this.showCatchForm, true);
+    this.showBatchTables = toBoolean(this.showBatchTables, true);
+    this.programAllowMeasure = toBoolean(this.programAllowMeasure, this.showBatchTables);
+    this.allowSubBatches = toBoolean(this.allowSubBatches, this.programAllowMeasure);
+    this.allowSpeciesSampling = toBoolean(this.allowSpeciesSampling, this.programAllowMeasure);
     this.allowDiscard = toBoolean(this.allowDiscard, true);
     this.treePanelFloating = toBoolean(this.treePanelFloating, true);
 
-    // FIXME: try this this
+    // Disable all children components
+    // FIXME: try to enable this (like in a data editor)
     //this.disable();
   }
 
@@ -787,7 +801,7 @@ export class BatchTreeContainerComponent
 
     if (this.editingBatch === model) {
       if (this.treePanelFloating) this.closeTreePanel();
-      if (this.useModal) this.modal?.present();
+      if (this.useModal) await this.modal?.present();
       return; // Skip
     }
 
@@ -833,8 +847,10 @@ export class BatchTreeContainerComponent
       }
 
       // Configure batch tree
-      this.batchTree.gearId = this.gearId;
       this.batchTree.physicalGear = this.physicalGear;
+      this.batchTree.requiredStrategy = this.requiredStrategy;
+      this.batchTree.strategyId = this.strategyId;
+      this.batchTree.gearId = this.gearId;
       this.batchTree.i18nContext = this.i18nContext;
       this.batchTree.showBatchTables = this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSpeciesSampling = this.allowSpeciesSampling;
@@ -857,8 +873,6 @@ export class BatchTreeContainerComponent
         ...model.state
       });
 
-      //
-      console.log('TODO MARK AS READY');
       this.batchTree.markAsReady();
 
       const jobs: Promise<void>[] = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];

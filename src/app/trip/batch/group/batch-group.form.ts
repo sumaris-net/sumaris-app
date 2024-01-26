@@ -21,12 +21,15 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { merge } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
+
+export type IPmfmMap = { [key: number]: IPmfm[] };
 
 export interface BatchGroupFormState extends BatchFormState {
-  childrenPmfmsByQvId: { [key: number]: IPmfm[] };
+  childrenPmfmsByQvId: IPmfmMap;
   qvPmfm: IPmfm;
   hasSubBatches: boolean;
   childrenState: Partial<BatchFormState>;
@@ -45,22 +48,17 @@ export interface BatchGroupFormState extends BatchFormState {
 export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, BatchGroupValidatorService, BatchGroupValidatorOptions>
   implements OnInit {
 
-  readonly childrenPmfmsByQvId$ = this._state.select('childrenPmfmsByQvId');
-  readonly hasSubBatches$ = this._state.select('hasSubBatches');
-  readonly hasSubBatchesControl: UntypedFormControl;
-
-  @Input() set qvPmfm(value: IPmfm) {
-    this._state.set('qvPmfm', _ => value);
-  }
-  get qvPmfm(): IPmfm {
-    return this._state.get('qvPmfm');
-  }
+  @RxStateProperty() protected childrenPmfmsByQvId$: Observable<IPmfmMap>;
+  @RxStateProperty() protected hasSubBatches$: Observable<boolean>;
+  protected readonly hasSubBatchesControl = new UntypedFormControl(false);
 
   @Input() childrenPmfms: IPmfm[];
   @Input() taxonGroupsNoWeight: string[];
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
   @Input() showHasSubBatchesButton = true;
+  @Input() @RxStateProperty() hasSubBatches: boolean;
+  @Input() @RxStateProperty() qvPmfm: IPmfm;
 
   @Input() get childrenState(): Partial<BatchFormState> {
     return this._state.get('childrenState');
@@ -71,6 +69,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       ...value
     });
   }
+
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
   @ViewChildren('childForm') childrenList !: QueryList<BatchForm>;
@@ -147,14 +146,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     (this.childrenList || []).forEach(child => child.enable(opts));
   }
 
-  get hasSubBatches(): boolean {
-    return this._state.get('hasSubBatches');
-  }
-
-  @Input()
-  set hasSubBatches(value: boolean) {
-    this._state.set('hasSubBatches', _ => value);
-  }
 
   constructor(
     injector: Injector,
@@ -181,9 +172,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       showSamplingBatch: false,
       showWeight: false
     });
-
-    // Create control for hasSubBatches button
-    this.hasSubBatchesControl = new UntypedFormControl(false);
 
     // DEBUG
     //this.debug = !environment.production;

@@ -342,13 +342,18 @@
         [defaultHasSubBatches]="hasIndividualMeasures$ | push"
         [allowSubBatches]="hasIndividualMeasures$ | push"
         [usageMode]="usageMode"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="(strategy$ | async)?.id"
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         [physicalGear]="physicalGear$ | async"
         [showAutoFillButton]="false"
         [useSticky]="mobile"
+        [useModal]="smallScreen"
         [mobile]="mobile"
         [debug]="debug"
+        [controlButtonText]="'QUALITY.BTN_CONTROL_WITH_SHORTCUT'|translate"
+        (control)="saveAndControl($event)"
       ></app-batch-tree-container>
     </mat-tab>
   </mat-tab-group>

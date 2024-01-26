@@ -1632,7 +1632,8 @@
     "NEARBY_SPECIFIC_AREA": "Zone spécifique à proximité"
   },
   "QUALITY": {
-    "BTN_CONTROL": "Controler la saisie",
+    "BTN_CONTROL": "Contrôler la saisie",
+    "BTN_CONTROL_WITH_SHORTCUT": "C<u>o</u>ntrôler la saisie",
     "BTN_TERMINATE": "Terminer la saisie",
     "BTN_VALIDATE": "Valider",
     "BTN_UNVALIDATE": "Dévalider",
@@ -2080,6 +2081,7 @@
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
       "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Capture > Lot espèce: Format de la fraction",
+      "TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE": "Capture > Lots espèces: Inventaire exhaustif ?",
       "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
@@ -2105,6 +2107,7 @@
       "TRIP_REPORT_TYPE": "Marée > Type de rapport",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité châlut",
+      "TRIP_REPORT_TYPE_ADVANCED": "Avancé (ObsMer)",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité châlut",

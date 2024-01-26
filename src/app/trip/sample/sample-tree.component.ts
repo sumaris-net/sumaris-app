@@ -50,8 +50,8 @@ export interface SampleTreeState {
   physicalGear: PhysicalGear;
   requiredStrategy: boolean;
   strategyId: number;
-  //requiredGear: boolean;
-  //gearId: number;
+  requiredGear: boolean;
+  gearId: number;
 }
 
 @Component({
@@ -78,8 +78,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @RxStateSelect() readonly requiredStrategy$: Observable<boolean>;
   @RxStateSelect() readonly strategyLabel$: Observable<string>;
   @RxStateSelect() readonly strategyId$: Observable<number>;
-  //@RxStateSelect() readonly requiredGear$: Observable<boolean>;
-  //@RxStateSelect() readonly gearId$: Observable<number>;
+  @RxStateSelect() readonly requiredGear$: Observable<boolean>;
+  @RxStateSelect() readonly gearId$: Observable<number>;
 
   data: Sample[];
   showIndividualMonitoringTable = false;
@@ -110,10 +110,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @Input() @RxStateProperty() requiredStrategy: boolean;
   @Input() @RxStateProperty() strategyLabel: string;
   @Input() @RxStateProperty() strategyId: number;
-  //@Input() @RxStateProperty() requiredGear: boolean;
-  //@Input() @RxStateProperty() gearId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() gearId: number;
 
-  // TODO
   @Input()
   set program(value: Program) {
     this._listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
@@ -296,12 +295,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
         // Set root samples
         this.samplesTable.requiredStrategy = this.requiredStrategy;
         this.samplesTable.strategyId = this.strategyId;
+        this.samplesTable.requiredGear = this.requiredGear;
+        this.samplesTable.gearId = this.gearId;
         this.samplesTable.markAsReady();
         this.samplesTable.value = rootSamples;
 
         // Set sub-samples (individual monitoring)
         this.individualMonitoringTable.requiredStrategy = this.requiredStrategy;
         this.individualMonitoringTable.strategyId = this.strategyId;
+        this.individualMonitoringTable.requiredGear = this.requiredGear;
+        this.individualMonitoringTable.gearId = this.gearId;
         this.individualMonitoringTable.availableParents = rootSamples;
         this.individualMonitoringTable.markAsReady();
         this.individualMonitoringTable.value = SampleUtils.filterByAcquisitionLevel(samples, this.individualMonitoringTable.acquisitionLevel);
@@ -309,6 +312,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
         // Set sub-samples (individual release)
         this.individualReleasesTable.requiredStrategy = this.requiredStrategy;
         this.individualReleasesTable.strategyId = this.strategyId;
+        this.individualReleasesTable.requiredGear = this.requiredGear;
+        this.individualReleasesTable.gearId = this.gearId;
         this.individualReleasesTable.availableParents = rootSamples;
         this.individualReleasesTable.markAsReady();
         this.individualReleasesTable.value = SampleUtils.filterByAcquisitionLevel(samples, this.individualReleasesTable.acquisitionLevel);
@@ -329,6 +334,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
         });
         this.samplesTable.requiredStrategy = this.requiredStrategy;
         this.samplesTable.strategyId = this.strategyId;
+        this.samplesTable.requiredGear = this.requiredGear;
+        this.samplesTable.gearId = this.gearId;
         this.samplesTable.markAsReady();
         this.samplesTable.value = rootSamples;
         await this.samplesTable.ready(waitOpts); // Wait loaded (because of markAsLoaded() in finally)

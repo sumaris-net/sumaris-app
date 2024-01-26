@@ -10,4 +10,5 @@ export interface IDataEntityModalOptions<T = any> extends IModalDetailOptions<T>
 
   // UI options
   usageMode: UsageMode;
+  debug: boolean;
 }

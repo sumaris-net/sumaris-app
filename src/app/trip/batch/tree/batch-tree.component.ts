@@ -162,6 +162,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() i18nPmfmPrefix: string;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
   @Input() showAutoFillButton = true;
+  @Input() allowQvPmfmGroup = true;
   @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
   @Input() @RxStateProperty() showCatchForm: boolean;
   @Input() @RxStateProperty() showBatchTables: boolean;

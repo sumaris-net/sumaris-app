@@ -7,7 +7,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
-export type TripReportType = 'legacy' | 'selectivity';
+export type TripReportType = 'legacy' | 'selectivity' | 'advanced';
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
@@ -303,6 +303,12 @@ export const ProgramProperties = Object.freeze({
       }
     ]
   },
+  TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.exhaustiveInventory.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.individualCount.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE',
@@ -517,6 +523,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: <TripReportType>'selectivity',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY'
+      },
+      {
+        key: <TripReportType>'advanced',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ADVANCED'
       }
     ],
     defaultValue: <TripReportType>'legacy'

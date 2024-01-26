@@ -51,12 +51,16 @@ export interface ISubBatchesModalOptions {
   programLabel: string;
   requiredStrategy: boolean;
   strategyId: number;
+  requiredGear: boolean;
+  gearId: number;
 
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
   data: SubBatch[] | Observable<SubBatch[]>;
   onNewParentClick: () => Promise<BatchGroup | undefined>;
+
+  canDebug: boolean;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -88,7 +92,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
   private _isOnFieldMode: boolean;
-  protected $title = new Subject<string>();
+  protected titleSubject = new Subject<string>();
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
 
@@ -122,6 +126,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() mobile: boolean;
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
+  @Input() canDebug: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -156,13 +161,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // default values
     this.showCommentsColumn = false;
     this.showParentColumn = false;
+    this.settingsId = 'sub-batches-modal';
 
-
-    // TODO: for DEV only ---
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
+
+    this.canDebug = toBoolean(this.canDebug, !environment.production);
+    this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
 
     if (this.disabled) {
       this.showForm = false;
@@ -372,7 +378,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     else {
       titlePrefix = '';
     }
-    this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+    this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
   }
 
   protected async onParentChanges(parent?: BatchGroup) {
@@ -538,5 +544,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       });
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
+  }
+
+  protected async devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
+    await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 }

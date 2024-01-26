@@ -237,14 +237,14 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
 
   protected async openRow(id: number, row: TableElement<ScientificCruise>): Promise<boolean> {
     const tripId = row.currentData.trip?.id;
-    console.log('TODO open data', row.currentData);
+    console.warn('TODO implement scientific cruise editor. Will use trip editor', row.currentData);
     if (isNotNil(tripId)) {
       return this.navController.navigateForward(`trips/${id.toString()}`, {
         queryParams: {}
       });
     }
     else {
-      super.openRow(id, row);
+      return super.openRow(id, row);
     }
   }
 

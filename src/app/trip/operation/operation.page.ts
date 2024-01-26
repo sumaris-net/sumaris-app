@@ -228,6 +228,12 @@ export class OperationPage<S extends OperationState = OperationState>
           .pipe(filter((_) => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event))
       );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.o', description: 'QUALITY.BTN_CONTROL', preventDefault: true })
+          .pipe(filter((_) => !this.disabled))
+          .subscribe((event) => this.saveAndControl())
+      );
     }
 
     // Watch program, to configure tables from program properties
@@ -757,8 +763,6 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
 
-    console.log(this.logPrefix + "TODO watchStrategyFilter")
-
     switch (this.strategyResolution) {
       // Spatio-temporal
       case DataStrategyResolutions.SPATIO_TEMPORAL:
@@ -1090,6 +1094,7 @@ export class OperationPage<S extends OperationState = OperationState>
       if (this.sampleTree) {
         this.sampleTree.requiredStrategy = this.requiredStrategy;
         this.sampleTree.strategyId = this.strategy?.id;
+        this.sampleTree.gearId = gearId;
         jobs.push(this.sampleTree.setValue((data && data.samples) || []));
       }
 
@@ -1097,7 +1102,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       console.debug('[operation] setValue() [OK]');
 
-      // If new data, auto fill the table
+      // If new data, autofill the table
       if (isNewData) {
         if (this.autoFillDatesFromTrip && !this.isDuplicatedData) this.opeForm.fillWithTripDates();
       }
@@ -1108,7 +1113,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
-  cancel(event): Promise<void> {
+  cancel(event?: Event): Promise<void> {
     // Avoid to reload/unload if page destroyed
     timer(500)
       .pipe(takeUntil(this.destroySubject))

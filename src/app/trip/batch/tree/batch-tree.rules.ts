@@ -51,6 +51,20 @@ export class BatchRules {
         value: PmfmIds.LANDING_CATEGORY.toString(), // Industry, Human consumption, etc.
         message: 'Landing category not allowed',
       }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-dressing-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.DRESSING.toString(), // Présentation (Entier, Eviscéré, etc.)
+        message: 'Dressing not allowed',
+      }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-preservation-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.PRESERVATION.toString(), // Etat (Frais, congelé, etc.)
+        message: 'Preservation not allowed',
+      }),
     ];
   }
 

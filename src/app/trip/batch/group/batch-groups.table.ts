@@ -303,6 +303,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   @Input() showError = true;
   @Input() allowSubBatches = true;
+  @Input() allowQvPmfmGroup = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
   @Input() taxonGroupsNoLanding: string[] = [];
@@ -673,7 +674,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (isNotNilOrNaN(batch.weight?.value)) {
       batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
-      if (!weightPmfm) throw new Error('No Weight PMFM found in the strategy. Cannot save batch');
+      if (!weightPmfm) {
+        throw new Error('No Weight PMFM found in the strategy. Cannot save batch');
+      }
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value?.toString();
     }
 
@@ -751,10 +754,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     if (!pmfms) return pmfms; // Skip (no pmfms)
 
-    super.mapPmfms(pmfms); // Should find the qvPmfm
+    super.mapPmfms(pmfms); // Need to find weight pmfms
 
-    // Find the first qualitative PMFM
-    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
+    // Find the first qualitative PMFM (if QV pmfm group has been enabled)
+    this.qvPmfm = this.allowQvPmfmGroup ? BatchGroupUtils.getQvPmfm(pmfms) : undefined;
 
     // Compute species pmfms (at species batch level)
     if (this.qvPmfm) {
@@ -769,7 +772,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Init dynamic columns
     this.computeDynamicColumns(this.qvPmfm, { cache: false });
 
-    //Additional pmfms managed by validator on children batch
+    // Additional pmfms managed by validator on children batch
     return this._speciesPmfms;
   }
 
@@ -1120,6 +1123,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         programLabel: this.programLabel,
         requiredStrategy: this.requiredStrategy,
         strategyId: this.strategyId,
+        requiredGear: this.requiredGear,
+        gearId: this.gearId,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
         showParentGroup,
@@ -1234,6 +1239,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
+        debug: this.debug,
         usageMode: this.usageMode,
         // Override using given options
         ...this.modalOptions,

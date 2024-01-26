@@ -24,9 +24,10 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
 import { MatTreeModule } from '@angular/material/tree';
 import { BatchesTable } from '@app/trip/batch/common/batches.table';
 import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
-import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
-import {MatSidenavModule} from '@angular/material/sidenav';
+import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.module';
+import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 
 @NgModule({
   imports: [
@@ -46,7 +47,8 @@ import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.mod
 
     // Components
     MatSamplingRatioFieldModule,
-    AppIchthyometerModule
+    AppIchthyometerModule,
+    AppExtractionButtonModule,
   ],
   declarations: [
     // Pipes
@@ -73,7 +75,7 @@ import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.mod
     SubBatchesTable,
     SubBatchForm,
     SubBatchModal,
-    SubBatchesModal
+    SubBatchesModal,
   ],
   exports: [
     // Modules
@@ -100,9 +102,7 @@ import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.mod
     SubBatchesTable,
     SubBatchForm,
     SubBatchModal,
-    SubBatchesModal
-  ]
+    SubBatchesModal,
+  ],
 })
-export class AppBatchModule {
-
-}
+export class AppBatchModule {}

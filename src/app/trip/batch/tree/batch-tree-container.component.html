@@ -15,22 +15,42 @@
         [debug]="debug && false"
       ></app-batch-model-tree>
 
-      <ion-footer *ngIf="!mobile">
-        <ion-toolbar>
-          <ion-buttons slot="end">
-            <button
-              mat-icon-button
-              color="accent"
-              (click)="toggleTreePanelFloating()"
-              [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
-            >
-              <mat-icon>
-                <span>{{ floating ? '&#xbb;' : '&#xab;' }}</span>
-              </mat-icon>
-            </button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-footer>
+      <ion-item lines="none" *ngIf="mobile; else desktop">
+        <!-- panel buttons -->
+        <ng-container *ngTemplateOutlet="panelBottomButtons"></ng-container>
+      </ion-item>
+
+      <ng-template #desktop>
+        <ion-footer>
+          <ion-toolbar>
+              <!-- panel buttons -->
+              <ng-container *ngTemplateOutlet="panelBottomButtons"></ng-container>
+          </ion-toolbar>
+        </ion-footer>
+      </ng-template>
+
+      <ng-template #panelBottomButtons>
+        <!-- Control -->
+        <ion-button slot="end" [disabled]="disabled"
+                    *ngIf="control.observed"
+                    (click)="control.emit($event)"
+                    [color]="dirty ? 'tertiary' : 'dark'"
+                    [fill]="dirty ? 'solid' : 'clear'"
+                    [innerHTML]="controlButtonText|translate"></ion-button>
+
+        <ion-buttons slot="end">
+          <!-- toggle tree panel floating -->
+          <button
+            mat-icon-button
+            color="accent"
+            (click)="toggleTreePanelFloating()"
+            [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate">
+            <mat-icon>
+              <span>{{ floating ? '&#xbb;' : '&#xab;' }}</span>
+            </mat-icon>
+          </button>
+        </ion-buttons>
+      </ng-template>
     </mat-sidenav>
 
     <mat-sidenav-content>
@@ -111,7 +131,7 @@
     <ion-header>
       <ion-toolbar color="secondary">
         <ion-buttons slot="start">
-          <ion-button (click)="modal.dismiss()">
+          <ion-button (click)="modal.dismiss()" *ngIf="!mobile">
             <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
           </ion-button>
 
@@ -121,7 +141,12 @@
         </ion-buttons>
 
         <ion-buttons slot="end">
-          <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
+          <!-- Navigation buttons -->
+          <ng-container *ngIf="mobile; else navigationButtons">
+            <ion-button (click)="modal.dismiss()">
+              <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+            </ion-button>
+          </ng-container>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -131,7 +156,9 @@
     </ion-content>
 
     <!-- Fab buttons -->
-    <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+    <ng-container *ngIf="mobile">
+      <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+    </ng-container>
   </ng-template>
 </ion-modal>
 
@@ -285,6 +312,7 @@
     [queryTabIndexParamName]="queryTabIndexParamName"
     [allowSpeciesSampling]="allowSamplingBatches$ | push : rxStrategy"
     [allowSubBatches]="allowSubBatches$ | push : rxStrategy"
+    [allowQvPmfmGroup]="false"
     [defaultHasSubBatches]="defaultHasSubBatches"
     [availableTaxonGroups]="availableTaxonGroups"
     [showAutoFillButton]="showAutoFillButton"
@@ -298,13 +326,22 @@
     [rxStrategy]="rxStrategy"
     [requiredGear]="requiredGear$ | async"
     [gearId]="gearId$ | async"
-    [debug]="debug && false"
+    [debug]="debug"
   ></app-batch-tree>
 </ng-template>
 
 <!-- Fab buttons -->
 <ng-template #fabButtons>
-  <!-- Fab button -->
+  <!-- bottom left -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+
+    <!-- Backward button -->
+    <ion-fab-button color="light" (click)="backward($event)" @fadeInOutAnimation>
+      <ion-icon name="chevron-back"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- bottom right -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <!-- Add button -->
     <ion-fab-button

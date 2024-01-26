@@ -23,7 +23,7 @@ import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batc
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { TranslateService } from '@ngx-translate/core';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
@@ -67,7 +67,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const program = opts?.program;
     if (!program || !program.label) throw new Error('Missing opts.program');
 
-    const editor = program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR);
+    const editor = program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) as OperationEditor;
 
     opts = {
       maxProgression: 100,
@@ -78,6 +78,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     try {
       switch (editor) {
+        case 'advanced':
+          return this.controlSelectivity(entity, program, opts);
         case 'selectivity':
           return this.controlSelectivity(entity, program, opts);
         case 'legacy':
@@ -509,7 +511,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     // Create batch model, and the form
-    const model = await this.batchModelValidatorService.createModel(entity, {catchPmfms, sortingPmfms, allowDiscard, physicalGear});
+    const model = this.batchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard, physicalGear });
     const form = this.batchModelValidatorService.createFormGroupByModel(model, {
       allowSpeciesSampling: allowSamplingBatches,
       isOnFieldMode: false

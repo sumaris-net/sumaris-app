@@ -1,4 +1,4 @@
-import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -41,7 +41,8 @@ export interface BaseMeasurementsTableState {
   requiredGear: boolean;
   gearId: number;
 
-  pmfms: IPmfm[];
+  initialPmfms: IPmfm[];
+  filteredPmfms: IPmfm[];
   hasPmfms: boolean;
 }
 
@@ -76,13 +77,21 @@ export abstract class BaseMeasurementsTable<
   private _autoLoadAfterPmfm = true;
   private _addingRow = false;
 
-  protected programRefService: ProgramRefService;
-  protected pmfmNamePipe: PmfmNamePipe;
-  protected formBuilder: UntypedFormBuilder;
+  protected readonly programRefService = inject(ProgramRefService);
+  protected readonly pmfmNamePipe = inject(PmfmNamePipe);
+  protected readonly formBuilder = inject(UntypedFormBuilder);
+  @RxStateSelect() protected initialPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() protected filteredPmfms$: Observable<IPmfm[]>;
+
+  @RxStateProperty() protected initialPmfms: IPmfm[];
+  @RxStateProperty() protected filteredPmfms: IPmfm[];
+
 
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
+
+
 
   @RxStateSelect() hasPmfms$: Observable<boolean> ;
 
@@ -123,10 +132,18 @@ export abstract class BaseMeasurementsTable<
     return this.getShowColumn('comments');
   }
 
-  @RxStateSelect('pmfms') pmfms$: Observable<IPmfm[]>;
 
-  @Input() @RxStateProperty() pmfms: IPmfm[];
   @RxStateProperty() hasPmfms: boolean;
+
+  get pmfms(): IPmfm[] {
+    return this.filteredPmfms;
+  }
+  set pmfms(values: IPmfm[]) {
+    this.initialPmfms = values;
+  }
+  get pmfms$(): Observable<IPmfm[]> {
+    return this.filteredPmfms$;
+  }
 
   set dataService(value: S) {
     if (this._dataService.delegate !== value) {
@@ -172,9 +189,6 @@ export abstract class BaseMeasurementsTable<
       }
     );
     this.memoryDataService = dataService instanceof InMemoryEntitiesService ? (dataService as InMemoryEntitiesService<T, F, number>) : null;
-    this.programRefService = injector.get(ProgramRefService);
-    this.pmfmNamePipe = injector.get(PmfmNamePipe);
-    this.formBuilder = injector.get(UntypedFormBuilder);
     this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex((key) => key === 'rankOrder') !== -1;
     this.markAsLoaded({ emitEvent: false });
@@ -183,9 +197,14 @@ export abstract class BaseMeasurementsTable<
     this.defaultSortDirection = 'asc';
     this.canEdit = true;
 
+    // Copy some properties to the dataService
     this._state.hold(
       this._state.select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], s => s),
-      (state) => this._dataService.set(state));
+      (state) => {
+        // DEBUG
+        //console.debug(this.logPrefix + 'Updating measurement-service state ', state.acquisitionLevel);
+        this._dataService.set(state);
+      });
 
     const requiredGear = options?.initialState?.requiredGear === true;
     this._state.set(<Partial<ST>>{
@@ -197,9 +216,11 @@ export abstract class BaseMeasurementsTable<
     });
 
     // connect
-    this._state.connect('pmfms', this._dataService.pmfms$);
-    this._state.hold(this.pmfms$, (pmfms) => {
+    this._state.connect('filteredPmfms', this._dataService.pmfms$);
+    this._state.hold(this.initialPmfms$, (pmfms) => {
       this._dataService.pmfms = pmfms;
+    });
+    this._state.hold(this.filteredPmfms$, (pmfms) => {
       this.hasPmfms = isNotEmptyArray(pmfms);
     });
 

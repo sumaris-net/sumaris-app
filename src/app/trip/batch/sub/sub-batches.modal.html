@@ -6,14 +6,27 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title [innerHTML]="$title | async"></ion-title>
+    <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
     <ion-buttons slot="end">
+
       <!-- bluetooth ichthyometer icon -->
       <app-ichthyometer-icon *ngIf="showBluetoothIcon"></app-ichthyometer-icon>
 
-      <ion-spinner *ngIf="loadingSubject | async; else closeButton"></ion-spinner>
+      <!-- options menu -->
+      <ion-button
+        *ngIf="canDebug"
+        [disabled]="disabled || loading"
+        [matMenuTriggerFor]="optionsMenu"
+        [title]="'COMMON.BTN_OPTIONS' | translate"
+      >
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
 
+      <!-- loading spinner -->
+      <ion-spinner *rxIf="loadingSubject; else closeButton"></ion-spinner>
+
+      <!-- close -->
       <ng-template #closeButton>
         <ion-button *ngIf="enabled" (click)="close($event)" visible-xs visible-sm visible-mobile>
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
@@ -22,6 +35,19 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <!-- DEV only -->
+    <button mat-menu-item (click)="devToggleDebug()">
+      <mat-icon *ngIf="debug">check_box</mat-icon>
+      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
 
 <!-- Row actions menu -->
 <mat-menu #rowActionsMenu="matMenu" xPosition="before">
@@ -36,6 +62,12 @@
 </mat-menu>
 
 <ion-content cdkTrapFocus #content>
+
+  <!-- DEBUG -->
+  <ng-container *ngIf="debug">
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  </ng-container>
+
   <!-- sub batch form -->
   <ion-grid [class.disabled]="disabled">
     <ion-row class="ion-no-padding">
@@ -242,3 +274,52 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          modal.ready: {{ readySubject | async }}
+          <br />
+          modal.loading: {{ loading }}
+          <br />
+          modal.dirty: {{ dirty }}
+          <br />
+          modal.valid: {{ valid }}
+          <br />
+          modal.i18nSuffix: {{ i18nSuffix }}
+          <br />
+          modal.usageMode: {{ usageMode }}
+        </ion-col>
+        <ion-col>
+          table.disabled: {{ disabled }}
+          <br />
+          table.program: {{ programLabel }}
+          <br />
+          table.strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId }}
+          <br />
+          table.gear {{ requiredGear ? '(required)' : '' }}: {{ gearId }}
+          <br />
+          table.showTaxonNameColumn: {{ showTaxonNameColumn }}
+          <br />
+          table.showIndividualCount: {{ showIndividualCount }}
+          <br />
+          pmfms: {{ (pmfms$ | async)?.length }}
+        </ion-col>
+        <ion-col>
+          _dataService.loading: {{ _dataService.loading$|async }}
+          <br/>
+          _dataService.program: {{ _dataService.programLabel }}
+          <br />
+          _dataService.strategy {{ _dataService.requiredStrategy ? '(required)' : '' }}: {{ _dataService.strategyId }}
+          <br />
+          _dataService.gear {{ _dataService.requiredGear ? '(required)' : '' }}: {{ _dataService.gearId }}
+          <br />
+          _dataService.pmfms: {{ (_dataService.pmfms$ | async)?.length }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
