@@ -7,6 +7,7 @@ import {
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityServiceWatchOptions,
+  EntityUtils,
   firstArrayValue,
   fromDateISOString,
   isEmptyArray,
@@ -167,7 +168,7 @@ export class StrategyRefService extends BaseReferentialService<
 
     const toEntityOrError = (data: Strategy|string) => {
       if (typeof data === 'string') throw new Error(data);
-      if (!data) return undefined;
+      if (EntityUtils.isEmpty(data, 'id')) return undefined;
       return opts?.toEntity !== false ? Strategy.fromObject(data) : data as Strategy;
     };
 
@@ -224,9 +225,9 @@ export class StrategyRefService extends BaseReferentialService<
       map(({data, total}) => {
         if (opts?.failIfMissing && isEmptyArray(data)) return 'PROGRAM.STRATEGY.ERROR.STRATEGY_NOT_FOUND_OR_ALLOWED';
         if (opts?.failIfMany && isNotNil(total) && total > 1) return 'PROGRAM.STRATEGY.ERROR.STRATEGY_DUPLICATED';
-        return firstArrayValue(data) || STRATEGY_NOT_FOUND;
+        return firstArrayValue(data);
       }),
-      map(toEntityOrError),
+      map(json => toEntityOrError(json) || STRATEGY_NOT_FOUND),
 
       // DEBUG
       tap(_ => {

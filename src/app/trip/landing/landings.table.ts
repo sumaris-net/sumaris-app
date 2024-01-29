@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -13,7 +13,6 @@ import { Landing } from './landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
 import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
@@ -50,12 +49,10 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
 })
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
-  private _parentDateTime;
-  private _parentObservers;
+  private _parentDateTime: Moment;
+  private _parentObservers: Person[];
   private _detailEditor: LandingEditor;
-  private _strategyPmfmId: number;
 
-  protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
@@ -66,20 +63,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
-  @Input() showError = true;
   @Input() useSticky = true;
   @Input() includedPmfmIds: number[] = null;
-
-  @Input() set strategyPmfmId(value: number) {
-    if (this._strategyPmfmId !== value) {
-      this._strategyPmfmId = value;
-      this.setShowColumn('strategy', isNotNil(this._strategyPmfmId));
-    }
-  }
-
-  get strategyPmfmId(): number {
-    return this._strategyPmfmId;
-  }
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -207,10 +192,11 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
         i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
         initialState: {
-          requiredStrategy: false
+          requiredStrategy: true,
+          requiredGear: false,
+          acquisitionLevel: AcquisitionLevelCodes.LANDING
         }
       });
-    this.cd = injector.get(ChangeDetectorRef);
 
     this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
@@ -218,8 +204,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-
-    this.requiredGear = false;
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
@@ -228,13 +212,11 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.defaultPageSize = -1; // Do not use paginator
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
-
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.showObserversColumn = false;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
+    this.logPrefix = '[landings-table] ';
   }
 
   ngOnInit() {
@@ -257,8 +239,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       },
       mobile: this.mobile
     });
-
-
   }
 
   ngOnDestroy() {

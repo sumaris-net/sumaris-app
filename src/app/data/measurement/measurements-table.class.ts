@@ -82,18 +82,15 @@ export abstract class BaseMeasurementsTable<
   protected readonly formBuilder = inject(UntypedFormBuilder);
   @RxStateSelect() protected initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() protected filteredPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() hasPmfms$: Observable<boolean> ;
 
   @RxStateProperty() protected initialPmfms: IPmfm[];
   @RxStateProperty() protected filteredPmfms: IPmfm[];
-
 
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
 
-
-
-  @RxStateSelect() hasPmfms$: Observable<boolean> ;
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -215,7 +212,7 @@ export abstract class BaseMeasurementsTable<
       ...options?.initialState
     });
 
-    // connect
+    // Pmfms
     this._state.connect('filteredPmfms', this._dataService.pmfms$);
     this._state.hold(this.initialPmfms$, (pmfms) => {
       this._dataService.pmfms = pmfms;

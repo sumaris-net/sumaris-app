@@ -1,60 +1,7 @@
 <!-- DEBUG -->
-<app-debug *ngIf="debug" title="Landings table">
-  <ion-grid class="ion-no-padding">
-    <ion-row>
-      <ion-col>
-        ready: {{ readySubject | async }}
-        <br />
-        loading: {{ loadingSubject | async }}
-        <br />
-        enabled: {{ enabled }}
-        <br />
-        dirty: {{ dirtySubject | async }}
-        <br />
-        valid: {{ valid }}
-        <br />
-      </ion-col>
-      <ion-col>
-        acquisitionLevel: {{ acquisitionLevel }}
-        <br />
-        program: {{ programLabel }}
-        <br />
-        strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId || strategyLabel }}
-        <br />
-        gear {{requiredGear? '(required)' : ''}}: {{ gearId }}
-        <br />
-        visibleRowCount: {{ visibleRowCount }}
-        <br />
-        totalRowCount: {{ totalRowCount }}
-        <br />
-      </ion-col>
-      <ion-col *ngIf="memoryDataService">
-        service.starting: {{ memoryDataService.starting }}
-        <br />
-        service.started: {{ memoryDataService.started }}
-        <br />
-        service.dirty: {{ memoryDataService.dirtySubject | async }}
-        <br />
-        service.value: {{ !!memoryDataService.value }}
-        <br />
-      </ion-col>
-      <ion-col *ngIf="memoryDataService">
-        service.acquisitionLevel: {{ _dataService.acquisitionLevel }}
-        <br />
-        service.program: {{ _dataService.programLabel }}
-        <br />
-        service.strategy {{_dataService.requiredStrategy && '(required)'}}: id={{ _dataService.strategyId }}, label={{ _dataService.strategyLabel }}
-        <br />
-        service.gear ({{_dataService.requiredGear ? 'required' : 'optional'}}): id={{ _dataService.gearId }}
-        <br />
-        service.visibleCount: {{ memoryDataService.count }}
-        <br />
-        service.hiddenCount: {{ memoryDataService.hiddenCount }}
-        <br />
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-</app-debug>
+<ng-container *ngIf="debug">
+  <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+</ng-container>
 
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -98,11 +45,6 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- display columns -->
-  <button mat-menu-item (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
 
   <!--<mat-divider></mat-divider>-->
 
@@ -391,6 +333,7 @@
       [class.mat-row-dirty]="row.validator?.dirty"
       [class.mat-row-disabled]="!row.editing"
       [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
@@ -444,4 +387,65 @@
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>
   </span>
+</ng-template>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug title="Landings table">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loadingSubject | async }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirtySubject | async }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          program: {{ programLabel }}
+          <br />
+          strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId || strategyLabel }}
+          <br />
+          <br />
+          acquisitionLevel: {{ acquisitionLevel }}
+          <br />
+        </ion-col>
+        <ion-col>
+          pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          visibleRowCount: {{ visibleRowCount }}
+          <br />
+          totalRowCount: {{ totalRowCount }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="memoryDataService">
+          service.starting: {{ memoryDataService.starting }}
+          <br />
+          service.started: {{ memoryDataService.started }}
+          <br />
+          service.dirty: {{ memoryDataService.dirtySubject | async }}
+          <br />
+          service.value: {{ !!memoryDataService.value }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="memoryDataService">
+          service.acquisitionLevel: {{ _dataService.acquisitionLevel }}
+          <br />
+          service.program: {{ _dataService.programLabel }}
+          <br />
+          service.strategy {{ _dataService.requiredStrategy ? '(required)' : '' }}: {{ _dataService.strategyId || _dataService.strategyLabel }}
+          <br />
+          service.gear {{ _dataService.requiredGear ? '(required)' : '' }}: {{ _dataService.gearId }}
+          <br />
+          service.visibleCount: {{ memoryDataService.count }}
+          <br />
+          service.hiddenCount: {{ memoryDataService.hiddenCount }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

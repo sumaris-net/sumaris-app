@@ -56,29 +56,48 @@ export class ObservedLocationValidatorService
   }
 
   getFormGroupConfig(data?: ObservedLocation, opts?: ObservedLocationValidatorOptions): { [key: string]: any } {
-    return {
-      ...super.getFormGroupConfig(data),
+    const formConfig = Object.assign(
+      super.getFormGroupConfig(data, opts),
+      {
       __typename: [ObservedLocation.TYPENAME],
       location: [data?.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [data?.startDateTime || null, this.createStartDateValidator(opts)],
       endDateTime: [data?.endDateTime || null],
-      measurementValues: this.formBuilder.group({}),
-      observers: this.getObserversFormArray(data?.observers)
-    };
+      measurementValues: this.formBuilder.group({})
+    });
 
+
+    // Add observers
+    if (opts.withObservers) {
+      formConfig.observers = this.getObserversFormArray(data?.observers);
+    }
+
+    return formConfig;
   }
 
-  updateFormGroup(formGroup: UntypedFormGroup, opts?: ObservedLocationValidatorOptions) {
+  updateFormGroup(form: UntypedFormGroup, opts?: ObservedLocationValidatorOptions) {
     opts = this.fillDefaultOptions(opts);
 
     // Update the start date validator
-    formGroup.get('startDateTime').setValidators(this.createStartDateValidator(opts));
+    form.get('startDateTime').setValidators(this.createStartDateValidator(opts));
 
-    return formGroup;
+    // Observers
+    if (opts?.withObservers) {
+      if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray(null, {required: true}));
+    }
+    else {
+      if (form.controls.observers) form.removeControl('observers');
+    }
+
+    // Update form group validators
+    const formValidators = this.getFormGroupOptions(null, opts)?.validators;
+    form.setValidators(formValidators);
+
+    return form;
   }
 
 
-  getFormGroupOptions(data?: any): AbstractControlOptions {
+  getFormGroupOptions(data?: any, opts?: ObservedLocationValidatorOptions): AbstractControlOptions {
     return {
       validators: [SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime')]
     };

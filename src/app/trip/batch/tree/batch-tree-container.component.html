@@ -375,18 +375,15 @@
           <br />
           ready: {{ readySubject | async }}
           <br />
-          dirty: {{ dirty }}
+          dirty: {{ dirty }} - value: {{ !!data }}
           <br />
-          value: {{ !!data }}
+          valid: {{ valid }} - invalid: {{ invalid }}
           <br />
-          valid: {{ valid }}
+          disabled: {{ disabled }} - enabled: {{ enabled }}
           <br />
-          invalid: {{ invalid }}
+          program: {{ programLabel$ | async }}
           <br />
-          disabled: {{ disabled }}
-          <br />
-          enabled: {{ enabled }}
-          <br />
+          strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId }}
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{ form.dirty }}
@@ -399,7 +396,6 @@
           <br />
           form.value:
           <br />
-          <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
         </ion-col>
         <ion-col>
           batchTree.loading: {{ batchTree?.loading }}

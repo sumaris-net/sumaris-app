@@ -10,6 +10,7 @@ import {
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { startWith } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
@@ -73,6 +74,10 @@ export abstract class AppRootDataEntityEditor<
   }
 
   /* -- protected methods -- */
+
+  protected computeUsageMode(data: T): UsageMode {
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+  }
 
   /**
    * Listen program changes (only if new data)

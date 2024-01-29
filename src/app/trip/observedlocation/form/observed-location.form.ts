@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { ObservedLocationValidatorService } from '../observed-location.validator';
+import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AppFormArray,
   DateUtils,
-  FormArrayHelper,
+  equals,
   fromDateISOString,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   LoadResult,
   Person,
@@ -41,8 +43,10 @@ export interface ObservedLocationFormState extends MeasurementsFormState {}
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
 
-  protected _showObservers: boolean;
-  protected observersHelper: FormArrayHelper<Person>;
+  private _showObservers: boolean;
+  private _locationSuggestLengthThreshold: number;
+  private _lastValidatorOpts: any;
+
   protected observerFocusIndex = -1;
   protected startDatePickerFilter: DateFilterFn<Moment>;
   protected isStartDateInTheFuture: boolean;
@@ -65,8 +69,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
-      this.initObserversHelper();
-      this.markForCheck();
+      if (!this.loading) this.updateFormGroup();
     }
   }
   get showObservers(): boolean {
@@ -82,16 +85,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
-  get observersForm(): UntypedFormArray {
-    return this.form.controls.observers as UntypedFormArray;
-  }
-
-  get measurementValuesForm(): UntypedFormGroup {
-    return this.form.controls.measurementValues as UntypedFormGroup;
-  }
-
-  get programControl(): UntypedFormControl {
-    return this.form.get('program') as UntypedFormControl;
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
   constructor(
@@ -117,7 +112,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
+    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
@@ -128,6 +123,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
       },
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
     });
 
     // Combo location
@@ -141,6 +138,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
       mobile: this.mobile,
     });
 
@@ -208,14 +206,11 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.onApplyingEntity(data, opts);
 
     // Make sure to have (at least) one observer
-    // TODO BLA enable this
-    //data.observers = data.observers && data.observers.length ? data.observers : [null];
-
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, data.observers.length));
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      this.observersHelper.removeAllEmpty();
+      data.observers = [];
     }
 
     // Force to show end date
@@ -238,9 +233,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   addObserver() {
-    this.observersHelper.add();
+    this.observersForm.add();
     if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
+      this.observerFocusIndex = this.observersForm.length - 1;
     }
   }
 
@@ -256,29 +251,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   /* -- protected method -- */
 
-  protected initObserversHelper() {
-    if (isNil(this._showObservers)) return; // skip if not loading yet
-
-    this.observersHelper = new FormArrayHelper<Person>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-      (person) => this.validatorService.getObserverControl(person),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showObservers,
-      }
-    );
-
-    if (this._showObservers) {
-      // Create at least one observer
-      if (this.observersHelper.size() === 0) {
-        this.observersHelper.resize(1);
-      }
-    } else if (this.observersHelper.size() > 0) {
-      this.observersHelper.resize(0);
-    }
-  }
-
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
@@ -293,6 +265,31 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       ...filter,
       excludedIds,
     });
+  }
+
+  updateFormGroup() {
+    const validatorOpts: ObservedLocationValidatorOptions = {
+      withObservers: this.showObservers
+    };
+
+    if (!equals(validatorOpts, this._lastValidatorOpts)) {
+      console.info('[trip-form] Updating form group, using opts', validatorOpts);
+
+      this.validatorService.updateFormGroup(this.form, validatorOpts);
+
+      // Need to refresh the form state  (otherwise the returnLocation is still invalid)
+      if (!this.loading) {
+        this.updateValueAndValidity();
+        // Not need to markForCheck (should be done inside updateValueAndValidity())
+        //this.markForCheck();
+      } else {
+        // Need to toggle return date time to required
+        this.markForCheck();
+      }
+
+      // Remember used opts, for next call
+      this._lastValidatorOpts = validatorOpts;
+    }
   }
 
   protected markForCheck() {

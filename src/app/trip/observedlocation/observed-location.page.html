@@ -1,63 +1,5 @@
-<ng-template #debugPanel>
-  <app-debug title="Editor and Form">
-    <ion-grid>
-      <ion-row>
-        <ion-col>
-          editor.ready: {{ readySubject | async }}
-          <br />
-          editor.loading: {{ loading }}
-          <br />
-          editor.enabled: {{ enabled }}
-          <br />
-          editor.data: {{ !!data }}
-          <br />
-          editor.program: {{(program$|async)?.label}}
-          <br />
-          editor.strategyResolution: {{strategyResolution$|async}}
-          <br />
-          editor.strategy {{requiredStrategy && '(required)'}}: {{(strategy$|async)?.id}}
-          <br />
-          editor.showLandingTab: {{ showLandingTab }}
-          <br />
-          editor.landingTableType: {{ $landingTableType | async }}
-        </ion-col>
-        <ion-col>
-          form.ready: {{ observedLocationForm.readySubject | async }}
-          <br />
-          form.loading: {{ observedLocationForm.loading }}
-          <br />
-          form.enabled: {{ observedLocationForm.enabled }}
-          <br />
-          form.data: {{ !!observedLocationForm.value }}
-          <br />
-        </ion-col>
-        <ion-col>
-          form.acquisitionLevel: {{ observedLocationForm.acquisitionLevel }}
-          <br />
-          form.programLabel: {{ observedLocationForm.programLabel }}
-          <br />
-          form.strategy {{ observedLocationForm.requiredStrategy && '(required)' }}): id={{ observedLocationForm.strategyId }}, label={{ observedLocationForm.strategyLabel }}
-          <br />
-          form.gear ({{ observedLocationForm.requiredGear ? 'required' : 'optional' }}): id={{ observedLocationForm.gearId }}
-          <br />
-          form.pmfms count: {{ (pmfms$ | push)?.length || 0 }}
-        </ion-col>
-        <ion-col>
-          form.startDateTime:
-          {{ observedLocationForm.form | formGetValue : 'startDateTime' | dateFormat : { time: true } }}
-          <br />
-          form.endDateTime:
-          {{ observedLocationForm.form | formGetValue : 'endDateTime' | dateFormat : { time: true } }}
-          <br />
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </app-debug>
-</ng-template>
-
 <app-toolbar
   *ngIf="showToolbar"
-  [title]="$title | async"
   [color]="toolbarColor"
   [hasValidate]="!loading && (dirty || saving)"
   [hasClose]="!loading && !dirty && !saving"
@@ -67,29 +9,34 @@
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
-  <button
-    slot="end"
-    mat-icon-button
-    *ngIf="showOptionsMenu && ((enabled && !isNewData) || debug)"
-    [matMenuTriggerFor]="optionsMenu"
-    [title]="'COMMON.BTN_OPTIONS' | translate"
-  >
-    <mat-icon>more_vert</mat-icon>
-  </button>
+
+  <ion-title [innerHTML]="titleSubject | async"></ion-title>
+
+  <ion-buttons slot="end">
+
+    <!-- option menu -->
+    <ion-button
+      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canDebug)"
+      [matMenuTriggerFor]="optionsMenu"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+    >
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport()">
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
     <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
     <ion-label translate>OBSERVED_LOCATION.EDIT.BTN_REPORT</ion-label>
   </button>
 
   <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
+  <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
     <mat-icon>
-      <ion-icon slot="start" name="refresh"></ion-icon>
+      <ion-icon slot="icon-only" name="refresh"></ion-icon>
     </mat-icon>
     <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
@@ -110,6 +57,7 @@
   <mat-tab-group
     #tabGroup
     class="mat-tab-fixed-content"
+    [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -117,7 +65,9 @@
   >
     <!-- TAB: general -->
     <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_GENERAL' | translateContext : i18nContext.suffix"
-          appSubMenuTab [parentPath]="defaultBackHref" [subMenuTitle]="(titleSubject|async|noHtml)||''">
+             appSubMenuTab
+             [subMenuTitle]="(titleSubject|async|noHtml)||''"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
@@ -132,12 +82,7 @@
       <div>
         <!-- error -->
         <ion-item
-          *ngIf="error || observedLocationForm.error; let errorMsg"
-          visible-xs
-          visible-sm
-          visible-mobile
-          lines="none"
-        >
+          *ngIf="mobile && (error || observedLocationForm.error); let errorMsg" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
@@ -193,11 +138,11 @@
       #landingsTab
       [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
       [disabled]="!showLandingTab"
-      appSubMenuTab
+
     >
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
-        <ng-container *rxIf="$table; let table; suspense: suspense">
+        <ng-container *rxIf="landingTable$; let table; suspense: suspense">
           <ion-label
             [matBadge]="table.visibleRowCount"
             [matBadgeHidden]="table.invalid || !table.visibleRowCount"
@@ -217,42 +162,44 @@
 
       <div class="ion-no-padding">
         <!-- error -->
-        <ion-item *ngIf="($table | async)?.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="(landingTable$ | async)?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="($table | async)?.error | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="(landingTable$ | async)?.error | translate"></ion-label>
         </ion-item>
 
-        <ng-container [ngSwitch]="$landingTableType | async">
-          <!-- aggregated landings -->
-          <app-aggregated-landings-table
-            #aggregatedLandingsTable
-            *ngSwitchCase="'aggregated'"
-            [debug]="debug"
-            [programLabel]="programLabel$ | async"
-            (onNewRow)="onNewAggregatedLanding($event)"
-            [showToolbar]="!mobile"
-            [useSticky]="true"
-            (ngInit)="$table.next(aggregatedLandingsTable)"
-          ></app-aggregated-landings-table>
+        <ng-container *rxIf="landingTableType$; let type">
+          <ng-container [ngSwitch]="type">
+            <!-- aggregated landings -->
+            <app-aggregated-landings-table
+              #aggregatedLandingsTable
+              *ngSwitchCase="'aggregated'"
+              [programLabel]="programLabel$ | async"
+              (onNewRow)="onNewAggregatedLanding($event)"
+              [showToolbar]="!mobile"
+              [useSticky]="true"
+              (ngInit)="landingTable = aggregatedLandingsTable"
+              [debug]="debug"
+            ></app-aggregated-landings-table>
 
-          <!-- landings -->
-          <app-landings-table
-            #landingsTable
-            *ngSwitchCase="'legacy'"
-            [programLabel]="programLabel$ | async"
-            [requiredStrategy]="requiredStrategy$|async"
-            [strategyId]="(strategy$|async)?.id"
-            [showObserversColumn]="false"
-            [showDateTimeColumn]="false"
-            [showToolbar]="!mobile"
-            [showPaginator]="true"
-            (onOpenRow)="onOpenLanding($event)"
-            (onNewRow)="onNewLanding($event)"
-            (openTrip)="onOpenTrip($event)"
-            (newTrip)="onNewTrip($event)"
-            (ngInit)="$table.next(landingsTable)"
-            [debug]="debug"
-          ></app-landings-table>
+            <!-- landings -->
+            <app-landings-table
+              #landingsTable
+              *ngSwitchCase="'legacy'"
+              [programLabel]="programLabel$ | async"
+              [requiredStrategy]="requiredStrategy$ | async"
+              [strategyId]="(strategy$ | async)?.id"
+              [showObserversColumn]="false"
+              [showDateTimeColumn]="false"
+              [showToolbar]="!mobile"
+              [showPaginator]="true"
+              (onOpenRow)="onOpenLanding($event)"
+              (onNewRow)="onNewLanding($event)"
+              (openTrip)="onOpenTrip($event)"
+              (newTrip)="onNewTrip($event)"
+              (ngInit)="landingTable = landingsTable"
+              [debug]="debug"
+            ></app-landings-table>
+          </ng-container>
         </ng-container>
       </div>
     </mat-tab>
@@ -276,16 +223,73 @@
 
 <!-- FAB button: add landing -->
 <ion-fab
+  *ngIf="mobile && selectedTabIndex === 1"
   vertical="bottom"
   horizontal="end"
   slot="fixed"
-  *ngIf="selectedTabIndex === 1"
+  [class.cdk-visually-hidden]="(landingTable$|async)?.disabled"
   @fadeInOutAnimation
-  visible-xs
-  visible-sm
-  visible-mobile
 >
   <ion-fab-button color="tertiary" (click)="addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #debugPanel>
+  <app-debug title="Editor and Form">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.showLandingTab: {{ showLandingTab }}
+          <br />
+          editor.landingTableType: {{ landingTableType$ | async }}
+        </ion-col>
+        <ion-col>
+          form.ready: {{ observedLocationForm.readySubject | async }}
+          <br />
+          form.loading: {{ observedLocationForm.loading }}
+          <br />
+          form.enabled: {{ observedLocationForm.enabled }}
+          <br />
+          form.dirty: {{ observedLocationForm.dirty }}
+          <br />
+          form.valid: {{ observedLocationForm.valid }}
+          <br />
+          form.program: {{ observedLocationForm.programLabel }}
+          <br />
+          form.strategy{{ observedLocationForm.requiredStrategy ? ' (required)' : '' }}: {{ observedLocationForm.strategyId || observedLocationForm.strategyLabel }}
+          <br />
+          <br />
+          form.acquisitionLevel: {{ observedLocationForm.acquisitionLevel }}
+          <br />
+          form.pmfms: {{ (pmfms$ | push)?.length || 0 }}
+        </ion-col>
+        <ion-col>
+          form.startDateTime:
+          {{ observedLocationForm.form | formGetValue : 'startDateTime' | dateFormat : { time: true } }}
+          <br />
+          form.endDateTime:
+          {{ observedLocationForm.form | formGetValue : 'endDateTime' | dateFormat : { time: true } }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

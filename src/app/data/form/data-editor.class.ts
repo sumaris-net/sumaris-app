@@ -178,9 +178,9 @@ export abstract class AppDataEntityEditor<
       filter(isNotNil),
       mergeMap(async (program) => {
         // Make sure to load strategy resolution
-        this.strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+        this.strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
-        // Call setProgram() (should have been overriden by subclasses)
+        // Call setProgram() (should have been override by subclasses)
         try {
           await this.setProgram(program);
           return program;
@@ -329,7 +329,7 @@ export abstract class AppDataEntityEditor<
     if (this.debug) console.debug(this.logPrefix + `Program ${program.label} loaded, with options: `, program.properties);
 
     // Set strategy resolution
-    const strategyResolution = program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION) as DataStrategyResolution;
+    const strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
     console.info(this.logPrefix + 'Strategy resolution: ' + strategyResolution);
     this.strategyResolution = strategyResolution;
   }

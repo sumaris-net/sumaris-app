@@ -114,6 +114,31 @@ export abstract class MeasurementValuesForm<
       ...options
     };
 
+    // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
+    this._state.hold(merge(
+        this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
+        this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
+        this._state.select(['requiredStrategy', 'strategyId'], res => res),
+        this._state.select(['requiredGear', 'gearId'], res => res),
+      )
+        .pipe(
+          // Only if markAsReady() called
+          filter(_ => !this.starting)
+        ),
+      // /!\ DO NOT emit event if not loaded.
+      // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
+      (_) => this.loadPmfms({emitEvent: false})
+    );
+
+    // Update form, when pmfms set
+    this._state.hold(this.pmfms$, (pmfms) => this.updateMeasurementValuesFormGroup(pmfms));
+
+    this._state.connect('ready', this._state.select('readyStep')
+      .pipe(
+        distinctUntilChanged(),
+        map(step => step >= MeasurementsFormReadySteps.FORM_GROUP_READY)
+      ));
+
     // Initial state
     this._state.set(<Partial<S>>{
       readyStep: MeasurementsFormReadySteps.STARTING,
@@ -128,40 +153,14 @@ export abstract class MeasurementValuesForm<
 
     // DEBUG
     this._logPrefix = '[measurements-values] ';
+    this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
+      this._logPrefix = `[measurements-values] (${acquisitionLevel}) `;
+    });
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
-      this._logPrefix = `[measurements-values] (${acquisitionLevel}) `;
-    });
-
-    // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
-    this._state.hold(merge(
-        this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
-        this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
-        this._state.select(['requiredStrategy', 'strategyId'], res => res),
-        this._state.select(['requiredGear', 'gearId'], res => res),
-      )
-        .pipe(
-          // Only if markAsReady() called
-          filter(_ => !this.starting)
-        ),
-        // /!\ DO NOT emit event if not loaded.
-        // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
-        (_) => this.loadPmfms({emitEvent: false})
-    );
-
-    // Update form, when pmfms set
-    this._state.hold(this.pmfms$, (pmfms) => this.updateFormGroup(pmfms));
-
-    this._state.connect('ready', this._state.select('readyStep')
-      .pipe(
-        distinctUntilChanged(),
-        map(step => step >= MeasurementsFormReadySteps.FORM_GROUP_READY)
-      ));
 
     // Listen form changes
     this.registerSubscription(
@@ -198,7 +197,7 @@ export abstract class MeasurementValuesForm<
 
   reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}) {
     // Applying value to form (that should be ready).
-    return this.updateView(data, opts);
+    return this.applyValue(data, opts);
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -285,7 +284,7 @@ export abstract class MeasurementValuesForm<
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     // Warn is form is NOT ready
     if (this.debug && this.readyStep < MeasurementsFormReadySteps.FORM_GROUP_READY) {
-      console.warn(`${this._logPrefix} Trying to set value, but form may be not ready!`);
+      console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
     // DEBUG
@@ -303,7 +302,6 @@ export abstract class MeasurementValuesForm<
     }
 
     this.data = data;
-
     await super.setValue(data, opts);
 
     if (!opts || opts.emitEvent !== false) {
@@ -521,7 +519,7 @@ export abstract class MeasurementValuesForm<
     return this.translate.instant(i18nKey);
   }
 
-  private async updateFormGroup(pmfms?: IPmfm[], opts?: {emitEvent?: boolean}) {
+  private async updateMeasurementValuesFormGroup(pmfms?: IPmfm[], opts?: {emitEvent?: boolean}) {
     pmfms = pmfms || this.pmfms;
     if (!pmfms) return; // Skip
 

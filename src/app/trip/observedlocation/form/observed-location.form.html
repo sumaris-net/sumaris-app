@@ -158,46 +158,49 @@
     </ng-template>
 
     <!-- Observers -->
-    <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first" [hidden]="!showObservers">
-      <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
-      </ion-col>
-      <ion-col>
-        <mat-autocomplete-field
-          [formControl]="observersHelper.at(i)"
-          [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
-          [autofocus]="observerFocusIndex === i"
-          [config]="autocompleteFields.person"
-          [tabindex]="tabindex + 10 + i * 3"
-          [i18nPrefix]="'USER.'"
-          [required]="showObservers && first"
-        >
-          <ion-icon matPrefix name="person"></ion-icon>
-        </mat-autocomplete-field>
-      </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
-        <button
-          type="button"
-          mat-icon-button
-          [tabindex]="tabindex + 10 + +i * 3 + 1"
-          [disabled]="disabled"
-          [title]="'COMMON.BTN_ADD' | translate"
-          (click)="addObserver()"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
-        <button
-          type="button"
-          mat-icon-button
-          [tabindex]="tabindex + 10 + +i * 3 + 2"
-          [disabled]="disabled"
-          [title]="'COMMON.BTN_DELETE' | translate"
-          (click)="observersHelper.removeAt(i)"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      </ion-col>
-    </ion-row>
+    <ng-container *ngIf="showObservers">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
+        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field
+            [formControl]="observerForm|formGetControl"
+            [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
+            [autofocus]="observerFocusIndex === i"
+            [config]="autocompleteFields.person"
+            [tabindex]="tabindex + 10 + i * 3"
+            [i18nPrefix]="'USER.'"
+            [required]="first"
+          >
+            <ion-icon matPrefix name="person"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+        <ion-col size="auto" class="ion-align-self-center">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="last"
+            [tabindex]="tabindex + 10 + i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addObserver()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 10 + i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="observersForm.removeAt(i)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
     <!-- Measurements -->
     <ion-row>
@@ -251,6 +254,9 @@
           ></textarea>
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
+            {{ 'ERROR.FIELD_MAX_LENGTH' | translate : form.controls.comments.errors.maxlength }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
