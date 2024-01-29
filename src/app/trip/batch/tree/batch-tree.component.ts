@@ -133,7 +133,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   protected _logPrefix = '[batch-tree] ';
   protected _debugData: any;
 
-  @RxStateRegister() protected _state: RxState<BatchTreeState> = inject(RxState, {self: true});
+  @RxStateRegister() protected readonly _state: RxState<BatchTreeState> = inject(RxState, {self: true});
 
   @RxStateProperty() protected showSubBatchesTable: boolean;
   @RxStateProperty() protected programAllowMeasure: boolean;

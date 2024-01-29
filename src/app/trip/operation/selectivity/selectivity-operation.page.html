@@ -284,7 +284,7 @@
                         entityName="VesselUseMeasurement"
                         [acquisitionLevel]="acquisitionLevel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="(strategy$ | async)?.id"
+                        [strategyId]="strategy$ | async | mapGet: 'id'"
                         [requiredGear]="true"
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"

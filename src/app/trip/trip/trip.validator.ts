@@ -20,6 +20,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
@@ -100,7 +101,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      formConfig.fishingAreas = this.getFishingAreasArray(data);
+      formConfig.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, {required: true});
     }
 
     return formConfig;
@@ -139,6 +140,14 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       if (form.controls.observers) form.removeControl('observers');
     }
 
+    // Fishing areas
+    if (opts?.withFishingAreas) {
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
+    }
+    else {
+      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
+    }
+
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
     form.setValidators(formValidators);
@@ -169,12 +178,21 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 
-  getFishingAreasArray(data?: Trip, opts?: {required?: boolean}) {
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
     const required = !opts || opts.required !== false;
-    return this.formBuilder.array(
-      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
-      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+    const formArray = new AppFormArray(
+      (fa) => this.fishingAreaValidator.getFormGroup(fa, {required}),
+      FishingArea.equals,
+      FishingArea.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+      }
     );
+    if (data || required) {
+      formArray.patchValue(data || [null]);
+    }
+    return formArray;
   }
 
   /* -- protected methods -- */

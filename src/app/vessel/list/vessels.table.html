@@ -30,9 +30,9 @@
       <mat-icon>add</mat-icon>
     </button>
 
-    <!--<button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+    <button mat-icon-button *ngIf="debug" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
-    </button>-->
+    </button>
 
     <ng-container
       *ngVar="

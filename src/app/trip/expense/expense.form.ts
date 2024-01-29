@@ -34,6 +34,7 @@ import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { RxState } from '@rx-angular/state';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -46,7 +47,8 @@ class TupleValue {
   selector: 'app-expense-form',
   templateUrl: './expense.form.html',
   styleUrls: ['./expense.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState]
 })
 export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
 

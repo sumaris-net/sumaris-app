@@ -52,7 +52,7 @@ export class MeasurementsTableEntitiesService<
   private _delegate: S;
   protected programRefService: ProgramRefService;
 
-  @RxStateRegister() protected _state: RxState<ST> = new RxState<ST>();
+  @RxStateRegister() protected readonly _state: RxState<ST> = new RxState<ST>();
 
   @RxStateSelect() private initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() private filteredPmfms$: Observable<IPmfm[]>;

@@ -12,9 +12,7 @@
 
     <!-- Refresh -->
     <button
-      mat-icon-button
-      color="light"
-      *ngIf="!mobile"
+      *ngIf="!mobile" mat-icon-button
       [title]="'COMMON.BTN_REFRESH' | translate"
       (click)="onRefresh.emit()"
     >

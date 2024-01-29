@@ -194,7 +194,7 @@
                         [selectedTabIndex]="selectedSubTabIndex"
                         [usageMode]="usageMode"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="(strategy$ | async)?.id"
+                        [strategyId]="strategy$ | async | mapGet: 'id'"
                         [requiredGear]="false"
                         [useSticky]="mobile"
                         [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"

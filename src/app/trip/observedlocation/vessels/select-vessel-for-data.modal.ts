@@ -31,7 +31,10 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { debounceTime, mergeMap } from 'rxjs/operators';
 
 export interface SelectVesselsForDataModalOptions {
-  debug?: boolean;
+  programLabel: string;
+  requiredStrategy: boolean;
+  strategyId: number;
+
   landingFilter: LandingFilter | null;
   vesselFilter: VesselFilter | null;
   allowMultiple: boolean;
@@ -44,6 +47,7 @@ export interface SelectVesselsForDataModalOptions {
   showOfflineVessels: boolean;
   defaultVesselSynchronizationStatus: SynchronizationStatus;
   maxDateVesselRegistration?: Moment;
+  debug?: boolean;
 }
 
 @Component({
@@ -63,6 +67,10 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @ViewChild(VesselsTable, { static: true }) vesselsTable: VesselsTable;
   @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
+
+  @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
 
   @Input() landingFilter: LandingFilter|null = null;
   @Input() vesselFilter: VesselFilter|null = null;

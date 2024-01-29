@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
   AppTable,
@@ -11,7 +11,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { IPacketModalOptions, PacketModal } from './packet.modal';
 import { IPacketSaleModalOptions, PacketSaleModal } from '../sale/packet-sale.modal';
@@ -19,6 +19,13 @@ import { SaleProductUtils } from '../sale/sale-product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxState } from '@rx-angular/state';
+
+export interface PacketsTableState extends BaseMeasurementsTableState {
+  parents: IWithPacketsEntity<any>[];
+}
 
 @Component({
   selector: 'app-packets-table',
@@ -32,13 +39,18 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
           equals: Packet.equals,
         }),
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit, OnDestroy {
-  @Input() $parents: BehaviorSubject<IWithPacketsEntity<any, any>[]>;
-  @Input() parentAttributes: string[];
 
+  @RxStateRegister() protected readonly _state = inject(RxState);
+
+  @RxStateSelect() protected parents$: Observable<IWithPacketsEntity<any>[]>;
+
+  @Input() @RxStateProperty() parents: IWithPacketsEntity<any>[];
+  @Input() parentAttributes: string[];
   @Input() showToolbar = true;
   @Input() useSticky = false;
 
@@ -107,7 +119,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     super.ngOnInit();
 
     this.registerAutocompleteField('parent', {
-      items: this.$parents,
+      items: this.parents$,
       attributes: this.parentAttributes,
       columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
       columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
@@ -225,8 +237,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
       if (this.filter?.parent) {
         dataToOpen.parent = this.filter.parent;
-      } else if (this.$parents.value?.length === 1) {
-        dataToOpen.parent = this.$parents.value[0];
+      } else if (this.parents?.length === 1) {
+        dataToOpen.parent = this.parents[0];
       }
     }
 
@@ -235,7 +247,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       componentProps: <IPacketModalOptions>{
         disabled: this.disabled,
         mobile: this.mobile,
-        parents: this.$parents.value,
+        parents: this.parents || null,
         parentAttributes: this.parentAttributes,
         data: dataToOpen,
         isNew,

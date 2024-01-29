@@ -17,7 +17,7 @@ import {
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
@@ -79,7 +79,7 @@ export abstract class AppBaseTable<
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
 
-  @RxStateRegister() protected _state: RxState<ST> = inject(RxState, {optional: true, self: true});
+  @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, {optional: true, self: true});
 
   @Input() canGoBack = false;
   @Input() showTitle = true;

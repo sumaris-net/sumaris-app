@@ -235,8 +235,8 @@ export class OperationPage<S extends OperationState = OperationState>
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'control.o', description: 'QUALITY.BTN_CONTROL', preventDefault: true })
-          .pipe(filter((_) => !this.disabled))
-          .subscribe((event) => this.saveAndControl())
+          .pipe(filter(() => !this.disabled))
+          .subscribe(() => this.saveAndControl())
       );
     }
 
@@ -1599,7 +1599,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Fishing area
     if (this.opeForm.showFishingArea) {
-      const fishingAreas = (this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value) || this.data?.fishingAreas;
+      const fishingAreas = (this.opeForm.fishingAreasForm?.value) || this.data?.fishingAreas;
       this.context.setValue('fishingAreas', fishingAreas);
       this.context.resetValue('vesselPositions');
     }

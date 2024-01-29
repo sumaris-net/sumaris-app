@@ -74,14 +74,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
 
-  readonly mobile = this.settings.mobile;
-  //readonly appearance = this.mobile ? 'outline' : 'legacy';
-
   protected observerFocusIndex = -1;
-  enableMetierFilter = false;
-  metierFilter: Partial<MetierFilter>;
-  metierFocusIndex = -1;
-  canFilterMetier = false;
+  protected enableMetierFilter = false;
+  protected metierFilter: Partial<MetierFilter>;
+  protected metierFocusIndex = -1;
+  protected canFilterMetier = false;
+  protected readonly mobile = this.settings.mobile;
 
   @Input() showComment = true;
   @Input() allowAddNewVessel = true;
@@ -172,6 +170,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Output() departureDateTimeChanges = new EventEmitter<Moment>();
   @Output() departureLocationChanges = new EventEmitter<ReferentialRef>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
+  @Output() metiersChanges = new EventEmitter<ReferentialRef[]>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
   @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
@@ -292,7 +291,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       combineLatest([departureDateTime$, returnDateTime$])
         .pipe(map(([d1, d2]) => DateUtils.max(d1, d2)))
         .subscribe(max => this.maxDateChanges.next(max))
-    );
+    )
+
+    if (this.showMetiers) {
+      this.registerSubscription(this.form.get('metiers').valueChanges.subscribe((metiers) => this.metiersChanges.next(metiers))
+      );
+    }
   }
 
   registerAutocompleteField<E = any, EF = any>(
@@ -327,7 +331,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Make sure to have (at least) one observer
     // Resize observers array
     if (this._showObservers) {
-      data.observers = data.observers && data.observers.length ? data.observers : [null];
+      // Make sure to have (at least) one observer
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
       data.observers = [];
     }

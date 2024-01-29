@@ -333,6 +333,9 @@ export class ObservedLocationPage
     const modal = await this.modalCtrl.create({
       component: SelectVesselsForDataModal,
       componentProps: <SelectVesselsForDataModalOptions>{
+        programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategy?.id,
         allowMultiple: false,
         landingFilter,
         vesselFilter: <VesselFilter>{

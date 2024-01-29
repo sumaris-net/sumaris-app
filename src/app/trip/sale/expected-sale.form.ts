@@ -17,11 +17,12 @@ import { environment } from '@environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implements OnInit {
-  readonly debug = !environment.production;
-
   @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
   @Input() showError = false;
   @Input() mobile: boolean;
+  @Input() debug = !environment.production;
 
   @ViewChild('saleMeasurementsForm', { static: true }) saleMeasurementsForm: MeasurementsForm;
   @ViewChild('productsTable', { static: true }) productsTable: ProductsTable;

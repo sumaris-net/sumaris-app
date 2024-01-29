@@ -1,25 +1,34 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {LandingsTable} from './landings.table';
-import {ModalController} from '@ionic/angular';
-import {LandingFilter} from './landing.filter';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {Landing} from './landing.model';
-import {Observable} from 'rxjs';
-import {isNotNil} from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { LandingsTable } from './landings.table';
+import { ModalController } from '@ionic/angular';
+import { LandingFilter } from './landing.filter';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { Landing } from './landing.model';
+import { Observable } from 'rxjs';
+import { isNotNil } from '@sumaris-net/ngx-components';
+import { TableElement } from '@e-is/ngx-material-table';
 
+export interface SelectLandingsModalOptions {
+  filter: LandingFilter | null;
+  acquisitionLevel: AcquisitionLevelType;
+  programLabel: string;
+  requiredStrategy: boolean;
+  strategyId: number;
+}
 @Component({
   selector: 'app-select-landings-modal',
   templateUrl: './select-landings.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectLandingsModal implements OnInit {
+export class SelectLandingsModal implements OnInit, SelectLandingsModalOptions{
 
   @ViewChild('table', { static: true }) table: LandingsTable;
 
   @Input() filter: LandingFilter|null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;

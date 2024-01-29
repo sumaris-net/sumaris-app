@@ -17,12 +17,14 @@ import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-typed-expense-form',
   templateUrl: './typed-expense.form.html',
   styleUrls: ['./typed-expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class TypedExpenseForm extends MeasurementsForm implements OnInit {
   mobile: boolean;

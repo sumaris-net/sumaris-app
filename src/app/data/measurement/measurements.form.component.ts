@@ -66,7 +66,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() floatLabel: FloatLabelType = 'auto';
   @Input() entityName: MeasurementType;
   @Input() animated = false;
-  @Input() mobile = false;
+  @Input() mobile = this.settings.mobile;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() showButtonIcons: boolean;

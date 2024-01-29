@@ -2,25 +2,25 @@ import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewCh
 
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
-import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
+  equals,
   fadeInOutAnimation,
   HistoryPageReference,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, tap } from 'rxjs';
 import { TripSaveOptions, TripService } from '../trip/trip.service';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -34,7 +34,7 @@ import { OperationGroup, Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { fillRankOrder, isRankOrderValid } from '@app/data/services/model/model.utils';
 import { SaleProductUtils } from '../sale/sale-product.model';
-import { debounceTime, filter, first } from 'rxjs/operators';
+import { debounceTime, filter, first, map } from 'rxjs/operators';
 import { ExpenseForm } from '../expense/expense.form';
 import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -47,16 +47,25 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { LandedTripService } from '@app/trip/landedtrip/landed-trip.service';
 import moment from 'moment';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+
+export interface LandedTripPageState extends RootDataEntityEditorState {
+  metiers: ReferentialRef[];
+  operationGroups: OperationGroup[];
+  productFilter: ProductFilter;
+  packetFilter: PacketFilter;
+}
 
 @Component({
   selector: 'app-landed-trip-page',
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: LandedTripPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: LandedTripPage }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> implements OnInit, OnDestroy {
+export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, number, LandedTripPageState> implements OnInit, OnDestroy {
   private static TABS = {
     GENERAL: 0,
     OPERATION_GROUP: 1,
@@ -65,26 +74,27 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     EXPENSE: 4,
   };
 
-  observedLocationId: number;
-
-  showOperationGroupTab = false;
-  showCatchTab = false;
-  showSaleTab = false;
-  showExpenseTab = false;
-  showCatchFilter = false;
-
   // List of trip's metier, used to populate operation group's metier combobox
-  $metiers = new BehaviorSubject<ReferentialRef[]>(null);
+  @RxStateSelect() protected metiers$: Observable<ReferentialRef[]>;
+  @RxStateSelect() protected operationGroups$: Observable<OperationGroup[]>;
+  @RxStateSelect() protected productFilter$: Observable<ProductFilter[]>;
+  @RxStateSelect() protected packetFilter$: Observable<PacketFilter[]>;
 
+  protected observedLocationId: number;
+  protected showOperationGroupTab = false;
+  protected showCatchTab = false;
+  protected showSaleTab = false;
+  protected showExpenseTab = false;
+  protected showCatchFilter = false;
   // List of trip's operation groups, use to populate product filter
-  $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
-  catchFilterForm: UntypedFormGroup;
-  $productFilter = new BehaviorSubject<ProductFilter>(undefined);
-  $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
+  protected catchFilterForm: UntypedFormGroup;
+  protected operationGroupAttributes = ['rankOrderOnPeriod', 'metier.label', 'metier.name'];
+  protected productSalePmfms: DenormalizedPmfmStrategy[];
 
-  operationGroupAttributes = ['rankOrderOnPeriod', 'metier.label', 'metier.name'];
-
-  productSalePmfms: DenormalizedPmfmStrategy[];
+  @RxStateProperty() metiers: ReferentialRef[];
+  @RxStateProperty() operationGroups: OperationGroup[];
+  @RxStateProperty() productFilter: ProductFilter;
+  @RxStateProperty() packetFilter: PacketFilter;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -127,31 +137,14 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     this.catchFilterForm = this.formBuilder.group({
       operationGroup: [null],
     });
-    this.registerSubscription(
-      this.catchFilterForm.valueChanges.subscribe(() => {
-        this.$productFilter.next(ProductFilter.fromParent(this.catchFilterForm.value.operationGroup));
-        this.$packetFilter.next(PacketFilter.fromParent(this.catchFilterForm.value.operationGroup));
-      })
-    );
-
     // Init operationGroupFilter combobox
     this.tripForm.registerAutocompleteField('operationGroupFilter', {
       showAllOnFocus: true,
-      items: this.$operationGroups,
+      items: this.operationGroups$,
       attributes: this.operationGroupAttributes,
       columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
       mobile: this.mobile,
     });
-
-    // Update available operation groups for catches forms
-    this.registerSubscription(
-      this.operationGroupTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(400),
-          filter(() => !this.loading)
-        )
-        .subscribe((operationGroups) => this.$operationGroups.next(operationGroups))
-    );
 
     // Cascade refresh to operation tables
     this.registerSubscription(
@@ -182,14 +175,34 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
         }
       })
     );
+
+
+    const operationGroups$ = this.catchFilterForm.valueChanges.pipe(
+      map(() => this.catchFilterForm.value.operationGroup)
+    );
+
+    this._state.connect('productFilter', operationGroups$, (_, operationGroup) => ProductFilter.fromParent(operationGroup));
+    this._state.connect('packetFilter', operationGroups$, (_, operationGroup) => PacketFilter.fromParent(operationGroup));
+
+    // Update available operation groups for catches forms
+    this._state.connect('operationGroups',
+      this.operationGroupTable.dataSource.datasourceSubject
+        .pipe(
+          debounceTime(400),
+          filter(() => !this.loading)
+        )
+    );
+
+    this._state.connect('metiers', this.tripForm.metiersChanges.pipe(
+      filter((metiers) => !equals(metiers, this.metiers)),
+      tap((metiers) => {
+        if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
+      })
+    ));
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.$metiers.unsubscribe();
-    this.$operationGroups.unsubscribe();
-    this.$productFilter.unsubscribe();
-    this.$packetFilter.unsubscribe();
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
@@ -231,23 +244,15 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Configure trip form
+    // Configure trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-    if (!this.tripForm.showObservers) {
-      // make sure to reset data observers, if any
-      if (this.data) this.data.observers = [];
+    if (this.data && !this.tripForm.showObservers) {
+      this.data.observers = []; // make sure to reset data observers, if any
     }
+
     this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-    if (!this.tripForm.showMetiers) {
-      // make sure to reset data metiers, if any
-      if (this.data) this.data.metiers = [];
-    } else {
-      this.tripForm.metiersForm.valueChanges.subscribe((value) => {
-        const metiers = ((value || []) as ReferentialRef[]).filter((metier) => isNotNilOrBlank(metier));
-        if (JSON.stringify(metiers) !== JSON.stringify(this.$metiers.value || [])) {
-          if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-          this.$metiers.next(metiers);
-        }
-      });
+    if (this.data && !this.tripForm.showMetiers) {
+      this.data.metiers = []; // make sure to reset data metiers, if any
     }
 
     // Configure fishing area form
@@ -346,7 +351,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
 
-    this.$metiers.next(data.metiers);
+    this.metiers = data.metiers;
     this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE,
     });
@@ -466,7 +471,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService> i
     }
 
     this.operationGroupTable.value = operationGroups;
-    this.$operationGroups.next(operationGroups);
+    this.operationGroups = operationGroups;
 
     // Products table
     this.productsTable.value = allProducts;

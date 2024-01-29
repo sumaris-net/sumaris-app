@@ -71,7 +71,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   private _listenProgramChanges = true;
   protected _logPrefix = '[sample-tree] ';
 
-  @RxStateRegister() protected _state: RxState<SampleTreeState> = inject(RxState, { self: true });
+  @RxStateRegister() protected readonly _state: RxState<SampleTreeState> = inject(RxState, { self: true });
 
   @RxStateSelect() readonly programLabel$: Observable<string>;
   @RxStateSelect() readonly program$: Observable<Program>;

@@ -153,9 +153,12 @@
       <app-operation-group-table
         #operationGroupTable
         [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
         acquisitionLevel="OPERATION"
-        [metiers]="$metiers.asObservable()"
+        [metiers]="metiers$"
         [showToolbar]="!mobile"
+        [debug]="debug"
       ></app-operation-group-table>
     </mat-tab>
 
@@ -221,9 +224,11 @@
               #productsTable
               [debug]="debug"
               [programLabel]="programLabel$ | async"
+              [requiredStrategy]="requiredStrategy$ | async"
+              [strategyId]="strategy$ | async | mapGet: 'id'"
               acquisitionLevel="PRODUCT"
-              [$parents]="$operationGroups"
-              [parentFilter]="$productFilter | async"
+              [parents]="operationGroups$|async"
+              [parentFilter]="productFilter$ | async"
               [parentAttributes]="operationGroupAttributes"
               [showSaleType]="false"
               [showToolbar]="!mobile"
@@ -256,8 +261,8 @@
               #packetsTable
               [debug]="debug"
               [program]="programLabel$ | async"
-              [$parents]="$operationGroups"
-              [parentFilter]="$packetFilter | async"
+              [parents]="operationGroups$ | async"
+              [parentFilter]="packetFilter$ | async"
               [parentAttributes]="operationGroupAttributes"
               [showToolbar]="!mobile"
               [useSticky]="true"
@@ -283,8 +288,11 @@
       <app-expected-sale-form
         #expectedSaleForm
         [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
         [showError]="true"
         [mobile]="mobile"
+        [debug]="debug"
       ></app-expected-sale-form>
     </mat-tab>
 
@@ -299,8 +307,10 @@
       <app-expense-form
         #expenseForm
         entityName="VesselUseMeasurement"
-        [programLabel]="programLabel$ | async"
         acquisitionLevel="EXPENSE"
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
         [forceOptional]="usageMode | isOnField"
         [showError]="true"
         [debug]="debug"
@@ -347,11 +357,20 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          editor.loading: {{ loading }}
-          <br />
           editor.ready: {{ readySubject | async }}
           <br />
+          editor.loading: {{ loading }}
+          <br />
           editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
         </ion-col>
         <ion-col>
