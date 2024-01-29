@@ -36,7 +36,6 @@ import {
   PersonService,
   PersonUtils,
   ReferentialRef,
-  referentialToString,
   ReferentialUtils,
   StatusIds,
   toBoolean,
@@ -78,7 +77,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   readonly mobile = this.settings.mobile;
   //readonly appearance = this.mobile ? 'outline' : 'legacy';
 
-  observerFocusIndex = -1;
+  protected observerFocusIndex = -1;
   enableMetierFilter = false;
   metierFilter: Partial<MetierFilter>;
   metierFocusIndex = -1;
@@ -393,8 +392,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.metierFocusIndex = this.metiersForm.length - 1;
     }
   }
-
-  referentialToString = referentialToString;
 
   /* -- protected methods-- */
 

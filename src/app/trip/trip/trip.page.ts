@@ -34,7 +34,6 @@ import {
   ReferentialRef,
   ReferentialUtils,
   sleep,
-  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
@@ -378,7 +377,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.debug(this.logPrefix + 'Using strategy resolution: ' + this.strategyResolution);
+    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
 
     switch (this.strategyResolution) {
       // Spatio-temporal
@@ -423,7 +422,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Update the context
     if (this.tripContext.strategy !== strategy) {
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
-      this.tripContext.setValue('strategy', strategy);
+      this.tripContext.strategy = strategy;
     }
   }
 
@@ -730,10 +729,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return this.tripForm.form;
   }
 
-  protected computeUsageMode(data: Trip): UsageMode {
-    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';
-  }
-
   protected computeNextTabIndex(): number | undefined {
     return super.computeNextTabIndex() || this.selectedTabIndex;
   }
@@ -828,7 +823,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   /**
-   * Update context, for batch validator
+   * Update data context
    *
    * @protected
    */

@@ -50,19 +50,14 @@
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-      <span translate>TRIP.EDIT.BTN_REPORT</span>
-    </ion-label>
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
   </button>
 
   <!-- reset -->
-  <button mat-menu-item *ngIf="mobile"
-          [disabled]="disabled || !dirty" (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
+  <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
+    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
 
   <!-- download button -->
@@ -76,10 +71,8 @@
   ></app-extraction-button>
 
   <button mat-menu-item *ngIf="canCopyLocally" (click)="copyLocally()">
-    <ion-label>
-      <mat-icon>file_copy</mat-icon>
-      <span translate>COMMON.DEBUG.BTN_COPY_LOCALLY</span>
-    </ion-label>
+    <mat-icon>file_copy</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
   </button>
 
   <!-- online help -->
@@ -132,55 +125,17 @@
       </ng-template>
 
       <div class="ion-no-padding">
+
+        <!-- debug -->
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
         <!-- error -->
         <ion-item *ngIf="mobile && (error || tripForm.error); let errorMsg" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
-
-        <!-- debug -->
-        <app-debug *ngIf="debug">
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                editor.ready: {{ readySubject | async }}
-                <br />
-                editor.loading: {{ loading }}
-                <br />
-                editor.enabled: {{ enabled }}
-                <br />
-                editor.dirty: {{ dirty }}
-                <br />
-                editor.valid: {{ valid }}
-                <br />
-              </ion-col>
-              <ion-col>
-                tripForm.ready: {{ tripForm.readySubject | async }}
-                <br />
-                tripForm.loading: {{ tripForm.loading }}
-                <br />
-                tripForm.enabled: {{ tripForm.enabled }}
-                <br />
-                tripForm.dirty: {{ tripForm.dirty }}
-                <br />
-                tripForm.valid: {{ tripForm.valid }}
-                <br />
-              </ion-col>
-              <ion-col>
-                measurementsForm.ready: {{ measurementsForm.readySubject | async }}
-                <br />
-                measurementsForm.loading: {{ measurementsForm.loading }}
-                <br />
-                measurementsForm.enabled: {{ measurementsForm.enabled }}
-                <br />
-                measurementsForm.dirty: {{ measurementsForm.dirty }}
-                <br />
-                measurementsForm.valid: {{ measurementsForm.valid }}
-                <br />
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -361,11 +316,10 @@
 
 <ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
   <!-- FAB button: add gear -->
-  <ion-fab
+  <ion-fab *ngSwitchCase="1"
     slot="fixed"
     vertical="bottom"
     horizontal="end"
-    *ngSwitchCase="1"
     [class.cdk-visually-hidden]="physicalGearsTable.disabled"
     @fadeInOutAnimation
   >
@@ -422,3 +376,62 @@
     </ng-template>
   </ng-container>
 </ng-container>
+
+<ng-template #debugPanel>
+  <app-debug title="Editor and Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.ready: {{ tripForm.readySubject | async }}
+          <br />
+          form.loading: {{ tripForm.loading }}
+          <br />
+          form.enabled: {{ tripForm.enabled }}
+          <br />
+          form.dirty: {{ tripForm.dirty }}
+          <br />
+          form.valid: {{ tripForm.valid }}
+          <br />
+        </ion-col>
+        <ion-col>
+          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
+          <br />
+          measurementsForm.loading: {{ measurementsForm.loading }}
+          <br />
+          measurementsForm.enabled: {{ measurementsForm.enabled }}
+          <br />
+          measurementsForm.dirty: {{ measurementsForm.dirty }}
+          <br />
+          measurementsForm.valid: {{ measurementsForm.valid }}
+          <br />
+          measurementsForm.program: {{ measurementsForm.programLabel }}
+          <br />
+          measurementsForm.strategy{{ measurementsForm.requiredStrategy ? ' (required)' : '' }}: {{ measurementsForm.strategyId || measurementsForm.strategyLabel }}
+          <br />
+          <br />
+          measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

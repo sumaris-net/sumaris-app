@@ -257,7 +257,7 @@
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
-            {{ 'ERROR.FIELD_REQUIRED' | translate : form.controls.comments.errors.maxlength }}
+            {{ 'ERROR.FIELD_MAX_LENGTH' | translate : form.controls.comments.errors.maxlength }}
           </mat-error>
         </mat-form-field>
       </ion-col>
