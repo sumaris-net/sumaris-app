@@ -348,7 +348,7 @@
       color="tertiary"
       *ngIf="enabled && editingBatch?.isLeaf"
       (click)="addRow($event)"
-      @fadeInOutAnimation
+      @fadeInAnimation
     >
       <ion-icon name="fish"></ion-icon>
       <ion-icon name="add" class="icon-secondary" style="left: 29px; top: 4px; font-size: 23px"></ion-icon>
@@ -371,9 +371,9 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          loading: {{ loading }}
-          <br />
           ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loading }} (subject: {{ loadingSubject | async }})
           <br />
           dirty: {{ dirty }} - value: {{ !!data }}
           <br />
@@ -383,7 +383,11 @@
           <br />
           program: {{ programLabel$ | async }}
           <br />
-          strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId }}
+          strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId }}
+          <br />
+          gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
+          <br/>
+          allowSpeciesSampling: {{ allowSpeciesSampling }}
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{ form.dirty }}
@@ -392,24 +396,22 @@
           <br />
           form.invalid: {{ form.invalid }}
           <br />
-          form.enabled: {{ form.enabled }}
-          <br />
-          form.value:
+          form.disabled: {{ form.disabled }}
           <br />
         </ion-col>
         <ion-col>
-          batchTree.loading: {{ batchTree?.loading }}
-          <br />
           batchTree.ready: {{ batchTree?.readySubject | async }}
           <br />
-          batchTree.dirty: {{ batchTree?.dirty }}
+          batchTree.loading: {{ batchTree?.loading }}
           <br />
-          batchTree.value: {{ !!batchTree?.value }}
+          batchTree.dirty: {{ batchTree?.dirty }}
           <br />
           batchTree.valid: {{ batchTree?.valid }}
           <br />
           batchTree.enabled: {{ batchTree?.enabled }}
           <br />
+          <br />
+          batchTree.value: {{ !!batchTree?.value }}
         </ion-col>
       </ion-row>
       <ion-row>

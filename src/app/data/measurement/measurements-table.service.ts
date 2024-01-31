@@ -14,7 +14,7 @@ import {
   waitForFalse,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { Directive, Injector, Optional } from '@angular/core';
+import { Directive, inject, Injector, Optional } from '@angular/core';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -50,7 +50,8 @@ export class MeasurementsTableEntitiesService<
   implements IEntitiesService<T, F> {
 
   private _delegate: S;
-  protected programRefService: ProgramRefService;
+  protected _logPrefix = '[measurement-table-service] ';
+  protected programRefService = inject(ProgramRefService);
 
   @RxStateRegister() protected readonly _state: RxState<ST> = new RxState<ST>();
 
@@ -65,8 +66,6 @@ export class MeasurementsTableEntitiesService<
   @RxStateProperty() strategyLabel: string;
   @RxStateProperty() requiredGear: boolean;
   @RxStateProperty() gearId: number;
-  @RxStateProperty() private initialPmfms: IPmfm[];
-  @RxStateProperty() private filteredPmfms: IPmfm[];
   @RxStateProperty() loading: boolean;
 
   set delegate(value: S) {
@@ -82,11 +81,11 @@ export class MeasurementsTableEntitiesService<
   }
 
   set pmfms(values: IPmfm[]) {
-    this.initialPmfms = values;
+    this._state.set('initialPmfms', () => values); // Initial pmfms (should be filtered before any use)
   }
 
   get pmfms(): IPmfm[] {
-    return this.filteredPmfms;
+    return this._state.get('filteredPmfms'); // Return filtered pmfms
   }
 
   get pmfms$(): Observable<IPmfm[]> {
@@ -123,37 +122,19 @@ export class MeasurementsTableEntitiesService<
         .pipe(
           filter((s) => this.canLoadPmfms(s as Partial<ST>)),
           tap(() => this.markAsLoading()),
-          switchMap((s) => this.watchProgramPmfms(s as Partial<ST>)),
-          mergeMap(async (pmfms) => {
-            // Map
-            if (this.options && this.options.mapPmfms) {
-              return this.options.mapPmfms(pmfms);
-            }
-            return pmfms;
-          }),
+          switchMap((s) => this.watchProgramPmfms(s as Partial<ST>))
         )
     );
 
     // Filtered pmfms, from initial Pmfms
     this._state.connect('filteredPmfms', this.initialPmfms$.pipe(
+      mergeMap((pmfms) => this.filterPmfms(pmfms)),
       filter(isNotNil),
-      mergeMap(async (pmfms) => {
-        // Apply mapPmfms, if need
-        if (this.options && this.options.mapPmfms) {
-          const filteredPmfms = await this.options.mapPmfms(pmfms);
-          // Make sure pmfms is an array
-          if (!Array.isArray(filteredPmfms)) {
-            console.error('[measurement-table-service] Invalid pmfms object, returned by function \'mapPmfms()\'. Expected to be an array, but get:', pmfms);
-            return pmfms;
-          }
-        }
-        return pmfms;
-      }),
       tap(() => this.markAsLoaded()),
       filter(pmfms => !equals(pmfms, this.pmfms)),
       // DEBUG
       tap((pmfms) => //this._debug &&
-        console.debug('[measurement-table-service] Filtered pmfms changed to:', pmfms))
+        console.debug(`${this._logPrefix}Filtered pmfms changed to:`, pmfms))
     ));
 
     // DEBUG
@@ -239,7 +220,7 @@ export class MeasurementsTableEntitiesService<
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
 
-    if (this._debug) console.debug('[measurement-table-service] converting measurement values before saving...');
+    if (this._debug) console.debug(this._logPrefix + 'converting measurement values before saving...');
     const pmfms = this.pmfms || [];
     const dataToSaved = data.map(json => {
       const entity = new this.dataType() as T;
@@ -275,12 +256,12 @@ export class MeasurementsTableEntitiesService<
 
     if (state.requiredStrategy && isNil(state.strategyLabel) && isNil(state.strategyId)) {
       //if (this._debug)
-        console.debug('[measurement-table-service] Cannot watch Pmfms yet. Missing required strategy.');
+        console.debug(this._logPrefix + 'Cannot watch Pmfms yet. Missing required strategy.');
       return false;
     }
 
     if (state.requiredGear && isNil(state.gearId)) {
-      if (this._debug) console.debug('[measurement-table-service] Cannot watch Pmfms yet. Missing required \'gearId\'.');
+      if (this._debug) console.debug(this._logPrefix + 'Cannot watch Pmfms yet. Missing required \'gearId\'.');
       return false;
     }
 
@@ -290,7 +271,7 @@ export class MeasurementsTableEntitiesService<
   private watchProgramPmfms(state: Partial<ST>): Observable<IPmfm[]> {
     // DEBUG
     //if (this._debug)
-      console.debug(`[measurement-table-service] Loading pmfms... {program: '${state.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyId: ${state.strategyId} (required? ${state.requiredStrategy}), gearId: ${state.gearId}}}̀̀`);
+      console.debug(`${this._logPrefix}Loading pmfms... {program: '${state.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyId: ${state.strategyId} (required? ${state.requiredStrategy}), gearId: ${state.gearId}}}̀̀`);
 
     // Watch pmfms
     let pmfm$ = this.programRefService.watchProgramPmfms(state.programLabel, {
@@ -308,9 +289,9 @@ export class MeasurementsTableEntitiesService<
       pmfm$ = pmfm$.pipe(
         tap(pmfms => {
           if (!pmfms.length) {
-            console.debug(`[measurement-table-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}. Please fill program's strategies !`);
+            console.debug(`${this._logPrefix}No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}. Please fill program's strategies !`);
           } else {
-            console.debug(`[measurement-table-service] Pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}`, pmfms);
+            console.debug(`${this._logPrefix}Pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}`, pmfms);
           }
         })
       );
@@ -319,7 +300,7 @@ export class MeasurementsTableEntitiesService<
     return pmfm$;
   }
 
-  private async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+  private async filterPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (!pmfms) return pmfms; // skip
 
     try {
@@ -332,14 +313,14 @@ export class MeasurementsTableEntitiesService<
 
       // Make pmfms is an array
       if (!Array.isArray(filteredPmfms)) {
-        console.error(`[measurement-table-service] Invalid pmfms. Should be an array:`, pmfms);
+        console.error(`${this._logPrefix}Invalid pmfms. Should be an array:`, pmfms);
         return pmfms;
       }
 
       return filteredPmfms;
     } catch (err) {
       if (!this.stopped) {
-        console.error(`[measurement-table-service] Error while applying pmfms: ${err && err.message || err}`, err);
+        console.error(`${this._logPrefix}Error while applying pmfms: ${err && err.message || err}`, err);
       }
     }
   }

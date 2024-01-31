@@ -43,14 +43,14 @@ export abstract class DataEntityValidatorService<
   } {
 
     return {
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      recorderDepartment: [data?.recorderDepartment || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [data && data.controlDate || null],
-      qualificationDate: [data && data.qualificationDate || null],
-      qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)]
+      controlDate: [data?.controlDate || null],
+      qualificationDate: [data?.qualificationDate || null],
+      qualificationComments: [data?.qualificationComments || null],
+      qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)]
     };
   }
 

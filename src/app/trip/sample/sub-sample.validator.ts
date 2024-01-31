@@ -1,14 +1,12 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
-import {SharedValidators} from '@sumaris-net/ngx-components';
-import {Sample} from './sample.model';
-import {toNumber} from '@sumaris-net/ngx-components';
+import { Injectable, Optional } from '@angular/core';
+import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import { SharedValidators } from '@sumaris-net/ngx-components';
+import { Sample } from './sample.model';
 import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/sample/sample.validator';
 import { TranslateService } from '@ngx-translate/core';
-import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';
+import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
 
-export interface SubSampleValidatorOptions extends SampleValidatorOptions{
+export interface SubSampleValidatorOptions extends SampleValidatorOptions {
   withParent?: boolean;
   requiredParent?: boolean;
 }
@@ -19,7 +17,7 @@ export class SubSampleValidatorService extends SampleValidatorService<SubSampleV
   constructor(
     protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService,
-    protected imageAttachmentValidator: ImageAttachmentValidator
+    @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
   ) {
     super(formBuilder, translate, imageAttachmentValidator);
   }

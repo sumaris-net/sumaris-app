@@ -1,17 +1,19 @@
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 
 export interface MeasurementsFormState {
   ready: boolean;
   readyStep: number;
   programLabel: string;
-  acquisitionLevel: string;
+  acquisitionLevel: AcquisitionLevelType;
   strategyId: number;
   strategyLabel: string;
   requiredStrategy: boolean;
   gearId: number;
   requiredGear: boolean;
   forceOptional: boolean;
-  pmfms: IPmfm[]; // All pmfms used to initialize the formGroup (visible or not)
+  initialPmfms: IPmfm[];
+  filteredPmfms: IPmfm[]; // All pmfms used to initialize the formGroup (visible or not)
 }
 
 export const MeasurementsFormReadySteps = Object.freeze({

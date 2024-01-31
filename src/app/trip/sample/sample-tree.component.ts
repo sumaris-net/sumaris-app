@@ -14,6 +14,8 @@ import {
   AppTabEditor,
   AppTable,
   EntityUtils,
+  firstNotNilPromise,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -279,11 +281,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     if (this.debug) console.debug(this._logPrefix + 'Set value', data);
 
     const waitOpts = { stop: this.destroySubject, stopError: false };
-
     await this.ready(waitOpts);
+    let strategyId = this.strategyId;
+    if (this.requiredStrategy && isNil(strategyId)) {
+      strategyId = await firstNotNilPromise(this.strategyId$, waitOpts);
+    }
+
+    this.markAsLoading({emitEvent: false});
 
     try {
-      this.markAsLoading();
+      this.data = data;
 
       // Get all samples, as array (even when data is a list of parent/child tree)
       const samples = EntityUtils.listOfTreeToArray(data) || [];
@@ -294,7 +301,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
       if (!this.mobile) {
         // Set root samples
         this.samplesTable.requiredStrategy = this.requiredStrategy;
-        this.samplesTable.strategyId = this.strategyId;
+        this.samplesTable.strategyId = strategyId;
         this.samplesTable.requiredGear = this.requiredGear;
         this.samplesTable.gearId = this.gearId;
         this.samplesTable.markAsReady();
@@ -302,7 +309,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
         // Set sub-samples (individual monitoring)
         this.individualMonitoringTable.requiredStrategy = this.requiredStrategy;
-        this.individualMonitoringTable.strategyId = this.strategyId;
+        this.individualMonitoringTable.strategyId = strategyId;
         this.individualMonitoringTable.requiredGear = this.requiredGear;
         this.individualMonitoringTable.gearId = this.gearId;
         this.individualMonitoringTable.availableParents = rootSamples;
@@ -311,7 +318,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
         // Set sub-samples (individual release)
         this.individualReleasesTable.requiredStrategy = this.requiredStrategy;
-        this.individualReleasesTable.strategyId = this.strategyId;
+        this.individualReleasesTable.strategyId = strategyId;
         this.individualReleasesTable.requiredGear = this.requiredGear;
         this.individualReleasesTable.gearId = this.gearId;
         this.individualReleasesTable.availableParents = rootSamples;
@@ -348,8 +355,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
       console.error(err?.message || err, err);
       throw err;
     } finally {
-      this.markAsLoaded({ emitEvent: false });
       this.markAsPristine();
+      this.markAsUntouched();
+      this.markAsLoaded({ emitEvent: false });
     }
   }
 
@@ -427,7 +435,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
       table.markAsReady();
     }
     // Mark table as loaded, if main component is loaded
-    if (!this.loading) {
+    if (this.loaded) {
       table.markAsLoaded();
     }
   }
@@ -454,7 +462,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string) {
     const result = super.onTabChange(event, queryTabIndexParamName);
 
-    // On each tables, confirm the current editing row
+    // On each table, confirm the current editing row
     if (!this.loading) {
       this.samplesTable.confirmEditCreate();
       this.individualMonitoringTable?.confirmEditCreate();
@@ -473,19 +481,10 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.samplesTable.showTaxonGroupColumn = toBoolean(
-      this.showTaxonGroupColumn,
-      program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE)
-    );
-    this.samplesTable.showTaxonNameColumn = toBoolean(
-      this.showTaxonNameColumn,
-      program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE)
-    );
-    this.samplesTable.showSampleDateColumn = toBoolean(
-      this.showSampleDateColumn,
-      program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE)
-    );
     this.samplesTable.showLabelColumn = toBoolean(this.showLabelColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE));
+    this.samplesTable.showTaxonGroupColumn = toBoolean(this.showTaxonGroupColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE));
+    this.samplesTable.showTaxonNameColumn = toBoolean(this.showTaxonNameColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE));
+    this.samplesTable.showSampleDateColumn = toBoolean(this.showSampleDateColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE));
     this.samplesTable.showImagesColumn = toBoolean(this.showImagesColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE));
     this.samplesTable.programLabel = program.label;
     this.samplesTable.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
@@ -517,5 +516,4 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     this.cd.markForCheck();
   }
 
-  protected readonly IndividualMonitoringTable = IndividualMonitoringTable;
 }

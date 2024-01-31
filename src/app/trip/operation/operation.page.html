@@ -286,11 +286,12 @@
                         entityName="VesselUseMeasurement"
                         [acquisitionLevel]="acquisitionLevel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="strategy$ | async | mapGet: 'id'"
+                        [strategyId]="strategy$ | async | propertyGet : 'id'"
                         [requiredGear]="true"
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
                         [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
+                        (mapPmfms)="mapPmfms($event)"
                         [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                         [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
@@ -350,7 +351,7 @@
         [selectedTabIndex]="selectedSubTabIndex"
         [usageMode]="usageMode"
         [requiredStrategy]="requiredStrategy$ | async"
-        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [strategyId]="strategy$ | async | propertyGet : 'id'"
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         [physicalGear]="physicalGear$ | async"
@@ -391,7 +392,7 @@
         [defaultSampleDate]="lastEndDate$ | async"
         [usageMode]="usageMode"
         [requiredStrategy]="requiredStrategy$ | async"
-        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [strategyId]="strategy$ | async | propertyGet : 'id'"
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         (prepareRowForm)="onPrepareSampleForm($event)"
@@ -450,12 +451,12 @@
           <br />
           editor.valid: {{ valid }}
           <br />
-          editor.program: {{ programLabel$|async }}
+          editor.program: {{ programLabel$ | async }}
           <br />
-          editor.strategy {{requiredStrategy ? '(required)' : ''}} ({{ strategyResolution$|async }}): {{ (strategy$|async)?.id }} (context: {{tripContext.strategy?.id }})
+          editor.strategy{{ requiredStrategy ? ' (required)' : '' }} ({{ strategyResolution$|async }}): {{ (strategy$|async)?.id }} (context: {{tripContext.strategy?.id }})
           <br />
           <br />
-          editor.acquisitionLevel: {{ acquisitionLevel$|async }}
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
         </ion-col>
         <ion-col>

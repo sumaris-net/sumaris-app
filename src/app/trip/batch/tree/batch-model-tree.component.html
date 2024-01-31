@@ -33,7 +33,7 @@
 
             <!-- error -->
             <ion-icon
-              *ngIf="(vars.selected ? selectedBatchStatus.valid : node.valid) === false"
+              *ngIf="(vars.selected && selectedBatchStatus ? selectedBatchStatus.valid : node.valid) === false"
               color="danger"
               slot="icon-only"
               name="alert-circle"

@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, On
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
-import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import {
   AppErrorWithDetails,
   AppFormUtils,
@@ -71,6 +71,8 @@ import { Batch } from '@app/trip/batch/common/batch.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import moment from 'moment/moment';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
@@ -149,7 +151,8 @@ export class OperationPage<S extends OperationState = OperationState>
   @RxStateProperty() tripId: number;
   @RxStateProperty() trip: Trip;
   @RxStateProperty() physicalGear: PhysicalGear;
-  @RxStateProperty() lastEndDate: Moment;
+  @RxStateProperty() lastEndDate: Moment
+  @RxStateProperty() hasIndividualMeasures: boolean
 
   get form(): UntypedFormGroup {
     return this.opeForm.form;
@@ -482,6 +485,24 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
+  protected async mapPmfms(event: MapPmfmEvent) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+    let pmfms: IPmfm[] = event.detail.pmfms;
+
+    // If PMFM date/time, set default date, in on field mode
+    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
+      pmfms = pmfms.map((p) => {
+        if (PmfmUtils.isDate(p)) {
+          p = p.clone();
+          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+        }
+        return p;
+      });
+    }
+
+    event.detail.success(pmfms);
+  }
+
   /**
    * Configure specific behavior
    */
@@ -625,7 +646,7 @@ export class OperationPage<S extends OperationState = OperationState>
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
           .pipe(startWith<any, any>(hasIndividualMeasuresControl.value), filter(isNotNil))
-          .subscribe((value) => this._state.set('hasIndividualMeasures', (_) => value))
+          .subscribe((value) => this.hasIndividualMeasures = value)
       );
       this._measurementSubscription.add(
         this.hasIndividualMeasures$.subscribe((value) => {
@@ -1096,12 +1117,14 @@ export class OperationPage<S extends OperationState = OperationState>
         this.sampleTree.requiredStrategy = this.requiredStrategy;
         this.sampleTree.strategyId = this.strategy?.id;
         this.sampleTree.gearId = gearId;
-        jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+        //jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+        console.debug('[operation] Before settings samples ...');
+        await this.sampleTree.setValue((data && data.samples) || []);
       }
 
       await Promise.all(jobs);
 
-      console.debug('[operation] setValue() [OK]');
+      console.debug('[operation] children setValue() [OK]');
 
       // If new data, autofill the table
       if (isNewData) {
@@ -1196,7 +1219,7 @@ export class OperationPage<S extends OperationState = OperationState>
             error = this.opeForm.formError;
           }
           if (this.measurementsForm.invalid) {
-            error += (isNotNilOrBlank(error) ? ', ' : '') + this.measurementsForm.formError;
+            error = (isNotNilOrBlank(error) ? (error + ', ') : '') + this.measurementsForm.formError;
           }
 
           this.setError(error);

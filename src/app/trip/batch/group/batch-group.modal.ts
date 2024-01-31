@@ -145,7 +145,7 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
     protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
-    // Default value
+    // Fixed values
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     // -- for DEV only
@@ -153,6 +153,7 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   }
 
   ngOnInit() {
+    // Default values
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;

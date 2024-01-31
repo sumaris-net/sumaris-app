@@ -9,73 +9,81 @@ export const DataCommonFragments = {
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
   lightMetier: ReferentialFragments.lightMetier,
-  lightPerson: gql`fragment LightPersonFragment on PersonVO {
-    id
-    firstName
-    lastName
-    avatar
-    department {
+  lightPerson: gql`
+    fragment LightPersonFragment on PersonVO {
       id
-      label
-      name
+      firstName
+      lastName
+      avatar
+      department {
+        id
+        label
+        name
+        __typename
+      }
       __typename
     }
-    __typename
-  }`,
-  position: gql`fragment PositionFragment on VesselPositionVO {
-    id
-    dateTime
-    latitude
-    longitude
-    updateDate
-    qualityFlagId
-    recorderDepartment {
+  `,
+  position: gql`
+    fragment PositionFragment on VesselPositionVO {
       id
-      label
-      name
+      dateTime
+      latitude
+      longitude
+      updateDate
+      qualityFlagId
+      recorderDepartment {
+        id
+        label
+        name
+        __typename
+      }
       __typename
     }
-    __typename
-  }`,
-  measurement: gql`fragment MeasurementFragment on MeasurementVO {
-    id
-    pmfmId
-    alphanumericalValue
-    numericalValue
-    rankOrder
-    qualitativeValue {
+  `,
+  measurement: gql`
+    fragment MeasurementFragment on MeasurementVO {
       id
-      label
-      name
+      pmfmId
+      alphanumericalValue
+      numericalValue
+      rankOrder
+      qualitativeValue {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      digitCount
+      qualityFlagId
+      creationDate
+      updateDate
+      recorderDepartment {
+        id
+        label
+        name
+        __typename
+      }
       entityName
       __typename
     }
-    digitCount
-    qualityFlagId
-    creationDate
-    updateDate
-    recorderDepartment {
+  `,
+  packetComposition: gql`
+    fragment PacketCompositionFragment on PacketCompositionVO {
       id
-      label
-      name
+      rankOrder
+      taxonGroup {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      ratios
       __typename
     }
-    entityName
-    __typename
-  }`,
-  packetComposition: gql`fragment PacketCompositionFragment on PacketCompositionVO {
-    id
-    rankOrder
-    taxonGroup {
-      id
-      label
-      name
-      entityName
-      __typename
-    }
-    ratios
-    __typename
-  }`
+  `,
 };
 export const DataFragments = {
   sample: gql`fragment SampleFragment on SampleVO {
@@ -100,10 +108,13 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
+    controlDate
+    qualificationDate
+    qualificationComments
+    qualityFlagId
     images {
       ...LightImageAttachmentFragment
     }
-    qualityFlagId
     operationId
     landingId
     __typename

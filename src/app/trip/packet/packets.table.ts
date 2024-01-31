@@ -45,7 +45,7 @@ export interface PacketsTableState extends BaseMeasurementsTableState {
 })
 export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit, OnDestroy {
 
-  @RxStateRegister() protected readonly _state = inject(RxState);
+  @RxStateRegister() protected readonly _state = inject(RxState,  {self: true});
 
   @RxStateSelect() protected parents$: Observable<IWithPacketsEntity<any>[]>;
 

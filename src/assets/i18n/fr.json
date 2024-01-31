@@ -831,6 +831,9 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Captures accidentelles"
+        },
+        "ONBOARD_OBSERVATION": {
+          "TAB_SAMPLES": "Captures accidentelles"
         }
       },
       "PARENT": {
@@ -849,8 +852,6 @@
         "TAG_OPERATION": "Étiquette",
         "TRAWL_SELECTIVITY": {
           "TAG_OPERATION": "Code de rapprochement"
-        },
-        "OBSMER": {
         }
       },
       "MAP": {
@@ -1080,6 +1081,9 @@
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Nouvelle capture accidentelle"
+        },
+        "ONBOARD_OBSERVATION": {
+          "TITLE": "Nouvelle capture accidentelle"
         }
       },
       "EDIT": {
@@ -1095,7 +1099,12 @@
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Capture {{label}}",
-          "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)"
+          "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)",
+          "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
+        },
+        "ONBOARD_OBSERVATION": {
+          "TITLE": "Capture {{label}}",
+          "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
         }
       },
       "TABLE": {
@@ -1142,7 +1151,12 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
-          "TAXON_GROUP": "Espèce (FAO)",
+          "TAXON_NAME": "Espèce scientifique",
+          "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
+        },
+        "ONBOARD_OBSERVATION": {
+          "TAB_SAMPLES": "Mesures individuelles",
+          "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
         "SURVIVAL_TEST": {
@@ -1179,6 +1193,10 @@
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
+          },
+          "ONBOARD_OBSERVATION": {
+            "MEASURE_TIME": "Heure de remise à l'eau",
+            "TAG_ID": "Référence de la marque"
           }
         },
         "SAMPLING": {
@@ -1187,6 +1205,11 @@
         },
         "SURVIVAL_TEST": {
           "TAG_ID": "Tag-ID"
+        },
+        "ONBOARD_OBSERVATION": {
+          "MEASURE_TIME": "Date de remise à l'eau",
+          "IS_DEAD": "Mort ?",
+          "TAG_ID": "Référence de la marque"
         }
       },
       "ERROR": {
@@ -2054,6 +2077,7 @@
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Sélectivité chalut",
+      "I18N_SUFFIX_ONBOARD_OBSERVATION": "Observation en mer",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
@@ -2106,12 +2130,12 @@
       "TRIP_REPORT_ENABLE": "Marée > Activer l'édition de rapport ?",
       "TRIP_REPORT_TYPE": "Marée > Type de rapport",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
-      "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité châlut",
-      "TRIP_REPORT_TYPE_ADVANCED": "Avancé (ObsMer)",
+      "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Sélectivité châlut",
+      "TRIP_REPORT_TYPE_ONBOARD_OBSERVATION": "Observation en mer",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
-      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité châlut",
-      "TRIP_OPERATION_EDITOR_ADVANCED": "Avancé (ObsMer)",
+      "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Sélectivité châlut",
+      "TRIP_OPERATION_EDITOR_ADVANCED": "Avancé",
       "TRIP_OPERATION_METIER_ENABLE": "Marée > Opération : Métier ?",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",

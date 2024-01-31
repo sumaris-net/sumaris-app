@@ -199,7 +199,6 @@ export class SamplesTable
     return this.getShowColumn('images');
   }
 
-
   getRowError(row, opts): string {
     return super.getRowError(row, opts);
   }
@@ -265,6 +264,7 @@ export class SamplesTable
       this.showGroupHeader = (pmfmGroups && Object.keys(pmfmGroups).length > 0) || false;
     });
 
+    // DEBUG
     //this.debug = !environment.production;
     this.logPrefix = '[samples-table] ';
   }
@@ -418,6 +418,7 @@ export class SamplesTable
       i18nSuffix: this.i18nColumnSuffix,
       usageMode: this.usageMode,
       mobile: this.mobile,
+      debug: this.debug,
       availableTaxonGroups: this.availableTaxonGroups,
       defaultSampleDate: this.defaultSampleDate,
       requiredLabel: this.requiredLabel,

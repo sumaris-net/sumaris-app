@@ -18,6 +18,7 @@ import {
   AppFormUtils,
   changeCaseToUnderscore,
   equals,
+  fadeInAnimation,
   fadeInOutAnimation,
   filterFalse,
   filterTrue,
@@ -48,8 +49,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { combineLatestWith, Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { combineLatestWith, firstValueFrom, Observable, Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -116,7 +117,7 @@ export const BatchTreeContainerSettingsEnum = {
     { provide: ContextService, useExisting: TripContextService},
     RxState
   ],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeContainerComponent
@@ -201,7 +202,7 @@ export class BatchTreeContainerComponent
   }
 
   @Input() set physicalGear(value: PhysicalGear) {
-    if (this.physicalGear && value?.id !== this.physicalGear.id) {
+    if (this.physicalGear && !PhysicalGear.equals(value, this.physicalGear)) {
       // Reset pmfms, to force a reload
       this.resetRootForm();
     }
@@ -307,8 +308,8 @@ export class BatchTreeContainerComponent
     this._state.hold(filterTrue(this.readySubject)
         .pipe(
           switchMap(() => this._state.select(['program', 'gearId'], s => s)),
-          debounceTime(100),
-          distinctUntilChanged(equals)
+          //debounceTime(100), // WARN: is enable, physical gear changes will NOT be detected, and pmfms not reload
+          distinctUntilChanged(equals),
         ),
       async ({program, gearId}) => {
         await this.setProgram(program);
@@ -320,12 +321,16 @@ export class BatchTreeContainerComponent
         data: (d1, d2) => d1 === d2,
         physicalGear: PhysicalGear.equals,
         allowDiscard: (a1, a2) => a1 === a2,
-        catchPmfms: equals,
-        sortingPmfms: equals
+        catchPmfms: PmfmUtils.arrayEquals,
+        sortingPmfms: PmfmUtils.arrayEquals
       })
         .pipe(
           filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => sortingPmfms && catchPmfms && physicalGear && true),
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
+
+            // DEBUG
+            console.debug(this._logPrefix + 'Select physical gear:', physicalGear);
+
             // Load physical gear's children (if not already done)
             if (physicalGear && isEmptyArray(physicalGear.children)) {
               const tripId = this.context.trip?.id;
@@ -340,7 +345,7 @@ export class BatchTreeContainerComponent
 
     this._state.connect('form', this._state.select(['model', 'allowSpeciesSampling'], s => s)
       .pipe(
-        filter(({model, allowSpeciesSampling}) => !!model),
+        filter(({model}) => !!model),
         map(({model, allowSpeciesSampling}) => {
           const form = this.batchModelValidatorService.createFormGroupByModel(model, {
             allowSpeciesSampling,
@@ -398,7 +403,7 @@ export class BatchTreeContainerComponent
     const parentTabGroup = injector.get(MatTabGroup);
     if (parentTabGroup) {
       const parentTab = injector.get(MatTab);
-      this._state.hold(parentTabGroup.animationDone, (event) => {
+      this._state.hold(parentTabGroup.animationDone, () => {
         // Visible
         if (parentTab.isActive) {
           if (!this.treePanelFloating || !this.editingBatch) {
@@ -428,7 +433,7 @@ export class BatchTreeContainerComponent
 
     // Disable all children components
     // FIXME: try to enable this (like in a data editor)
-    //this.disable();
+    this.disable();
   }
 
   // Change visibility to public
@@ -503,10 +508,6 @@ export class BatchTreeContainerComponent
     await this.ready();
 
     console.warn(this._logPrefix + 'autoFill() not implemented yet!');
-  }
-
-  toggleFloatingPanel(event?: Event) {
-    if (this.sidenav?.opened) this.sidenav.close();
   }
 
   toggleTreePanelFloating() {
@@ -615,7 +616,7 @@ export class BatchTreeContainerComponent
         if (!confirmed) return false; // Not confirmed = cannot save
 
         // Get value (using getRawValue(), because some controls are disabled)
-        const json = this.form.getRawValue();
+        const json = (await firstValueFrom(this.form$)).getRawValue();
 
         // Update data
         this.data = this.data || new Batch();
@@ -869,7 +870,7 @@ export class BatchTreeContainerComponent
         showSamplingBatch: false,
         samplingBatchEnabled: false,
         samplingRatioFormat: this.samplingRatioFormat,
-        // Pass inputs (e.g. pmfms, to avoid a pmfm reloading)
+        // Pass inputs (e.g. initialPmfms, to avoid a pmfm reloading)
         ...model.state
       });
 
@@ -928,6 +929,7 @@ export class BatchTreeContainerComponent
     this._state.set({
       sortingPmfms: null,
       catchPmfms: null,
+      gearId: null,
       form: null,
       model: null
     });

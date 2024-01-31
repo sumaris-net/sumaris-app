@@ -1,5 +1,12 @@
 import { Injectable, InjectionToken } from '@angular/core';
-import { AccountService, BaseEntityGraphqlQueries, BaseEntityService, GraphqlService, IEntitiesService, PlatformService } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  BaseEntityService,
+  GraphqlService,
+  IEntitiesService,
+  PlatformService,
+} from '@sumaris-net/ngx-components';
 import { ImageAttachment, ImageAttachmentFilter } from '@app/data/image/image-attachment.model';
 import { gql } from '@apollo/client/core';
 
@@ -10,19 +17,27 @@ export const ImageAttachmentFragments = {
     id
     url
     comments
-    updateDate
     creationDate
+    updateDate
+    contentType
     __typename
   }`,
 
   full: gql`fragment ImageAttachmentFragment on ImageAttachmentVO {
     id
+    objectTypeId
+    objectId
+    dateTime
     url
+    contentType
     comments
     updateDate
     creationDate
+    controlDate
+    validationDate
+    qualificationDate
+    qualificationComments
     qualityFlagId
-    contentType
     recorderDepartment {
       ...LightDepartmentFragment
     }
@@ -34,7 +49,7 @@ export const ImageAttachmentFragments = {
 };
 
 const ImageAttachmentQueries: BaseEntityGraphqlQueries = {
-  loadAll: gql`query Images($filter: ImageAttachmentVOInput) {
+  loadAll: gql`query Images($filter: ImageAttachmentFilterVOInput) {
     data: images(filter: $filter) {
         ...LightImageAttachmentFragment
     }

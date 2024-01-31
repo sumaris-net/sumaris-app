@@ -2,9 +2,9 @@
   <ion-grid class="ion-no-padding">
     <ion-row>
       <ion-col>
-        loading: {{ loading }} (subject: {{ loadingSubject | async }})
-        <br />
         ready: {{ readySubject | async }}
+        <br />
+        loading: {{ loading }} (subject: {{ loadingSubject | async }})
         <br />
         dirty: {{ dirty }}
         <br />
@@ -14,9 +14,9 @@
         <br />
         program: {{ programLabel$ | async }}
         <br />
-        strategy {{requiredStrategy ? '(required)' : ''}}: {{ strategyId$ | async }}
+        strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId$ | async }}
         <br />
-        gear {{requiredGear ? '(required)' : ''}}: {{ gearId$ | async }}
+        gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId$ | async }}
         <br />
         <br />
         i18nContext.suffix: {{ i18nContext.suffix }}
@@ -34,9 +34,9 @@
         <br />
       </ion-col>
       <ion-col>
-        catchBatchForm.loading: {{ catchBatchForm.loading }}
-        <br />
         catchBatchForm.ready: {{ catchBatchForm.readySubject | async }}
+        <br />
+        catchBatchForm.loading: {{ catchBatchForm.loading }}
         <br />
         catchBatchForm.dirty: {{ catchBatchForm.dirty }}
         <br />
@@ -45,6 +45,11 @@
         catchBatchForm.disabled: {{ catchBatchForm.disabled }}
         <br />
         catchBatchForm.program: {{ catchBatchForm.programLabel }}
+        <br />
+        catchBatchForm.strategy{{ catchBatchForm.requiredStrategy ? ' (required)': '' }}: {{ catchBatchForm.strategyId }}
+        <br />
+        catchBatchForm.gear{{ catchBatchForm.requiredGear ? ' (required)' : ''}}: {{ catchBatchForm.gearId }}
+        <br />
         <br />
         catchBatchForm.i18nPmfmPrefix: {{ catchBatchForm.i18nPmfmPrefix }}
         <br />
@@ -73,9 +78,9 @@
         <br />
       </ion-col>
       <ion-col *ngIf="showBatchTables">
-        batchGroupsTable.loading: {{ batchGroupsTable.loading }}
-        <br />
         batchGroupsTable.ready: {{ batchGroupsTable.readySubject | async }}
+        <br />
+        batchGroupsTable.loading: {{ batchGroupsTable.loading }}
         <br />
         batchGroupsTable.dirty: {{ batchGroupsTable.dirtySubject | async }}
         <br />
@@ -85,7 +90,9 @@
         <br />
         batchGroupsTable.program: {{ batchGroupsTable.programLabel }}
         <br />
-        batchGroupsTable.strategy {{batchGroupsTable.requiredStrategy ? '(required)' : ''}}: {{ batchGroupsTable.strategyId }}
+        batchGroupsTable.strategy{{ batchGroupsTable.requiredStrategy ? ' (required)' : '' }}: {{ batchGroupsTable.strategyId }}
+        <br />
+        batchGroupsTable.gear{{ batchGroupsTable.requiredGear ? ' (required)' : '' }}: {{ batchGroupsTable.gearId }}
         <br />
         <br />
         batchGroupsTable.showSamplingBatchColumns: {{ batchGroupsTable.showSamplingBatchColumns }}
@@ -96,9 +103,9 @@
         <br />
       </ion-col>
       <ion-col *ngIf="showSubBatchesTable && subBatchesTable">
-        subBatchesTable.loading: {{ subBatchesTable.loadingSubject | async }}
-        <br />
         subBatchesTable.ready: {{ subBatchesTable.readySubject | async }}
+        <br />
+        subBatchesTable.loading: {{ subBatchesTable.loadingSubject | async }}
         <br />
         subBatchesTable.dirty: {{ subBatchesTable.dirtySubject | async }}
         <br />
@@ -106,12 +113,12 @@
         <br />
         subBatchesTable.disabled: {{ subBatchesTable.disabled }}
         <br />
-        <br />
         subBatchesTable.program: {{ subBatchesTable.programLabel }}
         <br />
-        subBatchesTable.strategy {{ subBatchesTable.requiredStrategy ? '(required)' : '' }}: {{ subBatchesTable.strategyId }}
+        subBatchesTable.strategy{{ subBatchesTable.requiredStrategy ? ' (required)' : '' }}: {{ subBatchesTable.strategyId }}
         <br />
         subBatchesTable.gear {{ subBatchesTable.requiredGear ? '(required)' : '' }}: {{ subBatchesTable.gearId }}
+        <br />
         <br />
         subBatchesTable.showTaxonNameColumn: {{ subBatchesTable.showTaxonNameColumn }}
         <br />
@@ -143,11 +150,13 @@
 </ion-item>
 
 <!-- catch batch form -->
-<div class="ion-padding" [class.cdk-visually-hidden]="(showCatchForm$ | push : rxStrategy) === false">
+<div class="ion-padding-top ion-padding-horizontal" [class.cdk-visually-hidden]="(showCatchForm$ | push : rxStrategy) === false">
   <app-form-catch-batch
     #catchBatchForm
     [programLabel]="programLabel$ | async"
     [acquisitionLevel]="rootAcquisitionLevel"
+    [requiredStrategy]="requiredStrategy$ | async"
+    [strategyId]="strategyId$ | async"
     [requiredGear]="requiredGear$ | async"
     [gearId]="gearId$ | async"
     (onSubmit)="save($event)"
@@ -163,7 +172,7 @@
 <mat-tab-group
   #tabGroup
   class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"
-  [class.cdk-visually-hidden]="!(showBatchTables$ | push : rxStrategy)"
+  [class.cdk-visually-hidden]="(showBatchTables$ | push : rxStrategy) !== true"
   [class.mat-tab-group-header-hidden]="mobile"
   [(selectedIndex)]="selectedTabIndex"
   (selectedTabChange)="onTabChange($event)"
@@ -188,6 +197,9 @@
       acquisitionLevel="SORTING_BATCH"
       [programLabel]="programLabel$ | async"
       [requiredStrategy]="requiredStrategy$ | async"
+      [strategyId]="strategyId$ | async"
+      [requiredGear]="requiredGear$ | async"
+      [gearId]="gearId$ | async"
       [usageMode]="usageMode"
       [disabled]="disabled"
       [useSticky]="useSticky"
@@ -228,7 +240,8 @@
       #subBatchesTable
       acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
       [programLabel]="programLabel$ | async"
-      [requiredStrategy]="requiredStrategy$ | async"
+      [requiredGear]="requiredGear$ | async"
+      [gearId]="gearId$ | async"
       [usageMode]="usageMode"
       [useSticky]="useSticky"
       [debug]="debug"

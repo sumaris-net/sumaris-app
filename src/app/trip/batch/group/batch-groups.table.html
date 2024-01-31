@@ -603,7 +603,7 @@
     <!-- open individual measures -->
     <button
       mat-icon-button
-      *ngIf="allowSubBatches"
+      *ngIf="allowSubBatches && (!allowQvPmfmGroup || mobile)"
       [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
       [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
       (click)="onSubBatchesClick($event, row, { showParent: false })"

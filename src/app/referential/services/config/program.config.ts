@@ -7,10 +7,11 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
-export type TripReportType = 'legacy' | 'selectivity' | 'advanced';
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
+
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -522,11 +523,11 @@ export const ProgramProperties = Object.freeze({
       },
       {
         key: <TripReportType>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY'
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY'
       },
       {
-        key: <TripReportType>'advanced',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ADVANCED'
+        key: <TripReportType>'onboard',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION'
       }
     ],
     defaultValue: <TripReportType>'legacy'
@@ -544,7 +545,7 @@ export const ProgramProperties = Object.freeze({
       },
       {
         key: <OperationEditor>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_SELECTIVITY'
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY'
       },
       {
         key: <OperationEditor>'advanced',
@@ -1008,6 +1009,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'TRAWL_SELECTIVITY.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_TRAWL_SELECTIVITY'
+      },
+      {
+        key: 'ONBOARD_OBSERVATION.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION'
       }
     ],
     defaultValue: 'legacy'

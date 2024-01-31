@@ -24,7 +24,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { merge, Observable } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export type IPmfmMap = { [key: number]: IPmfm[] };
 
@@ -48,8 +48,8 @@ export interface BatchGroupFormState extends BatchFormState {
 export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, BatchGroupValidatorService, BatchGroupValidatorOptions>
   implements OnInit {
 
-  @RxStateProperty() protected childrenPmfmsByQvId$: Observable<IPmfmMap>;
-  @RxStateProperty() protected hasSubBatches$: Observable<boolean>;
+  @RxStateSelect() protected childrenPmfmsByQvId$: Observable<IPmfmMap>;
+  @RxStateSelect() protected hasSubBatches$: Observable<boolean>;
   protected readonly hasSubBatchesControl = new UntypedFormControl(false);
 
   @Input() childrenPmfms: IPmfm[];

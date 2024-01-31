@@ -111,7 +111,6 @@ export class SubBatchesTable
 
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
-  @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
@@ -244,7 +243,6 @@ export class SubBatchesTable
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.tabindex = 1;
     this.inlineEdition = !this.mobile;
 
     // Default value
@@ -636,7 +634,7 @@ export class SubBatchesTable
   protected async openRow(id: number, row: TableElement<SubBatch>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -889,12 +887,12 @@ export class SubBatchesTable
         markForCheck: () => this.markForCheck(),
       });
       if (subscription) {
-        this._rowValidatorSubscription = subscription;
-        this.registerSubscription(this._rowValidatorSubscription);
-        this._rowValidatorSubscription.add(() => {
+        subscription.add(() => {
           this.unregisterSubscription(subscription);
           this._rowValidatorSubscription = null;
         });
+        this.registerSubscription(subscription);
+        this._rowValidatorSubscription = subscription;
       }
     }
   }

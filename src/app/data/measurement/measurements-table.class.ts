@@ -80,6 +80,7 @@ export abstract class BaseMeasurementsTable<
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly pmfmNamePipe = inject(PmfmNamePipe);
   protected readonly formBuilder = inject(UntypedFormBuilder);
+  @RxStateSelect() protected acquisitionLevel$: Observable<AcquisitionLevelType>;
   @RxStateSelect() protected initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() protected filteredPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() hasPmfms$: Observable<boolean> ;

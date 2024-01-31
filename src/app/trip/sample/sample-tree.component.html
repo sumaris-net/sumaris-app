@@ -1,92 +1,7 @@
-<app-debug *ngIf="debug" [title]="'Sample tree'">
-  <ion-grid class="ion-no-padding">
-    <ion-row>
-      <ion-col>
-        loading: {{ loading }} (subject: {{ loadingSubject | async }})
-        <br />
-        ready: {{ readySubject | async }}
-        <br />
-        dirty: {{ dirty }}
-        <br />
-        valid: {{ valid }}
-        <br />
-        disabled: {{ disabled }}
-        <br />
-        program: {{ programLabel$ | async }}
-        <br />
-        strategy {{requiredStrategy ? '(required)' : ''}}: {{ strategyId$ | async }}
-        <br />
-        <br />
-        i18nContext.suffix: {{ i18nContext.suffix }}
-        <br />
-        showIndividualMonitoringTable: {{ showIndividualMonitoringTable }}
-        <br />
-        showIndividualReleaseTable: {{ showIndividualReleaseTable }}
-      </ion-col>
-
-      <ion-col *ngIf="samplesTable">
-        samplesTable.loading: {{ samplesTable.loading }}
-        <br />
-        samplesTable.ready: {{ samplesTable.readySubject | async }}
-        <br />
-        samplesTable.dirty: {{ samplesTable.dirtySubject | async }}
-        <br />
-        samplesTable.valid: {{ samplesTable.valid }}
-        <br />
-        samplesTable.disabled: {{ samplesTable.disabled }}
-        <br />
-        samplesTable.program: {{ samplesTable.programLabel }}
-        <br />
-        samplesTable.strategy {{samplesTable.requiredStrategy ? '(required)' : ''}}: {{ samplesTable.strategyId }}
-        <br />
-        <br />
-        samplesTable.showLabelColumn: {{ samplesTable.showLabelColumn }}
-        <br />
-        samplesTable.hasRankOrder: {{ samplesTable.hasRankOrder }}
-      </ion-col>
-      <ion-col *ngIf="individualMonitoringTable">
-        individualMonitoringTable.loading: {{ individualMonitoringTable.loading }}
-        <br />
-        individualMonitoringTable.ready: {{ individualMonitoringTable.readySubject | async }}
-        <br />
-        individualMonitoringTable.dirty: {{ individualMonitoringTable.dirtySubject | async }}
-        <br />
-        individualMonitoringTable.valid: {{ individualMonitoringTable.valid }}
-        <br />
-        individualMonitoringTable.disabled: {{ individualMonitoringTable.disabled }}
-        <br />
-        individualMonitoringTable.program: {{ individualMonitoringTable.programLabel }}
-        <br />
-        individualMonitoringTable.strategy {{individualMonitoringTable.requiredStrategy ? '(required)' : ''}}: {{ individualMonitoringTable.strategyId }}
-        <br />
-        <br />
-        individualMonitoringTable.showLabelColumn: {{ individualMonitoringTable.showLabelColumn }}
-        <br />
-        individualMonitoringTable.hasRankOrder: {{ individualMonitoringTable.hasRankOrder }}
-      </ion-col>
-      <ion-col *ngIf="individualReleasesTable">
-        individualReleasesTable.loading: {{ individualReleasesTable.loadingSubject | async }}
-        <br />
-        individualReleasesTable.ready: {{ individualReleasesTable.readySubject | async }}
-        <br />
-        individualReleasesTable.dirty: {{ individualReleasesTable.dirtySubject | async }}
-        <br />
-        individualReleasesTable.valid: {{ individualReleasesTable.valid }}
-        <br />
-        individualReleasesTable.disabled: {{ individualReleasesTable.disabled }}
-        <br />
-        individualReleasesTable.program: {{ individualReleasesTable.programLabel }}
-        <br />
-        individualReleasesTable.strategy {{individualReleasesTable.requiredStrategy ? '(required)' : ''}}: {{ individualReleasesTable.strategyId }}
-        <br />
-        <br />
-        individualReleasesTable.showLabelColumn: {{ individualReleasesTable.showLabelColumn }}
-        <br />
-        individualReleasesTable.hasRankOrder: {{ individualReleasesTable.hasRankOrder }}
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-</app-debug>
+<!-- DEBUG -->
+<ng-container *ngIf="debug">
+  <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+</ng-container>
 
 <mat-tab-group
   #tabGroup
@@ -108,14 +23,14 @@
     <app-samples-table
       #samplesTable
       acquisitionLevel="SAMPLE"
-      [programLabel]="programLabel$ | async"
-      [requiredStrategy]="requiredStrategy$|async"
+      [requiredStrategy]="requiredStrategy$ | async"
+      [strategyId]="strategyId$ | async"
+      [requiredGear]="requiredGear$ | async"
+      [gearId]="gearId$ | async"
       [usageMode]="usageMode"
       [disabled]="disabled"
       [showToolbar]="!mobile"
       [useSticky]="useSticky"
-      [showLabelColumn]="showLabelColumn"
-      [showImagesColumn]="showImagesColumn"
       [pmfmGroups]="pmfmGroups"
       [defaultSampleDate]="defaultSampleDate"
       (prepareRowForm)="prepareRowForm.emit($event)"
@@ -156,10 +71,14 @@
       #individualMonitoringTable
       (ngInit)="onInitTable(individualMonitoringTable)"
       [programLabel]="programLabel$ | async"
+      [requiredStrategy]="requiredStrategy$ | async"
+      [strategyId]="strategyId$ | async"
+      [requiredGear]="requiredGear$ | async"
+      [gearId]="gearId$ | async"
       [usageMode]="usageMode"
       [useSticky]="useSticky"
       [showToolbar]="true"
-      [showLabelColumn]="showLabelColumn"
+      [showLabelColumn]="false"
       [weightDisplayedUnit]="weightDisplayedUnit"
       [mobile]="false"
       [debug]="debug"
@@ -197,10 +116,14 @@
       #individualReleaseTable
       (ngInit)="onInitTable(individualReleaseTable)"
       [programLabel]="programLabel$ | async"
+      [requiredStrategy]="requiredStrategy$ | async"
+      [strategyId]="strategyId$ | async"
+      [requiredGear]="requiredGear$ | async"
+      [gearId]="gearId$ | async"
       [usageMode]="usageMode"
       [useSticky]="useSticky"
       [showToolbar]="true"
-      [showLabelColumn]="showLabelColumn"
+      [showLabelColumn]="false"
       [mobile]="false"
       [debug]="debug"
     ></app-individual-releases-table>
@@ -208,3 +131,128 @@
     <p visible-xs visible-sm visible-mobile>&nbsp;</p>
   </mat-tab>
 </mat-tab-group>
+
+<ng-template #debugPanel>
+  <app-debug title="Sample tree">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }})
+          <br />
+          loading: {{ loading }} (subject: {{ loadingSubject | async }})
+          <br />
+          dirty: {{ dirty }} - value: {{ !!data }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          disabled: {{ disabled }}
+          <br />
+          program: {{ programLabel$ | async }}
+          <br />
+          strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId$ | async }}
+          <br />
+          gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId$ | async }}
+          <br />
+          <br />
+          i18nContext.suffix: {{ i18nContext.suffix }}
+          <br />
+          showLabelColumn: {{ showLabelColumn }}
+          <br />
+          showTaxonGroupColumn: {{ showTaxonGroupColumn }}
+          <br />
+          showTaxonNameColumn: {{ showTaxonNameColumn }}
+          <br />
+          showSampleDateColumn: {{ showSampleDateColumn }}
+          <br />
+          showImagesColumn: {{ showImagesColumn }}
+          <br />
+          <br />
+          showIndividualMonitoringTable: {{ showIndividualMonitoringTable }}
+          <br />
+          showIndividualReleaseTable: {{ showIndividualReleaseTable }}
+        </ion-col>
+
+        <ion-col *ngIf="samplesTable">
+          samplesTable.ready: {{ samplesTable.readySubject | async }}
+          <br />
+          samplesTable.loading: {{ samplesTable.loading }}
+          <br />
+          samplesTable.dirty: {{ samplesTable.dirtySubject | async }}
+          <br />
+          samplesTable.valid: {{ samplesTable.valid }}
+          <br />
+          samplesTable.disabled: {{ samplesTable.disabled }}
+          <br />
+          samplesTable.program: {{ samplesTable.programLabel }}
+          <br />
+          samplesTable.strategy{{ samplesTable.requiredStrategy ? ' (required)' : '' }}: {{ samplesTable.strategyId }}
+          <br />
+          samplesTable.gear{{ samplesTable.requiredGear ? ' (required)' : '' }}: {{ samplesTable.gearId }}
+          <br />
+          <br />
+          samplesTable.showLabelColumn: {{ samplesTable.showLabelColumn }}
+          <br />
+          samplesTable.showTaxonGroupColumn: {{ samplesTable.showTaxonGroupColumn }}
+          <br />
+          samplesTable.showTaxonNameColumn: {{ samplesTable.showTaxonNameColumn }}
+          <br />
+          samplesTable.showSampleDateColumn: {{ samplesTable.showSampleDateColumn }}
+          <br />
+          samplesTable.showImagesColumn: {{ samplesTable.showImagesColumn }}
+          <br />
+          samplesTable.hasRankOrder: {{ samplesTable.hasRankOrder }}
+          <br />
+          samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
+        </ion-col>
+        <ion-col *ngIf="individualMonitoringTable">
+          individualMonitoringTable.ready: {{ individualMonitoringTable.readySubject | async }}
+          <br />
+          individualMonitoringTable.loading: {{ individualMonitoringTable.loading }}
+          <br />
+          individualMonitoringTable.dirty: {{ individualMonitoringTable.dirtySubject | async }}
+          <br />
+          individualMonitoringTable.valid: {{ individualMonitoringTable.valid }}
+          <br />
+          individualMonitoringTable.disabled: {{ individualMonitoringTable.disabled }}
+          <br />
+          individualMonitoringTable.program: {{ individualMonitoringTable.programLabel }}
+          <br />
+          individualMonitoringTable.strategy{{ individualMonitoringTable.requiredStrategy ? ' (required)' : '' }}: {{ individualMonitoringTable.strategyId }}
+          <br />
+          individualMonitoringTable.gear{{ individualMonitoringTable.requiredGear ? ' (required)' : '' }}: {{ individualMonitoringTable.gearId }}
+          <br />
+          <br />
+          individualMonitoringTable.showLabelColumn: {{ individualMonitoringTable.showLabelColumn }}
+          <br />
+          individualMonitoringTable.hasRankOrder: {{ individualMonitoringTable.hasRankOrder }}
+          <br />
+          individualMonitoringTable.pmfms: {{ (individualMonitoringTable.pmfms$ | async)?.length }}
+        </ion-col>
+        <ion-col *ngIf="individualReleasesTable">
+          individualReleasesTable.ready: {{ individualReleasesTable.readySubject | async }}
+          <br />
+          individualReleasesTable.loading: {{ individualReleasesTable.loadingSubject | async }}
+          <br />
+          individualReleasesTable.dirty: {{ individualReleasesTable.dirtySubject | async }}
+          <br />
+          individualReleasesTable.valid: {{ individualReleasesTable.valid }}
+          <br />
+          individualReleasesTable.disabled: {{ individualReleasesTable.disabled }}
+          <br />
+          individualReleasesTable.program: {{ individualReleasesTable.programLabel }}
+          <br />
+          individualReleasesTable.strategy{{ individualReleasesTable.requiredStrategy ? ' (required)' : ''}}: {{ individualReleasesTable.strategyId }}
+          <br />
+          individualReleasesTable.gear{{ individualReleasesTable.requiredGear ? ' (required)' : '' }}: {{ individualReleasesTable.gearId }}
+          <br />
+          <br />
+          individualReleasesTable.showLabelColumn: {{ individualReleasesTable.showLabelColumn }}
+          <br />
+          individualReleasesTable.hasRankOrder: {{ individualReleasesTable.hasRankOrder }}
+          <br />
+          individualReleasesTable.pmfms: {{ (individualReleasesTable.pmfms$ | async)?.length }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

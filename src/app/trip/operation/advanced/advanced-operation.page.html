@@ -267,6 +267,7 @@
                 [tabindex]="1"
                 (onSubmit)="save($event)"
                 (lastEndDateChanges)="lastEndDate = $event"
+                (openParentOperation)="openParentOperation($event)"
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->
@@ -284,7 +285,7 @@
                         entityName="VesselUseMeasurement"
                         [acquisitionLevel]="acquisitionLevel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="strategy$ | async | mapGet: 'id'"
+                        [strategyId]="strategy$ | async | propertyGet : 'id'"
                         [requiredGear]="true"
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
@@ -343,7 +344,7 @@
         [allowSubBatches]="hasIndividualMeasures$ | push"
         [usageMode]="usageMode"
         [requiredStrategy]="requiredStrategy$ | async"
-        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [strategyId]="strategy$ | async | propertyGet : 'id'"
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         [physicalGear]="physicalGear$ | async"
@@ -355,6 +356,46 @@
         [controlButtonText]="'QUALITY.BTN_CONTROL_WITH_SHORTCUT'|translate"
         (control)="saveAndControl($event)"
       ></app-batch-tree-container>
+    </mat-tab>
+
+    <!-- TAB: Samples  -->
+    <mat-tab
+      #sampleTab
+      [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES' | translateContext : i18nContext.suffix"
+      [disabled]="!showSamplesTab"
+      appSubMenuTab
+    >
+      <ng-template mat-tab-label>
+        <mat-icon svgIcon="fish-oblique"></mat-icon>
+        <ion-label
+          *ngVar="sampleTree.samplesTable.totalRowCount as count"
+          [matBadge]="count"
+          [matBadgeHidden]="sampleTree.invalid || !count"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          {{ sampleTab.textLabel }}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
+      </ng-template>
+
+      <app-sample-tree
+        #sampleTree
+        queryTabIndexParamName="subtab"
+        [selectedTabIndex]="selectedSubTabIndex"
+        [defaultSampleDate]="lastEndDate$ | async"
+        [usageMode]="usageMode"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | propertyGet : 'id'"
+        [requiredGear]="gearId$ | async | isNotNilOrNaN"
+        [gearId]="gearId$ | async"
+        (prepareRowForm)="onPrepareSampleForm($event)"
+        [useSticky]="mobile"
+        [mobile]="mobile"
+        [debug]="debug"
+      ></app-sample-tree>
     </mat-tab>
   </mat-tab-group>
 </ion-content>
@@ -374,6 +415,22 @@
   </app-form-buttons-bar>
 </ion-footer>
 
+<!-- FAB button -->
+<ion-fab
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  *ngIf="mobile && showFabButton"
+  visible-xs
+  visible-sm
+  visible-mobile
+  @fadeInAnimation
+>
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
 <!-- DEBUG -->
 <ng-template #debugPanel>
   <app-debug>
@@ -382,7 +439,7 @@
         <ion-col>
           editor.ready: {{ readySubject | async }}
           <br />
-          editor.loading: {{ loading }}
+          editor.loading: {{ loading }} - editor.saving: {{ saving }}
           <br />
           editor.enabled: {{ enabled }}
           <br />
@@ -390,7 +447,12 @@
           <br />
           editor.valid: {{ valid }}
           <br />
-          editor.saving: {{ saving }}
+          editor.program: {{ programLabel$ | async }}
+          <br />
+          editor.strategy{{ requiredStrategy ? ' (required)' : '' }} ({{ strategyResolution$|async }}): {{ (strategy$|async)?.id }} (context: {{tripContext.strategy?.id }})
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
         </ion-col>
         <ion-col>

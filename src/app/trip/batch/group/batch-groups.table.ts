@@ -230,8 +230,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
-
-
   groupColumns: GroupColumnDefinition[];
   groupColumnNames: string[];
   groupColumnStartColSpan: number;
@@ -653,7 +651,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   protected prepareChildToSave(source: BatchGroup, qv?: ReferentialRef, qvIndex?: number): Batch {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-    const isEstimatedWeight = qvIndex !== -1 && this.weightMethodForm.controls[qvIndex].value || false;
+    const isEstimatedWeight = this.weightMethodForm?.controls[qvIndex].value || false;
     const childLabel = qv ? `${source.label}.${qv.label}` : source.label;
 
     // If qv, add sub level at sorting batch for each qv value
@@ -725,6 +723,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   async onSubBatchesClick(event: Event, row: TableElement<BatchGroup>, opts?: { showParent?: boolean; emitLoaded?: boolean }) {
+    if (this.loading) return; // Avoid to be called twice
+
     event?.preventDefault();
     event?.stopPropagation(); // Avoid to send event to clicRow()
 
@@ -826,6 +826,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       } else {
         // TODO create weightMethodForm when no QV Pmfm
         console.warn('[batch-groups-table] TODO: create weightMethodForm, when no QV Pmfm');
+        this.weightMethodForm = this.formBuilder.group({ [-1]: [false, Validators.required]});
       }
     }
 
@@ -1057,6 +1058,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
    * @protected
    */
   protected async openSubBatchesModalFromParentModal(data: BatchGroup): Promise<BatchGroup | undefined> {
+
     let changes = false;
 
     // Search if row already exists
@@ -1108,15 +1110,21 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       showParent?: boolean;
     }
   ): Promise<SubBatch[] | undefined> {
+
+    const stopSubject = new Subject<void>();
+    const hasTopModal = !!(await this.modalCtrl.getTop());
+
+    if (!hasTopModal) {
+      this.markAsLoading();
+      stopSubject.subscribe(() => this.markAsLoaded());
+    }
+
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
-    // FIXME: opts.showParent=true not working
+    // FIXME: opts.showParentGroup=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    const stopSubject = new Subject<void>();
-
-    const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
       componentProps: <ISubBatchesModalOptions>{

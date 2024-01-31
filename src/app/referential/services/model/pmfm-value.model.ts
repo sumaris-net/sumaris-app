@@ -262,8 +262,6 @@ export abstract class PmfmValueUtils {
     const precisionCoefficient = 1 / targetPrecision;
 
     // Convert to the expected unit, and round to expected precision
-    const result = Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
-
-    return result;
+    return Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
   }
 }

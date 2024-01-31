@@ -314,17 +314,16 @@
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col>
-            loading: {{ delegate.loadingSubject | async }}
-            <br />
             ready: {{ delegate.readySubject | async }}
+            <br />
+            loading: {{ delegate.loadingSubject | async }}
             <br />
             enabled: {{ delegate.enabled }}
             <br />
-            disabled: {{ delegate.disabled }}
+            dirty: {{ delegate.dirty }}
             <br />
             valid: {{ delegate.valid }}
             <br />
-            dirty: {{ delegate.dirty }}
             <br />
             touched: {{ delegate.touched }}
             <br />

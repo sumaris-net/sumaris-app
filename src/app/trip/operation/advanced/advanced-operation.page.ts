@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
+import { fadeInAnimation } from '@sumaris-net/ngx-components';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
 import { RxState } from '@rx-angular/state';
-import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
+import { UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
@@ -15,7 +13,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
   selector: 'app-advanced-operation-page',
   templateUrl: './advanced-operation.page.html',
   styleUrls: ['../operation.page.scss'],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: AdvancedOperationPage },
     { provide: ContextService, useExisting: TripContextService },
@@ -32,32 +30,14 @@ export class AdvancedOperationPage extends OperationPage {
   constructor(injector: Injector, dataService: OperationService) {
     super(injector, dataService, {
       pathIdAttribute: 'advancedOperationId',
-      tabCount: 2,
+      tabCount: 3,
       settingsId: 'advanced-operation',
     });
   }
 
   protected registerForms() {
     // Register sub forms & table
-    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree]);
-  }
-
-  protected async mapPmfms(event: MapPmfmEvent) {
-    if (!event || !event.detail.success) return; // Skip (missing callback)
-    let pmfms: IPmfm[] = event.detail.pmfms;
-
-    // If PMFM date/time, set default date, in on field mode
-    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
-      pmfms = pmfms.map((p) => {
-        if (PmfmUtils.isDate(p)) {
-          p = p.clone();
-          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
-        }
-        return p;
-      });
-    }
-
-    event.detail.success(pmfms);
+    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree, this.sampleTree]);
   }
 
   protected updateFormGroup(event: UpdateFormGroupEvent) {
@@ -74,7 +54,7 @@ export class AdvancedOperationPage extends OperationPage {
   }
 
   get showFabButton(): boolean {
-    return false;
+    return this.enabled && this.selectedTabIndex === AdvancedOperationPage.TABS.SAMPLE;
   }
 
   async saveAndControl(event?: Event, opts?: { emitEvent?: false }): Promise<boolean> {
@@ -84,17 +64,11 @@ export class AdvancedOperationPage extends OperationPage {
     return super.saveAndControl(event, opts);
   }
 
-  protected updateTablesState() {
-    this.tabCount = this.showCatchTab ? 2 : 1;
-
-    super.updateTablesState();
-  }
-
   protected async setProgram(program: Program): Promise<void> {
     await super.setProgram(program);
 
     // Force suffix
-    this.i18nContext.suffix = 'TRAWL_SELECTIVITY.';
+    //this.i18nContext.suffix = 'ACCIDENTAL_CATCH.';
 
     // Force rankOrder to be recompute
     // this is required because batch tree container can generate same batch label, for individual sorting batch

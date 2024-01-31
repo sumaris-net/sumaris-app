@@ -32,7 +32,7 @@ import {
   waitFor,
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
+import { debounceTime, delay, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -47,13 +47,22 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
+export interface TaxonNameBatchFilter {
+  programLabel?: string;
+  taxonGroupId?: number;
+}
 export interface BatchFormState extends MeasurementsFormState {
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
-  pmfmFilter: Partial<DenormalizedPmfmFilter> | null;
+  pmfmFilter: Partial<DenormalizedPmfmFilter>;
+  taxonNameFilter: TaxonNameBatchFilter;
   samplingRatioFormat: SamplingRatioFormat;
+  filter: BatchFilter;
 
   showExhaustiveInventory: boolean;
 
@@ -83,32 +92,28 @@ export const BATCH_VALIDATOR_OPTIONS_TOKEN = new InjectionToken<BatchValidatorOp
   selector: 'app-batch-form',
   templateUrl: './batch.form.html',
   styleUrls: ['batch.form.scss'],
-  providers: [
-    {provide: BATCH_VALIDATOR, useExisting: BatchValidatorService},
-    { provide: BATCH_VALIDATOR_OPTIONS_TOKEN, useValue: {}}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: BATCH_VALIDATOR, useExisting: BatchValidatorService }, { provide: BATCH_VALIDATOR_OPTIONS_TOKEN, useValue: {} }, RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchForm<
-  T extends Batch<any> = Batch<any>,
-  S extends BatchFormState = BatchFormState,
-  V extends BatchValidatorService = BatchValidatorService,
-  VO extends BatchValidatorOptions = BatchValidatorOptions
->
+    T extends Batch<any> = Batch<any>,
+    S extends BatchFormState = BatchFormState,
+    V extends BatchValidatorService = BatchValidatorService,
+    VO extends BatchValidatorOptions = BatchValidatorOptions
+  >
   extends MeasurementValuesForm<T, S>
-  implements OnInit, OnDestroy, AfterViewInit {
-
+  implements OnInit, OnDestroy, AfterViewInit
+{
   private _formValidatorSubscription: Subscription;
   private _formValidatorOpts: any;
-  private _filter: BatchFilter;
 
-  protected readonly _afterViewInitialized$ = this._state.select('afterViewInitialized');
+  @RxStateSelect() protected afterViewInitialized$: Observable<boolean>;
+  @RxStateSelect() taxonNameFilter$: Observable<TaxonNameBatchFilter>;
+  @RxStateSelect() hasContent$: Observable<boolean>;
+
   protected _initialPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
-
-  readonly hasContent$ = this._state.select('hasContent');
-
-  taxonNameFilter: any;
+  @RxStateProperty() protected afterViewInitialized: boolean;
 
   @Input() mobile: boolean;
   @Input() tabindex: number;
@@ -124,158 +129,28 @@ export class BatchForm<
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 
-  @Input() set samplingRatioFormat(value: SamplingRatioFormat) {
-    this._state.set('samplingRatioFormat', _ => value);
-  }
-  get samplingRatioFormat(): SamplingRatioFormat {
-    return this._state.get('samplingRatioFormat');
-  }
+  @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
+  @Input() @RxStateProperty() pmfmFilter: Partial<DenormalizedPmfmFilter>;
+  @Input() @RxStateProperty() showWeight: boolean;
+  @Input() @RxStateProperty() showEstimatedWeight: boolean;
+  @Input() @RxStateProperty() showExhaustiveInventory: boolean;
+  @Input() @RxStateProperty() requiredWeight: boolean;
+  @Input() @RxStateProperty() showIndividualCount: boolean;
+  @Input() @RxStateProperty() requiredIndividualCount: boolean;
+  @Input() @RxStateProperty() showChildrenWeight: boolean;
+  @Input() @RxStateProperty() showSamplingBatch: boolean;
+  @Input() @RxStateProperty() showSampleWeight: boolean;
+  @Input() @RxStateProperty() requiredSampleWeight: boolean;
+  @Input() @RxStateProperty() showSampleIndividualCount: boolean;
+  @Input() @RxStateProperty() requiredSampleIndividualCount: boolean;
+  @Input() @RxStateProperty() samplingBatchEnabled: boolean;
+  @Input() @RxStateProperty() filter: BatchFilter;
 
-  @Input() set pmfmFilter(value: Partial<DenormalizedPmfmFilter>) {
-    this._state.set('pmfmFilter', _ => value);
-  }
-  get pmfmFilter(): Partial<DenormalizedPmfmFilter> {
-    return this._state.get('pmfmFilter');
-  }
+  @RxStateProperty() defaultWeightPmfm: IPmfm;
+  @RxStateProperty() weightPmfms: IPmfm[];
+  @RxStateProperty() weightPmfmsByMethod: { [key: string]: IPmfm };
+  @RxStateProperty() taxonNameFilter: TaxonNameBatchFilter;
 
-  @Input() set showWeight(value: boolean) {
-    this._state.set('showWeight', _ => value);
-  }
-
-  get showWeight(): boolean {
-    return this._state.get('showWeight');
-  }
-
-  @Input() set showEstimatedWeight(value: boolean) {
-    this._state.set('showEstimatedWeight', _ => value);
-  }
-
-  get showEstimatedWeight(): boolean {
-    return this._state.get('showEstimatedWeight');
-  }
-
-  @Input() set showExhaustiveInventory(value: boolean) {
-    this._state.set('showExhaustiveInventory', _ => value);
-  }
-
-  get showExhaustiveInventory(): boolean {
-    return this._state.get('showExhaustiveInventory');
-  }
-
-  @Input()
-  set requiredWeight(value: boolean) {
-    this._state.set('requiredWeight', _ => value);
-  }
-
-  get requiredWeight(): boolean {
-    return this._state.get('requiredWeight');
-  }
-
-  @Input()
-  set showIndividualCount(value: boolean) {
-    this._state.set('showIndividualCount', _ =>value);
-  }
-
-  get showIndividualCount(): boolean {
-    return this._state.get('showIndividualCount');
-  }
-
-  @Input()
-  set requiredIndividualCount(value: boolean) {
-    this._state.set('requiredIndividualCount', _ =>value);
-  }
-
-  get requiredIndividualCount(): boolean {
-    return this._state.get('requiredIndividualCount');
-  }
-
-  @Input() set showChildrenWeight(value: boolean) {
-    this._state.set('showChildrenWeight', _ => value);
-  }
-  get showChildrenWeight(): boolean {
-    return this._state.get('showChildrenWeight');
-  }
-
-  @Input() set showSamplingBatch(value: boolean) {
-    this._state.set('showSamplingBatch', _ => value);
-  }
-  get showSamplingBatch(): boolean {
-    return this._state.get('showSamplingBatch');
-  }
-
-  @Input()
-  set showSampleWeight(value: boolean) {
-    this._state.set('showSampleWeight', _ =>value);
-  }
-
-  get showSampleWeight(): boolean {
-    return this._state.get('showSampleWeight');
-  }
-
-  @Input()
-  set requiredSampleWeight(value: boolean) {
-    this._state.set('requiredSampleWeight', _ => value);
-  }
-
-  get requiredSampleWeight(): boolean {
-    return this._state.get('requiredSampleWeight');
-  }
-
-  @Input()
-  set showSampleIndividualCount(value: boolean) {
-    this._state.set('showSampleIndividualCount', _ =>value);
-  }
-
-  get showSampleIndividualCount(): boolean {
-    return this._state.get('showSampleIndividualCount');
-  }
-
-  @Input()
-  set requiredSampleIndividualCount(value: boolean) {
-    this._state.set('requiredSampleIndividualCount', _ =>value);
-  }
-
-  get requiredSampleIndividualCount(): boolean {
-    return this._state.get('requiredSampleIndividualCount');
-  }
-
-  @Input()
-  set samplingBatchEnabled(value: boolean) {
-    this._state.set('samplingBatchEnabled', _ => value);
-  }
-
-  get samplingBatchEnabled(): boolean {
-    return this._state.get('samplingBatchEnabled');
-  }
-
-  @Input() set filter(value: BatchFilter) {
-    this._filter = value;
-  }
-
-  get filter() {
-    return this._filter;
-  }
-
-  get defaultWeightPmfm(): IPmfm {
-    return this._state.get('defaultWeightPmfm');
-  }
-  set defaultWeightPmfm(value: IPmfm) {
-    this._state.set('defaultWeightPmfm', _ => value);
-  }
-
-  get weightPmfms(): IPmfm[] {
-    return this._state.get('weightPmfms');
-  }
-  set weightPmfms(value: IPmfm[]) {
-    this._state.set('weightPmfms', _ => value);
-  }
-
-  get weightPmfmsByMethod(): { [key: string]: IPmfm } {
-    return this._state.get('weightPmfmsByMethod');
-  }
-  set weightPmfmsByMethod(value: { [key: string]: IPmfm }) {
-    this._state.set('weightPmfmsByMethod', _ => value);
-  }
 
   get childrenFormArray(): AppFormArray<Batch, UntypedFormGroup> {
     return this.form.controls.children as AppFormArray<Batch, UntypedFormGroup>;
@@ -297,10 +172,6 @@ export class BatchForm<
     return this.form?.touched;
   }
 
-  get afterViewInitialized(): boolean {
-    return this._state.get('afterViewInitialized');
-  }
-
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);
   }
@@ -311,8 +182,7 @@ export class BatchForm<
     // Refresh sampling child form
     if (this.samplingBatchEnabled) {
       this.enableSamplingBatch(opts);
-    }
-    else {
+    } else {
       this.disableSamplingBatch(opts);
     }
 
@@ -324,7 +194,7 @@ export class BatchForm<
     }
 
     // Other field to disable by default (e.g. discard reason, in SUMARiS program)
-    this._disableByDefaultControls.forEach(c => c.disable(opts));
+    this._disableByDefaultControls.forEach((c) => c.disable(opts));
   }
 
   constructor(
@@ -336,7 +206,8 @@ export class BatchForm<
     @Inject(BATCH_VALIDATOR) protected validatorService: V,
     @Inject(BATCH_VALIDATOR_OPTIONS_TOKEN) @Optional() validatorOptions?: VO
   ) {
-    super(injector,
+    super(
+      injector,
       measurementsValidatorService,
       formBuilder,
       programRefService,
@@ -350,14 +221,15 @@ export class BatchForm<
           rankOrderRequired: false,
           labelRequired: false,
           withChildrenWeight: true, // Create the children (sum) weight
-          ...validatorOptions?.childrenOptions
-        }
+          ...validatorOptions?.childrenOptions,
+        },
       }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
-      });
-    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
+        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form),
+      }
+    );
+    this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
 
     // Set defaults
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
@@ -366,15 +238,18 @@ export class BatchForm<
       acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
       pmfmFilter: null,
       showWeight: isNotNil(this.form.get('weight.value')),
-      showChildrenWeight: isNotNil(this.form.get('childrenWeight'))
+      showChildrenWeight: isNotNil(this.form.get('childrenWeight')),
     }));
 
     // Make sure to have a resizable array for children
     if (!(this.form.get('children') instanceof AppFormArray)) {
       console.warn(this._logPrefix + 'Creating a new AppFormArray for children, using options:', validatorOptions?.childrenOptions);
-      this.form.setControl('children', this.validatorService.getChildrenFormArray(null, {
-        ...validatorOptions?.childrenOptions
-      }));
+      this.form.setControl(
+        'children',
+        this.validatorService.getChildrenFormArray(null, {
+          ...validatorOptions?.childrenOptions,
+        })
+      );
     }
 
     // for DEV only
@@ -382,7 +257,6 @@ export class BatchForm<
   }
 
   ngOnInit() {
-
     // Default values
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
@@ -400,23 +274,15 @@ export class BatchForm<
     // Inherited. WARN will enable the form
     super.ngOnInit();
 
-    // When pmfm filter change, re-apply initial pmfms
-    this._state.hold(this._state.select('pmfmFilter')
-      .pipe(
-        // DEBUG
-        //tap(pmfmFilter => console.debug(this._logPrefix + 'pmfmFilter changes', pmfmFilter)),
-
-        filter(_ => this.enabled && !this.loading)
-      ),
-      _ => this.setPmfms(this._initialPmfms)
-    );
-
     // Update form if need
-    this._state.hold(this._state.select(['showWeight', 'requiredWeight',
-        'showSamplingBatch', 'requiredSampleWeight',
-        'requiredIndividualCount', 'showChildrenWeight'], res => res)
+    this._state.hold(
+      this._state
+        .select(
+          ['showWeight', 'requiredWeight', 'showSamplingBatch', 'requiredSampleWeight', 'requiredIndividualCount', 'showChildrenWeight'],
+          (res) => res
+        )
         .pipe(
-          filter(_ => !this.loading), // Skip when loading
+          filter((_) => !this.loading) // Skip when loading
           //debounceTime(450), // Avoid to many call, when many attributes changes
           // DEBUG
           //tap(() => console.debug(this._logPrefix + "Some input changes: will update form..."))
@@ -428,22 +294,23 @@ export class BatchForm<
     this._state.connect('hasContent', this.listenHasContent());
 
     // Listen samplingBatchEnabled, to enable/disable sampling form
-    this._state.hold(this._state.select('samplingBatchEnabled')
-        .pipe(
-          filter(_ => this.enabled && !this.loading),
-          distinctUntilChanged()
-        ),
-      samplingBatchEnabled => {
+    this._state.hold(
+      this._state.select('samplingBatchEnabled').pipe(
+        filter((_) => this.enabled && !this.loading),
+        distinctUntilChanged()
+      ),
+      (samplingBatchEnabled) => {
         if (samplingBatchEnabled) this.enableSamplingBatch();
         else this.disableSamplingBatch();
-      });
+      }
+    );
 
     // Taxon group combo
     if (this.hasAvailableTaxonGroups) {
       // Set items (useful to speed up the batch group modal)
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
-        mobile: this.mobile
+        mobile: this.mobile,
       });
 
       // Hide taxon group searchbar, if only few items
@@ -452,27 +319,27 @@ export class BatchForm<
       }
     } else {
       this.registerAutocompleteField('taxonGroup', {
-        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
-        mobile: this.mobile
+        suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, { ...filter, program: this.programLabel }),
+        mobile: this.mobile,
       });
     }
 
     // Taxon name combo
-    this.updateTaxonNameFilter();
-    this.registerAutocompleteField('taxonName', {
+    const taxonNameFilter = this.computeTaxonNameFilter();
+    this.registerAutocompleteField<TaxonNameRef>('taxonName', {
       suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
-      filter: this.taxonNameFilter,
+      filter: taxonNameFilter,
       mobile: this.mobile,
-      showAllOnFocus: this.showTaxonName
+      showAllOnFocus: this.showTaxonName,
     });
 
-    this.registerSubscription(
-      this.form.get('taxonGroup').valueChanges
-        .pipe(
+    this._state.connect('taxonNameFilter',  this.form.get('taxonGroup')
+        .valueChanges.pipe(
           debounceTime(250),
-          filter(_ => this.showTaxonGroup && this.showTaxonName)
+          filter(() => this.showTaxonGroup && this.showTaxonName),
+          map((taxonGroup) => this.computeTaxonNameFilter({ taxonGroup })),
+          startWith(taxonNameFilter)
         )
-        .subscribe(taxonGroup => this.updateTaxonNameFilter({taxonGroup}))
     );
 
     this.ngInitExtension();
@@ -480,7 +347,7 @@ export class BatchForm<
 
   ngAfterViewInit() {
     // This will cause update controls
-    this._state.set('afterViewInitialized', _ => true);
+    this._state.set('afterViewInitialized', (_) => true);
   }
 
   ngOnDestroy() {
@@ -496,17 +363,10 @@ export class BatchForm<
   }
 
   applyState(state: Partial<S>) {
-    this._state.set(oldState => ({
+    this._state.set((oldState) => ({
       ...oldState,
-      ...state,
-      // Keep some protected inputs
-      pmfms: oldState.pmfms
+      ...state
     }));
-
-    // Apply pmfms
-    if (state?.pmfms) {
-      this.setPmfms(state?.pmfms);
-    }
   }
 
   onApplyingEntity(data: T, opts?: any) {
@@ -555,7 +415,6 @@ export class BatchForm<
   /* -- protected method -- */
 
   protected async ngInitExtension() {
-
     await this.ready();
 
     const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
@@ -566,28 +425,28 @@ export class BatchForm<
       // Always disable by default, while discard/Landing not set
       this._disableByDefaultControls.push(discardReasonControl);
 
-      this.registerSubscription(discardOrLandingControl.valueChanges
-        .pipe(
-          // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
-          delay(200)
-        )
-        .subscribe((value) => {
-          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-            if (this.form.enabled) {
-              discardReasonControl.enable();
+      this.registerSubscription(
+        discardOrLandingControl.valueChanges
+          .pipe(
+            // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+            delay(200)
+          )
+          .subscribe((value) => {
+            if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+              if (this.form.enabled) {
+                discardReasonControl.enable();
+              }
+              discardReasonControl.setValidators(Validators.required);
+              discardReasonControl.updateValueAndValidity({ onlySelf: true });
+              this.form.updateValueAndValidity({ onlySelf: true });
+            } else {
+              discardReasonControl.setValue(null);
+              discardReasonControl.setValidators(null);
+              discardReasonControl.disable();
             }
-            discardReasonControl.setValidators(Validators.required);
-            discardReasonControl.updateValueAndValidity({ onlySelf: true });
-            this.form.updateValueAndValidity({ onlySelf: true });
-          } else {
-            discardReasonControl.setValue(null);
-            discardReasonControl.setValidators(null);
-            discardReasonControl.disable();
-          }
-        })
+          })
       );
     }
-
   }
 
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
@@ -597,15 +456,17 @@ export class BatchForm<
 
     // Fill weight, if a weight PMFM exists
     if (defaultWeightPmfm && this.showWeight) {
-      data.weight = BatchUtils.getWeight(data, weightPmfms) || <BatchWeight>{
-        value: null,
-        methodId: defaultWeightPmfm.methodId,
-        computed: defaultWeightPmfm.isComputed,
-        estimated: defaultWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER
-      };
+      data.weight =
+        BatchUtils.getWeight(data, weightPmfms) ||
+        <BatchWeight>{
+          value: null,
+          methodId: defaultWeightPmfm.methodId,
+          computed: defaultWeightPmfm.isComputed,
+          estimated: defaultWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
+        };
 
       // Clean all weight values and control (to keep only the weight form group)
-      weightPmfms?.forEach(p => {
+      weightPmfms?.forEach((p) => {
         delete data.measurementValues[p.id.toString()];
         this.form.removeControl(p.id.toString());
       });
@@ -625,7 +486,6 @@ export class BatchForm<
     }
 
     if (this.showSamplingBatch) {
-
       childrenFormArray.resize(1, opts);
       const samplingFormGroup = childrenFormArray.at(0) as UntypedFormGroup;
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
@@ -646,19 +506,18 @@ export class BatchForm<
       /*if (isNotNil(samplingBatch.samplingRatio)) {
         BatchUtils.normalizedSamplingRatioToForm(samplingBatch, this.samplingRatioType);
       }*/
-
     }
 
     // No sampling batch
     else {
       childrenFormArray.resize((data?.children || []).length, opts);
-      childrenFormArray.disable({...opts, onlySelf: true});
+      childrenFormArray.disable({ ...opts, onlySelf: true });
     }
 
     // Call inherited function
     await super.updateView(data, {
       ...opts,
-      normalizeEntityToForm: false // Already normalized (see upper)
+      normalizeEntityToForm: false, // Already normalized (see upper)
     });
   }
 
@@ -680,7 +539,7 @@ export class BatchForm<
     const measurementValues = data.measurementValues || {};
 
     // Clean previous all weights
-    weightPmfms?.forEach(p => measurementValues[p.id.toString()] = undefined);
+    weightPmfms?.forEach((p) => (measurementValues[p.id.toString()] = undefined));
 
     // Convert weight into measurement
     const totalWeight = this.defaultWeightPmfm && json.weight?.value;
@@ -688,29 +547,28 @@ export class BatchForm<
       const totalWeightPmfm = BatchUtils.getWeightPmfm(json.weight, weightPmfms, weightPmfmsByMethod);
       json.measurementValues = {
         ...json.measurementValues,
-        [totalWeightPmfm.id.toString()]: totalWeight
+        [totalWeightPmfm.id.toString()]: totalWeight,
       };
     }
 
     // Convert measurements
     json.measurementValues = {
       ...measurementValues,
-      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this._initialPmfms)
+      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this._initialPmfms),
     };
 
     if (this.showSamplingBatch) {
-
       if (this.samplingBatchEnabled) {
         const child = BatchUtils.getOrCreateSamplingChild(data);
-        const childJson = json.children && json.children[0] || {};
+        const childJson = (json.children && json.children[0]) || {};
 
         childJson.rankOrder = 1;
-        childJson.label = json.label && (json.label + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
+        childJson.label = (json.label && json.label + Batch.SAMPLING_BATCH_SUFFIX) || undefined;
 
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Clean existing weights
-        weightPmfms?.forEach(p => childJson.measurementValues[p.id.toString()] = undefined);
+        weightPmfms?.forEach((p) => (childJson.measurementValues[p.id.toString()] = undefined));
         // Convert weight into measurement
         if (isNotNil(childJson.weight?.value)) {
           const childWeightPmfm = BatchUtils.getWeightPmfm(childJson.weight, weightPmfms, weightPmfmsByMethod);
@@ -718,9 +576,11 @@ export class BatchForm<
         }
 
         // Convert measurements
-        childJson.measurementValues = Object.assign({},
-          child.measurementValues,  // Keep existing extra measurements
-          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, weightPmfms));
+        childJson.measurementValues = Object.assign(
+          {},
+          child.measurementValues, // Keep existing extra measurements
+          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, weightPmfms)
+        );
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         if (!this.showWeight && isNotNil(childJson.individualCount) && isNotNil(json.individualCount)) {
@@ -736,7 +596,7 @@ export class BatchForm<
       }
 
       // Update data
-      data.fromObject(json, {withChildren: true});
+      data.fromObject(json, { withChildren: true });
     } else {
       // Keep existing children
       data.fromObject(json);
@@ -754,16 +614,18 @@ export class BatchForm<
    * @protected
    */
   protected listenHasContent(): Observable<boolean> {
-    return this._state.select([
-      'showWeight', 'weightPmfms', 'pmfms',
-      'showIndividualCount', 'showSampleIndividualCount',
-      'showSamplingBatch',
-    ], state => (state.showWeight && isNotEmptyArray(state.weightPmfms))
-          || (state.pmfms && state.pmfms.some(this.isVisibleNotWeightPmfm))
-          || state.showIndividualCount || state.showSampleIndividualCount
-          || state.showSamplingBatch || this.showTaxonGroup || this.showTaxonName);
+    return this._state.select(
+      ['showWeight', 'weightPmfms', 'filteredPmfms', 'showIndividualCount', 'showSampleIndividualCount', 'showSamplingBatch'],
+      (state) =>
+        (state.showWeight && isNotEmptyArray(state.weightPmfms)) ||
+        (state.filteredPmfms && state.filteredPmfms.some(this.isVisibleNotWeightPmfm)) ||
+        state.showIndividualCount ||
+        state.showSampleIndividualCount ||
+        state.showSamplingBatch ||
+        this.showTaxonGroup ||
+        this.showTaxonName
+    );
   }
-
 
   protected async enableSamplingBatch(opts?: { emitEvent?: boolean }) {
     const array = this.childrenFormArray;
@@ -781,7 +643,6 @@ export class BatchForm<
   }
 
   copyChildrenWeight(event: Event, samplingBatchForm: AbstractControl) {
-
     const source = samplingBatchForm.get('childrenWeight')?.value as BatchWeight;
     if (isNil(source?.value)) return; // Nothing to copy
 
@@ -791,7 +652,7 @@ export class BatchForm<
       // Adapt max decimals to targeted weight
       value: roundHalfUp(source.value, this.defaultWeightPmfm.maximumNumberDecimals || 3),
       // Force to not computed, to be able to update value
-      computed: false
+      computed: false,
     };
 
     if (isNotNil(totalWeight?.value) && !totalWeight.computed) {
@@ -802,11 +663,10 @@ export class BatchForm<
         samplingRatio: null,
         samplingRatioText: null,
       });
-    }
-    else {
+    } else {
       // Apply the new weight
       samplingBatchForm.patchValue({
-        weight: target
+        weight: target,
       });
     }
   }
@@ -827,43 +687,44 @@ export class BatchForm<
    */
   protected waitViewInit(): Promise<void> {
     if (this.afterViewInitialized) return;
-    return firstTruePromise(this._afterViewInitialized$, {stop: this.destroySubject});
+    return firstTruePromise(this.afterViewInitialized$, { stop: this.destroySubject });
   }
 
-  protected updateTaxonNameFilter(opts?: { taxonGroup?: any }) {
-
+  protected computeTaxonNameFilter(opts?: { taxonGroup?: any }): TaxonNameBatchFilter {
     // If taxonGroup exists: taxon group must be filled first
     if (this.showTaxonGroup && ReferentialUtils.isEmpty(opts && opts.taxonGroup)) {
-      this.taxonNameFilter = {
-        programLabel: 'NONE' /*fake program, will cause empty array*/
+      return <TaxonNameBatchFilter>{
+        programLabel: 'NONE' /*fake program, will cause empty array*/,
       };
     } else {
-      this.taxonNameFilter = {
+      return <TaxonNameBatchFilter>{
         programLabel: this.programLabel,
-        taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id
+        taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id,
       };
     }
-    this.markForCheck();
   }
 
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (!pmfms) return; // Skip if empty
 
-    this._initialPmfms = pmfms; // Copy original pmfms list
+    if (!equals(this._initialPmfms, pmfms)) {
+      this._initialPmfms = pmfms; // Copy original pmfms list
 
-    // Filter pmfms
-    const filterFn = DenormalizedPmfmFilter.fromObject(this.pmfmFilter)?.asFilterFn();
-    if (filterFn) {
-      pmfms = pmfms.filter(filterFn);
+      // Filter pmfms
+      const filterFn = DenormalizedPmfmFilter.fromObject(this.pmfmFilter)?.asFilterFn();
+      if (filterFn) {
+        pmfms = pmfms.filter(filterFn);
+      }
+
+      // dispatch pmfms, and return partial state
+      const state = await this.dispatchPmfms(pmfms);
+
+      this._state.set(state);
+
+      return state.filteredPmfms;
+    } else {
+      return this.filteredPmfms;
     }
-
-    // dispatch pmfms, and return partial state
-    const state = await this.dispatchPmfms(pmfms);
-
-    this._state.set(state);
-
-    return state.pmfms;
-
   }
 
   protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
@@ -873,28 +734,28 @@ export class BatchForm<
     console.debug(this._logPrefix + ' Dispatching pmfms...', pmfms);
 
     // Read weight PMFMs
-    let weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
+    let weightPmfms = pmfms.filter((p) => PmfmUtils.isWeight(p));
 
     // Exclude weight (because we use special fields for weights)
     // or hidden PMFMs
-    const notWeightPmfms = pmfms.filter(p => !weightPmfms.includes(p));
+    const notWeightPmfms = pmfms.filter((p) => !weightPmfms.includes(p));
 
     // Fix weight pmfms
-    weightPmfms = weightPmfms.map(p => {
-        if (isNil(p.methodId) || p.required) {
-          p = p.clone();
-          // Fill methodId (need by the map 'weightPmfmsByMethod')
-          p.methodId = toNumber(p.methodId, MethodIds.OBSERVED_BY_OBSERVER);
-          // Required will be managed by validator, and template, using the @Input 'requiredWeight'
-          p.required = false;
-        }
-        return p;
-      });
+    weightPmfms = weightPmfms.map((p) => {
+      if (isNil(p.methodId) || p.required) {
+        p = p.clone();
+        // Fill methodId (need by the map 'weightPmfmsByMethod')
+        p.methodId = toNumber(p.methodId, MethodIds.OBSERVED_BY_OBSERVER);
+        // Required will be managed by validator, and template, using the @Input 'requiredWeight'
+        p.required = false;
+      }
+      return p;
+    });
     const defaultWeightPmfm = firstArrayValue(weightPmfms);
     const weightPmfmsByMethod = splitByProperty(weightPmfms, 'methodId');
 
     // All pmfms to keep (visible or not)
-    pmfms = notWeightPmfms.concat(weightPmfms);
+    const filteredPmfms = notWeightPmfms.concat(weightPmfms);
 
     // Hide sampling batch, if no weight pmfm
     const showSamplingBatch = toBoolean(this.showSamplingBatch, isNotNil(defaultWeightPmfm));
@@ -906,7 +767,7 @@ export class BatchForm<
       showWeight: !!defaultWeightPmfm,
       showEstimatedWeight: !!weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER],
       weightPmfmsByMethod,
-      pmfms
+      filteredPmfms,
     };
   }
 
@@ -922,7 +783,7 @@ export class BatchForm<
       // Add pmfms to form
       const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       if (measFormGroup) {
-        this.measurementsValidatorService.updateFormGroup(measFormGroup, {pmfms: this.pmfms, emitEvent: false});
+        this.measurementsValidatorService.updateFormGroup(measFormGroup, { pmfms: this.pmfms, emitEvent: false });
       }
 
       const childrenFormArray = this.childrenFormArray;
@@ -930,21 +791,19 @@ export class BatchForm<
 
       // If the sample batch exists
       if (this.showSamplingBatch) {
-
         childrenFormArray.resize(1);
         const samplingForm = childrenFormArray.at(0) as UntypedFormGroup;
 
         // Reset measurementValues (if exists)
         const samplingMeasFormGroup = samplingForm.get('measurementValues');
         if (samplingMeasFormGroup) {
-          this.measurementsValidatorService.updateFormGroup(samplingMeasFormGroup as UntypedFormGroup, {pmfms: []});
+          this.measurementsValidatorService.updateFormGroup(samplingMeasFormGroup as UntypedFormGroup, { pmfms: [] });
         }
 
         // Adapt exists sampling child, if any
         if (this.data) {
           const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
           this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, BatchUtils.isSamplingNotEmpty(samplingChildBatch));
-
         } else {
           // No data: disable sampling
           this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, false);
@@ -956,7 +815,7 @@ export class BatchForm<
           weightRequired: this.requiredWeight,
           individualCountRequired: this.requiredIndividualCount,
           withChildrenWeight: this.showChildrenWeight,
-          isOnFieldMode: this.settings.isOnFieldMode(this.usageMode)
+          isOnFieldMode: this.settings.isOnFieldMode(this.usageMode),
         });
         this.markForCheck();
 
@@ -973,12 +832,11 @@ export class BatchForm<
       }
 
       if (this.showWeight) {
-        this.enableWeightFormGroup({emitEvent: false});
+        this.enableWeightFormGroup({ emitEvent: false });
       } else {
-        this.disableWeightFormGroup({emitEvent: false});
+        this.disableWeightFormGroup({ emitEvent: false });
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error(this._logPrefix + 'Error while updating controls', err);
     }
   }
@@ -1000,7 +858,6 @@ export class BatchForm<
   }
 
   protected async enableWeightsComputation() {
-
     if (!this.showWeight || !this.samplingBatchEnabled || !this.showSamplingBatch) {
       // Unregister to previous validator
       this._formValidatorSubscription?.unsubscribe();
@@ -1010,7 +867,7 @@ export class BatchForm<
     // Make sure required attribute have been set
     if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
       // Wait 2s
-      await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000, stopError: false});
+      await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, { timeout: 2000, stopError: false });
 
       // Stop if not found
       if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
@@ -1024,7 +881,7 @@ export class BatchForm<
       requiredIndividualCount: this.requiredIndividualCount,
       samplingRatioFormat: this.samplingRatioFormat,
       weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
-      debounceTime: this.mobile ? 650 : 0
+      debounceTime: this.mobile ? 650 : 0,
     };
 
     // Skip if unchanged
@@ -1037,7 +894,7 @@ export class BatchForm<
     // Create a sampling form validator
     const subscription = this.validatorService.enableSamplingRatioAndWeight(this.form, {
       ...this._formValidatorOpts,
-      markForCheck: () => this.markForCheck()
+      markForCheck: () => this.markForCheck(),
     });
 
     // Register subscription

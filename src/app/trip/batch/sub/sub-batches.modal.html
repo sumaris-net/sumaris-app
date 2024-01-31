@@ -84,7 +84,7 @@
           [title]="
             editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'
           "
-          [programLabel]="undefined"
+          [programLabel]="programLabel"
           [pmfms]="undefined"
           [qvPmfm]="undefined"
           floatLabel="always"
@@ -281,43 +281,78 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          modal.ready: {{ readySubject | async }}
+          ready: {{ readySubject | async }}
           <br />
-          modal.loading: {{ loading }}
+          loading: {{ loading }}
           <br />
-          modal.dirty: {{ dirty }}
+          dirty: {{ dirty }}
           <br />
-          modal.valid: {{ valid }}
+          valid: {{ valid }}
           <br />
-          modal.i18nSuffix: {{ i18nSuffix }}
+          program: {{ programLabel }}
           <br />
-          modal.usageMode: {{ usageMode }}
-        </ion-col>
-        <ion-col>
-          table.disabled: {{ disabled }}
+          strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId }}
           <br />
-          table.program: {{ programLabel }}
+          gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
           <br />
-          table.strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId }}
           <br />
-          table.gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
-          <br />
-          table.showTaxonNameColumn: {{ showTaxonNameColumn }}
-          <br />
-          table.showIndividualCount: {{ showIndividualCount }}
+          acquisitionLevel: {{ acquisitionLevel }}
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          showTaxonNameColumn: {{ showTaxonNameColumn }}
+          <br />
+          showIndividualCount: {{ showIndividualCount }}
+          <br />
+          i18nSuffix: {{ i18nSuffix }}
+          <br />
+          usageMode: {{ usageMode }}
         </ion-col>
         <ion-col>
-          _dataService.loading: {{ _dataService.loading$|async }}
-          <br/>
+          <br />
+          _dataService.loading: {{ _dataService.loading$ | async }}
+          <br />
+          <br />
+          <br />
           _dataService.program: {{ _dataService.programLabel }}
           <br />
-          _dataService.strategy {{ _dataService.requiredStrategy ? '(required)' : '' }}: {{ _dataService.strategyId }}
+          _dataService.strategy{{ _dataService.requiredStrategy ? '(required) ' : '' }}: {{ _dataService.strategyId }}
           <br />
-          _dataService.gear {{ _dataService.requiredGear ? '(required)' : '' }}: {{ _dataService.gearId }}
+          _dataService.gear{{ _dataService.requiredGear ? '(required) ' : '' }}: {{ _dataService.gearId }}
+          <br />
+          <br />
+          _dataService.acquisitionLevel: {{ _dataService.acquisitionLevel }}
           <br />
           _dataService.pmfms: {{ (_dataService.pmfms$ | async)?.length }}
+        </ion-col>
+
+        <ion-col *ngIf="form">
+          form.ready: {{ form.readySubject|async }}
+          <br/>
+          form.loading: {{ form.loadingSubject|async }}
+          <br/>
+          form.dirty: {{ form.dirty }}
+          <br/>
+          form.valid: {{ form.valid }}
+          <br/>
+          form.program: {{ form.programLabel }}
+          <br />
+          form.strategy{{ form.requiredStrategy ? '(required) ' : '' }}: {{ form.strategyId || form.strategyLabel }}
+          <br />
+          form.gear{{ form.requiredGear ? '(required) ' : '' }}: {{ form.gearId }}
+          <br />
+          <br />
+          form.acquisitionLevel: {{ form.acquisitionLevel$ | async }}
+          <br />
+          form.pmfms: {{ (form.pmfms$ | async)?.length }}
+          <br />
+          form.showTaxonName: {{ form.showTaxonName }}
+          <br />
+          form.showIndividualCount: {{ form.showIndividualCount }}
+          <br />
+          form.parent: {{ form.form | formGetValue: 'parentGroup' | propertyGet: 'taxonGroup.label' }}
+          <br />
+          form.errors: {{ form.invalid ? (getFormErrors(form.form) | json) : '' }}
         </ion-col>
       </ion-row>
     </ion-grid>

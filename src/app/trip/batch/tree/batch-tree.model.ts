@@ -84,13 +84,13 @@ export class BatchModel
       minQvCount: 2,
       maxQvCount: 3,
       excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
-      includePmfmIds: [PmfmIds.LANDING_CATEGORY]
+      includePmfmIds: [PmfmIds.LANDING_CATEGORY],
       //filterFn: pmfm => RuleUtils.valid({model, pmfm: pmfm}, rules)
     });
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
       if (qvPmfmIndex > 0) {
-        model.state.pmfms = pmfms.slice(0, qvPmfmIndex);
+        model.state.initialPmfms = pmfms.slice(0, qvPmfmIndex);
       }
 
       // Prepare next iteration
@@ -215,16 +215,16 @@ export class BatchModel
     this.name = source.name;
     this.icon = source.icon;
     this.originalData = source.originalData;
-    this.state = source.rootState && {
-      pmfms: source.state.pmfms || []
+    this.state = source.state && {
+      initialPmfms: source.state.initialPmfms || []
     } || {};
     this.childrenState = source.childrenState && {
-      pmfms: source.childrenState.pmfms || []
+      initialPmfms: source.childrenState.initialPmfms || []
     } || {};
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
-    this.isLeaf = source.isLeaf || (this.childrenState?.pmfms?.length > 0);
+    this.isLeaf = source.isLeaf || (this.childrenState?.initialPmfms?.length > 0);
 
     this.path = source.path || null;
     this.parent = source.parent || null;
@@ -357,20 +357,22 @@ export class BatchModel
   }
 
   get pmfms(): IPmfm[] {
-    return this.state?.pmfms;
+    return this.state?.initialPmfms;
   }
   set pmfms(pmfms: IPmfm[]) {
     this.state = {
-      ...this.state, pmfms
+      ...this.state,
+      initialPmfms: pmfms
     };
     this._weightPmfms = null; // Reset cache
   }
   get childrenPmfms(): IPmfm[] {
-    return this.childrenState?.pmfms;
+    return this.childrenState?.initialPmfms;
   }
   set childrenPmfms(pmfms: IPmfm[]) {
     this.childrenState = {
-      ...this.childrenState, pmfms
+      ...this.childrenState,
+      initialPmfms: pmfms
     };
   }
 
@@ -474,9 +476,9 @@ export class BatchModelUtils {
     if (!model) return;
 
     // Add catch batches pmfms
-    model.state.pmfms = arrayDistinct([
+    model.state.initialPmfms = arrayDistinct([
       ...(opts.catchPmfms || []),
-      ...(model.state.pmfms || [])
+      ...(model.state.initialPmfms || [])
     ], 'id');
     // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
     model.disabled = !(model.pmfms || []).some(p => !p.hidden)

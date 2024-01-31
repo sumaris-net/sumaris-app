@@ -5,6 +5,7 @@ import {
   AppTabEditor,
   AppTable,
   Entity,
+  firstNotNilPromise,
   IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
@@ -558,11 +559,15 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       console.warn(`[batch-tree] Invalid root batch label. Expected: ${this.rootAcquisitionLevel} - Actual: ${source.label}`);
     }
 
-    // DEBUG
-    //console.debug(this._logPrefix + 'setValue()', source);
+    const waitOpts = { stop: this.destroySubject, stopError: false };
+    await this.ready(waitOpts);
+
+    let strategyId = this.strategyId;
+    if (this.requiredStrategy && isNil(strategyId)) {
+      strategyId = await firstNotNilPromise(this.strategyId$, waitOpts);
+    }
+
     this.markAsLoading({emitEvent: false});
-    const wasReady = this.readySubject.value;
-    this.markChildrenAsNotReady({emitEvent: false});
 
     try {
       this.data = source;
@@ -579,7 +584,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         }
 
         this.catchBatchForm.requiredStrategy = this.requiredStrategy;
-        this.catchBatchForm.strategyId = this.strategyId;
+        this.catchBatchForm.strategyId = strategyId;
         this.catchBatchForm.gearId = this.gearId;
         this.catchBatchForm.markAsReady();
         await this.catchBatchForm.setValue(target);
@@ -592,12 +597,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
         // Apply to table
         this.batchGroupsTable.requiredStrategy = this.requiredStrategy;
-        this.batchGroupsTable.strategyId = this.strategyId;
+        this.batchGroupsTable.strategyId = strategyId;
         this.batchGroupsTable.gearId = this.gearId;
         this.batchGroupsTable.labelPrefix = childrenLabelPrefix;
         this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
-        await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)
+        await this.batchGroupsTable.ready(waitOpts); // Wait loaded (need to be sure the QV pmfm is set)
 
         const groupQvPmfm = this.batchGroupsTable.qvPmfm;
         const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
@@ -606,7 +611,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
         if (this.subBatchesTable) {
           this.subBatchesTable.requiredStrategy = this.requiredStrategy;
-          this.subBatchesTable.strategyId = this.strategyId;
+          this.subBatchesTable.strategyId = strategyId;
           this.subBatchesTable.qvPmfm = groupQvPmfm;
           this.subBatchesTable.value = subBatches;
           const ready = this.subBatchesTable.setAvailableParents(batchGroups, {
@@ -622,7 +627,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     } finally {
       this.markAsPristine();
       this.markAsUntouched();
-      if (wasReady) this.markAsReady();
       this.markAsLoaded({ emitEvent: false });
     }
 

@@ -217,7 +217,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Configure form's properties
     this.form.qvPmfm = this.qvPmfm;
-    await this.form.setPmfms(pmfms);
 
     // Mark form as ready
     this.form.markAsReady();
@@ -311,11 +310,30 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
-    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
-    if (this.debug && this.form && this.form.dirty && this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
+
+    // Form is dirty
+    if (this.form.dirty) {
+      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+
+      // User cancelled
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+        return;
+      }
+
+      // Is user confirm: save before closing
+      if (saveBeforeLeave === true) {
+        const done = await this.doSubmitForm(event);
+        if (!done) {
+          if (this.debug && this.form.invalid) {
+            AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
+          }
+          return;
+        }
+      }
       // Continue
     }
+
+    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
 
     this.markAsLoading();
     this.resetError();
@@ -551,4 +569,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.markForCheck();
     await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
+
+  getFormErrors = AppFormUtils.getFormErrors;
 }

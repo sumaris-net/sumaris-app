@@ -11,6 +11,7 @@ import {
   ReferentialAsObjectOptions,
   removeEnd,
   toDateISOString,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -94,7 +95,7 @@ export abstract class DataEntity<
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);
     target.qualificationComments = this.qualificationComments || undefined;
-    target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
+    target.qualityFlagId = toNumber(this.qualityFlagId, undefined);
     return target;
   }
 
@@ -104,7 +105,7 @@ export abstract class DataEntity<
     this.controlDate = fromDateISOString(source.controlDate);
     this.qualificationDate = fromDateISOString(source.qualificationDate);
     this.qualificationComments = source.qualificationComments;
-    this.qualityFlagId = source.qualityFlagId;
+    this.qualityFlagId = toNumber(source.qualityFlagId, QualityFlagIds.NOT_QUALIFIED);
   }
 
   getStrategyDateTime(): Moment | undefined {
