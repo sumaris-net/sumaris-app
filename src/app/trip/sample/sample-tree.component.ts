@@ -88,8 +88,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   showIndividualReleaseTable = false;
 
   @Input() debug: boolean;
-  @Input() useSticky = false;
   @Input() mobile: boolean;
+  @Input() useSticky = false;
+  @Input() compactFields = true;
   @Input() usageMode: UsageMode;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() showGroupHeader = false;

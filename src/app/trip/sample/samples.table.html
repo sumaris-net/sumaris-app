@@ -338,7 +338,6 @@
       <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
         <mat-date-time-field
           floatLabel="never"
-          [readonly]="!row.editing"
           [formControl]="row.validator.controls.sampleDate"
           [autofocus]="row.editing && focusColumn === 'sampleDate'"
           [placeholder]="'TRIP.SAMPLE.TABLE.SAMPLE_DATE_PLACEHOLDER' | translateContext : i18nColumnSuffix"
