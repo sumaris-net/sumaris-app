@@ -73,6 +73,7 @@ import { OperationValidatorOptions, OperationValidatorService } from '@app/trip/
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { TranslateService } from '@ngx-translate/core';
 import { IDataEntityQualityService, IProgressionOptions } from '@app/data/services/data-quality-service.class';
 import { TripLoadOptions } from '@app/trip/trip/trip.service';
@@ -842,7 +843,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
       update: async (cache, { data }) => {
-        const savedEntity = data && data.data && data.data[0];
+        const savedEntity = data?.data?.[0];
 
         // Local entity (from an optimistic response): save it
         if (savedEntity.id < 0) {
@@ -1731,7 +1732,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Update samples
     if (sources && targets) {
-      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      // Copy source, to be able to use splice() if array is a readonly (e.g. from apollo cache)
       sources = [...sources];
 
       targets.forEach(target => {
@@ -1751,6 +1752,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
           target.parent = null;
+
+          // Update images
+          if (target.images && source.images) {
+            this.copyIdAndUpdateDateOnImages(source.images, target.images);
+          }
         }
         else {
           console.warn('Missing a sample, equals to this target: ', target);
@@ -1789,6 +1795,25 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         if (target.children?.length) {
           this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }
+      });
+    }
+  }
+
+  /**
+   * Copy Id and update, on images
+   *
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnImages(sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
+    if (sources && targets && sources.length === targets.length && sources.length > 0) {
+      sources.forEach((source, index) => {
+        // Find by index, as order should not be changed during saving
+        const target = targets[index];
+
+        EntityUtils.copyIdAndUpdateDate(source, target);
+        DataEntityUtils.copyControlDate(source, target);
+        DataEntityUtils.copyQualificationDateAndFlag(source, target);
       });
     }
   }

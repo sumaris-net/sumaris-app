@@ -40,9 +40,9 @@ export class ImageAttachment extends DataEntity<ImageAttachment>
     return isNotNil(s1.id) && s1.id === s2.id
       // Or functional equals
       || (
-        // Same xxx attribute
-        (isNil(s1.objectId) || s1.objectId === s2.objectId)
-        && (isNil(s1.objectTypeId) || s1.objectTypeId === s2.objectTypeId)
+        // Same object
+        ((isNil(s1.objectId) && isNil(s1.objectTypeId)) || (s1.objectId === s2.objectId && s1.objectTypeId === s2.objectTypeId))
+        // Same rankOrder and comment
         && s1.rankOrder === s2.rankOrder
         && s1.comments === s2.comments
       );
@@ -95,6 +95,18 @@ export class ImageAttachment extends DataEntity<ImageAttachment>
       delete target.rankOrder;
     }
     return target;
+  }
+
+  equals(other: ImageAttachment): boolean {
+    return (other && this.id === other.id)
+      // Or functional equals
+      || (
+        // Same object
+        ((isNil(this.objectId) && isNil(this.objectTypeId)) || (this.objectId === other.objectId && this.objectTypeId === other.objectTypeId))
+        // same rankOrder + comments
+        && this.rankOrder === other.rankOrder
+        && this.comments === other.comments
+      );
   }
 
   get title(): string {

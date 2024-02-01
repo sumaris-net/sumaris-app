@@ -1384,7 +1384,7 @@ export class LandingService
 
         // Update images
         if (target.images && source.images) {
-          this.copyIdAndUpdateDateOnImages(source, source.images, target.images); // recursive call
+          this.copyIdAndUpdateDateOnImages(source.images, target.images); // recursive call
         }
       });
     }
@@ -1396,7 +1396,7 @@ export class LandingService
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnImages(savedSample: Sample, sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
+  protected copyIdAndUpdateDateOnImages(sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
     if (sources && targets && sources.length === targets.length && sources.length > 0) {
       sources.forEach((source, index) => {
         // Find by index, as order should not be changed during saving
