@@ -8,6 +8,8 @@ import { RxState } from '@rx-angular/state';
 import { UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/selectivity/selectivity-batch-model.validator';
 
 @Component({
   selector: 'app-selectivity-operation-page',
@@ -17,6 +19,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: SelectivityOperationPage },
     { provide: ContextService, useExisting: TripContextService },
+    { provide: BatchModelValidatorService, useExisting: SelectivityBatchModelValidatorService },
     RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

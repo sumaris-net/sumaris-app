@@ -496,7 +496,7 @@ export class BatchModelUtils {
   /**
    * Find matches batches (recursively)
    *
-   * @param batch
+   * @param model
    * @param filter
    */
   static findByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
@@ -506,7 +506,7 @@ export class BatchModelUtils {
   /**
    * Delete matches batches (recursively)
    *
-   * @param batch
+   * @param model
    * @param filter
    */
   static deleteByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
@@ -522,7 +522,7 @@ export class BatchModelUtils {
     if (model.hidden) name += ' (hidden)';
     result.push(`${treeIndent} - ${name}`);
 
-    // Recursive call, for each children
+    // Recursive call, for each child
     if (isNotEmptyArray(model.children)) {
       treeDepth++;
       treeIndent = `${treeIndent}\t`;
@@ -531,7 +531,7 @@ export class BatchModelUtils {
 
     // Display result, if root
     if (isCatchBatch && isNotEmptyArray(result)) {
-      console.debug(`[batch-tree-container] Batch model:\n${result.join('\n')}`);
+      console.debug(`[batch-model-utils] Batch model:\n${result.join('\n')}`);
     }
   }
 

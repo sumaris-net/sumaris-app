@@ -145,6 +145,8 @@ export const PmfmIds = {
   HULL_MATERIAL: 433,
 
   /* OBSMER */
+  DISCARD_TYPE: 408,
+  IS_SAMPLING: 409,
   LANDING_CATEGORY: 436,
 };
 export const QualitativeLabels = {

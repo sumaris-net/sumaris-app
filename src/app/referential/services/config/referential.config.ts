@@ -445,6 +445,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.DISCARD_WEIGHT
   },
+  PMFM_DISCARD_REASON_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_REASON.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_REASON_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_REASON
+  },
+  PMFM_DISCARD_TYPE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_TYPE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_TYPE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_TYPE
+  },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
@@ -514,6 +528,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.LANDING_CATEGORY
+  },
+  PMFM_IS_SAMPLING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.IS_SAMPLING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_IS_SAMPLING_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.IS_SAMPLING
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

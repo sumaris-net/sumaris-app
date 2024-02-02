@@ -29,10 +29,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { countSubString } from '@app/shared/functions';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/selectivity/selectivity-batch-model.validator';
+import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
 
 export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
   program: Program;
@@ -52,7 +53,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected programRefService: ProgramRefService,
     protected batchGroupValidatorService: BatchGroupValidatorService,
-    protected batchModelValidatorService: BatchModelValidatorService,
+    protected selectivityBatchModelValidatorService: SelectivityBatchModelValidatorService,
+    protected advancedBatchModelValidatorService: AdvancedBatchModelValidatorService,
     protected physicalGearService: PhysicalGearService,
     protected formErrorTranslator: FormErrorTranslator,
     //protected subBatchValidatorService: SubBatchValidatorService
@@ -79,7 +81,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     try {
       switch (editor) {
         case 'advanced':
-          return this.controlSelectivity(entity, program, opts);
+          return this.controlAdvanced(entity, program, opts);
         case 'selectivity':
           return this.controlSelectivity(entity, program, opts);
         case 'legacy':
@@ -511,8 +513,77 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     // Create batch model, and the form
-    const model = this.batchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard, physicalGear });
-    const form = this.batchModelValidatorService.createFormGroupByModel(model, {
+    const model = this.selectivityBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard, physicalGear });
+    const form = this.selectivityBatchModelValidatorService.createFormGroupByModel(model, {
+      allowSpeciesSampling: allowSamplingBatches,
+      isOnFieldMode: false
+    });
+
+    if (!form.valid) {
+      // Wait if pending
+      await AppFormUtils.waitWhilePending(form);
+
+      // Form is invalid (after pending)
+      if (form.invalid) {
+        if (opts?.debug !== false) {
+          AppFormUtils.logFormErrors(form, '[batch-service] ');
+        }
+        // Translate form error
+        const translatePathOption = {
+          pmfms,
+          i18nPrefix: 'TRIP.BATCH.EDIT.'
+        };
+        const translateErrorsOptions = {
+          controlPathTranslator: {
+            translateControlPath: (path) => {
+              const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
+              const controlName = this.translateControlPath(cleanPath, translatePathOption);
+              const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
+              const batchModel = model.get(modelPath);
+              if (batchModel) batchModel.valid = false;
+              return (batchModel?.name) ? `${batchModel.name} > ${controlName}` : controlName;
+            }
+          },
+          separator: '\n'
+        };
+        const errors = AppFormUtils.getFormErrors(form, { controlName: opts?.controlName });
+
+        const message = this.formErrorTranslator.translateErrors(errors, translateErrorsOptions);
+
+        console.warn(`[batch-service] Control batch tree [INVALID]`, message);
+
+        // Mark catch batch as invalid (=not controlled)
+        BatchUtils.markAsInvalid(entity, message);
+
+        return errors;
+      }
+    }
+
+    return null;
+  }
+
+  private async controlAdvanced(entity: Batch, program: Program, opts?: BatchControlOptions): Promise<FormErrors> {
+    // Recompute rank order
+    //BatchUtils.computeRankOrder(entity);
+
+    // if (!environment.production) {
+    //   // SKip validation
+    //   return undefined;
+    // }
+
+    const allowSamplingBatches = (opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0);
+    const allowDiscard = allowSamplingBatches;
+    const allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
+
+    const [catchPmfms, sortingPmfms] = await Promise.all([
+      this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH, gearId: opts?.gearId }),
+      this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH, gearId: opts?.gearId })
+    ]);
+    const pmfms = [...catchPmfms, ...sortingPmfms];
+
+    // Create batch model, and the form
+    const model = this.advancedBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard });
+    const form = this.advancedBatchModelValidatorService.createFormGroupByModel(model, {
       allowSpeciesSampling: allowSamplingBatches,
       isOnFieldMode: false
     });

@@ -8,6 +8,8 @@ import { RxState } from '@rx-angular/state';
 import { UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
 
 @Component({
   selector: 'app-advanced-operation-page',
@@ -17,6 +19,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: AdvancedOperationPage },
     { provide: ContextService, useExisting: TripContextService },
+    { provide: BatchModelValidatorService, useExisting: AdvancedBatchModelValidatorService },
     RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,14 +1,10 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormArray,
   AppFormUtils,
-  isEmptyArray,
-  isNil,
   isNotEmptyArray,
-  isNotNil,
   LocalSettingsService,
-  ReferentialRef,
   removeDuplicatesFromArray,
   TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
@@ -22,10 +18,10 @@ import { BatchModel, BatchModelFilter, BatchModelUtils } from '@app/trip/batch/t
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { environment } from '@environments/environment';
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { Rule } from '@app/referential/services/model/rule.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { BatchRules } from '@app/trip/batch/tree/batch-tree.rules';
+import { BatchRulesService } from '@app/trip/batch/tree/batch-tree.rules';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -45,7 +41,7 @@ export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
 }
 
 
-@Injectable({providedIn: 'root'})
+@Injectable()
 export class BatchModelValidatorService<
   T extends Batch<T> = Batch,
   O extends BatchModelValidatorOptions = BatchModelValidatorOptions,
@@ -53,102 +49,45 @@ export class BatchModelValidatorService<
   FO extends BatchFromObjectOptions = BatchFromObjectOptions
   > extends BatchValidatorService<T, O> {
 
-  debug: boolean;
+  protected readonly debug: boolean;
+  protected readonly batchRules = inject(BatchRulesService);
 
   constructor(
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
-    measurementsValidatorService: MeasurementsValidatorService,
-    private batchRules: BatchRules,
-    settings?: LocalSettingsService
+    settings: LocalSettingsService,
+    measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings, measurementsValidatorService);
     this.debug = !environment.production;
   }
 
   createModel(data: Batch|undefined, opts: {
-    allowDiscard: boolean;
-    sortingPmfms: IPmfm[];
     catchPmfms: IPmfm[];
-    physicalGear: PhysicalGear;
+    sortingPmfms: IPmfm[];
+    allowDiscard: boolean;
     rules?: Rule[];
+    physicalGear?: PhysicalGear
   }): BatchModel {
-
-    // Map sorting pmfms
-    opts.sortingPmfms = (opts.sortingPmfms || []).map(p => {
-
-      // Fill CHILD_GEAR qualitative values, with the given opts.physicalGear
-      if (opts?.physicalGear?.children && p.id === PmfmIds.CHILD_GEAR) {
-        // Convert to referential item
-        p = p.clone();
-        p.type = 'qualitative_value';
-        p.qualitativeValues = (opts.physicalGear.children || []).map(pg => ReferentialRef.fromObject({
-          id: pg.rankOrder,
-          label: pg.rankOrder,
-          name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
-        }));
-        if (isEmptyArray(p.qualitativeValues)) {
-          console.warn(`[batch-model-validator] Unable to fill items for Pmfm#${p.id} (${p.label})`);
-        }
-        else {
-          // DEBUG
-          console.debug(`[batch-tree-container] Fill CHILD_GEAR PMFM, with:`, p.qualitativeValues);
-        }
-      }
-
-      return p;
-    }).filter(isNotNil);
+    if (!opts) throw new Error('Missing required argument \'opts\'');
 
     // Create rules
-    const allowDiscard = opts.allowDiscard !== false;
-    let rules = (opts.rules || []);
-
-    if (allowDiscard) {
-      rules = [
-        ...rules,
-        // Landing rules
-        Rule.fromObject(<Partial<Rule>>{
-          precondition: true,
-          filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.LANDING),
-
-          // Avoid discard pmfms
-          children: this.batchRules.getNotDiscardPmfms('pmfm.')
-        }),
-
-        // Discard rules
-        Rule.fromObject(<Partial<Rule>>{
-          precondition: true,
-          filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
-            || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
-
-          // Avoid landing pmfms
-          children: this.batchRules.getNotLandingPmfms('pmfm.')
-        })
-      ];
-    }
-    else {
-      rules = [...rules,
-        // No discard pmfms
-        ...this.batchRules.getNotDiscardPmfms('pmfm.')
-      ];
-    }
+    const rules = this.fillDefaultRules(opts);
 
     // Create a batch model
     const model = BatchModelUtils.createModel(data, {...opts, rules});
     if (!model) return;
 
-    // Special case for discard batches
-    {
-      if (allowDiscard) {
-
-        // Disable the discard batch, if not a leaf
-        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          measurementValues: {
-            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
-          },
-          hidden: false, // Exclude if no pmfms
-          isLeaf: false
-        }))
+    // If allow discard
+    if (opts?.allowDiscard !== false) {
+      // Hide discard batch, if not a leaf
+      TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+        measurementValues: {
+          [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+        },
+        hidden: false, // Exclude if no pmfms
+        isLeaf: false
+      }))
         .forEach(batch => {
           batch.pmfms = [];
           batch.state = {
@@ -165,107 +104,55 @@ export class BatchModelValidatorService<
           }
         });
 
-        // Enable sampling batch, in VRAC batches
-        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-            parent: {
-              measurementValues: {
-                [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
-              }
-            },
-            hidden: false, // Exclude if no pmfms
-            measurementValues: {
-              [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
-            }
-          }))
-          .forEach(batch => {
-
-            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone());
-            if (isNotEmptyArray(weightPmfms)) {
-              // Add weights PMFM (if not found)
-              const initialPmfms = removeDuplicatesFromArray([
-                ...batch.state?.initialPmfms,
-                ...weightPmfms
-              ], 'id');
-
-              // Update the state, to enable weight (and sampling weight)
-              batch.state = {
-                ...batch.state,
-                initialPmfms,
-                showWeight: true,
-                requiredWeight: true,
-                showSamplingBatch: true,
-                showSampleWeight: true,
-                requiredSampleWeight: true,
-                samplingBatchEnabled: true
-              };
-            }
-          });
-
-        // Enable weight in HORS-VRAC batches
-        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+      // Enable sampling batch, in VRAC batches
+      TreeItemEntityUtils.findByFilter(
+        model,
+        BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
           parent: {
             measurementValues: {
-              [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
-            }
+              [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD,
+            },
           },
           hidden: false, // Exclude if no pmfms
           measurementValues: {
-            [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.NON_BULK
-          }
-        }))
-          .forEach(batch => {
-            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone());
-            if (isNotEmptyArray(weightPmfms)) {
-              // Add weights PMFM (if not found)
-              const initialPmfms = removeDuplicatesFromArray([
-                ...batch.state.initialPmfms,
-                ...weightPmfms
-              ], 'id');
+            [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK,
+          },
+        })
+      ).forEach((batch) => {
+        const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map((p) => p.clone());
+        if (isNotEmptyArray(weightPmfms)) {
+          // Add weights PMFM (if not found)
+          const initialPmfms = removeDuplicatesFromArray([...batch.state?.initialPmfms, ...weightPmfms], 'id');
 
-              // Update the state, to enable weight
-              batch.state = {
-                ...batch.state,
-                initialPmfms,
-                showWeight: true,
-                requiredWeight: true,
-                showSamplingBatch: false,
-                samplingBatchEnabled: false,
-                showExhaustiveInventory: false
-              };
-              batch.originalData.exhaustiveInventory = true;
-            }
-          });
+          // Update the state, to enable weight (and sampling weight)
+          batch.state = {
+            ...batch.state,
+            initialPmfms,
+            showWeight: true,
+            requiredWeight: true,
+            showSamplingBatch: true,
+            showSampleWeight: true,
+            requiredSampleWeight: true,
+            samplingBatchEnabled: true,
+          };
+        }
+      });
+    }
 
-        // Initialize exhaustiveInventory, on each leaf
-        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          hidden: false, // Exclude if no pmfms
-          isLeaf: true
-        }))
-        .forEach(leafBatch => {
-          if (isNil(leafBatch.state.showExhaustiveInventory)) {
-            leafBatch.state = {
-              ...leafBatch.state,
-              showExhaustiveInventory: true
-            };
-          }
-        });
-      }
-      else {
-        const discardFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          measurementValues: {
-            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
-          }
-        });
-        TreeItemEntityUtils.deleteByFilter(model, discardFilter);
-      }
+    // Remove discard batch, if not allowed
+    else {
+      const discardFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+        measurementValues: {
+          [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+        }
+      });
+      TreeItemEntityUtils.deleteByFilter(model, discardFilter);
     }
 
     // Translate the root name
     if (!model.parent && model.name)  {
       model.name = this.translate.instant(model.name);
     }
-
-    if (this.debug) BatchModelUtils.logTree(model);
 
     return model;
   }
@@ -433,7 +320,46 @@ export class BatchModelValidatorService<
 
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
+
     return opts;
+  }
+
+  protected fillDefaultRules(opts?: {allowDiscard?: boolean, rules?: Rule[]}): Rule[] {
+    const allowDiscard = opts?.allowDiscard !== false;
+
+    // Full tree (Landing + discard)
+    if (allowDiscard) {
+      return [
+        ...(opts?.rules || []),
+        // Landing rules
+        Rule.fromObject(<Partial<Rule>>{
+          precondition: true,
+          filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.LANDING),
+
+          // Avoid discard pmfms
+          children: this.batchRules.getNotDiscardPmfms('pmfm.')
+        }),
+
+        // Discard rules
+        Rule.fromObject(<Partial<Rule>>{
+          precondition: true,
+          filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
+            || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
+
+          // Avoid landing pmfms
+          children: this.batchRules.getNotLandingPmfms('pmfm.')
+        })
+      ];
+    }
+
+    // Landing only (No discard)
+    else {
+      return [
+        ...(opts?.rules || []),
+        // No discard pmfms
+        ...this.batchRules.getNotDiscardPmfms('pmfm.')
+      ];
+    }
   }
 
 }

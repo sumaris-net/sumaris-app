@@ -338,7 +338,7 @@ export class BatchTreeContainerComponent
             }
 
             // Create the model
-            return this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms, physicalGear});
+            return this.batchModelValidatorService.createModel(data, {catchPmfms, sortingPmfms, physicalGear, allowDiscard});
           })
         )
     );

@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { ConfigService } from '@sumaris-net/ngx-components';
 
 @Injectable({ providedIn: 'root' })
-export class BatchRules {
+export class BatchRulesService {
   private _cache = new Map<string, Rule>();
 
   constructor(configService: ConfigService) {
@@ -83,6 +83,20 @@ export class BatchRules {
         operator: '!=',
         value: PmfmIds.DISCARD_WEIGHT.toString(),
         message: 'Discard weight pmfm not allowed',
+      }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-discard-type-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.DISCARD_TYPE.toString(),
+        message: 'Discard type pmfm not allowed',
+      }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-is-sampling-type-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.IS_SAMPLING.toString(),
+        message: 'Is sampling pmfm not allowed',
       }),
     ];
   }
