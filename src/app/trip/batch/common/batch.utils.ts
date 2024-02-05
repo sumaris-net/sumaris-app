@@ -247,20 +247,21 @@ export class BatchUtils {
    * - ou pour corriger des problèmes dans les données (e.g. introduit par un bug, comme cela est arrivé sur la BDD SUMARiS historique)
    *
    * @param source
-   * @param sortingBatchIndividualRankOrder
+   * @param opts
    */
-  static computeRankOrder(source: Batch, sortingBatchIndividualRankOrder = 1) {
+  static computeRankOrder(source: Batch, opts = { sortingBatchIndividualRankOrder: 1 }) {
     if (!source?.label || !source.children) return; // skip
 
     source.children
-      // Sort by id, then rankOrder. New batch at the end
-      .sort(Batch.idOrRankOrderComparator('asc'))
+      .slice()
+      // Sort by rankOrder (or by id if same rankOrder). New batch at the end
+      .sort(Batch.rankOrderOrIdComparator('asc'))
 
       // For each child
       .forEach((b: Batch, index) => {
         // Individual measure batch
         if (this.isIndividualBatch(b)) {
-          b.rankOrder = sortingBatchIndividualRankOrder++;
+          b.rankOrder = opts.sortingBatchIndividualRankOrder++;
           b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
         }
         // Sampling batch
@@ -271,11 +272,11 @@ export class BatchUtils {
         // Sorting batch
         else {
           b.rankOrder = index + 1;
-          // Do NOT compute label on SORTING BATCH, because it need sorting QV values
+          // Do NOT compute label on SORTING BATCH, because it is need to retrieve QV values
           //b.label = ...
         }
 
-        this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Loop
+        this.computeRankOrder(b, opts); // Loop
       });
   }
 
