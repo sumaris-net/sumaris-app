@@ -170,10 +170,12 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
   }
 
   async onAfterEditRow(row: TableElement<ImageAttachment>) {
-    console.log('[image-attachment-gallery] Edit image', row.currentData);
+    // DEBUG
+    //console.debug('[image-attachment-gallery] Edit image', row.currentData);
+
     // Copy title into comments
-    row.currentData.comments = row.currentData.title;
-    await this.save();
+    //row.currentData.comments = row.currentData.title;
+    //await this.save();
     this.markAsDirty();
   }
 
