@@ -58,10 +58,11 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     // DEBUG
     if (this.debug) console.debug(`[image-gallery] Setting ${value?.length || 0} image(s): `);
 
+    const targets = value.map(ImageAttachment.fromObject);
     // Fill rankOrder (keep original order) - need by the equals() function
-    ImageAttachment.fillRankOrder(value);
+    ImageAttachment.fillRankOrder(targets);
 
-    this.dataService.setValue(value);
+    this.dataService.setValue(targets);
   }
 
   get value(): ImageAttachment[] {
@@ -140,7 +141,8 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
             if (event === 'skip') {
               return of(undefined);
             }
-            if (this.debug) console.debug('[image-attachment-gallery] Calling dataSource.watchAll()...');
+            //if (this.debug)
+            console.debug('[image-attachment-gallery] Calling dataSource.watchAll()...');
             return this.dataSource.watchAll(0, 100, null, null, null);
           })
         )
@@ -164,6 +166,14 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     });
     await this.save();
 
+    this.markAsDirty();
+  }
+
+  async onAfterEditRow(row: TableElement<ImageAttachment>) {
+    console.log('[image-attachment-gallery] Edit image', row.currentData);
+    // Copy title into comments
+    row.currentData.comments = row.currentData.title;
+    await this.save();
     this.markAsDirty();
   }
 
