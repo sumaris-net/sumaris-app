@@ -19,9 +19,9 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { environment } from '@environments/environment';
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { Rule } from '@app/referential/services/model/rule.model';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchRulesService } from '@app/trip/batch/tree/batch-tree.rules';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -62,13 +62,15 @@ export class BatchModelValidatorService<
     this.debug = !environment.production;
   }
 
-  createModel(data: Batch|undefined, opts: {
+  async createModel(data: Batch|undefined, opts: {
     catchPmfms: IPmfm[];
     sortingPmfms: IPmfm[];
     allowDiscard: boolean;
+    // Optional options
     rules?: Rule[];
+    i18nSuffix?: string;
     physicalGear?: PhysicalGear
-  }): BatchModel {
+  }): Promise<BatchModel> {
     if (!opts) throw new Error('Missing required argument \'opts\'');
 
     // Create rules
@@ -94,6 +96,8 @@ export class BatchModelValidatorService<
             ...batch.state,
             requiredWeight: false
           };
+
+          // Hide empty item
           batch.hidden = true;
 
           // Add 'discard' into the children name
@@ -335,6 +339,10 @@ export class BatchModelValidatorService<
         Rule.fromObject(<Partial<Rule>>{
           precondition: true,
           filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.LANDING),
+          // FIXME failed when reload batch (e.g. after a save())
+          //controlledAttribute: `model.originalData.measurementValues.${PmfmIds.DISCARD_OR_LANDING}`,
+          //operator: '=',
+          //value: QualitativeValueIds.DISCARD_OR_LANDING.LANDING.toString(),
 
           // Avoid discard pmfms
           children: this.batchRules.getNotDiscardPmfms('pmfm.')
@@ -344,7 +352,12 @@ export class BatchModelValidatorService<
         Rule.fromObject(<Partial<Rule>>{
           precondition: true,
           filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
-            || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
+             || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
+          // FIXME failed when reload batch (e.g. after a save())
+          //controlledAttribute: `model.originalData.measurementValues.${PmfmIds.DISCARD_OR_LANDING}`,
+          //operator: '=',
+          //value: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString(),
+
 
           // Avoid landing pmfms
           children: this.batchRules.getNotLandingPmfms('pmfm.')

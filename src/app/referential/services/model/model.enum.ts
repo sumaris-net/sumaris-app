@@ -188,6 +188,10 @@ export const QualitativeValueIds = {
   },
   SEX: {
     UNSEXED: 188 // Non sexe
+  },
+  IS_SAMPLING: {
+    YES: 596, // Détaillé
+    NO: 597   // Non détaillé
   }
 };
 

@@ -1053,6 +1053,21 @@
           "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",
           "BATCH_CALCULATED_WEIGHT": "Poids total (kg)"
+        },
+        "ONBOARD_OBSERVATION": {
+          "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Poids total (kg)"
+        }
+      },
+      "PMFM_QUALITATIVE_VALUES": {
+        "DISCARD_OR_LANDING": {
+          "LANDING": "Partie retenue",
+          "DISCARD": "Partie rejetée",
+          "ONBOARD_OBSERVATION": {
+            "LANDING": "Partie retenue",
+            "DISCARD": "Partie non retenue"
+          }
         }
       },
       "ERROR": {

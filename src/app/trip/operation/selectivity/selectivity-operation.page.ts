@@ -5,7 +5,6 @@ import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
-import { UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
@@ -41,10 +40,6 @@ export class SelectivityOperationPage extends OperationPage {
   protected registerForms() {
     // Register sub forms & table
     this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree]);
-  }
-
-  protected updateFormGroup(event: UpdateFormGroupEvent) {
-    event.detail.success();
   }
 
   onNewFabButtonClick(event: Event) {

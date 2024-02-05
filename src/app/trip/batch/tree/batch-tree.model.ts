@@ -33,6 +33,7 @@ import {
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
+import { BatchGroupsTableState } from '@app/trip/batch/group/batch-groups.table';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -51,7 +52,7 @@ export class BatchModel
                    pmfms: IPmfm[],
                    rules: Rule<{model: BatchModel; pmfm: IPmfm}>[],
                    // Internal arguments (used by recursive call)
-                   maxTreeDepth = 4,
+                   maxTreeDepth = 5,
                    treeDepth = 0,
                    parent: BatchModel = null,
                    path= ''
@@ -84,8 +85,7 @@ export class BatchModel
       minQvCount: 2,
       maxQvCount: 3,
       excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
-      includePmfmIds: [PmfmIds.LANDING_CATEGORY],
-      //filterFn: pmfm => RuleUtils.valid({model, pmfm: pmfm}, rules)
+      includePmfmIds: [PmfmIds.LANDING_CATEGORY, PmfmIds.IS_SAMPLING, PmfmIds.DISCARD_TYPE]
     });
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
@@ -194,7 +194,7 @@ export class BatchModel
   hidden?: boolean;
 
   state?: Partial<BatchFormState>;
-  childrenState?: Partial<BatchFormState>;
+  childrenState?: Partial<BatchGroupsTableState>;
 
   path: string;
   parentId: number = null;
@@ -377,7 +377,7 @@ export class BatchModel
   }
 
   get weightPmfms(): IPmfm[] {
-    if (isNil(this._weightPmfms)) {
+    if (!this._weightPmfms) {
       this._weightPmfms = this.pmfms?.filter(PmfmUtils.isWeight) || [];
     }
     return this._weightPmfms;
@@ -480,6 +480,7 @@ export class BatchModelUtils {
       ...(opts.catchPmfms || []),
       ...(model.state.initialPmfms || [])
     ], 'id');
+
     // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
     model.disabled = !(model.pmfms || []).some(p => !p.hidden)
       && !model.isLeaf

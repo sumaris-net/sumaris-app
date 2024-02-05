@@ -64,6 +64,8 @@ export interface BatchFormState extends MeasurementsFormState {
   samplingRatioFormat: SamplingRatioFormat;
   filter: BatchFilter;
 
+  showTaxonGroup: boolean;
+  showTaxonName: boolean;
   showExhaustiveInventory: boolean;
 
   showWeight: boolean;
@@ -118,8 +120,6 @@ export class BatchForm<
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
-  @Input() showTaxonGroup = true;
-  @Input() showTaxonName = true;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() showTaxonGroupSearchBar = true;
@@ -129,6 +129,8 @@ export class BatchForm<
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 
+  @Input() @RxStateProperty() showTaxonGroup = true;
+  @Input() @RxStateProperty() showTaxonName = true;
   @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
   @Input() @RxStateProperty() pmfmFilter: Partial<DenormalizedPmfmFilter>;
   @Input() @RxStateProperty() showWeight: boolean;

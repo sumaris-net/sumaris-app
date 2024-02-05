@@ -73,31 +73,43 @@ export class BatchRulesService {
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-batch-sorting-pmfm',
         controlledAttribute: `${pmfmPath}id`,
-        operator: '!=',
-        value: PmfmIds.BATCH_SORTING.toString(), // Vrac/Hors-Vrac
+        operator: 'NOT IN',
+        values: [
+          PmfmIds.BATCH_SORTING.toString(), // Vrac/Hors-Vrac
+          PmfmIds.DISCARD_WEIGHT.toString(),
+          PmfmIds.IS_SAMPLING.toString(),
+          PmfmIds.DISCARD_TYPE.toString(),
+        ],
         message: 'Batch sorting pmfm not allowed',
       }),
-      Rule.fromObject(<Partial<Rule>>{
-        label: 'no-discard-weight-pmfm',
-        controlledAttribute: `${pmfmPath}id`,
-        operator: '!=',
-        value: PmfmIds.DISCARD_WEIGHT.toString(),
-        message: 'Discard weight pmfm not allowed',
-      }),
-      Rule.fromObject(<Partial<Rule>>{
-        label: 'no-discard-type-pmfm',
-        controlledAttribute: `${pmfmPath}id`,
-        operator: '!=',
-        value: PmfmIds.DISCARD_TYPE.toString(),
-        message: 'Discard type pmfm not allowed',
-      }),
-      Rule.fromObject(<Partial<Rule>>{
-        label: 'no-is-sampling-type-pmfm',
-        controlledAttribute: `${pmfmPath}id`,
-        operator: '!=',
-        value: PmfmIds.IS_SAMPLING.toString(),
-        message: 'Is sampling pmfm not allowed',
-      }),
+      // Rule.fromObject(<Partial<Rule>>{
+      //   label: 'no-batch-sorting-pmfm',
+      //   controlledAttribute: `${pmfmPath}id`,
+      //   operator: '!=',
+      //   value: PmfmIds.BATCH_SORTING.toString(), // Vrac/Hors-Vrac
+      //   message: 'Batch sorting pmfm not allowed',
+      // }),
+      // Rule.fromObject(<Partial<Rule>>{
+      //   label: 'no-discard-weight-pmfm',
+      //   controlledAttribute: `${pmfmPath}id`,
+      //   operator: '!=',
+      //   value: PmfmIds.DISCARD_WEIGHT.toString(),
+      //   message: 'Discard weight pmfm not allowed',
+      // }),
+      // Rule.fromObject(<Partial<Rule>>{
+      //   label: 'no-discard-type-pmfm',
+      //   controlledAttribute: `${pmfmPath}id`,
+      //   operator: '!=',
+      //   value: PmfmIds.DISCARD_TYPE.toString(),
+      //   message: 'Discard type pmfm not allowed',
+      // }),
+      // Rule.fromObject(<Partial<Rule>>{
+      //   label: 'no-is-sampling-type-pmfm',
+      //   controlledAttribute: `${pmfmPath}id`,
+      //   operator: '!=',
+      //   value: PmfmIds.IS_SAMPLING.toString(),
+      //   message: 'Is sampling pmfm not allowed',
+      // }),
     ];
   }
 }

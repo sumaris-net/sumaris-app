@@ -31,11 +31,14 @@ import { Sale } from '@app/trip/sale/sale.model';
 import { OverlayEventDetail } from '@ionic/core';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { IEntityWithMeasurement } from '@app/data/measurement/measurement.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export interface AbstractBatchesTableState extends BaseMeasurementsTableState {
+  showTaxonGroupColumn: boolean;
+  showTaxonNameColumn: boolean;
 }
 
 export interface AbstractBatchesTableConfig<
@@ -225,12 +228,6 @@ export abstract class AbstractBatchesTable<
         return;
       }
 
-      // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
-      if (isEmptyArray(this.availableTaxonGroups)) {
-        console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
-        return;
-      }
-
       // Skip when editing a row
       if (!this.confirmEditCreate()) {
         console.warn('[batches-table] Skipping autofill, as table still editing a row');
@@ -241,31 +238,64 @@ export abstract class AbstractBatchesTable<
 
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
-      // Read existing taxonGroups
-      const data = this.dataSource.getData();
-      const existingTaxonGroups = removeDuplicatesFromArray(
-        data.map(batch => batch.taxonGroup).filter(isNotNil),
-        'id');
+      // Generate species rows
+      if (this.showTaxonGroupColumn) {
 
-      const taxonGroupsToAdd = this.availableTaxonGroups
-        // Exclude if already exists
-        .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
-
-      if (isNotEmptyArray(taxonGroupsToAdd)) {
-        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
-
-        const entities = [];
-        for (const taxonGroup of taxonGroupsToAdd) {
-          const entity = new this.dataType();
-          entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
-          entity.rankOrder = rankOrder++;
-          entities.push(entity);
+        // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
+        if (isEmptyArray(this.availableTaxonGroups)) {
+          console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
+          return;
         }
 
+        // Read existing taxonGroups
+        const data = this.dataSource.getData();
+        const existingTaxonGroups = removeDuplicatesFromArray(
+          data.map(batch => batch.taxonGroup).filter(isNotNil),
+          'id');
+
+        const taxonGroupsToAdd = this.availableTaxonGroups
+          // Exclude if already exists
+          .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
+
+        if (isNotEmptyArray(taxonGroupsToAdd)) {
+          let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
+
+          const entities = [];
+          for (const taxonGroup of taxonGroupsToAdd) {
+            const entity = new this.dataType();
+            entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
+            entity.rankOrder = rankOrder++;
+            entities.push(entity);
+          }
+
+          await this.addEntitiesToTable(entities, {emitEvent: false});
+
+          // Mark as dirty
+          this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
+        }
+      }
+
+      else if (this.filteredPmfms?.length){
+        const data = this.dataSource.getData();
+        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
+
+        const pmfm = PmfmUtils.getFirstQualitativePmfm(this.filteredPmfms, {excludeHidden: true, minQvCount: 2, maxQvCount: 10});
+        const entities =
+          pmfm.qualitativeValues
+          .filter((qv) => data.every(entity => !PmfmValueUtils.equals(entity.measurementValues[pmfm.id], qv)))
+          .map((qv) => {
+            const entity = new this.dataType();
+            entity.measurementValues = {[pmfm.id]: qv.id}
+            entity.rankOrder = rankOrder++;
+            return entity;
+          });
         await this.addEntitiesToTable(entities, {emitEvent: false});
 
         // Mark as dirty
         this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
+      }
+      else {
+        console.warn('Unable to fill rows: taxon groups not found, and no qualitative pmfms ')
       }
 
       this.markForCheck();

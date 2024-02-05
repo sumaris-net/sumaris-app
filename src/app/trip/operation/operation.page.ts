@@ -1104,7 +1104,6 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Set batch tree
       if (this.batchTree) {
-        //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
         this.batchTree.requiredStrategy = this.requiredStrategy;
         this.batchTree.strategyId = this.strategy?.id;

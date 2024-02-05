@@ -109,6 +109,7 @@ export class MeasurementsTableEntitiesService<
     // Init state defaults
     const requiredGear = options?.requiredGear === true;
     this._state.set(<Partial<ST>>{
+      loading: true,
       requiredStrategy: options?.requiredStrategy,
       strategyId: null,
       strategyLabel: null,
@@ -332,7 +333,7 @@ export class MeasurementsTableEntitiesService<
   }
 
   private markAsLoaded() {
-    if (this.loading) {
+    if (this.loading !== false) {
       this.loading = false
     }
   }

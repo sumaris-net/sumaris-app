@@ -1,6 +1,6 @@
 <!-- batch tree -->
-<ion-list class="ion-no-padding">
-  <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl" class="batch-tree">
+<ion-list class="ion-no-padding" >
+  <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl" class="batch-tree" [class.mobile]="mobile">
     <!-- Expandable nodes -->
     <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
       <li
@@ -12,9 +12,9 @@
         <ion-item
           (click)="click($event, node)"
           [class.activated]="vars.selected"
-          [disabled]="node.disabled"
           [class.cdk-visually-hidden]="node.hidden"
-          tappable
+          [class.tappable]="!node.disabled"
+          [class.disabled]="node.disabled"
         >
           <button mat-icon-button slot="start" (click)="toggle($event, node)">
             <mat-icon class="mat-icon-rtl-mirror">{{ vars.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
@@ -22,14 +22,14 @@
 
           <!-- name -->
           <ion-label>
-            <h2>{{ node.name }}</h2>
+            {{ node.name }}
           </ion-label>
 
           <!-- badges -->
           <ion-buttons slot="end">
-            <ng-container *ngIf="debug">
+            <!--<ng-container *ngIf="debug">
               <ng-container *ngTemplateOutlet="expandableBadges; context: { $implicit: node }"></ng-container>
-            </ng-container>
+            </ng-container>-->
 
             <!-- error -->
             <ion-icon
@@ -51,15 +51,15 @@
     <!-- Leaf nodes -->
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
       <li *ngVar="(selectionSubject | async) === node; let selected">
-        <ion-item (click)="click($event, node)" [class.activated]="selected" tappable>
+        <ion-item (click)="click($event, node)" [class.activated]="selected"
+                  [class.tappable]="!node.disabled"
+                  [class.disabled]="node.disabled">
           <!-- spacer for alignment -->
           <app-icon slot="start" [ref]="node.icon || {}"></app-icon>
 
           <!-- name + error -->
           <ion-label>
-            <h2>
-              <span>{{ node.name }}</span>
-            </h2>
+            {{ node.name }}
           </ion-label>
           <ion-buttons slot="end">
             <ng-container *ngIf="debug">

@@ -1,18 +1,18 @@
 import { Component, Injector } from '@angular/core';
-import {AppDataEntityReport} from '@app/data/report/data-entity-report.class';
+import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import {Operation, Trip} from '@app/trip/trip/trip.model';
+import { Operation, Trip } from '@app/trip/trip/trip.model';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { TripService } from '@app/trip/trip/trip.service';
 
 import moment from 'moment';
-import {AcquisitionLevelCodes, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { EntityAsObjectOptions, isNotEmptyArray, isNotNilOrNaN } from '@sumaris-net/ngx-components';
-import {Program} from '@app/referential/services/model/program.model';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {IComputeStatsOpts} from '@app/data/report/base-report.class';
-import {lastValueFrom} from 'rxjs';
+import { Program } from '@app/referential/services/model/program.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { lastValueFrom } from 'rxjs';
 import { BaseTripReportStats, SpeciesChart } from '@app/trip/trip/report/base-trip.report';
 
 export class OperationStats extends BaseTripReportStats {
@@ -24,7 +24,7 @@ export class OperationStats extends BaseTripReportStats {
 
   fromObject(source: any) {
     this.sampleCount = source.sampleCount;
-    this.pmfms = source.pmfms.map(item => Pmfm.fromObject(item));
+    this.pmfms = source.pmfms.map((item) => Pmfm.fromObject(item));
     this.program = Program.fromObject(source.program);
     this.weightDisplayedUnit = source.weightDisplayedUnit;
     this.taxonGroup = TaxonGroupRef.fromObject(source.taxonGroup);
@@ -33,7 +33,7 @@ export class OperationStats extends BaseTripReportStats {
   asObject(opts?: EntityAsObjectOptions): any {
     return {
       sampleCount: this.sampleCount,
-      pmfms: this.pmfms.map(item => item.asObject()),
+      pmfms: this.pmfms.map((item) => item.asObject()),
       program: this.program.asObject(),
       weightDisplayedUnit: this.weightDisplayedUnit,
       taxonGroup: this.taxonGroup.asObject(),
@@ -45,7 +45,7 @@ export class OperationStats extends BaseTripReportStats {
   selector: 'app-operation-report',
   templateUrl: './operation.report.html',
   styleUrls: [
-    '@app/data/report/base-report.scss',
+    '../../../data/report/base-report.scss',
   ],
 })
 export class OperationReport extends AppDataEntityReport<Operation, number, OperationStats> {

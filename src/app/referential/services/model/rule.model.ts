@@ -5,7 +5,6 @@ import {
   FilterFn,
   FormErrors,
   isEmptyArray,
-  isNil,
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
@@ -90,10 +89,10 @@ export class Rule<T = any>
           return (source) => expectedValue.includes(get(source, props));
         }
         // eslint-disable-next-line eqeqeq
-        return (source) => source == get(expectedValue, props);
+        return (source) => expectedValue == get(source, props);
       case '!=':
         if (Array.isArray(expectedValue)) {
-          return (source) => !expectedValue.includes(get(source, props));
+          return (source) => !expectedValue.includes(get(source, props)?.toString());
         }
         // eslint-disable-next-line eqeqeq
         return (source) => expectedValue != get(source, props);
@@ -102,7 +101,7 @@ export class Rule<T = any>
           return (source) => {
             const value = get(source, props);
             const values = Array.isArray(value) ? value : [value];
-            return values.some(av => expectedValue.includes(av));
+            return values.some(v => expectedValue.includes(v?.toString()));
           };
         }
         return (source) => {
@@ -111,12 +110,26 @@ export class Rule<T = any>
           // eslint-disable-next-line eqeqeq
           return values.some(v => v == expectedValue);
         };
+      case 'NOT IN':
+        if (Array.isArray(expectedValue)) {
+          return (source) => {
+            const value = get(source, props);
+            const values = Array.isArray(value) ? value : [value];
+            return values.every(v => !expectedValue.includes(v?.toString()));
+          };
+        }
+        return (source) => {
+          const value = get(source, props);
+          const values = Array.isArray(value) ? value : [value];
+          // eslint-disable-next-line eqeqeq
+          return values.every(v => !(v == expectedValue));
+        };
       case 'NULL':
-        return (source) => isNil(get(source, props));
+        return (source) => isNilOrBlank(get(source, props));
       case 'NOT NULL':
-        return (source) => isNotNil(get(source, props));
+        return (source) => isNotNilOrBlank(get(source, props));
       default:
-        throw new Error('Operator not implemented yet: ' + rule.operator);
+        throw new Error(`Operator not implemented yet: ${rule.operator} - Please implement before using it`);
     }
   }
 

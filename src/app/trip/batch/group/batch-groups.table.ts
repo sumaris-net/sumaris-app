@@ -129,6 +129,7 @@ export interface BatchGroupsTableState extends AbstractBatchesTableState {
   showAutoFillButton: boolean;
   showSamplingBatchColumns: boolean;
   showIndividualCountColumns: boolean;
+  allowSubBatches: boolean;
 }
 
 @Component({
@@ -224,8 +225,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
   private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
 
-  @RxStateSelect<BatchGroupsTableState>('showSamplingBatchColumns') protected showSamplingBatchColumns$: Observable<boolean>;
-  @RxStateSelect<BatchGroupsTableState>('showAutoFillButton') showAutoFillButton$: Observable<boolean>;
+  @RxStateSelect() protected showSamplingBatchColumns$: Observable<boolean>;
+  @RxStateSelect() showAutoFillButton$: Observable<boolean>;
 
   weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
@@ -300,12 +301,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   @Input() showError = true;
-  @Input() allowSubBatches = true;
   @Input() allowQvPmfmGroup = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
   @Input() taxonGroupsNoLanding: string[] = [];
 
+  @Input() @RxStateProperty() autoFill = false;
+  @Input() @RxStateProperty() allowSubBatches = true;
   @Input() @RxStateProperty() showAutoFillButton: boolean
   @Input() @RxStateProperty() showSamplingBatchColumns: boolean;
   @Input() @RxStateProperty() showIndividualCountColumns: boolean;

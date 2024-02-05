@@ -17,25 +17,26 @@
 
       <ion-item lines="none" *ngIf="mobile; else desktop">
         <!-- panel buttons -->
-        <ng-container *ngTemplateOutlet="panelBottomButtons"></ng-container>
+        <ng-container *ngTemplateOutlet="panelBottomButtons; context: { showControlButton: false }"></ng-container>
       </ion-item>
 
       <ng-template #desktop>
         <ion-footer>
-          <ion-toolbar>
+          <ion-toolbar class="ion-padding-start">
               <!-- panel buttons -->
-              <ng-container *ngTemplateOutlet="panelBottomButtons"></ng-container>
+              <ng-container *ngTemplateOutlet="panelBottomButtons; context: { showControlButton: true }"></ng-container>
           </ion-toolbar>
         </ion-footer>
       </ng-template>
 
-      <ng-template #panelBottomButtons>
+      <ng-template #panelBottomButtons let-showControlButton="showControlButton">
         <!-- Control -->
-        <ion-button slot="end" [disabled]="disabled"
-                    *ngIf="control.observed"
+        <ion-button [disabled]="disabled"
+                    *ngIf="showControlButton && control.observed"
                     (click)="control.emit($event)"
                     [color]="dirty ? 'tertiary' : 'dark'"
                     [fill]="dirty ? 'solid' : 'clear'"
+                    expand="block"
                     [innerHTML]="controlButtonText|translate"></ion-button>
 
         <ion-buttons slot="end">
@@ -387,7 +388,18 @@
           <br />
           gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
           <br/>
-          allowSpeciesSampling: {{ allowSpeciesSampling }}
+          <br />
+          <ng-container *rxLet="editingBatch$; let editingBatch">
+            editingBatch.currentData: {{ editingBatch?.currentData.label }} {{ editingBatch?.currentData?.rankOrder }}
+            <br/>
+            editingBatch.originalData: {{ editingBatch?.originalData?.label }} {{ editingBatch?.originalData?.rankOrder }}
+            <br/>
+            editingBatch.path: {{ editingBatch?.path }}
+          </ng-container>
+          <br/>
+          lastEditingBatch.path: {{ _lastEditingBatchPath }}
+          <br/>
+          lastEditingBatch.path: {{ _lastEditingBatchPath && model.get(_lastEditingBatchPath)?.originalData.label || '' }}
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{ form.dirty }}
@@ -411,7 +423,7 @@
           batchTree.enabled: {{ batchTree?.enabled }}
           <br />
           <br />
-          batchTree.value: {{ !!batchTree?.value }}
+          batchTree.value: {{ batchTree?.value?.label || '' }}
         </ion-col>
       </ion-row>
       <ion-row>

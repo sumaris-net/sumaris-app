@@ -503,17 +503,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     ]);
     const pmfms = [...catchPmfms, ...sortingPmfms];
 
-    // Load sub gears
-    if (allowChildrenGears && isNil(physicalGear.children)) {
-      physicalGear = physicalGear?.clone(); // Keep original unchanged
-      physicalGear.children = await this.physicalGearService.loadAllByParentId({
-        tripId: physicalGear.tripId,
-        parentGearId: physicalGear.id
-      });
-    }
-
     // Create batch model, and the form
-    const model = this.selectivityBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard, physicalGear });
+    const model = await this.selectivityBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard, physicalGear });
     const form = this.selectivityBatchModelValidatorService.createFormGroupByModel(model, {
       allowSpeciesSampling: allowSamplingBatches,
       isOnFieldMode: false
@@ -582,7 +573,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const pmfms = [...catchPmfms, ...sortingPmfms];
 
     // Create batch model, and the form
-    const model = this.advancedBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard });
+    const model = await this.advancedBatchModelValidatorService.createModel(entity, { catchPmfms, sortingPmfms, allowDiscard });
     const form = this.advancedBatchModelValidatorService.createFormGroupByModel(model, {
       allowSpeciesSampling: allowSamplingBatches,
       isOnFieldMode: false

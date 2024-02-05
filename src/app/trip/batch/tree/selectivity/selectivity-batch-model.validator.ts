@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { isEmptyArray, isNil, isNotNil, LocalSettingsService, ReferentialRef, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -10,6 +10,7 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { Rule } from '@app/referential/services/model/rule.model';
 import { BatchModelValidatorOptions, BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 
 @Injectable({ providedIn: 'root' })
 export class SelectivityBatchModelValidatorService<
@@ -18,6 +19,8 @@ export class SelectivityBatchModelValidatorService<
   AO extends BatchAsObjectOptions = BatchAsObjectOptions,
   FO extends BatchFromObjectOptions = BatchFromObjectOptions
 > extends BatchModelValidatorService<T, O, AO, FO> {
+  private physicalGearService = inject(PhysicalGearService);
+
   constructor(
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
@@ -27,17 +30,27 @@ export class SelectivityBatchModelValidatorService<
     super(formBuilder, translate, settings, measurementsValidatorService);
   }
 
-  createModel(
+  async createModel(
     data: Batch | undefined,
     opts: {
       allowDiscard: boolean;
       sortingPmfms: IPmfm[];
       catchPmfms: IPmfm[];
+
       physicalGear: PhysicalGear;
+
       rules?: Rule[];
     }
-  ): BatchModel {
-    if (!opts?.physicalGear) throw new Error("Missing required argument 'opts.physicalGear'");
+  ): Promise<BatchModel> {
+    const physicalGear = opts.physicalGear;
+    if (!physicalGear) throw new Error("Missing required argument 'opts.physicalGear'");
+
+    // Load physical gear's children (if not already done)
+    if (isEmptyArray(physicalGear.children) && isNotNil(physicalGear.tripId)) {
+      // DEBUG
+      console.debug("[selectivity-batch-model-validator] Load physical gear's children:", physicalGear);
+      physicalGear.children = await this.physicalGearService.loadAllByParentId({ tripId: physicalGear.tripId, parentGearId: physicalGear.id });
+    }
 
     // Map sorting pmfms
     const sortingPmfms = (opts.sortingPmfms || [])
@@ -66,7 +79,7 @@ export class SelectivityBatchModelValidatorService<
       })
       .filter(isNotNil);
 
-    const model = super.createModel(data, { ...opts, sortingPmfms });
+    const model = await super.createModel(data, { ...opts, sortingPmfms });
     if (!model) return;
 
     // Initialize exhaustiveInventory, on each leaf

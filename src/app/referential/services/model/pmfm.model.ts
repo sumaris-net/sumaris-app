@@ -329,9 +329,8 @@ export abstract class PmfmUtils {
     minQvCount?: number;
     maxQvCount?: number;
     filterFn?: (IPmfm, index) => boolean;
-  } = {
-    minQvCount: 1 // Should have at least 2 values (by default)
   }): P {
+    opts = {minQvCount: 1, ...opts};
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => p.type === 'qualitative_value'

@@ -5,7 +5,6 @@ import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
-import { UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
@@ -27,7 +26,7 @@ import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advance
 export class AdvancedOperationPage extends OperationPage {
   get invalid(): boolean {
     // Allow batchTree to be invalid
-    return this.opeForm?.invalid || this.measurementsForm?.invalid || false;
+    return this.opeForm?.invalid || this.measurementsForm?.invalid || this.sampleTree?.invalid || false;
   }
 
   constructor(injector: Injector, dataService: OperationService) {
@@ -36,28 +35,6 @@ export class AdvancedOperationPage extends OperationPage {
       tabCount: 3,
       settingsId: 'advanced-operation',
     });
-  }
-
-  protected registerForms() {
-    // Register sub forms & table
-    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree, this.sampleTree]);
-  }
-
-  protected updateFormGroup(event: UpdateFormGroupEvent) {
-    event.detail.success();
-  }
-
-  onNewFabButtonClick(event: Event) {
-    const selectedTabIndex = this.selectedTabIndex;
-    if (selectedTabIndex === OperationPage.TABS.CATCH) {
-      this.batchTree.addRow(event);
-    } else {
-      super.onNewFabButtonClick(event);
-    }
-  }
-
-  get showFabButton(): boolean {
-    return this.enabled && this.selectedTabIndex === AdvancedOperationPage.TABS.SAMPLE;
   }
 
   async saveAndControl(event?: Event, opts?: { emitEvent?: false }): Promise<boolean> {
