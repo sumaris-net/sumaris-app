@@ -67,7 +67,7 @@ export const environment = Object.freeze(<Environment>{
 
   // Storage
   storage: {
-    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
+    driverOrder: [StorageDrivers.IndexedDB, StorageDrivers.LocalStorage]
   },
 
   account: {

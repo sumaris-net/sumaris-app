@@ -678,7 +678,8 @@ export class SamplesTable
     // Skip if no images to display
     if (this.disabled && isEmptyArray(images)) return;
 
-    event.stopPropagation();
+    event?.stopPropagation();
+    console.debug(this.logPrefix + 'Opening images modal...');
 
     const modal = await this.modalCtrl.create({
       component: AppImageAttachmentsModal,
