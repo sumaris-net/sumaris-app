@@ -32,7 +32,7 @@ import { SamplesTable } from '@app/trip/sample/samples.table';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { combineLatest, firstValueFrom, Observable } from 'rxjs';
+import { combineLatest, combineLatestWith, merge, Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
@@ -234,35 +234,35 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
           })
       );
     } else {
-      // If mobile (no sub tables), should load pmfms
-      // We create an observer for program (wait strategy if required)
-      const loadSubPmfms$ = combineLatest([programLoaded$, this.requiredStrategy$]).pipe(
-        mergeMap(async ([program, requiredStrategy]) => {
-          const strategyLabel = requiredStrategy ? await firstValueFrom(this.strategyLabel$) : undefined;
-          return [program.label, strategyLabel];
-        })
-      );
 
       this._state.hold(
-        loadSubPmfms$.pipe(
-          mergeMap(([programLabel, strategyLabel]) =>
+        // If mobile (no sub tables), should load pmfms
+        // We create an observer for program (wait strategy if required)
+        combineLatest([programLoaded$, this.requiredStrategy$]).pipe(
+          combineLatestWith(merge(this.strategyLabel$, this.strategyId$)),
+          filter(([[_, requiredStrategy], strategyLabelOrId]) => (!requiredStrategy || isNotNil(strategyLabelOrId))),
+          mergeMap(([[program]]) =>
             Promise.all([
               this.programRefService
-                .loadProgramPmfms(programLabel, {
+                .loadProgramPmfms(program.label, {
                   acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_MONITORING,
-                  strategyLabel,
+                  strategyLabel: this.strategyLabel,
+                  strategyId: this.strategyId
                 })
                 .then(isNotEmptyArray),
               this.programRefService
-                .loadProgramPmfms(programLabel, {
+                .loadProgramPmfms(program.label, {
                   acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
-                  strategyLabel,
+                  strategyLabel: this.strategyLabel,
+                  strategyId: this.strategyId
                 })
                 .then(isNotEmptyArray),
             ])
           )
         ),
         ([hasMonitoringPmfms, hasReleasePmfms]) => {
+          // DEBUG
+          console.debug(this._logPrefix + 'hasReleasePmfms? ' + hasReleasePmfms);
           this.showIndividualMonitoringTable = hasMonitoringPmfms;
           this.showIndividualReleaseTable = hasReleasePmfms;
           this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
