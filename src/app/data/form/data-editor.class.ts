@@ -178,7 +178,7 @@ export abstract class AppDataEntityEditor<
       filter(isNotNil),
       mergeMap(async (program) => {
         // Make sure to load strategy resolution
-        this.strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+        //this.strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
         // Call setProgram() (should have been override by subclasses)
         try {

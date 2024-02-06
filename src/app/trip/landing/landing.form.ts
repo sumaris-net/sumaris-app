@@ -71,7 +71,15 @@ import { MeasurementsFormState } from '@app/data/measurement/measurements.utils'
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
-const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
+const TRIP_FORM_EXCLUDED_FIELD_NAMES = [
+  'program',
+  'vesselSnapshot',
+  'departureDateTime',
+  'departureLocation',
+  'returnDateTime',
+  'returnLocation',
+  'observers',
+];
 
 type FilterableFieldName = 'fishingArea';
 
@@ -134,7 +142,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   get metiersForm() {
-    return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
+    return this.tripForm.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
 
   get fishingAreasForm() {
@@ -381,6 +389,15 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Add strategy control
     this._state.connect('strategyControl', this._state.select('showStrategy'), (_, show) => this.initStrategyControl(show));
 
+    this._state.connect('strategyLabel',
+      this.strategyControl$.pipe(
+        filter(isNotNil),
+        switchMap((control) => control.valueChanges),
+        map(strategy => strategy?.label),
+        distinctUntilChanged()
+      )
+    );
+
     this._state.hold(this._state.select('canEditStrategy'), (canEditStrategy) => {
       if (canEditStrategy && this.strategyControl?.disabled) {
         this.strategyControl.enable();
@@ -406,13 +423,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       (_, parent) => this.displayObservedLocation(parent as ObservedLocation)
     );
 
-    this._state.hold(
-      this.strategyControl$.pipe(
-        switchMap((control) => control.valueChanges),
-        distinctUntilChanged(EntityUtils.equals)
-      ),
-      (strategy) => this.strategyChanges.emit(strategy)
-    );
   }
 
   registerAutocompleteField<E = any, EF = any>(fieldName: string, opts?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
@@ -476,20 +486,21 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     if (this.showTrip) {
       this.initTripForm();
-    }
 
-    // Resize metiers array
-    if (this.showMetier) {
-      trip.metiers = isNotEmptyArray(trip.metiers) ? trip.metiers : [null];
-    } else {
-      trip.metiers = [];
-    }
+      console.log('TODO');
+      // Resize metiers array
+      if (this.showMetier) {
+        trip.metiers = isNotEmptyArray(trip.metiers) ? trip.metiers : [null];
+      } else {
+        trip.metiers = [];
+      }
 
-    // Resize fishing areas array
-    if (this.showFishingArea) {
-      trip.fishingAreas = isNotEmptyArray(trip.fishingAreas) ? trip.fishingAreas : [null];
-    } else {
-      trip.fishingAreas = [];
+      // Resize fishing areas array
+      if (this.showFishingArea) {
+        trip.fishingAreas = isNotEmptyArray(trip.fishingAreas) ? trip.fishingAreas : [null];
+      } else {
+        trip.fishingAreas = [];
+      }
     }
 
     // DEBUG
@@ -733,6 +744,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
         withObservers: false,
         withMeasurements: false,
         departureDateTimeRequired: false,
+        returnFieldsRequired: false,
       });
 
       // Excluded some trip's fields
@@ -755,6 +767,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       const tripConfig = {
         withMetiers: this.showMetier,
         withFishingAreas: this.showFishingArea,
+        withObservers: false
       }
 
       this.tripValidatorService.updateFormGroup(tripForm, tripConfig);

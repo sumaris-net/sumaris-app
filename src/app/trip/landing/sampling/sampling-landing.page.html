@@ -32,7 +32,7 @@
   </button>
 
   <!-- reset -->
-  <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
+  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
       &nbsp;
@@ -51,7 +51,6 @@
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
-
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group
@@ -84,15 +83,16 @@
       </ng-template>
 
       <div>
+        <!-- debug -->
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
         <!-- error -->
         <ion-item *ngIf="landingForm.error || error as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
         </ion-item>
-
-        <ng-container *ngIf="debug">
-          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -102,7 +102,6 @@
                 #landingForm
                 [programLabel]="programLabel$ | async"
                 [i18nSuffix]="i18nContext.suffix"
-                [requiredStrategy]="!isNewData"
                 [showStrategy]="true"
                 [showMeasurements]="true"
                 [showError]="false"
@@ -196,7 +195,6 @@
       [label]="'LANDING.EDIT.TAB_SAMPLES' | translateContext : i18nContext.suffix"
       [disabled]="!showSamplesTable"
       appSubMenuTab
-      [subMenuIcon]="{matIcon: 'center_focus_strong'}"
     >
       <ng-template mat-tab-label>
         <mat-icon>center_focus_strong</mat-icon>
@@ -220,6 +218,7 @@
 
       <app-samples-table
         #samplesTable
+        acquisitionLevel="SAMPLE"
         [disabled]="noEffortError"
         [showIdColumn]="false"
         [requiredLabel]="false"
@@ -236,11 +235,13 @@
         [defaultSampleDate]="data?.dateTime"
         [allowSubSamples]="false"
         [usageMode]="usageMode"
-        [useSticky]="true"
+        [sticky]="true"
+        [stickyEnd]="true"
         [compactFields]="false"
         (prepareRowForm)="onPrepareSampleForm($event)"
         (weightUnitChanges)="setWeightDisplayUnit($event)"
         [debug]="debug"
+          [mobile]="mobile"
       ></app-samples-table>
     </mat-tab>
   </mat-tab-group>
@@ -266,7 +267,7 @@
   vertical="bottom"
   horizontal="end"
   slot="fixed"
-  *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+  *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1"
   @fadeInOutAnimation
 >
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
@@ -282,46 +283,77 @@
         <ion-col>
           editor.ready: {{ readySubject | async }}
           <br />
-          editor.loading: {{ loading }}
+          editor.loading: {{ loading }} - saving: {{ savingSubject | async }}
           <br />
           editor.enabled: {{ enabled }}
           <br />
           editor.dirty: {{ dirty }}
           <br />
-          editor.saving: {{ savingSubject | async }}
+          editor.valid: {{ valid }}
           <br />
-          editor.program: {{ programLabel$ | async }}
+          editor.program: {{(program$|async)?.label}}
           <br />
-          editor.strategyResolution: {{ strategyResolution$|async }}
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
           <br />
-          editor.strategy {{requiredStrategy ? '(required)' : ''}}: {{ (strategy$|async)?.id }} (context: {{context.strategy?.id }})
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
         </ion-col>
         <ion-col>
-          landingForm.ready: {{ landingForm.readySubject | async }}
+          form.ready: {{ landingForm.readySubject | async }}
           <br />
-          landingForm.loading: {{ landingForm.loading }}
+          form.loading: {{ landingForm.loading }}
           <br />
-          landingForm.enabled: {{ landingForm.enabled }}
+          form.enabled: {{ landingForm.enabled }}
           <br />
-          landingForm.dirty: {{ landingForm.dirty }}
+          form.dirty: {{ landingForm.dirty }}
+          <br />
+          form.valid: {{ landingForm.valid }}
+          <br />
+          form.program: {{ landingForm.programLabel }}
+          <br />
+          form.strategy{{ landingForm.requiredStrategy ? ' (required)' : '' }}: {{ landingForm.strategyId || landingForm.strategyLabel }}
           <br />
           <br />
-          landingForm.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          form.acquisitionLevel: {{ landingForm.acquisitionLevel }}
           <br />
-          landingForm.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          form.pmfms: {{ (landingForm.pmfms$ | async)?.length }}
           <br />
-          landingForm.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
+          form.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          <br />
+          form.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          <br />
+          form.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
           <br />
           <br />
-          landingForm.showLocation: {{ landingForm.showLocation }}
+          form.showStrategy: {{ landingForm.showStrategy }}
+          <br/>
+          form.showLocation: {{ landingForm.showLocation }}
           <br />
+          form.showVessel: {{ landingForm.showVessel }}
+          <br/>
+          form.showParent: {{ landingForm.showParent }}
+          <br/>
+          form.canEditStrategy: {{ landingForm.canEditStrategy }}
         </ion-col>
         <ion-col>
           samplesTable.ready: {{ samplesTable.readySubject | async }}
           <br />
           samplesTable.loading: {{ samplesTable.loading }} (subject: {{ samplesTable.loadingSubject | async }})
           <br />
-          samplesTable.dirty: {{ samplesTable.dirty }} (subject: {{ samplesTable.dirtySubject | async }})
+          samplesTable.enabled: {{ samplesTable.enabled }}
+          <br />
+          samplesTable.dirty: {{ samplesTable.dirty }}
+          <br />
+          samplesTable.valid: {{ samplesTable.valid }}
+          <br />
+          samplesTable.program: {{ samplesTable.programLabel }}
+          <br />
+          samplesTable.strategy{{ samplesTable.requiredStrategy ? ' (required)' : '' }}: {{ samplesTable.strategyId || samplesTable.strategyLabel }}
+          <br />
+          <br />
+          samplesTable.acquisitionLevel: {{ samplesTable.acquisitionLevel }}
+          <br />
+          samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
           <br />
           <br />
           samplesTable.showIndividualMonitoringButton: {{ samplesTable.showIndividualMonitoringButton }}
@@ -329,7 +361,6 @@
           samplesTable.showIndividualReleaseButton: {{ samplesTable.showIndividualReleaseButton }}
           <br />
           samplesTable.showImagesButton: {{ samplesTable.showImagesColumn }}
-          <br />
         </ion-col>
       </ion-row>
     </ion-grid>

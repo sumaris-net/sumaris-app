@@ -1,9 +1,9 @@
-import { firstValueFrom, mergeMap, Observable } from 'rxjs';
+import { mergeMap, Observable } from 'rxjs';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import {
   EntityUtils,
-  firstNotNil,
+  firstNotNilPromise,
   IEntitiesService,
   IEntityFilter,
   InMemoryEntitiesService,
@@ -143,9 +143,9 @@ export class MeasurementsTableEntitiesService<
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
-    if (this.stopped) throw Error('MeasurementService is not restartable!');
+    //if (this.stopped) throw Error('MeasurementService is not restartable!');
     try {
-      return await firstValueFrom(firstNotNil(this.pmfms$));
+      return await firstNotNilPromise(this.pmfms$, {stop: this.stopSubject});
     }
     catch(err) {
       if (this.stopped) {

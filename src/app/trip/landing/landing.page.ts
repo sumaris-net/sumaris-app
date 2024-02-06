@@ -55,12 +55,10 @@ import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
-import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
-import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
-import { Batch } from '@app/trip/batch/common/batch.model';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 
@@ -111,10 +109,8 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   enableReport = false;
   parentAcquisitionLevel: AcquisitionLevelType;
 
-  showBatchTablesByProgram = false;
   showSampleTablesByProgram = false;
   showSamplesTable = false;
-  showBatchesTable = false;
 
   @RxStateProperty() strategyLabel: string
 
@@ -124,12 +120,12 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
-  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
   @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
 
   constructor(injector: Injector, @Optional() options: LandingEditorOptions) {
     super(injector, Landing, injector.get(LandingService), {
-      tabCount: 3,
+      pathIdAttribute: 'landingId',
+      tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.LANDING,
@@ -147,7 +143,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     super.ngAfterViewInit();
 
     // Enable samples tab, when has pmfms
-    firstTruePromise(this.samplesTable.hasPmfms$).then(() => {
+    firstTruePromise(this.samplesTable.hasPmfms$,  {stop: this.destroySubject}).then(() => {
       this.showSamplesTable = true;
       this.markForCheck();
     });
@@ -164,15 +160,20 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
         .subscribe()
     );
 
-    this.registerSubscription(
-      this.landingForm.observedLocationChanges.pipe(filter((_) => this.showParent)).subscribe((parent) => this.onParentChanged(parent))
+
+    // Fill strategy label from form
+    this._state.connect('strategyLabel', this.landingForm.strategyLabel$);
+
+    this._state.hold(
+      this.landingForm.observedLocationChanges.pipe(filter((_) => this.showParent)),
+      (parent) => this.onParentChanged(parent)
     );
 
     // Watch table events, to avoid strategy edition, when has sample rows
-    this.registerSubscription(
+    this._state.hold(
       merge(this.samplesTable.onConfirmEditCreateRow, this.samplesTable.onCancelOrDeleteRow, this.samplesTable.onAfterDeletedRows)
-        .pipe(debounceTime(500))
-        .subscribe(() => (this.landingForm.canEditStrategy = this.samplesTable.empty))
+        .pipe(debounceTime(500)),
+        () => this.landingForm.canEditStrategy = this.samplesTable.empty
     );
 
     // Manage sub tab group
@@ -288,7 +289,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       }
     }
 
-    if (!this.isNewData && this.landingForm.requiredStrategy) {
+    if (!this.isNewData && this.requiredStrategy) {
       this.landingForm.canEditStrategy = false;
     }
     this.defaultBackHref = this.computeDefaultBackHref();
@@ -309,7 +310,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable, this.batchTree]);
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -424,6 +425,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
+    console.log('TODO program=' + programLabel);
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
   }
@@ -523,18 +525,21 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    await super.setProgram(program);
 
+    let showStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE)
+      || program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) === 'user-select';
     const isNewData = this.isNewData;
+    const requiredStrategy = showStrategy && !isNewData;
+
+    this.requiredStrategy = requiredStrategy;
+    this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     // Customize the UI, using program options
-    const enableStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.showStrategy = enableStrategy;
-    this.landingForm.requiredStrategy = !isNewData && enableStrategy;
-    this.landingForm.canEditStrategy = isNewData && enableStrategy;
+    this.landingForm.showStrategy = showStrategy;
+    this.landingForm.requiredStrategy = requiredStrategy;
+    this.landingForm.canEditStrategy = showStrategy && isNewData;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
@@ -547,8 +552,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.landingForm.i18nSuffix = i18nSuffix;
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
-
-    this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_ENABLE);
 
     if (this.samplesTable) {
@@ -564,15 +567,9 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()
-      if (!enableStrategy) {
+      if (!requiredStrategy) {
         await this.setTablePmfms(this.samplesTable, program.label);
       }
-    }
-
-    if (this.batchTree) {
-      this.batchTree.requiredStrategy = enableStrategy;
-      this.batchTree.program = program;
-      //this.batchTree.markAsReady();
     }
 
     if (this.strategyCard) {
@@ -581,7 +578,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (!enableStrategy || isNewData) {
+    if (!requiredStrategy || isNewData) {
       this.markAsReady();
     }
 
@@ -593,6 +590,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   }
 
   protected async setStrategy(strategy: Strategy, opts?: { emitReadyEvent?: boolean }) {
+    console.log(this.logPrefix + 'Setting strategy', strategy);
     await super.setStrategy(strategy);
 
     const program = this.program;
@@ -624,15 +622,20 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.markForCheck();
   }
 
-  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
-    if (!strategyLabel) {
+  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>,
+                                programLabel: string,
+                                strategyLabel?: string) {
+    if (!this.landingForm.showStrategy) {
+      console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
       // Set the table program, to delegate pmfms load
+      table.requiredStrategy = this.requiredStrategy;
       table.programLabel = programLabel;
-    } else {
+    } else if (table.acquisitionLevel) {
+      console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {
-        strategyLabel,
         acquisitionLevel: table.acquisitionLevel,
+        strategyLabel,
       });
       const strategyPmfmIds = samplesPmfms.map((pmfm) => pmfm.id);
 
@@ -662,6 +665,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       table.pmfms = samplesPmfms.filter((p) => p.id !== PmfmIds.STRATEGY_LABEL);
       // Avoid to load by program, because PMFM are already known
       //table.programLabel = programLabel;
+      table.markAsReady();
     }
   }
 
@@ -691,12 +695,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
-
-    // Set batches to table
-    // FIXME: hard code value. Add batch to landing ?
-    this.batchTree.value = Batch.fromObject({
-      label: 'CATCH_BATCH', rankOrder: 1
-    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

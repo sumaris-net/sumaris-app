@@ -27,7 +27,7 @@
     <ion-label>
       <mat-icon>description</mat-icon>
       &nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+      <span translate>LANDING.EDIT.BTN_REPORT</span>
     </ion-label>
   </button>
 
@@ -90,7 +90,10 @@
                 [i18nSuffix]="i18nContext.suffix"
                 [showError]="false"
                 [showMeasurements]="false"
+                [showParent]="showParent"
+                [parentAcquisitionLevel]="parentAcquisitionLevel"
                 (onSubmit)="save($event)"
+                (openObservedLocation)="openObservedLocation($event)"
                 [debug]="debug"
               ></app-landing-form>
             </ion-col>
@@ -123,7 +126,12 @@
         >
           {{ samplesTab.textLabel }}
         </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
+        <ion-icon
+          slot="end"
+          name="alert-circle"
+          color="danger"
+          *ngIf="samplesTable.invalid "
+        ></ion-icon>
       </ng-template>
 
       <div>
@@ -148,7 +156,7 @@
         </ng-container>
 
         <form
-          *rxIf="pmfms$; let pmfms; strategy: 'immediate'; else: measurementsSkeleton"
+          *rxIf="pmfms$; let pmfms; strategy: 'immediate'; else: measurementSkeletons"
           [formGroup]="landingForm.measurementValuesForm"
           class="form-container ion-padding ion-no-padding-bottom"
         >
@@ -204,10 +212,10 @@
           [tabIndex]="61"
           [defaultSampleDate]="data?.dateTime"
           [usageMode]="usageMode"
-          (prepareRowForm)="onPrepareSampleForm($event)"
-          [pmfmValueColor]="getPmfmValueColor"
           [compactFields]="true"
           [i18nColumnSuffix]="i18nContext.suffix"
+          [pmfmValueColor]="getPmfmValueColor"
+          (prepareRowForm)="onPrepareSampleForm($event)"
           [debug]="debug"
           [mobile]="mobile"
         >
@@ -256,7 +264,7 @@
   </ion-fab-button>
 </ion-fab>
 
-<ng-template #measurementsSkeleton>
+<ng-template #measurementSkeletons>
   <ion-grid class="form-container ion-padding">
     <ion-row class="ion-no-padding">
       <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
@@ -282,54 +290,74 @@
         <ion-col>
           editor.ready: {{ readySubject | async }}
           <br />
-          editor.loading: {{ loading }}
+          editor.loading: {{ loading }} - saving: {{ savingSubject | async }}
           <br />
           editor.enabled: {{ enabled }}
           <br />
           editor.dirty: {{ dirty }}
           <br />
-          editor.saving: {{ savingSubject | async }}
+          editor.valid: {{ valid }}
           <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
         </ion-col>
         <ion-col>
-          landingForm.ready: {{ landingForm.readySubject | async }}
+          form.ready: {{ landingForm.readySubject | async }}
           <br />
-          landingForm.loading: {{ landingForm.loading }}
+          form.loading: {{ landingForm.loading }}
           <br />
-          landingForm.enabled: {{ landingForm.enabled }}
+          form.enabled: {{ landingForm.enabled }}
           <br />
-          landingForm.dirty: {{ landingForm.dirty }}
+          form.dirty: {{ landingForm.dirty }}
+          <br />
+          form.valid: {{ landingForm.valid }}
+          <br />
+          form.program: {{ landingForm.programLabel }}
+          <br />
+          form.strategy{{ landingForm.requiredStrategy ? ' (required)' : '' }}: {{ landingForm.strategyId || landingForm.strategyLabel }}
           <br />
           <br />
-          landingForm.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          form.acquisitionLevel: {{ landingForm.acquisitionLevel }}
           <br />
-          landingForm.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          form.pmfms: {{ (landingForm.pmfms$ | async)?.length }}
           <br />
-          landingForm.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
+          form.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          <br />
+          form.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          <br />
+          form.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
           <br />
           <br />
-          landingForm.acquisitionLevel: {{ landingForm.acquisitionLevel }}
+          form.showStrategy: {{ landingForm.showStrategy }}
+          <br/>
+          form.showLocation: {{ landingForm.showLocation }}
           <br />
-          landingForm.programLabel: {{ landingForm.programLabel }}
-          <br />
-          landingForm.showLocation: {{ landingForm.showLocation }}
-          <br />
-          landingForm.pmfms: {{ (landingForm.pmfms$ | async)?.length }}
-          <br />
+          form.showVessel: {{ landingForm.showVessel }}
+          <br/>
+          form.showParent: {{ landingForm.showParent }}          <br />
+          form.canEditStrategy: {{ landingForm.canEditStrategy }}
         </ion-col>
         <ion-col>
+          samplesTable.ready: {{ samplesTable.readySubject | async }}
+          <br />
           samplesTable.loading: {{ samplesTable.loading }} (subject: {{ samplesTable.loadingSubject | async }})
           <br />
-          samplesTable.ready: {{ samplesTable.readySubject | async }}
+          samplesTable.enabled: {{ samplesTable.enabled }}
           <br />
           samplesTable.dirty: {{ samplesTable.dirty }}
           <br />
-          samplesTable.dirtySubject: {{ samplesTable.dirtySubject | async }}
+          samplesTable.valid: {{ samplesTable.valid }}
+          <br />
+          samplesTable.program: {{ samplesTable.programLabel }}
+          <br />
+          samplesTable.strategy{{ samplesTable.requiredStrategy ? ' (required)' : '' }}: {{ samplesTable.strategyId || samplesTable.strategyLabel }}
           <br />
           <br />
           samplesTable.acquisitionLevel: {{ samplesTable.acquisitionLevel }}
-          <br />
-          samplesTable.programLabel: {{ samplesTable.programLabel }}
           <br />
           samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
           <br />
@@ -339,7 +367,6 @@
           samplesTable.showIndividualReleaseButton: {{ samplesTable.showIndividualReleaseButton }}
           <br />
           samplesTable.showImagesButton: {{ samplesTable.showImagesColumn }}
-          <br />
         </ion-col>
       </ion-row>
     </ion-grid>

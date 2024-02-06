@@ -23,11 +23,20 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="openReport($event)">
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
     <ion-label>
       <mat-icon>description</mat-icon>
       &nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+      <span translate>LANDING.EDIT.BTN_REPORT</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
+      &nbsp;
+      <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
 
@@ -39,14 +48,8 @@
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 
-  <!-- reset -->
-  <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
-      &nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
+  <!-- DEV only -->
+  <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
@@ -55,7 +58,7 @@
     class="mat-tab-disabled-hidden mat-tab-fixed-content"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
-    [animationDuration]="tabGroupAnimationDuration"
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
@@ -70,6 +73,11 @@
       </ng-template>
 
       <div>
+        <!-- debug -->
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
         <!-- error -->
         <ion-item *ngIf="landingForm.error || error as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -119,7 +127,7 @@
         <mat-icon>center_focus_strong</mat-icon>
         <ion-label
           [matBadge]="samplesTable.visibleRowCount"
-          [matBadgeHidden]="samplesTable.error || samplesTable.invalid || !samplesTable.visibleRowCount"
+          [matBadgeHidden]="samplesTable.invalid || samplesTable.error || !samplesTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"
           matBadgeSize="small"
@@ -131,7 +139,7 @@
           slot="end"
           name="alert-circle"
           color="danger"
-          *ngIf="samplesTable.error || samplesTable.invalid"
+          *ngIf="samplesTable.invalid || samplesTable.error"
         ></ion-icon>
       </ng-template>
 
@@ -144,6 +152,7 @@
 
         <app-samples-table
           #samplesTable
+          acquisitionLevel="SAMPLE"
           [showLabelColumn]="true"
           [showSampleDateColumn]="false"
           [showTaxonNameColumn]="false"
@@ -158,49 +167,8 @@
           (prepareRowForm)="onPrepareSampleForm($event)"
           (weightUnitChanges)="setWeightDisplayUnit($event)"
           [debug]="debug"
+          [mobile]="mobile"
         ></app-samples-table>
-      </div>
-    </mat-tab>
-
-    <!-- TAB: batches -->
-    <mat-tab #batchesTab
-             [label]="'LANDING.EDIT.TAB_BATCHES' | translateContext : i18nContext.suffix"
-             [disabled]="!showBatchTablesByProgram"
-             appSubMenuTab>
-      <ng-template mat-tab-label>
-        <mat-icon>center_focus_strong</mat-icon>
-        <ion-label
-          [matBadge]="batchTree.batchGroupsTable?.visibleRowCount"
-          [matBadgeHidden]="batchTree.error || batchTree.invalid || !batchTree.batchGroupsTable?.visibleRowCount"
-          matBadgeOverlap="false"
-          matBadgeColor="primary"
-          matBadgeSize="small"
-          matBadgePosition="above after"
-        >
-          {{ batchesTab.textLabel }}
-        </ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="batchTree.error || batchTree.invalid"
-        ></ion-icon>
-      </ng-template>
-
-      <div>
-        <app-batch-tree #batchTree
-                        queryTabIndexParamName="subtab"
-                        [showBatchTables]="showBatchTablesByProgram"
-                        [selectedTabIndex]="selectedSubTabIndex"
-                        [usageMode]="usageMode"
-                        [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="strategy$ | async | mapGet: 'id'"
-                        [requiredGear]="false"
-                        [useSticky]="mobile"
-                        [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
-                        [mobile]="mobile"
-                        [debug]="debug"
-        ></app-batch-tree>
       </div>
     </mat-tab>
   </mat-tab-group>
@@ -226,10 +194,102 @@
   vertical="bottom"
   horizontal="end"
   slot="fixed"
-  *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+  *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1"
   @fadeInOutAnimation
 >
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }} - saving: {{ savingSubject | async }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{(program$|async)?.label}}
+          <br />
+          editor.strategy ({{ strategyResolution$|async }}){{requiredStrategy ? ' (required)' : ''}}: {{ (strategy$|async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+        </ion-col>
+        <ion-col>
+          form.ready: {{ landingForm.readySubject | async }}
+          <br />
+          form.loading: {{ landingForm.loading }}
+          <br />
+          form.enabled: {{ landingForm.enabled }}
+          <br />
+          form.dirty: {{ landingForm.dirty }}
+          <br />
+          form.valid: {{ landingForm.valid }}
+          <br />
+          form.program: {{ landingForm.programLabel }}
+          <br />
+          form.strategy{{ landingForm.requiredStrategy ? ' (required)' : '' }}: {{ landingForm.strategyId || landingForm.strategyLabel }}
+          <br />
+          <br />
+          form.acquisitionLevel: {{ landingForm.acquisitionLevel }}
+          <br />
+          form.pmfms: {{ (landingForm.pmfms$ | async)?.length }}
+          <br />
+          form.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          <br />
+          form.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          <br />
+          form.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
+          <br />
+          <br />
+          form.showStrategy: {{ landingForm.showStrategy }}
+          <br/>
+          form.showLocation: {{ landingForm.showLocation }}
+          <br />
+          form.showVessel: {{ landingForm.showVessel }}
+          <br/>
+          form.showParent: {{ landingForm.showParent }}
+          <br/>
+          form.canEditStrategy: {{ landingForm.canEditStrategy }}
+        </ion-col>
+        <ion-col>
+          samplesTable.ready: {{ samplesTable.readySubject | async }}
+          <br />
+          samplesTable.loading: {{ samplesTable.loading }} (subject: {{ samplesTable.loadingSubject | async }})
+          <br />
+          samplesTable.enabled: {{ samplesTable.enabled }}
+          <br />
+          samplesTable.dirty: {{ samplesTable.dirty }}
+          <br />
+          samplesTable.valid: {{ samplesTable.valid }}
+          <br />
+          samplesTable.program: {{ samplesTable.programLabel }}
+          <br />
+          samplesTable.strategy{{ samplesTable.requiredStrategy ? ' (required)' : '' }}: {{ samplesTable.strategyId || samplesTable.strategyLabel }}
+          <br />
+          <br />
+          samplesTable.acquisitionLevel: {{ samplesTable.acquisitionLevel }}
+          <br />
+          samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
+          <br />
+          <br />
+          samplesTable.showIndividualMonitoringButton: {{ samplesTable.showIndividualMonitoringButton }}
+          <br />
+          samplesTable.showIndividualReleaseButton: {{ samplesTable.showIndividualReleaseButton }}
+          <br />
+          samplesTable.showImagesButton: {{ samplesTable.showImagesColumn }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

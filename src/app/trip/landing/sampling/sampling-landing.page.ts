@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { firstValueFrom, merge, mergeMap, of, Subscription } from 'rxjs';
+import { firstValueFrom, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
+import { ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import {
   AccountService,
   EntityServiceLoadOptions,
@@ -26,11 +26,12 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { debounceTime, map } from 'rxjs/operators';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
+import { Program } from '@app/referential/services/model/program.model';
 
 export interface SamplingLandingPageState extends LandingPageState {
   ageParameterIds: number[];
@@ -62,10 +63,11 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      enableListenChanges: false,
+      enableListenChanges: false
     });
     this.i18nContext.suffix = 'SAMPLING.';
     this.fractionDisplayAttributes = this.settings.getFieldDisplayAttributes('fraction', ['name']);
+    this.strategyResolution = 'user-select';
 
     // FOR DEV ONLY ----
     this.logPrefix = '[sampling-landing-page] ';
@@ -80,10 +82,6 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
 
     this._state.hold(this.strategy$.pipe(debounceTime(250)), (strategy) => this.checkStrategyEffort(strategy));
 
-    this._state.connect('strategyLabel', merge(
-      this.landingForm.strategyLabel$,
-      this.landingForm.strategyChanges.pipe(map((s) => s?.label))
-    ).pipe(distinctUntilChanged(), filter(isNotNilOrBlank)));
 
     // Load age parameter ids
     this._state.connect(
@@ -117,9 +115,6 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Set sample table acquisition level
-    this.samplesTable.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-
     // Wait referential ready (before reading enumerations)
     this.referentialRefService
       .ready()
@@ -142,11 +137,15 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
 
   /* -- protected functions -- */
 
+  // protected registerForms() {
+  //   this.addChildForms([this.landingForm, this.samplesTable]);
+  // }
+
   protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
     if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
     return this.strategyRefService.loadByFilter(strategyFilter, {
       failIfMissing: true,
-      fullLoad: true, // Need a full load
+      fullLoad: false, // Not need all pmfms
       debug: this.debug,
     });
   }
@@ -173,6 +172,10 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
       this.tabGroup.realignInkBar();
       this.autoOpenNextTab = false; // Should switch only once
     }
+  }
+
+  protected async setProgram(program: Program): Promise<void> {
+    await super.setProgram(program);
   }
 
   protected async setStrategy(strategy: Strategy) {

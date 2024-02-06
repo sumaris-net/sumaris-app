@@ -8,7 +8,7 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
-
+import { AppBatchModule } from '@app/trip/batch/batch.module';
 
 @NgModule({
   imports: [
@@ -22,17 +22,15 @@ import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
+    AppBatchModule,
   ],
-  declarations: [
-    SamplingLandingPage,
-  ],
+  declarations: [SamplingLandingPage],
   exports: [
     // Components
     SamplingLandingPage,
-  ]
+  ],
 })
 export class AppSamplingLandingModule {
-
   constructor() {
     console.debug('[sampling-landing] Creating module...');
   }

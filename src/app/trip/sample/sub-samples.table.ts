@@ -79,7 +79,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   @Input() showLabelColumn = false;
   @Input() modalOptions: Partial<ISubSampleModalOptions>;
   @Input() usageMode: UsageMode;
-  @Input() useSticky = false;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 

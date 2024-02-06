@@ -97,7 +97,7 @@
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit || mobile">
-        {{ row.currentData?.rankOrder || row.currentData.id | mathAbs }}
+        {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
       </td>
     </ng-container>
 

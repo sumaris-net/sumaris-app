@@ -121,12 +121,16 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
-    form.get('returnDateTime').setValidators(this.getReturnDateTimeValidator(opts));
-    form.get('returnLocation').setValidators(this.getReturnLocationValidator(opts));
+    form.get('returnDateTime')?.setValidators(this.getReturnDateTimeValidator(opts));
+    form.get('returnLocation')?.setValidators(this.getReturnLocationValidator(opts));
 
     // Metier array
     if (opts?.withMetiers) {
-      if (!form.controls.metiers) form.addControl('metiers', this.getMetiersArray(null, {required: true}));
+      if (!form.controls.metiers) {
+        form.addControl('metiers', this.getMetiersArray(null, {required: true}));
+      }
+      if (enabled) form.controls.metiers.enable()
+      else form.controls.metiers.disable();
     }
     else {
       if (form.controls.metiers) form.removeControl('metiers');
@@ -135,6 +139,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     // Observers
     if (opts?.withObservers) {
       if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray(null, {required: true}));
+      if (enabled) form.controls.observers.enable()
+      else form.controls.observers.disable();
     }
     else {
       if (form.controls.observers) form.removeControl('observers');
@@ -143,6 +149,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     // Fishing areas
     if (opts?.withFishingAreas) {
       if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
+      if (enabled) form.controls.fishingAreas.enable()
+      else form.controls.fishingAreas.disable();
     }
     else {
       if (form.controls.fishingAreas) form.removeControl('fishingAreas');

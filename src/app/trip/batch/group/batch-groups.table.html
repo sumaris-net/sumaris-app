@@ -32,7 +32,7 @@
     [trackBy]="trackByFn"
   >
     <!-- Group header: start -->
-    <ng-container matColumnDef="top-start" [sticky]="useSticky">
+    <ng-container matColumnDef="top-start" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
         <ng-container *ngIf="!selection.hasValue(); else hasSelection">
           <button
@@ -107,7 +107,7 @@
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="showCommentsColumn ? 2 : 1"></th>
     </ng-container>
 
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -127,7 +127,7 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -286,7 +286,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="sticky"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -344,7 +344,7 @@
       [trackBy]="trackByFn"
     >
       <!-- Group header: start -->
-      <ng-container matColumnDef="top-start" [sticky]="useSticky">
+      <ng-container matColumnDef="top-start" [sticky]="sticky">
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
           <button
             mat-icon-button

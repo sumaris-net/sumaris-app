@@ -170,7 +170,7 @@
     [trackBy]="trackByFn"
   >
     <!-- Group header: start -->
-    <ng-container matColumnDef="top-start" [sticky]="useSticky">
+    <ng-container matColumnDef="top-start" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
         <ng-container *ngIf="showToolbar">
           <ng-container *ngTemplateOutlet="toolbarButtons"></ng-container>
@@ -199,12 +199,13 @@
     </ng-container>
 
     <!-- Select checkbox -->
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [tabindex]="-1"
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
@@ -212,12 +213,13 @@
           (click)="$event.stopPropagation()"
           (change)="$event ? selection.toggle(row) : null"
           [checked]="selection.isSelected(row)"
+          [tabindex]="-1"
         ></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="showIdColumn">
+    <ng-container matColumnDef="id" [sticky]="sticky" *ngIf="showIdColumn">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -237,7 +239,7 @@
         </span>
       </td>
     </ng-container>
-    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="!showIdColumn">
+    <ng-container matColumnDef="id" [sticky]="sticky" *ngIf="!showIdColumn">
       <th mat-header-cell *matHeaderCellDef></th>
       <ng-container *matCellDef="let row">
         <td
@@ -462,7 +464,7 @@
 
     <!-- Row actions buttons -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -478,7 +480,7 @@
     <!-- *** FOOTER *** -->
 
     <!-- footer start -->
-    <ng-container matColumnDef="footer-start" [sticky]="useSticky">
+    <ng-container matColumnDef="footer-start" [sticky]="sticky">
       <td mat-footer-cell *matFooterCellDef [attr.colspan]="2" class="ion-text-end">
         <ion-text color="primary">
           <b translate>TRIP.SAMPLE.TABLE.TOTAL_DOTS</b>
@@ -550,7 +552,7 @@
       [trackBy]="trackByFn"
     >
       <!-- Group header: buttons -->
-      <ng-container matColumnDef="top-start" [sticky]="useSticky">
+      <ng-container matColumnDef="top-start" [sticky]="sticky">
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan"></th>
       </ng-container>
 
@@ -733,12 +735,11 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
+      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
         <th mat-header-cell *matHeaderCellDef>
           <!-- Options menu -->
           <button
             mat-icon-button
-            matHeader
             [title]="'COMMON.BTN_OPTIONS' | translate"
             [matMenuTriggerFor]="optionsMenu"
           >

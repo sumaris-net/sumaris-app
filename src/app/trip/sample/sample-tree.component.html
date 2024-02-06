@@ -77,7 +77,7 @@
       [requiredGear]="requiredGear$ | async"
       [gearId]="gearId$ | async"
       [usageMode]="usageMode"
-      [useSticky]="useSticky"
+      [sticky]="useSticky"
       [showToolbar]="true"
       [showLabelColumn]="false"
       [weightDisplayedUnit]="weightDisplayedUnit"
@@ -122,7 +122,7 @@
       [requiredGear]="requiredGear$ | async"
       [gearId]="gearId$ | async"
       [usageMode]="usageMode"
-      [useSticky]="useSticky"
+      [sticky]="useSticky"
       [showToolbar]="true"
       [showLabelColumn]="false"
       [mobile]="false"
@@ -157,6 +157,7 @@
           <br />
           i18nContext.suffix: {{ i18nContext.suffix }}
           <br />
+          <br />
           showLabelColumn: {{ showLabelColumn }}
           <br />
           showTaxonGroupColumn: {{ showTaxonGroupColumn }}
@@ -166,7 +167,6 @@
           showSampleDateColumn: {{ showSampleDateColumn }}
           <br />
           showImagesColumn: {{ showImagesColumn }}
-          <br />
           <br />
           showIndividualMonitoringTable: {{ showIndividualMonitoringTable }}
           <br />
@@ -191,6 +191,11 @@
           samplesTable.gear{{ samplesTable.requiredGear ? ' (required)' : '' }}: {{ samplesTable.gearId }}
           <br />
           <br />
+          samplesTable.acquisitionLevel: {{ samplesTable.acquisitionLevel }}
+          <br />
+          samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
+          <br />
+          <br />
           samplesTable.allowSubSamples: {{ samplesTable.allowSubSamples }}
           <br />
           samplesTable.showIndividualReleaseButton: {{ samplesTable.showIndividualReleaseButton }}
@@ -207,7 +212,7 @@
           <br />
           samplesTable.hasRankOrder: {{ samplesTable.hasRankOrder }}
           <br />
-          samplesTable.pmfms: {{ (samplesTable.pmfms$ | async)?.length }}
+          samplesTable.compactFields: {{ samplesTable.compactFields }}
         </ion-col>
         <ion-col *ngIf="individualMonitoringTable">
           individualMonitoringTable.ready: {{ individualMonitoringTable.readySubject | async }}
@@ -227,11 +232,14 @@
           individualMonitoringTable.gear{{ individualMonitoringTable.requiredGear ? ' (required)' : '' }}: {{ individualMonitoringTable.gearId }}
           <br />
           <br />
+          individualMonitoringTable.acquisitionLevel: {{ individualMonitoringTable.acquisitionLevel }}
+          <br />
+          individualMonitoringTable.pmfms: {{ (individualMonitoringTable.pmfms$ | async)?.length }}
+          <br />
+          <br />
           individualMonitoringTable.showLabelColumn: {{ individualMonitoringTable.showLabelColumn }}
           <br />
           individualMonitoringTable.hasRankOrder: {{ individualMonitoringTable.hasRankOrder }}
-          <br />
-          individualMonitoringTable.pmfms: {{ (individualMonitoringTable.pmfms$ | async)?.length }}
         </ion-col>
         <ion-col *ngIf="individualReleasesTable">
           individualReleasesTable.ready: {{ individualReleasesTable.readySubject | async }}
@@ -251,11 +259,14 @@
           individualReleasesTable.gear{{ individualReleasesTable.requiredGear ? ' (required)' : '' }}: {{ individualReleasesTable.gearId }}
           <br />
           <br />
+          individualReleasesTable.acquisitionLevel: {{ individualReleasesTable.acquisitionLevel }}
+          <br />
+          individualReleasesTable.pmfms: {{ (individualReleasesTable.pmfms$ | async)?.length }}
+          <br />
+          <br />
           individualReleasesTable.showLabelColumn: {{ individualReleasesTable.showLabelColumn }}
           <br />
           individualReleasesTable.hasRankOrder: {{ individualReleasesTable.hasRankOrder }}
-          <br />
-          individualReleasesTable.pmfms: {{ (individualReleasesTable.pmfms$ | async)?.length }}
         </ion-col>
       </ion-row>
     </ion-grid>

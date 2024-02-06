@@ -63,7 +63,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select">
+    <ng-container matColumnDef="select"  [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -81,9 +81,9 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="id"  [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
+        <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">{{ row.currentData.rankOrder || row.currentData.parent?.rankOrder }}</td>
     </ng-container>
@@ -196,7 +196,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"

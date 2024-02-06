@@ -100,7 +100,6 @@ export abstract class AbstractBatchesTable<
     return this.getShowColumn('taxonName');
   }
 
-  @Input() useSticky = false;
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
   @Input() availableTaxonGroups: TaxonGroupRef[];

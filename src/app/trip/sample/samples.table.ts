@@ -120,7 +120,6 @@ export class SamplesTable
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
-  @Input() useSticky = false;
   @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
   @Input() usageMode: UsageMode;
