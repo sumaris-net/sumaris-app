@@ -66,13 +66,14 @@ build:env:
     # Build and push the CI image
     - docker build --cache-from ${CI_BUILD_IMAGE} -t ${CI_BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg="CACHE_DIR=${BUILD_CACHE_DIR}" --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" --build-arg="IONIC_CLI_VERSION=${IONIC_CLI_VERSION}" --build-arg="ANGULAR_CLI_VERSION=${ANGULAR_CLI_VERSION}" -f target/docker/Dockerfile .
     - docker push ${CI_BUILD_IMAGE}
-  except:
-    - tags
-    - master
-  only:
-    - develop
-    - /^feature\/.*/
-    - /^features\/.*/
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - .gitlab-ci.yml
+        - docker/build/Dockerfile
+        - scripts/**/*
+        - package.json
+        - package-lock.json
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -81,11 +82,13 @@ build:env:
   stage: build
   tags: [sih_public_runner]
   needs: ["build:env"]
-  script:
+  before_script:
+    # Get project dependencies
+    - ls -artl ${BUILD_CACHE_DIR}
+    - cp -R ${BUILD_CACHE_DIR}/node_modules .
     # Show version
-    # FIXME fail since 13/11/2023
-    #- ng version
     - npm version
+  script:
     # Build
     - npm run build.${BUILD_ENVIRONMENT}
   after_script:
@@ -102,20 +105,17 @@ build:env:
 build:
   extends: .build
   image: ${CI_BUILD_IMAGE}
-  before_script:
-    # Get project dependencies
-    - ls -artl ${BUILD_CACHE_DIR}
-    - cp -R ${BUILD_CACHE_DIR}/node_modules .
   only:
     - develop
 
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
-  before_script:
-    # Get project dependencies
-    - ls -artl ${BUILD_CACHE_DIR}
-    - cp -R ${BUILD_CACHE_DIR}/node_modules .
+  script:
+    # Install deps, because it may have changed since the last build image (build from develop)
+    - npm install
+    # Build
+    - npm run build:${BUILD_ENVIRONMENT}
   only:
     - /^feature\/.*/
     - /^features\/.*/
@@ -127,9 +127,9 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.12
+    - npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
     # Update project dependencies
-    - npm install --force
+    - npm install --unsafe-perm --force --silent
   only:
     - develop
     - /^feature\/.*/
