@@ -222,8 +222,13 @@
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let row">
-        <mat-icon class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+      <td mat-cell *matCellDef="let row" [title]="row.currentData.comments || ''">
+        <ion-icon
+          *ngIf="row.currentData.comments | isNotNilOrBlank"
+          color="tertiary"
+          name="chatbox"
+          slot="icon-only"
+        ></ion-icon>
       </td>
     </ng-container>
 
