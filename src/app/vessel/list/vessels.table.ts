@@ -1,18 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-import { ValidatorService } from "@e-is/ngx-material-table";
-import { VesselValidatorService } from "../services/validator/vessel.validator";
-import { VesselService } from "../services/vessel-service";
-import { VesselModal, VesselModalOptions } from "../modal/vessel-modal";
-import { Vessel } from "../services/model/vessel.model";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { VesselService } from '../services/vessel-service';
+import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
+import { Vessel } from '../services/model/vessel.model';
 import {
   AccountService,
   isNil,
@@ -25,22 +16,20 @@ import {
   StatusById,
   StatusIds,
   StatusList,
-  trimEmptyToNull
-} from "@sumaris-net/ngx-components";
-import { Observable, tap } from "rxjs";
-import { UntypedFormBuilder, UntypedFormControl } from "@angular/forms";
-import { SynchronizationStatusEnum } from "@app/data/services/model/model.utils";
-import { LocationLevelIds } from "@app/referential/services/model/model.enum";
-import { ReferentialRefService } from "@app/referential/services/referential-ref.service";
-import { environment } from "@environments/environment";
-import { AppRootDataTable } from "@app/data/table/root-table.class";
-import { VESSEL_FEATURE_NAME } from "../services/config/vessel.config";
-import { VesselFilter } from "../services/filter/vessel.filter";
-import { MatExpansionPanel } from "@angular/material/expansion";
-import {
-  SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail
-} from "@ionic/core/dist/types/components/searchbar/searchbar-interface";
-import { debounceTime, filter } from "rxjs/operators";
+  trimEmptyToNull,
+} from '@sumaris-net/ngx-components';
+import { Observable, tap } from 'rxjs';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
+import { VesselFilter } from '../services/filter/vessel.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
+import { debounceTime, filter } from 'rxjs/operators';
 
 export const VesselsTableSettingsEnum = {
   TABLE_ID: 'vessels',
@@ -65,7 +54,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   @Input() canDelete: boolean;
   @Input() showFabButton = false;
-  @Input() showError = true;
   @Input() useSticky = true;
   @Input() disableStatusFilter = false;
   @Input() showVesselTypeFilter = true;

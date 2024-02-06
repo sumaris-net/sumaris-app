@@ -28,9 +28,6 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
     department: undefined,
   };
 
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
-  @Input() showError = true;
   @Input() useSticky = false;
   @Input() title: string = null;
   @Input() locationLevelIds: number[] = null;

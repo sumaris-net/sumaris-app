@@ -53,9 +53,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   onParentChanges = new Subject<void>();
   displayParentPmfm: IPmfm;
 
-  @Input() showError = true;
   @Input() showPmfmDetails = false;
-  @Input() compactFields = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
 
   @Input()

@@ -64,7 +64,6 @@ export class ProductsTable
   @Input() parentAttributes: string[];
   @Input() showIdColumn = true;
   @Input() showActionButtons = true;
-  @Input() useSticky = false;
 
   @Input()
   set showParent(value: boolean) {
@@ -119,10 +118,11 @@ export class ProductsTable
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
-    // Set default acquisition level
+    // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
+    this.compactFields = false;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

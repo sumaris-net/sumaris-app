@@ -300,7 +300,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.setShowColumn(pmfmId.toString(), show);
   }
 
-  @Input() showError = true;
   @Input() allowQvPmfmGroup = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];

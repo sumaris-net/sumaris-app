@@ -53,7 +53,7 @@
     matSortDisableClear
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || readOnly">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -71,7 +71,7 @@
     </ng-container>
 
     <!-- id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky && !showIdColumn">
+    <ng-container matColumnDef="id" [sticky]="sticky && !showIdColumn">
       <th
         mat-header-cell
         *matHeaderCellDef
@@ -225,7 +225,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky && showActionButtons"
+      [stickyEnd]="stickyEnd && showActionButtons"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -279,7 +279,7 @@
     </app-actions-column>
 
     <!-- Actions buttons column -->
-    <!--    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">-->
+    <!--    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">-->
     <!--      <th mat-header-cell *matHeaderCellDef>-->
     <!--        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
     <!--          <mat-icon>more_vert</mat-icon>-->

@@ -181,10 +181,6 @@ export class ReferentialTable<
     return this.fileService?.importPolicy || 'insert-update';
   }
 
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact = false;
-
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(

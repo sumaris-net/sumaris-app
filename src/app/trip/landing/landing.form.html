@@ -200,7 +200,7 @@
         </ion-col>
         <ion-col>
           <mat-autocomplete-field
-            [formControl]="metiersHelper.at(i)"
+            [formControl]="metierForm | formGetControl"
             [placeholder]="
               (first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER'
                 | translate : { rank: i + 1 }
@@ -231,7 +231,7 @@
             [tabindex]="tabindex + 20 + i * 3 + 2"
             [disabled]="disabled"
             [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="metiersHelper.removeAt(i)"
+            (click)="metiersForm.removeAt(i)"
           >
             <mat-icon>close</mat-icon>
           </button>
@@ -291,7 +291,7 @@
               [tabindex]="tabindex + 30 + i * 3 + 2"
               [disabled]="disabled"
               [title]="'COMMON.BTN_DELETE' | translate"
-              (click)="fishingAreasHelper.removeAt(i)"
+              (click)="fishingAreasForm.removeAt(i)"
             >
               <mat-icon>close</mat-icon>
             </button>
@@ -307,7 +307,7 @@
           </ion-col>
           <ion-col>
             <mat-autocomplete-field
-              [formControl]="observersHelper.at(i)"
+              [formControl]="observerForm | formGetControl"
               [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
               [autofocus]="observerFocusIndex === i"
               [config]="autocompleteFields.person"
@@ -336,7 +336,7 @@
               [tabindex]="tabindex + 10 + i * 3 + 2"
               [disabled]="disabled"
               [title]="'COMMON.BTN_DELETE' | translate"
-              (click)="observersHelper.removeAt(i)"
+              (click)="observersForm.removeAt(i)"
             >
               <mat-icon>close</mat-icon>
             </button>

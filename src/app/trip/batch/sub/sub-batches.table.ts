@@ -115,7 +115,6 @@ export class SubBatchesTable
   @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
-  @Input() compactFields = true;
 
   @Input() set qvPmfm(value: IPmfm) {
     if (this._qvPmfm !== value) {

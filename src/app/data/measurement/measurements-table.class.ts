@@ -97,6 +97,7 @@ export abstract class BaseMeasurementsTable<
    * Allow to override the rankOrder. See physical-gear, on ADAP program
    */
   @Input() canEditRankOrder = false;
+  @Input() compactFields = true;
 
   @Input()
   @RxStateProperty() programLabel: string;

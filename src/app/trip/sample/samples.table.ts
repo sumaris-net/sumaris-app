@@ -135,7 +135,6 @@ export class SamplesTable
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
   @Input() modalOptions: Partial<ISampleModalOptions>;
-  @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() enableTagIdGeneration = false;
