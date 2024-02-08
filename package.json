@@ -7,24 +7,26 @@
   "readmeFilename": "README.md",
   "scripts": {
     "ng": "ng",
-    "clean": "rm -rf www",
+    "clean": "rm -rf www .angular/cache out-tsc",
     "start": "ng serve",
     "start:dev": "ng serve --host 0.0.0.0 --disable-host-check",
     "start:prod": "ng serve  --configuration production",
     "build": "ng build",
     "build:dev": "ng build --configuration development",
-    "build:ci": "ng build --configuration ci",
     "build:prod": "ng build --configuration production && npm run i18n:build",
+    "build:ci": "ng build --configuration ci",
     "i18n:build": "node scripts/node/build-i18n.js",
     "android:sync": "npx jetifier && ionic capacitor sync android",
     "android:start": "ionic capacitor run android -l --external",
     "android:build": "npx jetifier && ionic capacitor build android --no-open",
     "android:build:dev": "npx jetifier && ionic capacitor build android --no-open --configuration development",
     "android:build:prod": "npx jetifier && ionic capacitor build android --no-open --configuration production --release && npm run android:i18n:build",
-    "android:i18n:build": "node scripts/node/build-i18n.js android/app/src/main/assets/public/assets/i18n",
+    "android:i18n:build": "npm run i18n:build android/app/src/main/assets/public/assets/i18n",
     "android:package": "cd android && ./gradlew assembleDebug --warning-mode all",
     "android:package:prod": "cd android && ./gradlew assembleRelease",
-    "android-list": "npx native-run android --list",
+    "android:install": "node scripts/node/android-install.js",
+    "android:clean": "cd android && ./gradlew clean",
+    "android:list": "npx native-run android --list",
     "electron:sync": "ionic capacitor sync electron",
     "electron:start": "ionic capacitor build electron",
     "electron:build": "ionic capacitor sync electron && cd electron && npm run build",
@@ -37,7 +39,17 @@
     "test": "ng test",
     "lint": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint",
     "lint.fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "version:get": "node scripts/node/version.js",
+    "version:set": "node scripts/node/version.js --set",
+    "webext:start": "npm run webext:build:prod && node scripts/node/webext.js --run",
+    "webext:build:prod": "ng build --configuration webext && npm run webext:i18n:build",
+    "webext:i18n:build": "npm run i18n:build webext/assets/i18n",
+    "webext:package:prod": "node scripts/node/webext.js --package",
+    "webext:deploy": "npm run webext:build:prod && node scripts/node/webext.js --sign",
+    "webext:deploy:test": "npm run webext:deploy",
+    "webext:deploy:prod": "npm run webext:deploy --release"
+
   },
   "lint-staged": {
     "src/**/*.{ts,html}": [
@@ -74,7 +86,6 @@
     "@awesome-cordova-plugins/core": "~6.4.0",
     "@awesome-cordova-plugins/network": "~6.4.0",
     "@bepo65/leaflet.fullscreen": "~2.0.2",
-    "@capacitor-community/electron": "^5.0.1",
     "@capacitor-community/native-audio": "~4.0.0-0",
     "@capacitor/android": "~4.8.1",
     "@capacitor/app": "~4.1.1",
@@ -202,6 +213,8 @@
     "prettier": "~3.1.1",
     "protractor": "7.0.0",
     "tar": "^5.0.11",
+    "shelljs": "~0.8.5",
+    "stdio": "^2.1.3",
     "ts-node": "~10.9.2",
     "typescript": "~4.8.4",
     "webpack": "~5.76.3"
@@ -219,7 +232,8 @@
     "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues"
   },
   "engines": {
-    "node": ">= 18.17.0",
-    "npm": ">= 9.9.0"
+    "node": ">= 18.18.2",
+    "npm": ">= 9.9.1",
+    "yarn": ">= 1.22.19"
   }
 }

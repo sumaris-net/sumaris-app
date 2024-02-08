@@ -1,2 +1,5 @@
 /build/*
 !/build/.npmkeep
+release-signing.properties
+*.keystore
+local.properties
