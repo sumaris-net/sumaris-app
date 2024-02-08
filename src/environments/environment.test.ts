@@ -16,10 +16,11 @@ import { Environment, StorageDrivers } from '@sumaris-net/ngx-components';
 const pkg = require('../../package.json');
 
 export const environment = Object.freeze(<Environment>{
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: false,
   baseUrl: '/',
+  useHash: false,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
@@ -33,16 +34,16 @@ export const environment = Object.freeze(<Environment>{
 
   defaultPeer: {
     host: 'localhost',
-    port: 8080
+    port: 8080,
   },
   defaultPeers: [
     {
       host: 'localhost',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'localhost',
-      port: 8081
+      port: 8081,
     },
     {
       host: 'server.e-is.pro',
@@ -72,17 +73,17 @@ export const environment = Object.freeze(<Environment>{
 
   account: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   entityEditor: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   defaultAuthValues: {
@@ -96,4 +97,3 @@ export const environment = Object.freeze(<Environment>{
     }
   }
 });
-

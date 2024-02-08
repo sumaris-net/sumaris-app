@@ -11,7 +11,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import moment from 'moment';
-import { L } from '@app/shared/map/leaflet';
+import * as L from 'leaflet';
 import {
   AppFormUtils,
   arraySize,

@@ -42,3 +42,6 @@ resources/android/build/local
 resources/android/icon/
 resources/android/splash/
 resources/ios/
+
+target/
+/webext/

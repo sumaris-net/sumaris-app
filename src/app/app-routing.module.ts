@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { environment } from '@environments/environment';
 import {
   AccountPage,
   AuthGuardService,
@@ -199,20 +200,15 @@ const routes: Routes = [
     QuicklinkModule,
     SharedRoutingModule,
     RouterModule.forRoot(routes, {
-
       // DEBUG
       //enableTracing: !environment.production,
       enableTracing: false,
 
-      useHash: false,
+      useHash: environment.useHash || false,
       onSameUrlNavigation: 'reload',
-      preloadingStrategy: QuicklinkStrategy
-    })
+      preloadingStrategy: QuicklinkStrategy,
+    }),
   ],
-  exports: [
-    RouterModule,
-    SharedRoutingModule
-  ]
+  exports: [RouterModule, SharedRoutingModule],
 })
-export class AppRoutingModule {
-}
+export class AppRoutingModule {}
