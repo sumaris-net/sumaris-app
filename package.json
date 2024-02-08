@@ -49,7 +49,6 @@
     "webext:deploy": "npm run webext:build:prod && node scripts/node/webext.js --sign",
     "webext:deploy:test": "npm run webext:deploy",
     "webext:deploy:prod": "npm run webext:deploy --release"
-
   },
   "lint-staged": {
     "src/**/*.{ts,html}": [
