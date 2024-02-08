@@ -138,7 +138,7 @@
       #landingsTab
       [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS' | translateContext : i18nContext.suffix"
       [disabled]="!showLandingTab"
-
+      appSubMenuTab
     >
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
@@ -176,7 +176,7 @@
               [programLabel]="programLabel$ | async"
               (onNewRow)="onNewAggregatedLanding($event)"
               [showToolbar]="!mobile"
-              [useSticky]="true"
+              [sticky]="true"
               (ngInit)="landingTable = aggregatedLandingsTable"
               [debug]="debug"
             ></app-aggregated-landings-table>

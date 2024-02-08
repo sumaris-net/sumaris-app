@@ -299,7 +299,6 @@ export class LandingsPage extends AppRootDataTable<
       mobile: this.mobile
     });
 
-
     // Strategy combo (filter)
     this.registerAutocompleteField('strategy', {
       suggestFn: (value, filter) => {
@@ -374,7 +373,6 @@ export class LandingsPage extends AppRootDataTable<
 
     // Clear the context
     this.resetContext();
-
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
@@ -606,7 +604,7 @@ export class LandingsPage extends AppRootDataTable<
   protected async openRow(id: number, row: TableElement<Landing>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -621,7 +619,13 @@ export class LandingsPage extends AppRootDataTable<
     const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     console.debug('[landings] Opening a landing, using editor: ' + editor);
 
-    return await this.navController.navigateForward([editor, id], {
+    if (editor === 'trip') {
+      return this.navController.navigateForward([editor, data.tripId], {
+        relativeTo: this.route
+      });
+    }
+
+    return this.navController.navigateForward([editor, id], {
       relativeTo: this.route,
       queryParams: {
         parent: AcquisitionLevelCodes.OBSERVED_LOCATION
@@ -646,7 +650,12 @@ export class LandingsPage extends AppRootDataTable<
     const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     console.debug('[landings] Opening new landing, using editor: ' + editor);
 
-    return await this.navController.navigateForward([editor, 'new'], {
+    if (editor === 'trip') {
+      console.error(this.logPrefix + 'Cannot create a landed trip, without an existing landing');
+      return false;
+    }
+
+    return this.navController.navigateForward([editor, 'new'], {
       relativeTo: this.route,
       queryParams: {
         program: program?.label,
@@ -656,7 +665,7 @@ export class LandingsPage extends AppRootDataTable<
     });
   }
 
-  async openTrashModal(event?: Event) {
+  protected async openTrashModal(event?: Event) {
     console.debug('[landings] Opening trash modal...');
     // TODO BLA
     /*const modal = await this.modalCtrl.create({

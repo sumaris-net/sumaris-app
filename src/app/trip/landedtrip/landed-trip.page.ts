@@ -16,6 +16,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  PromiseEvent,
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -176,29 +177,29 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
       })
     );
 
-
-    const operationGroups$ = this.catchFilterForm.valueChanges.pipe(
-      map(() => this.catchFilterForm.value.operationGroup)
-    );
+    const operationGroups$ = this.catchFilterForm.valueChanges.pipe(map(() => this.catchFilterForm.value.operationGroup));
 
     this._state.connect('productFilter', operationGroups$, (_, operationGroup) => ProductFilter.fromParent(operationGroup));
     this._state.connect('packetFilter', operationGroups$, (_, operationGroup) => PacketFilter.fromParent(operationGroup));
 
     // Update available operation groups for catches forms
-    this._state.connect('operationGroups',
-      this.operationGroupTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(400),
-          filter(() => !this.loading)
-        )
+    this._state.connect(
+      'operationGroups',
+      this.operationGroupTable.dataSource.datasourceSubject.pipe(
+        debounceTime(400),
+        filter(() => !this.loading)
+      )
     );
 
-    this._state.connect('metiers', this.tripForm.metiersChanges.pipe(
-      filter((metiers) => !equals(metiers, this.metiers)),
-      tap((metiers) => {
-        if (this.debug) console.debug('[landedTrip-page] metiers array has changed', metiers);
-      })
-    ));
+    this._state.connect(
+      'metiers',
+      this.tripForm.metiersChanges.pipe(
+        filter((metiers) => !equals(metiers, this.metiers)),
+        tap((metiers) => {
+          if (this.debug) console.debug(this.logPrefix + 'metiers array has changed', metiers);
+        })
+      )
+    );
   }
 
   ngOnDestroy() {
@@ -240,10 +241,10 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   }
 
   protected async setProgram(program: Program) {
+    await super.setProgram(program);
     if (!program) return; // Skip
-    if (this.debug) console.debug(`[landedTrip] Program ${program.label} loaded, with properties: `, program.properties);
+    if (this.debug) console.debug(`${this.logPrefix}Program ${program.label} loaded, with properties: `, program.properties);
 
-    // Configure trip form
     // Configure trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (this.data && !this.tripForm.showObservers) {
@@ -274,7 +275,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
 
     // Read options and query params
     if (options && options.observedLocationId) {
-      console.debug('[landedTrip-page] New entity: settings defaults...');
+      console.debug(this.logPrefix + 'New entity: settings defaults...');
       this.observedLocationId = parseInt(options.observedLocationId);
       const observedLocation = await this.getObservedLocationById(this.observedLocationId);
 
@@ -302,20 +303,20 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
         }
       }
     } else {
-      throw new Error('[landedTrip-page] the observedLocationId must be present');
+      throw new Error(this.logPrefix + 'the observedLocationId must be present');
     }
 
     const queryParams = this.route.snapshot.queryParams;
     // Load the vessel, if any
     if (isNotNil(queryParams['vessel'])) {
       const vesselId = +queryParams['vessel'];
-      console.debug(`[landedTrip-page] Loading vessel {${vesselId}}...`);
+      console.debug(`${this.logPrefix}Loading vessel {${vesselId}}...`);
       data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
     }
     // Get the landing id
     if (isNotNil(queryParams['landing'])) {
       const landingId = +queryParams['landing'];
-      console.debug(`[landedTrip-page] Get landing id {${landingId}}...`);
+      console.debug(`${this.logPrefix}Get landing id {${landingId}}...`);
       if (data.landing) {
         data.landing.id = landingId;
       } else {
@@ -325,7 +326,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     // Get the landing rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
       const landingRankOrder = +queryParams['rankOrder'];
-      console.debug(`[landedTrip-page] Get landing rank order {${landingRankOrder}}...`);
+      console.debug(`${this.logPrefix}Get landing rank order {${landingRankOrder}}...`);
       if (data.landing) {
         data.landing.rankOrderOnVessel = landingRankOrder;
       } else {
@@ -360,7 +361,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   protected async getObservedLocationById(observedLocationId: number): Promise<ObservedLocation> {
     // Load parent observed location
     if (isNotNil(observedLocationId)) {
-      console.debug(`[landedTrip-page] Loading parent observed location ${observedLocationId}...`);
+      console.debug(`${this.logPrefix}Loading parent observed location ${observedLocationId}...`);
       return this.observedLocationService.load(observedLocationId, { fetchPolicy: 'cache-first' });
     } else {
       throw new Error('No parent found in path. landed trip without parent not implemented yet !');
@@ -496,14 +497,6 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     this.form.get('vesselSnapshot').disable(opts);
 
     return enabled;
-  }
-
-  devToggleOfflineMode() {
-    if (this.network.offline) {
-      this.network.setForceOffline(false);
-    } else {
-      this.network.setForceOffline();
-    }
   }
 
   async copyLocally() {
@@ -714,6 +707,23 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async askSaveConfirmation(event: PromiseEvent<boolean>) {
+    try {
+      const saved =
+        this.isOnFieldMode && this.dirty
+          ? // If on field mode: try to save silently
+          await this.save(undefined)
+          : // If desktop mode: ask before save
+          (await this.saveIfDirtyAndConfirm()) && !this.dirty;
+
+      // Confirm using event (e.g. when emitted by packet-table)
+      event.detail.success(saved);
+    }
+    catch (err) {
+      event.detail.error(err);
+    }
   }
 
   filter($event: Event) {

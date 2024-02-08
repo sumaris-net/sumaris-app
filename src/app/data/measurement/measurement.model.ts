@@ -290,11 +290,11 @@ export class MeasurementValuesUtils {
   }
 
   static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues | any): value is MeasurementFormValues {
-    return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
+    return value?.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 
   static isMeasurementModelValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementModelValues {
-    return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
+    return value && value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
   }
 
   static resetTypename(value: MeasurementFormValues | MeasurementModelValues) {

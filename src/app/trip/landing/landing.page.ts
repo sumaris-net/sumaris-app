@@ -425,7 +425,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
-    console.log('TODO program=' + programLabel);
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
   }
@@ -578,7 +577,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (!requiredStrategy || isNewData) {
+    if (!requiredStrategy || (isNewData && this.strategyResolution === 'user-select')) {
       this.markAsReady();
     }
 
@@ -630,7 +629,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       // Set the table program, to delegate pmfms load
       table.requiredStrategy = this.requiredStrategy;
       table.programLabel = programLabel;
-    } else if (table.acquisitionLevel) {
+    } else if (table.acquisitionLevel && strategyLabel) {
       console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {

@@ -103,8 +103,6 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     this.setParent(value);
   }
 
-  @Input() useSticky = true;
-
   constructor(
     injector: Injector,
     public network: NetworkService,

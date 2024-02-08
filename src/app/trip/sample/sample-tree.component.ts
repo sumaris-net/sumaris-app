@@ -89,7 +89,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
-  @Input() useSticky = false;
+  @Input() sticky = false;
+  @Input() stickyEnd = false;
   @Input() compactFields = true;
   @Input() usageMode: UsageMode;
   @Input() weightDisplayedUnit: WeightUnitSymbol;

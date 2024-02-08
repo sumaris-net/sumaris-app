@@ -26,7 +26,7 @@ import {
   Person,
   PersonService,
   ReferentialUtils,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';

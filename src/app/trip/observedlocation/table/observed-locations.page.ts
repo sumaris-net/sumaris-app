@@ -16,7 +16,7 @@ import {
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
-  TranslateContextService
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -36,7 +36,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { AnimationController, IonSegment } from '@ionic/angular';
+import { IonSegment } from '@ionic/angular';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -99,7 +99,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected translateContext: TranslateContextService,
-    protected animationCtrl: AnimationController,
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {

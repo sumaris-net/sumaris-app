@@ -35,8 +35,8 @@
     </ng-container>
 
     <ng-template #subMenu>
-      <!-- Select extraction types -->
-      <button mat-menu-item *ngIf="downloadAsType.observed" [disabled]="disabled" [matMenuTriggerFor]="typesMenu">
+      <!-- Extraction types -->
+      <button mat-menu-item *ngIf="downloadAsType.observed" [disabled]="disabled || disabledDownloadAsType || network.offline" [matMenuTriggerFor]="typesMenu">
         <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
         <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
       </button>

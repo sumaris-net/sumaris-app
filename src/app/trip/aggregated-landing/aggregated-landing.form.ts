@@ -54,10 +54,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     return super.dirty && this._activityDirty;
   }
 
-  get loading(): boolean {
-    return this._loading;
-  }
-
   private $data = new BehaviorSubject<AggregatedLanding>(undefined);
 
   get data(): AggregatedLanding {

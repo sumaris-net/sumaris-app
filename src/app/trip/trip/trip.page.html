@@ -64,8 +64,8 @@
   <app-extraction-button
     *ngIf="canDownload"
     [style]="'mat-menu-item'"
-    [disabled]="network.offline"
     [programLabel]="programLabel$ | push"
+    [disabledDownloadAsType]="!data.controlDate"
     (downloadAsJson)="downloadAsJson($event)"
     (downloadAsType)="openDownloadPage($event)"
   ></app-extraction-button>

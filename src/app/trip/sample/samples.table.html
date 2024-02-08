@@ -199,7 +199,7 @@
     </ng-container>
 
     <!-- Select checkbox -->
-    <ng-container matColumnDef="select" [sticky]="sticky">
+    <ng-container matColumnDef="select" [sticky]="sticky && canEdit">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -594,12 +594,12 @@
       </ng-container>
 
       <!-- rankOrder Column = id -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+      <ng-container matColumnDef="id" [sticky]="sticky">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="ion-padding-start">
           <ion-label>#</ion-label>
         </th>
         <ng-container *matCellDef="let row">
-          <td [class.ion-padding-start]="mobile" mat-cell>
+          <td mat-cell class="ion-padding-start">
             <ion-text
               matBadge="!"
               [matBadgeHidden]="row.currentData.qualityFlagId | qualityFlagValid"
@@ -614,7 +614,7 @@
       </ng-container>
 
       <!-- label Column -->
-      <ng-container matColumnDef="label">
+      <ng-container matColumnDef="label" [sticky]="sticky && showLabelColumn">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext : i18nColumnSuffix }}</ion-label>
         </th>

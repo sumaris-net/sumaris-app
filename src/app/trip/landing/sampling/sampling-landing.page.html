@@ -24,20 +24,14 @@
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
-    <ion-label>
-      <mat-icon>description</mat-icon>
-      &nbsp;
-      <span translate>LANDING.EDIT.BTN_REPORT</span>
-    </ion-label>
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>LANDING.EDIT.BTN_REPORT</ion-label>
   </button>
 
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
-      &nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
+    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
 
   <mat-divider></mat-divider>
@@ -173,11 +167,10 @@
                       <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
 
                       <!-- not observer (warning) -->
-                      <ion-text color="tertiary" *ngIf="warning">
-                        <br />
-                        <ion-icon name="warning"></ion-icon>
-                        &nbsp;
-                        {{ warning | translate }}
+                      <ion-text class="ion-text-wrap warning" *ngIf="warning">
+                        <p>
+                          <ion-icon name="warning"></ion-icon>&nbsp;{{ warning | translate }}
+                        </p>
                       </ion-text>
                     </app-entity-metadata>
                   </ion-col>
@@ -219,6 +212,7 @@
       <app-samples-table
         #samplesTable
         acquisitionLevel="SAMPLE"
+        [requiredStrategy]="true"
         [disabled]="noEffortError"
         [showIdColumn]="false"
         [requiredLabel]="false"
@@ -240,8 +234,8 @@
         [compactFields]="false"
         (prepareRowForm)="onPrepareSampleForm($event)"
         (weightUnitChanges)="setWeightDisplayUnit($event)"
+        [mobile]="mobile"
         [debug]="debug"
-          [mobile]="mobile"
       ></app-samples-table>
     </mat-tab>
   </mat-tab-group>

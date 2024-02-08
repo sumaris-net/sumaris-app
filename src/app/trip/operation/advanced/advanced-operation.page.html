@@ -59,7 +59,7 @@
     <!-- option menu -->
     <ion-button
       *ngIf="!isNewData || canDebug"
-      [disabled]="disabled || vars.loading || vars.saving"
+      [disabled]="vars.loading || vars.saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
     >
@@ -163,7 +163,8 @@
     <button
       mat-menu-item
       class="ion-color-danger"
-      *ngIf="mobile && enabled && canDuplicate"
+      *ngIf="mobile && canDuplicate"
+      [disabled]="disabled"
       (click)="duplicate($event)"
     >
       <ion-label>
@@ -173,7 +174,7 @@
     </button>
 
     <!-- Control -->
-    <button mat-menu-item *ngIf="enabled" (click)="saveAndControl($event)">
+    <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
       <ion-label>
         <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
         <span translate>QUALITY.BTN_CONTROL</span>
@@ -185,6 +186,7 @@
       *ngIf="canDownload"
       [style]="'mat-menu-item'"
       [programLabel]="programLabel$ | push"
+      [disabledDownloadAsType]="!data.controlDate || !trip.controlDate"
       (downloadAsJson)="downloadAsJson($event)"
       (downloadAsType)="openDownloadPage($event)"
     ></app-extraction-button>
@@ -392,7 +394,7 @@
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         (prepareRowForm)="onPrepareSampleForm($event)"
-        [useSticky]="mobile"
+        [sticky]="mobile"
         [mobile]="mobile"
         [debug]="debug"
       ></app-sample-tree>

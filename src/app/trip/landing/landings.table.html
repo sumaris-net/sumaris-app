@@ -74,7 +74,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -92,7 +92,7 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit || mobile">
         <ion-label>#</ion-label>
       </th>
@@ -207,7 +207,7 @@
 
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-column-pmfm" [class.mat-cell-date-time]="pmfm | isDatePmfm">
         <ion-label>
           {{ pmfm | pmfmName : { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
         </ion-label>
@@ -215,6 +215,7 @@
       <td
         mat-cell
         *matCellDef="let row"
+        class="mat-column-pmfm"
         [class.mat-cell-date-time]="pmfm | isDatePmfm"
         [class.mat-cell-computed]="pmfm | isComputedPmfm"
       >
@@ -253,18 +254,33 @@
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let row" [title]="row.currentData.comments || ''">
-        <ion-icon
-          *ngIf="row.currentData.comments | isNotNilOrBlank"
-          color="secondary"
-          name="chatbox"
-          slot="icon-only"
-        ></ion-icon>
+      <td mat-cell *matCellDef="let row">
+        <ng-container *ngIf="inlineEdition; else readonlyCell">
+          <button
+            *ngVar="row.validator | formGetValue : 'comments'; let comments"
+            mat-icon-button
+            [class.visible-hover]="!row.editing && !comments"
+            (click)="openCommentPopover($event, row)"
+            [disabled]="disabled"
+            [title]="comments || ''"
+          >
+            <ion-icon [color]="comments ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          </button>
+        </ng-container>
+        <ng-template #readonlyCell>
+          <div *ngIf="row.currentData.comments; let comments" [title]="comments">
+            <ion-icon *ngIf="comments | isNotNilOrBlank"
+              color="secondary"
+              name="chatbox"
+              slot="icon-only"
+            ></ion-icon>
+          </div>
+        </ng-template>
       </td>
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
+    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
       <th mat-header-cell *matHeaderCellDef>
         <button
           mat-icon-button
@@ -317,7 +333,7 @@
             <button
               mat-icon-button
               *ngIf="row.id !== -1 && isTripDetailEditor"
-              [color]="row.currentData.tripId && 'primary'"
+              [color]="row.currentData.tripId ? 'primary' : 'medium'"
               [title]="'COMMON.BTN_EDIT' | translate"
               (click)="confirmAndEditTrip($event, row)"
             >

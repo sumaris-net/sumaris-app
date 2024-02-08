@@ -17,6 +17,7 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable, of } from 'rxjs';
@@ -843,8 +844,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return -1;
   }
 
-  waitIdle(): Promise<any> {
-    return AppFormUtils.waitIdle(this);
+  waitIdle(opts?: WaitForOptions): Promise<any> {
+    return AppFormUtils.waitIdle(this, {stop: this.destroySubject, ...opts});
   }
 
   setFilter(dataFilter: BatchFilter) {

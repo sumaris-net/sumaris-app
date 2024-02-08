@@ -1,13 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
-  AppTable,
-  EntitiesTableDataSource,
+  createPromiseEventEmitter,
+  emitPromiseEvent,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  PromiseEvent,
 } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
@@ -20,8 +19,9 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 export interface PacketsTableState extends BaseMeasurementsTableState {
   parents: IWithPacketsEntity<any>[];
@@ -43,33 +43,30 @@ export interface PacketsTableState extends BaseMeasurementsTableState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnInit, OnDestroy {
+export class PacketsTable extends AppBaseTable<Packet, PacketFilter, InMemoryEntitiesService<Packet, PacketFilter>,PacketValidatorService, number, PacketsTableState> implements OnInit, OnDestroy {
 
-  @RxStateRegister() protected readonly _state = inject(RxState,  {self: true});
+  private _pmfms: DenormalizedPmfmStrategy[];
+  private _programLabel: string;
 
   @RxStateSelect() protected parents$: Observable<IWithPacketsEntity<any>[]>;
 
   @Input() @RxStateProperty() parents: IWithPacketsEntity<any>[];
   @Input() parentAttributes: string[];
-  @Input() showToolbar = true;
-  @Input() useSticky = false;
 
   @Input() set parentFilter(packetFilter: PacketFilter) {
     this.setFilter(packetFilter);
   }
 
-  private _program: string;
-
   @Input()
-  set program(value: string) {
-    this._program = value;
+  set programLabel(value: string) {
+    this._programLabel = value;
     if (value) {
       this.loadPmfms();
     }
   }
 
-  get program(): string {
-    return this._program;
+  get programLabel(): string {
+    return this._programLabel;
   }
 
   @Input()
@@ -85,24 +82,25 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return super.dirty || this.memoryDataService.dirty;
   }
 
-  private packetSalePmfms: DenormalizedPmfmStrategy[];
+  @Output('askSaveConfirmation') askSaveConfirmation: EventEmitter<PromiseEvent<boolean>> = createPromiseEventEmitter<boolean>();
 
   constructor(
     injector: Injector,
-    protected validatorService: PacketValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
+    protected validatorService: PacketValidatorService,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef
   ) {
     super(
-      injector,
+      injector, Packet, PacketFilter,
       // columns
-      RESERVED_START_COLUMNS.concat(['parent', 'number', 'weight']).concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
+      ['parent', 'number', 'weight'],
+      memoryDataService,
+      validatorService,
+      {
         suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row),
-      }),
-      null // Filter
+      }
     );
 
     this.i18nColumnPrefix = 'PACKET.LIST.';
@@ -136,8 +134,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   private loadPmfms() {
     this.programRefService
-      .loadProgramPmfms(this.program, { acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE })
-      .then((packetSalePmfms) => (this.packetSalePmfms = packetSalePmfms));
+      .loadProgramPmfms(this.programLabel, { acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE })
+      .then((packetSalePmfms) => (this._pmfms = packetSalePmfms));
   }
 
   trackByFn(index: number, row: TableElement<Packet>): number {
@@ -309,20 +307,44 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     if (row && row.currentData) {
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
-        const updatedSaleProducts = SaleProductUtils.updateAggregatedSaleProducts(row.currentData, this.packetSalePmfms);
+        const updatedSaleProducts = SaleProductUtils.updateAggregatedSaleProducts(row.currentData, this._pmfms);
         row.validator.patchValue({ saleProducts: updatedSaleProducts }, { emitEvent: true });
       }
     }
   }
 
-  async openPacketSale(event: MouseEvent, row: TableElement<Packet>) {
+  async openPacketSale(event: UIEvent, row: TableElement<Packet>) {
     if (event) event.stopPropagation();
+
+    // Make sure to save before open sale modal, because sale's product use packet id
+    if (isNil(row.currentData?.id) || true) {
+      console.info(this.logPrefix + 'Cannot open packet sale modal: missing packet id. Trying to save editor...');
+      const packet = Packet.fromObject(row.currentData);
+
+      // Ask user confirmation
+      const saved = await emitPromiseEvent(this.askSaveConfirmation, 'openPacketSale')
+
+      // User cancelled, or save failed
+      if (!saved) return;
+
+      console.info(this.logPrefix + 'Save succeed. Waiting table to be reload');
+
+      // Wait table reload
+      await this.waitIdle({timeout: 2000});
+
+      // Retrieve the expected packet
+      row = await this.findRowByPacket(packet);
+      if (!row) {
+        console.error(this.logPrefix + 'Cannot open sale packet: expected packet cannot be found after saving');
+        return; // Stop
+      }
+    }
 
     const modal = await this.modalCtrl.create({
       component: PacketSaleModal,
       componentProps: <IPacketSaleModalOptions>{
         data: row.currentData,
-        packetSalePmfms: this.packetSalePmfms,
+        pmfms: this._pmfms,
         disabled: this.disabled,
         mobile: this.mobile,
       },
@@ -344,7 +366,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   /* -- protected methods -- */
 
   protected async findRowByPacket(packet: Packet): Promise<TableElement<Packet>> {
-    return Packet && this.dataSource.getRows().find((r) => Packet.equals(packet, r.currentData));
+    return packet && this.dataSource.getRows().find((r) => Packet.equals(packet, r.currentData));
   }
 
   private onStartEditPacket(row: TableElement<Packet>) {

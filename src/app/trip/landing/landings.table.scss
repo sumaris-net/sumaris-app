@@ -41,6 +41,14 @@
       min-width: 120px;
       max-width: 250px;
     }
+
+    .visible-hover {
+      visibility: hidden;
+    }
+
+    &:hover .visible-hover {
+      visibility: unset;
+    }
   }
 
 }

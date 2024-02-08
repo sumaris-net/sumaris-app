@@ -30,7 +30,8 @@
       [usageMode]="usageMode"
       [disabled]="disabled"
       [showToolbar]="!mobile"
-      [useSticky]="useSticky"
+      [sticky]="sticky"
+      [stickyEnd]="stickyEnd"
       [pmfmGroups]="pmfmGroups"
       [defaultSampleDate]="defaultSampleDate"
       (prepareRowForm)="prepareRowForm.emit($event)"
@@ -41,7 +42,7 @@
     ></app-samples-table>
   </mat-tab>
 
-  <!-- TAB: Individual monitoring  -->
+  <!-- TAB: Individual monitoring (desktop only) -->
   <mat-tab
     #individualMonitoringTab
     *ngIf="!mobile"
@@ -77,7 +78,7 @@
       [requiredGear]="requiredGear$ | async"
       [gearId]="gearId$ | async"
       [usageMode]="usageMode"
-      [sticky]="useSticky"
+      [sticky]="sticky"
       [showToolbar]="true"
       [showLabelColumn]="false"
       [weightDisplayedUnit]="weightDisplayedUnit"
@@ -86,7 +87,7 @@
     ></app-individual-monitoring-table>
   </mat-tab>
 
-  <!-- TAB: Individual releases  -->
+  <!-- TAB: Individual releases (desktop only)  -->
   <mat-tab
     #individualReleaseTab
     *ngIf="!mobile"
@@ -122,14 +123,12 @@
       [requiredGear]="requiredGear$ | async"
       [gearId]="gearId$ | async"
       [usageMode]="usageMode"
-      [sticky]="useSticky"
+      [sticky]="sticky"
       [showToolbar]="true"
       [showLabelColumn]="false"
       [mobile]="false"
       [debug]="debug"
     ></app-individual-releases-table>
-    <!-- final space-->
-    <p visible-xs visible-sm visible-mobile>&nbsp;</p>
   </mat-tab>
 </mat-tab-group>
 

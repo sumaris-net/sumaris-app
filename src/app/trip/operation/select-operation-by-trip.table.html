@@ -90,7 +90,7 @@
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky" [class.mat-column-sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky" [class.mat-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -108,7 +108,7 @@
     </ng-container>
 
     <!-- id (=rankOrder) -->
-    <ng-container matColumnDef="id" [sticky]="useSticky" [class.mat-column-sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky" [class.mat-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -233,7 +233,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [class.mat-column-sticky]="useSticky">
+    <ng-container matColumnDef="actions" [class.mat-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <button
           mat-icon-button
@@ -251,12 +251,12 @@
       mat-row
       *matRowDef="let row; columns: displayedColumns; when: isOperation"
       class="mat-row-disabled"
-      [class.mat-row-selected]="row.currentData.id === parent?.id"
+      [class.mat-row-selected]="row.currentData.id === selectedOperation?.id"
       (click)="clickRow($event, row)"
     ></tr>
 
     <!-- Divider -->
-    <ng-container matColumnDef="divider" [sticky]="useSticky" [class.mat-column-sticky]="useSticky">
+    <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-column-sticky]="sticky">
       <td mat-cell colspan="4" *matCellDef="let row" class="divider">
         <ion-text>
           {{ row.currentData.trip.id | mathAbs }} -
@@ -289,7 +289,7 @@
   </ng-container>
 
   <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+    <ion-item *ngIf="visibleRowCount === 0">
       <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
     </ion-item>
   </ng-template>

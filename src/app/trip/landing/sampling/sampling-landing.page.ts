@@ -80,8 +80,13 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
     this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
 
-    this._state.hold(this.strategy$.pipe(debounceTime(250)), (strategy) => this.checkStrategyEffort(strategy));
-
+    this._state.hold(
+      this.onRefreshEffort
+        .pipe(
+          debounceTime(250),
+          map(() => this.strategy)
+        ),
+      (strategy) => this.checkStrategyEffort(strategy));
 
     // Load age parameter ids
     this._state.connect(
@@ -141,11 +146,11 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   //   this.addChildForms([this.landingForm, this.samplesTable]);
   // }
 
-  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
+  protected loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
     if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
     return this.strategyRefService.loadByFilter(strategyFilter, {
       failIfMissing: true,
-      fullLoad: false, // Not need all pmfms
+      fullLoad: true, // Need taxon names
       debug: this.debug,
     });
   }
@@ -185,7 +190,8 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   }
 
   protected async checkStrategyEffort(strategy?: Strategy) {
-    strategy = strategy || this.landingForm.strategyControl?.value;
+    strategy = strategy || this.landingForm?.strategyControl?.value;
+    console.debug(this.logPrefix + 'Loading strategy effort...');
 
     try {
       const [program] = await Promise.all([
@@ -202,10 +208,11 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
         // If no date (e.g. no parent selected yet) : skip
         if (!dateTime) {
           // DEBUG
-          console.debug('[sampling-landing-page] Skip strategy effort loaded: no date (no parent entity)');
+          console.debug(this.logPrefix + 'Skip strategy effort loaded: no date found (in form and parent entity)');
           return;
         }
 
+        const startTime = Date.now();
         // Add validator errors on expected effort for this sampleRow (issue #175)
         const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, dateTime, {
           // Not need realized effort (issue #492)
@@ -213,7 +220,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
         });
 
         // DEBUG
-        console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
+        console.debug(this.logPrefix + `Strategy effort loaded in ${Date.now() - startTime}ms `, strategyEffort);
 
         // No effort defined
         if (!strategyEffort) {
@@ -251,7 +258,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
       }
     } catch (err) {
       const error = err?.message || err;
-      console.error('[sampling-landing-page] Error while checking strategy effort', err);
+      console.error(this.logPrefix + 'Error while checking strategy effort', err);
       this.setError(error);
     } finally {
       this.markForCheck();
@@ -326,7 +333,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
       {
         const samplePrefix = strategyLabel + '-';
         let prefixCount = 0;
-        console.info(`[sampling-landing-page] Removing prefix '${samplePrefix}' in samples TAG_ID...`);
+        console.info(`${this.logPrefix}Removing prefix '${samplePrefix}' in samples TAG_ID...`);
         (data.samples || []).map((sample) => {
           const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
           if (tagId?.startsWith(samplePrefix)) {
@@ -340,7 +347,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
           const invalidTagIds = data.samples
             .map((sample) => sample.measurementValues?.[PmfmIds.TAG_ID])
             .filter((tagId) => !tagId || tagId.length > 4 || tagId.indexOf('-') !== -1);
-          console.warn(`[sampling-landing-page] ${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
+          console.warn(`${this.logPrefix}${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
         }
       }
     }
@@ -362,7 +369,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   }
 
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
-    console.debug('[sampling-landing-page] Adding row validator');
+    console.debug(this.logPrefix + 'Adding row validator');
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {
       markForCheck: () => this.markForCheck(),

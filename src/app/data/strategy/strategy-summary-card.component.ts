@@ -97,7 +97,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     data = data || this.data || (this.editor && this.editor.strategy as T);
 
     // DEBUG
-    //console.debug('[strategy-summary-card] updating strategy #' +  data?.id);
+    console.debug('[strategy-summary-card] Updating Strategy#' +  data?.id);
 
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;

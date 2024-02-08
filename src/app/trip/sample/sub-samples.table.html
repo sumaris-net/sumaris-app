@@ -379,3 +379,14 @@
     <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
   </ion-item>
 </div>
+
+
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">
+    &nbsp;
+    <ion-button color="medium" (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
+</ng-template>

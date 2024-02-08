@@ -63,7 +63,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
-  @Input() useSticky = true;
   @Input() includedPmfmIds: number[] = null;
 
   @Input() set detailEditor(value: LandingEditor) {

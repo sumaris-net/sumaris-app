@@ -13,6 +13,8 @@
 .mat-table {
   --mat-row-max-height: 56px;
   --mat-cell-vertical-padding: 0;
+  --mat-column-actions-min-width: 82px;
+  --mat-column-actions-max-width: 82px;
 
   .mat-header-row,
   .mat-row {
@@ -37,12 +39,6 @@
       }
     }
 
-    .mat-column-actions {
-      text-align: end;
-      min-width: var(--mat-column-actions-width, 82px) !important;
-      max-width: unset;
-      padding-inline-start: 0 !important;
-    }
   }
 
 

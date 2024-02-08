@@ -24,20 +24,14 @@
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
-    <ion-label>
-      <mat-icon>description</mat-icon>
-      &nbsp;
-      <span translate>LANDING.EDIT.BTN_REPORT</span>
-    </ion-label>
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>LANDING.EDIT.BTN_REPORT</ion-label>
   </button>
 
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>
-      &nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
+    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
   </button>
 
   <mat-divider></mat-divider>
@@ -166,8 +160,9 @@
           [i18nColumnSuffix]="i18nContext.suffix"
           (prepareRowForm)="onPrepareSampleForm($event)"
           (weightUnitChanges)="setWeightDisplayUnit($event)"
-          [debug]="debug"
+          [sticky]="true"
           [mobile]="mobile"
+          [debug]="debug"
         ></app-samples-table>
       </div>
     </mat-tab>

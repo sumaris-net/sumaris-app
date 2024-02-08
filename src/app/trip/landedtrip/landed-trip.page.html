@@ -54,7 +54,10 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}">
+    <mat-tab [label]="'TRIP.TAB_GENERAL' | translate"
+             appSubMenuTab
+             [subMenuTitle]="(titleSubject|async|noHtml)||''"
+             [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
@@ -136,7 +139,9 @@
     </mat-tab>
 
     <!-- TAB: operations (effort) -->
-    <mat-tab label="{{ 'TRIP.TAB_OPERATION_GROUPS' | translate }}" [disabled]="!showOperationGroupTab">
+    <mat-tab [label]="'TRIP.TAB_OPERATION_GROUPS' | translate"
+             [disabled]="!showOperationGroupTab"
+             appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="locate"></ion-icon>
@@ -163,7 +168,7 @@
     </mat-tab>
 
     <!-- TAB: catches -->
-    <mat-tab label="{{ 'TRIP.TAB_CATCHES' | translate }}" [disabled]="!showCatchTab">
+    <mat-tab [label]="'TRIP.TAB_CATCHES' | translate" [disabled]="!showCatchTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="scan"></ion-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
@@ -199,7 +204,7 @@
 
         <mat-tab-group #catchTabGroup animationDuration="0s" (selectedTabChange)="onSubTabChange($event)">
           <!-- SUB-TAB: products -->
-          <mat-tab label="{{ 'TRIP.LANDED_CATCH.TAB_PRODUCT' | translate }}">
+          <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_PRODUCT' | translate" >
             <ng-template mat-tab-label>
               <ion-label
                 [matBadge]="productsTable.visibleRowCount"
@@ -232,11 +237,12 @@
               [parentAttributes]="operationGroupAttributes"
               [showSaleType]="false"
               [showToolbar]="!mobile"
-              [useSticky]="true"
+              [sticky]="true"
+              [stickyEnd]="true"
             ></app-products-table>
           </mat-tab>
 
-          <mat-tab label="{{ 'TRIP.LANDED_CATCH.TAB_BATCH' | translate }}">
+          <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_BATCH' | translate">
             <ng-template mat-tab-label>
               <ion-label
                 [matBadge]="packetsTable.visibleRowCount"
@@ -259,13 +265,15 @@
 
             <app-packets-table
               #packetsTable
-              [debug]="debug"
-              [program]="programLabel$ | async"
+              [programLabel]="programLabel$ | async"
               [parents]="operationGroups$ | async"
               [parentFilter]="packetFilter$ | async"
               [parentAttributes]="operationGroupAttributes"
               [showToolbar]="!mobile"
-              [useSticky]="true"
+              (askSaveConfirmation)="askSaveConfirmation($event)"
+              [sticky]="true"
+              [stickyEnd]="true"
+              [debug]="debug"
             ></app-packets-table>
           </mat-tab>
         </mat-tab-group>
@@ -273,7 +281,7 @@
     </mat-tab>
 
     <!-- TAB: expected sale -->
-    <mat-tab label="{{ 'TRIP.TAB_SALES' | translate }}" [disabled]="!showSaleTab">
+    <mat-tab [label]="'TRIP.TAB_SALES' | translate" [disabled]="!showSaleTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon slot="start">local_offer</mat-icon>
         <ion-label translate>TRIP.TAB_SALES</ion-label>
@@ -297,7 +305,7 @@
     </mat-tab>
 
     <!-- TAB: expenses -->
-    <mat-tab label="{{ 'TRIP.TAB_EXPENSES' | translate }}" [disabled]="!showExpenseTab">
+    <mat-tab [label]="'TRIP.TAB_EXPENSES' | translate" [disabled]="!showExpenseTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="card"></ion-icon>
         <ion-label translate>TRIP.TAB_EXPENSES</ion-label>

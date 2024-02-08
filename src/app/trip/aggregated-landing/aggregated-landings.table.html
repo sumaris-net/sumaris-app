@@ -48,7 +48,7 @@
     matSortDisableClear
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || mobile">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -65,33 +65,32 @@
       </td>
     </ng-container>
 
-    <!-- Id Column -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <!-- Id Column (always hidden) -->
+    <ng-container matColumnDef="id">
       <th
         mat-header-cell
         *matHeaderCellDef
         mat-sort-header
-        [class.cdk-visually-hidden]="!isAdmin"
-        [class.ion-padding-start]="!canEdit || mobile"
+        class="cdk-visually-hidden"
       >
         <ion-label>#</ion-label>
       </th>
       <td
         mat-cell
         *matCellDef="let row"
-        [class.cdk-visually-hidden]="!isAdmin"
-        [class.ion-padding-start]="!canEdit || mobile"
+        class="cdk-visually-hidden"
       >
-        {{ row.currentData.id | mathAbs }}
       </td>
     </ng-container>
 
     <!-- Vessel Column -->
-    <ng-container matColumnDef="vessel">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+    <ng-container matColumnDef="vessel" [sticky]="sticky">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header
+          [class.ion-padding-start]="!canEdit || mobile">
         <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row"
+          [class.ion-padding-start]="!canEdit || mobile">
         <ion-label>{{ row.currentData.vesselSnapshot | referentialToString : ['exteriorMarking', 'name'] }}</ion-label>
       </td>
     </ng-container>
@@ -164,7 +163,7 @@
     </ng-template>
 
     <!-- Actions buttons column -->
-    <app-actions-column [stickyEnd]="mobile && selection.hasValue()" [cellTemplate]="cellTemplate">
+    <app-actions-column [stickyEnd]="stickyEnd || singleSelectedRow" [cellTemplate]="cellTemplate">
       <ng-template #cellTemplate let-row>
         <!-- Delete row button -->
         <button

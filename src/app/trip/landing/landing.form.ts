@@ -142,7 +142,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   }
 
   get metiersForm() {
-    return this.tripForm.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
+    return this.tripForm?.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
 
   get fishingAreasForm() {
@@ -244,11 +244,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
-      console.debug('[landing-form] Location level ids:', this.locationLevelIds);
+      console.debug(this._logPrefix + 'Location level ids:', this.locationLevelIds);
     }
     if (isNil(this.fishingAreaLocationLevelIds) && this.showFishingArea) {
       this.fishingAreaLocationLevelIds = LocationLevelGroups.FISHING_AREA;
-      console.debug('[landing-form] Fishing area location level ids:', this.fishingAreaLocationLevelIds);
+      console.debug(this._logPrefix + 'Fishing area location level ids:', this.fishingAreaLocationLevelIds);
     }
 
     // Combo: programs
@@ -365,14 +365,14 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
       if (measControl && measControl.value !== strategyLabel) {
         // DEBUG
-        console.debug(`[landing-form] Setting measurementValues.${PmfmIds.STRATEGY_LABEL}=${strategyLabel}`);
+        console.debug(`${this._logPrefix}Setting measurementValues.${PmfmIds.STRATEGY_LABEL}=${strategyLabel}`);
 
         measControl.setValue(strategyLabel);
       }
 
       // Update strategy control
       if (this.showStrategy && this.strategyControl && this.strategyControl.value?.label !== strategyLabel) {
-        console.debug('[landing-form] Updating strategy control, with value', { label: strategyLabel });
+        console.debug(this._logPrefix + 'Updating strategy control, with value', { label: strategyLabel });
         this.strategyControl.setValue({ label: strategyLabel }, { emitEvent: false });
         this.markForCheck();
       }
@@ -453,7 +453,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     // Reapplied changed data
     if (this.isNewData && this.form.touched) {
-      console.warn('[landing-form] Merging form value and input data, before updating view');
+      console.warn(this._logPrefix + 'Merging form value and input data, before updating view');
 
       // Make sure to keep existing touched field's value
       const json = this.form.value;
@@ -487,7 +487,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     if (this.showTrip) {
       this.initTripForm();
 
-      console.log('TODO');
       // Resize metiers array
       if (this.showMetier) {
         trip.metiers = isNotEmptyArray(trip.metiers) ? trip.metiers : [null];
@@ -504,14 +503,14 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     }
 
     // DEBUG
-    //console.debug('[landing-form] updateView', data);
+    //console.debug(this._logPrefix + 'updateView', data);
 
     await super.updateView(data, opts);
   }
 
   protected getValue(): Landing {
     // DEBUG
-    //console.debug('[landing-form] get value');
+    //console.debug(this._logPrefix + 'get value');
 
     const data = super.getValue();
     if (!data) return;
@@ -540,7 +539,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     }
 
     // DEBUG
-    //console.debug('[landing-form] getValue() result:', data);
+    //console.debug(this._logPrefix + 'getValue() result:', data);
 
     return data;
   }
@@ -587,11 +586,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     modal.onDidDismiss().then((res) => {
       // if new vessel added, use it
       if (res && res.data instanceof VesselSnapshot) {
-        console.debug('[landing-form] New vessel added : updating form...', res.data);
+        console.debug(this._logPrefix + 'New vessel added : updating form...', res.data);
         this.form.get('vesselSnapshot').setValue(res.data);
         this.markForCheck();
       } else {
-        console.debug('[landing-form] No vessel added (user cancelled)');
+        console.debug(this._logPrefix + 'No vessel added (user cancelled)');
       }
     });
     return modal.present();
@@ -659,6 +658,8 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
           defaultNewObservedLocation: defaultData,
           selectedId: control.value?.id,
           filter,
+          mobile: this.mobile,
+          debug: this.debug
         },
         keyboardClose: true,
         backdropDismiss: true,
@@ -670,7 +671,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       const value = data?.[0];
       if (!value) return; // User cancelled
 
-      console.debug('[landing-form] Selected observed location: ', value);
+      console.debug(this._logPrefix + 'Selected observed location: ', value);
       control.setValue(value);
       control.markAsTouched();
     } finally {
@@ -735,7 +736,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     let tripForm = this.tripForm;
     if (!tripForm) {
       // DEBUG
-      console.debug('[landing-form] Creating trip form');
+      console.debug(this._logPrefix + 'Creating trip form');
 
       const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
         withMetiers: this.showMetier,
@@ -762,7 +763,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     // Update trip form
     else {
       // DEBUG
-      console.debug('[landing-form] Updating trip form');
+      console.debug(this._logPrefix + 'Updating trip form');
 
       const tripConfig = {
         withMetiers: this.showMetier,
@@ -868,7 +869,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
-      console.info('[landing-form] Updating form group, using opts', validatorOpts);
+      console.info(this._logPrefix + 'Updating form group, using opts', validatorOpts);
 
       this.validatorService.updateFormGroup(this.form, validatorOpts);
 

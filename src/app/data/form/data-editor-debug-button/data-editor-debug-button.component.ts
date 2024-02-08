@@ -11,7 +11,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 export class AppDataEditorDebugButtonComponent {
   constructor(@Inject(APP_DATA_ENTITY_EDITOR) protected editor: AppDataEntityEditor<any>, protected network: NetworkService) {}
 
-  devToggleOfflineMode() {
+  toggleOfflineMode() {
     if (this.network.offline) {
       this.network.setForceOffline(false);
     } else {

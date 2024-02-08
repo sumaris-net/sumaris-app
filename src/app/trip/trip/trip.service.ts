@@ -86,8 +86,14 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 
 import moment from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from '@app/trip/common/data.fragments';
-
+import {
+  DataCommonFragments,
+  DataFragments,
+  ExpectedSaleFragments,
+  OperationGroupFragment,
+  PhysicalGearFragments,
+  SaleFragments,
+} from '@app/trip/common/data.fragments';
 
 export const TripFragments = {
   lightTrip: gql`
@@ -1299,7 +1305,7 @@ export class TripService
       }
 
       // Control operations
-      {
+      if (!opts || !opts.withOperationGroup) {
         const errors = await this.operationService.controlAllByTrip(entity, {
           program,
           progression: opts?.progression,

@@ -1010,7 +1010,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   waitIdle(opts?: WaitForOptions): Promise<void> {
-    return AppFormUtils.waitIdle(this, opts);
+    return AppFormUtils.waitIdle(this, {stop: this.destroySubject, ...opts});
   }
 
   async onLastOperationClick(event: Event, id: number): Promise<any> {

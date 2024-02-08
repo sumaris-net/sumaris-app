@@ -418,15 +418,15 @@
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
     >
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!allowMultipleSelection && !canEdit">
+      <ng-container matColumnDef="select" [sticky]="sticky && !mobile && (allowMultipleSelection || canEdit)">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || (!allowMultipleSelection && !canEdit)">
           <mat-checkbox
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
             [indeterminate]="selection.hasValue() && !isAllSelected()"
           ></mat-checkbox>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!allowMultipleSelection && !canEdit">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || (!allowMultipleSelection && !canEdit)">
           <mat-checkbox
             (click)="$event.stopPropagation()"
             (change)="$event ? selection.toggle(row) : null"
@@ -436,13 +436,13 @@
       </ng-container>
 
       <!-- Id Column -->
-      <ng-container matColumnDef="id">
+      <ng-container matColumnDef="id" [sticky]="sticky && isAdmin">
         <th
           mat-header-cell
           *matHeaderCellDef
           mat-sort-header
           [class.cdk-visually-hidden]="!isAdmin"
-          [class.ion-padding-start]="!allowMultipleSelection"
+          [class.ion-padding-start]="mobile || (!allowMultipleSelection && !canEdit)"
         >
           <ion-label>#</ion-label>
         </th>
@@ -450,7 +450,7 @@
           mat-cell
           *matCellDef="let row"
           [class.cdk-visually-hidden]="!isAdmin"
-          [class.ion-padding-start]="!allowMultipleSelection"
+          [class.ion-padding-start]="mobile || (!allowMultipleSelection && !canEdit)"
         >
           {{ row.currentData.id | mathAbs }}
         </td>

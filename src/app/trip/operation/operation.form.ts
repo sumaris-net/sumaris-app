@@ -702,7 +702,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           gearIds
         },
         gearIds,
-        parent,
+        selectedOperation: parent,
         enableGeolocation: this.enableGeolocation
       },
       keyboardClose: true,
