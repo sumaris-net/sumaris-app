@@ -55,7 +55,7 @@ function updateVersion(version) {
   [
     path.join(PROJECT_DIR, 'package.json'),
     path.join(PROJECT_DIR, 'electron', 'package.json'),
-    path.join(PROJECT_DIR, 'src', 'manifest.json'),
+    path.join(PROJECT_DIR, 'src', 'assets', 'manifest.json'),
   ].forEach(file => {
       console.info(`${LOG_PREFIX} update version standard in ${file}`);
       utils.replaceTextInFile(file, [

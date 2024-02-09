@@ -15,10 +15,11 @@ import { AppEnvironment } from '@environments/environment.class';
 const pkg = require('../../package.json');
 
 export const environment = Object.freeze(<AppEnvironment>{
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: false,
   baseUrl: '/',
+  useHash: false,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
@@ -36,70 +37,70 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   defaultPeer: {
     host: 'test.sumaris.net',
-    port: 443
+    port: 443,
   },
 
   defaultPeers: [
     {
       host: 'localhost',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'localhost',
-      port: 8081
+      port: 8081,
     },
     {
       host: '192.168.8.146',
-      port: 8080
+      port: 8080,
     },
     {
       host: '192.168.0.45',
-      port: 8080
+      port: 8080,
     },
     {
       host: '192.168.0.24',
-      port: 8080
+      port: 8080,
     },
     {
       host: '192.168.0.107',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'server.e-is.pro',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap-test.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
     },
     {
       host: 'sih.sfa.sc',
-      port: 443
+      port: 443,
     },
     {
       host: 'www.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'test.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'open.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'visi-common-docker1.ifremer.fr',
-      port: 8181
+      port: 8181,
     },
     {
       host: 'imagine-pod.isival.ifremer.fr',
-      port: 443
-    }
+      port: 443,
+    },
   ],
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
@@ -110,7 +111,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   // Storage
   storage: {
-    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage],
   },
 
   // Default login user
@@ -119,7 +120,8 @@ export const environment = Object.freeze(<AppEnvironment>{
     // username: 'admq2', password: 'q22006'
 
     // Token auth (using Person.pubkey)
-    username: 'admin@sumaris.net', password: 'admin'
+    username: 'admin@sumaris.net',
+    password: 'admin',
 
     //username: 'admsih@sfa.sc', password: 'admsih321'
     //username: 'lpecquot', token: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA=='
@@ -127,23 +129,22 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   account: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 0,
   },
 
   entityEditor: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 0,
   },
 
   menu: {
     subMenu: {
-      enable: false
-    }
-  }
+      enable: false,
+    },
+  },
 });
-

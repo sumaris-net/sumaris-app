@@ -12,15 +12,16 @@ import 'zone.js/plugins/zone-error';
 
 // Environment to use only with unit tests
 
-import {Environment, StorageDrivers} from '@sumaris-net/ngx-components';
+import { Environment, StorageDrivers } from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json');
 
 export const environment = Object.freeze(<Environment>{
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: false,
   baseUrl: '/',
+  useHash: false,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
@@ -34,21 +35,21 @@ export const environment = Object.freeze(<Environment>{
 
   defaultPeer: {
     host: 'localhost',
-    port: 8080
+    port: 8080,
   },
   defaultPeers: [
     {
       host: 'localhost',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'localhost',
-      port: 8081
+      port: 8081,
     },
     {
       host: 'server.e-is.pro',
-      port: 8080
-    }
+      port: 8080,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -60,27 +61,27 @@ export const environment = Object.freeze(<Environment>{
 
   // Storage
   storage: {
-    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage],
   },
 
   account: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   entityEditor: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSecond: 0,
   },
 
   defaultAuthValues: {
     pubkey: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP',
-    token: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA=='
-  }
+    token:
+      'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA==',
+  },
 });
-
