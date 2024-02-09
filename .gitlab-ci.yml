@@ -73,6 +73,8 @@ variables:
     - ls -artl "${BUILD_CACHE_DIR}"
     - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
     # Install Android environment (e.g. will create local.properties)
+    - apt-get update
+    - apt-get install -y openjdk-17-jdk-headless
     - mkdir -p .local
     - npm run android:install
     - source .local/env.sh
