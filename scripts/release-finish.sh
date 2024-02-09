@@ -49,7 +49,7 @@ git add .
 git commit -m "Prepare release ${version}"
 
 # Finish using git flow
-if [[ "$branch" = "develop" ]]; then
+if [[ "$release_branch" = "develop" ]]; then
   # finishing release with:
   # -F: fetch master & develop before
   # -m: use default message
@@ -58,7 +58,7 @@ if [[ "$branch" = "develop" ]]; then
   git flow release finish -F -p "${version}" -m "Release ${version}"
   unset GIT_MERGE_AUTOEDIT
   # Finish from a feature branch (do NOT use git flow)
-elif [[ "$release_branch" =~ ^features?/.* ]]; then
+else
   git checkout "$release_branch"
   git merge --no-ff --no-edit -m "Release ${version}" "release/${version}"
   git tag -a "${version}" -m "${version}"
