@@ -53,7 +53,6 @@ if [[ "$release_branch" = "develop" ]]; then
   # -F: fetch master & develop before
   # -m: use default message
   # -p: push all tags after finish
-  exit 1;
   export GIT_MERGE_AUTOEDIT=no
   git flow release finish -F -p "${version}" -m "Release ${version}"
   unset GIT_MERGE_AUTOEDIT
