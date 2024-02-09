@@ -130,6 +130,7 @@ build:env:
         - scripts/**/*
         - package.json
         - package-lock.json
+    - when: manual
 
 # ---------------------------------------------------------------
 # Build jobs
