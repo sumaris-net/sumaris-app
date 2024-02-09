@@ -2190,6 +2190,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
+      "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
