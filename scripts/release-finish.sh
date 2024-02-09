@@ -41,7 +41,6 @@ then
   exit 1
 fi
 
-
 cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json
 
@@ -49,18 +48,8 @@ rm src/assets/i18n/*-${version}.json
 git add .
 git commit -m "Prepare release ${version}"
 
-
-# Finish from a feature branch (do NOT use git flow)
-if [[ "$release_branch" =~ ^features?/.* ]]; then
-  git checkout "$release_branch"
-  git merge --no-ff --no-edit -m "Release ${version}" "release/${version}"
-  git tag -a "${version}" -m "${version}"
-  git push origin "$release_branch"
-  git push --tags
-  git branch -D "release/${version}"
-
 # Finish using git flow
-else
+if [[ "$branch" = "develop" ]]; then
   # finishing release with:
   # -F: fetch master & develop before
   # -m: use default message
@@ -68,5 +57,13 @@ else
   export GIT_MERGE_AUTOEDIT=no
   git flow release finish -F -p "${version}" -m "Release ${version}"
   unset GIT_MERGE_AUTOEDIT
+  # Finish from a feature branch (do NOT use git flow)
+elif [[ "$release_branch" =~ ^features?/.* ]]; then
+  git checkout "$release_branch"
+  git merge --no-ff --no-edit -m "Release ${version}" "release/${version}"
+  git tag -a "${version}" -m "${version}"
+  git push origin "$release_branch"
+  git push --tags
+  git branch -D "release/${version}"
 fi
 

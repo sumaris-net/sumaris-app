@@ -95,7 +95,7 @@ then
   else
     # Release from a feature branch
     echo "--- Release from branch $branch"
-    git checkout -b "release/$version"
+    git checkout -B "release/$version"
   fi
   [[ $? -ne 0 ]] && exit 1
 fi
@@ -137,7 +137,7 @@ npm install --no-save --unsafe-perm --force
 echo "-------------------------------------------"
 echo "- Compiling sources..."
 echo "-------------------------------------------"
-npm run build.prod
+npm run build:prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "-------------------------------------------"
