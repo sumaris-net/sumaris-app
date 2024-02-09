@@ -11,6 +11,7 @@ import {
   firstNotNilPromise,
   GraphqlService,
   isEmptyArray,
+  isNotEmptyArray,
   isNotNil,
   JobUtils,
   LoadResult,
@@ -433,17 +434,24 @@ export class VesselSnapshotService
                       opts?: {
                         progression?: BehaviorSubject<number>;
                         maxProgression?: number;
+                        vesselIds?: number[];
                       }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
     filter = {
       ...filter,
+      includedIds: opts?.vesselIds,
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       // Force the use of the specific program, used for vessels
       program: ReferentialRef.fromObject({label: ProgramLabel.SIH}),
     };
 
-    console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
+    if (isNotEmptyArray(filter.includedIds)) {
+      console.info(`[vessel-snapshot-service] Importing ${filter.includedIds.length} vessels (snapshot)...`);
+    }
+    else {
+      console.warn('[vessel-snapshot-service] Importing all vessels (snapshot)...');
+    }
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {

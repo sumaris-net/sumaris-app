@@ -654,6 +654,19 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Observed location
+  OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.offline.import.location.level.ids',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
+    defaultValue: undefined // = Import all locations define in LocationLevelIds
+  },
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE',

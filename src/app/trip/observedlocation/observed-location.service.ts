@@ -27,6 +27,7 @@ import {
   LoadResult,
   NetworkService,
   ProgressBarService,
+  removeDuplicatesFromArray,
   ShowToastOptions,
   Toasts,
   toNumber,
@@ -56,7 +57,7 @@ import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } fr
 import { environment } from '@environments/environment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { LandingFilter } from '../landing/landing.filter';
 import { ObservedLocationFilter } from './observed-location.filter';
@@ -79,7 +80,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
-import { DataCommonFragments, DataFragments } from "@app/trip/common/data.fragments";
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -1115,12 +1116,15 @@ export class ObservedLocationService
     maxProgression: undefined;
     program?: Program;
     acquisitionLevels?: string[];
+    locationLevelIds?: number[];
+    vesselIds?: number[];
   }): Observable<number>[] {
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
     filter = this.asFilter(filter);
 
     const programLabel = filter && filter.program?.label;
+    const vesselIds = filter?.vesselIds || opts?.vesselIds;
     const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
 
     if (programLabel) {
@@ -1131,10 +1135,24 @@ export class ObservedLocationService
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
-            // TODO filter on location level
-            //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+            // Filter on location level used by the observed location feature
+            opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
 
-            // TODO filter on vessel (e.g. OBSBIO)
+            // Compute location levels ids, bases on known program's properties
+            if (isEmptyArray(opts.locationLevelIds)) {
+              const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+              opts.locationLevelIds = removeDuplicatesFromArray([
+                ...program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS),
+                ...(landingEditor === 'trip'
+                  ? program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS)
+                  : program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS)
+                )
+              ]);
+            }
+            if (isNotEmptyArray(opts.locationLevelIds)) console.debug(this._logPrefix + '[import] Location - level ids: ' + opts.locationLevelIds.join(','));
+
+            // Vessel
+            opts.vesselIds = vesselIds
           })),
 
         ...super.getImportJobs(filter, opts),

@@ -1,6 +1,6 @@
-import { TypePolicies } from "@apollo/client/core";
-import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from "@sumaris-net/ngx-components";
-import { ReferentialRefFilter } from "@app/referential/services/filter/referential-ref.filter";
+import { TypePolicies } from '@apollo/client/core';
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -14,7 +14,9 @@ export const DATA_IMPORT_PERIODS: readonly { value: number; unit: DurationConstr
   {value: 15, unit: 'day'},
   {value: 1, unit: 'month'},
   {value: 3, unit: 'month'},
-  {value: 6, unit: 'month'}
+  {value: 6, unit: 'month'},
+  {value: 1, unit: 'year'},
+  {value: 2, unit: 'year'}
 ]);
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({

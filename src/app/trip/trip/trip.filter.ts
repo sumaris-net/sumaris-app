@@ -4,6 +4,7 @@ import {
   EntityClass,
   FilterFn,
   fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -39,6 +40,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     return OperationFilter.fromObject({
       programLabel: f.program?.label,
       vesselId: f.vesselId,
+      vesselIds: f.vesselIds,
       startDate: f.startDate,
       endDate: f.endDate,
       boundingBox: f.boundingBox,
@@ -47,6 +49,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   vesselId: number = null;
   vesselSnapshot: VesselSnapshot = null;
+  vesselIds: number[] = null;
   location: ReferentialRef = null;
   startDate: Moment = null;
   endDate: Moment = null;
@@ -66,6 +69,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
@@ -84,8 +88,16 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
     if (opts && opts.minify) {
       // Vessel
-      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+      target.vesselId = isNotNil(this.vesselId)
+        ? this.vesselId
+        : isNotNil(this.vesselSnapshot?.id)
+        ? this.vesselSnapshot.id
+        : this.vesselIds?.length === 1
+        ? this.vesselIds[0]
+        : undefined;
       delete target.vesselSnapshot;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
 
       // Location
       target.locationId = (this.location && this.location.id) || undefined;
@@ -115,20 +127,23 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   buildFilter(): FilterFn<Trip>[] {
     const filterFns = super.buildFilter();
 
-    // Filter excluded ids
+    // Filter excluded/included ids
     if (isNotEmptyArray(this.excludedIds)) {
-      filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
+      const excludedIds = this.excludedIds;
+      filterFns.push((t) => isNil(t.id) || !excludedIds.includes(t.id));
     }
-
-    // Filter included ids
     if (isNotEmptyArray(this.includedIds)) {
-      filterFns.push((t) => isNotNil(t.id) && this.includedIds.includes(t.id));
+      const includedIds = this.includedIds;
+      filterFns.push((t) => isNotNil(t.id) && includedIds.includes(t.id));
     }
 
     // Vessel
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    } else if (isNotEmptyArray(this.vesselIds)) {
+      const vesselIds = this.vesselIds;
+      filterFns.push((t) => t.vesselSnapshot && vesselIds.includes(t.vesselSnapshot.id));
     }
 
     // Location

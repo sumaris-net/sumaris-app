@@ -1,14 +1,26 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Landing } from './landing.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  FilterFn,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  Person,
+  ReferentialRef,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
-@EntityClass({typename: 'LandingFilterVO'})
+@EntityClass({ typename: 'LandingFilterVO' })
 export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> {
-
   static fromObject: (source: any, opts?: any) => LandingFilter;
 
   vesselId?: number;
+  vesselIds?: number[];
   vesselSnapshot: VesselSnapshot = null;
   excludeVesselIds?: number[];
   groupByVessel?: boolean;
@@ -30,6 +42,7 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = toNumber(source.vesselId);
+    this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.excludeVesselIds = source.excludeVesselIds;
     this.groupByVessel = source.groupByVessel;
@@ -38,7 +51,7 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     this.locationIds = source.locationIds;
     this.location = ReferentialRef.fromObject(source.location);
 
-    this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
+    this.observers = (source.observers && source.observers.map(Person.fromObject).filter(isNotNil)) || [];
 
     this.sampleLabel = source.sampleLabel;
     this.sampleTagId = source.sampleTagId;
@@ -49,17 +62,26 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+
     if (opts && opts.minify) {
       // Vessel
-      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : (this.vesselSnapshot && isNotNil(this.vesselSnapshot.id) ? this.vesselSnapshot.id : undefined);
+      target.vesselId = isNotNil(this.vesselId)
+        ? this.vesselId
+        : isNotNil(this.vesselSnapshot?.id)
+        ? this.vesselSnapshot.id
+        : this.vesselIds?.length === 1
+        ? this.vesselIds[0]
+        : undefined;
       delete target.vesselSnapshot;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
 
       // Location
-      target.locationId = this.location && this.location.id || undefined;
+      target.locationId = (this.location && this.location.id) || undefined;
       delete target.location;
 
       // Observers
-      target.observerPersonIds = isNotEmptyArray(this.observers) && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
+      target.observerPersonIds = (isNotEmptyArray(this.observers) && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
       delete target.observers;
 
       // Not exists in pod
@@ -70,11 +92,10 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
       delete target.sampleLabel;
       target.sampleTagIds = isNotNilOrBlank(this.sampleTagId) ? this.sampleTagId.split(/[,\s]+/) : undefined;
       delete target.sampleTagId;
-    }
-    else {
-      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;
-      target.location = this.location && this.location.asObject(opts) || undefined;
-      target.observers = this.observers && this.observers.map(o => o && o.asObject(opts)).filter(isNotNil) || [];
+    } else {
+      target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
+      target.location = (this.location && this.location.asObject(opts)) || undefined;
+      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || [];
     }
     return target;
   }
@@ -93,8 +114,12 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     }
 
     // Vessel
-    if (isNotNil(this.vesselId)) {
-      filterFns.push((entity) => entity.vesselSnapshot && entity.vesselSnapshot.id === this.vesselId);
+    const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+    if (isNotNil(vesselId)) {
+      filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    } else if (isNotEmptyArray(this.vesselIds)) {
+      const vesselIds = this.vesselIds;
+      filterFns.push((t) => t.vesselSnapshot && vesselIds.includes(t.vesselSnapshot.id));
     }
 
     // Vessel exclude
@@ -113,17 +138,17 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     // Start/end period
     if (this.startDate) {
       const startDate = this.startDate.clone();
-      filterFns.push(t => t.dateTime && startDate.isSameOrBefore(t.dateTime));
+      filterFns.push((t) => t.dateTime && startDate.isSameOrBefore(t.dateTime));
     }
     if (this.endDate) {
       const endDate = this.endDate.clone().add(1, 'day').startOf('day');
-      filterFns.push(t => t.dateTime && endDate.isAfter(t.dateTime));
+      filterFns.push((t) => t.dateTime && endDate.isAfter(t.dateTime));
     }
 
     // Observers
-    const observerIds = this.observers?.map(o => o.id).filter(isNotNil);
+    const observerIds = this.observers?.map((o) => o.id).filter(isNotNil);
     if (isNotEmptyArray(observerIds)) {
-      filterFns.push(t => t.observers?.some(o => o && observerIds.includes(o.id)));
+      filterFns.push((t) => t.observers?.some((o) => o && observerIds.includes(o.id)));
     }
 
     return filterFns;

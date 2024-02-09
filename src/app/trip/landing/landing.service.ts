@@ -1421,7 +1421,7 @@ export class LandingService
                                     sortDirection: string,
                                     filter?: LandingFilter) {
     // DEBUG
-    console.debug('[landing-service] DEV - filtering landings - sortBy=' + sortBy);
+    console.debug('[landing-service] Computing rankOrder, then sort by ' + sortBy);
 
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {

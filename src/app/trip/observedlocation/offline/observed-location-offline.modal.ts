@@ -5,6 +5,7 @@ import { UntypedFormBuilder, Validators } from '@angular/forms';
 import {
   AppForm,
   AppFormUtils,
+  DateUtils,
   isEmptyArray,
   isNilOrBlank,
   isNotEmptyArray,
@@ -18,7 +19,7 @@ import {
   SharedValidators,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
 import { map, mergeMap, tap } from 'rxjs/operators';
@@ -31,6 +32,8 @@ import { Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export interface IObservedLocationOfflineModalState {
@@ -84,6 +87,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -94,6 +98,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
         periodDuration: ['15 day', Validators.required],
+        vesselSnapshot: [null],
       })
     );
     this._enable = false; // Disable by default
@@ -102,7 +107,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
-      const date = moment()
+      const date = DateUtils.moment()
         .utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
@@ -149,12 +154,11 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       mergeMap((program) => {
         if (!program) return Promise.resolve(null);
         const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-        return this.referentialRefService.loadAll(0, 0, null, null, {
+        return this.referentialRefService.countAll({
           entityName: 'Location',
           levelIds: locationLevelIds,
         });
       }),
-      map((res) => res?.total || 0),
       tap((locationCount) => {
         if (locationCount > 0) {
           this.form.get('location').enable();
@@ -213,6 +217,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         });
       }
     });
+
+    // Combo: vessels
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+      this.registerAutocompleteField('vesselSnapshot', opts));
   }
 
   async setValue(value: ObservedLocationOfflineFilter | any) {
@@ -223,6 +231,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       strategy: null,
       location: null,
       periodDuration: null,
+      vesselSnapshot: null,
     };
 
     // Program
@@ -238,7 +247,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
           includedIds: value.strategyIds,
         })
       )?.data;
-    } else {
     }
 
     // Location
@@ -249,6 +257,22 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     // Duration period
     if (value.periodDuration && value.periodDurationUnit) {
       json.periodDuration = `${value.periodDuration} ${value.periodDurationUnit}`;
+    }
+
+    // Vessels
+    if (isNotEmptyArray(value.vesselIds)) {
+      try {
+        json.vesselSnapshot = (await this.vesselSnapshotService.loadAll(0, value.vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
+          includedIds: value.vesselIds
+        }))?.data;
+      }
+      catch (err) {
+        console.error(err);
+        json.vesselSnapshot = null;
+        if (err && err.message) {
+          this.errorSubject.next(err.message);
+        }
+      }
     }
 
     this.enable();
@@ -265,14 +289,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const json = this.form.value;
 
     // DEBUG
-    console.debug('[observed-location-offline] Modal form.value:', json);
+    //console.debug('[observed-location-offline] Modal form.value:', json);
 
     const value = new ObservedLocationOfflineFilter();
 
     // Set program
     value.programLabel = (json.program && json.program.label) || json.program;
 
-    // Location
+    // Strategy
     if (json.strategy) {
       if (Array.isArray(json.strategy)) {
         value.strategyIds = json.strategy.map((entity) => entity.id);
@@ -301,8 +325,11 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       value.periodDurationUnit = parts[1] as DurationConstructor;
     }
 
+    // Vessels
+    value.vesselIds = isNotEmptyArray(json.vesselSnapshot) ? json.vesselSnapshot.map((v) => v.id) : undefined;
+
     // DEBUG
-    //console.debug("[observed-location-offline] Modal result value:", value);
+    console.debug("[observed-location-offline] Modal result value:", value);
 
     return value;
   }

@@ -18,6 +18,7 @@ import {
   IEntitiesService,
   isEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   JobUtils,
   LoadResult,
   LoadResultByPageFn,
@@ -28,6 +29,7 @@ import {
   ReferentialUtils,
   StatusIds,
   SuggestService,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import {
@@ -671,7 +673,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     const statusIds = filter?.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
     try {
-      const getLoadOptions = (offset) => (<EntityServiceLoadOptions>{
+      const getLoadOptions = (offset: number) => (<EntityServiceLoadOptions>{
         fetchPolicy: 'no-cache',
         toEntity: false,
         withTotal: offset === 0});
@@ -705,7 +707,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           filter = {
             ...filter, statusIds,
             //boundingBox: opts?.boundingBox,
-            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => res.concat(LocationLevelIds[item]), [])
+            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).map(key => toNumber(LocationLevelIds[key])).filter(isNotNilOrNaN)
           };
           break;
 

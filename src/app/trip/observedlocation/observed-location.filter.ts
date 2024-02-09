@@ -5,6 +5,7 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   Person,
@@ -24,6 +25,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       endDate: source.endDate,
       location: source.location,
       locations: source.locations,
+      vesselIds: source.vesselIds,
     });
   }
   static fromLandingFilter(source: Partial<LandingFilter>): ObservedLocationFilter {
@@ -34,17 +36,20 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       endDate: source.endDate,
       location: source.location,
       locations: source.locations,
+      vesselIds: isNil(source.vesselId) ? [source.vesselId] : source.vesselIds,
     });
   }
 
   location?: ReferentialRef;
   locations?: ReferentialRef[];
   observers?: Person[];
+  vesselIds?: number[];
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.location = ReferentialRef.fromObject(source.location);
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.vesselIds = source.vesselIds || null;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -98,5 +103,4 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
 
 export class ObservedLocationOfflineFilter extends DataSynchroImportFilter {
   locationIds?: number[];
-
 }

@@ -31,6 +31,7 @@ import {
   LocalSettingsService,
   NetworkService,
   PersonService,
+  removeDuplicatesFromArray,
   ShowToastOptions,
   splitById,
   splitByProperty,
@@ -1870,12 +1871,18 @@ export class TripService
 
           // Limit locations (e.g. rectangle)
           opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+          // Compute location levels ids, bases on known program's properties
+          if (isEmptyArray(opts.locationLevelIds)) {
+            opts.locationLevelIds = removeDuplicatesFromArray([
+              ...program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS),
+              ...program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS)
+            ]);
+          }
           if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
 
+          // Bounding box
           opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
           if (Geometries.isNotNilBBox(opts.boundingBox)) console.debug('[trip-service] [import] Bounding box: ' + opts.boundingBox.join(','));
-
-          // TODO limit vessels (e.g. for OBSBIO, OBSMER)
 
         }
       }),
@@ -1885,7 +1892,7 @@ export class TripService
       // Import pending operations
       JobUtils.defer(o => {
         const operationFilter = TripFilter.toOperationFilter(filter);
-        if (isNil(operationFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
+        if (isNil(operationFilter?.vesselId) && isEmptyArray(operationFilter?.vesselIds)) return Promise.resolve(); // Skip if no vessel
         return this.operationService.executeImport(operationFilter, o);
       }, opts),
 

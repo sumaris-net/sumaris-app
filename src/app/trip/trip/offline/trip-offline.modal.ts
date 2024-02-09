@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, DateUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -13,9 +13,7 @@ import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-import moment from 'moment';
-
-export interface  TripOfflineModalOptions {
+export interface TripOfflineModalOptions {
   value?: TripSynchroImportFilter;
 }
 
@@ -73,8 +71,8 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
-      const date = moment().utc(false)
-        .add(-1 * v.value, v.unit); // Substract the period, from now
+      const date = DateUtils.moment().utc(false)
+        .add(-1 * v.value, v.unit); // Subtract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
         label: `${date.fromNow(true/*no suffix*/)} (${date.format(datePattern)})`,
@@ -124,7 +122,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       }
     }
 
-    if (value.vesselId){
+    if (value.vesselId) {
       try {
         json.vesselSnapshot = await this.vesselSnapshotService.load(value.vesselId);
       }

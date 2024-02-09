@@ -7,6 +7,8 @@ import {
   EntityUtils,
   FilterFn,
   fromDateISOString,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
@@ -29,6 +31,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   program: ReferentialRef;
   date: Moment;
   vesselId: number;
+  includedIds: number[];
+  excludedIds: number[];
   searchText: string;
   searchAttributes: string[];
   statusId: number;
@@ -49,6 +53,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       undefined;
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
+    this.includedIds = source.includedIds;
+    this.excludedIds = source.excludedIds;
     this.searchText = source.searchText;
     this.searchAttributes = source.searchAttributes;
     this.statusId = source.statusId;
@@ -118,6 +124,13 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
       filterFns.push((t) => t.id === vesselId);
+    }
+    // Filter included/excluded ids
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push((t) => isNotNil(t.id) && this.includedIds.includes(t.id));
+    }
+    if (isNotEmptyArray(this.excludedIds)) {
+      filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
     }
 
     // Status
