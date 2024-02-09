@@ -438,6 +438,18 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
   protected buildFilter(): FilterFn<BatchModel>[] {
     const filterFns = super.buildFilter();
 
+    // Hidden
+    if (isNotNil(this.hidden)) {
+      const hidden = this.hidden;
+      filterFns.push((b) => b.hidden === hidden);
+    }
+
+    // is leaf
+    if (isNotNil(this.isLeaf)) {
+      const isLeaf = this.isLeaf;
+      filterFns.push((b) => b.isLeaf === isLeaf);
+    }
+
     if (isNotNil(this.measurementValues)) {
       Object.keys(this.measurementValues).forEach((pmfmId) => {
         const pmfmValue = this.measurementValues[pmfmId];
@@ -457,18 +469,6 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
         const measurementValues = (b.currentData || b.originalData).measurementValues;
         return pmfmIds.every((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]));
       });
-    }
-
-    // Hidden
-    if (isNotNil(this.hidden)) {
-      const hidden = this.hidden;
-      filterFns.push((b) => b.hidden === hidden);
-    }
-
-    // is leaf
-    if (isNotNil(this.isLeaf)) {
-      const isLeaf = this.isLeaf;
-      filterFns.push((b) => b.isLeaf === isLeaf);
     }
 
     // Parent filter
