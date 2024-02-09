@@ -230,7 +230,7 @@
               [autofocus]="row.editing && focusColumn === col.key"
               [readonly]="!row.editing || computed"
               [tabindex]="computed && -1"
-              [compact]="true"
+              [compact]="compactFields"
             ></app-pmfm-field>
 
             <mat-sampling-ratio-field

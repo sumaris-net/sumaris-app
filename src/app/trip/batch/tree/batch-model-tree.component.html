@@ -14,7 +14,6 @@
           [class.activated]="vars.selected"
           [class.cdk-visually-hidden]="node.hidden"
           [class.tappable]="!node.disabled"
-          [class.disabled]="node.disabled"
         >
           <button mat-icon-button slot="start" (click)="toggle($event, node)">
             <mat-icon class="mat-icon-rtl-mirror">{{ vars.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>

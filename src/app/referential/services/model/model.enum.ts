@@ -148,6 +148,7 @@ export const PmfmIds = {
   DISCARD_TYPE: 408,
   IS_SAMPLING: 409,
   LANDING_CATEGORY: 436,
+  EMV_CATEGORY: 437 // TODO override by config
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -192,7 +193,13 @@ export const QualitativeValueIds = {
   IS_SAMPLING: {
     YES: 596, // Détaillé
     NO: 597   // Non détaillé
+  },
+  DISCARD_TYPE: {
+    ANI: 577, // Animaux - TODO override by config
+    INV: 578, // Inerte et végétaux - TODO override by config
+    EMV: 582 // TODO override by config
   }
+
 };
 
 export const MethodIds = {

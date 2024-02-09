@@ -486,12 +486,12 @@ export class MeasurementValuesUtils {
 
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return isNil(measurementValues)
-      || isEmptyArray(Object.getOwnPropertyNames(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
+      || Object.getOwnPropertyNames(measurementValues).every(pmfmId => PmfmValueUtils.isEmpty(measurementValues[pmfmId]));
   }
 
   static isNotEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return isNotNil(measurementValues)
-      && Object.getOwnPropertyNames(measurementValues).some(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId]));
+      && Object.getOwnPropertyNames(measurementValues).some(pmfmId => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]));
   }
 }
 

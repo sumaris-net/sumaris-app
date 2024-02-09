@@ -240,6 +240,9 @@ export class BatchModel
   get invalid(): boolean {
     return !this.valid;
   }
+  set invalid(value: boolean) {
+    this._valid = !value;
+  }
 
   get valid(): boolean {
     if (isNil(this._valid) && this.editing) {
@@ -382,26 +385,42 @@ export class BatchModel
     }
     return this._weightPmfms;
   }
+
+  remove() {
+    if (isNotNil(this.parent)) {
+      const index = this.parent.children.indexOf(this);
+      if (index !== -1) {
+        this.parent.children.splice(index, 1);
+      }
+    }
+  }
 }
 
-@EntityClass({typename: 'BatchModelFilterVO'})
+@EntityClass({ typename: 'BatchModelFilterVO' })
 export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
+  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+  static composeOr(...sources: any): BatchModelFilter {
+      return BatchModelFilter.fromObject({or: sources});
+  }
+
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
-  pmfmIds: number[]  = null;
+  pmfmIds: number[] = null;
   isLeaf: boolean = null;
   hidden: boolean = null;
-
   parentFilter: BatchModelFilter = null;
-
-  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+  or: BatchModelFilter[] = null;
+  and: BatchModelFilter[] = null;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.measurementValues =
+      (source.measurementValues && { ...source.measurementValues }) || MeasurementUtils.toMeasurementValues(source.measurements);
     this.pmfmIds = source.pmfmIds;
     this.isLeaf = source.isLeaf;
     this.hidden = source.hidden;
-    this.parentFilter = source.parentFilter && BatchModelFilter.fromObject(source.parentFilter);
+    this.parentFilter = BatchModelFilter.fromObject(source.parentFilter);
+    this.or = source.or?.map(BatchModelFilter.fromObject);
+    this.and = source.and?.map(BatchModelFilter.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -411,6 +430,8 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     target.isLeaf = this.isLeaf;
     target.hidden = this.hidden;
     target.parentFilter = this.parentFilter && this.parentFilter.asObject(opts);
+    target.or = isNotEmptyArray(this.or) ? this.or.map(f=> f.asObject(opts)) : undefined;
+    target.and = isNotEmptyArray(this.and) ? this.and.map(f=> f.asObject(opts)) : undefined;
     return target;
   }
 
@@ -418,10 +439,10 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     const filterFns = super.buildFilter();
 
     if (isNotNil(this.measurementValues)) {
-      Object.keys(this.measurementValues).forEach(pmfmId => {
+      Object.keys(this.measurementValues).forEach((pmfmId) => {
         const pmfmValue = this.measurementValues[pmfmId];
         if (isNotNil(pmfmValue)) {
-          filterFns.push(b => {
+          filterFns.push((b) => {
             const measurementValues = (b.currentData || b.originalData).measurementValues;
             return measurementValues && isNotNil(measurementValues[pmfmId]) && PmfmValueUtils.equals(measurementValues[pmfmId], pmfmValue);
           });
@@ -432,32 +453,58 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     // Check all expected pmfms has value
     if (isNotEmptyArray(this.pmfmIds)) {
       const pmfmIds = [...this.pmfmIds];
-      filterFns.push(b => {
+      filterFns.push((b) => {
         const measurementValues = (b.currentData || b.originalData).measurementValues;
-        return pmfmIds.every(pmfmId => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]));
+        return pmfmIds.every((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]));
       });
     }
 
     // Hidden
     if (isNotNil(this.hidden)) {
       const hidden = this.hidden;
-      filterFns.push(b => b.hidden === hidden);
+      filterFns.push((b) => b.hidden === hidden);
     }
 
     // is leaf
     if (isNotNil(this.isLeaf)) {
       const isLeaf = this.isLeaf;
-      filterFns.push(b => b.isLeaf === isLeaf);
+      filterFns.push((b) => b.isLeaf === isLeaf);
     }
 
     // Parent filter
     const parentFilter = BatchModelFilter.fromObject(this.parentFilter);
     if (parentFilter && !parentFilter.isEmpty()) {
       const parentFilterFn = parentFilter.asFilterFn();
-      filterFns.push(b => b.parent && parentFilterFn(b.parent));
+      filterFns.push((b) => b.parent && parentFilterFn(b.parent));
+    }
+
+    // Or
+    if (isNotEmptyArray(this.or)) {
+      const orFilterFns = this.or.map(BatchModelFilter.fromObject)
+        .map(of => of.asFilterFn())
+        .filter(isNotNil);
+      if (isNotEmptyArray(orFilterFns)) {
+        filterFns.push((b) => orFilterFns.some((orFilterFn) => orFilterFn(b)));
+      }
+    }
+
+    // AND
+    if (isNotEmptyArray(this.and)) {
+      const andFilterFns = this.and.map(BatchModelFilter.fromObject)
+        .map(of => of.asFilterFn())
+        .filter(isNotNil);
+      if (isNotEmptyArray(andFilterFns)) {
+        filterFns.push((b) => andFilterFns.every((orFilterFn) => orFilterFn(b)));
+      }
     }
 
     return filterFns;
+  }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    return super.isCriteriaNotEmpty(key, value)
+      || (key === 'measurementValues' && MeasurementValuesUtils.isNotEmpty(value))
+      ;
   }
 }
 

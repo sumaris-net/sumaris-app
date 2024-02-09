@@ -36,11 +36,11 @@ export abstract class PmfmValueUtils {
   }
 
   static isEmpty(value: PmfmValue | any) {
-    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
+    return isNilOrBlank(value) || (typeof value === 'object' && ReferentialUtils.isEmpty(value));
   }
 
   static isNotEmpty(value: PmfmValue | any) {
-    return isNotNilOrBlank(value) || ReferentialUtils.isNotEmpty(value);
+    return isNotNilOrBlank(value) && (typeof value !== 'object' || ReferentialUtils.isNotEmpty(value));
   }
 
   static equals(pv1: PmfmValue, pv2: PmfmValue): boolean {

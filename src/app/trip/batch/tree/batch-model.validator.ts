@@ -112,15 +112,15 @@ export class BatchModelValidatorService<
       TreeItemEntityUtils.findByFilter(
         model,
         BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          parent: {
+          parentFilter: <BatchModelFilter>{
             measurementValues: {
               [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD,
             },
           },
-          hidden: false, // Exclude if no pmfms
           measurementValues: {
             [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK,
           },
+          hidden: false, // Exclude if no pmfms
         })
       ).forEach((batch) => {
         const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map((p) => p.clone());
@@ -328,8 +328,9 @@ export class BatchModelValidatorService<
     return opts;
   }
 
-  protected fillDefaultRules(opts?: {allowDiscard?: boolean, rules?: Rule[]}): Rule[] {
+  protected fillDefaultRules(opts?: {allowDiscard?: boolean, rules?: Rule[], pmfmPath?: string}): Rule[] {
     const allowDiscard = opts?.allowDiscard !== false;
+    const pmfmPath = opts?.pmfmPath || 'pmfm.';
 
     // Full tree (Landing + discard)
     if (allowDiscard) {
@@ -345,7 +346,7 @@ export class BatchModelValidatorService<
           //value: QualitativeValueIds.DISCARD_OR_LANDING.LANDING.toString(),
 
           // Avoid discard pmfms
-          children: this.batchRules.getNotDiscardPmfms('pmfm.')
+          children: this.batchRules.getNotDiscardPmfms(pmfmPath)
         }),
 
         // Discard rules
@@ -358,9 +359,8 @@ export class BatchModelValidatorService<
           //operator: '=',
           //value: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString(),
 
-
           // Avoid landing pmfms
-          children: this.batchRules.getNotLandingPmfms('pmfm.')
+          children: this.batchRules.getNotLandingPmfms(pmfmPath)
         })
       ];
     }
@@ -370,7 +370,7 @@ export class BatchModelValidatorService<
       return [
         ...(opts?.rules || []),
         // No discard pmfms
-        ...this.batchRules.getNotDiscardPmfms('pmfm.')
+        ...this.batchRules.getNotDiscardPmfms(pmfmPath)
       ];
     }
   }

@@ -16,6 +16,7 @@ import { BatchModel, BatchModelFilter, BatchModelUtils } from '@app/trip/batch/t
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { Rule } from '@app/referential/services/model/rule.model';
 import { BatchModelValidatorOptions, BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdvancedBatchModelValidatorService<
@@ -73,15 +74,28 @@ export class AdvancedBatchModelValidatorService<
     // Enable weight and sampling batch weight, in landing batch
     TreeItemEntityUtils.findByFilter(
       model,
-      BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-        parent: {
-          measurementValues: {
-            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.LANDING,
+      BatchModelFilter.composeOr(
+        <Partial<BatchModelFilter>>{
+          parentFilter: <BatchModelFilter>{
+            measurementValues: {
+              [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.LANDING,
+            },
           },
+          pmfmIds: [PmfmIds.LANDING_CATEGORY],
+          hidden: false, // Exclude if no pmfms
+          leaf: true,
         },
-        hidden: false, // Exclude if no pmfms
-        leaf: true,
-      })
+        <Partial<BatchModelFilter>>{
+          parentFilter: <BatchModelFilter>{
+            measurementValues: {
+              [PmfmIds.IS_SAMPLING]: QualitativeValueIds.IS_SAMPLING.YES,
+            },
+          },
+          pmfmIds: [PmfmIds.DISCARD_TYPE],
+          hidden: false, // Exclude if no pmfms
+          leaf: true,
+        }
+      )
     ).forEach((batch) => {
       const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map((p) => p.clone());
       if (isNotEmptyArray(weightPmfms)) {
@@ -119,6 +133,7 @@ export class AdvancedBatchModelValidatorService<
         if (firstChildPmfm?.type === 'qualitative_value') {
           firstChildPmfm.hidden = false;
           firstChildPmfm.defaultValue = null;
+          firstChildPmfm.qualitativeValues = firstChildPmfm.qualitativeValues?.filter((qv) => qv.id !== QualitativeValueIds.DISCARD_TYPE.EMV);
           batch.childrenPmfms = firstChild?.pmfms;
           batch.childrenState = {
             ...batch.childrenState,
@@ -132,7 +147,7 @@ export class AdvancedBatchModelValidatorService<
           batch.children = [];
           batch.isLeaf = true;
 
-          // Init data
+          // Auto fill data
           if (batch.originalData && !batch.originalData.children) {
             const labelPrefix = (batch.originalData.label += '.');
             batch.originalData.children = firstChildPmfm.qualitativeValues.map((qv, index) => {
@@ -146,6 +161,62 @@ export class AdvancedBatchModelValidatorService<
             });
           }
         }
+      });
+
+      // Discard / Vrac / Détaillé : No INV
+      TreeItemEntityUtils.findByFilter(
+        model,
+        BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          parentFilter: <BatchModelFilter>{
+            measurementValues: {
+              [PmfmIds.IS_SAMPLING]: QualitativeValueIds.IS_SAMPLING.YES,
+            },
+          },
+          measurementValues: {
+            [PmfmIds.DISCARD_TYPE]: QualitativeValueIds.DISCARD_TYPE.INV,
+          },
+          hidden: false, // Exclude if no pmfms
+          leaf: false,
+        })
+      ).forEach((batch) => batch.remove());
+
+      // Discard / Hors Vrac: No EMV
+      TreeItemEntityUtils.findByFilter(
+        model,
+        BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          parent: {
+            measurementValues: {
+              [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.NON_BULK,
+            },
+          },
+          measurementValues: {
+            [PmfmIds.DISCARD_TYPE]: QualitativeValueIds.DISCARD_TYPE.INV,
+          },
+          hidden: false, // Exclude if no pmfms
+          leaf: false,
+        })
+      ).forEach((batch) => batch.remove());
+
+      // EMV
+      TreeItemEntityUtils.findByFilter(
+        model,
+        BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          measurementValues: {
+            [PmfmIds.DISCARD_TYPE]: QualitativeValueIds.DISCARD_TYPE.EMV,
+          },
+          hidden: false, // Exclude if no pmfms
+          leaf: true,
+        })
+      ).forEach((batch) => {
+        batch.childrenState = {
+          ...batch.childrenState,
+          showTaxonGroupColumn: false,
+          showTaxonNameColumn: false,
+          showSamplingBatchColumns: false,
+          showIndividualCountColumns: false,
+          showAutoFillButton: true,
+          allowSubBatches: false,
+        };
       });
     }
 
@@ -177,7 +248,46 @@ export class AdvancedBatchModelValidatorService<
     return model;
   }
 
-  protected fillDefaultRules(opts?: { allowDiscard?: boolean; rules?: Rule[] }): Rule[] {
-    return super.fillDefaultRules(opts);
+  protected fillDefaultRules(opts?: { allowDiscard?: boolean; rules?: Rule[]; pmfmPath?: string }): Rule[] {
+    const pmfmPath = opts?.pmfmPath || 'pmfm.';
+
+    return [
+      ...super.fillDefaultRules(opts),
+
+      // Discard / Hors-Vrac rules
+      Rule.fromObject(<Partial<Rule>>{
+        precondition: true,
+        filter: ({ model }) =>
+          PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.BATCH_SORTING], QualitativeValueIds.BATCH_SORTING.NON_BULK),
+
+        // Avoid IS_SAMPLING (Détaillé / Non détaillé)
+        children: [
+          Rule.fromObject(<Partial<Rule>>{
+            label: 'no-is-sampling-pmfm',
+            controlledAttribute: `${pmfmPath}id`,
+            operator: '!=',
+            values: [PmfmIds.IS_SAMPLING.toString()],
+            message: 'Batch sorting pmfm not allowed',
+          }),
+        ],
+      }),
+
+      /* // Discard / Inerte et Végétaux
+      Rule.fromObject(<Partial<Rule>>{
+        precondition: true,
+        filter: ({ model }) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.IS_SAMPLING], QualitativeValueIds.IS_SAMPLING.YES),
+
+        // Avoid IS_SAMPLING (Détaillé / Non détaillé)
+        children: [
+          Rule.fromObject(<Partial<Rule>>{
+            label: 'no-inv-pmfm',
+            controlledAttribute: `${pmfmPath}id`,
+            operator: '!=',
+            values: [PmfmIds.IS_SAMPLING.toString()],
+            message: 'Batch sorting pmfm not allowed',
+          }),
+        ],
+      }),*/
+    ];
   }
 }

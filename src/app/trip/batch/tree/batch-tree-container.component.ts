@@ -611,10 +611,6 @@ export class BatchTreeContainerComponent
         // Get value (using getRawValue(), because some controls are disabled)
         const json = (await firstNotNilPromise(this.form$, { stop: this.destroySubject })).getRawValue();
 
-        console.log('TODO getRawValue')
-        BatchUtils.logTree(json);
-
-
         // Update data
         this.data = this.data || new Batch();
         this.data.fromObject(json, {withChildren: true});

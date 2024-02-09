@@ -278,20 +278,21 @@ export abstract class AbstractBatchesTable<
         const data = this.dataSource.getData();
         let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
 
-        const pmfm = PmfmUtils.getFirstQualitativePmfm(this.filteredPmfms, {excludeHidden: true, minQvCount: 2, maxQvCount: 10});
-        const entities =
-          pmfm.qualitativeValues
-          .filter((qv) => data.every(entity => !PmfmValueUtils.equals(entity.measurementValues[pmfm.id], qv)))
-          .map((qv) => {
-            const entity = new this.dataType();
-            entity.measurementValues = {[pmfm.id]: qv.id}
-            entity.rankOrder = rankOrder++;
-            return entity;
-          });
-        await this.addEntitiesToTable(entities, {emitEvent: false});
+        const pmfm = PmfmUtils.getFirstQualitativePmfm(this.filteredPmfms, {excludeHidden: true, minQvCount: 2});
+        if (isNotEmptyArray(pmfm?.qualitativeValues)) {
+          const entities = pmfm.qualitativeValues
+            .filter((qv) => data.every(entity => !PmfmValueUtils.equals(entity.measurementValues[pmfm.id], qv)))
+            .map((qv) => {
+              const entity = new this.dataType();
+              entity.measurementValues = { [pmfm.id]: qv.id }
+              entity.rankOrder = rankOrder++;
+              return entity;
+            });
+          await this.addEntitiesToTable(entities, { emitEvent: false });
 
-        // Mark as dirty
-        this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
+          // Mark as dirty
+          this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+        }
       }
       else {
         console.warn('Unable to fill rows: taxon groups not found, and no qualitative pmfms ')
