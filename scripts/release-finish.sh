@@ -42,7 +42,6 @@ then
 fi
 
 cd $PROJECT_DIR
-rm src/assets/i18n/*-${version}.json
 
 # Add updated files
 git add .
