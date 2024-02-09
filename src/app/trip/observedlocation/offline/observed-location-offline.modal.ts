@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
@@ -9,8 +9,12 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  LoadResult,
+  NetworkService,
+  ReferentialRef,
   referentialsToString,
   referentialToString,
+  ReferentialUtils,
   SharedValidators,
   StatusIds,
 } from '@sumaris-net/ngx-components';
@@ -23,19 +27,34 @@ import { ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+
+export interface IObservedLocationOfflineModalState {
+  program: Program;
+  locations: ReferentialRef[];
+}
 
 @Component({
   selector: 'app-observed-location-offline-modal',
   styleUrls: ['./observed-location-offline.modal.scss'],
   templateUrl: './observed-location-offline.modal.html',
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> implements OnInit {
-  mobile: boolean;
-  periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+
+  @RxStateRegister() protected readonly _state: RxState<IObservedLocationOfflineModalState> = inject(RxState<IObservedLocationOfflineModalState>);
+  protected readonly networkService = inject(NetworkService);
+  protected mobile: boolean;
+  protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+
+  @RxStateSelect() protected program$: Observable<Program>;
+  @RxStateSelect() protected locations$: Observable<ReferentialRef[]>;
+
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
 
@@ -54,6 +73,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   get modalName(): string {
     return this.constructor.name;
   }
+
+  @RxStateProperty() program: Program;
 
   constructor(
     injector: Injector,
@@ -106,45 +127,44 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     });
 
     // Listen program (with properties)
-    const programSubject = new BehaviorSubject<Program>(null);
-    this.registerSubscription(
+    this._state.connect('program',
       this.form
         .get('program')
         .valueChanges.pipe(
+          map(program => program?.label),
           // Load the program
-          mergeMap((program) =>
-            isNilOrBlank(program?.label)
-              ? Promise.resolve()
-              : this.programRefService.loadByLabel(program.label, {
+          mergeMap((programLabel) =>
+            isNilOrBlank(programLabel)
+              ? Promise.resolve(null)
+              : this.programRefService.loadByLabel(programLabel, {
                   query: ProgramRefQueries.loadLight,
                   fetchPolicy: 'cache-first',
                 })
           )
         )
-        .subscribe((program) => programSubject.next(program || null))
     );
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');
-    const locations$ = programSubject.pipe(
+    this._state.connect('locations', this.program$.pipe(
       mergeMap((program) => {
-        if (!program) return Promise.resolve();
+        if (!program) return Promise.resolve(null);
         const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-        return this.referentialRefService.loadAll(0, 100, displayAttributes[0], 'asc', {
+        return this.referentialRefService.loadAll(0, 0, null, null, {
           entityName: 'Location',
           levelIds: locationLevelIds,
         });
       }),
-      map((res) => res && res.data),
-      tap((items) => {
-        if (isEmptyArray(items)) {
-          this.form.get('location').disable();
-        } else {
+      map((res) => res?.total || 0),
+      tap((locationCount) => {
+        if (locationCount > 0) {
           this.form.get('location').enable();
+        } else {
+          this.form.get('location').disable();
         }
       })
-    );
+    ));
     this.registerAutocompleteField('location', {
-      items: locations$,
+      suggestFn: (value, filter) => this.suggestLocation(value, filter),
       displayWith: (arg) => {
         if (Array.isArray(arg)) {
           return referentialsToString(arg, displayAttributes);
@@ -156,36 +176,26 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Strategies
     this.registerAutocompleteField('strategy', {
-      suggestFn: (value, filter) =>
-        this.strategyRefService.suggest(
-          value,
-          {
-            ...filter,
-            level: programSubject.value,
-          },
-          'label',
-          'desc',
-          { fetchPolicy: 'cache-first' }
-        ),
+      suggestFn: (value, filter) => this.suggestStrategy(value, filter),
       displayWith: (item) => item?.label || '',
       mobile: this.mobile,
+      showAllOnFocus: true
     });
-    this.registerSubscription(
-      programSubject
+    this._state.hold(
+      this.program$
         .pipe(
           mergeMap((program) => {
-            if (!program) return Promise.resolve();
+            if (!program) return Promise.resolve(null);
             return this.strategyRefService.loadAll(0, 0, null, null, { levelId: program.id });
           }),
           map((res) => (res && res.total) || 0)
-        )
-        .subscribe((strategiesCount) => {
+        ), (strategiesCount) => {
           if (strategiesCount > 1) {
             this.form.get('strategy').enable();
           } else {
             this.form.get('strategy').disable();
           }
-        })
+        }
     );
 
     // Enable/disable sub controls, from the 'enable history' checkbox
@@ -313,6 +323,42 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');
+  }
+
+  protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    if (isNilOrBlank(this.program?.label)) return undefined; // Program no loaded yet
+    filter = {
+      ...filter,
+      levelLabel: this.program.label
+    };
+
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
+
+    return this.strategyRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
+  }
+
+  protected async suggestLocation(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    if (!this.program) return // Program no loaded yet
+
+    const locationLevelIds = this.program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+
+
+    filter = {
+      ...filter,
+      entityName: 'Location',
+      levelIds: locationLevelIds
+    };
+
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
+
+    return this.referentialRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
   }
 
   protected markForCheck() {
