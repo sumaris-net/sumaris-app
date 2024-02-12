@@ -1,4 +1,4 @@
-import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
+import { changeCaseToUnderscore, underscoreToChangeCase } from '@sumaris-net/ngx-components';
 
 export const ProgramLabel = {
   SIH: 'SIH', // Used for vessel's filter
@@ -436,6 +436,13 @@ export const ProgramPrivilegeHierarchy = Object.freeze({
 export const ObjectTypeLabels = {
   TRIP: 'FISHING_TRIP',
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
+
+  // Referential
+  LOCATION: 'LOCATION',
+  TAXON_GROUP: 'TAXON_GROUP',
+  TAXON_NAME: 'TAXON_NAME',
+  GEAR: 'GEAR',
+  PMFM: 'PMFM',
 };
 
 export class ModelEnumUtils {
@@ -452,5 +459,11 @@ export class ModelEnumUtils {
     const value = ObjectTypeLabels[label];
     if (value) return value;
     throw new Error('Missing an ObjectType for entityName: ' + entityName);
+  }
+
+  static getEntityNameByObjectTypeLabel(objectTypeLabel: string): string {
+    if (!objectTypeLabel) throw new Error('Missing argument \'objectTypeLabel\'');
+    const enumKey = Object.entries(ObjectTypeLabels).find(([key, value]) => objectTypeLabel === value)?.[0] || objectTypeLabel;
+    return underscoreToChangeCase(enumKey);
   }
 }

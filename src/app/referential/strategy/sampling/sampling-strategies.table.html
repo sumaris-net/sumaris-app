@@ -1,10 +1,4 @@
 <mat-toolbar *ngIf="showToolbar">
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate : errorDetails"></ion-label>
-  </ion-item>
-
-  <span class="toolbar-spacer"></span>
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
@@ -48,21 +42,9 @@
 
   <!-- if row selection -->
   <ng-template #hasSelection>
-    <!-- duplicate -->
+    <!-- delete -->
     <button
       mat-icon-button
-      class="hidden-xs hidden-sm"
-      *rxIf="canEdit$"
-      [disabled]="disabled"
-      [title]="'COMMON.BTN_DUPLICATE' | translate"
-      (click)="openStrategyDuplicateYearSelectionModal($event, selection.selected)"
-    >
-      <mat-icon>library_add</mat-icon>
-    </button>
-
-    <button
-      mat-icon-button
-      color="light"
       *rxIf="canDelete$"
       [disabled]="disabled"
       [title]="'COMMON.BTN_DELETE' | translate"
@@ -70,7 +52,27 @@
     >
       <mat-icon>delete</mat-icon>
     </button>
+
+    <!-- duplicate -->
+    <button
+      mat-icon-button
+      class="hidden-xs hidden-sm"
+      *rxIf="canEdit$"
+      [disabled]="disabled"
+      [title]="'COMMON.BTN_DUPLICATE' | translate"
+      (click)="duplicate($event, selection.selected)"
+    >
+      <mat-icon>copy_content</mat-icon>
+    </button>
+
   </ng-template>
+
+  <span class="toolbar-spacer"></span>
+
+  <ion-item *ngIf="error && !mobile" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error | translate : errorDetails"></ion-label>
+  </ion-item>
 </mat-toolbar>
 
 <!-- search -->
@@ -253,7 +255,7 @@
 </mat-expansion-panel>
 
 <!-- error -->
-<ion-item *ngIf="showError && error" visible-xs visible-sm visible-mobile lines="none">
+<ion-item *ngIf="showError && error && mobile" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>

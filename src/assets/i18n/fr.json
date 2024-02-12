@@ -2237,7 +2237,8 @@
       "TAB_PMFM": "Protocole de collecte",
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
-      "TAXON_NAMES": "Espèce cible",
+      "TAXON_NAMES": "Espèces scientifiques",
+      "PMFMS": "Paramètres collectés",
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_OPEN_STRATEGY": "Ouvrir la stratégie",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
@@ -2357,6 +2358,9 @@
           "MATURITY": "Maturité",
           "OTHER": "Autre"
         }
+      },
+      "TRANSCRIBING_MODAL": {
+        "TITLE": "Correspondances à valider"
       },
       "SUMMARY": {
         "TITLE": "Stratégie",

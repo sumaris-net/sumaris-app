@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="showToolbar">
+<mat-toolbar *ngIf="showToolbar" >
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
     <button
@@ -39,12 +39,22 @@
   <ng-template #hasSelection>
     <button
       mat-icon-button
-      color="light"
       *ngIf="canDelete && enabled"
       [title]="'COMMON.BTN_DELETE' | translate"
       (click)="deleteSelection($event)"
     >
       <mat-icon>delete</mat-icon>
+    </button>
+
+    <!-- duplicate (if desktop) -->
+    <button
+      mat-icon-button
+      *ngIf="canDuplicate && enabled"
+      [disabled]="disabled || invalid || (loadingSubject | async) || (savingSubject | async)"
+      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
+      (click)="duplicate()"
+    >
+      <mat-icon>content_copy</mat-icon>
     </button>
 
     <!-- Download button -->

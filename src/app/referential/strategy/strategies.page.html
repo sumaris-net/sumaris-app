@@ -42,7 +42,7 @@
         class="hidden-xs hidden-sm"
         [title]="'COMMON.BTN_DUPLICATE' | translate"
         *ngIf="canEdit && samplingTable; let table"
-        (click)="table.openStrategyDuplicateYearSelectionModal($event, table.selection.selected)"
+        (click)="table.duplicate($event)"
       >
         <mat-icon>library_add</mat-icon>
       </button>

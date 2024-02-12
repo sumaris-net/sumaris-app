@@ -495,6 +495,18 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return data;
   }
 
+
+  async loadAllIds(filter?: Partial<ReferentialRefFilter>,
+                opts?: {
+                  [key: string]: any;
+                  fetchPolicy?: FetchPolicy;
+                }): Promise<number[]> {
+    const { data } = await JobUtils.fetchAllPages((offset, size) =>
+      this.loadAll(offset, size, 'id', 'asc', filter, { ...opts, toEntity: false, withTotal: offset === 0 })
+    );
+    return (data || []).map(e => e.id);
+  }
+
   async suggest(value: any, filter?: Partial<ReferentialRefFilter>,
                 sortBy?: keyof Referential | 'rankOrder',
                 sortDirection?: SortDirection,

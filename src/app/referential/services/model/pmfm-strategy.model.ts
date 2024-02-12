@@ -15,7 +15,7 @@ import {
 import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
 import { MethodIds, UnitIds } from './model.enum';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { AppReferentialUtils, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { arrayEquals } from '@app/shared/functions';
 import { StrategyAsObjectOptions } from '@app/referential/services/model/strategy.model';
 
@@ -112,37 +112,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
     // CLean remote id
     if (opts && opts.keepRemoteId === false) {
-      delete target.id;
-      delete target.updateDate;
+      AppReferentialUtils.cleanIdAndDates(target, true, ['pmfm', 'parameter', 'matrix', 'fraction', 'method', 'defaultValue']);
       delete target.strategyId;
       delete target.pmfmId;
-      if (EntityUtils.isRemote(target.pmfm)) {
-        delete target.pmfm.id;
-        delete target.pmfm.updateDate;
-        delete target.pmfm.creationDate;
-        target.pmfm.qualitativeValues?.filter(EntityUtils.isRemote).forEach((qv) => {
-          delete qv.id;
-          delete qv.updateDate;
-          delete qv.creationDate;
-        });
-        if (EntityUtils.isRemote(target.pmfm.parameter)) {
-          delete target.pmfm.parameter.id;
-          delete target.pmfm.parameter.updateDate;
-          delete target.pmfm.parameter.creationDate;
-          target.pmfm.parameter.qualitativeValues?.filter(EntityUtils.isRemote).forEach((qv) => {
-            delete qv.id;
-            delete qv.updateDate;
-            delete qv.creationDate;
-          });
-        }
-      }
-      if (EntityUtils.isRemote(target.parameter)) delete target.parameter.id;
-      if (EntityUtils.isRemote(target.matrix)) delete target.matrix.id;
-      if (EntityUtils.isRemote(target.fraction)) delete target.fraction.id;
-      if (EntityUtils.isRemote(target.method)) delete target.method.id;
-      if (EntityUtils.isRemote(target.defaultValue)) delete target.defaultValue.id;
-      // Warn: do not replace gearIds, taxonGroupIds, referenceTaxonIds
-      // to avoid losing some data. Should be done by caller
     }
 
     return target;

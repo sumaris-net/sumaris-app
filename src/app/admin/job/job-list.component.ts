@@ -257,7 +257,7 @@ export class JobListComponent implements OnInit, OnDestroy {
       attributes: ['label', 'name'],
       items: this.state.select('availableTypes'),
       showAllOnFocus: true,
-      displayWith: (obj) => obj.label
+      displayWith: (obj) => obj?.label || ''
     });
 
     // Status combo
@@ -279,7 +279,7 @@ export class JobListComponent implements OnInit, OnDestroy {
       attributes: ['name'],
       items: $status,
       showAllOnFocus: true,
-      displayWith: (obj) => obj.name
+      displayWith: (obj) => obj?.name || ''
     });
 
   }

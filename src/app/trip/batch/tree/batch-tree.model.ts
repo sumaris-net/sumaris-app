@@ -516,7 +516,7 @@ export class BatchModelUtils {
     allowDiscard?: boolean;
     rules?: Rule[];
   }): BatchModel {
-    if (isEmptyArray(opts?.sortingPmfms)) throw new Error('Missing required argument \'opts.sortingPmfms\'');
+    if (!opts?.sortingPmfms) throw new Error('Missing required argument \'opts.sortingPmfms\'');
 
     // Create a batch model
     const model = BatchModel.fromBatch(data, opts.sortingPmfms, opts.rules);

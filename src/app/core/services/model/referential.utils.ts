@@ -1,4 +1,4 @@
-import {Entity, EntityUtils, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialAsObjectOptions} from '@sumaris-net/ngx-components';
+import { EntityUtils, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialAsObjectOptions } from '@sumaris-net/ngx-components';
 
 export const NOT_MINIFY_OPTIONS: ReferentialAsObjectOptions = { minify: false };
 export const MINIFY_OPTIONS: ReferentialAsObjectOptions = { minify: true };
@@ -25,8 +25,10 @@ export class AppReferentialUtils {
    *
    * @param source
    * @param recursive
+   * @param excludedKeys
+   * @param path
    */
-  static cleanIdAndDates<T extends IEntity<T>>(source: T, recursive?: boolean, excludedKeys?: string[], path='') {
+  static cleanIdAndDates<T extends IEntity<T>>(source: T, recursive?: boolean, excludedKeys?: string[], path= '') {
     if (!source || isNil(source['__typename'])) return; // Skip
 
     // DEBUG
@@ -51,7 +53,7 @@ export class AppReferentialUtils {
             // Recursive call
             v.forEach((value, index) => this.cleanIdAndDates(value as IEntity<any>, recursive, excludedKeys, pathPrefix + k + `[${index}]`));
           }
-          else {
+          else if (typeof v === 'object') {
             this.cleanIdAndDates(v as IEntity<any>, recursive, excludedKeys, pathPrefix + k);
           }
         });

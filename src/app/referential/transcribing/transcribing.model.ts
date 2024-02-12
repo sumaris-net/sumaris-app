@@ -1,6 +1,7 @@
 import {
   BaseReferential,
   EntityClass,
+  EntityUtils,
   FilterFn,
   isNotNil,
   isNotNilOrBlank,
@@ -52,8 +53,8 @@ export class TranscribingItem extends BaseReferential<TranscribingItem> {
 
   static ENTITY_NAME = 'TranscribingItem';
   static fromObject: (source: any, opts?: any) => TranscribingItem;
-  static equals(o1, o2): boolean {
-    return o1 && o2 && o1.id === o2.id
+  static equals(o1: any, o2: any): boolean {
+    return EntityUtils.equals(o1, o2)
       // Or
       || (
         // Same label
