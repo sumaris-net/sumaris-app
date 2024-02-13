@@ -31,6 +31,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     return PhysicalGearFilter.fromObject({
       program: f.program,
       vesselId: f.vesselId,
+      vesselIds: f.vesselIds,
       startDate: f.startDate,
       endDate: f.endDate,
     });

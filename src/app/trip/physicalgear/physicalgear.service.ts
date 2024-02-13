@@ -221,7 +221,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
 
-    const withTrip = dataFilter && dataFilter.vesselId && isNil(dataFilter.tripId);
+    const withTrip = (isNotNil(dataFilter?.vesselId) || isNotEmptyArray(dataFilter.vesselIds)) && isNil(dataFilter.tripId);
     const query = opts?.query || (withTrip ? Queries.loadAllWithTrip : Queries.loadAll);
     return this.graphql.watchQuery<LoadResult<any>>({
       query,
@@ -310,6 +310,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     const tripFilter = TripFilter.fromObject(dataFilter && <Partial<TripFilter>>{
       id: dataFilter.tripId,
       vesselId: dataFilter.vesselId,
+      vesselIds: dataFilter.vesselIds,
       startDate: dataFilter.startDate,
       endDate: dataFilter.endDate,
       program: dataFilter.program,
