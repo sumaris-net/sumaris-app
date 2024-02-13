@@ -10,6 +10,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   ConfigService,
   Configuration,
+  DateUtils,
   Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
@@ -942,9 +943,10 @@ export class ProgramRefService
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-      const strategyFilter = isNotEmptyArray(filter.strategyIds) ? StrategyFilter.fromObject({includedIds: filter.strategyIds})
-        // By default, all strategies of imported programs
-        : null;
+      const strategyFilter = StrategyFilter.fromObject({
+          includedIds: filter.strategyIds,
+          startDate: DateUtils.moment().startOf('day') // Active strategies
+      });
 
       // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
       if (strategyFilter) {

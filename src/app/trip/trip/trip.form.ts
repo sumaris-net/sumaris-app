@@ -334,7 +334,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       // Make sure to have (at least) one observer
       data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      data.observers = [];
+      data.observers = [null];
     }
 
     // Make sure to have (at least) one metier

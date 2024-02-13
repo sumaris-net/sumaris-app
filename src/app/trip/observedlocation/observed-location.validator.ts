@@ -77,13 +77,16 @@ export class ObservedLocationValidatorService
 
   updateFormGroup(form: UntypedFormGroup, opts?: ObservedLocationValidatorOptions) {
     opts = this.fillDefaultOptions(opts);
+    const enabled = form.enabled;
 
     // Update the start date validator
     form.get('startDateTime').setValidators(this.createStartDateValidator(opts));
 
     // Observers
     if (opts?.withObservers) {
-      if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray(null, {required: true}));
+      if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray([null], {required: true}));
+      if (enabled) form.controls.observers.enable()
+      else form.controls.observers.disable();
     }
     else {
       if (form.controls.observers) form.removeControl('observers');

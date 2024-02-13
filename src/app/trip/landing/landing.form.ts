@@ -472,7 +472,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       // Make sure to have (at least) one observer
       data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      data.observers = [];
+      data.observers = [null];
     }
 
     // Trip

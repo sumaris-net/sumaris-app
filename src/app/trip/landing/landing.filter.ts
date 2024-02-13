@@ -63,8 +63,8 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    if (opts && opts.minify) {
-      // Vessel
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
       target.vesselId = isNotNil(this.vesselId)
         ? this.vesselId
         : isNotNil(this.vesselSnapshot?.id)
@@ -72,9 +72,9 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
         : this.vesselIds?.length === 1
         ? this.vesselIds[0]
         : undefined;
-      delete target.vesselSnapshot;
       target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
       if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
+      delete target.vesselSnapshot;
 
       // Location
       target.locationId = (this.location && this.location.id) || undefined;

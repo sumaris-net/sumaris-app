@@ -1,5 +1,6 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import {
+  DateUtils,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
@@ -86,8 +87,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    if (opts && opts.minify) {
-      // Vessel
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
       target.vesselId = isNotNil(this.vesselId)
         ? this.vesselId
         : isNotNil(this.vesselSnapshot?.id)
@@ -95,9 +96,9 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
         : this.vesselIds?.length === 1
         ? this.vesselIds[0]
         : undefined;
-      delete target.vesselSnapshot;
       target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
       if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
+      delete target.vesselSnapshot;
 
       // Location
       target.locationId = (this.location && this.location.id) || undefined;
@@ -187,15 +188,22 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
 export class TripSynchroImportFilter extends DataSynchroImportFilter {
 
+  static toTripFilter(source: TripSynchroImportFilter): TripFilter {
+    if (!source) return undefined;
 
-  static toTripFilter(f: TripSynchroImportFilter): TripFilter {
-    if (!f) return undefined;
-    return TripFilter.fromObject({
-      program: {label: f.programLabel},
-      vesselId: f.vesselId,
-      startDate: f.startDate,
-      endDate: f.endDate
+    const target = TripFilter.fromObject({
+      program: {label: source.programLabel},
+      vesselId: source.vesselId,
+      vesselIds: source.vesselIds,
+      startDate: source.startDate,
+      endDate: source.endDate
     });
+    // Transform duration into start/end period
+    if (!target.startDate && !target.endDate && source.periodDuration > 0 && source.periodDurationUnit) {
+      target.startDate = DateUtils.moment().startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
+    }
+
+    return target;
   }
 
 }

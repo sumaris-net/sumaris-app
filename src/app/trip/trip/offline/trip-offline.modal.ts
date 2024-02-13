@@ -2,7 +2,16 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, DateUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  AppFormUtils,
+  DateUtils,
+  isNotEmptyArray,
+  isNotNilOrNaN,
+  SharedValidators,
+  slideUpDownAnimation,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -11,6 +20,8 @@ import { TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { mergeMap } from 'rxjs/operators';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export interface TripOfflineModalOptions {
@@ -28,8 +39,8 @@ export interface TripOfflineModalOptions {
 })
 export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions{
 
-  mobile: boolean;
-  periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+  protected mobile: boolean;
+  protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
 
@@ -49,6 +60,10 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     return this.constructor.name;
   }
 
+  get enableHistory(): boolean {
+    return this.form.get('enableHistory').value;
+  }
+
   constructor(
     injector: Injector,
     protected viewCtrl: ModalController,
@@ -63,6 +78,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
+        enableHistory: [true, Validators.required],
         periodDuration: ['15 day', Validators.required],
       }));
     this._enable = false; // Disable by default
@@ -70,13 +86,13 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
+    this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
       const date = DateUtils.moment().utc(false)
         .add(-1 * v.value, v.unit); // Subtract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
         label: `${date.fromNow(true/*no suffix*/)} (${date.format(datePattern)})`,
-        startDate: date.startOf('day') // Reset time
+        startDate: date.startOf('day'), // Reset time
       };
     });
   }
@@ -91,8 +107,26 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
+
+    // Enable/disable sub controls, from the 'enable history' checkbox
+    const subControls = [this.form.get('periodDuration')];
+    this.form.get('enableHistory').valueChanges
+      .pipe(mergeMap((enable) => this.waitIdle({stop: this.destroySubject}).then(() => enable)))
+      .subscribe((enable) => {
+        if (enable) {
+          subControls.forEach((control) => {
+            control.enable();
+            control.setValidators(Validators.required);
+          });
+        } else {
+          subControls.forEach((control) => {
+            control.disable();
+            control.setValidators(null);
+          });
+        }
+      });
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
@@ -105,6 +139,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const json = {
       program: null,
       vesselSnapshot: null,
+      enableHistory: true,
       periodDuration: null
     };
 
@@ -122,9 +157,22 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       }
     }
 
-    if (value.vesselId) {
+    // Duration period
+    if (value.periodDuration > 0 && value.periodDurationUnit) {
+      json.enableHistory = true;
+      json.periodDuration = `${value.periodDuration} ${value.periodDurationUnit}`;
+    }
+    else {
+      json.enableHistory = false;
+    }
+
+    // Vessels
+    const vesselIds = isNotNilOrNaN(value.vesselId) ? [value.vesselId] : value.vesselIds;
+    if (isNotEmptyArray(vesselIds)) {
       try {
-        json.vesselSnapshot = await this.vesselSnapshotService.load(value.vesselId);
+        json.vesselSnapshot = (await this.vesselSnapshotService.loadAll(0, vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
+          includedIds: vesselIds
+        }))?.data;
       }
       catch (err) {
         console.error(err);
@@ -135,14 +183,10 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       }
     }
 
-    // Duration period
-    if (value.periodDuration && value.periodDurationUnit) {
-      json.periodDuration = `${value.periodDuration} ${value.periodDurationUnit}`;
-    }
-
-    this.form.patchValue(json);
 
     this.enable();
+
+    this.form.patchValue(json);
     this.markAsLoaded();
   }
 
@@ -150,18 +194,16 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const json = this.form.value;
 
     // DEBUG
-    console.debug('[trip-offline] Modal form.value:', json);
+    //console.debug('[trip-offline] Modal form.value:', json);
 
     const value = new TripSynchroImportFilter();
 
     // Set program
     value.programLabel = json.program && json.program.label || json.program;
 
-    value.vesselId = json.vesselSnapshot && json.vesselSnapshot.id || json.vesselSnapshot;
-
     // Set start date
-    if (json.periodDuration) {
-      const periodDuration = this.periodDurationLabels.find(item => item.key === json.periodDuration);
+    if (json.enableHistory && json.periodDuration) {
+      const periodDuration = this.periodDurationLabels.find((item) => item.key === json.periodDuration);
       value.startDate = periodDuration && periodDuration.startDate;
 
       // Keep value of periodDuration (to be able to save it in local settings)
@@ -169,6 +211,15 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       value.periodDuration = +parts[0];
       value.periodDurationUnit = parts[1] as DurationConstructor;
     }
+    else {
+      value.periodDuration = -1; // None
+    }
+
+    // Vessels
+    value.vesselIds = isNotEmptyArray(json.vesselSnapshot) ? json.vesselSnapshot.map((v) => v.id) : undefined;
+
+    // DEBUG
+    console.debug("[trip-offline] Modal result value:", value);
 
     return value;
   }
@@ -183,11 +234,13 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     this.markAllAsTouched();
 
-    await AppFormUtils.waitWhilePending(this.form);
+    if (!this.form.valid) {
+      await AppFormUtils.waitWhilePending(this.form);
 
-    if (this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form, '[offline-import-config] ');
-      return; // stop
+      if (this.form.invalid) {
+        AppFormUtils.logFormErrors(this.form, '[offline-import-config] ');
+        return; // stop
+      }
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');

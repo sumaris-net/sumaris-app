@@ -69,7 +69,7 @@ import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter } from './trip.filter';
+import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { Packet } from '@app/trip/packet/packet.model';
@@ -1809,13 +1809,18 @@ export class TripService
     countryIds?: number[];
     referentialEntityNames?: string[];
     acquisitionLevels?: string[];
+    vesselIds?: number[];
     [key: string]: any;
   }): Observable<number>[] {
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const synchroFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
+    filter = filter || TripSynchroImportFilter.toTripFilter(synchroFilter);
     filter = this.asFilter(filter);
 
     let programLabel = filter?.program?.label;
+    const vesselIds = filter?.vesselIds || opts?.vesselIds;
+    const operationFilter = TripFilter.toOperationFilter({...filter, vesselIds});
+    const gearFilter = TripFilter.toPhysicalGearFilter({...filter, vesselIds});
 
     return [
       // Store program to opts, for other services (e.g. used by OperationService)
@@ -1878,30 +1883,28 @@ export class TripService
               ...program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS)
             ]);
           }
-          if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
+          if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[trip-service] [import] Locations, having level ids: ' + opts.locationLevelIds.join(','));
 
           // Bounding box
           opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
           if (Geometries.isNotNilBBox(opts.boundingBox)) console.debug('[trip-service] [import] Bounding box: ' + opts.boundingBox.join(','));
-
         }
+
+        // Vessels
+        opts.vesselIds = vesselIds
       }),
 
       ...super.getImportJobs(filter, opts),
 
-      // Import pending operations
-      JobUtils.defer(o => {
-        const operationFilter = TripFilter.toOperationFilter(filter);
-        if (isNil(operationFilter?.vesselId) && isEmptyArray(operationFilter?.vesselIds)) return Promise.resolve(); // Skip if no vessel
-        return this.operationService.executeImport(operationFilter, o);
-      }, opts),
+      // Historical data (if enable)
+      ...(operationFilter.startDate && gearFilter.startDate && isNotEmptyArray(vesselIds) && [
 
-      // Import physical gears
-      JobUtils.defer(o => {
-        const gearFilter = TripFilter.toPhysicalGearFilter(filter);
-        if (isNil(gearFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
-        return this.physicalGearService.executeImport(gearFilter, o);
-      }, opts)
+        // Import pending operations
+        JobUtils.defer(o => this.operationService.executeImport(operationFilter, o), opts),
+
+        // Import physical gears
+        JobUtils.defer(o => this.physicalGearService.executeImport(gearFilter, o), opts)
+      ] || [])
     ];
   }
 

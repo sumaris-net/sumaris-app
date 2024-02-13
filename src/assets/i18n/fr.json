@@ -2077,7 +2077,8 @@
       "PERSON": "Utilisateur",
       "DEPARTMENT": "Service",
       "LOCATION": "Lieu/Zone",
-      "PRIVILEGE": "Privilège"
+      "PRIVILEGE": "Privilège",
+      "REFERENCE_PERSON": "Utilisateur supervisé"
     },
     "SAMPLING": {
       "TAB_STRATEGIES": "Lignes de plan"

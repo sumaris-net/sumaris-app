@@ -10,6 +10,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   LoadResult,
   NetworkService,
   ReferentialRef,
@@ -17,7 +18,6 @@ import {
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -26,7 +26,6 @@ import { map, mergeMap, tap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
@@ -34,6 +33,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export interface IObservedLocationOfflineModalState {
@@ -77,6 +77,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return this.constructor.name;
   }
 
+  get enableHistory(): boolean {
+    return this.form.get('enableHistory').value;
+  }
+
   @RxStateProperty() program: Program;
 
   constructor(
@@ -95,10 +99,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         strategy: [null, Validators.required],
+        vesselSnapshot: [null],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
         periodDuration: ['15 day', Validators.required],
-        vesselSnapshot: [null],
       })
     );
     this._enable = false; // Disable by default
@@ -109,7 +113,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
       const date = DateUtils.moment()
         .utc(false)
-        .add(-1 * v.value, v.unit); // Substract the period, from now
+        .add(-1 * v.value, v.unit); // Subtract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
         label: `${date.fromNow(true /*no suffix*/)} (${date.format(datePattern)})`,
@@ -124,10 +128,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     // Program
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
     });
 
@@ -160,7 +161,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         });
       }),
       tap((locationCount) => {
-        if (locationCount > 0) {
+        if (locationCount > 0 && this.enableHistory) {
           this.form.get('location').enable();
         } else {
           this.form.get('location').disable();
@@ -204,7 +205,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Enable/disable sub controls, from the 'enable history' checkbox
     const subControls = [this.form.get('location'), this.form.get('periodDuration')];
-    this.form.get('enableHistory').valueChanges.subscribe((enable) => {
+    this.form.get('enableHistory').valueChanges
+      .pipe(mergeMap((enable) => this.waitIdle({stop: this.destroySubject}).then(() => enable)))
+      .subscribe((enable) => {
       if (enable) {
         subControls.forEach((control) => {
           control.enable();
@@ -229,14 +232,24 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const json = {
       program: null,
       strategy: null,
+      vesselSnapshot: null,
+      enableHistory: true,
       location: null,
       periodDuration: null,
-      vesselSnapshot: null,
     };
 
     // Program
     if (value.programLabel) {
-      json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
+      try {
+        json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
+      }
+      catch (err) {
+          console.error(err);
+          json.program = null;
+          if (err && err.message) {
+            this.setError(err.message);
+          }
+        }
     }
 
     // Strategy
@@ -255,15 +268,20 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // Duration period
-    if (value.periodDuration && value.periodDurationUnit) {
+    if (value.periodDuration > 0 && value.periodDurationUnit) {
+      json.enableHistory = true;
       json.periodDuration = `${value.periodDuration} ${value.periodDurationUnit}`;
+    }
+    else {
+      json.enableHistory = false;
     }
 
     // Vessels
-    if (isNotEmptyArray(value.vesselIds)) {
+    const vesselIds = isNotNilOrNaN(value.vesselId) ? [value.vesselId] : value.vesselIds;
+    if (isNotEmptyArray(vesselIds)) {
       try {
-        json.vesselSnapshot = (await this.vesselSnapshotService.loadAll(0, value.vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
-          includedIds: value.vesselIds
+        json.vesselSnapshot = (await this.vesselSnapshotService.loadAll(0, vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
+          includedIds: vesselIds
         }))?.data;
       }
       catch (err) {
@@ -324,6 +342,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       value.periodDuration = +parts[0];
       value.periodDurationUnit = parts[1] as DurationConstructor;
     }
+    else {
+      value.periodDuration = -1; // None
+    }
 
     // Vessels
     value.vesselIds = isNotEmptyArray(json.vesselSnapshot) ? json.vesselSnapshot.map((v) => v.id) : undefined;
@@ -339,7 +360,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   }
 
   async validate(event?: Event) {
-    this.form.markAllAsTouched();
+
+    this.errorSubject.next(null);
+
+    this.markAllAsTouched();
 
     if (!this.form.valid) {
       await AppFormUtils.waitWhilePending(this.form);

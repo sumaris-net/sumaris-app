@@ -8,6 +8,12 @@
 ></app-modal-toolbar>
 
 <ion-content class="ion-padding">
+  <!-- error -->
+  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
   <form class="form-container" [formGroup]="form">
     <ion-grid class="ion-no-padding">
       <ion-row>

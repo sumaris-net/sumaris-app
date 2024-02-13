@@ -25,7 +25,7 @@ import {
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
@@ -292,10 +292,7 @@ export class LandingsPage extends AppRootDataTable<
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile
     });
 

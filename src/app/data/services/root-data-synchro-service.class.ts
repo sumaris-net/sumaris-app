@@ -53,7 +53,7 @@ export class DataSynchroImportFilter {
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
 
-  fromObject(source: any, opts?: { minify?: boolean }) {
+  fromObject(source: any, opts?: any) {
     this.programLabel = source.programLabel;
     this.strategyIds = source.strategyIds;
     this.vesselId = source.vesselId;

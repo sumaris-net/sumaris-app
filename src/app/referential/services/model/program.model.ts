@@ -161,12 +161,14 @@ export class ProgramPerson extends Entity<ProgramPerson> {
       && ReferentialUtils.equals(o1.person, o2.person)
       && ReferentialUtils.equals(o1.privilege, o2.privilege)
       && ReferentialUtils.equals(o1.location, o2.location)
+      && ReferentialUtils.equals(o1.referencePerson, o2.referencePerson)
     );
 
   programId: number;
   location: ReferentialRef;
   privilege: ReferentialRef;
   person: Person;
+  referencePerson: Person;
 
   constructor() {
     super(ProgramPerson.TYPENAME);
@@ -177,6 +179,7 @@ export class ProgramPerson extends Entity<ProgramPerson> {
     target.location = this.location && this.location.asObject(opts) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.person = this.person && this.person.asObject(opts);
+    target.referencePerson = this.referencePerson && this.referencePerson.asObject(opts);
     return target;
   }
 
@@ -186,6 +189,7 @@ export class ProgramPerson extends Entity<ProgramPerson> {
     this.location = source.location && ReferentialRef.fromObject(source.location);
     this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
     this.person = source.person && Person.fromObject(source.person);
+    this.referencePerson = source.referencePerson && Person.fromObject(source.referencePerson);
   }
 
   equals(other: ProgramPerson): boolean {

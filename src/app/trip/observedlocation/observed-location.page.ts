@@ -476,6 +476,9 @@ export class ObservedLocationPage
         this.showLandingTab = true;
       }
 
+      // If new data: update trip form (need to update validator, with showObservers)
+      if (this.isNewData) this.observedLocationForm.updateFormGroup();
+
       this.addChildForm(() => table);
       this.markAsReady();
 

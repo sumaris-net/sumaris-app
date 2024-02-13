@@ -108,10 +108,13 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
   updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
-    
+    const enabled = form.enabled;
+
     // Observers
     if (opts?.withObservers) {
       if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray(null, {required: true}));
+      if (enabled) form.controls.observers.enable()
+      else form.controls.observers.disable();
     }
     else {
       if (form.controls.observers) form.removeControl('observers');

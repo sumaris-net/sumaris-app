@@ -7,6 +7,7 @@ import {
   EntityClass,
   FilterFn,
   fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -25,6 +26,7 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
     return TripFilter.fromObject({
       programLabel: f.program?.label,
       vesselId: toNumber(f.vesselId, f.vesselSnapshot?.id),
+      vesselIds: f.vesselIds,
       startDate: f.startDate,
       endDate: f.endDate,
       boundingBox: f.boundingBox,
@@ -43,6 +45,7 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
   }
 
   vesselId: number = null;
+  vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
   startDate: Moment = null;
   endDate: Moment = null;
@@ -58,6 +61,7 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
@@ -69,9 +73,17 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    if (opts && opts.minify) {
-      // Vessel
-      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
+      target.vesselId = isNotNil(this.vesselId)
+        ? this.vesselId
+        : isNotNil(this.vesselSnapshot?.id)
+        ? this.vesselSnapshot.id
+        : this.vesselIds?.length === 1
+        ? this.vesselIds[0]
+        : undefined;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
       delete target.vesselSnapshot;
     } else {
       target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;

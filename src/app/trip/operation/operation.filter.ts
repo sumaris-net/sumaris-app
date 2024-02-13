@@ -69,9 +69,9 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
-    if (opts && opts.minify) {
-      // Vessel
-      target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselIds?.length === 1 ? this.vesselIds[0] : undefined;
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
+      target.vesselId = isNotNilOrNaN(this.vesselId) ? this.vesselId : this.vesselIds?.length === 1 ? this.vesselIds[0] : undefined;
       target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
       if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
 

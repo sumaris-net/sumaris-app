@@ -5,6 +5,7 @@ import {
   arrayDistinct,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityUtils,
@@ -29,10 +30,9 @@ import { environment } from '@environments/environment';
 import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, throttleTime } from 'rxjs/operators';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import {  ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import moment from 'moment';
 import { TripFilter } from '@app/trip/trip/trip.filter';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { mergeLoadResult } from '@app/shared/functions';
@@ -49,7 +49,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { PhysicalGearFragments } from "@app/trip/common/data.fragments";
+import { PhysicalGearFragments } from '@app/trip/common/data.fragments';
 
 const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
   loadAll: gql`
@@ -265,7 +265,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
 
-    if (!dataFilter || (isNil(dataFilter.parentGearId) && isNil(dataFilter.vesselId))) {
+    if (!dataFilter || (isNil(dataFilter.parentGearId) && isNil(dataFilter.vesselId) && isEmptyArray(dataFilter.vesselIds))) {
       console.warn('[physical-gear-service] Missing physical gears filter. Expected at least \'vesselId\' or \'parentGearId\'. Skipping.');
       return EMPTY;
     }
@@ -576,7 +576,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
 
     const maxProgression = opts && opts.maxProgression || 100;
     filter = {
-      startDate: moment().add(-1, 'month'), // Can be overwritten by given filter
+      startDate: DateUtils.moment().add(-1, 'month'), // Can be overwritten by given filter
       ...filter
     };
 

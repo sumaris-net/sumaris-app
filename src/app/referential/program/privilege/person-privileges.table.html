@@ -159,6 +159,25 @@
       </td>
     </ng-container>
 
+
+    <!-- Reference Person  -->
+    <ng-container matColumnDef="referencePerson">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PROGRAM.PRIVILEGES.REFERENCE_PERSON</span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-autocomplete-field
+          [formControl]="row.validator.controls.referencePerson"
+          [placeholder]="'PROGRAM.PRIVILEGES.REFERENCE_PERSON' | translate"
+          [autofocus]="row.id === -1 && row.editing"
+          [config]="autocompleteFields.person"
+          [i18nPrefix]="'USER.'"
+          floatLabel="never"
+          required
+        ></mat-autocomplete-field>
+      </td>
+    </ng-container>
+
     <!-- Actions buttons column -->
     <app-actions-column
       [stickyEnd]="useSticky"
@@ -169,7 +188,7 @@
       [canCancel]="false"
     ></app-actions-column>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row
       *matRowDef="let row; columns: displayedColumns"
       [class.mat-row-error]="row.validator.invalid"

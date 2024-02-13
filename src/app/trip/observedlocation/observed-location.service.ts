@@ -20,6 +20,7 @@ import {
   IEntityService,
   isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -56,11 +57,11 @@ import { Landing } from '../landing/landing.model';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from './observed-location.validator';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { LandingFilter } from '../landing/landing.filter';
-import { ObservedLocationFilter } from './observed-location.filter';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from './observed-location.filter';
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { TripFragments } from '@app/trip/trip/trip.service';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -1110,6 +1111,7 @@ export class ObservedLocationService
    * List of importation jobs.
    *
    * @protected
+   * @param filter
    * @param opts
    */
   protected getImportJobs(filter: Partial<ObservedLocationFilter>, opts: {
@@ -1120,18 +1122,36 @@ export class ObservedLocationService
     vesselIds?: number[];
   }): Observable<number>[] {
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const synchroFilter = this.settings.getOfflineFeature<ObservedLocationOfflineFilter>(this.featureName)?.filter;
+    filter = filter || ObservedLocationOfflineFilter.toObservedLocationFilter(synchroFilter);
     filter = this.asFilter(filter);
 
-    const programLabel = filter && filter.program?.label;
+    let programLabel = filter && filter.program?.label;
     const vesselIds = filter?.vesselIds || opts?.vesselIds;
-    const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
+    const landingFilter = ObservedLocationFilter.toLandingFilter({...filter, vesselIds});
 
     if (programLabel) {
       return [
         // Store program to opts, for other services (e.g. used by OperationService)
-        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
-          .then(program => {
+        JobUtils.defer(async (o) => {
+          // No program: Try to find one (and only one) for this user
+          if (isNilOrBlank(programLabel)) {
+            console.warn(`${this._logPrefix}[import] Trying to find a unique program to configure the import...`);
+            const {
+              data: programs,
+              total: programCount
+            } = await this.programRefService.loadAll(0, 1, null, null,
+              OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, { fetchPolicy: 'no-cache', withTotal: true });
+            if (programCount === 1) {
+              programLabel = programs[0]?.label;
+            } else {
+              console.warn(`${this._logPrefix}[import] No unique program found, but found ${programCount} program(s)`);
+            }
+          }
+          // Fill options using program
+          if (programLabel) {
+            console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
+            const program = await this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' });
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
@@ -1144,21 +1164,26 @@ export class ObservedLocationService
               opts.locationLevelIds = removeDuplicatesFromArray([
                 ...program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS),
                 ...(landingEditor === 'trip'
-                  ? program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS)
-                  : program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS)
+                    ? program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS)
+                    : program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS)
                 )
               ]);
             }
-            if (isNotEmptyArray(opts.locationLevelIds)) console.debug(this._logPrefix + '[import] Location - level ids: ' + opts.locationLevelIds.join(','));
+            if (isNotEmptyArray(opts.locationLevelIds)) console.debug(this._logPrefix + '[import] Locations, having level ids: ' + opts.locationLevelIds.join(','))
+          }
 
-            // Vessel
-            opts.vesselIds = vesselIds
-          })),
+          // Vessels
+          opts.vesselIds = vesselIds
+        }),
 
         ...super.getImportJobs(filter, opts),
 
-        // Landing (historical data)
-        JobUtils.defer(o => this.landingService.executeImport(landingFilter, o), opts)
+        // Historical data (if enable)
+        ...(landingFilter.startDate && isNotEmptyArray(vesselIds) && [
+
+          // Landings
+          JobUtils.defer(o => this.landingService.executeImport(landingFilter, o), opts)
+        ] || [])
       ];
     } else {
       return super.getImportJobs(null, opts);

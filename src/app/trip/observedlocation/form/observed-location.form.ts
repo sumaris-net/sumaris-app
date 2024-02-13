@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   AppFormArray,
   DateUtils,
@@ -31,8 +31,13 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { DateFilterFn } from '@angular/material/datepicker';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
 
-export interface ObservedLocationFormState extends MeasurementsFormState {}
+export interface ObservedLocationFormState extends MeasurementsFormState {
+  showObservers: boolean;
+}
 
 @Component({
   selector: 'app-form-observed-location',
@@ -43,10 +48,11 @@ export interface ObservedLocationFormState extends MeasurementsFormState {}
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
 
-  private _showObservers: boolean;
+
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
 
+  @RxStateSelect() protected showObservers$: Observable<boolean>;
   protected observerFocusIndex = -1;
   protected startDatePickerFilter: DateFilterFn<Moment>;
   protected isStartDateInTheFuture: boolean;
@@ -65,16 +71,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() timezone: string = null;
   @Input() mobile = false;
 
-  @Input()
-  set showObservers(value: boolean) {
-    if (this._showObservers !== value) {
-      this._showObservers = value;
-      if (!this.loading) this.updateFormGroup();
-    }
-  }
-  get showObservers(): boolean {
-    return this._showObservers;
-  }
+  @RxStateProperty() @Input() showObservers: boolean;
 
   get empty(): any {
     const value = this.value;
@@ -98,7 +95,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+      onUpdateFormGroup: (form) => this.updateFormGroup()
+    });
     this._enable = false;
 
     // Set default acquisition level
@@ -112,17 +111,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
+    this.showObservers = toBoolean(this.showObservers, false);
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
@@ -198,6 +194,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           this.markForCheck();
         })
     );
+
+    this._state.hold(this.showObservers$.pipe(filter(() => this.loaded)), () => this.updateFormGroup());
   }
 
   protected onApplyingEntity(data: ObservedLocation, opts?: { [p: string]: any }) {
@@ -207,10 +205,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Make sure to have (at least) one observer
     // Resize observers array
-    if (this._showObservers) {
+    if (this.showObservers) {
       data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      data.observers = [];
+      data.observers = [null];
     }
 
     // Force to show end date
@@ -267,7 +265,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     });
   }
 
-  updateFormGroup() {
+  updateFormGroup(form?: FormGroup) {
+    form = form || this.form;
     const validatorOpts: ObservedLocationValidatorOptions = {
       withObservers: this.showObservers
     };
@@ -275,7 +274,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
       console.info('[trip-form] Updating form group, using opts', validatorOpts);
 
-      this.validatorService.updateFormGroup(this.form, validatorOpts);
+      this.validatorService.updateFormGroup(form, validatorOpts);
 
       // Need to refresh the form state  (otherwise the returnLocation is still invalid)
       if (!this.loading) {
@@ -283,7 +282,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         // Not need to markForCheck (should be done inside updateValueAndValidity())
         //this.markForCheck();
       } else {
-        // Need to toggle return date time to required
+        // Need to toggle date or observers
         this.markForCheck();
       }
 

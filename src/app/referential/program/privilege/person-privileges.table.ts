@@ -47,7 +47,14 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, ProgramPerson, ProgramPersonFilter, ['person', 'department', 'privilege', 'location'], memoryDataService, validatorService);
+    super(
+      injector,
+      ProgramPerson,
+      ProgramPersonFilter,
+      ['person', 'department', 'privilege', 'location', 'referencePerson'],
+      memoryDataService,
+      validatorService
+    );
 
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
