@@ -1,6 +1,8 @@
-<app-toolbar [title]="$title | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+<app-toolbar [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+
   <ion-buttons slot="end">
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+
       <!-- Add -->
       <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
@@ -33,6 +35,17 @@
         </ng-template>
       </button>
 
+      <!-- select year -->
+      <ion-button
+        fill="solid"
+        color="accent"
+        [matMenuTriggerFor]="selectYearMenu"
+      >
+        <ion-label>{{ (filterYearControl?.value | dateFormat : { pattern: 'YYYY' }) || ('COMMON.EMPTY_OPTION' | translate)}}</ion-label>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
+      </ion-button>
+
+      <!-- options -->
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -87,6 +100,18 @@
   </ion-buttons>
 </app-toolbar>
 
+<!-- select year menu  -->
+<mat-menu #selectYearMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="filterYearControl.reset()">
+      <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
+    </button>
+    <button mat-menu-item *rxFor="let year of years$" (click)="setFilterYear(year)">
+      <ion-label>{{ year }}</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <!-- Update offline mode -->
@@ -140,7 +165,7 @@
           <ion-col>
             <!-- Program -->
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
               formControlName="program"
               [config]="autocompleteFields.program"
               [clearable]="true"
@@ -148,14 +173,49 @@
               <ion-icon matPrefix name="contract"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
+
+          <!-- Year -->
+          <ion-col size="12" size-lg="3">
+            <mat-date-short-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate"
+              formControlName="startDate"
+              [clearable]="true"
+            ></mat-date-short-field>
+          </ion-col>
         </ion-row>
 
         <ion-row>
           <ion-col size="12" size-lg="6">
+            <!-- Registration location -->
+            <mat-chips-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate"
+              formControlName="registrationLocations"
+              [config]="autocompleteFields.registrationLocation"
+              [clearable]="true"
+              chipColor="accent"
+            >
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-chips-field>
+          </ion-col>
+
+          <ion-col size="12" size-lg="6">
+            <!-- base port location -->
+            <mat-chips-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate"
+              formControlName="basePortLocations"
+              [config]="autocompleteFields.basePortLocation"
+              [clearable]="true"
+              chipColor="accent"
+            >
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-chips-field>
+          </ion-col>
+
+          <ion-col size="12" size-lg="6">
             <!-- Vessel -->
             <mat-autocomplete-field
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-              [placeholder]="'TRIP.TABLE.FILTER.VESSEL' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate"
               formControlName="vesselSnapshot"
               [config]="autocompleteFields.vesselSnapshot"
               [clearable]="true"
@@ -164,48 +224,26 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <ion-col size="12" size-lg="6">
-            <!-- Location -->
-            <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.LOCATION' | translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
-              [clearable]="true"
-            >
+
+        </ion-row>
+
+        <!--<ion-row>
+          &lt;!&ndash; Direct survey investigation ? &ndash;&gt;
+          <ion-col>
+            <mat-boolean-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.DIRECT_SURVEY_INVESTIGATION' | translate"
+              formControlName="directSurveyInvestigation">
               <mat-icon matPrefix>room</mat-icon>
-            </mat-autocomplete-field>
+            </mat-boolean-field>
           </ion-col>
-        </ion-row>
-
-        <!-- Period criteria -->
-        <ion-row>
-          <ion-col>
-            <!-- Start date -->
-            <mat-date-field
-              [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate"
-              formControlName="startDate"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            </mat-date-field>
-          </ion-col>
-
-          <ion-col>
-            <!-- End date -->
-            <mat-date-field
-              [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate"
-              formControlName="endDate"
-              [clearable]="true"
-            ></mat-date-field>
-          </ion-col>
-        </ion-row>
+        </ion-row>-->
 
         <!-- Recorder criteria -->
         <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
               formControlName="recorderDepartment"
               [config]="autocompleteFields.department"
               [clearable]="true"
@@ -217,7 +255,7 @@
           <ion-col>
             <!-- Recorder person -->
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
@@ -228,81 +266,66 @@
           </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="showObservers || showQuality">
-          <!-- Observers -->
-          <ion-col size="12" size-sm="6" *ngIf="showObservers">
-            <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
-              [formControl]="filterObserversForm.at(0)"
-              [config]="autocompleteFields.person"
-              [i18nPrefix]="'USER.'"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-
-          <ng-container *ngIf="showQuality && filterForm | formGetControl : 'dataQualityStatus'; let control">
-            <!-- Data quality status -->
-            <ion-col>
-              <mat-form-field>
-                <mat-select [formControl]="control" [placeholder]="'TRIP.TABLE.QUALITY' | translate">
-                  <mat-select-trigger>
-                    <span *ngIf="statusById | mapGet : control.value; let item">
-                      <ion-icon [name]="item.icon"></ion-icon>
-                      {{ item.label | translate }}
-                    </span>
-                  </mat-select-trigger>
-                  <mat-option *ngFor="let item of statusList" [value]="item.id">
+        <ion-row *ngIf="showQuality && filterForm | formGetControl : 'dataQualityStatus'; let control">
+          <!-- Data quality status -->
+          <ion-col>
+            <mat-form-field>
+              <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate">
+                <mat-select-trigger>
+                  <span *ngIf="statusById | mapGet : control.value; let item">
                     <ion-icon [name]="item.icon"></ion-icon>
                     {{ item.label | translate }}
-                  </mat-option>
-                </mat-select>
+                  </span>
+                </mat-select-trigger>
+                <mat-option *ngFor="let item of statusList" [value]="item.id">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                  {{ item.label | translate }}
+                </mat-option>
+              </mat-select>
 
-                <button
-                  matSuffix
-                  mat-icon-button
-                  tabindex="-1"
-                  type="button"
-                  (click)="clearFilterValue('dataQualityStatus', $event)"
-                  [hidden]="disabled || !control.value"
+              <button
+                matSuffix
+                mat-icon-button
+                tabindex="-1"
+                type="button"
+                (click)="clearFilterValue('dataQualityStatus', $event)"
+                [hidden]="disabled || !control.value"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
+
+          <!-- Quality flag -->
+          <ion-col
+            *ngIf="filterForm | formGetControl : 'qualityFlagId'; let flagControl"
+            [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
+          >
+            <mat-form-field>
+              <mat-select [formControl]="flagControl" [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
+                <mat-option
+                  *ngFor="let item of qualityFlags | arrayFilter : excludeNotQualified"
+                  style="background-color: var(--ion-color-{{
+                    item.id | qualityFlagToColor
+                  }}); color: var(--ion-color-{{ item.id | qualityFlagToColor }}-contrast)"
+                  [value]="item.id"
                 >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </mat-form-field>
-            </ion-col>
+                  {{ item.label | translate }}
+                </mat-option>
+              </mat-select>
 
-            <!-- Quality flag -->
-            <ion-col
-              *ngIf="filterForm | formGetControl : 'qualityFlagId'; let flagControl"
-              [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
-            >
-              <mat-form-field>
-                <mat-select [formControl]="flagControl" [placeholder]="'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
-                  <mat-option
-                    *ngFor="let item of qualityFlags | arrayFilter : excludeNotQualified"
-                    style="background-color: var(--ion-color-{{
-                      item.id | qualityFlagToColor
-                    }}); color: var(--ion-color-{{ item.id | qualityFlagToColor }}-contrast)"
-                    [value]="item.id"
-                  >
-                    {{ item.label | translate }}
-                  </mat-option>
-                </mat-select>
-
-                <button
-                  matSuffix
-                  mat-icon-button
-                  tabindex="-1"
-                  type="button"
-                  (click)="clearFilterValue('qualityFlagId', $event)"
-                  [hidden]="disabled || !flagControl.value"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </mat-form-field>
-            </ion-col>
-          </ng-container>
+              <button
+                matSuffix
+                mat-icon-button
+                tabindex="-1"
+                type="button"
+                (click)="clearFilterValue('qualityFlagId', $event)"
+                [hidden]="disabled || !flagControl.value"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </ion-col>
         </ion-row>
       </ion-grid>
     </form>
@@ -434,7 +457,7 @@
       <ng-container matColumnDef="quality">
         <!-- FIXME pas triable pour l'instant -->
         <th mat-header-cell *matHeaderCellDef>
-          <ion-label translate>TRIP.TABLE.QUALITY</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.QUALITY</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <app-entity-quality-icon [value]="row.currentData"></app-entity-quality-icon>
@@ -444,7 +467,7 @@
       <!-- Program Column -->
       <ng-container matColumnDef="program">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.PROGRAM</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label>{{ row.currentData.program | referentialToString : ['label'] }}</ion-label>
@@ -454,7 +477,7 @@
       <!-- Vessel Column -->
       <ng-container matColumnDef="vessel">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.VESSEL</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton">
@@ -463,50 +486,30 @@
         </td>
       </ng-container>
 
-      <!-- departure location -->
-      <ng-container matColumnDef="departureLocation">
-        <th mat-header-cell *matHeaderCellDef>
-          <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
-        </th>
-        <td mat-cell *matCellDef="let row">
-          {{ row.currentData.departureLocation | referentialToString : autocompleteFields.location.attributes }}
-        </td>
-      </ng-container>
-
-      <!-- departure date time  -->
-      <ng-container matColumnDef="departureDateTime">
+      <!-- year  -->
+      <ng-container matColumnDef="year">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-          <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.YEAR</ion-label>
         </th>
         <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ row.currentData.departureDateTime | dateFormat : { time: true } }}</ion-text>
+          <ion-text>{{ row.currentData.year }}</ion-text>
         </td>
       </ng-container>
 
-      <!-- return date time -->
-      <ng-container matColumnDef="returnDateTime">
+      <!-- direct survey investigation ?-->
+      <ng-container matColumnDef="directSurveyInvestigation">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-          <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION</ion-label>
         </th>
         <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ row.currentData.returnDateTime | dateFormat : { time: true } }}</ion-text>
-        </td>
-      </ng-container>
-
-      <!-- Observers -->
-      <ng-container matColumnDef="observers">
-        <th mat-header-cell *matHeaderCellDef>
-          <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
-        </th>
-        <td mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
+          <ion-text>{{ (row.currentData.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
         </td>
       </ng-container>
 
       <!-- Recorder -->
       <ng-container matColumnDef="recorderPerson">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label translate>TRIP.TABLE.RECORDER_PERSON</ion-label>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.RECORDER_PERSON</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ng-container *ngIf="row.currentData.recorderPerson; let recorderPerson; else: recorderDepartment">
@@ -577,7 +580,7 @@
           color="danger"
           class="text-italic"
           [innerHTML]="
-            (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT')
+            (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'ACTIVITY_CALENDAR.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT')
               | translate
           "
         ></ion-text>
@@ -605,7 +608,7 @@
   <ion-fab-list side="top">
     <ion-fab-button
       [disabled]="offline || importing"
-      [title]="'TRIP.TABLE.BTN_NEW_ONLINE' | translate"
+      [title]="'ACTIVITY_CALENDAR.TABLE.BTN_NEW_ONLINE' | translate"
       (click)="addRowToSyncStatus($event, 'SYNC')"
     >
       <mat-icon color="primary">cloud_done</mat-icon>
@@ -614,7 +617,7 @@
 
     <ion-fab-button
       [disabled]="importing"
-      [title]="'TRIP.TABLE.BTN_NEW_OFFLINE' | translate"
+      [title]="'ACTIVITY_CALENDAR.TABLE.BTN_NEW_OFFLINE' | translate"
       (click)="addRowToSyncStatus($event, 'DIRTY')"
     >
       <mat-icon color="primary">cloud_off</mat-icon>

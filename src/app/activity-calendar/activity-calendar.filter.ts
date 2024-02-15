@@ -1,5 +1,6 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import {
+  DateUtils,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
@@ -8,7 +9,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   ReferentialRef,
-  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { ActivityCalendar } from './model/activity-calendar.model';
@@ -20,13 +20,14 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   static fromObject: (source: any, opts?: any) => ActivityCalendarFilter;
 
   vesselId: number = null;
+  vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
-  location: ReferentialRef = null;
+  registrationLocations: ReferentialRef[] = null;
+  basePortLocations: ReferentialRef[] = null;
   startDate: Moment = null;
   endDate: Moment = null;
   includedIds: number[];
   excludedIds: number[];
-  observedLocationId: number;
 
   constructor() {
     super();
@@ -36,13 +37,14 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.location = ReferentialRef.fromObject(source.location);
+    this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
+    this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
-    this.observedLocationId = source.observedLocationId;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -51,14 +53,20 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+      target.vesselIds = isNil(this.vesselId) ? this.vesselIds : undefined;
       delete target.vesselSnapshot;
 
-      // Location
-      target.locationId = (this.location && this.location.id) || undefined;
-      delete target.location;
+      // Registration locations
+      target.registrationLocationIds = this.registrationLocations?.map((l) => l.id) || undefined;
+      delete target.registrationLocations;
+
+      // Registration locations
+      target.basePortLocationIds = this.basePortLocations?.map((l) => l.id) || undefined;
+      delete target.basePortLocations;
     } else {
       target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
-      target.location = (this.location && this.location.asObject(opts)) || undefined;
+      target.registrationLocations = this.registrationLocations?.map((l) => l.asObject(opts)) || undefined;
+      target.basePortLocations = this.basePortLocations?.map((l) => l.asObject(opts)) || undefined;
     }
     return target;
   }
@@ -82,10 +90,18 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
     }
 
-    // Location
-    if (ReferentialUtils.isNotEmpty(this.location)) {
-      const locationId = this.location.id;
-      filterFns.push((t) => (t.vesselUseFeatures || []).some((vuf) => vuf.basePortLocation && vuf.basePortLocation.id === locationId));
+    // Registration locations
+    if (isNotEmptyArray(this.registrationLocations)) {
+      const registrationLocationIds = this.registrationLocations.map((l) => l.id);
+      filterFns.push((t) => t.vesselSnapshot?.registrationLocation && registrationLocationIds.includes(t.vesselSnapshot.registrationLocation?.id));
+    }
+
+    // Base port locations
+    if (isNotEmptyArray(this.basePortLocations)) {
+      const basePortLocationIds = this.basePortLocations.map((l) => l.id);
+      filterFns.push((t) =>
+        (t.vesselUseFeatures || []).some((vuf) => vuf.basePortLocation && basePortLocationIds.includes(vuf.basePortLocation?.id))
+      );
     }
 
     // Start/end period
@@ -104,14 +120,22 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
 export class ActivityCalendarSynchroImportFilter extends DataSynchroImportFilter {
 
-  static toActivityCalendarFilter(f: ActivityCalendarSynchroImportFilter): ActivityCalendarFilter {
-    if (!f) return undefined;
-    return ActivityCalendarFilter.fromObject({
-      program: {label: f.programLabel},
-      vesselId: f.vesselId,
-      startDate: f.startDate,
-      endDate: f.endDate
+  static toActivityCalendarFilter(source: Partial<ActivityCalendarSynchroImportFilter>): ActivityCalendarFilter {
+    if (!source) return undefined;
+    const target = ActivityCalendarFilter.fromObject({
+      program: {label: source.programLabel},
+      vesselId: source.vesselId,
+      vesselIds: source.vesselIds,
+      startDate: source.startDate,
+      endDate: source.endDate
     });
+
+    // Transform duration into start/end period
+    if (!target.startDate && !target.endDate && source.periodDuration > 0 && source.periodDurationUnit) {
+      target.startDate = DateUtils.moment().utc(false).startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
+    }
+
+    return target;
   }
 
 }

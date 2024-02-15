@@ -118,7 +118,6 @@
 
     "YES": "Oui",
     "NO": "Non",
-    "DEBUG": "Debug",
 
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
@@ -255,6 +254,7 @@
         "ACQUISITION_LEVEL_OPERATION_LABEL": "Référentiel > Niveau d'acquisition > Opération",
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
+        "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Référentiel > Niveau de lieu > Quartier maritime",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_RECTANGLE_ICES_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_AREA_FAO_ID": "Référentiel > Niveau de lieu > Zone FAO",
@@ -383,6 +383,7 @@
     "DATA_ACCESS_DIVIDER": "Accès aux données",
     "OBSERVATIONS": "Observations",
     "AUCTION_OCCASIONS": "Sorties en criée",
+    "ACTIVITY_CALENDAR": "Calendriers d'activité",
     "OCCASIONS": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
@@ -3046,6 +3047,30 @@
       "ERROR": {
         "CONNECTION_ERROR": "Échec de la connection à l'ichtyomètre '{{name}}'"
       }
+    }
+  },
+  "ACTIVITY_CALENDAR": {
+    "TABLE": {
+      "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+      "QUALITY": "État",
+      "PROGRAM": "Programme de collecte",
+      "RECORDER_PERSON": "Saisisseur",
+      "RECORDER_DEPARTMENT": "Organisme saisisseur",
+      "VESSEL": "Navire",
+      "YEAR": "Année",
+      "FILTER": {
+        "PROGRAM": "Programme de collecte",
+        "REGISTRATION_LOCATION": "Quartier maritime",
+        "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+        "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+        "RECORDER_PERSON": "Saisisseur",
+        "RECORDER_DEPARTMENT": "Organisme saisisseur",
+        "VESSEL": "Navire",
+        "YEAR": "Année"
+      }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne"
     }
   },
   "ERROR": {

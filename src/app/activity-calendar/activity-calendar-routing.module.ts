@@ -1,11 +1,14 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { ActivityCalendarsPage } from '@app/activity-calendar/table/activity-calendars.page';
+import { ActivityCalendarsPage } from './activity-calendars.page';
+import { AppActivityCalendarModule } from '@app/activity-calendar/activity-calendar.module';
+import { AuthGuardService } from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [AuthGuardService],
     component: ActivityCalendarsPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
@@ -24,9 +27,9 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    VesselModule,
+    AppActivityCalendarModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]
 })
-export class ActivityCalendarRoutingModule { }
+export class AppActivityCalendarRoutingModule { }

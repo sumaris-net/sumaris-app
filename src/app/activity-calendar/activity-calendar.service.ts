@@ -1,6 +1,6 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { gql } from '@apollo/client/core';
-import { filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import {
   APP_USER_EVENT_SERVICE,
@@ -32,8 +32,6 @@ import {
   NetworkService,
   PersonService,
   ShowToastOptions,
-  splitById,
-  splitByProperty,
   Toasts,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -49,20 +47,14 @@ import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/se
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from './model/activity-calendar.validator';
-import { ActivityCalendar, Operation } from './model/activity-calendar.model';
+import { ActivityCalendar } from './model/activity-calendar.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
-import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
-import { ACTIVITYCALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER, ACTIVITYCALENDAR_FEATURE_NAME } from '../activity-calendar.config';
-import {
-  DataSynchroImportFilter,
-  IDataSynchroService,
-  RootDataEntitySaveOptions,
-  RootDataSynchroService,
-} from '@app/data/services/root-data-synchro-service.class';
+import { ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER, ACTIVITY_CALENDAR_FEATURE_NAME } from './activity-calendar.config';
+import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
@@ -71,14 +63,14 @@ import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-ser
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { BBox } from 'geojson';
 import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
-
 import moment, { Moment } from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { OverlayEventDetail } from '@ionic/core';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -88,21 +80,16 @@ export const ActivityCalendarFragments = {
         id
         label
       }
-      departureDateTime
-      returnDateTime
+      year
+      directSurveyInvestigation
       creationDate
       updateDate
       controlDate
       validationDate
-      qualificationDate
       qualityFlagId
+      qualificationDate
+      qualificationComments
       comments
-      departureLocation {
-        ...LocationFragment
-      }
-      returnLocation {
-        ...LocationFragment
-      }
       vesselSnapshot {
         ...LightVesselSnapshotFragment
       }
@@ -112,11 +99,7 @@ export const ActivityCalendarFragments = {
       recorderPerson {
         ...LightPersonFragment
       }
-      observers {
-        ...LightPersonFragment
-      }
     }
-    ${DataCommonFragments.location}
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${VesselSnapshotFragments.lightVesselSnapshot}
@@ -129,32 +112,19 @@ export const ActivityCalendarFragments = {
       id
       label
     }
-    departureDateTime
-    returnDateTime
+    year
+    directSurveyInvestigation
     creationDate
     updateDate
     controlDate
     validationDate
-    qualificationDate
     qualityFlagId
+    qualificationDate
+    qualificationComments
     comments
-    departureLocation {
-      ...LocationFragment
-    }
-    returnLocation {
-      ...LocationFragment
-    }
+    measurementValues
     vesselSnapshot {
       ...LightVesselSnapshotFragment
-    }
-    sale {
-      ...LightSaleFragment
-    }
-    gears {
-      ...PhysicalGearFragment
-    }
-    measurements {
-      ...MeasurementFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -162,153 +132,29 @@ export const ActivityCalendarFragments = {
     recorderPerson {
       ...LightPersonFragment
     }
-    observers {
-      ...LightPersonFragment
+    vesselUseFeatures {
+      ...VesselUseFeaturesFragment
     }
-    metiers {
-      ...MetierFragment
-    }
-    fishingAreas {
-      ...FishingAreaFragment
+    gearUseFeatures {
+      ...GearUseFeaturesFragment
     }
   }
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.measurement}
   ${DataCommonFragments.referential}
-  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${PhysicalGearFragments.physicalGear}
+  ${DataFragments.vesselUseFeatures}
+  ${DataFragments.gearUseFeatures}
   ${DataCommonFragments.metier},
-  ${DataFragments.fishingArea},
-  ${SaleFragments.lightSale}`,
-
-  landedActivityCalendar: gql`
-    fragment LandedActivityCalendarFragment on ActivityCalendarVO {
-      id
-      program {
-        id
-        label
-      }
-      departureDateTime
-      returnDateTime
-      creationDate
-      updateDate
-      controlDate
-      validationDate
-      qualificationDate
-      qualityFlagId
-      comments
-      landing {
-        id
-        rankOrder
-      }
-      observedLocationId
-      departureLocation {
-        ...LocationFragment
-      }
-      returnLocation {
-        ...LocationFragment
-      }
-      vesselSnapshot {
-        ...LightVesselSnapshotFragment
-      }
-      gears {
-        ...PhysicalGearFragment
-      }
-      measurements {
-        ...MeasurementFragment
-      }
-      recorderDepartment {
-        ...LightDepartmentFragment
-      }
-      recorderPerson {
-        ...LightPersonFragment
-      }
-      observers {
-        ...LightPersonFragment
-      }
-      metiers {
-        ...MetierFragment
-      }
-      operationGroups {
-        ...OperationGroupFragment
-      }
-      expectedSale {
-        ...ExpectedSaleFragment
-      }
-      fishingAreas {
-        ...FishingAreaFragment
-      }
-    }
-    ${DataCommonFragments.lightDepartment}
-    ${DataCommonFragments.lightPerson}
-    ${DataCommonFragments.measurement}
-    ${DataCommonFragments.referential}
-    ${DataCommonFragments.location}
-    ${VesselSnapshotFragments.lightVesselSnapshot}
-    ${DataCommonFragments.metier}
-    ${PhysicalGearFragments.physicalGear}
-    ${OperationGroupFragment.operationGroup}
-    ${ExpectedSaleFragments.expectedSale}
-    ${DataFragments.fishingArea}
-  `,
-
-  embeddedLandedActivityCalendar: gql`
-    fragment EmbeddedLandedActivityCalendarFragment on ActivityCalendarVO {
-      id
-      program {
-        id
-        label
-      }
-      departureDateTime
-      returnDateTime
-      creationDate
-      updateDate
-      controlDate
-      validationDate
-      qualificationDate
-      qualityFlagId
-      comments
-      landing {
-        id
-        rankOrder
-      }
-      recorderDepartment {
-        ...LightDepartmentFragment
-      }
-      recorderPerson {
-        ...LightPersonFragment
-      }
-      metiers {
-        ...MetierFragment
-      }
-      operationGroups {
-        ...OperationGroupFragment
-      }
-      fishingAreas {
-        ...FishingAreaFragment
-      }
-    }
-    ${DataCommonFragments.metier}
-    ${DataFragments.fishingArea}
-    ${OperationGroupFragment.operationGroup}
-  `,
+  ${DataFragments.fishingArea}`,
 };
 
-
 export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
-  isLandedActivityCalendar?: boolean;
-  withOperation?: boolean;
-  withOperationGroup?: boolean;
   toEntity?: boolean;
   fullLoad?: boolean;
 }
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
-  withLanding?: boolean; // False by default
-  withOperation?: boolean; // False by default
-  withOperationGroup?: boolean; // False by default
   enableOptimisticResponse?: boolean; // True by default
 }
 
@@ -325,7 +171,7 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {
 }
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadLandedActivityCalendar: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
 
   // Load a activityCalendar
   load: gql` query ActivityCalendar($id: Int!) {
@@ -349,53 +195,45 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadLandedActivityCa
     total: activityCalendarsCount(filter: $filter, trash: $trash)
   }
   ${ActivityCalendarFragments.lightActivityCalendar}`,
-
-  // Load a landed activityCalendar
-  loadLandedActivityCalendar: gql`query ActivityCalendar($id: Int!) {
-    data: activityCalendar(id: $id) {
-      ...LandedActivityCalendarFragment
-    }
-  }
-  ${ActivityCalendarFragments.landedActivityCalendar}`
 };
 
 // Save a activityCalendar
 const ActivityCalendarMutations = <BaseRootEntityGraphqlMutations>{
-  save: gql`mutation saveActivityCalendar($activityCalendar:ActivityCalendarVOInput!){
-    data: saveActivityCalendar(activityCalendar: $activityCalendar){
+  save: gql`mutation saveActivityCalendar($data: ActivityCalendarVOInput!){
+    data: saveActivityCalendar(activityCalendar: $data){
       ...ActivityCalendarFragment
     }
   }
   ${ActivityCalendarFragments.activityCalendar}`,
 
   // Delete
-  deleteAll: gql`mutation DeleteActivityCalendars($ids:[Int]!){
+  deleteAll: gql`mutation DeleteActivityCalendars($ids: [Int]!){
     deleteActivityCalendars(ids: $ids)
   }`,
 
   // Terminate
-  terminate: gql`mutation ControlActivityCalendar($data:ActivityCalendarVOInput!){
+  terminate: gql`mutation ControlActivityCalendar($data: ActivityCalendarVOInput!){
     data: controlActivityCalendar(activityCalendar: $data){
       ...ActivityCalendarFragment
     }
   }
   ${ActivityCalendarFragments.activityCalendar}`,
 
-  validate: gql`mutation ValidateActivityCalendar($data:ActivityCalendarVOInput!){
+  validate: gql`mutation ValidateActivityCalendar($data: ActivityCalendarVOInput!){
     data: validateActivityCalendar(activityCalendar: $data){
       ...ActivityCalendarFragment
     }
   }
   ${ActivityCalendarFragments.activityCalendar}`,
 
-  qualify: gql`mutation QualifyActivityCalendar($data:ActivityCalendarVOInput!){
+  qualify: gql`mutation QualifyActivityCalendar($data: ActivityCalendarVOInput!){
     data: qualifyActivityCalendar(activityCalendar: $data){
       ...ActivityCalendarFragment
     }
   }
   ${ActivityCalendarFragments.activityCalendar}`,
 
-  unvalidate: gql`mutation UnvalidateActivityCalendar($data:ActivityCalendarVOInput!){
+  unvalidate: gql`mutation UnvalidateActivityCalendar($data: ActivityCalendarVOInput!){
     data: unvalidateActivityCalendar(activityCalendar: $data){
       ...ActivityCalendarFragment
     }
@@ -414,7 +252,7 @@ const ActivityCalendarSubscriptions = {
 
 @Injectable({providedIn: 'root'})
 export class ActivityCalendarService
-  extends RootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarLoadOptions>
+  extends RootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarWatchOptions, ActivityCalendarLoadOptions>
   implements IEntitiesService<ActivityCalendar, ActivityCalendarFilter>,
     IEntityService<ActivityCalendar, number, ActivityCalendarLoadOptions>,
     IRootDataEntityQualityService<ActivityCalendar>,
@@ -441,10 +279,12 @@ export class ActivityCalendarService
       {
         queries: ActivityCalendarQueries,
         mutations: ActivityCalendarMutations,
-        subscriptions: ActivityCalendarSubscriptions
+        subscriptions: ActivityCalendarSubscriptions,
+        defaultSortBy: 'year',
+        defaultSortDirection: 'desc'
       });
 
-    this._featureName = ACTIVITYCALENDAR_FEATURE_NAME;
+    this._featureName = ACTIVITY_CALENDAR_FEATURE_NAME;
 
     // Register user event actions
     if (userEventService) {
@@ -475,9 +315,6 @@ export class ActivityCalendarService
         }
       });
     }
-
-    // Register self (avoid loop dependency)
-    operationService.activityCalendarService = this;
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -581,48 +418,19 @@ export class ActivityCalendarService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
-    dataFilter = this.asFilter(dataFilter);
+    if (opts?.trash) {
+      sortBy = sortBy || 'updateDate';
+      sortDirection = sortDirection || 'desc';
+    }
 
-    const variables: any = {
-      offset: offset || 0,
-      size: size || 20,
-      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
-      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: dataFilter && dataFilter.asPodObject()
-    };
-
-    let now = this._debug && Date.now();
-    if (this._debug) console.debug('[activity-calendar-service] Watching activityCalendars... using options:', variables);
-
-    const withTotal = (!opts || opts.withTotal !== false);
-    const query = opts?.query || (withTotal ? ActivityCalendarQueries.loadAllWithTotal : ActivityCalendarQueries.loadAll);
-
-    return this.mutableWatchQuery<LoadResult<ActivityCalendar>>({
-      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
-      query,
-      arrayFieldName: 'data',
-      totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: dataFilter?.asFilterFn(),
-      variables,
-      error: {code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-    })
-      .pipe(
-        // Skip update during load()
-        filter(() => !this.loading),
-        map(({data, total}) => {
-          const entities = (!opts || opts.toEntity !== false)
-            ? (data || []).map((json) => this.fromObject(json))
-            : (data || []) as ActivityCalendar[];
-
-          if (now) {
-            console.debug(`[activity-calendar-service] Loaded {${entities.length || 0}} activityCalendars in ${Date.now() - now}ms`, entities);
-            now = undefined;
-          }
-          return {data: entities, total};
-        })
-      );
+    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter as ActivityCalendarFilter, {
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network',
+      ...opts,
+      variables: {
+        ...opts?.variables,
+        trash: opts?.trash || false
+      },
+    });
   }
 
   watchAllLocally(offset: number,
@@ -655,10 +463,6 @@ export class ActivityCalendarService
   async load(id: number, opts?: ActivityCalendarLoadOptions): Promise<ActivityCalendar | null> {
     if (isNil(id)) throw new Error('Missing argument \'id\'');
 
-    // use landedActivityCalendar option if itself or withOperationGroups is present in service options
-    const isLandedActivityCalendar = opts && (opts.isLandedActivityCalendar || opts.withOperationGroup);
-    const isLocalActivityCalendar = id < 0;
-
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[activity-calendar-service] Loading activityCalendar #${id}...`);
     this.loading = true;
@@ -667,33 +471,18 @@ export class ActivityCalendarService
       let source: any;
 
       // If local entity
-      if (isLocalActivityCalendar) {
+      if (EntityUtils.isLocalId(id)) {
         source = await this.entities.load<ActivityCalendar>(id, ActivityCalendar.TYPENAME, opts);
         if (!source) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       } else {
-        const query = isLandedActivityCalendar ? ActivityCalendarQueries.loadLandedActivityCalendar : ActivityCalendarQueries.load;
-
         // Load remotely
         const { data } = await this.graphql.query<{ data: ActivityCalendar }>({
-          query,
+          query: ActivityCalendarQueries.load,
           variables: {id},
           error: {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         source = data;
-      }
-
-      // Add operations
-      if (opts?.withOperation) {
-        source = {...source}; // Copy because remote object is not extensible
-
-        const { data } = await this.operationService.loadAllByActivityCalendar({activityCalendarId: id}, {
-          fetchPolicy: !isLocalActivityCalendar && 'network-only' || undefined,
-          fullLoad: isLocalActivityCalendar
-        });
-        source.operations = isLocalActivityCalendar ? data
-          // Full load entities remotely
-          : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
       }
 
       // Transform to entity
@@ -781,9 +570,6 @@ export class ActivityCalendarService
     }
 
     opts = {
-      withLanding: false,
-      withOperation: false,
-      withOperationGroup: false,
       ...opts
     };
 
@@ -816,12 +602,7 @@ export class ActivityCalendarService
     if (this._debug) console.debug('[activity-calendar-service] Using minify object, to send:', json);
 
     const variables = {
-      activityCalendar: json,
-      options: {
-        withLanding: opts.withLanding,
-        withOperation: opts.withOperation,
-        withOperationGroup: opts.withOperationGroup
-      }
+      data: json
     };
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
@@ -848,15 +629,6 @@ export class ActivityCalendarService
           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
             if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
             await this.entities.delete(entity);
-
-            try {
-              // Remove linked operations
-              if (opts && opts.withOperation) {
-                await this.operationService.deleteAllLocallyByFilter({activityCalendarId: entity.id});
-              }
-            } catch (err) {
-              console.error(`[activity-calendar-service] Failed to locally delete operations of activityCalendar {${entity.id}}`, err);
-            }
           }
 
           // Copy id and update Date
@@ -889,9 +661,6 @@ export class ActivityCalendarService
   async saveLocally(entity: ActivityCalendar, opts?: ActivityCalendarSaveOptions): Promise<ActivityCalendar> {
     if (entity.id >= 0) throw new Error('Must be a local entity');
     opts = {
-      withLanding: false,
-      withOperation: false,
-      withOperationGroup: false,
       ...opts
     };
 
@@ -935,12 +704,6 @@ export class ActivityCalendarService
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    const firstPassOperations: Operation[] = [];
-    const childOperationsWithLocalParent: Operation[] = [];
-    const parentOperationsWithLocalChild: Operation[] = [];
-
-    if (opts.withOperation) {
-
     try {
 
       // Save activityCalendar (and operations or operation groups)
@@ -978,24 +741,15 @@ export class ActivityCalendarService
     // Importing historical data (need to get parent operation in the local storage)
     try {
 
-      const filter: Partial<DataSynchroImportFilter & ActivityCalendarFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+      const offlineFilter = this.settings.getOfflineFeature<ActivityCalendarSynchroImportFilter>(this.featureName)?.filter;
+      const filter = ActivityCalendarSynchroImportFilter.toActivityCalendarFilter(offlineFilter || {});
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
-      filter.programLabel = entity.program.label;
       filter.program = entity.program;
 
       // Force the vessel
       filter.vesselId = toNumber(entity.vesselSnapshot?.id, filter.vesselId);
 
-      // Prepare the start/end date
-      if (filter.periodDuration && filter.periodDurationUnit) {
-        filter.startDate = DateUtils.moment().utc(false)
-          .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
-          .startOf('day'); // Reset time
-      }
-      else {
-        filter.startDate = null;
-      }
       // Make sure the period include the actual activityCalendar
       const entityStartDate: Moment = DateUtils.moment().year(entity.year)
         .utc(false)
@@ -1022,15 +776,8 @@ export class ActivityCalendarService
     return entity;
   }
 
-  /**
-   * Control the validity of an activityCalendar
-   *
-   * @param entity
-   * @param opts
-   */
   async control(entity: ActivityCalendar, opts?: ActivityCalendarControlOptions): Promise<AppErrorWithDetails> {
-
-    const now = this._debug && Date.now();
+      const now = this._debug && Date.now();
 
     const maxProgression = toNumber(opts?.maxProgression, 100);
     opts = {...opts, maxProgression};
@@ -1161,21 +908,10 @@ export class ActivityCalendarService
     if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar #${entity.id}... {trash: ${trash}`);
 
     try {
-      // Load activityCalendar's operations
-      const res = await this.operationService.loadAllByActivityCalendar({activityCalendarId: entity.id},
-        {fullLoad: true, computeRankOrder: false});
-      const operations = res && res.data;
-
       await this.entities.delete(entity, {entityName: ActivityCalendar.TYPENAME});
       this.onDelete.next([entity]);
 
-      if (isNotNil(operations)) {
-        await this.operationService.deleteAll(operations, {trash: false});
-      }
-
       if (trash) {
-        // Fill activityCalendar's operation, before moving it to trash
-        entity.operations = operations;
 
         const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
@@ -1203,22 +939,8 @@ export class ActivityCalendarService
   }
 
   async copyLocallyById(id: number, opts?: ActivityCalendarLoadOptions & {displaySuccessToast?: boolean}): Promise<ActivityCalendar> {
-    const isLocalActivityCalendar = id < 0;
-
     // Load existing data
     const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
-
-    // Add operations
-    if (!opts || opts.withOperation !== false) {
-      const { data } = await this.operationService.loadAllByActivityCalendar({activityCalendarId: id}, {
-        fetchPolicy: !isLocalActivityCalendar && 'network-only' || undefined,
-        fullLoad: isLocalActivityCalendar
-      });
-
-      source.operations = isLocalActivityCalendar ? data
-        // Full load entities remotely
-        : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
-    }
 
     // Copy remote activityCalendar to local storage
     const target = await this.copyLocally(source, opts);
@@ -1238,8 +960,6 @@ export class ActivityCalendarService
     opts = {
       keepRemoteId: false,
       deletedFromTrash: false,
-      withOperation: true, // Change default value to 'true'
-      withOperationGroup: true, // Change default value to 'true'
       ...opts
     };
     const isLocal = RootDataEntityUtils.isLocal(source);
@@ -1273,135 +993,84 @@ export class ActivityCalendarService
     // Update (id and updateDate)
     super.copyIdAndUpdateDate(source, target);
 
-    // Update parent link
-    target.observedLocationId = source.observedLocationId;
-    if (opts && opts.withLanding && source.landing && target.landing) {
-      EntityUtils.copyIdAndUpdateDate(source.landing, target.landing);
-    }
-
     // Update sale
-    if (source.sale && target.sale) {
-      EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
-      RootDataEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
-
-      // For a landedActivityCalendar with operationGroups, copy directly sale's product, a reload must be done after service call
-      if (opts && opts.withLanding && source.sale.products) {
-        target.sale.products = source.sale.products;
-      }
-    }
-
-    // Update fishing areas
-    if (target.fishingAreas && source.fishingAreas) {
-      target.fishingAreas.forEach(entity => {
-        const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
-        EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
-      });
-    }
-
-    // Update gears (recursively)
-    if (target.gears && source.gears) {
-      this.copyIdAndUpdateDateOnGears(source.gears, target.gears, source);
-    }
-
-    // Update measurements
-    if (target.measurements && source.measurements) {
-      target.measurements.forEach(entity => {
-        const savedMeasurement = source.measurements.find(m => entity.equals(m));
-        EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
-      });
-    }
-
-    // Update operation groups
-    if (source.operationGroups && target.operationGroups && opts && opts.withOperationGroup) {
-      target.operationGroups.forEach(targetOperationGroup => {
-        const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
-        EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
-
-        targetOperationGroup.physicalGearId = sourceOperationGroup.physicalGearId;
-
-        // Operation group's measurements
-        if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
-          targetOperationGroup.measurements.forEach(targetMeasurement => {
-            const sourceMeasurement = sourceOperationGroup.measurements.find(m => targetMeasurement.equals(m));
-            EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
-          });
-        }
-
-        // Operation group's products
-        if (sourceOperationGroup && sourceOperationGroup.products && targetOperationGroup.products) {
-          targetOperationGroup.products.forEach(targetProduct => {
-            const sourceProduct = sourceOperationGroup.products.find(json => targetProduct.equals(json));
-            EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
-          });
-        }
-
-        // Operation group's samples (recursively)
-        if (sourceOperationGroup && sourceOperationGroup.samples && targetOperationGroup.samples) {
-          this.copyIdAndUpdateDateOnSamples(sourceOperationGroup.samples, targetOperationGroup.samples);
-        }
-
-        // Operation group's packets
-        if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
-          targetOperationGroup.packets.forEach(targetPacket => {
-            const sourcePacket = sourceOperationGroup.packets.find(json => targetPacket.equals(json));
-            EntityUtils.copyIdAndUpdateDate(sourcePacket, targetPacket);
-
-            // Packet's compositions
-            if (sourcePacket && sourcePacket.composition && targetPacket.composition) {
-              targetPacket.composition.forEach(targetComposition => {
-                const sourceComposition = sourcePacket.composition.find(json => targetComposition.equals(json));
-                EntityUtils.copyIdAndUpdateDate(sourceComposition, targetComposition);
-              });
-            }
-          });
-        }
-      });
-    }
-  }
-
-  /**
-   * Copy Id and update, in gear tree (recursively)
-   *
-   * @param sources
-   * @param targets
-   */
-  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedActivityCalendar: ActivityCalendar, parentGear?: PhysicalGear) {
-    // DEBUG
-    //console.debug("[activity-calendar-service] Calling copyIdAndUpdateDateOnGears()");
-
-    // Update gears
-    if (sources && targets) {
-      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
-      sources = [...sources];
-
-      targets.forEach(target => {
-        // Set the activityCalendar id (required by equals function)
-        target.activityCalendarId = savedActivityCalendar.id;
-        // Try to set parent id (need by equals, when new entity)
-        target.parentId = parentGear?.id || target.parentId;
-
-        const index = sources.findIndex(json => target.equals(json));
-        if (index !== -1) {
-          // Remove from sources list, as it has been found
-          const source = sources.splice(index, 1)[0];
-
-          EntityUtils.copyIdAndUpdateDate(source, target);
-          RootDataEntityUtils.copyControlAndValidationDate(source, target);
-
-          // Copy parent Id (need for link to parent)
-          target.parentId = source.parentId;
-          target.parent = null;
-        }
-        else {
-          console.warn('Missing a gear, equals to this target: ', target);
-        }
-
-        // Update children
-        if (target.children?.length) {
-          this.copyIdAndUpdateDateOnGears(sources, target.children, savedActivityCalendar, target);
-        }
-      });
-    }
+    // if (source.sale && target.sale) {
+    //   EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
+    //   RootDataEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
+    //
+    //   // For a landedActivityCalendar with operationGroups, copy directly sale's product, a reload must be done after service call
+    //   if (opts && opts.withLanding && source.sale.products) {
+    //     target.sale.products = source.sale.products;
+    //   }
+    // }
+    //
+    // // Update fishing areas
+    // if (target.fishingAreas && source.fishingAreas) {
+    //   target.fishingAreas.forEach(entity => {
+    //     const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
+    //     EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
+    //   });
+    // }
+    //
+    // // Update gears (recursively)
+    // if (target.gears && source.gears) {
+    //   this.copyIdAndUpdateDateOnGears(source.gears, target.gears, source);
+    // }
+    //
+    // // Update measurements
+    // if (target.measurements && source.measurements) {
+    //   target.measurements.forEach(entity => {
+    //     const savedMeasurement = source.measurements.find(m => entity.equals(m));
+    //     EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
+    //   });
+    // }
+    //
+    // // Update operation groups
+    // if (source.operationGroups && target.operationGroups && opts && opts.withOperationGroup) {
+    //   target.operationGroups.forEach(targetOperationGroup => {
+    //     const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
+    //     EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
+    //
+    //     targetOperationGroup.physicalGearId = sourceOperationGroup.physicalGearId;
+    //
+    //     // Operation group's measurements
+    //     if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
+    //       targetOperationGroup.measurements.forEach(targetMeasurement => {
+    //         const sourceMeasurement = sourceOperationGroup.measurements.find(m => targetMeasurement.equals(m));
+    //         EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
+    //       });
+    //     }
+    //
+    //     // Operation group's products
+    //     if (sourceOperationGroup && sourceOperationGroup.products && targetOperationGroup.products) {
+    //       targetOperationGroup.products.forEach(targetProduct => {
+    //         const sourceProduct = sourceOperationGroup.products.find(json => targetProduct.equals(json));
+    //         EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
+    //       });
+    //     }
+    //
+    //     // Operation group's samples (recursively)
+    //     if (sourceOperationGroup && sourceOperationGroup.samples && targetOperationGroup.samples) {
+    //       this.copyIdAndUpdateDateOnSamples(sourceOperationGroup.samples, targetOperationGroup.samples);
+    //     }
+    //
+    //     // Operation group's packets
+    //     if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
+    //       targetOperationGroup.packets.forEach(targetPacket => {
+    //         const sourcePacket = sourceOperationGroup.packets.find(json => targetPacket.equals(json));
+    //         EntityUtils.copyIdAndUpdateDate(sourcePacket, targetPacket);
+    //
+    //         // Packet's compositions
+    //         if (sourcePacket && sourcePacket.composition && targetPacket.composition) {
+    //           targetPacket.composition.forEach(targetComposition => {
+    //             const sourceComposition = sourcePacket.composition.find(json => targetComposition.equals(json));
+    //             EntityUtils.copyIdAndUpdateDate(sourceComposition, targetComposition);
+    //           });
+    //         }
+    //       });
+    //     }
+    //   });
+    // }
   }
 
   translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
@@ -1443,20 +1112,15 @@ export class ActivityCalendarService
 
     super.fillDefaultProperties(entity);
 
-    if (entity.operationGroups) {
-      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
-      entity.operationGroups.forEach(operationGroup => {
-        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
-        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
-      });
+    if (entity.vesselUseFeatures) {
+      this.fillRecorderDepartment(entity.vesselUseFeatures, entity.recorderDepartment);
     }
-    // todo maybe others tables ?
+    if (entity.gearUseFeatures) {
+      this.fillRecorderDepartment(entity.vesselUseFeatures, entity.recorderDepartment);
+    }
 
-    // Physical gears: compute rankOrder
-    fillTreeRankOrder(entity.gears);
-
-    // Measurement: compute rankOrder
-    fillRankOrder(entity.measurements);
+    // GearUseFeatures: compute rankOrder
+    fillRankOrder(entity.gearUseFeatures);
   }
 
   protected async fillOfflineDefaultProperties(entity: ActivityCalendar) {
@@ -1496,7 +1160,7 @@ export class ActivityCalendarService
             data: programs,
             total: programCount
           } = await this.programRefService.loadAll(0, 1, null, null,
-            ACTIVITYCALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER, { fetchPolicy: 'no-cache', withTotal: true });
+            ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER, { fetchPolicy: 'no-cache', withTotal: true });
           if (programCount === 1) {
             programLabel = programs[0]?.label;
           } else {
@@ -1521,7 +1185,8 @@ export class ActivityCalendarService
           opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
           // Limit locations (e.g. rectangle)
-          opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+          // TODO limit to location levels used in calendar
+          //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
           if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[activity-calendar-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
 
           // TODO limit vessels (e.g. using PERSON_SESSION_VESSEL ?)
@@ -1530,19 +1195,7 @@ export class ActivityCalendarService
 
       ...super.getImportJobs(filter, opts),
 
-      // Import pending operations
-      JobUtils.defer(o => {
-        const operationFilter = ActivityCalendarFilter.toOperationFilter(filter);
-        if (isNil(operationFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
-        return this.operationService.executeImport(operationFilter, o);
-      }, opts),
-
-      // Import physical gears
-      JobUtils.defer(o => {
-        const gearFilter = ActivityCalendarFilter.toPhysicalGearFilter(filter);
-        if (isNil(gearFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
-        return this.physicalGearService.executeImport(gearFilter, o);
-      }, opts)
+      // TODO: import historical data ?
     ];
   }
 
@@ -1574,42 +1227,22 @@ export class ActivityCalendarService
     if (isNotNilOrBlank(programLabel)) {
       console.info('[activity-calendar-service] Importing historical data, from filter: ', filter);
 
-      // Import pending operations
-      const operationFilter = ActivityCalendarFilter.toOperationFilter(filter);
-      await this.operationService.executeImport(operationFilter, {
-        ...opts, maxProgression: maxProgression / 2
-      });
+      // TODO import predoc + N-1
 
-      // Import physical gears
-      const gearFilter = ActivityCalendarFilter.toPhysicalGearFilter(filter);
-      await this.physicalGearService.executeImport(gearFilter, {
-        ...opts, maxProgression: maxProgression / 2
-      });
+      // Import pending operations
+      // const operationFilter = ActivityCalendarFilter.toOperationFilter(filter);
+      // await this.operationService.executeImport(operationFilter, {
+      //   ...opts, maxProgression: maxProgression / 2
+      // });
+      //
+      // // Import physical gears
+      // const gearFilter = ActivityCalendarFilter.toPhysicalGearFilter(filter);
+      // await this.physicalGearService.executeImport(gearFilter, {
+      //   ...opts, maxProgression: maxProgression / 2
+      // });
     }
 
     if (opts?.progression) opts?.progression.next(maxProgression);
-  }
-
-  /**
-   * Copy Id and update, in sample tree (recursively)
-   *
-   * @param sources
-   * @param targets
-   */
-  // TODO BLA: Utiliser celle de operation-servive, en la passant en public
-  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
-    // Update samples
-    if (sources && targets) {
-      targets.forEach(target => {
-        const source = sources.find(json => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
-
-        // Apply to children
-        if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children);
-        }
-      });
-    }
   }
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {

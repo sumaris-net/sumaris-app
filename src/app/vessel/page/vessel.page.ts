@@ -48,6 +48,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   mobile = false;
   replacementEnabled = false;
   temporaryStatusId = StatusIds.TEMPORARY;
+  registrationLocationLevelIds: number[];
 
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
@@ -98,6 +99,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
         this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID);
+
+        this.markForCheck();
       })
     );
 

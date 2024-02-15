@@ -6,7 +6,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { ScientificCruiseTable } from '@app/trip/scientific-cruise/scientific-cruise.table';
 
@@ -22,7 +22,7 @@ import { ScientificCruiseTable } from '@app/trip/scientific-cruise/scientific-cr
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
     AppExtractionButtonModule,
   ],
   declarations: [ScientificCruiseTable],

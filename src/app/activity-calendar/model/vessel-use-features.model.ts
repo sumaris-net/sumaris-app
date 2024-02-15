@@ -1,7 +1,6 @@
 import { EntityAsObjectOptions, EntityClass, fromDateISOString, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { DataOrigin } from '@app/activity-calendar/model/data-origin.model';
 import { Moment } from 'moment';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
@@ -15,12 +14,11 @@ export const VesselUseFeaturesIsActiveEnum = {
 
 @EntityClass({ typename: 'VesselUseFeaturesVO' })
 export class VesselUseFeatures extends DataEntity<VesselUseFeatures>
-  implements IWithVesselSnapshotEntity<VesselUseFeatures>, IWithProgramEntity<VesselUseFeatures>{
+  implements IWithProgramEntity<VesselUseFeatures>{
   static fromObject: (source: any, options?: any) => VesselUseFeatures;
 
   program: ReferentialRef;
   vesselId: number = null;
-  vesselSnapshot: VesselSnapshot;
   startDate: Moment;
   endDate: Moment;
   isActive: number;
@@ -35,7 +33,6 @@ export class VesselUseFeatures extends DataEntity<VesselUseFeatures>
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.program = this.program?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.vesselSnapshot = this.vesselSnapshot?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.basePortLocation = this.basePortLocation?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
@@ -49,7 +46,6 @@ export class VesselUseFeatures extends DataEntity<VesselUseFeatures>
     super.fromObject(source, opts);
     this.program = source.program && ReferentialRef.fromObject(source.program);
     this.vesselId = source.vesselId;
-    this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.isActive = source.isActive;

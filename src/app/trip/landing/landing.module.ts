@@ -5,7 +5,7 @@ import { LandingForm } from './landing.form';
 import { SelectLandingsModal } from './select-landings.modal';
 import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
@@ -19,7 +19,7 @@ import { AppBatchModule } from '@app/trip/batch/batch.module';
   imports: [
     AppCoreModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
     AppReferentialModule,
     TranslateModule.forChild(),
 

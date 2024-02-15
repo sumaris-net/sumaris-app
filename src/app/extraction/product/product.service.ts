@@ -102,8 +102,8 @@ const Queries: BaseEntityGraphqlQueries & { loadColumns: any } = {
 };
 
 const Mutations: BaseEntityGraphqlMutations & { update: any } = {
-  save: gql`mutation SaveExtractionProduct($product: ExtractionProductVOInput!){
-    data: saveExtractionProduct(product: $product){
+  save: gql`mutation SaveExtractionProduct($data: ExtractionProductVOInput!){
+    data: saveExtractionProduct(product: $data){
       ...ExtractionProductFragment
       documentation
     }
@@ -297,7 +297,7 @@ export class ProductService
     await this.graphql.mutate<{ data: any }>({
       mutation: Mutations.save,
       variables: {
-        product: json
+        data: json
       },
       error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
       update: (cache, {data}) => {

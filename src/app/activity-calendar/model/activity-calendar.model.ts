@@ -6,6 +6,7 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
+  static ENTITY_NAME = 'ActivityCalendar';
   static fromObject: (source: any, options?: any) => ActivityCalendar;
 
   year: number;

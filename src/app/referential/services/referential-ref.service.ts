@@ -813,6 +813,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     LocationLevelIds.COUNTRY = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
     LocationLevelIds.PORT = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
     LocationLevelIds.AUCTION = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.MARITIME_DISTRICT = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_MARITIME_DISTRICT_ID);
     // Location Levels > ICES
     LocationLevelIds.SUB_AREA_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_AREA_ICES_ID);
     LocationLevelIds.DIVISION_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_DIVISION_ICES_ID);

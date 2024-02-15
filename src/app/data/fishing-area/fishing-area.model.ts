@@ -36,7 +36,9 @@ export class FishingArea extends DataEntity<FishingArea> {
   depthGradient: ReferentialRef;
   nearbySpecificArea: ReferentialRef;
 
+  // Parent: not need, because always FishingArea holds by a parent entity
   // operationId: number;
+  // gearUseFeaturesId: number;
 
   constructor() {
     super(FishingArea.TYPENAME);

@@ -117,7 +117,7 @@ export class ObservedLocationOfflineFilter extends DataSynchroImportFilter {
     });
     // Transform duration into start/end period
     if (!target.startDate && !target.endDate && source.periodDuration > 0 && source.periodDurationUnit) {
-      target.startDate = DateUtils.moment().startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
+      target.startDate = DateUtils.moment().utc(false).startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
     }
     return target;
   }

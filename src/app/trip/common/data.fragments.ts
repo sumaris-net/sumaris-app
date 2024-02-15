@@ -208,12 +208,72 @@ export const DataFragments = {
     nearbySpecificArea {
       ...LightReferentialFragment
     }
-    operationId
+    # -- Parent link (not need)
+    #operationId
+    #gearUseFeaturesId
     __typename
   }
   ${DataCommonFragments.location}
   ${DataCommonFragments.referential}
-  `
+  `,
+
+  vesselUseFeatures: gql`fragment VesselUseFeaturesFragment on VesselUseFeaturesVO {
+    id
+    vesselId
+    startDate
+    endDate
+    isActive
+    basePortLocation {
+      ...LocationFragment
+    }
+    measurementValues
+    comments
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualityFlagId
+    qualificationDate
+    qualificationComments
+    recorderDepartmentId
+    recorderPersonId
+    # - Parent link (not need)
+    #activityCalendarId
+    #dailyActivityCalendarId
+    __typename
+  }`,
+
+  gearUseFeatures: gql`fragment GearUseFeaturesFragment on GearUseFeaturesVO {
+    id
+    vesselId
+    startDate
+    endDate
+    rankOrder
+    measurementValues
+    comments
+    metier {
+      ...MetierFragment
+    }
+    gear {
+      ...LightReferentialFragment
+    }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualityFlagId
+    qualificationDate
+    qualificationComments
+    recorderDepartmentId
+    recorderPersonId
+    # - Parent link (not need)
+    #activityCalendarId
+    #dailyActivityCalendarId
+    __typename
+  }`
 };
 export const PhysicalGearFragments = {
   physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {

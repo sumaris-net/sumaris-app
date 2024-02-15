@@ -15,7 +15,7 @@ import { BatchModal } from './common/batch.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
 import { BatchSortingValueIconPipe, IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
@@ -42,7 +42,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
     AppMeasurementModule,
 
     // Components

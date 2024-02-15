@@ -2,7 +2,19 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, HostL
 import { VesselValidatorOptions, VesselValidatorService } from '../services/validator/vessel.validator';
 import { Vessel } from '../services/model/vessel.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { AccountService, AppForm, AppFormUtils, isNil, LocalSettingsService, ReferentialRef, StatusById, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  AppForm,
+  AppFormUtils,
+  isNil,
+  LocalSettingsService,
+  MatAutocompleteFieldConfig,
+  ReferentialRef,
+  StatusById,
+  StatusIds,
+  StatusList,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormGroup } from '@angular/forms';
 import { Moment } from 'moment';
@@ -43,6 +55,8 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   @Input() canEditStatus: boolean;
   @Input() showError: boolean;
+  @Input() registrationLocationLevelIds: number[];
+  @Input() basePortLocationLevelIds: number[];
 
   @Input() set defaultStatus(value: number) {
     if (this._defaultStatus !== value) {
@@ -147,26 +161,31 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     // Compute defaults
     this.showError = toBoolean(this.showError, true);
     this.canEditStatus = toBoolean(this.canEditStatus, !this._defaultStatus || this.isAdmin());
+    this.referentialRefService.ready().then(() => {
+      this.registrationLocationLevelIds = this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY];
+    });
 
     // Combo location
-    this.registerAutocompleteField('basePortLocation', {
-      service: this.referentialRefService,
+    const locationConfig: MatAutocompleteFieldConfig = {
+      attributes: this.settings.getFieldDisplayAttributes('location'),
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT,
-        statusId: StatusIds.ENABLE
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
-      suggestLengthThreshold: this._basePortLocationSuggestLengthThreshold,
       mobile: this.mobile
+    }
+    this.registerAutocompleteField('basePortLocation', {
+      ...locationConfig,
+      suggestLengthThreshold: this._basePortLocationSuggestLengthThreshold,
+      suggestFn: (value, filter) => {
+        return this.referentialRefService.suggest(value, {...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT]})
+      }
     });
     this.registerAutocompleteField('registrationLocation', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Location',
-        levelId: LocationLevelIds.COUNTRY,
-        statusId: StatusIds.ENABLE
-      },
-      mobile: this.mobile
+      ...locationConfig,
+      suggestFn: (value, filter) => {
+        return this.referentialRefService.suggest(value, {...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY]})
+      }
     });
     this.registerAutocompleteField('vesselType', {
       service: this.referentialRefService,

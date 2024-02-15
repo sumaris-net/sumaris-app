@@ -9,6 +9,7 @@ export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3,
+  MARITIME_DISTRICT: 8,
 
   // At sea
   SUB_AREA_ICES: 110,

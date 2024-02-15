@@ -139,6 +139,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.PORT
   },
+  LOCATION_LEVEL_MARITIME_DISTRICT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.MARITIME_DISTRICT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_MARITIME_DISTRICT_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.MARITIME_DISTRICT
+  },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',

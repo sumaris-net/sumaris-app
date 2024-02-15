@@ -42,8 +42,11 @@ export class ObservedLocationValidatorService
     // Add measurement form
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      // TODO: find strategy from date and location
-      (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
+      const pmfms =
+        (opts.strategy && opts.strategy.denormalizedPmfms) ||
+        (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) ||
+        [];
+      pmfms
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach(p => {
           const key = p.id.toString();
@@ -65,7 +68,6 @@ export class ObservedLocationValidatorService
       endDateTime: [data?.endDateTime || null],
       measurementValues: this.formBuilder.group({})
     });
-
 
     // Add observers
     if (opts.withObservers) {

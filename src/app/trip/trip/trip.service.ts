@@ -59,12 +59,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import {
-  DataSynchroImportFilter,
-  IDataSynchroService,
-  RootDataEntitySaveOptions,
-  RootDataSynchroService,
-} from '@app/data/services/root-data-synchro-service.class';
+import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -377,16 +372,16 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 
 // Save a trip
 const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any }>{
-  save: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
-    data: saveTrip(trip: $trip, options: $options){
+  save: gql`mutation saveTrip($data: TripVOInput!, $options: TripSaveOptionsInput!){
+    data: saveTrip(trip: $data, options: $options){
       ...TripFragment
     }
   }
   ${TripFragments.trip}`,
 
   // Save a landed trip
-  saveLandedTrip: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
-    data: saveTrip(trip: $trip, options: $options){
+  saveLandedTrip: gql`mutation saveTrip($data: TripVOInput!, $options: TripSaveOptionsInput!){
+    data: saveTrip(trip: $data, options: $options){
       ...LandedTripFragment
     }
   }
@@ -475,7 +470,9 @@ export class TripService
       {
         queries: TripQueries,
         mutations: TripMutations,
-        subscriptions: TripSubscriptions
+        subscriptions: TripSubscriptions,
+        defaultSortBy: 'departureDateTime',
+        defaultSortDirection: 'asc'
       });
 
     this._featureName = TRIP_FEATURE_NAME;
@@ -620,17 +617,17 @@ export class TripService
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
-      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: dataFilter && dataFilter.asPodObject()
+      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : this.defaultSortBy),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : this.defaultSortDirection),
+      trash: opts?.trash || false,
+      filter: dataFilter?.asPodObject()
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[trip-service] Watching trips... using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
-    const query = opts?.query || (withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll);
+    const query = opts?.query || (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
 
     return this.mutableWatchQuery<LoadResult<Trip>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
@@ -850,7 +847,7 @@ export class TripService
     if (this._debug) console.debug('[trip-service] Using minify object, to send:', json);
 
     const variables = {
-      trip: json,
+      data: json,
       options: {
         withLanding: opts.withLanding,
         withOperation: opts.withOperation,
@@ -1190,20 +1187,21 @@ export class TripService
     // Importing historical data (need to get parent operation in the local storage)
     try {
 
-      const filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+      const offlineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
+      const filter = TripSynchroImportFilter.toTripFilter(offlineFilter || {});
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
-      filter.programLabel = entity.program.label;
       filter.program = entity.program;
 
       // Force the vessel
       filter.vesselId = toNumber(entity.vesselSnapshot?.id, filter.vesselId);
 
       // Prepare the start/end date
-      if (filter.periodDuration && filter.periodDurationUnit) {
+      if (offlineFilter?.periodDuration > 0 && offlineFilter.periodDurationUnit) {
         filter.startDate = DateUtils.moment().utc(false)
-          .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
-          .startOf('day'); // Reset time
+          .startOf('day')  // Reset time
+          .add(-1 * offlineFilter.periodDuration, offlineFilter.periodDurationUnit) // Subtract the period, from now
+        ;
       }
       else {
         filter.startDate = null;
@@ -1928,7 +1926,8 @@ export class TripService
     };
     opts.progression = opts.progression || new BehaviorSubject<number>(0);
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const offlineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter
+    filter = filter || TripSynchroImportFilter.toTripFilter(offlineFilter);
     filter = this.asFilter(filter);
 
     const programLabel = filter?.program?.label;

@@ -17,12 +17,12 @@ export const ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER: Partial<ProgramFi
  * Define configuration options
  */
 export const ACTIVITY_CALENDAR_CONFIG_OPTIONS = Object.freeze({
-  TRIP_ENABLE: <FormFieldDefinition>{
+  ACTIVITY_CALENDAR_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.enable',
     label: 'ACTIVITY_CALENDAR.OPTIONS.ENABLE',
     type: 'boolean'
   },
-  TRIP_NAME: <FormFieldDefinition>{
+  ACTIVITY_CALENDAR_NAME: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.name',
     label: 'ACTIVITY_CALENDAR.OPTIONS.NAME',
     type: 'enum',

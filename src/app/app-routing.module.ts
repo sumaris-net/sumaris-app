@@ -96,6 +96,15 @@ const routes: Routes = [
     loadChildren: () => import('./trip/landing/landings-routing.module').then((m) => m.AppLandingsRoutingModule),
   },
 
+  // Activity Calendar
+  {
+    path: 'activity-calendar',
+    data: {
+      profile: 'USER',
+    },
+    loadChildren: () => import('./activity-calendar/activity-calendar-routing.module').then((m) => m.AppActivityCalendarRoutingModule),
+  },
+
   // Extraction path
   {
     path: 'extraction',

@@ -345,6 +345,14 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name',
         },
+        {
+          title: 'MENU.ACTIVITY_CALENDAR',
+          path: '/activity-calendar',
+          icon: 'calendar',
+          profile: 'USER',
+          ifProperty: 'sumaris.activityCalendar.enable',
+          titleProperty: 'sumaris.activityCalendar.name',
+        },
 
         // Data extraction
         { title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST' },
