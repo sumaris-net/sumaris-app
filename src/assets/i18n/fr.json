@@ -3069,6 +3069,12 @@
         "YEAR": "Année"
       }
     },
+    "EDIT": {
+      "VESSEL_OWNER": "Armateur",
+      "REGISTRATION_LOCATION": "Quartier maritime",
+      "IS_ACTIVE": "Actif ?",
+      "BASE_PORT_LOCATION": "Port d'attache / exploit."
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne"
     }
