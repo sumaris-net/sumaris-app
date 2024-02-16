@@ -102,6 +102,8 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
+import { ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES, ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES } from '@app/activity-calendar/activity-calendar.config';
+import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -492,6 +494,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...DATA_GRAPHQL_TYPE_POLICIES,
         ...VESSEL_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES,
       },
     },
@@ -501,6 +504,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
       provide: APP_LOCAL_STORAGE_TYPE_POLICIES,
       useValue: <EntitiesStorageTypePolicies>{
         ...TRIP_STORAGE_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
       },
     },
 
@@ -514,6 +518,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
         ...TRIP_TESTING_PAGES,
+        ...ACTIVITY_CALENDAR_TESTING_PAGES,
       ],
     },
 
