@@ -1,0 +1,152 @@
+
+mat-table {
+  --col-header-size: 150px;
+  --col-size: calc((100% - var(--col-header-size)) / 12);
+  --mat-cell-border-color-hover: var(--ion-color-secondary);
+  --mat-row-height: 52px;
+  --mat-row-max-height: 52px;
+  --mat-cell-resizable-handle-size: 5px;
+  --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
+
+  display: flex !important;
+  flex-direction: row !important;
+
+  mat-header-row {
+    flex-direction: column !important;
+    height: unset;
+    max-height: unset;
+  }
+  mat-row {
+    display: flex !important;
+    flex-direction: column !important;
+    height: unset;
+    max-height: unset;
+  }
+
+  mat-header-row {
+    width: var(--col-header-size) !important;
+    max-width: var(--col-header-size) !important;
+    border: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  mat-row {
+    width: var(--col-size) !important;
+    max-width: var(--col-size) !important;
+    border: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  mat-header-cell {
+    padding: 0;
+    padding-inline-start: 8px;
+    padding-inline-end: 8px;
+    ion-label {
+      width: 100%;
+    }
+  }
+
+  mat-cell, mat-header-cell {
+    flex: 1 !important;
+    width: 100%;
+    border: 1px solid transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    height: var(--mat-row-height) !important;
+  }
+
+
+  .mat-column-id, .mat-column-select,.mat-column-actions{
+    visibility: hidden;
+    display: none;
+  }
+
+  .mat-column-month {
+    //width: calc(var(--width) / var(--col-count));
+    //max-width: calc(var(--width) / var(--col-count));
+  }
+
+  .mat-cell-resizable {
+    position: relative;
+
+    &:hover {
+      border: solid 1px var(--mat-cell-border-color-hover);
+      .resize-handle-corner {
+        background-color: var(--mat-cell-resizable-handle-color-hover);
+      }
+    }
+    .resize-handle-left,
+    .resize-handle-right,
+    .resize-handle-top,
+    .resize-handle-bottom {
+      position: absolute;
+      transition: background-color 0.2s ease-in 0.2s;
+      &:hover {
+        background-color: var(--mat-cell-resizable-handle-color-hover);
+      }
+    }
+    .resize-handle-top,
+    .resize-handle-bottom {
+      height: var(--mat-cell-resizable-handle-size, 5px);
+      cursor: row-resize;
+    }
+
+    .resize-handle-top {
+      left: 0;
+      top: 0;
+      right: 0;
+    }
+
+    .resize-handle-bottom {
+      left: 0;
+      bottom: 0;
+      right: 0;
+    }
+
+    .resize-handle-left,
+    .resize-handle-right {
+      width: var(--mat-cell-resizable-handle-size, 5px);
+      cursor: col-resize;
+    }
+
+    .resize-handle-left {
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .resize-handle-right {
+      top: 0;
+      bottom: 0;
+      right: 0;
+    }
+
+    .resize-handle-corner {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      height: var(--mat-cell-resizable-handle-corner-size, 5px);
+      width: var(--mat-cell-resizable-handle-corner-size, 5px);
+      cursor: crosshair;
+      &:hover {
+        background-color: var(--mat-cell-resizable-handle-color-hover);
+      }
+    }
+  }
+
+  &.resizing {
+    --mat-cell-resizable-handle-color-hover: transparent;
+
+    .mat-cell-resizable:hover {
+      border: 1px solid transparent;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .mat-row.mat-row-disabled:hover {
+      background-color: unset;
+      cursor: crosshair;
+    }
+  }
+
+}
+
+

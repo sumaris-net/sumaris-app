@@ -1,0 +1,150 @@
+<mat-table #table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+  <!-- hidden columns (required by AppTable) -->
+  <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="cdk-visually-hidden">
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="month">
+    <mat-header-cell *matHeaderCellDef>
+      &nbsp;
+    </mat-header-cell>
+    <mat-header-cell *matCellDef="let row">
+      <ion-label class="ion-text-center">
+      {{ row.currentData.vesselUseFeatures?.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+      </ion-label>
+    </mat-header-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="vesselOwner">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      TODO
+    </mat-cell>
+  </ng-container>
+
+
+  <ng-container matColumnDef="registrationLocation">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      TODO
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="isActive">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="basePortLocation">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="mat-cell-resizable" #cell>
+
+      <!-- handlers -->
+      <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation' }"></ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <!--
+  <ng-container *ngFor="let col of columnDefinitions" [matColumnDef]="col.id">
+    <mat-header-cell *matHeaderCellDef class="mat-column-month">
+      <ion-label>{{ col.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="mat-column-month mat-cell-resizable"
+        (click)="focusColumn = col.id"
+        #cell>
+
+      <mat-form-field floatLabel="never" *ngIf="row.editing; else readonlyCell">
+        <input matInput type="text"
+               [appAutofocus]="focusColumn === col.id"
+               value="test">
+      </mat-form-field>
+
+      <ng-template #readonlyCell>
+        {{ row.currentData.comments }}-{{ col.startDate|dateFormat: {pattern: 'MMM'} }}
+      </ng-template>
+
+      <div
+        class="resize-handle-left"
+        (mousedown)="onMouseDown($event, cell, row, col.month, 'x')"
+        (mouseup)="onMouseUp($event)"
+      ></div>
+      <div
+        class="resize-handle-right"
+        (mousedown)="onMouseDown($event, cell, row, col.month, 'x')"
+        (mouseup)="onMouseUp($event)"
+      ></div>
+      <div
+        class="resize-handle-top"
+        (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
+        (mouseup)="onMouseUp($event)"
+      ></div>
+      <div
+        class="resize-handle-bottom"
+        (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
+        (mouseup)="onMouseUp($event)"
+      ></div>
+      <div
+        class="resize-handle-corner"
+        (mousedown)="onMouseDown($event, cell, row, col.month)"
+        (mouseup)="onMouseUp($event)"
+      ></div>
+    </mat-cell>
+  </ng-container>-->
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+  <mat-row
+    *matRowDef="let row; columns: displayedColumns"
+    [class.mat-row-error]="row.invalid"
+    [class.mat-row-dirty]="row.dirty"
+    [class.mat-row-disabled]="!row.editing"
+    [class.mat-row-selected]="row.editing"
+    (keydown.escape)="escapeEditingRow($event)"
+    [cdkTrapFocus]="!row.valid"
+    (click)="clickRow($event, row)"
+    (press)="pressRow($event, row)"
+  ></mat-row>
+
+  <!--<div mat-row *matRowDef="let row; columns: displayedColumns; when: isDivider"></div>-->
+</mat-table>
+
+<ng-template #cellHandlers let-row let-col="col" let-cell="cell">
+  <div
+    class="resize-handle-left"
+    (mousedown)="onMouseDown($event, cell, row, col,'x')"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+  <div
+    class="resize-handle-right"
+    (mousedown)="onMouseDown($event, cell, row, col, 'x')"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+  <div
+    class="resize-handle-top"
+    (mousedown)="onMouseDown($event, cell, row, col, 'y')"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+  <div
+    class="resize-handle-bottom"
+    (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+  <div
+    class="resize-handle-corner"
+    (mousedown)="onMouseDown($event, cell, row, col.month)"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+</ng-template>
