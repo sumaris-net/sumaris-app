@@ -318,7 +318,7 @@ package:webext:feature:
     - git checkout -B release/${RELEASE_VERSION}
     - echo "--- Manage app version"
     - npm run version:get
-    - npm version:set ${RELEASE_VERSION}
+    - npm run version:set ${RELEASE_VERSION}
     # Show version
     - npm version
     # Git process for release (ISO gitflow)
