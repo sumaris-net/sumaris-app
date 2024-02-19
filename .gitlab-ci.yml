@@ -180,6 +180,32 @@ build:feature:
     - /^features\/.*/
   when: manual
 
+build:tags:
+  <<: *git-setup
+  image: ${CI_BUILD_IMAGE}
+  stage: release
+  script:
+    - echo "--- Build in progress"
+    - git checkout -b release/${CI_COMMIT_TAG}
+    # Copy cached dependencies and build
+    - ls -artl "${BUILD_CACHE_DIR}"
+    - cp -R "${BUILD_CACHE_DIR}/node_modules" .
+    # Show version
+    # FIXME fail since 13/11/2023
+    #- ng version
+    - npm version
+    # Build
+    - export NODE_OPTIONS=--max-old-space-size=4096
+    - npm run build.prod
+  artifacts:
+    paths:
+      - www
+    expire_in: 24 hours
+  allow_failure: false
+  when: manual
+  only:
+    - tags
+
 # failsafe-build:
 #   extends: .build
 #   stage: alt_build
@@ -345,15 +371,6 @@ release:feature:
 #   needs: [failsafe-build]
 #   only:
 #     - develop
-
-release:feature:
-  extends: .release
-  image: ${CI_BUILD_IMAGE}
-  needs: [build:feature]
-  only:
-    - /^feature\/.*/
-    - /^features\/.*/
-  when: manual
 
 gitlab-release:
     stage: release
@@ -634,7 +651,7 @@ docker:release:
 
 docker:release:tags:
   extends: .docker-build
-  needs: [release:tags]
+  needs: [build:tags]
   variables:
     IMAGE_TAG: ${CI_COMMIT_TAG}
   only:
