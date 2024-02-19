@@ -2,8 +2,8 @@
 {
   "manifest_version": 2,
   "name": "sumaris-app",
-  "version": "2.9.0.6",
-  "version_name": "2.9.0-alpha6",
+  "version": "2.9.0.7",
+  "version_name": "2.9.0-alpha7",
   "short_name": "SUMARiS",
   "description": "SUMARiS app",
   "author": "EIS <contact@e-is.pro>",
