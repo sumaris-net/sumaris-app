@@ -41,8 +41,10 @@ for (const key in env) {
 
 // Check for Java installation.
 if (!process.env.JAVA_HOME || process.env.JAVA_HOME === 'null') {
-  const javaCmd = execSync('which java').toString().trim();
-  if (!javaCmd) {
+  let javaCmd;
+  try {
+    javaCmd = execSync('which java').toString().trim();
+  } catch (e) {
     throw new Error(
       "Java is not installed. Please install Java, or set the JAVA_HOME environment variable."
     );

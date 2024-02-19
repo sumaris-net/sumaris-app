@@ -394,6 +394,7 @@ gitlab-release:
   stage: deploy
   needs: [release]
   image: ${CI_BUILD_IMAGE}
+  tags: [sih_public_runner]
   script:
     - if [[ -n ${APP_VERSION} ]]; then git fetch origin ; git checkout ${APP_VERSION} ; fi
     # Copy cached dependencies and build
