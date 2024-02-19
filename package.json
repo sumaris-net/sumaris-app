@@ -40,6 +40,8 @@
     "test": "ng test",
     "lint": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint",
     "lint.fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
+    "version:get": "node scripts/node/version.js",
+    "version:set": "node scripts/node/version.js --set",
     "webext:start": "npm run webext:build:prod && node scripts/node/webext.js --run",
     "webext:build:prod": "ng build --configuration webext && npm run webext:i18n:build",
     "webext:i18n:build": "npm run i18n:build webext/assets/i18n",
