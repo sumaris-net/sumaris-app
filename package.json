@@ -24,11 +24,11 @@
     "android:i18n:build": "node scripts/node/build-i18n.js android/app/src/main/assets/public/assets/i18n",
     "android:package": "cd android && ./gradlew assembleDebug --warning-mode all",
     "android:package:prod": "cd android && ./gradlew assembleRelease",
-    "android-list": "npx native-run android --list",
+    "android:list": "npx native-run android --list",
     "resources": "cordova-res ios && cordova-res android && node scripts/node/resources.js",
     "test": "ng test",
     "lint": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint",
-    "lint.fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
+    "lint:fix": "node --max-old-space-size=6096 node_modules/@angular/cli/bin/ng lint --fix",
     "prepare": "husky install"
   },
   "lint-staged": {
