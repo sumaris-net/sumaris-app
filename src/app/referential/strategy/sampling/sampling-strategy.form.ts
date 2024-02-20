@@ -38,6 +38,7 @@ import { StrategyValidatorService } from '../../services/validator/strategy.vali
 import {
   AcquisitionLevelCodes,
   autoCompleteFractions,
+  DepartmentGroups,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
