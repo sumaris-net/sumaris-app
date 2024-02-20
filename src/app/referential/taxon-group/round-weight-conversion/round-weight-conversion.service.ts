@@ -5,15 +5,14 @@ import {
   EntityAsObjectOptions,
   GraphqlService,
   IEntityService,
-  MINIFY_ENTITY_FOR_POD,
   PlatformService,
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { RoundWeightConversion } from './round-weight-conversion.model';
-import { RoundWeightConversionFilter } from './round-weight-conversion.filter';
 import { gql } from '@apollo/client/core';
 import { RoundWeightConversionFragments } from './round-weight-conversion.fragments';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { RoundWeightConversionFilter } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.filter';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`

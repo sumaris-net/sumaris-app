@@ -16,10 +16,10 @@ import { Injectable } from '@angular/core';
 import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 import { gql } from '@apollo/client/core';
 import { RoundWeightConversionFragments } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.fragments';
-import { RoundWeightConversionFilter } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.filter';
 import { Moment } from 'moment';
 import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';
+import { RoundWeightConversionRefFilter } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.filter';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`
@@ -59,7 +59,7 @@ const CacheKeys = {
 @Injectable({ providedIn: 'root' })
 // @ts-ignore
 export class RoundWeightConversionRefService
-  extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionFilter>
+  extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionRefFilter>
   implements IEntityService<RoundWeightConversionRef>
 {
   constructor(
@@ -69,9 +69,10 @@ export class RoundWeightConversionRefService
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, RoundWeightConversionRef, RoundWeightConversionFilter, {
-      queries: QUERIES,
+    super(graphql, platform, RoundWeightConversionRef, RoundWeightConversionRefFilter, {
+      queries: QUERIES
     });
+    this._logPrefix = '[round-weight-conversion-ref-service] ';
   }
 
   /**
@@ -88,7 +89,7 @@ export class RoundWeightConversionRefService
   }
 
   async loadByFilter(
-    filter: Partial<RoundWeightConversionFilter> & {
+    filter: Partial<RoundWeightConversionRefFilter> & {
       // Force theis filter's attributes as required
       date: Moment;
       taxonGroupId: number;
@@ -133,7 +134,7 @@ export class RoundWeightConversionRefService
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: Partial<RoundWeightConversionFilter>,
+    filter?: Partial<RoundWeightConversionRefFilter>,
     opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }
   ): Promise<LoadResult<RoundWeightConversionRef>> {
     filter = this.asFilter(filter);
@@ -153,7 +154,7 @@ export class RoundWeightConversionRefService
   }
 
   async clearCache() {
-    console.info('[round-weight-conversion-ref-service] Clearing cache...');
+    console.info(this._logPrefix + 'Clearing cache...');
     await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }

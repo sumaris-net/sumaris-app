@@ -2,12 +2,12 @@ import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, IEntityFilt
 import { WeightLengthConversionRef } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { StoreObject } from '@apollo/client/core';
 
-@EntityClass({ typename: 'WeightLengthConversionFilterVO' })
-export class WeightLengthConversionFilter
-  extends EntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef>
-  implements IEntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef>
+@EntityClass({ typename: 'WeightLengthConversionRefFilterVO' })
+export class WeightLengthConversionRefFilter
+  extends EntityFilter<WeightLengthConversionRefFilter, WeightLengthConversionRef>
+  implements IEntityFilter<WeightLengthConversionRefFilter, WeightLengthConversionRef>
 {
-  static fromObject: (source: any, opts?: any) => WeightLengthConversionFilter;
+  static fromObject: (source: any, opts?: any) => WeightLengthConversionRefFilter;
 
   month: number = null;
   year: number = null;
@@ -76,7 +76,7 @@ export class WeightLengthConversionFilter
     return target;
   }
 
-  public buildFilter(): FilterFn<WeightLengthConversionRef>[] {
+  buildFilter(): FilterFn<WeightLengthConversionRef>[] {
     const filterFns = super.buildFilter();
 
     // Year
@@ -98,33 +98,33 @@ export class WeightLengthConversionFilter
     }
 
     // Location
-    const locationId = this.locationId;
-    if (isNotNil(locationId)) {
-      filterFns.push((t) => t.locationId === locationId);
+    const locationIds = isNotNil(this.locationId) ? [this.locationId] : this.locationIds;
+    if (isNotEmptyArray(locationIds)) {
+      filterFns.push((t) => isNotNil(t.locationId) && locationIds.includes(t.locationId));
     }
 
     // Reference Taxon
-    const referenceTaxonId = this.referenceTaxonId;
-    if (isNotNil(referenceTaxonId)) {
-      filterFns.push((t) => t.referenceTaxonId === referenceTaxonId);
+    const referenceTaxonIds = isNotNil(this.referenceTaxonId) ? [this.referenceTaxonId] : this.referenceTaxonIds;
+    if (isNotEmptyArray(referenceTaxonIds)) {
+      filterFns.push((t) => isNotNil(t.referenceTaxonId) && referenceTaxonIds.includes(t.referenceTaxonId));
     }
 
     // Rectangle
-    const rectangleLabel = this.rectangleLabel;
-    if (isNotNil(rectangleLabel)) {
-      filterFns.push((t) => t.rectangleLabels?.includes(rectangleLabel));
+    const rectangleLabels = isNotNil(this.rectangleLabel) ? [this.rectangleLabel] : this.rectangleLabels;
+    if (isNotEmptyArray(rectangleLabels)) {
+      filterFns.push((t) => t.rectangleLabels?.some((label) => rectangleLabels.includes(label)));
     }
 
     // Length Pmfm
-    const lengthPmfmId = this.lengthPmfmId;
-    if (isNotNil(lengthPmfmId)) {
-      filterFns.push((t) => t.lengthPmfmIds?.includes(lengthPmfmId));
+    const lengthPmfmIds = isNotNil(this.lengthPmfmId) ? [this.lengthPmfmId] : this.lengthPmfmIds;
+    if (isNotEmptyArray(lengthPmfmIds)) {
+      filterFns.push((t) => t.lengthPmfmIds?.some((id) => lengthPmfmIds.includes(id)));
     }
 
     // Sex
-    const sexId = this.sexId;
-    if (isNotNil(sexId)) {
-      filterFns.push((t) => t.id === sexId);
+    const sexIds = isNotNil(this.sexId) ? [this.sexId] : this.sexIds;
+    if (isNotEmptyArray(sexIds)) {
+      filterFns.push((t) => isNotNil(t.sexId) && sexIds.includes(t.sexId));
     }
 
     return filterFns;

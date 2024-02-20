@@ -10,15 +10,15 @@ import {
   isNotNil,
 } from '@sumaris-net/ngx-components';
 import { isMoment, Moment } from 'moment';
-import { RoundWeightConversion } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
+import { RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 import { StoreObject } from '@apollo/client/core';
 
-@EntityClass({ typename: 'RoundWeightConversionFilterVO' })
-export class RoundWeightConversionFilter
-  extends EntityFilter<RoundWeightConversionFilter, RoundWeightConversion>
-  implements IEntityFilter<RoundWeightConversionFilter, RoundWeightConversion>
+@EntityClass({ typename: 'RoundWeightConversionRefFilterVO' })
+export class RoundWeightConversionRefFilter
+  extends EntityFilter<RoundWeightConversionRefFilter, RoundWeightConversionRef>
+  implements IEntityFilter<RoundWeightConversionRefFilter, RoundWeightConversionRef>
 {
-  static fromObject: (source: any, opts?: any) => RoundWeightConversionFilter;
+  static fromObject: (source: any, opts?: any) => RoundWeightConversionRefFilter;
 
   date: Moment = null;
   statusIds: number[];
@@ -74,19 +74,19 @@ export class RoundWeightConversionFilter
     return target;
   }
 
-  buildFilter(): FilterFn<RoundWeightConversion>[] {
+  buildFilter(): FilterFn<RoundWeightConversionRef>[] {
     const filterFns = super.buildFilter();
 
     // Dressing(s)
     const dressingIds = isNotNil(this.dressingId) ? [this.dressingId] : this.dressingIds;
     if (isNotEmptyArray(dressingIds)) {
-      filterFns.push((t) => isNotNil(t.dressing?.id) && dressingIds.includes(t.dressing.id));
+      filterFns.push((t) => isNotNil(t.dressingId) && dressingIds.includes(t.dressingId));
     }
 
     // Preserving(s)
     const preservingIds = isNotNil(this.preservingId) ? [this.preservingId] : this.preservingIds;
     if (isNotEmptyArray(preservingIds)) {
-      filterFns.push((t) => isNotNil(t.preserving.id) && preservingIds.includes(t.preserving.id));
+      filterFns.push((t) => isNotNil(t.preservingId) && preservingIds.includes(t.preservingId));
     }
 
     // Status
@@ -98,7 +98,7 @@ export class RoundWeightConversionFilter
     // Location(s)
     const locationIds = isNotNil(this.locationId) ? [this.locationId] : this.locationIds;
     if (isNotEmptyArray(locationIds)) {
-      filterFns.push((t) => isNotNil(t.location?.id) && locationIds.includes(t.location?.id));
+      filterFns.push((t) => isNotNil(t.locationId) && locationIds.includes(t.locationId));
     }
 
     // Taxon group(s)

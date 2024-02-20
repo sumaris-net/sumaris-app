@@ -9,7 +9,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
+import { WeightLengthConversionFilter } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.filter';
 import { gql } from '@apollo/client/core';
 import { WeightLengthConversionFragments } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.fragments';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
@@ -61,7 +61,7 @@ const Mutations: BaseEntityGraphqlMutations = {
 @Injectable({ providedIn: 'root' })
 // @ts-ignore
 export class WeightLengthConversionService
-  extends BaseEntityService<WeightLengthConversion, WeightLengthConversionFilter, number>
+  extends BaseEntityService<WeightLengthConversion, WeightLengthConversionFilter>
   implements IEntityService<WeightLengthConversion>
 {
   constructor(

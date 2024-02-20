@@ -16,12 +16,12 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { WeightLengthConversion, WeightLengthConversionRef } from './weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
 import { gql } from '@apollo/client/core';
 import { WeightLengthConversionFragments } from './weight-length-conversion.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { CacheService } from 'ionic-cache';
 import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { WeightLengthConversionRefFilter } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.filter';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`
@@ -61,7 +61,7 @@ const CacheKeys = {
 @Injectable({ providedIn: 'root' })
 // @ts-ignore
 export class WeightLengthConversionRefService
-  extends BaseEntityService<WeightLengthConversionRef, WeightLengthConversionFilter, number>
+  extends BaseEntityService<WeightLengthConversionRef, WeightLengthConversionRefFilter, number>
   implements IEntityService<WeightLengthConversionRef>
 {
   constructor(
@@ -71,7 +71,7 @@ export class WeightLengthConversionRefService
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, WeightLengthConversionRef, WeightLengthConversionFilter, {
+    super(graphql, platform, WeightLengthConversionRef, WeightLengthConversionRefFilter, {
       queries: QUERIES,
     });
     this._logPrefix = '[weight-length-conversion-ref-service] ';
@@ -143,12 +143,11 @@ export class WeightLengthConversionRefService
    * </ul>
    *
    * @param filter
-   * @param page
-   * @param fetchOptions
+   * @param opts
    * @return
    */
   async loadByFilter(
-    filter: Partial<WeightLengthConversionFilter> & {
+    filter: Partial<WeightLengthConversionRefFilter> & {
       month: number;
       year: number;
       referenceTaxonId: number;
@@ -204,7 +203,7 @@ export class WeightLengthConversionRefService
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: Partial<WeightLengthConversionFilter>,
+    filter?: Partial<WeightLengthConversionRefFilter>,
     opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }
   ): Promise<LoadResult<WeightLengthConversionRef>> {
     filter = this.asFilter(filter);
@@ -224,7 +223,7 @@ export class WeightLengthConversionRefService
   }
 
   async clearCache() {
-    console.info('[weight-length-conversion-ref-service] Clearing cache...');
+    console.info(this._logPrefix + 'Clearing cache...');
     await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }
