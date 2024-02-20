@@ -131,9 +131,9 @@
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE":"Nombre de lignes",
-      "NEXT_PAGE":"Page suivante",
-      "PREVIOUS_PAGE":"Page précédente",
+      "ITEMS_PER_PAGE": "Nombre de lignes",
+      "NEXT_PAGE": "Page suivante",
+      "PREVIOUS_PAGE": "Page précédente",
       "OF": "sur"
     },
     "TABLE": {
@@ -478,7 +478,7 @@
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODE_FIELD": "Mode saisie <b>terrain</b>",
     "USAGE_MODE_DESK": "Mode saisie <b>bureau</b>",
-    "USAGE_MODES":  {
+    "USAGE_MODES": {
       "FIELD": "Saisie terrain",
       "DESK": "Saisie bureau"
     },
@@ -624,14 +624,14 @@
         "SYNC_HELP": "Marées synchronisées"
       },
       "INFO": {
-        "IMPORT_FILE_SUCCEED" : "Importation terminée :<br><b>{{inserts}} marée(s) importée(s) !",
-        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation terminée :<br><ul><li>{{inserts}} marée(s) importée(s);<li>{{errors}} marée(s) ignorée(s)."
+        "IMPORT_FILE_SUCCEED": "Importation terminée :<br><b>{{inserts}} marée(s) importée(s) !",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS": "Importation terminée :<br><ul><li>{{inserts}} marée(s) importée(s);<li>{{errors}} marée(s) ignorée(s)."
       },
       "WARNING": {
         "NEED_ONE_PROGRAM": "Veuillez d'abord <b>filtrer sur un programme</b> de collecte."
       },
       "ERROR": {
-        "IMPORT_FILE_FAILED" : "<b>Aucune marée n'a pu être importée</b> !<br/><small>Erreur technique: {{error}}</small>"
+        "IMPORT_FILE_FAILED": "<b>Aucune marée n'a pu être importée</b> !<br/><small>Erreur technique: {{error}}</small>"
       }
     },
     "TRASH": {
@@ -741,10 +741,10 @@
         "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE": "Dupliquer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
-        "BTN_OPEN_PARENT" : "Ouvrir le filage...",
-        "BTN_SELECT_PARENT" : "Sélectionner le filage...",
-        "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
-        "BTN_NEW" : "OP",
+        "BTN_OPEN_PARENT": "Ouvrir le filage...",
+        "BTN_SELECT_PARENT": "Sélectionner le filage...",
+        "BTN_SAVE_AND_NEW": "Sauvegarder et nouveau",
+        "BTN_NEW": "OP",
         "BTN_LOG": "Log",
         "COMMENTS": "Commentaires",
         "CATCH": "Capture",
@@ -773,19 +773,19 @@
         "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_DOTS" : "Distance : {{distance}} miles",
-        "START_PARENT_OPERATION" : "Début filage :",
-        "END_PARENT_OPERATION" : "Fin filage / Début pêche :",
-        "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
-        "END_CHILD_OPERATION" : "Fin virage :",
-        "PARENT_OPERATION" : "Opération associée",
+        "DISTANCE_DOTS": "Distance : {{distance}} miles",
+        "START_PARENT_OPERATION": "Début filage :",
+        "END_PARENT_OPERATION": "Fin filage / Début pêche :",
+        "START_CHILD_OPERATION": "Fin pêche / Début virage :",
+        "END_CHILD_OPERATION": "Fin virage :",
+        "PARENT_OPERATION": "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
         "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
-          "TITLE" : "Type d'opération :",
-          "PARENT" : "Filage",
-          "CHILD" : "Virage"
+          "TITLE": "Type d'opération :",
+          "PARENT": "Filage",
+          "CHILD": "Virage"
         },
         "START_POSITION": {
           "LATITUDE": "Latitude de début",
@@ -811,13 +811,13 @@
         }
       },
       "PARENT": {
-        "TITLE" : "Sélectionner filage",
-        "TRIP" : "{{vessel}} - Marée {{departureDateTime}}",
-        "FILTER" : {
-          "SEARCH_TEXT" : "Recherche : code engin / espèce",
-          "START_DATE" : "Début de période",
-          "GEAR" : "Engin",
-          "TARGET_SPECIE" : "Espèce cible"
+        "TITLE": "Sélectionner filage",
+        "TRIP": "{{vessel}} - Marée {{departureDateTime}}",
+        "FILTER": {
+          "SEARCH_TEXT": "Recherche : code engin / espèce",
+          "START_DATE": "Début de période",
+          "GEAR": "Engin",
+          "TARGET_SPECIE": "Espèce cible"
         }
       },
       "PMFM": {
@@ -854,8 +854,8 @@
         "DOWNLOAD_JSON_FILENAME": "Opérations.json"
       },
       "FILTER": {
-        "GEAR" : "Engin",
-        "START_DATE" : "Début de période",
+        "GEAR": "Engin",
+        "START_DATE": "Début de période",
         "QUALITY": "État"
       },
       "SETTINGS": {
@@ -876,7 +876,7 @@
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "LOCAL_PARENT_OPERATION": "Opération provenant d'une marée non synchronisée",
         "MISSING_PARENT_OPERATION": "Opération inexistante ou associée à un autre virage",
-        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
+        "TOO_LONG_DISTANCE": "Distance trop grande ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles.",
         "CATCH_ERROR": "Erreur dans la saisie de la capture"
@@ -1344,8 +1344,7 @@
         "END_DATE": "Fin de période"
       }
     },
-    "PMFM": {
-    },
+    "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
       "HISTORICAL_DATA_DIVIDER": "Historique de données",
@@ -1443,7 +1442,7 @@
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaire",
       "CREATION_DATE": "Date de création",
-      "RECORDER_PERSON" : "Saisisseur",
+      "RECORDER_PERSON": "Saisisseur",
       "SAMPLES_COUNT": "Nb mesures",
       "QUALITY": "État",
       "SAMPLING": {
@@ -1774,7 +1773,7 @@
       "IS_NAMING": "Nommage conventionnel ?",
       "IS_VIRTUAL": "Virtuel ?",
       "USE_EXISTING_REFERENCE_TAXON": "Utiliser référence unique de taxon existante ?",
-      "REFERENCE_TAXON":"Référence unique de taxon",
+      "REFERENCE_TAXON": "Référence unique de taxon",
       "TAXONOMIC_LEVEL": "Niveau taxonomique",
       "START_DATE": "Date de début",
       "END_DATE": "Date de fin",
@@ -2011,11 +2010,11 @@
     },
     "OPTIONS": {
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
-      "I18N_SUFFIX" : "Dictionnaire thématique",
-      "I18N_SUFFIX_LEGACY" : "Par défaut",
-      "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
-      "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
-      "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
+      "I18N_SUFFIX": "Dictionnaire thématique",
+      "I18N_SUFFIX_LEGACY": "Par défaut",
+      "I18N_SUFFIX_SAMPLING": "Paramètres biologiques",
+      "I18N_SUFFIX_SURVIVAL_TEST": "Tests de survie",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH": "Capture accidentelle",
       "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Sélectivité chalut",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
@@ -2076,8 +2075,8 @@
       "TRIP_OPERATION_METIER_ENABLE": "Marée > Opération : Métier ?",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",
-      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur (miles) :",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING": "Marée > Opération : Distance max parcourue avant alerte (miles) :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Marée > Opération : Distance max parcourue avant erreur (miles) :",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Marée > Opération : Durée maximale de pose ou relève (heures)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Marée > Opération : Durée maximale totale (heures)",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
@@ -2131,7 +2130,7 @@
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "STRATEGY_EDITOR" : "Stratégie > Éditeur",
+      "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
@@ -2232,10 +2231,10 @@
         "ANALYTIC_REFERENCE": "Code analytique",
         "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
         "TAXON_NAMES": "Espèce(s) scientifique(s)",
-        "EFFORT_Q1": "Effort T1" ,
-        "EFFORT_Q2": "Effort T2" ,
-        "EFFORT_Q3": "Effort T3" ,
-        "EFFORT_Q4": "Effort T4" ,
+        "EFFORT_Q1": "Effort T1",
+        "EFFORT_Q2": "Effort T2",
+        "EFFORT_Q3": "Effort T3",
+        "EFFORT_Q4": "Effort T4",
         "PARAMETERS": "Paramètres collectés",
         "COMMENTS": "Commentaires",
         "AGE": "Age",
@@ -2256,10 +2255,10 @@
           "START_YEAR": "Année début",
           "END_YEAR": "Année fin",
           "PARAMETER_GROUPS": "Paramètres à mesurer",
-          "EFFORT_Q1": "Efforts T1" ,
-          "EFFORT_Q2": "Efforts T2" ,
-          "EFFORT_Q3": "Efforts T3" ,
-          "EFFORT_Q4": "Efforts T4" ,
+          "EFFORT_Q1": "Efforts T1",
+          "EFFORT_Q2": "Efforts T2",
+          "EFFORT_Q3": "Efforts T3",
+          "EFFORT_Q4": "Efforts T4",
           "PARAMETERS": "Paramètres à mesurer",
           "PARAMETERS_DOTS": "Paramètres à mesurer :",
           "COMMENTS": "Commentaires",
@@ -2273,15 +2272,15 @@
       },
       "SUMMARY": {
         "TITLE": "Stratégie",
-        "LOCATIONS" :"Lieux applicables :",
-        "TAXON_NAMES" :"Espèce(s) scientifique(s) :",
-        "TAXON_GROUPS" :"Espèce(s) commerciale(s) :",
-        "BTN_SHOW" :"Ouvrir la stratégie",
-        "SAMPLING" : {
+        "LOCATIONS": "Lieux applicables :",
+        "TAXON_NAMES": "Espèce(s) scientifique(s) :",
+        "TAXON_GROUPS": "Espèce(s) commerciale(s) :",
+        "BTN_SHOW": "Ouvrir la stratégie",
+        "SAMPLING": {
           "TITLE": "Plan d'échantillonnage",
-          "LOCATIONS" :"Zone(s) de pêche :",
-          "TAXON_NAMES" :"Espèce cible :",
-          "TAXON_GROUPS" :"Espèces commerciales :",
+          "LOCATIONS": "Zone(s) de pêche :",
+          "TAXON_NAMES": "Espèce cible :",
+          "TAXON_GROUPS": "Espèces commerciales :",
           "BTN_SHOW": "Ouvrir la ligne de plan"
         }
       },
@@ -2455,8 +2454,8 @@
       "TECH_CHART_TITLE": "{{aggColumnName}} par <b>{{techColumnName}}</b>",
       "FREEZE_VALUES": "Figer les valeurs",
       "LEGEND": "Légende",
-      "SCALE_LINEAR" : "Linéaire",
-      "SCALE_LOGARITHMIC":  "Logarithmique",
+      "SCALE_LINEAR": "Linéaire",
+      "SCALE_LOGARITHMIC": "Logarithmique",
       "CHART_AXIS_Y": "Échelle Y (gauche)",
       "CHART_AXIS_X": "Échelle X (bas)",
       "LEGEND_FORM": {
@@ -2467,14 +2466,14 @@
       },
       "CHART_TYPE": {
         "TITLE": "Type de graphique",
-        "PIE" : "Camenbert",
-        "BAR":  "Histogramme",
+        "PIE": "Camenbert",
+        "BAR": "Histogramme",
         "DOUGHNUT": "Donut"
       },
       "CHART_SORT_BY": {
         "TITLE": "Trier par",
-        "LABEL" : "Libellé (asc)",
-        "VALUE":  "Valeur (desc)"
+        "LABEL": "Libellé (asc)",
+        "VALUE": "Valeur (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
@@ -2539,12 +2538,12 @@
       "FISHING_TIME": "Temps de pêche (min)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (g)",
-      "NB_FISHERMEN" : "Nombre d'homme à bord",
+      "NB_FISHERMEN": "Nombre d'homme à bord",
       "GEAR_LABEL": "Libellé de l'engin",
       "SMALLER_MESH_GAUGE": "Maillage à la jauge",
       "NAME": "Nom",
       "NET_LENGTH": "Longueur filée",
-      "NET_HEIGHT":"Hauteur du filet",
+      "NET_HEIGHT": "Hauteur du filet",
       "LENGTH_TOTAL_KM": "Longueur totale (km)",
       "LENGTH_TOTAL_CM": "Longueur totale (cm)",
       "LENGTH_CARAPACE_CM": "Longueur céphalothoracique (cm)",
@@ -2581,7 +2580,7 @@
       "CA": "Sex-Age",
       "CL": "Débarquements",
       "CE": "Efforts",
-      "ST": "Mesures individuelles",
+      "ST": "Suivis individuels",
       "RL": "Relâché",
       "FG": "Engins de pêche"
     },
