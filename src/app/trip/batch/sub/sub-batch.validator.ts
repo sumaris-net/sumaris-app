@@ -487,6 +487,11 @@ export class SubBatchValidators {
             value = rwService.inverseAliveWeight(rwConversion, value);
             console.debug(`[sub-batch-validator] Dressing/preservation weight = ${value}kg`);
           }
+          // TODO : Peut on continuer, sans coef poids vif, même pour Entier/Frais (ex: Langoustine)
+          else {
+            console.warn(`[sub-batch-validator] Missing round weight conversion for dressingId=${dressingId}. Cannot apply conversion`);
+            //return undefined;
+          }
         }
       }
 
