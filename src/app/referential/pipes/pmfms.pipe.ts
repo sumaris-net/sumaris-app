@@ -79,7 +79,7 @@ interface PmfmValueOptions {
   propertyNames?: string[];
   html?: boolean;
   hideIfDefaultValue?: boolean;
-  showLabelForPmfmIds?: number[];
+  showNameForPmfmIds?: number[];
   applyDisplayConversion?: boolean;
 }
 

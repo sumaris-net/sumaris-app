@@ -74,7 +74,7 @@
             <div *ngFor="let activity of activities">
               <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
                 {{
-                  activity.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds }
+                  activity.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, hideIfDefaultValue: true, showNameForPmfmIds: showNameForPmfmIds }
                 }}
               </div>
               <div *ngFor="let metier of activity.metiers; last as last">
@@ -108,7 +108,7 @@
           <div *ngFor="let activity of getActivities(row, date)" [class.mat-cell-error]="activity.invalid">
             <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
               {{
-                activity.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds }
+                activity.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, hideIfDefaultValue: true, showNameForPmfmIds: showNameForPmfmIds }
               }}
             </div>
             <div *ngFor="let metier of activity.metiers; last as last">

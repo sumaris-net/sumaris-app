@@ -43,7 +43,7 @@ import { AppBaseTable } from '@app/shared/table/base.table';
 export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, AggregatedLandingFilter> implements OnInit, OnDestroy {
   canDelete: boolean;
   isAdmin: boolean;
-  showLabelForPmfmIds: number[];
+  showNameForPmfmIds: number[];
 
   $currentDate = new BehaviorSubject<Moment>(undefined);
   $dates = new BehaviorSubject<Moment[]>(undefined);
@@ -392,7 +392,7 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
       );
     }
 
-    this.showLabelForPmfmIds = [PmfmIds.REFUSED_SURVEY];
+    this.showNameForPmfmIds = [PmfmIds.REFUSED_SURVEY];
 
     // Apply
     this.loadingPmfms = false;

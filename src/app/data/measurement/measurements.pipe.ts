@@ -28,7 +28,7 @@ export class MeasurementValueGetPipe extends PmfmValuePipe implements PipeTransf
       propertyNames?: string[];
       html?: boolean;
       hideIfDefaultValue?: boolean;
-      showLabelForPmfmIds?: number[];
+      showNameForPmfmIds?: number[];
       separator?: string;
     }
   ): any {

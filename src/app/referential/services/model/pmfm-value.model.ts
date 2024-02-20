@@ -197,7 +197,7 @@ export abstract class PmfmValueUtils {
 
   static valueToString(
     value: any,
-    opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }
+    opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showNameForPmfmids?: number[] }
   ): string | undefined {
     if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
@@ -218,7 +218,7 @@ export abstract class PmfmValueUtils {
           return null;
         }
         let result = (value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label)) || null;
-        if (result && opts.showLabelForPmfmIds?.includes(opts.pmfm.id)) {
+        if (result && opts.showNameForPmfmids?.includes(opts.pmfm.id)) {
           result = referentialToString(opts.pmfm, ['name']) + ': ' + result;
         }
         return result;
