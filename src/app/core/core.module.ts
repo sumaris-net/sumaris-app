@@ -1,11 +1,10 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
-import {IonicStorageModule} from '@ionic/storage-angular';
-import {HttpClientModule} from '@angular/common/http';
-import {CacheModule} from 'ionic-cache';
-import {AppGraphQLModule, CoreModule} from '@sumaris-net/ngx-components';
-import {AppSharedModule} from '@app/shared/shared.module';
-import {IsEmptyReferentialPipe, IsNotEmptyReferentialPipe} from '@app/core/pipes/core.pipe';
-
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { IonicStorageModule } from '@ionic/storage-angular';
+import { HttpClientModule } from '@angular/common/http';
+import { CacheModule } from 'ionic-cache';
+import { AppGraphQLModule, CoreModule } from '@sumaris-net/ngx-components';
+import { AppSharedModule } from '@app/shared/shared.module';
+import { IsEmptyReferentialPipe, IsNotEmptyReferentialPipe } from '@app/core/pipes/core.pipe';
 
 @NgModule({
   imports: [
@@ -16,12 +15,12 @@ import {IsEmptyReferentialPipe, IsNotEmptyReferentialPipe} from '@app/core/pipes
 
     // App modules
     AppSharedModule,
-    AppGraphQLModule
+    AppGraphQLModule,
   ],
   declarations: [
     // Pipes
     IsNotEmptyReferentialPipe,
-    IsEmptyReferentialPipe
+    IsEmptyReferentialPipe,
   ],
   exports: [
     CoreModule,
@@ -29,18 +28,14 @@ import {IsEmptyReferentialPipe, IsNotEmptyReferentialPipe} from '@app/core/pipes
 
     // Pipes
     IsNotEmptyReferentialPipe,
-    IsEmptyReferentialPipe
-  ]
+    IsEmptyReferentialPipe,
+  ],
 })
 export class AppCoreModule {
-
   static forRoot(): ModuleWithProviders<AppCoreModule> {
-
     return {
       ngModule: AppCoreModule,
-      providers: [
-        ...CoreModule.forRoot().providers
-      ]
+      providers: [...CoreModule.forRoot().providers],
     };
   }
 }

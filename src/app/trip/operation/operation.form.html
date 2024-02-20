@@ -31,13 +31,7 @@
             [class.mat-form-field-invalid]="control.invalid"
             *ngVar="parentControl as control"
           >
-            <input
-              matInput
-              type="text"
-              hidden
-              [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION' | translate"
-              formControlName="parentOperation"
-            />
+            <input matInput type="text" hidden [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION' | translate" formControlName="parentOperation" />
             <input
               matInput
               type="text"
@@ -59,7 +53,7 @@
             </button>
             <ng-template #otherButtons>
               <button
-                *ngIf="control.errors | mapGet : 'msg' as msg"
+                *ngIf="control.errors | mapGet: 'msg' as msg"
                 matSuffix
                 mat-icon-button
                 type="button"
@@ -112,7 +106,7 @@
               <span *ngSwitchCase="'remoteParent'" translate>TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION</span>
               <span *ngSwitchCase="'existsParent'" translate>TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION</span>
               <span *ngSwitchCase="'msg'">
-                {{ control.errors.msg?.key || control.errors.msg | translate : control.errors.msg?.params }}
+                {{ control.errors.msg?.key || control.errors.msg | translate: control.errors.msg?.params }}
               </span>
             </mat-error>
           </mat-form-field>
@@ -324,14 +318,14 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <mat-error *ngIf="position.hasError('maxDistance')">
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : position.errors.maxDistance }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
                 </mat-error>
                 <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
                   <mat-icon color="warn">warning</mat-icon>
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : { distance: distance } }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
                 </mat-hint>
                 <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate : { distance: distance } }}
+                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>
@@ -413,9 +407,7 @@
     <!-- End -->
     <ion-row *ngIf="endDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label *ngIf="allowParentOperation; else end" class="ion-float-end" translate>
-          TRIP.OPERATION.EDIT.END_CHILD_OPERATION
-        </ion-label>
+        <ion-label *ngIf="allowParentOperation; else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
         <ng-template #end>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END</ion-label>
         </ng-template>
@@ -478,14 +470,14 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <mat-error *ngIf="position.hasError('maxDistance')">
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : position.errors.maxDistance }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
                 </mat-error>
                 <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
                   <mat-icon color="warn">warning</mat-icon>
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate : { distance: distance } }}
+                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
                 </mat-hint>
                 <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate : { distance: distance } }}
+                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>
@@ -498,9 +490,7 @@
     <ng-container *ngIf="showFishingArea">
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
         <ion-col size="0" size-md="3" size-lg="3">
-          <ion-label class="ion-float-end" hidden-xs hidden-sm *ngIf="first" translate>
-            TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS
-          </ion-label>
+          <ion-label class="ion-float-end" hidden-xs hidden-sm *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
         </ion-col>
         <ion-col [formGroup]="fishingAreaForm">
           <mat-autocomplete-field

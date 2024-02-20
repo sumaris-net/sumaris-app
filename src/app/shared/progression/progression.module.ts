@@ -7,17 +7,8 @@ import { LetModule } from '@rx-angular/template/let';
 import { PushModule } from '@rx-angular/template/push';
 
 @NgModule({
-  imports: [
-    SharedModule,
-    IfModule, ForModule, LetModule, PushModule
-  ],
-  declarations: [
-    AppProgressBarComponent
-  ],
-  exports: [
-    AppProgressBarComponent
-  ]
+  imports: [SharedModule, IfModule, ForModule, LetModule, PushModule],
+  declarations: [AppProgressBarComponent],
+  exports: [AppProgressBarComponent],
 })
-export class AppSharedProgressionModule {
-
-}
+export class AppSharedProgressionModule {}

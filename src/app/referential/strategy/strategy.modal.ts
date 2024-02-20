@@ -7,19 +7,21 @@ import moment, { Moment } from 'moment';
 @Component({
   selector: 'app-strategy-modal',
   templateUrl: './strategy.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StrategyModal extends AppForm<{year: Moment}> implements OnInit {
-
+export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
   constructor(
     injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, formBuilder.group({
-      year: [null, Validators.required]
-    }));
+    super(
+      injector,
+      formBuilder.group({
+        year: [null, Validators.required],
+      })
+    );
   }
 
   ngOnInit() {

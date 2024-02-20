@@ -68,5 +68,5 @@ import 'moment-timezone';
 
 // Import swiper
 // Register Swiper lib - see
-import {register} from 'swiper/element/bundle';
+import { register } from 'swiper/element/bundle';
 register();

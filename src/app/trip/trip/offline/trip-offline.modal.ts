@@ -15,21 +15,18 @@ import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 import moment from 'moment';
 
-export interface  TripOfflineModalOptions {
+export interface TripOfflineModalOptions {
   value?: TripSynchroImportFilter;
 }
 
 @Component({
   selector: 'app-trip-offline-modal',
-  styleUrls: [
-    './trip-offline.modal.scss'
-  ],
+  styleUrls: ['./trip-offline.modal.scss'],
   templateUrl: './trip-offline.modal.html',
   animations: [slideUpDownAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions{
-
+export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions {
   mobile: boolean;
   periodDurationLabels: { key: string; label: string; startDate: Moment }[];
 
@@ -61,24 +58,27 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     protected vesselSnapshotService: VesselSnapshotService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
         periodDuration: ['15 day', Validators.required],
-      }));
+      })
+    );
     this._enable = false; // Disable by default
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
-      const date = moment().utc(false)
+    this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
+      const date = moment()
+        .utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
-        label: `${date.fromNow(true/*no suffix*/)} (${date.format(datePattern)})`,
-        startDate: date.startOf('day') // Reset time
+        label: `${date.fromNow(true /*no suffix*/)} (${date.format(datePattern)})`,
+        startDate: date.startOf('day'), // Reset time
       };
     });
   }
@@ -91,14 +91,13 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       service: this.programRefService,
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
   }
 
   async setValue(value: TripSynchroImportFilter | any) {
@@ -107,15 +106,14 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const json = {
       program: null,
       vesselSnapshot: null,
-      periodDuration: null
+      periodDuration: null,
     };
 
     // Program
     if (value.programLabel) {
       try {
-        json.program = await this.programRefService.loadByLabel(value.programLabel, {query: ProgramRefQueries.loadLight});
-      }
-      catch (err) {
+        json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
+      } catch (err) {
         console.error(err);
         json.program = null;
         if (err && err.message) {
@@ -124,11 +122,10 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       }
     }
 
-    if (value.vesselId){
+    if (value.vesselId) {
       try {
         json.vesselSnapshot = await this.vesselSnapshotService.load(value.vesselId);
-      }
-      catch (err) {
+      } catch (err) {
         console.error(err);
         json.vesselSnapshot = null;
         if (err && err.message) {
@@ -157,13 +154,13 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const value = new TripSynchroImportFilter();
 
     // Set program
-    value.programLabel = json.program && json.program.label || json.program;
+    value.programLabel = (json.program && json.program.label) || json.program;
 
-    value.vesselId = json.vesselSnapshot && json.vesselSnapshot.id || json.vesselSnapshot;
+    value.vesselId = (json.vesselSnapshot && json.vesselSnapshot.id) || json.vesselSnapshot;
 
     // Set start date
     if (json.periodDuration) {
-      const periodDuration = this.periodDurationLabels.find(item => item.key === json.periodDuration);
+      const periodDuration = this.periodDurationLabels.find((item) => item.key === json.periodDuration);
       value.startDate = periodDuration && periodDuration.startDate;
 
       // Keep value of periodDuration (to be able to save it in local settings)
@@ -180,7 +177,6 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
   }
 
   async validate(event?: Event) {
-
     this.errorSubject.next(null);
 
     this.markAllAsTouched();

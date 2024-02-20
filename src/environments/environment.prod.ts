@@ -5,8 +5,8 @@ const pkg = require('../../package.json');
 
 /* tslint:disable */
 export const environment = Object.freeze(<AppEnvironment>{
-  name: (pkg.name as string),
-  version: (pkg.version as string),
+  name: pkg.name as string,
+  version: pkg.version as string,
   production: true,
   baseUrl: '/',
   defaultLocale: 'fr',
@@ -29,37 +29,37 @@ export const environment = Object.freeze(<AppEnvironment>{
   defaultPeers: [
     {
       host: 'www.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'open.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'adap.pecheursdebretagne.eu',
-      port: 443
+      port: 443,
     },
     {
       host: 'imagine-pod.ifremer.fr',
       port: 443,
-      useSsl: true
+      useSsl: true,
     },
     {
       host: 'sih.sfa.sc',
       port: 443,
-      useSsl: true
+      useSsl: true,
     },
 
     // -- Tests instances --
     {
       host: 'adap-test.pecheursdebretagne.eu',
       port: 443,
-      useSsl: true
+      useSsl: true,
     },
     {
       host: 'test.sumaris.net',
-      port: 443
-    }
+      port: 443,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -71,28 +71,28 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   // Storage
   storage: {
-    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage],
   },
 
   account: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 0,
   },
 
   entityEditor: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 0,
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 30
+    listenIntervalInSeconds: 30,
   },
 
   menu: {
     subMenu: {
-      enable: false
-    }
-  }
+      enable: false,
+    },
+  },
 });
 /* tslint:enable */

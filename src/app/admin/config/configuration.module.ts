@@ -20,15 +20,9 @@ import { AppJobAdminModule } from '@app/admin/job/job-list.module';
     AppSocialModule,
     AppReferentialModule,
     AppSoftwareModule,
-    AppJobAdminModule
+    AppJobAdminModule,
   ],
-  declarations: [
-    ConfigurationPage
-  ],
-  exports: [
-    ConfigurationPage
-  ]
+  declarations: [ConfigurationPage],
+  exports: [ConfigurationPage],
 })
-export class AppConfigurationModule {
-
-}
+export class AppConfigurationModule {}

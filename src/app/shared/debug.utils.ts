@@ -6,9 +6,9 @@ export class DebugUtils {
     const keys1 = Object.keys(obj1);
     const keys2 = Object.keys(obj1);
 
-    const missingKeys = keys1.filter(key1 => !keys2.includes(key1)).concat(keys2.filter(key2 => !keys1.includes(key2)));
-    const unionKeys = keys1.filter(key1 => keys2.includes(key1));
-    const diffProperties = unionKeys.filter(key => {
+    const missingKeys = keys1.filter((key1) => !keys2.includes(key1)).concat(keys2.filter((key2) => !keys1.includes(key2)));
+    const unionKeys = keys1.filter((key1) => keys2.includes(key1));
+    const diffProperties = unionKeys.filter((key) => {
       const v1 = obj1[key];
       const v2 = obj2[key];
       if (ReferentialUtils.isNotEmpty(v1) || ReferentialUtils.isNotEmpty(v2)) {
@@ -23,13 +23,12 @@ export class DebugUtils {
     // Log
     let message = '';
     if (missingKeys.length) message += `\n - Missing properties: ${missingKeys.join(',')}`;
-    diffProperties.forEach(key => {
+    diffProperties.forEach((key) => {
       const v1 = obj1[key];
       const v2 = obj2[key];
       if (ReferentialUtils.isNotEmpty(v1) || ReferentialUtils.isNotEmpty(v2)) {
         message += `\n - Property ${key}.id: ${v1?.id} !== ${v2?.id}`;
-      }
-      else {
+      } else {
         message += `\n - Property ${key}: ${v1} !== ${v2}`;
       }
     });
@@ -37,6 +36,5 @@ export class DebugUtils {
     if (isNotNilOrBlank(message)) {
       console.debug(`[diff] Entity diff: ${message}`);
     }
-
   }
 }

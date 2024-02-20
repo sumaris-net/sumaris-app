@@ -3,24 +3,35 @@ import { GraphqlService } from '@sumaris-net/ngx-components';
 import { FetchPolicy } from '@apollo/client/core';
 import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import { SelectivityExtractionData, SelectivityGear, SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation, SelectivityTrip } from './selectivity-trip-report.model';
-
+import {
+  SelectivityExtractionData,
+  SelectivityGear,
+  SelectivitySpeciesLength,
+  SelectivitySpeciesList,
+  SelectivityStation,
+  SelectivityTrip,
+} from './selectivity-trip-report.model';
 
 @Injectable()
-export class SelectivityTripReportService extends TripReportService<SelectivityExtractionData, SelectivityTrip, SelectivityStation, SelectivitySpeciesList, SelectivitySpeciesLength> {
-
-  constructor(
-    protected graphql: GraphqlService
-  ) {
+export class SelectivityTripReportService extends TripReportService<
+  SelectivityExtractionData,
+  SelectivityTrip,
+  SelectivityStation,
+  SelectivitySpeciesList,
+  SelectivitySpeciesLength
+> {
+  constructor(protected graphql: GraphqlService) {
     super(graphql);
   }
 
-  loadAll(filter: Partial<ExtractionFilter>,
-          opts?: {
-             fetchPolicy?: FetchPolicy;
-             cache?: boolean; // enable by default
-             cacheDuration?: ExtractionCacheDurationType;
-           }): Promise<SelectivityExtractionData> {
+  loadAll(
+    filter: Partial<ExtractionFilter>,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      cache?: boolean; // enable by default
+      cacheDuration?: ExtractionCacheDurationType;
+    }
+  ): Promise<SelectivityExtractionData> {
     return super.loadAll(filter, {
       ...opts,
       formatLabel: 'apase',
@@ -30,9 +41,8 @@ export class SelectivityTripReportService extends TripReportService<SelectivityE
         FG: SelectivityGear,
         HH: SelectivityStation,
         SL: SelectivitySpeciesList,
-        HL: SelectivitySpeciesLength
-      }
+        HL: SelectivitySpeciesLength,
+      },
     });
   }
-
 }

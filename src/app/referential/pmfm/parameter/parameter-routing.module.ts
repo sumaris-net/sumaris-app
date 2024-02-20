@@ -10,16 +10,13 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ParameterPage,
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppPmfmParameterModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppPmfmParameterModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppPmfmParameterRoutingModule { }
+export class AppPmfmParameterRoutingModule {}

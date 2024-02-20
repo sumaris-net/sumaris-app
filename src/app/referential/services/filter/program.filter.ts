@@ -1,11 +1,19 @@
-import {BaseReferentialFilter} from './referential.filter';
-import {Program} from '../model/program.model';
-import { EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, toDateISOString } from '@sumaris-net/ngx-components';
+import { BaseReferentialFilter } from './referential.filter';
+import { Program } from '../model/program.model';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityUtils,
+  FilterFn,
+  fromDateISOString,
+  isNotEmptyArray,
+  isNotNil,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 
-@EntityClass({typename: 'ProgramFilterVO'})
+@EntityClass({ typename: 'ProgramFilterVO' })
 export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program> {
-
   static ENTITY_NAME = 'Program';
   static fromObject: (source: any, opts?: any) => ProgramFilter;
 
@@ -34,9 +42,10 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
     target.minUpdateDate = toDateISOString(this.minUpdateDate);
     if (opts && opts.minify) {
       // Init searchAttribute, only when NOT searching on 'label' AND 'name' (not need to pass it to POD)
-      if (!target.searchAttribute && isNotEmptyArray(this.searchAttributes)
-        && (this.searchAttributes.length !== 2
-          || !(this.searchAttributes.includes('label') && this.searchAttributes.includes('name')))
+      if (
+        !target.searchAttribute &&
+        isNotEmptyArray(this.searchAttributes) &&
+        (this.searchAttributes.length !== 2 || !(this.searchAttributes.includes('label') && this.searchAttributes.includes('name')))
       ) {
         target.searchAttribute = this.searchAttributes[0] || undefined;
       }
@@ -59,7 +68,7 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
 
     // Filter on acquisition levels
     if (isNotEmptyArray(this.acquisitionLevelLabels)) {
-      filterFns.push((entity) => (entity.acquisitionLevelLabels || []).some(label => this.acquisitionLevelLabels.includes(label)));
+      filterFns.push((entity) => (entity.acquisitionLevelLabels || []).some((label) => this.acquisitionLevelLabels.includes(label)));
     }
 
     return filterFns;

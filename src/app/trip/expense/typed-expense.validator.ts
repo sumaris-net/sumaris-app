@@ -1,39 +1,32 @@
-import {MeasurementsValidatorOptions, MeasurementsValidatorService} from '@app/data/measurement/measurement.validator';
-import {Injectable} from '@angular/core';
-import {AbstractControlOptions, UntypedFormGroup, ValidatorFn, Validators} from '@angular/forms';
-import {Measurement} from '@app/data/measurement/measurement.model';
-import {SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { Measurement } from '@app/data/measurement/measurement.model';
+import { SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
   typePmfm?: IPmfm;
   totalPmfm?: IPmfm;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TypedExpenseValidatorService extends MeasurementsValidatorService<Measurement, TypedExpenseValidatorOptions> {
-
   getFormGroupConfig(data: Measurement[], opts?: TypedExpenseValidatorOptions): { [p: string]: any } {
-    return Object.assign(
-      super.getFormGroupConfig(data, opts),
-      {
-        amount: [null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
-        packaging: [null, SharedValidators.entity]
-      }
-    );
+    return Object.assign(super.getFormGroupConfig(data, opts), {
+      amount: [null, Validators.compose([SharedValidators.decimal({ maxDecimals: 2 }), Validators.min(0)])],
+      packaging: [null, SharedValidators.entity],
+    });
   }
 
   getFormGroupOptions(data?: Measurement[], opts?: TypedExpenseValidatorOptions): AbstractControlOptions {
     return {
-      validators: this.getDefaultValidators()
+      validators: this.getDefaultValidators(),
     };
   }
 
   getDefaultValidators(): ValidatorFn[] {
-    return [
-      SharedFormGroupValidators.requiredIf('packaging', 'amount'),
-      SharedFormGroupValidators.requiredIf('amount', 'packaging'),
-    ];
+    return [SharedFormGroupValidators.requiredIf('packaging', 'amount'), SharedFormGroupValidators.requiredIf('amount', 'packaging')];
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: TypedExpenseValidatorOptions) {

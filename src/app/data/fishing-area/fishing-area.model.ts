@@ -5,16 +5,18 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
 import { LocationUtils } from '@app/referential/location/location.utils';
 
-@EntityClass({typename: 'FishingAreaVO'})
+@EntityClass({ typename: 'FishingAreaVO' })
 export class FishingArea extends DataEntity<FishingArea> {
-
   static fromObject: (source: any, opts?: any) => FishingArea;
 
   static isEmpty(value: Partial<FishingArea>): boolean {
-    return !value || (!value.location || !value.location.id)
-      && (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id)
-      && (!value.depthGradient || !value.depthGradient.id)
-      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id);
+    return (
+      !value ||
+      ((!value.location || !value.location.id) &&
+        (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id) &&
+        (!value.depthGradient || !value.depthGradient.id) &&
+        (!value.nearbySpecificArea || !value.nearbySpecificArea.id))
+    );
   }
 
   location: ReferentialRef;
@@ -36,10 +38,11 @@ export class FishingArea extends DataEntity<FishingArea> {
 
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
-    target.location = this.location && this.location.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.distanceToCoastGradient = this.distanceToCoastGradient && this.distanceToCoastGradient.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.depthGradient = this.depthGradient && this.depthGradient.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.nearbySpecificArea = this.nearbySpecificArea && this.nearbySpecificArea.asObject({...options, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.location = (this.location && this.location.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.distanceToCoastGradient =
+      (this.distanceToCoastGradient && this.distanceToCoastGradient.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.depthGradient = (this.depthGradient && this.depthGradient.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.nearbySpecificArea = (this.nearbySpecificArea && this.nearbySpecificArea.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 
@@ -54,15 +57,14 @@ export class FishingArea extends DataEntity<FishingArea> {
   }
 
   equals(other: FishingArea): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (
-        ReferentialUtils.equals(this.location, other.location)
-        && ReferentialUtils.equals(this.distanceToCoastGradient, other.distanceToCoastGradient)
-        && ReferentialUtils.equals(this.depthGradient, other.depthGradient)
-        && ReferentialUtils.equals(this.nearbySpecificArea, other.nearbySpecificArea)
-      );
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      (ReferentialUtils.equals(this.location, other.location) &&
+        ReferentialUtils.equals(this.distanceToCoastGradient, other.distanceToCoastGradient) &&
+        ReferentialUtils.equals(this.depthGradient, other.depthGradient) &&
+        ReferentialUtils.equals(this.nearbySpecificArea, other.nearbySpecificArea))
+    );
   }
-
 }
 
 export class FishingAreaUtils {

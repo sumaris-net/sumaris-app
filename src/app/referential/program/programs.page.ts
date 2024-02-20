@@ -8,17 +8,16 @@ import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
 export const ProgramsPageSettingsEnum = {
   PAGE_ID: 'programs',
-  FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY
+  FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
 };
 
 @Component({
   selector: 'app-program-page',
   templateUrl: './programs.page.html',
   styleUrls: ['./programs.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgramsPage implements OnInit {
-
   canEdit: boolean;
   canDelete: boolean;
 
@@ -40,13 +39,10 @@ export class ProgramsPage implements OnInit {
   }
 
   ngOnInit() {
-    this.table.settingsId =  ProgramsPageSettingsEnum.PAGE_ID;
+    this.table.settingsId = ProgramsPageSettingsEnum.PAGE_ID;
     this.table.entityName = 'Program';
     this.table.restoreFilterOrLoad();
   }
 
   /* -- protected methods -- */
-
-
 }
-

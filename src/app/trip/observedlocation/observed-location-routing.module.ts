@@ -108,15 +108,8 @@ const routes: Routes = [
   },
 ];
 
-
 @NgModule({
-  imports: [
-    AppObservedLocationModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppObservedLocationModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppObservedLocationRoutingModule {
-}
+export class AppObservedLocationRoutingModule {}

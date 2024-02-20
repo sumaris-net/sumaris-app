@@ -16,7 +16,7 @@ import {
   StatusById,
   StatusIds,
   StatusList,
-  trimEmptyToNull
+  trimEmptyToNull,
 } from '@sumaris-net/ngx-components';
 import { Observable, tap } from 'rxjs';
 import { FormControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -31,24 +31,19 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
 import { debounceTime, filter } from 'rxjs/operators';
 
-
 export const VesselsTableSettingsEnum = {
   TABLE_ID: 'vessels',
-  FEATURE_ID: VESSEL_FEATURE_NAME
+  FEATURE_ID: VESSEL_FEATURE_NAME,
 };
-
 
 @Component({
   selector: 'app-vessels-table',
   templateUrl: 'vessels.table.html',
   styleUrls: ['./vessels.table.scss'],
-  providers: [
-    { provide: ValidatorService, useClass: VesselValidatorService }
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useClass: VesselValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {
-
   locations: Observable<ReferentialRef[]>;
 
   readonly statusList = StatusList;
@@ -97,7 +92,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     return this.searchTextControl.value;
   }
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,
@@ -108,26 +103,15 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      Vessel, VesselFilter,
+    super(
+      injector,
+      Vessel,
+      VesselFilter,
       // columns
-      [
-          'status',
-          'vesselFeatures.exteriorMarking',
-          'vesselRegistrationPeriod.registrationCode'
-      ]
-      .concat(settings.mobile ? [] : [
-        'vesselFeatures.startDate',
-        'vesselFeatures.endDate'
-      ])
-      .concat([
-        'vesselFeatures.name',
-        'vesselType',
-        'vesselFeatures.basePortLocation'
-      ])
-      .concat(settings.mobile ? [] : [
-        'comments'
-      ]),
+      ['status', 'vesselFeatures.exteriorMarking', 'vesselRegistrationPeriod.registrationCode']
+        .concat(settings.mobile ? [] : ['vesselFeatures.startDate', 'vesselFeatures.endDate'])
+        .concat(['vesselFeatures.name', 'vesselType', 'vesselFeatures.basePortLocation'])
+        .concat(settings.mobile ? [] : ['comments']),
       vesselService,
       null,
       {
@@ -135,8 +119,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
         suppressErrors: environment.production,
         saveOnlyDirtyRows: true,
         watchAllOptions: {
-          fetchPolicy: 'cache-and-network'
-        }
+          fetchPolicy: 'cache-and-network',
+        },
       }
     );
     this.i18nColumnPrefix = 'VESSEL.';
@@ -151,7 +135,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       searchText: [null],
       statusId: [null],
       synchronizationStatus: [null],
-      onlyWithRegistration: [null]
+      onlyWithRegistration: [null],
     });
     this.searchTextControl = this.filterForm.get('searchText') as UntypedFormControl;
     this.inlineEdition = false;
@@ -180,9 +164,9 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT,
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Registration locations
@@ -192,9 +176,9 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       filter: {
         entityName: 'Location',
         levelId: LocationLevelIds.COUNTRY,
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Vessel type
@@ -203,9 +187,9 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Restore filter from settings, or load all
@@ -215,13 +199,15 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   protected ionSearchBarChanged(event: CustomEvent<ISearchbarSearchbarChangeEventDetail>) {
     // Applying the filter, on any changes
     if (!this.onSearchBarChanged.observed) {
-      this.registerSubscription(this.onSearchBarChanged
-        .pipe(
-          filter(_ => !this.filterExpansionPanel.expanded),
-          tap(_ => this.markAsLoading()),
-          debounceTime(650)
-        )
-        .subscribe(searchText => this.patchFilter({searchText})));
+      this.registerSubscription(
+        this.onSearchBarChanged
+          .pipe(
+            filter((_) => !this.filterExpansionPanel.expanded),
+            tap((_) => this.markAsLoading()),
+            debounceTime(650)
+          )
+          .subscribe((searchText) => this.patchFilter({ searchText }))
+      );
     }
 
     const value = trimEmptyToNull(event?.detail.value);
@@ -237,15 +223,15 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       componentProps: <VesselModalOptions>{
         defaultStatus,
         synchronizationStatus: this.synchronizationStatus !== 'SYNC' ? SynchronizationStatusEnum.DIRTY : undefined,
-        canEditStatus: isNil(defaultStatus)
+        canEditStatus: isNil(defaultStatus),
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
 
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     // if new vessel added, refresh the table
     if (isNotNil(data)) this.onRefresh.emit();
@@ -256,7 +242,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   resetFilter(event?: Event) {
     const defaultFilter = <Partial<VesselFilter>>{
       statusId: this.disableStatusFilter ? this.filter.statusId : undefined,
-      synchronizationStatus: this.synchronizationStatus
+      synchronizationStatus: this.synchronizationStatus,
     };
     // Keep searchbar text
     if (this.showSearchbar && this.showToolbar) {
@@ -270,7 +256,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       event.preventDefault();
       event.stopPropagation();
     }
-    this.filterForm.patchValue({statusId: null});
+    this.filterForm.patchValue({ statusId: null });
   }
 
   /* -- protected methods -- */
@@ -279,4 +265,3 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     this.cd.markForCheck();
   }
 }
-

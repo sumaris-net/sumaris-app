@@ -53,4 +53,3 @@ export class MethodPage extends AppReferentialEditor<Method, MethodService> {
     return -1;
   }
 }
-

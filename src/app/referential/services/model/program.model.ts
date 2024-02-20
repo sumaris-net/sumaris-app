@@ -120,7 +120,7 @@ export class Program extends BaseReferential<Program> {
   }
 }
 
-@EntityClass({typename: 'ProgramDepartmentVO'})
+@EntityClass({ typename: 'ProgramDepartmentVO' })
 export class ProgramDepartment extends Entity<ProgramDepartment> {
   static fromObject: (source: any, opts?: any) => ProgramDepartment;
 
@@ -135,7 +135,7 @@ export class ProgramDepartment extends Entity<ProgramDepartment> {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    target.location = this.location && this.location.asObject(opts) || undefined;
+    target.location = (this.location && this.location.asObject(opts)) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.department = this.department && this.department.asObject(opts);
     return target;
@@ -148,20 +148,18 @@ export class ProgramDepartment extends Entity<ProgramDepartment> {
     this.privilege = source.privilege && ReferentialRef.fromObject(source.privilege);
     this.department = source.department && ReferentialRef.fromObject(source.department);
   }
-
 }
 
-
-@EntityClass({typename: 'ProgramPersonVO'})
+@EntityClass({ typename: 'ProgramPersonVO' })
 export class ProgramPerson extends Entity<ProgramPerson> {
   static fromObject: (source: any, opts?: any) => ProgramPerson;
-  static equals = (o1: ProgramPerson, o2: ProgramPerson) => EntityUtils.equals(o1, o2)
-    || (
-      o1 && o2
-      && ReferentialUtils.equals(o1.person, o2.person)
-      && ReferentialUtils.equals(o1.privilege, o2.privilege)
-      && ReferentialUtils.equals(o1.location, o2.location)
-    );
+  static equals = (o1: ProgramPerson, o2: ProgramPerson) =>
+    EntityUtils.equals(o1, o2) ||
+    (o1 &&
+      o2 &&
+      ReferentialUtils.equals(o1.person, o2.person) &&
+      ReferentialUtils.equals(o1.privilege, o2.privilege) &&
+      ReferentialUtils.equals(o1.location, o2.location));
 
   programId: number;
   location: ReferentialRef;
@@ -174,7 +172,7 @@ export class ProgramPerson extends Entity<ProgramPerson> {
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    target.location = this.location && this.location.asObject(opts) || undefined;
+    target.location = (this.location && this.location.asObject(opts)) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.person = this.person && this.person.asObject(opts);
     return target;
@@ -195,7 +193,6 @@ export class ProgramPerson extends Entity<ProgramPerson> {
 
 @EntityClass({ typename: 'ProgramPersonFilterVO' })
 export class ProgramPersonFilter extends EntityFilter<ProgramPersonFilter, ProgramPerson> {
-
   static fromObject: (source: any, opts?: any) => ProgramPersonFilter;
 
   searchText: string;
@@ -222,11 +219,13 @@ export class ProgramPersonFilter extends EntityFilter<ProgramPersonFilter, Progr
   }
 
   protected buildFilter(): FilterFn<ProgramPerson>[] {
-
     const filterFns = super.buildFilter();
 
     // Search text
-    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttribute || this.searchAttributes || ['person.lastName', 'person.firstName', 'person.department.name'], this.searchText);
+    const searchTextFilter = EntityUtils.searchTextFilter(
+      this.searchAttribute || this.searchAttributes || ['person.lastName', 'person.firstName', 'person.department.name'],
+      this.searchText
+    );
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     return filterFns;
@@ -234,30 +233,30 @@ export class ProgramPersonFilter extends EntityFilter<ProgramPersonFilter, Progr
 }
 
 export class ProgramUtils {
-
   static getAcquisitionLevels(program: Program): string[] {
-
     // If has been filled directly in the program: use it
     if (isNotEmptyArray(program.acquisitionLevelLabels)) return program.acquisitionLevelLabels;
 
     // No strategies (e.g. may be not fetched) - should never occur
     if (isNotEmptyArray(program.strategies)) {
-      console.warn('[program-utils] Cannot get acquisition levels from the given program: missing attributes \'acquisitionLevelLabels\' or \'strategies\'');
+      console.warn(
+        "[program-utils] Cannot get acquisition levels from the given program: missing attributes 'acquisitionLevelLabels' or 'strategies'"
+      );
       return [];
     }
     // Or get list from strategie
-    const acquisitionLevelLabels = program.strategies
-      .flatMap(strategy => ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm|PmfmStrategy)[])
-        .map(pmfm => {
+    const acquisitionLevelLabels = program.strategies.flatMap((strategy) =>
+      ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm | PmfmStrategy)[])
+        .map((pmfm) => {
           if (pmfm && pmfm instanceof PmfmStrategy) {
-            return (typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label);
+            return typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label;
           }
           if (pmfm && pmfm instanceof DenormalizedPmfmStrategy) {
             return pmfm.acquisitionLevel;
           }
         })
         .filter(isNotNil)
-      );
+    );
 
     return removeDuplicatesFromArray(acquisitionLevelLabels);
   }

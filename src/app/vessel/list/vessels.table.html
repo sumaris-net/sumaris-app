@@ -1,15 +1,11 @@
-<mat-toolbar
-  *ngIf="showToolbar"
-  [class.has-searchbar]="showSearchbar"
-  [class.expanded]="showSearchbar && filterExpansionPanel.expanded"
->
+<mat-toolbar *ngIf="showToolbar" [class.has-searchbar]="showSearchbar" [class.expanded]="showSearchbar && filterExpansionPanel.expanded">
   <!-- search bar -->
   <ion-searchbar
     *ngIf="showSearchbar"
     inputmode="search"
     autocomplete="off"
     showClearButton="true"
-    [formControl]="filterForm | formGetControl : 'searchText'"
+    [formControl]="filterForm | formGetControl: 'searchText'"
     [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT' | translate"
     (ionInput)="ionSearchBarChanged($event)"
     (keyup.enter)="applyFilterAndClosePanel($event)"
@@ -18,15 +14,7 @@
   <div class="toolbar-spacer"></div>
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-    <button
-      mat-icon-button
-      hidden-xs
-      hidden-sm
-      hidden-mobile
-      *ngIf="canEdit"
-      [title]="'COMMON.BTN_ADD' | translate"
-      (click)="addRow()"
-    >
+    <button mat-icon-button hidden-xs hidden-sm hidden-mobile *ngIf="canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -34,12 +22,7 @@
       <mat-icon>refresh</mat-icon>
     </button>-->
 
-    <ng-container
-      *ngVar="
-        showSearchbar && showToolbar && searchText ? filterCriteriaCount - 1 > 0 : filterCriteriaCount;
-        let criteriaCount
-      "
-    >
+    <ng-container *ngVar="showSearchbar && showToolbar && searchText ? filterCriteriaCount - 1 > 0 : filterCriteriaCount; let criteriaCount">
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()" *ngIf="criteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -64,13 +47,7 @@
     </ng-container>
   </ng-container>
   <ng-template #hasSelection>
-    <button
-      mat-icon-button
-      *ngIf="canDelete"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="deleteSelection($event)"
-      class="hidden-xs hidden-sm"
-    >
+    <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)" class="hidden-xs hidden-sm">
       <mat-icon>delete</mat-icon>
     </button>
   </ng-template>
@@ -156,11 +133,7 @@
       <ion-row>
         <!-- date -->
         <ion-col>
-          <mat-date-field
-            formControlName="date"
-            [placeholder]="'VESSEL.LIST.FILTER.DATE' | translate"
-            [clearable]="true"
-          >
+          <mat-date-field formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE' | translate" [clearable]="true">
             <ion-icon matPrefix name="calendar"></ion-icon>
           </mat-date-field>
         </ion-col>
@@ -168,11 +141,7 @@
         <!-- status -->
         <ion-col>
           <mat-form-field>
-            <mat-select
-              formControlName="statusId"
-              [placeholder]="'REFERENTIAL.STATUS' | translate"
-              [disabled]="disableStatusFilter"
-            >
+            <mat-select formControlName="statusId" [placeholder]="'REFERENTIAL.STATUS' | translate" [disabled]="disableStatusFilter">
               <mat-option [value]="null">
                 <i><span translate>COMMON.EMPTY_OPTION</span></i>
               </mat-option>
@@ -200,12 +169,8 @@
 
   <mat-action-row>
     <!-- Counter -->
-    <ion-label
-      [hidden]="(loadingSubject | async) || filterForm.dirty"
-      [color]="empty ? 'danger' : 'primary'"
-      class="ion-padding"
-    >
-      {{ (empty ? 'COMMON.NO_RESULT' : 'COMMON.RESULT_COUNT') | translate : { count: (totalRowCount | numberFormat) } }}
+    <ion-label [hidden]="(loadingSubject | async) || filterForm.dirty" [color]="empty ? 'danger' : 'primary'" class="ion-padding">
+      {{ (empty ? 'COMMON.NO_RESULT' : 'COMMON.RESULT_COUNT') | translate: { count: (totalRowCount | numberFormat) } }}
     </ion-label>
 
     <div class="toolbar-spacer"></div>
@@ -347,11 +312,7 @@
         <ion-label translate>VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text
-          [innerHTML]="
-            row.currentData.vesselFeatures?.exteriorMarking | highlight : { search: searchText, withAccent: false }
-          "
-        ></ion-text>
+        <ion-text [innerHTML]="row.currentData.vesselFeatures?.exteriorMarking | highlight: { search: searchText, withAccent: false }"></ion-text>
       </td>
     </ng-container>
 
@@ -362,10 +323,7 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text
-          [innerHTML]="
-            row.currentData.vesselRegistrationPeriod?.registrationCode
-              | highlight : { search: searchText, withAccent: false }
-          "
+          [innerHTML]="row.currentData.vesselRegistrationPeriod?.registrationCode | highlight: { search: searchText, withAccent: false }"
         ></ion-text>
       </td>
     </ng-container>
@@ -376,7 +334,7 @@
         <ion-label translate>VESSEL.VESSEL_FEATURES.NAME</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text [innerHTML]="row.currentData.vesselFeatures?.name | highlight : { search: searchText }"></ion-text>
+        <ion-text [innerHTML]="row.currentData.vesselFeatures?.name | highlight: { search: searchText }"></ion-text>
       </td>
     </ng-container>
 
@@ -386,7 +344,7 @@
         <ion-label translate>VESSEL.VESSEL_TYPE</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData.vesselType | referentialToString : ['name'] }}</ion-text>
+        <ion-text>{{ row.currentData.vesselType | referentialToString: ['name'] }}</ion-text>
       </td>
     </ng-container>
 
@@ -397,10 +355,7 @@
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <ion-text>
-          {{
-            row.currentData.vesselFeatures?.basePortLocation
-              | referentialToString : autocompleteFields.basePortLocation.attributes
-          }}
+          {{ row.currentData.vesselFeatures?.basePortLocation | referentialToString: autocompleteFields.basePortLocation.attributes }}
         </ion-text>
       </td>
     </ng-container>
@@ -418,22 +373,12 @@
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
-        <button
-          mat-icon-button
-          [title]="'COMMON.DISPLAYED_COLUMNS' | translate"
-          (click)="openSelectColumnsModal($event)"
-        >
+        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
           <mat-icon>more_vert</mat-icon>
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
-        <button
-          mat-icon-button
-          color="light"
-          *ngIf="row.editing"
-          [title]="'COMMON.BTN_UNDO' | translate"
-          (click)="cancelOrDelete($event, row)"
-        >
+        <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO' | translate" (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>
         </button>
       </td>

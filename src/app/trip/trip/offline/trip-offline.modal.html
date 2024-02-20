@@ -60,9 +60,7 @@
               </mat-option>
             </mat-select>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>
-              ERROR.FIELD_REQUIRED
-            </mat-error>
+            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>
@@ -82,12 +80,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button
-          [fill]="valid ? 'solid' : 'clear'"
-          (click)="validate($event)"
-          (keyup.enter)="validate($event)"
-          color="tertiary"
-        >
+        <ion-button [fill]="valid ? 'solid' : 'clear'" (click)="validate($event)" (keyup.enter)="validate($event)" color="tertiary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

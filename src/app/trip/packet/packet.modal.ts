@@ -20,16 +20,15 @@ export interface IPacketModalOptions {
 
 @Component({
   selector: 'app-packet-modal',
-  templateUrl: './packet.modal.html'
+  templateUrl: './packet.modal.html',
 })
 export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
-
   readonly debug: boolean;
   loading = false;
   subscription = new Subscription();
   $title = new BehaviorSubject<string>(null);
 
-  @ViewChild('form', {static: true}) packetForm: PacketForm;
+  @ViewChild('form', { static: true }) packetForm: PacketForm;
 
   @Input() data: Packet;
   @Input() disabled: boolean;
@@ -57,7 +56,6 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     protected translate: TranslateService,
     protected settings: LocalSettingsService
   ) {
-
     this.mobile = settings.mobile;
     this.debug = !environment.production;
   }
@@ -78,13 +76,12 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     if (this.isNew) {
       title = this.translate.instant('PACKET.COMPOSITION.NEW.TITLE');
     } else {
-      title = this.translate.instant('PACKET.COMPOSITION.TITLE', {rankOrder: data.rankOrder});
+      title = this.translate.instant('PACKET.COMPOSITION.TITLE', { rankOrder: data.rankOrder });
     }
     this.$title.next(title);
   }
 
   async onSave(event: any, role?: string): Promise<any> {
-
     // Avoid multiple call
     if (this.disabled || this.loading) return;
 
@@ -106,7 +103,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
       this.packetForm.error = null;
       await this.viewCtrl.dismiss(data, role);
     } catch (err) {
-      this.packetForm.error = err && err.message || err;
+      this.packetForm.error = (err && err.message) || err;
       this.enable();
       this.loading = false;
     }
@@ -137,5 +134,4 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
-
 }

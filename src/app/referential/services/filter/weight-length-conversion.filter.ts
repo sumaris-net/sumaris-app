@@ -2,11 +2,11 @@ import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, IEntityFilt
 import { WeightLengthConversionRef } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { StoreObject } from '@apollo/client/core';
 
-@EntityClass({typename: 'WeightLengthConversionFilterVO'})
+@EntityClass({ typename: 'WeightLengthConversionFilterVO' })
 export class WeightLengthConversionFilter
   extends EntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef>
-  implements IEntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef> {
-
+  implements IEntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef>
+{
   static fromObject: (source: any, opts?: any) => WeightLengthConversionFilter;
 
   month: number = null;
@@ -82,52 +82,51 @@ export class WeightLengthConversionFilter
     // Year
     const year = this.year;
     if (isNotNil(year)) {
-      filterFns.push(t => t.year === year);
+      filterFns.push((t) => t.year === year);
     }
 
     // Month
     const month = this.month;
     if (isNotNil(month)) {
-      filterFns.push(t => (t.startMonth <= month) && (month <= t.endMonth));
+      filterFns.push((t) => t.startMonth <= month && month <= t.endMonth);
     }
 
     // Status
     const statusIds = this.statusIds;
     if (isNotEmptyArray(statusIds)) {
-      filterFns.push(t => statusIds.includes(t.statusId));
+      filterFns.push((t) => statusIds.includes(t.statusId));
     }
 
     // Location
     const locationId = this.locationId;
     if (isNotNil(locationId)) {
-      filterFns.push(t => (t.locationId === locationId));
+      filterFns.push((t) => t.locationId === locationId);
     }
 
     // Reference Taxon
     const referenceTaxonId = this.referenceTaxonId;
     if (isNotNil(referenceTaxonId)) {
-      filterFns.push(t => (t.referenceTaxonId === referenceTaxonId));
+      filterFns.push((t) => t.referenceTaxonId === referenceTaxonId);
     }
 
     // Rectangle
     const rectangleLabel = this.rectangleLabel;
     if (isNotNil(rectangleLabel)) {
-      filterFns.push(t => (t.rectangleLabels?.includes(rectangleLabel)));
+      filterFns.push((t) => t.rectangleLabels?.includes(rectangleLabel));
     }
 
     // Length Pmfm
     const lengthPmfmId = this.lengthPmfmId;
     if (isNotNil(lengthPmfmId)) {
-      filterFns.push(t => (t.lengthPmfmIds?.includes(lengthPmfmId)));
+      filterFns.push((t) => t.lengthPmfmIds?.includes(lengthPmfmId));
     }
 
     // Sex
     const sexId = this.sexId;
     if (isNotNil(sexId)) {
-      filterFns.push(t => t.id === sexId);
+      filterFns.push((t) => t.id === sexId);
     }
 
     return filterFns;
   }
-
 }

@@ -311,7 +311,6 @@ export const TripFragments = {
   `,
 };
 
-
 export interface TripLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
@@ -337,120 +336,143 @@ export interface TripWatchOptions extends EntitiesServiceWatchOptions {
   query?: any;
 }
 
-export interface TripControlOptions extends TripValidatorOptions, IProgressionOptions {
-}
+export interface TripControlOptions extends TripValidatorOptions, IProgressionOptions {}
 
 const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
-
   // Load a trip
-  load: gql` query Trip($id: Int!) {
-    data: trip(id: $id) {
-      ...TripFragment
+  load: gql`
+    query Trip($id: Int!) {
+      data: trip(id: $id) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`,
+    ${TripFragments.trip}
+  `,
 
-  loadAll: gql` query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: TripFilterVOInput){
-    data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
-      ...LightTripFragment
+  loadAll: gql`
+    query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: TripFilterVOInput) {
+      data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash) {
+        ...LightTripFragment
+      }
     }
-  }
-  ${TripFragments.lightTrip}`,
+    ${TripFragments.lightTrip}
+  `,
 
-  loadAllWithTotal: gql` query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: TripFilterVOInput){
-    data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
-      ...LightTripFragment
+  loadAllWithTotal: gql`
+    query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean, $filter: TripFilterVOInput) {
+      data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash) {
+        ...LightTripFragment
+      }
+      total: tripsCount(filter: $filter, trash: $trash)
     }
-    total: tripsCount(filter: $filter, trash: $trash)
-  }
-  ${TripFragments.lightTrip}`,
+    ${TripFragments.lightTrip}
+  `,
 
   // Load a landed trip
-  loadLandedTrip: gql`query Trip($id: Int!) {
-    data: trip(id: $id) {
-      ...LandedTripFragment
+  loadLandedTrip: gql`
+    query Trip($id: Int!) {
+      data: trip(id: $id) {
+        ...LandedTripFragment
+      }
     }
-  }
-  ${TripFragments.landedTrip}`
+    ${TripFragments.landedTrip}
+  `,
 };
 
 // Save a trip
 const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any }>{
-  save: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
-    data: saveTrip(trip: $trip, options: $options){
-      ...TripFragment
+  save: gql`
+    mutation saveTrip($trip: TripVOInput!, $options: TripSaveOptionsInput!) {
+      data: saveTrip(trip: $trip, options: $options) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`,
+    ${TripFragments.trip}
+  `,
 
   // Save a landed trip
-  saveLandedTrip: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
-    data: saveTrip(trip: $trip, options: $options){
-      ...LandedTripFragment
+  saveLandedTrip: gql`
+    mutation saveTrip($trip: TripVOInput!, $options: TripSaveOptionsInput!) {
+      data: saveTrip(trip: $trip, options: $options) {
+        ...LandedTripFragment
+      }
     }
-  }
-  ${TripFragments.landedTrip}`,
+    ${TripFragments.landedTrip}
+  `,
 
   // Delete
-  deleteAll: gql`mutation DeleteTrips($ids:[Int]!){
-    deleteTrips(ids: $ids)
-  }`,
+  deleteAll: gql`
+    mutation DeleteTrips($ids: [Int]!) {
+      deleteTrips(ids: $ids)
+    }
+  `,
 
   // Terminate
-  terminate: gql`mutation ControlTrip($data:TripVOInput!){
-    data: controlTrip(trip: $data){
-      ...TripFragment
+  terminate: gql`
+    mutation ControlTrip($data: TripVOInput!) {
+      data: controlTrip(trip: $data) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`,
+    ${TripFragments.trip}
+  `,
 
-  validate: gql`mutation ValidateTrip($data:TripVOInput!){
-    data: validateTrip(trip: $data){
-      ...TripFragment
+  validate: gql`
+    mutation ValidateTrip($data: TripVOInput!) {
+      data: validateTrip(trip: $data) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`,
+    ${TripFragments.trip}
+  `,
 
-  qualify: gql`mutation QualifyTrip($data:TripVOInput!){
-    data: qualifyTrip(trip: $data){
-      ...TripFragment
+  qualify: gql`
+    mutation QualifyTrip($data: TripVOInput!) {
+      data: qualifyTrip(trip: $data) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`,
+    ${TripFragments.trip}
+  `,
 
-  unvalidate: gql`mutation UnvalidateTrip($data:TripVOInput!){
-    data: unvalidateTrip(trip: $data){
-      ...TripFragment
+  unvalidate: gql`
+    mutation UnvalidateTrip($data: TripVOInput!) {
+      data: unvalidateTrip(trip: $data) {
+        ...TripFragment
+      }
     }
-  }
-  ${TripFragments.trip}`
+    ${TripFragments.trip}
+  `,
 };
 
 const TripSubscriptions = {
-  listenChanges: gql`subscription UpdateTrip($id: Int!, $interval: Int){
-    data: updateTrip(id: $id, interval: $interval) {
-      ...LightTripFragment
+  listenChanges: gql`
+    subscription UpdateTrip($id: Int!, $interval: Int) {
+      data: updateTrip(id: $id, interval: $interval) {
+        ...LightTripFragment
+      }
     }
-  }
-  ${TripFragments.lightTrip}`
+    ${TripFragments.lightTrip}
+  `,
 };
 
 export class TripComparators {
   static sortByDepartureDateFn(n1: Trip, n2: Trip): number {
     const d1 = n1.departureDateTime;
     const d2 = n2.departureDateTime;
-    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+    return d1.isSame(d2) ? 0 : d1.isAfter(d2) ? 1 : -1;
   }
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TripService
   extends RootDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
-  implements IEntitiesService<Trip, TripFilter>,
+  implements
+    IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
     IRootDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions> {
-
+    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
+{
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
@@ -465,17 +487,15 @@ export class TripService
     protected validatorService: TripValidatorService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
-    @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
+    @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any, any>,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
-    super(injector,
-      Trip, TripFilter,
-      {
-        queries: TripQueries,
-        mutations: TripMutations,
-        subscriptions: TripSubscriptions
-      });
+    super(injector, Trip, TripFilter, {
+      queries: TripQueries,
+      mutations: TripMutations,
+      subscriptions: TripSubscriptions,
+    });
 
     this._featureName = TRIP_FEATURE_NAME;
 
@@ -485,27 +505,26 @@ export class TripService
         accept: (e) => this.isDebugData(e),
         onReceived: (event) => {
           event.addAction({
-              name: this.translate.instant('SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL'),
-              color: 'success',
-              iconRef: {
-                matIcon: 'content_copy'
-              },
-              executeAction: async (e) => {
-                // Fetch event's content, if not present
-                if (!event.content) {
-                  event = await userEventService.load(e.id, {withContent: true});
-                }
-                const context = this.getEventContext(event);
-                if (context) {
-                  await this.copyLocally(Trip.fromObject(context), { displaySuccessToast: true });
-                }
-                else {
-                  await this.showToast({message: 'ERROR.LOAD_DATA_ERROR', type: 'error'});
-                }
-              },
-            });
+            name: this.translate.instant('SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL'),
+            color: 'success',
+            iconRef: {
+              matIcon: 'content_copy',
+            },
+            executeAction: async (e) => {
+              // Fetch event's content, if not present
+              if (!event.content) {
+                event = await userEventService.load(e.id, { withContent: true });
+              }
+              const context = this.getEventContext(event);
+              if (context) {
+                await this.copyLocally(Trip.fromObject(context), { displaySuccessToast: true });
+              } else {
+                await this.showToast({ message: 'ERROR.LOAD_DATA_ERROR', type: 'error' });
+              }
+            },
+          });
           return event;
-        }
+        },
       });
     }
 
@@ -522,8 +541,7 @@ export class TripService
     if (context && typeof context === 'string') {
       try {
         return JSON.parse(context);
-      }
-      catch (e) {
+      } catch (e) {
         // Invalid JSON: continue
       }
     }
@@ -531,27 +549,27 @@ export class TripService
   }
 
   isDebugData(event: UserEvent): boolean {
-    return event.type === UserEventTypeEnum.DEBUG_DATA
-      && (
-        // If content not fetched, use only the hasContent flag (BUT insecrued, because data can be NOT a Trip)
-        (!event.content && event.hasContent)
+    return (
+      event.type === UserEventTypeEnum.DEBUG_DATA &&
+      // If content not fetched, use only the hasContent flag (BUT insecrued, because data can be NOT a Trip)
+      ((!event.content && event.hasContent) ||
         // If content fetched, make sure data is a Trip
-        || this.getEventContext(event)?.__typename === Trip.TYPENAME
-      );
+        this.getEventContext(event)?.__typename === Trip.TYPENAME)
+    );
   }
 
-  async loadAll(offset: number,
-                size: number,
-                sortBy?: string,
-                sortDirection?: SortDirection,
-                filter?: Partial<TripFilter>,
-                opts?: EntityServiceLoadOptions & {
-                  query?: any;
-                  debug?: boolean;
-                  withTotal?: boolean;
-                }
+  async loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<TripFilter>,
+    opts?: EntityServiceLoadOptions & {
+      query?: any;
+      debug?: boolean;
+      withTotal?: boolean;
+    }
   ): Promise<LoadResult<Trip>> {
-
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
@@ -560,18 +578,18 @@ export class TripService
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
-  async loadAllLocally(offset: number,
-                       size: number,
-                       sortBy?: string,
-                       sortDirection?: SortDirection,
-                       filter?: Partial<TripFilter>,
-                       opts?: EntityServiceLoadOptions & {
-                         query?: any;
-                         debug?: boolean;
-                         withTotal?: boolean;
-                       }
+  async loadAllLocally(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<TripFilter>,
+    opts?: EntityServiceLoadOptions & {
+      query?: any;
+      debug?: boolean;
+      withTotal?: boolean;
+    }
   ): Promise<LoadResult<Trip>> {
-
     filter = this.asFilter(filter);
 
     const variables = {
@@ -579,16 +597,14 @@ export class TripService
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: filter.asFilterFn()
+      trash: (opts && opts.trash) || false,
+      filter: filter.asFilterFn(),
     };
 
-    const res = await this.entities.loadAll<Trip>('TripVO', variables, {fullLoad: opts && opts.fullLoad});
-    const entities = (!opts || opts.toEntity !== false) ?
-      (res.data || []).map(json => this.fromObject(json)) :
-      (res.data || []) as Trip[];
+    const res = await this.entities.loadAll<Trip>('TripVO', variables, { fullLoad: opts && opts.fullLoad });
+    const entities = !opts || opts.toEntity !== false ? (res.data || []).map((json) => this.fromObject(json)) : ((res.data || []) as Trip[]);
 
-    return {data: entities, total: res.total};
+    return { data: entities, total: res.total };
   }
 
   /**
@@ -601,13 +617,14 @@ export class TripService
    * @param dataFilter
    * @param opts
    */
-  watchAll(offset: number,
-           size: number,
-           sortBy?: string,
-           sortDirection?: SortDirection,
-           dataFilter?: Partial<TripFilter>,
-           opts?: TripWatchOptions): Observable<LoadResult<Trip>> {
-
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: Partial<TripFilter>,
+    opts?: TripWatchOptions
+  ): Observable<LoadResult<Trip>> {
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
@@ -621,14 +638,14 @@ export class TripService
       size: size || 20,
       sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: dataFilter && dataFilter.asPodObject()
+      trash: (opts && opts.trash) || false,
+      filter: dataFilter && dataFilter.asPodObject(),
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[trip-service] Watching trips... using options:', variables);
 
-    const withTotal = (!opts || opts.withTotal !== false);
+    const withTotal = !opts || opts.withTotal !== false;
     const query = opts?.query || (withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll);
 
     return this.mutableWatchQuery<LoadResult<Trip>>({
@@ -638,55 +655,54 @@ export class TripService
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-    })
-      .pipe(
-        // Skip update during load()
-        filter(() => !this.loading),
-        map(({data, total}) => {
-          const entities = (!opts || opts.toEntity !== false)
-            ? (data || []).map((json) => this.fromObject(json))
-            : (data || []) as Trip[];
+      error: { code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
+      fetchPolicy: (opts && opts.fetchPolicy) || 'cache-and-network',
+    }).pipe(
+      // Skip update during load()
+      filter(() => !this.loading),
+      map(({ data, total }) => {
+        const entities = !opts || opts.toEntity !== false ? (data || []).map((json) => this.fromObject(json)) : ((data || []) as Trip[]);
 
-          if (now) {
-            console.debug(`[trip-service] Loaded {${entities.length || 0}} trips in ${Date.now() - now}ms`, entities);
-            now = undefined;
-          }
-          return {data: entities, total};
-        })
-      );
+        if (now) {
+          console.debug(`[trip-service] Loaded {${entities.length || 0}} trips in ${Date.now() - now}ms`, entities);
+          now = undefined;
+        }
+        return { data: entities, total };
+      })
+    );
   }
 
-  watchAllLocally(offset: number,
-                  size: number,
-                  sortBy?: string,
-                  sortDirection?: SortDirection,
-                  dataFilter?: Partial<TripFilter>,
-                  options?: TripWatchOptions): Observable<LoadResult<Trip>> {
+  watchAllLocally(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: Partial<TripFilter>,
+    options?: TripWatchOptions
+  ): Observable<LoadResult<Trip>> {
     dataFilter = this.asFilter(dataFilter);
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
-      trash: options && options.trash || false,
-      filter: dataFilter && dataFilter.asFilterFn()
+      trash: (options && options.trash) || false,
+      filter: dataFilter && dataFilter.asFilterFn(),
     };
 
     if (this._debug) console.debug('[trip-service] Watching local trips... using options:', variables);
 
-    return this.entities.watchAll<Trip>(Trip.TYPENAME, variables)
-      .pipe(
-        map(res => {
-          const data = (res && res.data || []).map(Trip.fromObject);
-          const total = res && isNotNil(res.total) ? res.total : undefined;
-          return {data, total};
-        }));
+    return this.entities.watchAll<Trip>(Trip.TYPENAME, variables).pipe(
+      map((res) => {
+        const data = ((res && res.data) || []).map(Trip.fromObject);
+        const total = res && isNotNil(res.total) ? res.total : undefined;
+        return { data, total };
+      })
+    );
   }
 
   async load(id: number, opts?: TripLoadOptions): Promise<Trip | null> {
-    if (isNil(id)) throw new Error('Missing argument \'id\'');
+    if (isNil(id)) throw new Error("Missing argument 'id'");
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
@@ -702,35 +718,39 @@ export class TripService
       // If local entity
       if (isLocalTrip) {
         source = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
-        if (!source) throw {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
+        if (!source) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
       } else {
         const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
         // Load remotely
         const { data } = await this.graphql.query<{ data: Trip }>({
           query,
-          variables: {id},
-          error: {code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
-          fetchPolicy: opts && opts.fetchPolicy || undefined
+          variables: { id },
+          error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
         source = data;
       }
 
       // Add operations
       if (opts?.withOperation) {
-        source = {...source}; // Copy because remote object is not extensible
+        source = { ...source }; // Copy because remote object is not extensible
 
-        const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
-          fetchPolicy: !isLocalTrip && 'network-only' || undefined,
-          fullLoad: isLocalTrip
-        });
-        source.operations = isLocalTrip ? data
-          // Full load entities remotely
-          : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
+        const { data } = await this.operationService.loadAllByTrip(
+          { tripId: id },
+          {
+            fetchPolicy: (!isLocalTrip && 'network-only') || undefined,
+            fullLoad: isLocalTrip,
+          }
+        );
+        source.operations = isLocalTrip
+          ? data
+          : // Full load entities remotely
+            await Promise.all(data.map((lightOperation) => this.operationService.load(lightOperation.id)));
       }
 
       // Transform to entity
-      const target = (!opts || opts.toEntity !== false) ? Trip.fromObject(source) : (source as Trip);
+      const target = !opts || opts.toEntity !== false ? Trip.fromObject(source) : (source as Trip);
 
       if (target && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, target);
       return target;
@@ -745,26 +765,25 @@ export class TripService
 
     const res = await this.entities.loadAll(Trip.TYPENAME, {
       offset: 0,
-      size: 0
+      size: 0,
     });
     return res && res.total > 0;
   }
 
   listenChanges(id: number, opts?: EntityServiceListenChangesOptions): Observable<Trip> {
-    if (isNil(id)) throw new Error('Missing argument \'id\' ');
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     if (EntityUtils.isLocalId(id)) {
       if (this._debug) console.debug(this._logPrefix + `Listening for local changes on ${this._logTypeName} {${id}}...`);
-      return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
-        .pipe(
-          map(({data}) => {
-            const json = isNotEmptyArray(data) && data[0];
-            const entity = (!opts || opts.toEntity !== false) ? this.fromObject(json) : json;
-            // Set an updateDate, to force update detection
-            if (entity && this._debug) console.debug(this._logPrefix + `${this._logTypeName} {${id}} updated locally !`, entity);
-            return entity;
-          })
-        );
+      return this.entities.watchAll<Trip>(Trip.TYPENAME, { offset: 0, size: 1, filter: (t) => t.id === id }).pipe(
+        map(({ data }) => {
+          const json = isNotEmptyArray(data) && data[0];
+          const entity = !opts || opts.toEntity !== false ? this.fromObject(json) : json;
+          // Set an updateDate, to force update detection
+          if (entity && this._debug) console.debug(this._logPrefix + `${this._logTypeName} {${id}} updated locally !`, entity);
+          return entity;
+        })
+      );
     }
 
     return super.listenChanges(id, opts);
@@ -780,7 +799,7 @@ export class TripService
     if (isEmptyArray(entities)) return entities;
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
-    const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
+    const jobsFactories = (entities || []).map((entity) => () => this.save(entity, { ...opts }));
     const result = await chainPromises<Trip>(jobsFactories);
     this.onSave.next(result);
     return result;
@@ -796,7 +815,7 @@ export class TripService
     if (!entities) return entities;
 
     if (this._debug) console.debug(`[landing-service] Saving ${entities.length} trips locally...`);
-    const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, {...opts}));
+    const jobsFactories = (entities || []).map((entity) => () => this.saveLocally(entity, { ...opts }));
     return chainPromises<Trip>(jobsFactories);
   }
 
@@ -817,7 +836,7 @@ export class TripService
       withLanding: false,
       withOperation: false,
       withOperationGroup: false,
-      ...opts
+      ...opts,
     };
 
     const now = Date.now();
@@ -830,19 +849,21 @@ export class TripService
     this.resetQualityProperties(entity);
 
     // Provide an optimistic response, if connection lost
-    const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
-      async (context) => {
-        // Make sure to fill id, with local ids
-        await this.fillOfflineDefaultProperties(entity);
+    const offlineResponse =
+      !opts || opts.enableOptimisticResponse !== false
+        ? async (context) => {
+            // Make sure to fill id, with local ids
+            await this.fillOfflineDefaultProperties(entity);
 
-        // For the query to be tracked (see tracked query link) with a unique serialization key
-        context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
-        if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
+            // For the query to be tracked (see tracked query link) with a unique serialization key
+            context.tracked = !entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC';
+            if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
 
-        return {
-          data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]
-        };
-      } : undefined;
+            return {
+              data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)],
+            };
+          }
+        : undefined;
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
@@ -853,18 +874,18 @@ export class TripService
       options: {
         withLanding: opts.withLanding,
         withOperation: opts.withOperation,
-        withOperationGroup: opts.withOperationGroup
-      }
+        withOperationGroup: opts.withOperationGroup,
+      },
     };
-    const mutation = (opts.withLanding || opts.withOperationGroup) ? TripMutations.saveLandedTrip : this.mutations.save;
+    const mutation = opts.withLanding || opts.withOperationGroup ? TripMutations.saveLandedTrip : this.mutations.save;
     await this.graphql.mutate<{ data: any }>({
       mutation,
       variables,
       offlineResponse,
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
-      update: async (cache, {data}) => {
+      error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
+      update: async (cache, { data }) => {
         const savedEntity = data && data.data;
 
         // Local entity (optimistic response): save it
@@ -877,7 +898,6 @@ export class TripService
 
         // Update the entity and update GraphQL cache
         else {
-
           // Remove existing entity from the local storage
           if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
             if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
@@ -886,7 +906,7 @@ export class TripService
             try {
               // Remove linked operations
               if (opts && opts.withOperation) {
-                await this.operationService.deleteAllLocallyByFilter({tripId: entity.id});
+                await this.operationService.deleteAllLocallyByFilter({ tripId: entity.id });
               }
             } catch (err) {
               console.error(`[trip-service] Failed to locally delete operations of trip {${entity.id}}`, err);
@@ -900,18 +920,17 @@ export class TripService
           if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
             this.insertIntoMutableCachedQueries(cache, {
               queries: this.getLoadQueries(),
-              data: savedEntity
+              data: savedEntity,
             });
           }
 
           if (opts && opts.update) {
-            opts.update(cache, {data});
+            opts.update(cache, { data });
           }
 
           if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);
         }
-
-      }
+      },
     });
 
     if (!opts || opts.emitEvent !== false) {
@@ -926,7 +945,7 @@ export class TripService
       withLanding: false,
       withOperation: false,
       withOperationGroup: false,
-      ...opts
+      ...opts,
     };
 
     this.fillDefaultProperties(entity);
@@ -948,27 +967,26 @@ export class TripService
     const landing = entity.landing;
     delete entity.landing;
 
-    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false});
+    const jsonLocal = this.asObject(entity, { ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false });
     if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
 
     // Save trip locally
-    await this.entities.save(jsonLocal, {entityName: Trip.TYPENAME});
+    await this.entities.save(jsonLocal, { entityName: Trip.TYPENAME });
 
     // Save operations
     if (opts.withOperation && isNotEmptyArray(operations)) {
-
       // Link to physical gear id, using the rankOrder
-      operations.forEach(o => {
+      operations.forEach((o) => {
         o.id = null; // Clean ID, to force new ids
         o.updateDate = undefined;
-        o.physicalGear = o.physicalGear && (entity.gears || []).find(g => g.rankOrder === o.physicalGear.rankOrder);
+        o.physicalGear = o.physicalGear && (entity.gears || []).find((g) => g.rankOrder === o.physicalGear.rankOrder);
         o.tripId = entity.id;
         o.vesselId = entity.vesselSnapshot?.id;
         o.programLabel = entity.program?.label;
       });
 
       // TODO: need to pass opts.trip ??
-      entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id, trip: entity});
+      entity.operations = await this.operationService.saveAll(operations, { tripId: entity.id, trip: entity });
     }
 
     if (opts.withLanding && landing) {
@@ -993,7 +1011,7 @@ export class TripService
       withLanding: isLandedTrip && !!entity.landing,
       withOperationGroup: isLandedTrip,
       enableOptimisticResponse: false, // Optimistic response not need
-      ...opts
+      ...opts,
     };
 
     const localId = entity.id;
@@ -1014,21 +1032,17 @@ export class TripService
     const parentOperationsWithLocalChild: Operation[] = [];
 
     if (opts.withOperation) {
-
       // Fill operations
-      const { data: operations } = await this.operationService.loadAllByTrip({tripId: +localId},
-        {fullLoad: true, computeRankOrder: false});
+      const { data: operations } = await this.operationService.loadAllByTrip({ tripId: +localId }, { fullLoad: true, computeRankOrder: false });
 
       //sort operations to saving in good order
       if (isNotEmptyArray(operations)) {
-        operations.forEach(operation => {
+        operations.forEach((operation) => {
           if (operation.parentOperationId && operation.parentOperationId < 0) {
             childOperationsWithLocalParent.push(operation);
-          }
-          else if (operation.childOperationId && operation.childOperationId < 0) {
+          } else if (operation.childOperationId && operation.childOperationId < 0) {
             parentOperationsWithLocalChild.push(operation);
-          }
-          else {
+          } else {
             // Can save this operation in the first pass (will be saved with the trip)
             firstPassOperations.push(operation);
           }
@@ -1037,15 +1051,16 @@ export class TripService
         // Clean gears, to keep only :
         // - gears set manually, and not automatically (e.g. getOrAddGear() will marked as TEMPORARY)
         // - OR used gears
-        entity.gears = (entity.gears || []).filter(physicalGear =>
-          physicalGear.synchronizationStatus !== SynchronizationStatusEnum.TEMPORARY
-          // IF temporary: check if used by an operation
-          || operations.some(o => o.physicalGear.id === physicalGear.id)
+        entity.gears = (entity.gears || []).filter(
+          (physicalGear) =>
+            physicalGear.synchronizationStatus !== SynchronizationStatusEnum.TEMPORARY ||
+            // IF temporary: check if used by an operation
+            operations.some((o) => o.physicalGear.id === physicalGear.id)
         );
       }
 
       // Check no child operation without a local parent outside this trip
-      if (childOperationsWithLocalParent.some(child => !parentOperationsWithLocalChild.some(parent => parent.id === child.parentOperationId))) {
+      if (childOperationsWithLocalParent.some((child) => !parentOperationsWithLocalChild.some((parent) => parent.id === child.parentOperationId))) {
         throw new Error('ERROR.SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR');
       }
 
@@ -1060,7 +1075,7 @@ export class TripService
       // Remove local ids.
       packets = entity.operationGroups.reduce((res, operationGroup) => {
         operationGroup.id = undefined;
-        operationGroup.packets.forEach(packet => {
+        operationGroup.packets.forEach((packet) => {
           res = res.concat([packet.clone()]);
           packet.id = undefined;
         });
@@ -1073,42 +1088,40 @@ export class TripService
     }
 
     try {
-
       // Save trip (and operations or operation groups)
       entity = await this.save(entity, opts);
 
       // Check return entity has a valid id
       if (isNil(entity.id) || entity.id < 0) {
-        throw {code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+        throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
       }
 
       if (!opts || opts.emitEvent !== false) {
-        this.onSynchronize.next({localId, remoteEntity: entity});
+        this.onSynchronize.next({ localId, remoteEntity: entity });
       }
     } catch (err) {
       throw {
         ...err,
         code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
         message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
-        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE),
       };
     }
 
     // Operations: second save to save parent then child
     if (opts.withOperation) {
-
       const parentOperationsByLocalId = splitById(parentOperationsWithLocalChild);
       const parentOperationsByChildLocalId = splitByProperty(parentOperationsWithLocalChild, 'childOperationId');
 
       // Save parent operations with a local child
       if (isNotEmptyArray(parentOperationsWithLocalChild)) {
-        parentOperationsWithLocalChild.forEach(o => o.tripId = entity.id);
-        await this.operationService.saveAll(parentOperationsWithLocalChild, {trip: entity});
+        parentOperationsWithLocalChild.forEach((o) => (o.tripId = entity.id));
+        await this.operationService.saveAll(parentOperationsWithLocalChild, { trip: entity });
       }
 
       // Update child with the remote parent id, then save it
       if (isNotEmptyArray(childOperationsWithLocalParent)) {
-        childOperationsWithLocalParent.forEach(child => {
+        childOperationsWithLocalParent.forEach((child) => {
           child.tripId = entity.id;
           const savedParent = parentOperationsByLocalId[child.parentOperationId];
           child.parentOperationId = savedParent.id;
@@ -1117,22 +1130,22 @@ export class TripService
           delete parentOperationsByLocalId[child.parentOperationId];
           delete parentOperationsByChildLocalId[child.id];
         });
-        await this.operationService.saveAll(childOperationsWithLocalParent, {trip: entity});
+        await this.operationService.saveAll(childOperationsWithLocalParent, { trip: entity });
         // Add to entity operations
-        entity.operations = [
-          ...entity.operations,
-          ...childOperationsWithLocalParent
-        ];
+        entity.operations = [...entity.operations, ...childOperationsWithLocalParent];
       }
 
       // If still have some parent in the map, it means that their child are local, BUT in another trip
       // => Update outdated link to parent (replace local id by the remote id)
-      const parentOperationLocalIdsWithoutChild = Object.keys(parentOperationsByLocalId).map(id => +id);
+      const parentOperationLocalIdsWithoutChild = Object.keys(parentOperationsByLocalId).map((id) => +id);
       if (isNotEmptyArray(parentOperationLocalIdsWithoutChild)) {
-        const localChildOperations = await Promise.all(Object.keys(parentOperationsByChildLocalId).map(id => +id)
-          .map((childLocalId) => this.operationService.load(childLocalId, {fullLoad: true})));
+        const localChildOperations = await Promise.all(
+          Object.keys(parentOperationsByChildLocalId)
+            .map((id) => +id)
+            .map((childLocalId) => this.operationService.load(childLocalId, { fullLoad: true }))
+        );
         const localChildOperationsToUpdate = localChildOperations
-          .map(child => {
+          .map((child) => {
             const parent = parentOperationsByLocalId[child.parentOperationId];
             if (!parent) return; // Skip if parent not found (e.g. changed without updating the parent operation)
             child.parentOperationId = parent.id;
@@ -1150,11 +1163,11 @@ export class TripService
 
       entity.expectedSale.products = expectedSaleProducts;
 
-      savedPackets.forEach(savedPacket => {
-        const localPacket = packets.find(packet => savedPacket.equals(packet));
+      savedPackets.forEach((savedPacket) => {
+        const localPacket = packets.find((packet) => savedPacket.equals(packet));
 
         if (localPacket) {
-          const product = entity.expectedSale.products.find(p => p.batchId === localPacket.id);
+          const product = entity.expectedSale.products.find((p) => p.batchId === localPacket.id);
           if (product) {
             product.batchId = savedPacket.id;
           }
@@ -1175,12 +1188,11 @@ export class TripService
 
       // Delete trip's operations
       if (opts.withOperation) {
-        await this.operationService.deleteAllLocallyByFilter({tripId: +localId});
+        await this.operationService.deleteAllLocallyByFilter({ tripId: +localId });
       }
 
       // Delete trip
-      await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
-
+      await this.entities.deleteById(localId, { entityName: Trip.TYPENAME });
     } catch (err) {
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
@@ -1188,7 +1200,6 @@ export class TripService
 
     // Importing historical data (need to get parent operation in the local storage)
     try {
-
       const filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
@@ -1200,34 +1211,32 @@ export class TripService
 
       // Prepare the start/end date
       if (filter.periodDuration && filter.periodDurationUnit) {
-        filter.startDate = DateUtils.moment().utc(false)
+        filter.startDate = DateUtils.moment()
+          .utc(false)
           .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
           .startOf('day'); // Reset time
-      }
-      else {
+      } else {
         filter.startDate = null;
       }
       // Make sure the period include the actual trip
-      filter.startDate = DateUtils.min(
-        entity.departureDateTime.clone().utc(false).startOf('day'),
-        filter.startDate);
+      filter.startDate = DateUtils.min(entity.departureDateTime.clone().utc(false).startOf('day'), filter.startDate);
       filter.endDate = null;
 
       // Run importation
       await this.importHistoricalData(filter, {});
-
     } catch (err) {
       console.error(`[trip-service] Failed to import historical data`, err);
       // Continue, after warn
-      this.showToast({message: 'WARNING.SYNCHRONIZE_NO_HISTORICAL_DATA', type: 'warning'});
+      this.showToast({ message: 'WARNING.SYNCHRONIZE_NO_HISTORICAL_DATA', type: 'warning' });
     }
 
     // Clear page history
     try {
       // FIXME: find a way o clean only synchronized data ?
       await this.settings.clearPageHistory();
+    } catch (err) {
+      /* Continue */
     }
-    catch(err) { /* Continue */}
 
     return entity;
   }
@@ -1239,25 +1248,24 @@ export class TripService
    * @param opts
    */
   async control(entity: Trip, opts?: TripControlOptions): Promise<AppErrorWithDetails> {
-
     const now = this._debug && Date.now();
 
     const maxProgression = toNumber(opts?.maxProgression, 100);
-    opts = {...opts, maxProgression};
-    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+    opts = { ...opts, maxProgression };
+    opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
 
     const progressionStep = maxProgression / 20;
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
 
-    const programLabel = entity.program && entity.program.label || null;
-    if (!programLabel) throw new Error('Missing trip\'s program. Unable to control the trip');
+    const programLabel = (entity.program && entity.program.label) || null;
+    if (!programLabel) throw new Error("Missing trip's program. Unable to control the trip");
     const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
       ...opts,
       program,
       isOnFieldMode: false, // Always disable 'on field mode'
-      withMeasurements: true // Need by full validation
+      withMeasurements: true, // Need by full validation
     });
 
     if (!form.valid) {
@@ -1272,8 +1280,8 @@ export class TripService
         return {
           message: 'COMMON.FORM.HAS_ERROR',
           details: {
-            errors
-          }
+            errors,
+          },
         };
       }
     }
@@ -1282,14 +1290,13 @@ export class TripService
 
     // If trip is valid: continue
     if (!opts || !opts.withOperationGroup) {
-
       // Control physical gears
       // FIXME remove this 'if' special case for APASE - this is a workaround for issue #409
       if (programLabel !== 'APASE') {
         const errors = await this.physicalGearService.controlAllByTrip(entity, {
           program,
           progression: opts?.progression,
-          maxProgression: progressionStep
+          maxProgression: progressionStep,
         });
 
         if (errors) {
@@ -1297,9 +1304,9 @@ export class TripService
             message: 'TRIP.ERROR.INVALID_GEARS',
             details: {
               errors: {
-                gears: errors
-              }
-            }
+                gears: errors,
+              },
+            },
           };
         }
       }
@@ -1309,16 +1316,16 @@ export class TripService
         const errors = await this.operationService.controlAllByTrip(entity, {
           program,
           progression: opts?.progression,
-          maxProgression: maxProgression - progressionStep * 2
+          maxProgression: maxProgression - progressionStep * 2,
         });
         if (errors) {
           return {
             message: 'TRIP.ERROR.INVALID_OPERATIONS',
             details: {
               errors: {
-                operations: errors
-              }
-            }
+                operations: errors,
+              },
+            },
           };
         }
       }
@@ -1340,18 +1347,20 @@ export class TripService
    * @param entities
    * @param opts
    */
-  async deleteAll(entities: Trip[], opts?: {
-    trash?: boolean; // True by default
-  }): Promise<any> {
-
+  async deleteAll(
+    entities: Trip[],
+    opts?: {
+      trash?: boolean; // True by default
+    }
+  ): Promise<any> {
     // Delete local entities
     const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const remoteEntities = entities && entities.filter(t => t.id >= 0);
-    const ids = remoteEntities && remoteEntities.map(t => t.id);
+    const remoteEntities = entities && entities.filter((t) => t.id >= 0);
+    const ids = remoteEntities && remoteEntities.map((t) => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -1359,17 +1368,17 @@ export class TripService
 
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
-      variables: {ids},
+      variables: { ids },
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
           queryNames: ['loadAll', 'loadAllWithTotal'],
-          ids
+          ids,
         });
 
         if (this._debug) console.debug(`[trip-service] Trips deleted remotely in ${Date.now() - now}ms`);
         this.onDelete.next(remoteEntities);
-      }
+      },
     });
   }
 
@@ -1379,63 +1388,66 @@ export class TripService
    * @param entities
    * @param opts
    */
-  async deleteAllLocally(entities: Trip[], opts?: {
-    trash?: boolean; // True by default
-  }): Promise<any> {
-
+  async deleteAllLocally(
+    entities: Trip[],
+    opts?: {
+      trash?: boolean; // True by default
+    }
+  ): Promise<any> {
     // Get local entities
     const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
 
     // Delete, one by one
-    await chainPromises((localEntities || [])
-      .map(entity => () => this.deleteLocally(entity, opts))
-    );
+    await chainPromises((localEntities || []).map((entity) => () => this.deleteLocally(entity, opts)));
   }
 
-  async deleteLocallyById(id: number, opts?: {
-    trash?: boolean; // True by default
-  }): Promise<any> {
-
+  async deleteLocallyById(
+    id: number,
+    opts?: {
+      trash?: boolean; // True by default
+    }
+  ): Promise<any> {
     const trip = await this.load(id);
     return this.deleteLocally(trip, opts);
   }
 
-  async deleteLocally(entity: Trip, opts?: {
-    trash?: boolean; // True by default
-  }): Promise<any> {
-
+  async deleteLocally(
+    entity: Trip,
+    opts?: {
+      trash?: boolean; // True by default
+    }
+  ): Promise<any> {
     const trash = !opts || opts !== false;
     const trashUpdateDate = trash && moment();
     if (this._debug) console.debug(`[trip-service] Deleting trip #${entity.id}... {trash: ${trash}`);
 
     try {
       // Load trip's operations
-      const res = await this.operationService.loadAllByTrip({tripId: entity.id},
-        {fullLoad: true, computeRankOrder: false});
+      const res = await this.operationService.loadAllByTrip({ tripId: entity.id }, { fullLoad: true, computeRankOrder: false });
       const operations = res && res.data;
 
-      await this.entities.delete(entity, {entityName: Trip.TYPENAME});
+      await this.entities.delete(entity, { entityName: Trip.TYPENAME });
       this.onDelete.next([entity]);
 
       if (isNotNil(operations)) {
-        await this.operationService.deleteAll(operations, {trash: false});
+        await this.operationService.deleteAll(operations, { trash: false });
       }
 
       if (trash) {
         // Fill trip's operation, before moving it to trash
         entity.operations = operations;
 
-        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
+        const json = entity.asObject({ ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false });
 
         // Force the updateDate
         json.updateDate = trashUpdateDate;
 
         // Add to trash
-        await this.entities.saveToTrash(json, {entityName: Trip.TYPENAME});
+        await this.entities.saveToTrash(json, { entityName: Trip.TYPENAME });
       }
     } catch (err) {
       console.error('Error during trip deletion: ', err);
-      throw {code: DataErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
+      throw { code: DataErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR' };
     }
     this.onDelete.next([entity]);
   }
@@ -1447,25 +1459,29 @@ export class TripService
    * @param opts
    */
   copyAllLocally(entities: Trip[], opts?: TripServiceCopyOptions): Promise<Trip[]> {
-    return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
+    return chainPromises(entities.map((source) => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripLoadOptions & {displaySuccessToast?: boolean}): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions & { displaySuccessToast?: boolean }): Promise<Trip> {
     const isLocalTrip = id < 0;
 
     // Load existing data
-    const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
+    const source = await this.load(id, { ...opts, fetchPolicy: 'network-only' });
 
     // Add operations
     if (!opts || opts.withOperation !== false) {
-      const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
-        fetchPolicy: !isLocalTrip && 'network-only' || undefined,
-        fullLoad: isLocalTrip
-      });
+      const { data } = await this.operationService.loadAllByTrip(
+        { tripId: id },
+        {
+          fetchPolicy: (!isLocalTrip && 'network-only') || undefined,
+          fullLoad: isLocalTrip,
+        }
+      );
 
-      source.operations = isLocalTrip ? data
-        // Full load entities remotely
-        : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
+      source.operations = isLocalTrip
+        ? data
+        : // Full load entities remotely
+          await Promise.all(data.map((lightOperation) => this.operationService.load(lightOperation.id)));
     }
 
     // Copy remote trip to local storage
@@ -1488,12 +1504,12 @@ export class TripService
       deletedFromTrash: false,
       withOperation: true, // Change default value to 'true'
       withOperationGroup: true, // Change default value to 'true'
-      ...opts
+      ...opts,
     };
     const isLocal = RootDataEntityUtils.isLocal(source);
 
     // Create a new entity (without id and updateDate)
-    const json = this.asObject(source, {...COPY_LOCALLY_AS_OBJECT_OPTIONS, keepRemoteId: opts.keepRemoteId});
+    const json = this.asObject(source, { ...COPY_LOCALLY_AS_OBJECT_OPTIONS, keepRemoteId: opts.keepRemoteId });
     json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
 
     // Save
@@ -1502,14 +1518,14 @@ export class TripService
     // Remove from the local trash
     if (opts.deletedFromTrash) {
       if (isLocal) {
-        await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
+        await this.entities.deleteFromTrash(source, { entityName: Trip.TYPENAME });
       } else {
         await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
       }
     }
 
     if (opts.displaySuccessToast) {
-      await this.showToast({message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY', type: 'info'});
+      await this.showToast({ message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY', type: 'info' });
     }
 
     return target;
@@ -1540,8 +1556,8 @@ export class TripService
 
     // Update fishing areas
     if (target.fishingAreas && source.fishingAreas) {
-      target.fishingAreas.forEach(entity => {
-        const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
+      target.fishingAreas.forEach((entity) => {
+        const savedFishingArea = source.fishingAreas.find((f) => entity.equals(f));
         EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
       });
     }
@@ -1553,32 +1569,32 @@ export class TripService
 
     // Update measurements
     if (target.measurements && source.measurements) {
-      target.measurements.forEach(entity => {
-        const savedMeasurement = source.measurements.find(m => entity.equals(m));
+      target.measurements.forEach((entity) => {
+        const savedMeasurement = source.measurements.find((m) => entity.equals(m));
         EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
       });
     }
 
     // Update operation groups
     if (source.operationGroups && target.operationGroups && opts && opts.withOperationGroup) {
-      target.operationGroups.forEach(targetOperationGroup => {
-        const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
+      target.operationGroups.forEach((targetOperationGroup) => {
+        const sourceOperationGroup = source.operationGroups.find((json) => targetOperationGroup.equals(json));
         EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
 
         targetOperationGroup.physicalGearId = sourceOperationGroup.physicalGearId;
 
         // Operation group's measurements
         if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
-          targetOperationGroup.measurements.forEach(targetMeasurement => {
-            const sourceMeasurement = sourceOperationGroup.measurements.find(m => targetMeasurement.equals(m));
+          targetOperationGroup.measurements.forEach((targetMeasurement) => {
+            const sourceMeasurement = sourceOperationGroup.measurements.find((m) => targetMeasurement.equals(m));
             EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
           });
         }
 
         // Operation group's products
         if (sourceOperationGroup && sourceOperationGroup.products && targetOperationGroup.products) {
-          targetOperationGroup.products.forEach(targetProduct => {
-            const sourceProduct = sourceOperationGroup.products.find(json => targetProduct.equals(json));
+          targetOperationGroup.products.forEach((targetProduct) => {
+            const sourceProduct = sourceOperationGroup.products.find((json) => targetProduct.equals(json));
             EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
           });
         }
@@ -1590,14 +1606,14 @@ export class TripService
 
         // Operation group's packets
         if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
-          targetOperationGroup.packets.forEach(targetPacket => {
-            const sourcePacket = sourceOperationGroup.packets.find(json => targetPacket.equals(json));
+          targetOperationGroup.packets.forEach((targetPacket) => {
+            const sourcePacket = sourceOperationGroup.packets.find((json) => targetPacket.equals(json));
             EntityUtils.copyIdAndUpdateDate(sourcePacket, targetPacket);
 
             // Packet's compositions
             if (sourcePacket && sourcePacket.composition && targetPacket.composition) {
-              targetPacket.composition.forEach(targetComposition => {
-                const sourceComposition = sourcePacket.composition.find(json => targetComposition.equals(json));
+              targetPacket.composition.forEach((targetComposition) => {
+                const sourceComposition = sourcePacket.composition.find((json) => targetComposition.equals(json));
                 EntityUtils.copyIdAndUpdateDate(sourceComposition, targetComposition);
               });
             }
@@ -1622,13 +1638,13 @@ export class TripService
       // Copy source, to be able to use splice() if array is a readonly (apollo cache)
       sources = [...sources];
 
-      targets.forEach(target => {
+      targets.forEach((target) => {
         // Set the trip id (required by equals function)
         target.tripId = savedTrip.id;
         // Try to set parent id (need by equals, when new entity)
         target.parentId = parentGear?.id || target.parentId;
 
-        const index = sources.findIndex(json => target.equals(json));
+        const index = sources.findIndex((json) => target.equals(json));
         if (index !== -1) {
           // Remove from sources list, as it has been found
           const source = sources.splice(index, 1)[0];
@@ -1639,8 +1655,7 @@ export class TripService
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
           target.parent = null;
-        }
-        else {
+        } else {
           console.warn('Missing a gear, equals to this target: ', target);
         }
 
@@ -1652,20 +1667,17 @@ export class TripService
     }
   }
 
-
   /***
    * Add gear on trip from a physical gear of another trip
    * (used on new child operation when parent operation come from a different trip)
    * @param tripId
    * @param entity
    */
-  async getOrAddGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear>{
-
+  async getOrAddGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear> {
     const now = Date.now();
     console.info('[operation-service] Get or add physical gear...');
 
     try {
-
       // Make sure to get an entity
       entity = PhysicalGear.fromObject(entity);
 
@@ -1674,7 +1686,7 @@ export class TripService
       if (!trip) throw new Error(`Cannot find trip #${tripId}`); // Should never occur
 
       // Search if entity exists in the existing gears (e.g. if was copied just before)
-      const existingGear = trip.gears?.find(gear => PhysicalGear.equals(gear, entity, {withMeasurementValues: true, withRankOrder: false}));
+      const existingGear = trip.gears?.find((gear) => PhysicalGear.equals(gear, entity, { withMeasurementValues: true, withRankOrder: false }));
       if (existingGear) {
         console.info('[operation-service] Find an existing physical gear. Will use it', existingGear);
         return existingGear;
@@ -1685,9 +1697,8 @@ export class TripService
 
       // Compute new rankOrder, according to existing gears
       // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
-      const maxRankOrder = (trip.gears || []).map(gear => gear.rankOrder)
-        .reduce((max, rankOrder) => Math.max(max, rankOrder), 0);
-      if (isNil(entity.rankOrder) || trip.gears?.some(gear => gear.rankOrder === entity.rankOrder)) {
+      const maxRankOrder = (trip.gears || []).map((gear) => gear.rankOrder).reduce((max, rankOrder) => Math.max(max, rankOrder), 0);
+      if (isNil(entity.rankOrder) || trip.gears?.some((gear) => gear.rankOrder === entity.rankOrder)) {
         entity.rankOrder = maxRankOrder + 1;
       }
 
@@ -1698,27 +1709,26 @@ export class TripService
       const savedTrip = await this.save(trip);
 
       // Return the saved gear
-      const savedEntity = savedTrip.gears.find(g => g.rankOrder === entity.rankOrder);
+      const savedEntity = savedTrip.gears.find((g) => g.rankOrder === entity.rankOrder);
 
       // Check that the gear has been added
       if (!savedEntity) throw new Error('Cannot find expected physical gear, in the saved trip!');
 
-      console.info(`[operation-service] Physical gear successfully added to trip, in ${Date.now()-now}ms`);
+      console.info(`[operation-service] Physical gear successfully added to trip, in ${Date.now() - now}ms`);
 
       return savedEntity.clone();
-    }
-    catch (err) {
-      console.error(`[trip⁻service] Error while adding physical gear to trip: ${err && err.message || err}`, err);
-      throw {code: TripErrorCodes.ADD_TRIP_GEAR_ERROR, message: 'TRIP.ERROR.ADD_GEAR'};
+    } catch (err) {
+      console.error(`[trip⁻service] Error while adding physical gear to trip: ${(err && err.message) || err}`, err);
+      throw { code: TripErrorCodes.ADD_TRIP_GEAR_ERROR, message: 'TRIP.ERROR.ADD_GEAR' };
     }
   }
 
-  translateControlPath(path, opts?: {i18nPrefix?: string; pmfms?: IPmfm[]}): string {
+  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
-      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
@@ -1728,7 +1738,7 @@ export class TripService
   /* -- protected methods -- */
 
   protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
-    opts = {...MINIFY_OPTIONS, ...opts};
+    opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
     // Fill return date using departure date
@@ -1736,25 +1746,24 @@ export class TripService
 
     // Fill return location using departure location
     if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = {...copy.departureLocation};
+      copy.returnLocation = { ...copy.departureLocation };
     }
 
     // Full json optimisation
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
-      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+      copy.vesselSnapshot = { id: entity.vesselSnapshot && entity.vesselSnapshot.id };
     }
 
     return copy;
   }
 
   protected fillDefaultProperties(entity: Trip) {
-
     super.fillDefaultProperties(entity);
 
     if (entity.operationGroups) {
       this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
-      entity.operationGroups.forEach(operationGroup => {
+      entity.operationGroups.forEach((operationGroup) => {
         this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
         this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
       });
@@ -1775,7 +1784,7 @@ export class TripService
     if (isNotEmptyArray(entity.gears)) {
       const gears = EntityUtils.listOfTreeToArray(entity.gears);
       await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
-      gears.forEach(g => {
+      gears.forEach((g) => {
         g.tripId = entity.id;
         // Keep existing, if already set (e.g. getOrAddGear() can set )
         g.synchronizationStatus = g.synchronizationStatus || entity.synchronizationStatus;
@@ -1786,11 +1795,10 @@ export class TripService
     if (isNotEmptyArray(entity.operationGroups)) {
       await EntityUtils.fillLocalIds(entity.operationGroups, (_, count) => this.entities.nextValues(OperationGroup.TYPENAME, count));
 
-      const packets = entity.operationGroups.reduce((res, operationGroup) => res.concat(operationGroup.packets.filter(packet => !packet.id)), []);
+      const packets = entity.operationGroups.reduce((res, operationGroup) => res.concat(operationGroup.packets.filter((packet) => !packet.id)), []);
 
       await EntityUtils.fillLocalIds(packets, (_, count) => this.entities.nextValues(Packet.TYPENAME, count));
     }
-
   }
 
   /**
@@ -1800,17 +1808,19 @@ export class TripService
    * @param filter
    * @param opts
    */
-  protected getImportJobs(filter: Partial<TripFilter>, opts: {
-    maxProgression: number;
-    program?: Program;
-    boundingBox?: BBox;
-    locationLevelIds?: number[];
-    countryIds?: number[];
-    referentialEntityNames?: string[];
-    acquisitionLevels?: string[];
-    [key: string]: any;
-  }): Observable<number>[] {
-
+  protected getImportJobs(
+    filter: Partial<TripFilter>,
+    opts: {
+      maxProgression: number;
+      program?: Program;
+      boundingBox?: BBox;
+      locationLevelIds?: number[];
+      countryIds?: number[];
+      referentialEntityNames?: string[];
+      acquisitionLevels?: string[];
+      [key: string]: any;
+    }
+  ): Observable<number>[] {
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
     filter = this.asFilter(filter);
 
@@ -1822,11 +1832,14 @@ export class TripService
         // No program: Try to find one (and only one) for this user
         if (isNilOrBlank(programLabel)) {
           console.warn('[trip-service] [import] Trying to find a unique program to configure the import...');
-          const {
-            data: programs,
-            total: programCount
-          } = await this.programRefService.loadAll(0, 1, null, null,
-            TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, { fetchPolicy: 'no-cache', withTotal: true });
+          const { data: programs, total: programCount } = await this.programRefService.loadAll(
+            0,
+            1,
+            null,
+            null,
+            TRIP_FEATURE_DEFAULT_PROGRAM_FILTER,
+            { fetchPolicy: 'no-cache', withTotal: true }
+          );
           if (programCount === 1) {
             programLabel = programs[0]?.label;
           } else {
@@ -1837,16 +1850,13 @@ export class TripService
         // No program
         if (isNilOrBlank(programLabel)) {
           console.warn('[trip-service] [import] Cannot reducing importation (no program): can be long!');
-          opts.entityNames = [
-            ...IMPORT_REFERENTIAL_ENTITIES,
-            ...WEIGHT_CONVERSION_ENTITIES
-          ];
+          opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
         }
 
         // Fill options using program
         else {
           console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
-          const program = await this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'});
+          const program = await this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' });
           opts.program = program;
           opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
@@ -1854,10 +1864,7 @@ export class TripService
           const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
           if (enableWeightConversion) {
             console.debug('[trip-service] [import] WeightLengthConversion - import enabled (by program)');
-            opts.entityNames = [
-              ...IMPORT_REFERENTIAL_ENTITIES,
-              ...WEIGHT_CONVERSION_ENTITIES
-            ];
+            opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
 
             // Limit round weight, to the default country location id
             const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
@@ -1870,31 +1877,31 @@ export class TripService
 
           // Limit locations (e.g. rectangle)
           opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
-          if (isNotEmptyArray(opts.locationLevelIds)) console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
+          if (isNotEmptyArray(opts.locationLevelIds))
+            console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
 
           opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
           if (Geometries.isNotNilBBox(opts.boundingBox)) console.debug('[trip-service] [import] Bounding box: ' + opts.boundingBox.join(','));
 
           // TODO limit vessels (e.g. for OBSBIO, OBSMER)
-
         }
       }),
 
       ...super.getImportJobs(filter, opts),
 
       // Import pending operations
-      JobUtils.defer(o => {
+      JobUtils.defer((o) => {
         const operationFilter = TripFilter.toOperationFilter(filter);
         if (isNil(operationFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
         return this.operationService.executeImport(operationFilter, o);
       }, opts),
 
       // Import physical gears
-      JobUtils.defer(o => {
+      JobUtils.defer((o) => {
         const gearFilter = TripFilter.toPhysicalGearFilter(filter);
         if (isNil(gearFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
         return this.physicalGearService.executeImport(gearFilter, o);
-      }, opts)
+      }, opts),
     ];
   }
 
@@ -1905,16 +1912,17 @@ export class TripService
    * @param opts
    * @protected
    */
-  protected async importHistoricalData(filter?: Partial<TripFilter>,
-                                       opts?: {
-                                         progression?: BehaviorSubject<number>;
-                                         maxProgression?: number;
-                                       }): Promise<void> {
-
-    const maxProgression = opts && opts.maxProgression || 100;
+  protected async importHistoricalData(
+    filter?: Partial<TripFilter>,
+    opts?: {
+      progression?: BehaviorSubject<number>;
+      maxProgression?: number;
+    }
+  ): Promise<void> {
+    const maxProgression = (opts && opts.maxProgression) || 100;
     opts = {
       maxProgression,
-      ...opts
+      ...opts,
     };
     opts.progression = opts.progression || new BehaviorSubject<number>(0);
 
@@ -1929,13 +1937,15 @@ export class TripService
       // Import pending operations
       const operationFilter = TripFilter.toOperationFilter(filter);
       await this.operationService.executeImport(operationFilter, {
-        ...opts, maxProgression: maxProgression / 2
+        ...opts,
+        maxProgression: maxProgression / 2,
       });
 
       // Import physical gears
       const gearFilter = TripFilter.toPhysicalGearFilter(filter);
       await this.physicalGearService.executeImport(gearFilter, {
-        ...opts, maxProgression: maxProgression / 2
+        ...opts,
+        maxProgression: maxProgression / 2,
       });
     }
 
@@ -1952,8 +1962,8 @@ export class TripService
   protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
-      targets.forEach(target => {
-        const source = sources.find(json => target.equals(json));
+      targets.forEach((target) => {
+        const source = sources.find((json) => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
 
         // Apply to children
@@ -1974,5 +1984,4 @@ export class TripService
     // Add vessel offline feature
     this.settings.markOfflineFeatureAsSync(VESSEL_FEATURE_NAME);
   }
-
 }

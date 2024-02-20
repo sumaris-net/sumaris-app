@@ -15,9 +15,7 @@
   <!-- vessel registration -->
   <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">
-    VESSEL.ACTION.NEW_REGISTRATION
-  </button>
+  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
   <mat-divider></mat-divider>
 
   <!-- vessel features -->
@@ -28,13 +26,7 @@
 
   <!-- other (change status) -->
   <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
-  <button
-    mat-menu-item
-    translate
-    (click)="replace($event)"
-    *ngIf="replacementEnabled"
-    [disabled]="data?.statusId !== temporaryStatusId"
-  >
+  <button mat-menu-item translate (click)="replace($event)" *ngIf="replacementEnabled" [disabled]="data?.statusId !== temporaryStatusId">
     VESSEL.ACTION.REPLACE
   </button>
 </mat-menu>
@@ -72,26 +64,14 @@
           <!-- quality process -->
           <ion-col size="12" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-              <ion-button
-                color="tertiary"
-                expand="block"
-                [matMenuTriggerFor]="actionMenu"
-                [disabled]="!data || !canUserWrite(data)"
-              >
+              <ion-button color="tertiary" expand="block" [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
                 <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>
                 &nbsp;
                 <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
                 <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
               </ion-button>
 
-              <ion-button
-                *ngIf="editing"
-                fill="clear"
-                expand="block"
-                color="dark"
-                class="visible-mobile visible-xs visible-sm"
-                (click)="cancel()"
-              >
+              <ion-button *ngIf="editing" fill="clear" expand="block" color="dark" class="visible-mobile visible-xs visible-sm" (click)="cancel()">
                 <ion-label translate>COMMON.BTN_CANCEL</ion-label>
               </ion-button>
             </app-entity-metadata>

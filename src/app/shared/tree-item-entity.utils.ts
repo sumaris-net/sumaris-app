@@ -2,7 +2,6 @@ import { EntityFilter, FilterFn, IEntity, isEmptyArray, isNotNil, ITreeItemEntit
 
 export class TreeItemEntityUtils {
   static forward<T extends ITreeItemEntity<any>, ID = number>(node: T, filterFn?: FilterFn<T>, loopCount?: number): T {
-
     // Stop infinite loop
     if (loopCount === 100) {
       console.error('Infinite loop detected! Make sure there is valid node in this tree!');
@@ -16,16 +15,17 @@ export class TreeItemEntityUtils {
     }
 
     // Dive into children
-    const firstChild = (node.children || []).map(c => this.first(c, filterFn)).find(isNotNil);
+    const firstChild = (node.children || []).map((c) => this.first(c, filterFn)).find(isNotNil);
     if (firstChild) return firstChild;
 
     // Lookup in brothers
     let current = node;
-    while (current.parent && indexInParent !== -1)  {
+    while (current.parent && indexInParent !== -1) {
       // Has brother ?
       if (indexInParent + 1 < current.parent.children.length) {
-        const brother = (current.parent.children || []).slice(indexInParent + 1)
-          .map(c => (!filterFn || filterFn(c)) ? c : this.first(c, filterFn))
+        const brother = (current.parent.children || [])
+          .slice(indexInParent + 1)
+          .map((c) => (!filterFn || filterFn(c) ? c : this.first(c, filterFn)))
           .find(isNotNil);
         // OK, found a brother
         if (brother) return brother;
@@ -42,7 +42,6 @@ export class TreeItemEntityUtils {
   }
 
   static backward<T extends ITreeItemEntity<any>, ID = number>(node: T, filterFn?: FilterFn<T>, loopCount?: number): T {
-
     // Stop infinite loop
     if (loopCount === 100) {
       console.error('Infinite loop detected! Make sure there is valid node in this tree!');
@@ -58,56 +57,53 @@ export class TreeItemEntityUtils {
     // No previous brother (first in parent's list)
     else if (indexInParent === 0) {
       // Return the parent, if match
-      return (!filterFn || filterFn(node.parent))
+      return !filterFn || filterFn(node.parent)
         ? node.parent
-        // Or recursively call backward() on the parent
-        : this.backward(node.parent, filterFn, (loopCount||0)+1);
+        : // Or recursively call backward() on the parent
+          this.backward(node.parent, filterFn, (loopCount || 0) + 1);
     }
 
     // Lookup in brother
     else {
-      const previousBrother = (node.parent.children || []).slice(0, indexInParent)
+      const previousBrother = (node.parent.children || [])
+        .slice(0, indexInParent)
         .reverse()
-        .find(c => !filterFn || filterFn(c));
+        .find((c) => !filterFn || filterFn(c));
 
       // OK, there is a brother before the current index
       if (previousBrother) return this.lastLeaf(previousBrother, filterFn);
     }
 
     // Not found in brother: recursively call backward() on the parent
-    return this.backward(node.parent, filterFn, (loopCount||0)+1);
+    return this.backward(node.parent, filterFn, (loopCount || 0) + 1);
   }
 
-
   static first<T extends ITreeItemEntity<any>>(node: T, filterFn?: FilterFn<T>): T {
-
     // Node has children: dive into children
-    const child = (node.children || []).find(c => (!filterFn || filterFn(c)));
+    const child = (node.children || []).find((c) => !filterFn || filterFn(c));
     if (child) return child;
 
     // Lookup in descendants
-    const descendant = (node.children || [])
-      .map(c => this.first(c, filterFn))
-      .find(isNotNil);
+    const descendant = (node.children || []).map((c) => this.first(c, filterFn)).find(isNotNil);
     if (descendant) return descendant;
 
     // Node match: use it
-    return (!filterFn || filterFn(node)) ? node : undefined;
+    return !filterFn || filterFn(node) ? node : undefined;
   }
 
   static lastLeaf<T extends ITreeItemEntity<any>>(node: T, filterFn?: FilterFn<T>): T {
     // Node has children: dive into children
     const childLeaf = (node.children || [])
       // Reverse order (after clone)
-      .slice().reverse()
-      .map(c => this.lastLeaf(c, filterFn))
+      .slice()
+      .reverse()
+      .map((c) => this.lastLeaf(c, filterFn))
       .find(isNotNil);
     if (childLeaf) return childLeaf; // OK, found in children
 
     // Node is a leaf, or not match found in children: check current
-    return (!filterFn || filterFn(node)) ? node : undefined;
+    return !filterFn || filterFn(node) ? node : undefined;
   }
-
 
   static findByFilter<T extends ITreeItemEntity<T> & IEntity<T>>(node: T, filter: EntityFilter<any, T>): T[] {
     const filterFn = filter?.asFilterFn();
@@ -130,7 +126,8 @@ export class TreeItemEntityUtils {
   }
 
   static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
-    return (node.children || []).reduce((res, child) => res.concat(this.filterRecursively(child, filterFn)),
+    return (node.children || []).reduce(
+      (res, child) => res.concat(this.filterRecursively(child, filterFn)),
       // Init result
       filterFn(node) ? [node] : []
     );
@@ -141,7 +138,7 @@ export class TreeItemEntityUtils {
 
     // Delete children
     const deletedBatches = node.children.filter(filterFn);
-    node.children = node.children.filter(c => !deletedBatches.includes(c));
+    node.children = node.children.filter((c) => !deletedBatches.includes(c));
 
     // Recursive call, in still existing children
     return node.children.reduce((res, c) => res.concat(...this.deleteRecursively(c, filterFn)), deletedBatches);
@@ -163,7 +160,7 @@ export class TreeItemEntityUtils {
 
     // Parcourir les enfants
     if (node.children) {
-      node.children.forEach(child => this.visit(child, action));
+      node.children.forEach((child) => this.visit(child, action));
     }
   }
 
@@ -180,11 +177,10 @@ export class TreeItemEntityUtils {
 
     // Parcourir les enfants
     if (node.children) {
-      node.children.forEach(child => this.visitInverse(child, action));
+      node.children.forEach((child) => this.visitInverse(child, action));
     }
 
     // Appliquer l'action sur le nœud actuel
     action(node);
   }
-
 }

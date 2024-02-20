@@ -23,7 +23,7 @@ import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 export abstract class AppRootDataEntityEditor<
     T extends RootDataEntity<T, ID>,
     S extends BaseRootDataService<T, any, ID> = BaseRootDataService<T, any, any>,
-    ID = number
+    ID = number,
   >
   extends AppDataEntityEditor<T, S, ID>
   implements OnInit, OnDestroy

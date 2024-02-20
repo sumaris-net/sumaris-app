@@ -9,19 +9,18 @@ export abstract class DataEntityFilter<
   E extends DataEntity<E, EID> = DataEntity<any, any>,
   EID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
-  FO = any
-  >
-  extends EntityFilter<T, E, EID, AO, FO> {
-
+  FO = any,
+> extends EntityFilter<T, E, EID, AO, FO> {
   recorderDepartment: Department;
   qualityFlagId?: number;
   dataQualityStatus?: DataQualityStatusIdType;
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source, opts);
-    this.recorderDepartment = Department.fromObject(source.recorderDepartment)
-      || isNotNil(source.recorderDepartmentId) && Department.fromObject({id: source.recorderDepartmentId})
-      || undefined;
+    this.recorderDepartment =
+      Department.fromObject(source.recorderDepartment) ||
+      (isNotNil(source.recorderDepartmentId) && Department.fromObject({ id: source.recorderDepartmentId })) ||
+      undefined;
     this.dataQualityStatus = source.dataQualityStatus;
     this.qualityFlagId = source.qualityFlagId;
   }
@@ -33,15 +32,18 @@ export abstract class DataEntityFilter<
       delete target.recorderDepartment;
       target.qualityFlagIds = isNotNil(this.qualityFlagId) ? [this.qualityFlagId] : undefined;
       delete target.qualityFlagId;
-      target.dataQualityStatus = this.dataQualityStatus && [this.dataQualityStatus] || undefined;
+      target.dataQualityStatus = (this.dataQualityStatus && [this.dataQualityStatus]) || undefined;
 
       // If filter on NOT qualified data, remove quality flag
-      if (Array.isArray(target.dataQualityStatus) && target.dataQualityStatus.length && !target.dataQualityStatus.includes(<DataQualityStatusIdType>'QUALIFIED')) {
+      if (
+        Array.isArray(target.dataQualityStatus) &&
+        target.dataQualityStatus.length &&
+        !target.dataQualityStatus.includes(<DataQualityStatusIdType>'QUALIFIED')
+      ) {
         delete target.qualityFlagIds;
       }
-    }
-    else {
-      target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+    } else {
+      target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
       target.dataQualityStatus = this.dataQualityStatus;
     }
     return target;
@@ -54,33 +56,35 @@ export abstract class DataEntityFilter<
     if (this.recorderDepartment) {
       const recorderDepartmentId = this.recorderDepartment.id;
       if (isNotNil(recorderDepartmentId)) {
-        filterFns.push(t => (t.recorderDepartment && t.recorderDepartment.id === recorderDepartmentId));
+        filterFns.push((t) => t.recorderDepartment && t.recorderDepartment.id === recorderDepartmentId);
       }
     }
 
     // Quality flag
-    if (isNotNil(this.qualityFlagId)){
+    if (isNotNil(this.qualityFlagId)) {
       const qualityFlagId = this.qualityFlagId;
-      filterFns.push((t => isNotNil(t.qualityFlagId) && t.qualityFlagId === qualityFlagId));
+      filterFns.push((t) => isNotNil(t.qualityFlagId) && t.qualityFlagId === qualityFlagId);
     }
 
     // Quality status
-    if (isNotNil(this.dataQualityStatus)){
+    if (isNotNil(this.dataQualityStatus)) {
       switch (this.dataQualityStatus) {
         case 'MODIFIED':
-          filterFns.push(t => isNil(t.controlDate));
+          filterFns.push((t) => isNil(t.controlDate));
           break;
         case 'CONTROLLED':
-          filterFns.push(t => isNotNil(t.controlDate));
+          filterFns.push((t) => isNotNil(t.controlDate));
           break;
         case 'VALIDATED':
           // Must be done in sub-classes (see RootDataEntity)
           break;
         case 'QUALIFIED':
-          filterFns.push(t => isNotNil(t.qualityFlagId)
-            && t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED
-            // Exclude incomplete OPE (e.g. filage)
-            && t.qualityFlagId !== QualityFlagIds.NOT_COMPLETED
+          filterFns.push(
+            (t) =>
+              isNotNil(t.qualityFlagId) &&
+              t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED &&
+              // Exclude incomplete OPE (e.g. filage)
+              t.qualityFlagId !== QualityFlagIds.NOT_COMPLETED
           );
           break;
       }

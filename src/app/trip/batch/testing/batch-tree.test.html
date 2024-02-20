@@ -126,31 +126,17 @@
           </ion-button>
 
           <!-- show tree -->
-          <ion-button
-            *ngIf="!outputs.mobile"
-            (click)="dumpBatchTree(mobileBatchTree, 'mobile')"
-            matTooltip="Output data to log"
-            fill="outline"
-          >
+          <ion-button *ngIf="!outputs.mobile" (click)="dumpBatchTree(mobileBatchTree, 'mobile')" matTooltip="Output data to log" fill="outline">
             <ion-icon name="eye" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- hide tree -->
-          <ion-button
-            (click)="outputs.mobile = undefined"
-            *ngIf="outputs.mobile"
-            matTooltip="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="outputs.mobile = undefined" *ngIf="outputs.mobile" matTooltip="Output data to log" fill="outline">
             <ion-icon name="eye-off" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button
-            (click)="copyBatchTree(mobileBatchTree, mobileBatchTree)"
-            matTooltip="Reload from himself data"
-            fill="outline"
-          >
+          <ion-button (click)="copyBatchTree(mobileBatchTree, mobileBatchTree)" matTooltip="Reload from himself data" fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-item>
@@ -193,31 +179,17 @@
           </ion-button>
 
           <!-- show tree -->
-          <ion-button
-            (click)="dumpBatchTree(desktopBatchTree, 'desktop')"
-            *ngIf="!outputs.desktop"
-            title="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="dumpBatchTree(desktopBatchTree, 'desktop')" *ngIf="!outputs.desktop" title="Output data to log" fill="outline">
             <ion-icon name="eye" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- hide tree -->
-          <ion-button
-            (click)="outputs.desktop = undefined"
-            *ngIf="outputs.desktop"
-            title="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="outputs.desktop = undefined" *ngIf="outputs.desktop" title="Output data to log" fill="outline">
             <ion-icon name="eye-off" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button
-            (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)"
-            title="Reload from himself data"
-            fill="outline"
-          >
+          <ion-button (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)" title="Reload from himself data" fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-item>

@@ -19,16 +19,15 @@ export interface MeasurementsValidatorOptions {
   updateOn?: ControlUpdateOnType;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class MeasurementsValidatorService<T extends Measurement = Measurement, O extends MeasurementsValidatorOptions = MeasurementsValidatorOptions>
-  implements ValidatorService {
-
+  implements ValidatorService
+{
   constructor(
     protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService,
     protected settings: LocalSettingsService
-    ) {
-  }
+  ) {}
 
   getRowValidator(opts?: O): UntypedFormGroup {
     return this.getFormGroup(null, opts);
@@ -37,52 +36,43 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   getFormGroup(data: T[] | MeasurementFormValues, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
   getFormGroupConfig(data: T[] | MeasurementFormValues, opts?: O): { [key: string]: any } {
     opts = this.fillDefaultOptions(opts);
 
     // Convert the array of Measurement into a normalized map of form values
-    const measurementValues = data && (MeasurementValuesUtils.isMeasurementFormValues(data)
-        ? data
-        // Transform to form values, if need
-        : MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as unknown as Measurement[]),
-            opts.pmfms,
-          {
+    const measurementValues =
+      (data &&
+        (MeasurementValuesUtils.isMeasurementFormValues(data)
+          ? data
+          : // Transform to form values, if need
+            MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as unknown as Measurement[]), opts.pmfms, {
               keepSourceObject: true,
-              onlyExistingPmfms: false
-            })) || undefined;
+              onlyExistingPmfms: false,
+            }))) ||
+      undefined;
     const config = opts.pmfms.reduce((res, pmfm) => {
-        const value = measurementValues ? measurementValues[pmfm.id] : null;
-        const validator = PmfmValidators.create(pmfm, null, opts);
+      const value = measurementValues ? measurementValues[pmfm.id] : null;
+      const validator = PmfmValidators.create(pmfm, null, opts);
 
-        // If pmfm is multiple, then use a AppFormArray
-        if (pmfm.isMultiple) {
-          const formArray = new AppFormArray(
-              (v) => this.formBuilder.control(v, validator),
-              PmfmValueUtils.equals,
-              PmfmValueUtils.isEmpty,
-              {
-                allowEmptyArray: false
-              }
-          );
-          if (Array.isArray(value)) {
-            formArray.setValue(value, {emitEvent: false});
-          }
-          else {
-            formArray.setValue([null], {emitEvent: false});
-          }
-          res[pmfm.id] = formArray;
+      // If pmfm is multiple, then use a AppFormArray
+      if (pmfm.isMultiple) {
+        const formArray = new AppFormArray((v) => this.formBuilder.control(v, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
+          allowEmptyArray: false,
+        });
+        if (Array.isArray(value)) {
+          formArray.setValue(value, { emitEvent: false });
+        } else {
+          formArray.setValue([null], { emitEvent: false });
         }
-        else {
-          res[pmfm.id] = validator ? [value, validator] : [value];
-        }
-        return res;
-      }, {});
+        res[pmfm.id] = formArray;
+      } else {
+        res[pmfm.id] = validator ? [value, validator] : [value];
+      }
+      return res;
+    }, {});
 
     // Validate __typename
     if (opts.withTypename !== false) {
@@ -96,7 +86,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return { updateOn: opts?.updateOn };
   }
 
-  updateFormGroup(form: UntypedFormGroup, opts?: O & {emitEvent?: boolean}) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O & { emitEvent?: boolean }) {
     opts = this.fillDefaultOptions(opts);
 
     // DEBUG
@@ -104,26 +94,21 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
       // Excluded protected attributes
-      .filter(controlName => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
+      .filter((controlName) => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
 
-    opts.pmfms.forEach(pmfm => {
+    opts.pmfms.forEach((pmfm) => {
       const controlName = pmfm.id.toString();
       const validator = PmfmValidators.create(pmfm, null, opts);
       const defaultValue = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null;
 
       // Multiple acquisition: use form array
       if (pmfm.isMultiple) {
-        const formArray = new AppFormArray(
-            (value) => this.formBuilder.control(value, validator),
-            PmfmValueUtils.equals,
-            PmfmValueUtils.isEmpty,
-            {
-              allowEmptyArray: false
-            }
-        );
+        const formArray = new AppFormArray((value) => this.formBuilder.control(value, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
+          allowEmptyArray: false,
+        });
         // TODO set defaultValue
 
-        form.addControl(controlName, formArray, {emitEvent: opts?.emitEvent});
+        form.addControl(controlName, formArray, { emitEvent: opts?.emitEvent });
       }
 
       // Only one acquisition
@@ -132,9 +117,8 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         // If new pmfm: add as control
         if (!control) {
           control = this.formBuilder.control(defaultValue, validator);
-          form.addControl(controlName, control, {emitEvent: opts?.emitEvent});
-        }
-        else {
+          form.addControl(controlName, control, { emitEvent: opts?.emitEvent });
+        } else {
           control.setValidators(validator);
         }
       }
@@ -144,9 +128,8 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       if (index !== -1) controlNamesToRemove.splice(index, 1);
     });
 
-
     // Remove unused controls
-    controlNamesToRemove.forEach(controlName => form.removeControl(controlName, {emitEvent: opts?.emitEvent}));
+    controlNamesToRemove.forEach((controlName) => form.removeControl(controlName, { emitEvent: opts?.emitEvent }));
 
     // Create control for '__typename' (required)
     const typenameControl = form.get('__typename');
@@ -154,20 +137,20 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       if (!typenameControl) {
         // DEBUG
         //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
-        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required),
-          {emitEvent: opts?.emitEvent});
+        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required), {
+          emitEvent: opts?.emitEvent,
+        });
       }
-    }
-    else if (typenameControl){
-      console.warn('[measurement-validator] Removing control \'__typename\' from measurement values form group. This is not recommended!');
-      form.removeControl('__typename', {emitEvent: opts?.emitEvent});
+    } else if (typenameControl) {
+      console.warn("[measurement-validator] Removing control '__typename' from measurement values form group. This is not recommended!");
+      form.removeControl('__typename', { emitEvent: opts?.emitEvent });
     }
   }
 
   /* -- protected functions -- */
 
   protected fillDefaultOptions(opts?: O): O {
-    opts = opts || {} as O;
+    opts = opts || ({} as O);
 
     opts.pmfms = opts.pmfms || [];
 

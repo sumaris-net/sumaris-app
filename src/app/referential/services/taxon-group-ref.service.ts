@@ -6,38 +6,34 @@ import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components';
 
-
 const TaxonGroupQueries: BaseEntityGraphqlQueries = {
-  loadAll: gql`query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...TaxonGroupFragment
+  loadAll: gql`
+    query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+      data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...TaxonGroupFragment
+      }
     }
-  }
-  ${ReferentialFragments.taxonGroup}
-  ${ReferentialFragments.taxonName}`,
+    ${ReferentialFragments.taxonGroup}
+    ${ReferentialFragments.taxonName}
+  `,
 
-  loadAllWithTotal: gql`query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...TaxonGroupFragment
+  loadAllWithTotal: gql`
+    query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+      data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...TaxonGroupFragment
+      }
+      total: taxonGroupsCount(filter: $filter)
     }
-    total: taxonGroupsCount(filter: $filter)
-  }
-  ${ReferentialFragments.taxonGroup}
-  ${ReferentialFragments.taxonName}`
+    ${ReferentialFragments.taxonGroup}
+    ${ReferentialFragments.taxonName}
+  `,
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TaxonGroupRefService extends BaseReferentialRefService<TaxonGroupRef, ReferentialRefFilter> {
-
-  constructor(
-    injector: Injector
-  ) {
-    super(injector,
-      TaxonGroupRef,
-      ReferentialRefFilter,
-      {
-        queries: TaxonGroupQueries
-      });
+  constructor(injector: Injector) {
+    super(injector, TaxonGroupRef, ReferentialRefFilter, {
+      queries: TaxonGroupQueries,
+    });
   }
-
 }

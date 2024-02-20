@@ -77,58 +77,66 @@ export const ExtractionProductFragments = {
 };
 
 const Queries: BaseEntityGraphqlQueries & { loadColumns: any } = {
-  load: gql`query ExtractionProduct($id: Int!) {
+  load: gql`
+    query ExtractionProduct($id: Int!) {
       data: extractionProduct(id: $id) {
         ...ExtractionProductFragment
         documentation
       }
     }
-    ${ExtractionProductFragments.product}`,
+    ${ExtractionProductFragments.product}
+  `,
 
-  loadAll: gql`query ExtractionProducts($filter: ExtractionTypeFilterVOInput) {
+  loadAll: gql`
+    query ExtractionProducts($filter: ExtractionTypeFilterVOInput) {
       data: extractionProducts(filter: $filter) {
         ...ExtractionProductFragment
       }
     }
-    ${ExtractionProductFragments.product}`,
+    ${ExtractionProductFragments.product}
+  `,
 
-  loadColumns: gql` query ExtractionColumns($type: ExtractionTypeVOInput!, $sheet: String){
-      data: extractionColumns(type: $type, sheet: $sheet){
+  loadColumns: gql`
+    query ExtractionColumns($type: ExtractionTypeVOInput!, $sheet: String) {
+      data: extractionColumns(type: $type, sheet: $sheet) {
         ...ExtractionColumnFragment
         values
       }
     }
-    ${ExtractionFragments.column}`
+    ${ExtractionFragments.column}
+  `,
 };
 
 const Mutations: BaseEntityGraphqlMutations & { update: any } = {
-  save: gql`mutation SaveExtractionProduct($product: ExtractionProductVOInput!){
-    data: saveExtractionProduct(product: $product){
-      ...ExtractionProductFragment
-      documentation
+  save: gql`
+    mutation SaveExtractionProduct($product: ExtractionProductVOInput!) {
+      data: saveExtractionProduct(product: $product) {
+        ...ExtractionProductFragment
+        documentation
+      }
     }
-  }
-  ${ExtractionProductFragments.product}`,
+    ${ExtractionProductFragments.product}
+  `,
 
-  update: gql`mutation UpdateExtractionProduct($id: Int!){
-    data: updateExtractionProduct(id: $id){
-      ...ExtractionProductFragment
-      documentation
+  update: gql`
+    mutation UpdateExtractionProduct($id: Int!) {
+      data: updateExtractionProduct(id: $id) {
+        ...ExtractionProductFragment
+        documentation
+      }
     }
-  }
-  ${ExtractionProductFragments.product}`,
+    ${ExtractionProductFragments.product}
+  `,
 
-  deleteAll: gql`mutation DeleteProducts($ids:[Int]!){
-    deleteProducts(ids: $ids)
-  }`
-
+  deleteAll: gql`
+    mutation DeleteProducts($ids: [Int]!) {
+      deleteProducts(ids: $ids)
+    }
+  `,
 };
 
-@Injectable({providedIn: 'root'})
-export class ProductService
-  extends BaseGraphqlService
-  implements IEntityService<ExtractionProduct, number> {
-
+@Injectable({ providedIn: 'root' })
+export class ProductService extends BaseGraphqlService implements IEntityService<ExtractionProduct, number> {
   constructor(
     protected graphql: GraphqlService,
     protected extractionTypeService: ExtractionTypeService,
@@ -141,15 +149,13 @@ export class ProductService
   /**
    * Watch products
    */
-  watchAll(dataFilter?: Partial<ExtractionTypeFilter>,
-           options?: { fetchPolicy?: WatchQueryFetchPolicy }
-  ): Observable<LoadResult<ExtractionProduct>> {
+  watchAll(dataFilter?: Partial<ExtractionTypeFilter>, options?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<LoadResult<ExtractionProduct>> {
     if (this._debug) console.debug('[product-service] Loading products...');
 
     dataFilter = this.asFilter(dataFilter);
 
     const variables = {
-      filter: dataFilter?.asPodObject()
+      filter: dataFilter?.asPodObject(),
     };
 
     return this.mutableWatchQuery<LoadResult<ExtractionProduct>>({
@@ -158,33 +164,35 @@ export class ProductService
       arrayFieldName: 'data',
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR'},
-      fetchPolicy: options && options.fetchPolicy || 'network-only'
-    })
-      .pipe(
-        map((data) => {
-          const entities = (data?.data || []).map(ExtractionProduct.fromObject);
-          return {
-            data: entities,
-            total: data.total || entities.length
-          };
-        })
-      );
+      error: { code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR' },
+      fetchPolicy: (options && options.fetchPolicy) || 'network-only',
+    }).pipe(
+      map((data) => {
+        const entities = (data?.data || []).map(ExtractionProduct.fromObject);
+        return {
+          data: entities,
+          total: data.total || entities.length,
+        };
+      })
+    );
   }
 
-  async load(id: number, options?: {
-    fetchPolicy?: FetchPolicy;
-  }): Promise<ExtractionProduct> {
+  async load(
+    id: number,
+    options?: {
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<ExtractionProduct> {
     const { data } = await this.graphql.query<{ data: ExtractionProduct }>({
       query: Queries.load,
       variables: {
-        id
+        id,
       },
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR'},
-      fetchPolicy: options && options.fetchPolicy || 'network-only'
+      error: { code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: 'EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR' },
+      fetchPolicy: (options && options.fetchPolicy) || 'network-only',
     });
 
-    return data && ExtractionProduct.fromObject(data) || null;
+    return (data && ExtractionProduct.fromObject(data)) || null;
   }
 
   async computeNextLabel(format: string, types?: ExtractionType[]): Promise<string> {
@@ -193,35 +201,41 @@ export class ProductService
       const hash = CryptoService.sha512(`${format}-${Date.now()}`).substr(0, 8);
       const label = `${format}-${hash}`;
       if (types) {
-        unique = !types.some(t => label.toUpperCase() === t.label.toUpperCase());
-      }
-      else {
-        unique = !(await this.extractionTypeService.existsByLabel(label, {fetchPolicy: 'no-cache'}));
+        unique = !types.some((t) => label.toUpperCase() === t.label.toUpperCase());
+      } else {
+        unique = !(await this.extractionTypeService.existsByLabel(label, { fetchPolicy: 'no-cache' }));
       }
       if (unique) return label;
     }
   }
 
-
   async computeNextName(name: string, types?: ExtractionType[]) {
     if (isNilOrBlank(name)) return name; // Skip if blank
 
     // Fetch all types
-    types = types || (await firstNotNilPromise(this.watchAll({
-      searchAttribute: 'name', searchText: name
-    })))?.data;
+    types =
+      types ||
+      (
+        await firstNotNilPromise(
+          this.watchAll({
+            searchAttribute: 'name',
+            searchText: name,
+          })
+        )
+      )?.data;
 
     if (isEmptyArray(types)) return name; // Skip if no other types
 
     name = name.trim();
     const nameRegExp = new RegExp(`^${escapeRegExp(name)}(?:\\s*\\((\\d+)\\)\\s*)$`);
-    const maxIncrement = (types || [])
-      .filter(type => type.name && type.name.startsWith(name))
-      .map(type => {
+    const maxIncrement =
+      (types || [])
+        .filter((type) => type.name && type.name.startsWith(name))
+        .map((type) => {
           const matches = nameRegExp.exec(type.name);
-          return matches && +matches[1] || 0;
+          return (matches && +matches[1]) || 0;
         })
-      .reduce((max, n) => Math.max(max, n), 0) || 0;
+        .reduce((max, n) => Math.max(max, n), 0) || 0;
     return `${name} (${maxIncrement + 1})`;
   }
 
@@ -242,11 +256,11 @@ export class ProductService
     sheetName?: string,
     options?: {
       fetchPolicy?: FetchPolicy;
-    }): Promise<ExtractionColumn[]> {
-
+    }
+  ): Promise<ExtractionColumn[]> {
     const variables = {
       type: ExtractionTypeUtils.minify(type),
-      sheet: sheetName
+      sheet: sheetName,
     };
 
     const now = Date.now();
@@ -254,29 +268,31 @@ export class ProductService
     const res = await this.graphql.query<{ data: ExtractionColumn[] }>({
       query: Queries.loadColumns,
       variables,
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR'},
-      fetchPolicy: options && options.fetchPolicy || 'network-only'
+      error: { code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: 'EXTRACTION.ERROR.LOAD_ROWS_ERROR' },
+      fetchPolicy: (options && options.fetchPolicy) || 'network-only',
     });
     if (!res || !res.data) return null;
 
     const data = res.data.map(ExtractionColumn.fromObject);
     // Compute column index
-    (data || []).forEach((c, index) => c.index = index);
+    (data || []).forEach((c, index) => (c.index = index));
 
     if (this._debug) console.debug(`[product-service] Columns ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
 
   canUserWrite(entity: ExtractionProduct, opts?: any) {
-    return this.accountService.isAdmin()
+    return (
+      this.accountService.isAdmin() ||
       // New date allow for supervisors
-      || (isNil(entity.id) && this.accountService.isSupervisor())
+      (isNil(entity.id) && this.accountService.isSupervisor()) ||
       // Supervisor on existing data, and the same recorder department
-      || (ReferentialUtils.isNotEmpty(entity && entity.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment));
+      (ReferentialUtils.isNotEmpty(entity && entity.recorderDepartment) &&
+        this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment))
+    );
   }
 
-  async save(entity: ExtractionProduct,
-             filter?: ExtractionFilter): Promise<ExtractionProduct> {
+  async save(entity: ExtractionProduct, filter?: ExtractionFilter): Promise<ExtractionProduct> {
     const now = Date.now();
     if (this._debug) console.debug('[product-service] Saving product...');
 
@@ -297,10 +313,10 @@ export class ProductService
     await this.graphql.mutate<{ data: any }>({
       mutation: Mutations.save,
       variables: {
-        product: json
+        product: json,
       },
-      error: {code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
-      update: (cache, {data}) => {
+      error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
+      update: (cache, { data }) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
         console.debug(`[product-service] Product saved in ${Date.now() - now}ms`, savedEntity);
@@ -313,7 +329,7 @@ export class ProductService
         if (isNew) {
           this.insertIntoMutableCachedQueries(cache, {
             query: Queries.loadAll,
-            data: savedEntity
+            data: savedEntity,
           });
 
           // Insert as an extraction types
@@ -324,8 +340,7 @@ export class ProductService
         else {
           this.extractionTypeService.updateCache(cache, savedType);
         }
-
-      }
+      },
     });
 
     return entity;
@@ -340,26 +355,26 @@ export class ProductService
     await this.graphql.mutate<any>({
       mutation: Mutations.deleteAll,
       variables: {
-        ids: [type.id]
+        ids: [type.id],
       },
       update: (cache) => {
-
         // Remove from cache
-        const cacheKey = {__typename: ExtractionProduct.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT};
-        cache.evict({ id: cache.identify(cacheKey)});
-        cache.evict({ id: cache.identify({
+        const cacheKey = { __typename: ExtractionProduct.TYPENAME, id: type.id, label: type.label, category: ExtractionCategories.PRODUCT };
+        cache.evict({ id: cache.identify(cacheKey) });
+        cache.evict({
+          id: cache.identify({
             ...cacheKey,
-            __typename: ExtractionType.TYPENAME
-          })});
+            __typename: ExtractionType.TYPENAME,
+          }),
+        });
 
-       if (this._debug) console.debug(`[product-service] Product deleted in ${Date.now() - now}ms`);
-      }
+        if (this._debug) console.debug(`[product-service] Product deleted in ${Date.now() - now}ms`);
+      },
     });
   }
 
   async deleteAll(entities: ExtractionProduct[]): Promise<any> {
-    await Promise.all((entities || [])
-      .filter(t => t && isNotNil(t.id)).map(type => this.delete(type)));
+    await Promise.all((entities || []).filter((t) => t && isNotNil(t.id)).map((type) => this.delete(type)));
   }
 
   /**
@@ -375,8 +390,8 @@ export class ProductService
     await this.graphql.mutate<{ data: ExtractionProduct }>({
       mutation: Mutations.update,
       variables: { id },
-      error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: 'EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR'},
-      update: (cache, {data}) => {
+      error: { code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: 'EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR' },
+      update: (cache, { data }) => {
         savedEntity = data && data.data;
         console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);
 
@@ -386,7 +401,7 @@ export class ProductService
 
         // Update from cached queries
         this.extractionTypeService.updateCache(cache, savedType);
-      }
+      },
     });
 
     return ExtractionProduct.fromObject(savedEntity);
@@ -395,10 +410,8 @@ export class ProductService
   /* -- protected methods  -- */
 
   protected fillDefaultProperties(entity: ExtractionProduct) {
-
     // If new product
     if (isNil(entity.id)) {
-
       // Compute label
       entity.label = entity.label || `${entity.format}-${Date.now()}`;
 

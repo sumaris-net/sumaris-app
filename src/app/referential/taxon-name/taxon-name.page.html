@@ -52,20 +52,13 @@
                   <ion-row>
                     <ion-col>
                       <!-- Taxonomic Level -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.taxonomicLevel"
-                        formControlName="taxonomicLevel"
-                        required
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.taxonomicLevel" formControlName="taxonomicLevel" required></app-form-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
                     <ion-col>
                       <!-- Parent Taxon Name -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.parentTaxonName"
-                        formControlName="parentTaxonName"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.parentTaxonName" formControlName="parentTaxonName"></app-form-field>
                     </ion-col>
                   </ion-row>
                   <!-- Dates-->
@@ -78,10 +71,7 @@
                       ></mat-date-field>
                     </ion-col>
                     <ion-col>
-                      <mat-date-field
-                        [placeholder]="'REFERENTIAL.TAXON_NAME.END_DATE' | translate"
-                        formControlName="endDate"
-                      ></mat-date-field>
+                      <mat-date-field [placeholder]="'REFERENTIAL.TAXON_NAME.END_DATE' | translate" formControlName="endDate"></mat-date-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
@@ -100,34 +90,21 @@
                           formControlName="referenceTaxonId"
                           autocomplete="off"
                         />
-                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('required')" translate>
-                          ERROR.FIELD_REQUIRED
-                        </mat-error>
-                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('not_exist')" translate>
-                          ERROR.FIELD_NOT_EXISTS
-                        </mat-error>
+                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('not_exist')" translate>ERROR.FIELD_NOT_EXISTS</mat-error>
                       </mat-form-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
                     <ion-col>
                       <!-- Boolean Values -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.isNaming"
-                        formControlName="isNaming"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isNaming" formControlName="isNaming"></app-form-field>
                     </ion-col>
                     <ion-col>
-                      <app-form-field
-                        [definition]="fieldDefinitions.isReferent"
-                        formControlName="isReferent"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isReferent" formControlName="isReferent"></app-form-field>
                     </ion-col>
                     <ion-col>
-                      <app-form-field
-                        [definition]="fieldDefinitions.isVirtual"
-                        formControlName="isVirtual"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isVirtual" formControlName="isVirtual"></app-form-field>
                     </ion-col>
                   </ion-row>
                 </app-referential-form>
@@ -144,10 +121,7 @@
     </mat-tab>
 
     <!-- TAB: Weight/Length relation -->
-    <mat-tab
-      label="{{ 'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION' | translate }}"
-      [disabled]="(wlcTable.readySubject | async) === false"
-    >
+    <mat-tab label="{{ 'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION' | translate }}" [disabled]="(wlcTable.readySubject | async) === false">
       <ng-template mat-tab-label>
         <mat-icon>list</mat-icon>
         <ion-label translate>REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION</ion-label>

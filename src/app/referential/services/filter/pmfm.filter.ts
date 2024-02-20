@@ -5,7 +5,6 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 
 @EntityClass({ typename: 'PmfmFilterVO' })
 export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
-
   static fromObject: (source: any, opts?: any) => PmfmFilter;
 
   entityName?: 'Pmfm';
@@ -13,7 +12,6 @@ export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
 
 @EntityClass({ typename: 'DenormalizedPmfmFilterVO' })
 export class DenormalizedPmfmFilter extends EntityFilter<DenormalizedPmfmFilter, IDenormalizedPmfm> {
-
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmFilter;
 
   strategyId?: number;
@@ -21,7 +19,7 @@ export class DenormalizedPmfmFilter extends EntityFilter<DenormalizedPmfmFilter,
   gearIds?: number[];
   taxonGroupIds?: number[];
   referenceTaxonIds?: number[];
-  fractionIdByMatrixId: {[key: number]: number};
+  fractionIdByMatrixId: { [key: number]: number };
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -39,39 +37,37 @@ export class DenormalizedPmfmFilter extends EntityFilter<DenormalizedPmfmFilter,
     // Acquisition Level
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
-      filterFns.push(t => t.acquisitionLevel === acquisitionLevel);
+      filterFns.push((t) => t.acquisitionLevel === acquisitionLevel);
     }
 
     // Gears
     if (isNotEmptyArray(this.gearIds)) {
       const gearIds = this.gearIds;
-      filterFns.push(t => isEmptyArray(t.gearIds) || t.gearIds.findIndex(id => gearIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.gearIds) || t.gearIds.findIndex((id) => gearIds.includes(id)) !== -1);
     }
 
     // Taxon groups
     if (isNotEmptyArray(this.taxonGroupIds)) {
       const taxonGroupIds = this.taxonGroupIds;
-      filterFns.push(t => isEmptyArray(t.taxonGroupIds) || t.taxonGroupIds.findIndex(id => taxonGroupIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.taxonGroupIds) || t.taxonGroupIds.findIndex((id) => taxonGroupIds.includes(id)) !== -1);
     }
 
     // Taxon names
     if (isNotEmptyArray(this.referenceTaxonIds)) {
       const referenceTaxonIds = this.referenceTaxonIds;
-      filterFns.push(t => isEmptyArray(t.referenceTaxonIds) || t.referenceTaxonIds.findIndex(id => referenceTaxonIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.referenceTaxonIds) || t.referenceTaxonIds.findIndex((id) => referenceTaxonIds.includes(id)) !== -1);
     }
 
     // Filter on fraction, by matrix
     if (this.fractionIdByMatrixId) {
-      Object.keys(this.fractionIdByMatrixId)
-        .forEach(matrixId => {
-          const fractionId = toNumber(this.fractionIdByMatrixId[matrixId]);
-          if (isNotNil(fractionId)) {
-            filterFns.push(t => t.matrixId !== +matrixId || t.fractionId === fractionId);
-          }
-        });
+      Object.keys(this.fractionIdByMatrixId).forEach((matrixId) => {
+        const fractionId = toNumber(this.fractionIdByMatrixId[matrixId]);
+        if (isNotNil(fractionId)) {
+          filterFns.push((t) => t.matrixId !== +matrixId || t.fractionId === fractionId);
+        }
+      });
     }
 
     return filterFns;
   }
-
 }

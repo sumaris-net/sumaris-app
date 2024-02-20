@@ -13,15 +13,13 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { environment } from '@environments/environment';
 import { Metier } from '@app/referential/metier/metier.model';
 
-
 @Component({
   selector: 'app-operation-group-form',
   templateUrl: './operation-group.form.html',
   styleUrls: ['./operation-group.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
-
   displayAttributes: {
     [key: string]: string[];
   };
@@ -46,9 +44,13 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     protected metierService: MetierService,
     protected accountService: AccountService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService,
+    super(
+      injector,
+      measurementsValidatorService,
+      formBuilder,
+      programRefService,
       validatorService.getFormGroup(null, {
-        withMeasurements: false
+        withMeasurements: false,
       })
     );
 
@@ -56,7 +58,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
     this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -70,7 +72,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: ['taxonGroup.label', 'taxonGroup.name']
+      taxonGroup: ['taxonGroup.label', 'taxonGroup.name'],
     };
 
     // Metier combo
@@ -79,33 +81,26 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     this.registerAutocompleteField('metier', {
       items: this.metiers,
       attributes: metierAttributes,
-      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
-      mobile: this.mobile
+      columnSizes: metierAttributes.map((attr) => (attr === 'label' ? 3 : undefined)),
+      mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.form.get('metier').valueChanges
-        .subscribe(metier => this.updateGearAndTargetSpecies(metier))
-    );
+    this.registerSubscription(this.form.get('metier').valueChanges.subscribe((metier) => this.updateGearAndTargetSpecies(metier)));
   }
 
   async updateGearAndTargetSpecies(metier: Metier) {
-
     console.debug('[operation-group.form] Update Gear and Target Species', metier);
     if (metier && metier.id) {
-
       this.data.metier = await this.metierService.load(metier.id);
       this.metier = this.data.metier;
       console.debug('[operation-group.form] Taxon group : ', this.metier.taxonGroup);
 
       if (this.data.physicalGearId !== this.data.metier.gear.id) {
-
         this.data.physicalGearId = this.data.physicalGearId || null;
         this.gear = this.data.metier.gear;
       }
     }
   }
-
 
   /* -- protected methods -- */
 

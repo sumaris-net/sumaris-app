@@ -51,11 +51,7 @@
         <!-- Sampling ratio type -->
         <ion-col>
           <mat-form-field>
-            <mat-select
-              (valueChange)="samplingRatioFormat = $event"
-              [value]="samplingRatioFormat"
-              placeholder="Sampling ratio"
-            >
+            <mat-select (valueChange)="samplingRatioFormat = $event" [value]="samplingRatioFormat" placeholder="Sampling ratio">
               <mat-option *ngFor="let item of samplingRatioFormats" [value]="item.key">
                 {{ item.value | translate }}
               </mat-option>
@@ -89,22 +85,14 @@
 
         <!-- Has individual measure -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="hasSubBatches = !hasSubBatches"
-            [disabled]="!allowSubBatches"
-            [checked]="hasSubBatches"
-          >
+          <mat-checkbox (change)="hasSubBatches = !hasSubBatches" [disabled]="!allowSubBatches" [checked]="hasSubBatches">
             <mat-label>hasSubBatches ?</mat-label>
           </mat-checkbox>
         </ion-col>
 
         <!-- Default has individual measure ? -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="defaultHasSubBatches = !defaultHasSubBatches"
-            [disabled]="!allowSubBatches"
-            [checked]="defaultHasSubBatches"
-          >
+          <mat-checkbox (change)="defaultHasSubBatches = !defaultHasSubBatches" [disabled]="!allowSubBatches" [checked]="defaultHasSubBatches">
             <mat-label>defaultHasSubBatches ?</mat-label>
           </mat-checkbox>
         </ion-col>

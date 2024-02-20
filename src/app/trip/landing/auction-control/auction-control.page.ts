@@ -451,7 +451,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid
       ? 0
       : this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid
-      ? 1
-      : -1;
+        ? 1
+        : -1;
   }
 }

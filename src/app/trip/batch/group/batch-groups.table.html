@@ -35,13 +35,7 @@
     <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
         <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-          <button
-            mat-icon-button
-            class="ion-float-start"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_ADD_ROW' | translate"
-            (click)="addRow()"
-          >
+          <button mat-icon-button class="ion-float-start" [disabled]="disabled" [title]="'COMMON.BTN_ADD_ROW' | translate" (click)="addRow()">
             <mat-icon>add</mat-icon>
           </button>
 
@@ -63,13 +57,7 @@
         </ng-container>
 
         <ng-template #hasSelection>
-          <button
-            mat-icon-button
-            class="ion-float-start"
-            *ngIf="enabled"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="deleteSelection($event)"
-          >
+          <button mat-icon-button class="ion-float-start" *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
             <mat-icon>delete</mat-icon>
           </button>
         </ng-template>
@@ -89,11 +77,7 @@
           <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
             <span>{{ item.name }}</span>
             <br />
-            <mat-checkbox
-              *ngIf="weightMethodForm"
-              [formControl]="weightMethodForm | formGetControl : item.qvIndex.toString()"
-              labelPosition="before"
-            >
+            <mat-checkbox *ngIf="weightMethodForm" [formControl]="weightMethodForm | formGetControl: item.qvIndex.toString()" labelPosition="before">
               <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
               <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
             </mat-checkbox>
@@ -135,19 +119,12 @@
         <td
           mat-cell
           *rxLet="
-            row.currentData.qualificationComments ||
-              (row.validator.invalid && (row.validator | translateFormError : errorTranslatorOptions));
+            row.currentData.qualificationComments || (row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions));
             let rowError
           "
           [title]="rowError || ''"
         >
-          <ion-label
-            matBadge="!"
-            [matBadgeHidden]="!rowError"
-            matBadgeOverlap="false"
-            matBadgeColor="accent"
-            matBadgeSize="small"
-          >
+          <ion-label matBadge="!" [matBadgeHidden]="!rowError" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
             {{ row.currentData.rankOrder }}
           </ion-label>
         </td>
@@ -193,13 +170,7 @@
 
     <!-- Dynamic columns -->
     <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; let index" [matColumnDef]="col.key">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        [class]="col.classList"
-        [class.cdk-visually-hidden]="col.hidden"
-        class="ion-text-center"
-      >
+      <th mat-header-cell *matHeaderCellDef [class]="col.classList" [class.cdk-visually-hidden]="col.hidden" class="ion-text-center">
         <mat-label>
           <span>{{ col.label | translate }}</span>
           <small *ngIf="col.unitLabel">
@@ -218,10 +189,7 @@
           class="mat-cell-content-start-padding"
           (click)="focusColumn = col.key"
         >
-          <ng-container
-            *ngIf="row.validator | formGetControl : col.path; let control; else: missingControl"
-            [ngSwitch]="col.type"
-          >
+          <ng-container *ngIf="row.validator | formGetControl: col.path; let control; else: missingControl" [ngSwitch]="col.type">
             <app-pmfm-field
               *ngSwitchCase="'pmfm'"
               floatLabel="never"
@@ -248,7 +216,7 @@
               floatLabel="never"
               [definition]="col"
               [readonly]="!row.editing || computed"
-              [formControl]="row.validator | formGetControl : col.path"
+              [formControl]="row.validator | formGetControl: col.path"
               [autofocus]="row.editing && focusColumn === col.key"
               [tabindex]="computed && -1"
               [compact]="true"
@@ -256,7 +224,7 @@
           </ng-container>
 
           <ng-template #missingControl>
-            {{ row.currentData | propertyGet : col.path }}
+            {{ row.currentData | propertyGet: col.path }}
           </ng-template>
         </td>
       </ng-container>
@@ -267,19 +235,14 @@
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <button
-          *ngIf="row.validator | formGetControl : 'comments'; let control"
+          *ngIf="row.validator | formGetControl: 'comments'; let control"
           mat-icon-button
           [class.visible-hover]="!row.editing && !control.value"
           (click)="openCommentPopover($event, row)"
           [disabled]="disabled"
           [title]="control.value || ''"
         >
-          <ion-icon
-            *ngIf="_enabled || control.value"
-            [color]="control.value ? 'tertiary' : 'medium'"
-            name="chatbox"
-            slot="icon-only"
-          ></ion-icon>
+          <ion-icon *ngIf="_enabled || control.value" [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
         </button>
       </td>
     </ng-container>
@@ -371,7 +334,7 @@
               <br />
               <mat-checkbox
                 *ngIf="weightMethodForm"
-                [formControl]="weightMethodForm | formGetControl : item.qvIndex.toString()"
+                [formControl]="weightMethodForm | formGetControl: item.qvIndex.toString()"
                 labelPosition="before"
               >
                 <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
@@ -430,7 +393,7 @@
 
         <td mat-cell *matCellDef="let row">
           <ion-label>
-            {{ row.currentData.taxonGroup | referentialToString : autocompleteFields.taxonGroup.attributes }}
+            {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
           </ion-label>
         </td>
       </ng-container>
@@ -442,20 +405,14 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label>
-            {{ row.currentData.taxonName | referentialToString : autocompleteFields.taxonName.attributes }}
+            {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
           </ion-label>
         </td>
       </ng-container>
 
       <!-- Dynamic columns -->
       <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; index as index" [matColumnDef]="col.key">
-        <th
-          mat-header-cell
-          *matHeaderCellDef
-          [class]="col.classList"
-          [class.cdk-visually-hidden]="col.hidden"
-          class="ion-text-center"
-        >
+        <th mat-header-cell *matHeaderCellDef [class]="col.classList" [class.cdk-visually-hidden]="col.hidden" class="ion-text-center">
           <mat-label>
             <span>{{ col.label | translate }}</span>
             <small *ngIf="col.unitLabel">
@@ -475,29 +432,25 @@
           >
             <ion-label *ngIf="!mobile; else mobileCellContent" [ngSwitch]="col.type">
               <ng-container *ngSwitchCase="'pmfm'">
-                {{ row.currentData | propertyGet : col.path | pmfmValue : { pmfm: col.pmfm } }}
+                {{ row.currentData | propertyGet: col.path | pmfmValue: { pmfm: col.pmfm } }}
               </ng-container>
               <ng-container *ngSwitchDefault>
-                {{ row.currentData | propertyGet : col.path }}
+                {{ row.currentData | propertyGet: col.path }}
               </ng-container>
             </ion-label>
 
             <ng-template #mobileCellContent>
-              <div class="mat-form-field ion-text-center" *ngVar="row.currentData | propertyGet : col.path as colValue">
+              <div class="mat-form-field ion-text-center" *ngVar="row.currentData | propertyGet: col.path as colValue">
                 <!-- Disable value, if any -->
-                <ion-label
-                  *ngIf="colValue | isNotNil; else individualCount"
-                  [ngSwitch]="col.type"
-                  [class.computed]="computed"
-                >
+                <ion-label *ngIf="colValue | isNotNil; else individualCount" [ngSwitch]="col.type" [class.computed]="computed">
                   <ng-container *ngSwitchCase="'pmfm'">
-                    {{ colValue | pmfmValue : { pmfm: col.pmfm, propertyNames: ['label'] } }}
+                    {{ colValue | pmfmValue: { pmfm: col.pmfm, propertyNames: ['label'] } }}
                   </ng-container>
                   <ng-container *ngSwitchCase="'samplingRatio'">
-                    {{ colValue | samplingRatioFormat : samplingRatioFormat }}
+                    {{ colValue | samplingRatioFormat: samplingRatioFormat }}
                   </ng-container>
                   <ng-container *ngSwitchDefault>
-                    {{ colValue | numberFormat : { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
+                    {{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
                   </ng-container>
                 </ion-label>
 
@@ -505,13 +458,9 @@
                   <!-- If only individual count filled, display it -->
                   <ion-label
                     class="not-computed"
-                    *ngIf="
-                      col.isWeight &&
-                      !col.isSampling &&
-                      (row.currentData | propertyGet : 'children.' + col.qvIndex + '.individualCount') != null
-                    "
+                    *ngIf="col.isWeight && !col.isSampling && (row.currentData | propertyGet: 'children.' + col.qvIndex + '.individualCount') != null"
                   >
-                    {{ row.currentData | propertyGet : 'children.' + col.qvIndex + '.individualCount' | numberFormat }}
+                    {{ row.currentData | propertyGet: 'children.' + col.qvIndex + '.individualCount' | numberFormat }}
                     {{ 'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT' | translate }}
                   </ion-label>
                 </ng-template>
@@ -527,12 +476,7 @@
           <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <mat-icon
-            class="comment"
-            [class.disabled]="!row.editing"
-            *ngIf="row.currentData.comments"
-            [title]="row.currentData.comments"
-          ></mat-icon>
+          <mat-icon class="comment" [class.disabled]="!row.editing" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
         </td>
       </ng-container>
 

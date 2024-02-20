@@ -23,20 +23,24 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
-        equals: OperationGroup.equals,
-        sortByReplacement: {id: 'rankOrder'}
-      })
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter, {
+          equals: OperationGroup.equals,
+          sortByReplacement: { id: 'rankOrder' },
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationGroupTable
-  extends BaseMeasurementsTable<OperationGroup, OperationGroupFilter,
+  extends BaseMeasurementsTable<
+    OperationGroup,
+    OperationGroupFilter,
     InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
-    OperationGroupValidatorService>
-  implements OnInit, OnDestroy {
-
+    OperationGroupValidatorService
+  >
+  implements OnInit, OnDestroy
+{
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   referentialToString = referentialToString;
@@ -62,18 +66,16 @@ export class OperationGroupTable
     dataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
     validatorService: OperationGroupValidatorService,
     protected metierService: MetierService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      OperationGroup, OperationGroupFilter,
-      dataService,
-      validatorService,
-      {
-        reservedStartColumns: settings.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
-        reservedEndColumns: settings.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        i18nColumnPrefix: 'TRIP.OPERATION.LIST.'
-      });
+    super(injector, OperationGroup, OperationGroupFilter, dataService, validatorService, {
+      reservedStartColumns: settings.mobile
+        ? OPERATION_GROUP_RESERVED_START_COLUMNS
+        : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
+      reservedEndColumns: settings.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+      i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
+    });
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
@@ -92,7 +94,7 @@ export class OperationGroupTable
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
       taxonGroup: ['taxonGroup.label', 'taxonGroup.name'],
-      metier: this.settings.getFieldDisplayAttributes('metier')
+      metier: this.settings.getFieldDisplayAttributes('metier'),
     };
 
     // Metier combo
@@ -100,15 +102,14 @@ export class OperationGroupTable
       showAllOnFocus: true,
       items: this.metiers,
       attributes: this.displayAttributes.metier,
-      columnSizes: this.displayAttributes.metier.map(attr => attr === 'label' ? 3 : undefined),
-      mobile: this.mobile
+      columnSizes: this.displayAttributes.metier.map((attr) => (attr === 'label' ? 3 : undefined)),
+      mobile: this.mobile,
     });
 
     // Add sort replacement
     this.memoryDataService.addSortByReplacement('gear', this.displayAttributes.gear[0]);
     this.memoryDataService.addSortByReplacement('taxonGroup', this.displayAttributes.taxonGroup[0]);
     this.memoryDataService.addSortByReplacement('targetSpecies', this.displayAttributes.metier[0]);
-
   }
 
   ngOnDestroy() {
@@ -135,16 +136,16 @@ export class OperationGroupTable
         mobile: this.mobile,
         data: dataToOpen,
         isNew,
-        onDelete: (event, item) => this.deleteEntity(event, item)
+        onDelete: (event, item) => this.deleteEntity(event, item),
       },
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[operation-groups-table] operation-groups modal result: ', data);
     this.markAsLoaded();
 
@@ -167,7 +168,6 @@ export class OperationGroupTable
       const operationGroup: OperationGroup = row.currentData;
 
       if (operationGroup.metier?.id && (!operationGroup.metier?.gear || !operationGroup.metier?.taxonGroup)) {
-
         // First, load the Metier (with children)
         const metier = await this.metierService.load(operationGroup.metier.id);
 
@@ -180,11 +180,10 @@ export class OperationGroupTable
   /* -- protected methods -- */
 
   private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-  // if (this.mobile) {
-  //   pmfms.forEach(pmfm => pmfm.hidden = true);
-  //   // return [];
-  // }
+    // if (this.mobile) {
+    //   pmfms.forEach(pmfm => pmfm.hidden = true);
+    //   // return [];
+    // }
 
     return pmfms;
   }
@@ -210,9 +209,8 @@ export class OperationGroupTable
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
-    }
-    else {
+      await this.updateEntityToTable(updatedData, row, { confirmEdit: false });
+    } else {
       this.editedRow = null;
     }
     return true;
@@ -225,8 +223,6 @@ export class OperationGroupTable
   }
 
   protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
-    return OperationGroup && this.dataSource.getRows().find(r => operationGroup.equals(r.currentData));
+    return OperationGroup && this.dataSource.getRows().find((r) => operationGroup.equals(r.currentData));
   }
-
 }
-

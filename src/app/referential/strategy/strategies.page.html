@@ -94,7 +94,7 @@
         <button
           mat-icon-button
           class="visible-hover-row visible-selected-row"
-          [title]="'PROGRAM.STRATEGY.TABLE.BTN_ADD_DATA_DOTS' | translateContext : i18nSuffix"
+          [title]="'PROGRAM.STRATEGY.TABLE.BTN_ADD_DATA_DOTS' | translateContext: i18nSuffix"
           (click)="$event.preventDefault() || samplingTable.highlightRow(row)"
           [matMenuTriggerFor]="addButtonMenu"
         >
@@ -108,14 +108,14 @@
                 <ion-icon name="location"></ion-icon>
                 <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px"></ion-icon>
               </mat-icon>
-              {{ 'OBSERVED_LOCATION.NEW.TITLE' | translateContext : i18nSuffix }}
+              {{ 'OBSERVED_LOCATION.NEW.TITLE' | translateContext: i18nSuffix }}
             </button>
             <button mat-menu-item (click)="onNewDataFromRow(row, 'LANDING')">
               <mat-icon>
                 <ion-icon name="boat"></ion-icon>
                 <ion-icon name="add" class="icon-secondary" style="left: 31px; top: 6px; font-size: 15px"></ion-icon>
               </mat-icon>
-              {{ 'LANDING.NEW.TITLE' | translateContext : i18nSuffix }}
+              {{ 'LANDING.NEW.TITLE' | translateContext: i18nSuffix }}
             </button>
           </ng-template>
         </mat-menu>

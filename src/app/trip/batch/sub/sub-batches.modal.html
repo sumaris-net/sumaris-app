@@ -49,9 +49,7 @@
 
         <app-sub-batch-form
           #form
-          [title]="
-            editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'
-          "
+          [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'"
           [programLabel]="undefined"
           [pmfms]="undefined"
           [qvPmfm]="undefined"
@@ -76,15 +74,7 @@
       </ion-col>
 
       <!-- table -->
-      <ion-col
-        size="12"
-        pull=""
-        size-md="8"
-        pull-md="4"
-        size-lg="9"
-        pull-lg="3"
-        class="table-container ion-no-padding compact"
-      >
+      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" class="table-container ion-no-padding compact">
         <table
           mat-table
           [dataSource]="dataSource"
@@ -118,7 +108,7 @@
             </th>
             <td mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
               <ion-text>
-                {{ row.currentData.parentGroup | displayWith : autocompleteFields.parentGroup.displayWith }}
+                {{ row.currentData.parentGroup | displayWith: autocompleteFields.parentGroup.displayWith }}
               </ion-text>
             </td>
           </ng-container>
@@ -130,10 +120,7 @@
             </th>
             <td mat-cell *matCellDef="let row">
               <ion-text>
-                {{
-                  autocompleteFields.taxonName && row.currentData.taxonName
-                    | displayWith : autocompleteFields.taxonName.displayWith
-                }}
+                {{ autocompleteFields.taxonName && row.currentData.taxonName | displayWith: autocompleteFields.taxonName.displayWith }}
               </ion-text>
             </td>
           </ng-container>
@@ -143,11 +130,7 @@
             <ng-container [matColumnDef]="pmfm | pmfmIdString">
               <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
                 <ion-label
-                  [innerHTML]="
-                    pmfm
-                      | pmfmName
-                        : { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }
-                  "
+                  [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }"
                 ></ion-label>
               </th>
               <td
@@ -157,9 +140,7 @@
                 [class.mat-cell-date-time]="pmfm | isDatePmfm"
                 [class.mat-cell-computed]="pmfm | isComputedPmfm"
               >
-                <ion-text
-                  [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue : { pmfm: pmfm }"
-                ></ion-text>
+                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
               </td>
             </ng-container>
           </ng-container>
@@ -180,12 +161,7 @@
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
             </th>
             <td mat-cell *matCellDef="let row">
-              <mat-icon
-                color="primary"
-                class="comment"
-                *ngIf="row.currentData.comments"
-                [title]="row.currentData.comments"
-              ></mat-icon>
+              <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
             </td>
           </ng-container>
 
@@ -193,12 +169,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>
               <!-- select column modal -->
-              <button
-                mat-icon-button
-                [title]="'COMMON.DISPLAYED_COLUMNS' | translate"
-                (click)="openSelectColumnsModal($event)"
-                tabindex="-1"
-              >
+              <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)" tabindex="-1">
                 <mat-icon>more_vert</mat-icon>
               </button>
             </th>

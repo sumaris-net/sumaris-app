@@ -11,16 +11,12 @@ const routes: Routes = [
   },
   {
     path: 'selectivity',
-    loadChildren: () => import('./selectivity/selectivity-trip-report-routing.module').then(m => m.SelectivityTripReportRoutingModule)
+    loadChildren: () => import('./selectivity/selectivity-trip-report-routing.module').then((m) => m.SelectivityTripReportRoutingModule),
   },
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    TripReportModule,
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forChild(routes), TripReportModule],
+  exports: [RouterModule],
 })
-export class TripReportRoutingModule {
-}
+export class TripReportRoutingModule {}

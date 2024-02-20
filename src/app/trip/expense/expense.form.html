@@ -54,7 +54,7 @@
                 [pmfm]="pmfm"
                 [compact]="false"
                 [tabindex]="tabindex + 3 + i * 2"
-                [style]="pmfm | pmfmFieldStyle : 2"
+                [style]="pmfm | pmfmFieldStyle: 2"
                 [maxVisibleButtons]="2"
               ></app-pmfm-field>
             </ion-col>
@@ -66,7 +66,7 @@
                   [compact]="compact"
                   [class.computed]="fuelTuple[pmfm.id]?.computed"
                   [tabindex]="tabindex + 10 + i * maxVisibleButtons"
-                  [style]="pmfm | pmfmFieldStyle : maxVisibleButtons"
+                  [style]="pmfm | pmfmFieldStyle: maxVisibleButtons"
                   [maxVisibleButtons]="maxVisibleButtons"
                 ></app-pmfm-field>
               </ion-col>
@@ -85,7 +85,7 @@
                 [compact]="compact"
                 [class.computed]="engineOilTuple[pmfm.id]?.computed"
                 [tabindex]="tabindex + 20 + i * maxVisibleButtons"
-                [style]="pmfm | pmfmFieldStyle : maxVisibleButtons"
+                [style]="pmfm | pmfmFieldStyle: maxVisibleButtons"
                 [maxVisibleButtons]="maxVisibleButtons"
               ></app-pmfm-field>
             </ion-col>
@@ -103,7 +103,7 @@
                 [compact]="compact"
                 [class.computed]="hydraulicOilTuple[pmfm.id]?.computed"
                 [tabindex]="tabindex + 30 + i * maxVisibleButtons"
-                [style]="pmfm | pmfmFieldStyle : maxVisibleButtons"
+                [style]="pmfm | pmfmFieldStyle: maxVisibleButtons"
                 [maxVisibleButtons]="maxVisibleButtons"
               ></app-pmfm-field>
             </ion-col>
@@ -201,7 +201,7 @@
                   [hidden]="pmfm.hidden"
                   [compact]="compact"
                   [tabindex]="tabindex + 70 + i * maxVisibleButtons"
-                  [style]="pmfm | pmfmFieldStyle : maxVisibleButtons"
+                  [style]="pmfm | pmfmFieldStyle: maxVisibleButtons"
                   [maxVisibleButtons]="maxVisibleButtons"
                 ></app-pmfm-field>
               </div>

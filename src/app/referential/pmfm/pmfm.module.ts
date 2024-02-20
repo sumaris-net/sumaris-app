@@ -25,7 +25,6 @@ import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmf
     AppReferentialTableModule,
   ],
   declarations: [
-
     // Components
     PmfmPage,
   ],
@@ -36,5 +35,4 @@ import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmf
     PmfmPage,
   ],
 })
-export class AppPmfmModule {
-}
+export class AppPmfmModule {}

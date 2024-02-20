@@ -8,13 +8,7 @@ import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    TextMaskModule,
-    TranslateModule.forChild(),
-
-    AppCoreModule,
-  ],
+  imports: [CommonModule, TextMaskModule, TranslateModule.forChild(), AppCoreModule],
   declarations: [
     // Pipes
 
@@ -30,5 +24,4 @@ import { AppCoreModule } from '@app/core/core.module';
     ReferentialForm,
   ],
 })
-export class AppReferentialFormModule {
-}
+export class AppReferentialFormModule {}

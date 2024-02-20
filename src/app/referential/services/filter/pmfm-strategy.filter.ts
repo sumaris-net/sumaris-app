@@ -3,7 +3,6 @@ import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/service
 
 @EntityClass({ typename: 'PmfmStrategyFilterVO' })
 export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStrategy> {
-
   static fromObject: (source: any, opts?: any) => PmfmStrategyFilter;
 
   strategyId?: number;
@@ -19,36 +18,35 @@ export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStr
     // Acquisition Level
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
-      filterFns.push(t => ((EntityUtils.isNotEmpty(t.acquisitionLevel as any, 'label') ? t.acquisitionLevel['label'] : t.acquisitionLevel) === acquisitionLevel));
+      filterFns.push(
+        (t) => (EntityUtils.isNotEmpty(t.acquisitionLevel as any, 'label') ? t.acquisitionLevel['label'] : t.acquisitionLevel) === acquisitionLevel
+      );
     }
 
     // Gears
     if (isNotEmptyArray(this.gearIds)) {
       const gearIds = this.gearIds;
-      filterFns.push(t => t.gearIds && t.gearIds.findIndex(id => gearIds.includes(id)) !== -1);
+      filterFns.push((t) => t.gearIds && t.gearIds.findIndex((id) => gearIds.includes(id)) !== -1);
     }
 
     // Taxon groups
     if (isNotEmptyArray(this.taxonGroupIds)) {
       const taxonGroupIds = this.taxonGroupIds;
-      filterFns.push(t => t.taxonGroupIds && t.taxonGroupIds.findIndex(id => taxonGroupIds.includes(id)) !== -1);
+      filterFns.push((t) => t.taxonGroupIds && t.taxonGroupIds.findIndex((id) => taxonGroupIds.includes(id)) !== -1);
     }
 
     // Taxon names
     if (isNotEmptyArray(this.referenceTaxonIds)) {
       const referenceTaxonIds = this.referenceTaxonIds;
-      filterFns.push(t => t.referenceTaxonIds && t.referenceTaxonIds.findIndex(id => referenceTaxonIds.includes(id)) !== -1);
+      filterFns.push((t) => t.referenceTaxonIds && t.referenceTaxonIds.findIndex((id) => referenceTaxonIds.includes(id)) !== -1);
     }
 
     return filterFns;
   }
-
 }
-
 
 @EntityClass({ typename: 'DenormalizedPmfmStrategyFilterVO' })
 export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmfmStrategyFilter, DenormalizedPmfmStrategy> {
-
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategyFilter;
 
   strategyId?: number;
@@ -57,7 +55,7 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
   gearIds?: number[];
   taxonGroupIds?: number[];
   referenceTaxonIds?: number[];
-  fractionIdByMatrixId: {[key: number]: number};
+  fractionIdByMatrixId: { [key: number]: number };
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -76,44 +74,42 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
     // Acquisition Level
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
-      filterFns.push(t => t.acquisitionLevel === acquisitionLevel);
-    }
-    else if (isNotEmptyArray(this.acquisitionLevels)) {
+      filterFns.push((t) => t.acquisitionLevel === acquisitionLevel);
+    } else if (isNotEmptyArray(this.acquisitionLevels)) {
       const acquisitionLevels = this.acquisitionLevels;
-      filterFns.push(t => acquisitionLevels.includes(t.acquisitionLevel));
+      filterFns.push((t) => acquisitionLevels.includes(t.acquisitionLevel));
     }
 
     // Gears
     if (isNotEmptyArray(this.gearIds)) {
       const gearIds = this.gearIds;
-      filterFns.push(t => isEmptyArray(t.gearIds) || t.gearIds.findIndex(id => gearIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.gearIds) || t.gearIds.findIndex((id) => gearIds.includes(id)) !== -1);
     }
 
     // Taxon groups
     if (isNotEmptyArray(this.taxonGroupIds)) {
       const taxonGroupIds = this.taxonGroupIds;
-      filterFns.push(t => isEmptyArray(t.taxonGroupIds) || t.taxonGroupIds.findIndex(id => taxonGroupIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.taxonGroupIds) || t.taxonGroupIds.findIndex((id) => taxonGroupIds.includes(id)) !== -1);
     }
 
     // Taxon names
     if (isNotEmptyArray(this.referenceTaxonIds)) {
       const referenceTaxonIds = this.referenceTaxonIds;
-      filterFns.push(t => isEmptyArray(t.referenceTaxonIds) || t.referenceTaxonIds.findIndex(id => referenceTaxonIds.includes(id)) !== -1);
+      filterFns.push((t) => isEmptyArray(t.referenceTaxonIds) || t.referenceTaxonIds.findIndex((id) => referenceTaxonIds.includes(id)) !== -1);
     }
 
     // Filter on fraction, by matrix
     if (this.fractionIdByMatrixId) {
       Object.keys(this.fractionIdByMatrixId)
         .map(parseInt)
-        .forEach(matrixId => {
+        .forEach((matrixId) => {
           const fractionId = this.fractionIdByMatrixId[matrixId];
           if (isNotNil(fractionId)) {
-            filterFns.push(t => t.matrixId !== matrixId || t.fractionId === fractionId);
+            filterFns.push((t) => t.matrixId !== matrixId || t.fractionId === fractionId);
           }
         });
     }
 
     return filterFns;
   }
-
 }

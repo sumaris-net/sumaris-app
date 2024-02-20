@@ -58,28 +58,48 @@ const FindStrategyNextLabel: any = gql`
 `;
 
 const FindStrategyNextSampleLabel: any = gql`
-  query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int){
+  query StrategyNextSampleLabelQuery($strategyLabel: String!, $labelSeparator: String, $nbDigit: Int) {
     data: strategyNextSampleLabel(strategyLabel: $strategyLabel, labelSeparator: $labelSeparator, nbDigit: $nbDigit)
   }
 `;
 
-const LoadAllAnalyticReferencesQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+const LoadAllAnalyticReferencesQuery: any = gql`
+  query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+    data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
       ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.lightReferential}`;
-const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-  data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-    ...LightReferentialFragment
+  ${ReferentialFragments.lightReferential}
+`;
+const LoadAllAnalyticReferencesWithTotalQuery: any = gql`
+  query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+    data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+      ...LightReferentialFragment
+    }
+    total: analyticReferencesCount(filter: $filter)
   }
-  total: analyticReferencesCount(filter: $filter)
-}
-${ReferentialFragments.lightReferential}`;
+  ${ReferentialFragments.lightReferential}
+`;
 
 const FindStrategiesReferentials: any = gql`
-  query StrategiesReferentials($programId: Int!, $locationClassification: LocationClassificationEnum, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategiesReferentials(programId: $programId, locationClassification: $locationClassification, entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  query StrategiesReferentials(
+    $programId: Int!
+    $locationClassification: LocationClassificationEnum
+    $entityName: String
+    $offset: Int
+    $size: Int
+    $sortBy: String
+    $sortDirection: String
+  ) {
+    data: strategiesReferentials(
+      programId: $programId
+      locationClassification: $locationClassification
+      entityName: $entityName
+      offset: $offset
+      size: $size
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+    ) {
       ...LightReferentialFragment
     }
   }
@@ -87,93 +107,107 @@ const FindStrategiesReferentials: any = gql`
 `;
 
 const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
-  load: gql`query Strategy($id: Int!) {
-    data: strategy(id: $id) {
-      ...StrategyFragment
+  load: gql`
+    query Strategy($id: Int!) {
+      data: strategy(id: $id) {
+        ...StrategyFragment
+      }
     }
-  }
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.pmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.parameter}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`,
+    ${StrategyFragments.strategy}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.pmfmStrategy}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.pmfm}
+    ${ReferentialFragments.parameter}
+    ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonName}
+  `,
 
-  loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...LightStrategyFragment
+  loadAll: gql`
+    query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...LightStrategyFragment
+      }
     }
-  }
-  ${StrategyFragments.lightStrategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.taxonName}`,
+    ${StrategyFragments.lightStrategy}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.lightPmfm}
+    ${ReferentialFragments.taxonName}
+  `,
 
-  loadAllWithTotal: gql`query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...LightStrategyFragment
-    }
-    total: strategiesCount(filter: $filter)
-  }
-  ${StrategyFragments.lightStrategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.taxonName}`,
-
-  count: gql`query StrategyCount($filter: StrategyFilterVOInput!) {
+  loadAllWithTotal: gql`
+    query StrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...LightStrategyFragment
+      }
       total: strategiesCount(filter: $filter)
-    }`
+    }
+    ${StrategyFragments.lightStrategy}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.lightPmfmStrategy}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.lightPmfm}
+    ${ReferentialFragments.taxonName}
+  `,
+
+  count: gql`
+    query StrategyCount($filter: StrategyFilterVOInput!) {
+      total: strategiesCount(filter: $filter)
+    }
+  `,
 };
 
 const StrategyMutations: BaseEntityGraphqlMutations = {
-  save: gql`mutation SaveStrategy($data: StrategyVOInput!){
-    data: saveStrategy(strategy: $data){
-      ...StrategyFragment
+  save: gql`
+    mutation SaveStrategy($data: StrategyVOInput!) {
+      data: saveStrategy(strategy: $data) {
+        ...StrategyFragment
+      }
     }
-  }
-  ${StrategyFragments.strategy}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.pmfmStrategy}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.lightReferential}
-  ${ReferentialFragments.pmfm}
-  ${ReferentialFragments.parameter}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`,
+    ${StrategyFragments.strategy}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
+    ${StrategyFragments.pmfmStrategy}
+    ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.taxonGroupStrategy}
+    ${StrategyFragments.taxonNameStrategy}
+    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.pmfm}
+    ${ReferentialFragments.parameter}
+    ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonName}
+  `,
 
-  delete: gql`mutation DeleteAllStrategies($id:Int!){
-    deleteStrategy(id: $id)
-  }`,
+  delete: gql`
+    mutation DeleteAllStrategies($id: Int!) {
+      deleteStrategy(id: $id)
+    }
+  `,
 };
 
 const StrategySubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
-    data: updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
-      ...LightReferentialFragment
+  listenChanges: gql`
+    subscription UpdateReferential($id: Int!, $interval: Int) {
+      data: updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
+        ...LightReferentialFragment
+      }
     }
-  }
-  ${ReferentialFragments.lightReferential}`
+    ${ReferentialFragments.lightReferential}
+  `,
 };
 
 @Injectable({ providedIn: 'root' })

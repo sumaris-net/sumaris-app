@@ -11,9 +11,7 @@
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- add -->
-    <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate"
-            *ngIf="onNewRow.observed"
-            (click)="onNewRow.emit()">
+    <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate" *ngIf="onNewRow.observed" (click)="onNewRow.emit()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -26,13 +24,7 @@
   <!-- if row selection -->
   <ng-template #hasSelection>
     <!-- delete -->
-    <button
-      mat-icon-button
-      class="hidden-xs hidden-sm"
-      *ngIf="canDelete"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="deleteSelection($event)"
-    >
+    <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
   </ng-template>
@@ -92,7 +84,7 @@
           {{ row.currentData.creationDate | dateFromNow }}
           <br />
           <ion-text color="medium">
-            <small>{{ row.currentData.creationDate | dateFormat : { time: true } }}</small>
+            <small>{{ row.currentData.creationDate | dateFormat: { time: true } }}</small>
           </ion-text>
         </ion-text>
       </td>
@@ -150,12 +142,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr
-      mat-row
-      *matRowDef="let row; columns: displayedColumns"
-      class="mat-row-disabled"
-      (click)="clickRow($event, row)"
-    ></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
   </table>
 
   <ng-container *ngIf="loadingSubject | async; else noResult">

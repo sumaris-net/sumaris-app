@@ -33,9 +33,7 @@
       <tr class="mat-footer-row mat-row-disabled">
         <!-- total  -->
         <td class="mat-footer-cell mat-column-saleType ion-text-end">
-          <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>
-            TRIP.PRODUCT.SALE.TOTAL_PRODUCT
-          </ion-label>
+          <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
         </td>
 
         <!--  number -->
@@ -95,19 +93,16 @@
               step="1"
               [tabIndex]="tabindex + 3 + i * 7 + 1"
               min="1"
-              [max]="form | formGetValue : 'number'"
+              [max]="form | formGetValue: 'number'"
               required
             />
-            <mat-error
-              *ngIf="saleForm.controls.subgroupCount.errors | mapKeys | arrayFirst; let errorKey"
-              [ngSwitch]="errorKey"
-            >
+            <mat-error *ngIf="saleForm.controls.subgroupCount.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
               <span *ngSwitchCase="'min'">
-                {{ 'ERROR.FIELD_MIN_COMPACT' | translate : saleForm.controls.subgroupCount.errors.min }}
+                {{ 'ERROR.FIELD_MIN_COMPACT' | translate: saleForm.controls.subgroupCount.errors.min }}
               </span>
               <span *ngSwitchCase="'max'">
-                {{ 'ERROR.FIELD_MAX_COMPACT' | translate : saleForm.controls.subgroupCount.errors.max }}
+                {{ 'ERROR.FIELD_MAX_COMPACT' | translate: saleForm.controls.subgroupCount.errors.max }}
               </span>
               <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
             </mat-error>
@@ -131,10 +126,7 @@
 
         <!-- averagePackagingPrice -->
         <td class="mat-cell mat-column-averagePackagingPrice">
-          <mat-form-field
-            floatLabel="never"
-            [class.computed]="saleForm | formGetValue : 'averagePackagingPriceCalculated'"
-          >
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averagePackagingPriceCalculated'">
             <input
               matInput
               formControlName="averagePackagingPrice"
@@ -149,7 +141,7 @@
 
         <!-- totalPrice -->
         <td class="mat-cell mat-column-totalPrice">
-          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue : 'totalPriceCalculated'">
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'totalPriceCalculated'">
             <input
               matInput
               formControlName="totalPrice"

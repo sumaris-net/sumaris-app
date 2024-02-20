@@ -18,10 +18,9 @@ import { MetierFilter } from '@app/referential/services/filter/metier.filter';
   selector: 'app-vessel-activity-form',
   templateUrl: './vessel-activity.form.html',
   styleUrls: ['./vessel-activity.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> implements OnInit {
-
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
   @Input() mobile: boolean;
@@ -39,7 +38,6 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   metierFocusIndex = -1;
   enableMetierFilter = false;
 
-
   constructor(
     injector: Injector,
     protected formBuilder: UntypedFormBuilder,
@@ -51,13 +49,11 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     protected modalCtrl: ModalController,
     public network: NetworkService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, null,
-      {
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
-      });
+    super(injector, measurementsValidatorService, formBuilder, programRefService, null, {
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+    });
     this._enable = true;
     this.mobile = this.settings.mobile;
-
   }
 
   ngOnInit() {
@@ -68,15 +64,14 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     this.registerAutocompleteField<ReferentialRef>('metier', {
       service: this.referentialRefService,
       // Increase default column size, for 'label'
-      columnSizes: metierAttributes.map(a => a === 'label' ? 3 : undefined/*auto*/),
-      mobile: this.mobile
+      columnSizes: metierAttributes.map((a) => (a === 'label' ? 3 : undefined) /*auto*/),
+      mobile: this.mobile,
     });
   }
 
   protected onApplyingEntity(data: VesselActivity, opts?: { [p: string]: any }) {
     // Make sure to have (at least) one metier
     if (data?.metiers) {
-
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
     }
 
@@ -103,21 +98,19 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   }
 
   protected initMetiersHelper() {
-
     this.metiersHelper = new FormArrayHelper<ReferentialRef>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
       (metier) => this.validatorService.getMetierFormControl(metier),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
-        allowEmptyArray: false
+        allowEmptyArray: false,
       }
     );
 
     // Create at least one metier
     if (this.metiersHelper.size() === 0) {
       this.metiersHelper.resize(1);
-
     }
   }
 
@@ -130,6 +123,6 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    return pmfms.filter(p => p.required);
+    return pmfms.filter((p) => p.required);
   }
 }

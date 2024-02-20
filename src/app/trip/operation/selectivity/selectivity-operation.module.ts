@@ -32,18 +32,15 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     AppSampleModule,
     AppPhysicalGearModule,
     AppOperationModule,
-    AppExtractionButtonModule
+    AppExtractionButtonModule,
   ],
-  declarations: [
-    SelectivityOperationPage
-  ],
+  declarations: [SelectivityOperationPage],
   exports: [
     // Components
-    SelectivityOperationPage
-  ]
+    SelectivityOperationPage,
+  ],
 })
 export class AppSelectivityOperationModule {
-
   constructor() {
     console.debug('[selectivity-operation] Creating module...');
   }

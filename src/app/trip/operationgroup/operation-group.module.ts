@@ -7,7 +7,6 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -17,18 +16,10 @@ import { AppReferentialModule } from '@app/referential/referential.module';
     AppReferentialModule,
     AppMeasurementModule,
   ],
-  declarations: [
-    OperationGroupTable,
-    OperationGroupModal,
-    OperationGroupForm
-  ],
-  exports: [
-    OperationGroupTable,
-    OperationGroupModal
-  ]
+  declarations: [OperationGroupTable, OperationGroupModal, OperationGroupForm],
+  exports: [OperationGroupTable, OperationGroupModal],
 })
 export class AppOperationGroupModule {
-
   constructor() {
     console.debug('[operation-group] Creating module...');
   }

@@ -6,7 +6,7 @@ import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 const routes: Routes = [
   {
     path: 'selectivity',
-    loadChildren: () => import('./selectivity/selectivity-operation-routing.module').then(m => m.AppSelectivityOperationRoutingModule)
+    loadChildren: () => import('./selectivity/selectivity-operation-routing.module').then((m) => m.AppSelectivityOperationRoutingModule),
   },
   {
     path: ':operationId',
@@ -15,8 +15,8 @@ const routes: Routes = [
     component: OperationPage,
     canDeactivate: [ComponentDirtyGuard],
     data: {
-      pathIdParam: 'operationId'
-    }
+      pathIdParam: 'operationId',
+    },
   },
   // Not implemented yet
   // {
@@ -26,14 +26,8 @@ const routes: Routes = [
   // }
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppOperationRoutingModule {
-}
+export class AppOperationRoutingModule {}

@@ -37,7 +37,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     AppMeasurementModule,
     AppBatchModule,
     AppSampleModule,
-    AppPhysicalGearModule
+    AppPhysicalGearModule,
   ],
   declarations: [
     OperationsTable,
@@ -47,7 +47,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     OperationPage,
     SelectOperationModal,
     SelectOperationByTripTable,
-    OperationIconComponent
+    OperationIconComponent,
   ],
   exports: [
     LeafletModule,
@@ -57,11 +57,10 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     OperationsMapModal,
     OperationForm,
     OperationPage,
-    OperationIconComponent
-  ]
+    OperationIconComponent,
+  ],
 })
 export class AppOperationModule {
-
   constructor() {
     console.debug('[operation] Creating module...');
   }

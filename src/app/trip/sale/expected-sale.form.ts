@@ -37,7 +37,11 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
     this.setValue(isNotNil(data) ? data : new ExpectedSale());
   }
 
-  constructor(protected injector: Injector, protected settings: LocalSettingsService, protected cd: ChangeDetectorRef) {
+  constructor(
+    protected injector: Injector,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
+  ) {
     super(() => this.saleMeasurementsForm);
   }
 

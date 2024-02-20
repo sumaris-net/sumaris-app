@@ -1,10 +1,19 @@
-import { Entity, EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IconRef, isNotEmptyArray, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  FilterFn,
+  fromDateISOString,
+  IconRef,
+  isNotEmptyArray,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 export type JobTypeEnum = 'IMPORT_ORDER_ITEM_SHAPE' | 'IMPORT_MONITORING_LOCATION_SHAPE';
 export type JobStatusEnum = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'FATAL' | 'CANCELLED';
-
 
 @EntityClass({ typename: 'JobVO' })
 export class Job extends Entity<Job> {

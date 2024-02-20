@@ -1,15 +1,13 @@
-import {EntityAsObjectOptions, EntityUtils}  from '@sumaris-net/ngx-components';
-import {BaseReferentialFilter} from './referential.filter';
-import {ReferentialRef}  from '@sumaris-net/ngx-components';
-import {FilterFn} from '@sumaris-net/ngx-components';
-import {isNotEmptyArray} from '@sumaris-net/ngx-components';
-import {EntityClass}  from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityUtils } from '@sumaris-net/ngx-components';
+import { BaseReferentialFilter } from './referential.filter';
+import { ReferentialRef } from '@sumaris-net/ngx-components';
+import { FilterFn } from '@sumaris-net/ngx-components';
+import { isNotEmptyArray } from '@sumaris-net/ngx-components';
+import { EntityClass } from '@sumaris-net/ngx-components';
 import { BBox } from 'geojson';
 
-@EntityClass({typename: 'ReferentialFilterVO'})
-export class ReferentialRefFilter
-    extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
-
+@EntityClass({ typename: 'ReferentialFilterVO' })
+export class ReferentialRefFilter extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
   static fromObject: (source, opts?: any) => ReferentialRefFilter;
 
   searchAttributes: string[] = null;
@@ -19,9 +17,10 @@ export class ReferentialRefFilter
     const target = super.asObject(opts);
     if (opts && opts.minify) {
       // Init searchAttribute, only when NOT searching on 'label' AND 'name' (not need to pass it to POD)
-      if (!target.searchAttribute && isNotEmptyArray(this.searchAttributes)
-        && (this.searchAttributes.length !== 2
-          || !(this.searchAttributes.includes('label') && this.searchAttributes.includes('name')))
+      if (
+        !target.searchAttribute &&
+        isNotEmptyArray(this.searchAttributes) &&
+        (this.searchAttributes.length !== 2 || !(this.searchAttributes.includes('label') && this.searchAttributes.includes('name')))
       ) {
         target.searchAttribute = this.searchAttributes[0] || undefined;
       }

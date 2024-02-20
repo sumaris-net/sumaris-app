@@ -75,20 +75,20 @@ export declare type TagIdGenerationMode = 'none' | 'previousRow' | 'remote';
   selector: 'app-samples-table',
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
-  providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: AppValidatorService, useExisting: SampleValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesTable
-  extends BaseMeasurementsTable<Sample,
+  extends BaseMeasurementsTable<
+    Sample,
     SampleFilter,
     InMemoryEntitiesService<Sample, SampleFilter>,
     SampleValidatorService,
     BaseMeasurementsTableConfig<Sample>,
-    SampleValidatorOptions>
-implements OnInit, AfterViewInit, OnDestroy {
-
+    SampleValidatorOptions
+  >
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private _footerRowsSubscription: Subscription;
 
   protected referentialRefService: ReferentialRefService;
@@ -149,8 +149,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     if (this.$pmfmGroups.value !== value) {
       if (value && Object.keys(value).length) {
         this.showGroupHeader = true;
-      }
-      else {
+      } else {
         this.showGroupHeader = false;
       }
       this.$pmfmGroups.next(value);
@@ -222,7 +221,7 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get tagIdGenerationMode(): TagIdGenerationMode {
-    return this.enableTagIdGeneration ? (this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode) : 'none';
+    return this.enableTagIdGeneration ? this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode : 'none';
   }
 
   @Output() prepareRowForm = new EventEmitter<IPmfmForm>();
@@ -230,14 +229,16 @@ implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     injector: Injector,
-    protected samplingStrategyService: SamplingStrategyService,
+    protected samplingStrategyService: SamplingStrategyService
   ) {
-    super(injector,
-      Sample, SampleFilter,
+    super(
+      injector,
+      Sample,
+      SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSave: (data) => this.onSave(data),
         equals: Sample.equals,
-        sortByReplacement: {id: 'rankOrder'}
+        sortByReplacement: { id: 'rankOrder' },
       }),
       injector.get(LocalSettingsService).mobile ? null : injector.get(SampleValidatorService),
       {
@@ -248,7 +249,7 @@ implements OnInit, AfterViewInit, OnDestroy {
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -262,7 +263,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
     this.propagateRowError = true;
-    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
+    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
 
     // Set default value
     this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
@@ -286,9 +287,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     super.ngOnInit();
 
     // Add footer listener
-    this.registerSubscription(
-      this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms))
-    );
+    this.registerSubscription(this.$pmfms.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
 
   ngAfterViewInit() {
@@ -300,14 +299,14 @@ implements OnInit, AfterViewInit, OnDestroy {
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
   }
 
@@ -327,11 +326,10 @@ implements OnInit, AfterViewInit, OnDestroy {
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
     super.configureValidator(opts);
 
-    this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
+    this.validatorService.delegateOptions = { withImages: this.showImagesColumn, requiredLabel: this.requiredLabel };
   }
 
-  protected onPrepareRowForm(form: UntypedFormGroup, opts?: {pmfms?: IPmfm[]; markForCheck?: () => void}) {
-
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: { pmfms?: IPmfm[]; markForCheck?: () => void }) {
     if (this.validatorService) {
       this.validatorService.updateFormGroup(form);
     }
@@ -340,7 +338,7 @@ implements OnInit, AfterViewInit, OnDestroy {
       form,
       pmfms: this.pmfms,
       markForCheck: () => this.markForCheck(),
-      ...opts
+      ...opts,
     });
   }
 
@@ -366,9 +364,8 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async onSave(data: Sample[]): Promise<Sample[]> {
-
     if (this.debug) console.debug('[samples-table] Preparing data to be saved...');
-    data = data.map(entity => {
+    data = data.map((entity) => {
       this.prepareEntityToSave(entity);
       return entity;
     });
@@ -377,35 +374,32 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Change visibility to public
-  setError(error: string, opts?: {emitEvent?: boolean; duplicatedValues?: string[]; duplicatedValuePath?: string}) {
-
+  setError(error: string, opts?: { emitEvent?: boolean; duplicatedValues?: string[]; duplicatedValuePath?: string }) {
     // if duplicated error
     if (error && isNotEmptyArray(opts?.duplicatedValues)) {
-
-      const duplicatedValuePath = opts.duplicatedValuePath || this.tagIdPmfm && `measurementValues.${this.tagIdPmfm.id}`;
-      const rowsWithDuplicatedValue = this.dataSource.getRows()
-          .filter(row => {
-            const value = getPropertyByPath(row.currentData, duplicatedValuePath);
-            return opts.duplicatedValues.includes(value);
-          });
+      const duplicatedValuePath = opts.duplicatedValuePath || (this.tagIdPmfm && `measurementValues.${this.tagIdPmfm.id}`);
+      const rowsWithDuplicatedValue = this.dataSource.getRows().filter((row) => {
+        const value = getPropertyByPath(row.currentData, duplicatedValuePath);
+        return opts.duplicatedValues.includes(value);
+      });
 
       if (isNotEmptyArray(rowsWithDuplicatedValue)) {
         const tagIdPmfmName = this.getI18nPmfmName(this.tagIdPmfm);
-        const errorMessage = this.translate.instant('TRIP.SAMPLE.ERROR.DUPLICATED_TAG_ID', {name: tagIdPmfmName?.toLowerCase()});
+        const errorMessage = this.translate.instant('TRIP.SAMPLE.ERROR.DUPLICATED_TAG_ID', { name: tagIdPmfmName?.toLowerCase() });
         // For each rows, test if has duplicated tag id and mark it if so
-        Promise.all(rowsWithDuplicatedValue.map(row => {
+        Promise.all(
+          rowsWithDuplicatedValue.map((row) => {
             const entity = row.currentData;
             DataEntityUtils.markAsInvalid(entity, errorMessage);
-            return this.updateEntityToTable(entity, row, {confirmEdit: !row.editing});
-          }))
-          .then(() => {
-            this.showError = true;
-          });
+            return this.updateEntityToTable(entity, row, { confirmEdit: !row.editing });
+          })
+        ).then(() => {
+          this.showError = true;
+        });
         super.setError(error, opts);
         return;
       }
-    }
-    else {
+    } else {
       this.showError = false;
       super.setError(error, opts);
     }
@@ -413,7 +407,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
+    const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject });
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -439,22 +433,22 @@ implements OnInit, AfterViewInit, OnDestroy {
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
-      showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
-      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
+      showIndividualMonitoringButton: (this.allowSubSamples && this.showIndividualMonitoringButton) || false,
+      showIndividualReleaseButton: (this.allowSubSamples && this.showIndividualReleaseButton) || false,
       showPictures: this.showImagesColumn,
       pmfmValueColor: this.pmfmValueColor,
       onReady: (modal) => {
         this.onPrepareRowForm(modal.form.form, {
           pmfms,
-          markForCheck: () => modal.markForCheck()
+          markForCheck: () => modal.markForCheck(),
         });
       },
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
-          await this.addEntityToTable(dataToSave, {editing: false});
+          await this.addEntityToTable(dataToSave, { editing: false });
         } else {
-          await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
+          await this.updateEntityToTable(dataToSave, row, { confirmEdit: true });
           row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
         }
         // Prepare new sample
@@ -471,7 +465,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
       // Data to open
       isNew,
-      data: dataToOpen
+      data: dataToOpen,
     };
 
     const modal = await this.modalCtrl.create({
@@ -479,74 +473,68 @@ implements OnInit, AfterViewInit, OnDestroy {
       componentProps: options,
       keyboardClose: true,
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
 
     if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
 
     this.markAsLoaded();
 
-    return {data: (data instanceof Sample ? data : undefined), role};
+    return { data: data instanceof Sample ? data : undefined, role };
   }
 
   async onIndividualMonitoringClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
-
   }
 
   async onIndividualReleaseClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
   }
 
-  async onSubSampleButtonClick(event: Event,
-                               row: TableElement<Sample>,
-                               acquisitionLevel: AcquisitionLevelType) {
+  async onSubSampleButtonClick(event: Event, row: TableElement<Sample>, acquisitionLevel: AcquisitionLevelType) {
     if (event) event.preventDefault();
     console.debug(`[samples-table] onSubSampleButtonClick() on ${acquisitionLevel}`);
     // Loading spinner
     this.markAsLoading();
 
     try {
-
       const parent = this.toEntity(row);
-      const { data, role } = await this.openSubSampleModal(parent, {acquisitionLevel });
+      const { data, role } = await this.openSubSampleModal(parent, { acquisitionLevel });
 
       if (isNil(data)) return; // User cancelled
 
       if (role === 'DELETE') {
         parent.children = SampleUtils.removeChild(parent, data);
-      }
-      else {
+      } else {
         parent.children = SampleUtils.insertOrUpdateChild(parent, data, acquisitionLevel);
       }
 
       if (row.validator) {
-        row.validator.patchValue({children: parent.children});
-      }
-      else {
+        row.validator.patchValue({ children: parent.children });
+      } else {
         row.currentData.children = parent.children.slice(); // Force pipes update
         this.markAsDirty();
       }
-
     } finally {
       this.markAsLoaded();
     }
   }
 
   protected async openSubSampleModalFromRootModal(parent: Sample, acquisitionLevel: AcquisitionLevelType): Promise<Sample> {
-    if (!parent || !acquisitionLevel) throw Error('Missing \'parent\' or \'acquisitionLevel\' arguments');
+    if (!parent || !acquisitionLevel) throw Error("Missing 'parent' or 'acquisitionLevel' arguments");
 
     // Make sure the row exists
-    this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
-      || (await this.findRowByEntity(parent))
+    this.editedRow =
+      (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow) ||
+      (await this.findRowByEntity(parent)) ||
       // Or add it to table, if new
-      || (await this.addEntityToTable(parent, {confirmCreate: false /*keep row editing*/}));
+      (await this.addEntityToTable(parent, { confirmCreate: false /*keep row editing*/ }));
 
     const { data, role } = await this.openSubSampleModal(parent, { acquisitionLevel });
 
@@ -554,8 +542,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     if (role === 'DELETE') {
       parent.children = SampleUtils.removeChild(parent, data);
-    }
-    else {
+    } else {
       parent.children = SampleUtils.insertOrUpdateChild(parent, data, acquisitionLevel);
     }
 
@@ -563,12 +550,13 @@ implements OnInit, AfterViewInit, OnDestroy {
     return parent;
   }
 
-  protected async openSubSampleModal(parentSample?: Sample, opts?: {
-    showParent?: boolean;
-    acquisitionLevel?: AcquisitionLevelType;
-  }): Promise<OverlayEventDetail<Sample | undefined>> {
-
-
+  protected async openSubSampleModal(
+    parentSample?: Sample,
+    opts?: {
+      showParent?: boolean;
+      acquisitionLevel?: AcquisitionLevelType;
+    }
+  ): Promise<OverlayEventDetail<Sample | undefined>> {
     const showParent = opts && opts.showParent === true; // False by default
     const acquisitionLevel = opts?.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
 
@@ -584,7 +572,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Make sure to set the parent
-    subSample.parent = parentSample.asObject({withChildren: false});
+    subSample.parent = parentSample.asObject({ withChildren: false });
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -605,18 +593,18 @@ implements OnInit, AfterViewInit, OnDestroy {
         mobile: this.mobile,
 
         onDelete: (_, __) => Promise.resolve(true),
-        ...this.subSampleModalOptions
+        ...this.subSampleModalOptions,
       },
       backdropDismiss: false,
       keyboardClose: true,
-      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large'
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
 
     // User cancelled
     if (isNil(data)) {
@@ -626,7 +614,7 @@ implements OnInit, AfterViewInit, OnDestroy {
       if (this.debug) console.debug('[sample-table] Sub-sample modal result: ', data, role);
     }
 
-    return {data, role};
+    return { data, role };
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
@@ -635,41 +623,40 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
-      (this.pmfms || []).forEach(pmfm => {
-
-        const show = isNil(taxonGroupId)
-          || !PmfmUtils.isDenormalizedPmfm(pmfm)
-          || (isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId));
+      (this.pmfms || []).forEach((pmfm) => {
+        const show =
+          isNil(taxonGroupId) || !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(taxonGroupId);
         this.setShowColumn(pmfm.id.toString(), show);
       });
 
       this.updateColumns();
-    }
-    finally {
+    } finally {
       if (toggleLoading) this.markAsLoaded();
     }
   }
 
   async openAddPmfmsModal(event?: Event) {
-
     // If pending rows, save first
     if (this.dirty) {
       const saved = await this.save();
       if (!saved) return;
     }
 
-    const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.pmfms || []).map((p) => p.id).filter(isNotNil);
 
-    const pmfmIds = await this.openSelectPmfmsModal(event, {
-      excludedIds: existingPmfmIds
-    }, {
-      allowMultiple: false
-    });
+    const pmfmIds = await this.openSelectPmfmsModal(
+      event,
+      {
+        excludedIds: existingPmfmIds,
+      },
+      {
+        allowMultiple: false,
+      }
+    );
     if (isEmptyArray(pmfmIds)) return; // User cancelled
 
     console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
     await this.addPmfmColumns(pmfmIds);
-
   }
 
   /**
@@ -678,18 +665,21 @@ implements OnInit, AfterViewInit, OnDestroy {
    * @param event
    */
   async openChangePmfmsModal(event?: Event) {
-    const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.pmfms || []).map((p) => p.id).filter(isNotNil);
 
-    const pmfmIds = await this.openSelectPmfmsModal(event, {
-      excludedIds: existingPmfmIds
-    }, {
-      allowMultiple: false
-    });
+    const pmfmIds = await this.openSelectPmfmsModal(
+      event,
+      {
+        excludedIds: existingPmfmIds,
+      },
+      {
+        allowMultiple: false,
+      }
+    );
     if (!pmfmIds) return; // USer cancelled
-
   }
 
-  async openImagesModal(event: Event, row: TableElement<Sample>){
+  async openImagesModal(event: Event, row: TableElement<Sample>) {
     const images = row.currentData.images;
 
     // Skip if no images to display
@@ -701,13 +691,13 @@ implements OnInit, AfterViewInit, OnDestroy {
       component: AppImageAttachmentsModal,
       componentProps: <IImageModalOptions>{
         data: images,
-        disabled: this.disabled
+        disabled: this.disabled,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
     await modal.present();
-    const {data, role} = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
 
     // User cancel
     if (isNil(data) || this.disabled) return;
@@ -718,13 +708,11 @@ implements OnInit, AfterViewInit, OnDestroy {
       row.validator.markAsDirty();
       this.confirmEditCreate();
       this.markAsDirty();
-    }
-    else {
+    } else {
       row.currentData.images = data;
       this.markAsDirty();
     }
   }
-
 
   /* -- protected methods -- */
 
@@ -733,25 +721,23 @@ implements OnInit, AfterViewInit, OnDestroy {
       return suggestFromArray(this.availableTaxonGroups, value, options);
     }
 
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return { data: [] };
 
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
+    });
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -764,7 +750,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     // generate label
     if (!this.showLabelColumn && this.requiredLabel) {
-      data.label = `${this.acquisitionLevel||''}#${data.rankOrder}`;
+      data.label = `${this.acquisitionLevel || ''}#${data.rankOrder}`;
     }
 
     // Default date
@@ -813,8 +799,10 @@ implements OnInit, AfterViewInit, OnDestroy {
         case 'remote':
           const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength);
           const nextTagIdSuffix = parseInt(nextTagIdComplete.slice(-1 * this.tagIdMinLength));
-          newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix)
-            .padStart(this.tagIdMinLength, '0');
+          newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix).padStart(
+            this.tagIdMinLength,
+            '0'
+          );
           break;
       }
 
@@ -823,20 +811,19 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     // Copy some value from previous sample
     if (previousSample && isNotEmptyArray(this.existingPmfmIdsToCopy)) {
-      this.existingPmfmIdsToCopy
-        .forEach(pmfmId => {
-          if (isNilOrBlank(data.measurementValues[pmfmId])) {
-            data.measurementValues[pmfmId] = previousSample.measurementValues[pmfmId];
-          }
-        });
+      this.existingPmfmIdsToCopy.forEach((pmfmId) => {
+        if (isNilOrBlank(data.measurementValues[pmfmId])) {
+          data.measurementValues[pmfmId] = previousSample.measurementValues[pmfmId];
+        }
+      });
     }
 
     // Reset __typename, to force normalization of all values
     MeasurementValuesUtils.resetTypename(data.measurementValues);
-    data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.pmfms, {keepSourceObject: true});
+    data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.pmfms, { keepSourceObject: true });
   }
 
-  protected getPreviousSample(): Sample|undefined {
+  protected getPreviousSample(): Sample | undefined {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
     const row = this.dataSource.getRow(this.visibleRowCount - 1);
     return row?.currentData;
@@ -858,13 +845,12 @@ implements OnInit, AfterViewInit, OnDestroy {
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const {data, role} = await this.openDetailModal();
+    const { data, role } = await this.openDetailModal();
     if (data && role !== 'delete') {
       // Can be an update (is user use the 'save and new' modal's button),
       await this.addOrUpdateEntityToTable(data);
       return true;
-    }
-    else {
+    } else {
       this.editedRow = null;
       return false;
     }
@@ -883,7 +869,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     // Prepare entity measurement values
     this.prepareEntityToSave(dataToOpen);
 
-    const {data, role} = await this.openDetailModal(dataToOpen, row);
+    const { data, role } = await this.openDetailModal(dataToOpen, row);
     if (data && role !== 'delete') {
       // Can be an update (is user use the 'save and new' modal's button),
       await this.addOrUpdateEntityToTable(data);
@@ -901,45 +887,43 @@ implements OnInit, AfterViewInit, OnDestroy {
 
   async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return this.dataSource.getRows()
-      .find(r => r.currentData.rankOrder === data.rankOrder);
+    return this.dataSource.getRows().find((r) => r.currentData.rankOrder === data.rankOrder);
   }
 
   protected async addPmfmColumns(pmfmIds: number[]) {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
     // Load each pmfms, by id
-    const fullPmfms = await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
+    const fullPmfms = await Promise.all(pmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)));
     let pmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     // Add weight conversion
     if (this.weightDisplayedUnit) {
-      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit, {clone: false});
+      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit, { clone: false });
 
       console.debug('[samples-table] Add new pmfms: ', pmfms);
     }
 
-    this.pmfms = [
-      ...this.pmfms,
-      ...pmfms
-    ];
+    this.pmfms = [...this.pmfms, ...pmfms];
   }
 
-  protected async openSelectPmfmsModal(event?: Event, filter?: Partial<PmfmFilter>,
-                                       opts?: {
-                                         allowMultiple?: boolean;
-                                       }): Promise<number[]> {
-
+  protected async openSelectPmfmsModal(
+    event?: Event,
+    filter?: Partial<PmfmFilter>,
+    opts?: {
+      allowMultiple?: boolean;
+    }
+  ): Promise<number[]> {
     const modal = await this.modalCtrl.create({
       component: SelectPmfmModal,
       componentProps: <ISelectPmfmModalOptions>{
         filter: PmfmFilter.fromObject(filter),
         showFilter: true,
-        allowMultiple: opts?.allowMultiple
+        allowMultiple: opts?.allowMultiple,
       },
       keyboardClose: true,
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
@@ -950,7 +934,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     if (isEmptyArray(data)) return; // CANCELLED
 
     // Return pmfm ids
-    return data.map(p => p.id);
+    return data.map((p) => p.id);
   }
 
   /**
@@ -959,25 +943,23 @@ implements OnInit, AfterViewInit, OnDestroy {
    * @param pmfms
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
-
     if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
 
     // Compute tag id
-    this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
+    this.tagIdPmfm = this.tagIdPmfm || (pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.TAG_ID));
 
     // Compute pmfms to copy (e.g. need by SIH-OBSBIO)
-    this.existingPmfmIdsToCopy = this.pmfmIdsToCopy
-      && pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && this.pmfmIdsToCopy.includes(pmfm.id))
-              .map(pmfm => pmfm.id);
+    this.existingPmfmIdsToCopy =
+      this.pmfmIdsToCopy && pmfms.filter((pmfm) => !pmfm.defaultValue && !pmfm.hidden && this.pmfmIdsToCopy.includes(pmfm.id)).map((pmfm) => pmfm.id);
 
     if (this.showGroupHeader) {
       console.debug('[samples-table] Computing Pmfm group header...');
 
       // Wait until map is loaded
-      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups, {stop: this.destroySubject});
+      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups, { stop: this.destroySubject });
 
       // Create a list of known pmfm ids
-      const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap(pmfmIds => pmfmIds);
+      const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap((pmfmIds) => pmfmIds);
 
       // Create pmfms group
       const orderedPmfmIds: number[] = [];
@@ -987,18 +969,17 @@ implements OnInit, AfterViewInit, OnDestroy {
       const pmfmGroupColumns: GroupColumnDefinition[] = groupNames.reduce((pmfmGroups, group) => {
         let groupPmfms: IPmfm[];
         if (group === 'OTHER') {
-          groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
+          groupPmfms = pmfms.filter((p) => !groupedPmfmIds.includes(p.id));
         } else {
           const groupPmfmIds = groupedPmfmIdsMap[group];
-          groupPmfms = isNotEmptyArray(groupPmfmIds) ? pmfms.filter(p => groupPmfmIds.includes(p.id)) : [];
+          groupPmfms = isNotEmptyArray(groupPmfmIds) ? pmfms.filter((p) => groupPmfmIds.includes(p.id)) : [];
         }
 
         let groupPmfmCount = groupPmfms.length;
 
-
         const readonlyGroup = this.readonlyPmfmGroups?.includes(group) || false;
 
-        groupPmfms.forEach(pmfm => {
+        groupPmfms.forEach((pmfm) => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
           // If readonly
@@ -1020,7 +1001,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
           // Apply weight conversion, if need
           if (this.weightDisplayedUnit) {
-            PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, {clone: false});
+            PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, { clone: false });
           }
 
           // Add pmfm into the final list of ordered pmfms
@@ -1038,27 +1019,27 @@ implements OnInit, AfterViewInit, OnDestroy {
             orderedPmfmIds.push(pmfm.id);
             const visible = group !== 'TAG_ID';
             const key = 'group-' + group;
-            return index !== 0 || groupPmfmCount === 0 ? res : res.concat(<GroupColumnDefinition>{
-              key,
-              label: group,
-              name: visible && ('TRIP.SAMPLE.PMFM_GROUP.' + group) || '',
-              cssClass: visible && cssClass || '',
-              colSpan: groupPmfmCount
-            });
-          }, []));
+            return index !== 0 || groupPmfmCount === 0
+              ? res
+              : res.concat(<GroupColumnDefinition>{
+                  key,
+                  label: group,
+                  name: (visible && 'TRIP.SAMPLE.PMFM_GROUP.' + group) || '',
+                  cssClass: (visible && cssClass) || '',
+                  colSpan: groupPmfmCount,
+                });
+          }, [])
+        );
       }, []);
       this.pmfmGroupColumns$.next(pmfmGroupColumns);
-      this.groupHeaderColumnNames =
-        ['top-start']
-          .concat(arrayPluck(pmfmGroupColumns, 'key') as string[])
-          .concat(['top-end']);
-      this.groupHeaderStartColSpan = RESERVED_START_COLUMNS.length
-        + (this.showLabelColumn ? 1 : 0)
-        + (this.showTaxonGroupColumn ? 1 : 0)
-        + (this.showTaxonNameColumn ? 1 : 0)
-        + (this.showSampleDateColumn ? 1 : 0);
-      this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
-        + (this.showCommentsColumn ? 1 : 0);
+      this.groupHeaderColumnNames = ['top-start'].concat(arrayPluck(pmfmGroupColumns, 'key') as string[]).concat(['top-end']);
+      this.groupHeaderStartColSpan =
+        RESERVED_START_COLUMNS.length +
+        (this.showLabelColumn ? 1 : 0) +
+        (this.showTaxonGroupColumn ? 1 : 0) +
+        (this.showTaxonNameColumn ? 1 : 0) +
+        (this.showSampleDateColumn ? 1 : 0);
+      this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length + (this.showCommentsColumn ? 1 : 0);
 
       pmfms = orderedPmfms;
     }
@@ -1072,13 +1053,13 @@ implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // DEBUG
-    const hasEmptyPmfm = pmfms.some(p => isNil(p?.id));
+    const hasEmptyPmfm = pmfms.some((p) => isNil(p?.id));
     if (hasEmptyPmfm) {
       console.error('[samples-table] Invalid PMFMS: ', pmfms);
     }
 
     // Add replacement map, for sort by
-    pmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
+    pmfms.forEach((p) => this.memoryDataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
 
     return pmfms;
   }
@@ -1093,8 +1074,7 @@ implements OnInit, AfterViewInit, OnDestroy {
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {
-
-    this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
+    this.tagIdPmfm = this.tagIdPmfm || (pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.TAG_ID));
     this.showTagCount = !!this.tagIdPmfm;
 
     // Should display tag count: add column to footer
@@ -1104,7 +1084,7 @@ implements OnInit, AfterViewInit, OnDestroy {
     // If tag count not displayed
     else if (!this.showTagCount) {
       // Remove from footer columns
-      this.footerColumns = this.footerColumns.filter(column => column !== 'footer-tagCount');
+      this.footerColumns = this.footerColumns.filter((column) => column !== 'footer-tagCount');
 
       // Reset counter
       this.tagCount$.next(0);
@@ -1121,18 +1101,16 @@ implements OnInit, AfterViewInit, OnDestroy {
       this._footerRowsSubscription.unsubscribe();
       this._footerRowsSubscription = null;
     } else if (this.showFooter && !this._footerRowsSubscription) {
-      this._footerRowsSubscription = this.dataSource.connect(null)
-        .pipe(
-          debounceTime(500)
-        ).subscribe(rows => this.updateFooter(rows));
+      this._footerRowsSubscription = this.dataSource
+        .connect(null)
+        .pipe(debounceTime(500))
+        .subscribe((rows) => this.updateFooter(rows));
     }
   }
 
   protected updateFooter(rows: TableElement<Sample>[] | readonly TableElement<Sample>[]) {
     // Update tag count
-    const tagCount = (rows || []).map(row => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string)
-      .filter(isNotNilOrBlank)
-      .length;
+    const tagCount = (rows || []).map((row) => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string).filter(isNotNilOrBlank).length;
     this.tagCount$.next(tagCount);
   }
 
@@ -1143,5 +1121,4 @@ implements OnInit, AfterViewInit, OnDestroy {
   markForCheck() {
     this.cd.markForCheck();
   }
-
 }

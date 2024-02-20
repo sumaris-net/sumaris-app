@@ -10,15 +10,7 @@
   </h3>
 </div>
 
-<mat-table
-  #table
-  [dataSource]="dataSource"
-  matSort
-  matSortActive="startDate"
-  matSortDirection="desc"
-  matSortDisableClear
-  [trackBy]="trackByFn"
->
+<mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc" matSortDisableClear [trackBy]="trackByFn">
   <!-- Id Column -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
@@ -33,7 +25,7 @@
       <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.startDate | dateFormat : { time: false } }}</ion-text>
+      <ion-text>{{ row.currentData.startDate | dateFormat: { time: false } }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -43,7 +35,7 @@
       <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.END_DATE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.endDate | dateFormat : { time: false } }}</ion-text>
+      <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
     </mat-cell>
   </ng-container>
 

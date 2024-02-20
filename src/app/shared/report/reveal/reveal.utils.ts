@@ -3,7 +3,7 @@ import Reveal from 'reveal.js/dist/reveal.esm.js';
 import RevealMarkdown from 'reveal.js/plugin/markdown/markdown.esm.js';
 
 // Export useful class
-export {Reveal,RevealMarkdown};
+export { Reveal, RevealMarkdown };
 
 export interface IRevealOptions {
   config: boolean;
@@ -25,7 +25,7 @@ export interface IRevealOptions {
 
   [key: string]: any;
 }
-export declare type RevealEventType = 'slidechanged'|'slidetransitionend'|'resize';
+export declare type RevealEventType = 'slidechanged' | 'slidetransitionend' | 'resize';
 export declare type RevealSlideChangedEvent = Event & {
   currentSlide: HTMLElement;
   previousSlide: HTMLElement;

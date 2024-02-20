@@ -8,13 +8,12 @@ import {
   isNotNil,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 
-@EntityClass({typename: 'TaxonNameVO'})
+@EntityClass({ typename: 'TaxonNameVO' })
 export class TaxonName extends BaseReferential<TaxonName> {
-
   static ENTITY_NAME = 'TaxonName';
   static fromObject: (source: any, opts?: any) => TaxonName;
 
@@ -34,7 +33,7 @@ export class TaxonName extends BaseReferential<TaxonName> {
     this.entityName = TaxonName.ENTITY_NAME;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): TaxonName {
     const target = new TaxonName();
     target.fromObject(this);
@@ -44,7 +43,7 @@ export class TaxonName extends BaseReferential<TaxonName> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
       ...options,
-      minify: false // Do NOT minify itself
+      minify: false, // Do NOT minify itself
     });
 
     if (options && options.minify) {
@@ -55,7 +54,6 @@ export class TaxonName extends BaseReferential<TaxonName> {
       delete target.useExistingReferenceTaxon;
     } else {
       target.parentTaxonName = this.parentTaxonName && this.parentTaxonName.asObject(options);
-
     }
     return target;
   }
@@ -88,14 +86,11 @@ export const TaxonomicLevelIds = {
   GENUS: 26,
   SUBGENUS: 27,
   SPECIES: 28,
-  SUBSPECIES: 29
+  SUBSPECIES: 29,
 };
 
 @EntityClass({ typename: 'TaxonNameVO' })
-export class TaxonNameRef
-  extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions>
-  implements IReferentialRef<TaxonNameRef> {
-
+export class TaxonNameRef extends Entity<TaxonNameRef, number, ReferentialAsObjectOptions> implements IReferentialRef<TaxonNameRef> {
   static ENTITY_NAME = 'TaxonName';
   static fromObject: (source: any, opts?: any) => TaxonNameRef;
 
@@ -123,7 +118,7 @@ export class TaxonNameRef
     if (options && options.minify) {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: (options.keepTypename && this.__typename) || undefined,
       };
     }
     const target: any = super.asObject(options);
@@ -146,7 +141,6 @@ export class TaxonNameRef
 }
 
 export class TaxonUtils {
-
   static generateLabelFromName(taxonName: string): string {
     if (isNil(taxonName)) return undefined;
     const taxonNameWithoutStartParentheses = taxonName.replace(/\(/g, '');
@@ -156,7 +150,7 @@ export class TaxonUtils {
 
     // Rubin code for "Leucoraja circularis": LEUC CIR
     const parts = taxonNameWithoutParentheses.split(' ');
-    if ((parts.length > 1) && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
+    if (parts.length > 1 && parts[0].match(genusWord) && parts[1].match(speciesWord)) {
       return parts[0].slice(0, 4).toUpperCase() + parts[1].slice(0, 3).toUpperCase();
     }
 
@@ -172,5 +166,4 @@ export class TaxonUtils {
     }
     return label.slice(0, 4) + '* ' + label.slice(4) + '*';
   }
-
 }

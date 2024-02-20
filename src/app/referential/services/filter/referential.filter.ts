@@ -13,18 +13,16 @@ import {
   ReferentialRef,
   StatusIds,
   toDateISOString,
-  uncapitalizeFirstLetter
+  uncapitalizeFirstLetter,
 } from '@sumaris-net/ngx-components';
-
 
 export declare interface IReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,
   T extends IReferentialRef<T, any>,
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
-  FO = any
-  >
-  extends EntityFilter<F, T, ID, AO, FO> {
+  FO = any,
+> extends EntityFilter<F, T, ID, AO, FO> {
   entityName?: string;
 
   label?: string;
@@ -49,14 +47,15 @@ export declare interface IReferentialFilter<
 }
 
 export abstract class BaseReferentialFilter<
-  F extends EntityFilter<F, T, ID, AO, FO>,
-  T extends IReferentialRef<T, any>,
-  ID = number,
-  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
-  FO = any>
+    F extends EntityFilter<F, T, ID, AO, FO>,
+    T extends IReferentialRef<T, any>,
+    ID = number,
+    AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+    FO = any,
+  >
   extends EntityFilter<F, T, ID, AO, FO>
-  implements IReferentialFilter<F, T, ID, AO, FO> {
-
+  implements IReferentialFilter<F, T, ID, AO, FO>
+{
   entityName?: string;
 
   label?: string;
@@ -107,7 +106,7 @@ export abstract class BaseReferentialFilter<
     target.updateDate = toDateISOString(this.updateDate);
     target.levelIds = isNotNil(this.levelId) ? [this.levelId] : this.levelIds;
     target.levelLabels = isNotNil(this.levelLabel) ? [this.levelLabel] : this.levelLabels;
-    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : (this.statusIds || [StatusIds.ENABLE]);
+    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds || [StatusIds.ENABLE];
     if (opts && opts.minify) {
       // do NOT include entityName
       delete target.entityName;
@@ -128,7 +127,7 @@ export abstract class BaseReferentialFilter<
 
     // Filter by label
     if (isNotNil(this.label)) {
-      filterFns.push(entity => entity.label === this.label);
+      filterFns.push((entity) => entity.label === this.label);
     }
 
     // Filter by status
@@ -170,10 +169,8 @@ export abstract class BaseReferentialFilter<
   }
 }
 
-@EntityClass({typename: 'ReferentialFilterVO'})
-export class ReferentialFilter
-  extends BaseReferentialFilter<ReferentialFilter, Referential> {
-
+@EntityClass({ typename: 'ReferentialFilterVO' })
+export class ReferentialFilter extends BaseReferentialFilter<ReferentialFilter, Referential> {
   static TYPENAME = 'ReferentialVO';
   static fromObject: (source: any, opts?: any) => ReferentialFilter;
 
@@ -186,7 +183,7 @@ export class ReferentialFilter
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    target.levelIds = target.levelIds || this.level && isNotNil(this.level.id) && [this.level.id] || undefined;
+    target.levelIds = target.levelIds || (this.level && isNotNil(this.level.id) && [this.level.id]) || undefined;
     if (opts && opts.minify) {
       delete target.level;
     }

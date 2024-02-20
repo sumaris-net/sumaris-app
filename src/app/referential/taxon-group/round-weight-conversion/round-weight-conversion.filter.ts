@@ -1,13 +1,23 @@
-import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  FilterFn,
+  fromDateISOString,
+  IEntityFilter,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+} from '@sumaris-net/ngx-components';
 import { isMoment, Moment } from 'moment';
 import { RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 import { StoreObject } from '@apollo/client/core';
 
-@EntityClass({typename: 'RoundWeightConversionFilterVO'})
+@EntityClass({ typename: 'RoundWeightConversionFilterVO' })
 export class RoundWeightConversionFilter
   extends EntityFilter<RoundWeightConversionFilter, RoundWeightConversionRef, number, EntityAsObjectOptions>
-  implements IEntityFilter<RoundWeightConversionFilter, RoundWeightConversionRef> {
-
+  implements IEntityFilter<RoundWeightConversionFilter, RoundWeightConversionRef>
+{
   static fromObject: (source: any, opts?: any) => RoundWeightConversionFilter;
 
   date: Moment = null;
@@ -51,7 +61,6 @@ export class RoundWeightConversionFilter
       delete target.dressingId;
       target.preservingIds = isNotNil(this.preservingId) ? [this.preservingId] : this.preservingIds;
       delete target.preservingId;
-
     } else {
       target.taxonGroupId = this.taxonGroupId;
       target.taxonGroupIds = this.taxonGroupIds;
@@ -65,37 +74,36 @@ export class RoundWeightConversionFilter
     return target;
   }
 
-
   public buildFilter(): FilterFn<RoundWeightConversionRef>[] {
     const filterFns = super.buildFilter();
 
     // Sex
     const dressingId = this.dressingId;
     if (isNotNil(dressingId)) {
-      filterFns.push(t => t.id === dressingId);
+      filterFns.push((t) => t.id === dressingId);
     }
 
     // Status
     const statusIds = this.statusIds;
     if (isNotEmptyArray(statusIds)) {
-      filterFns.push(t => statusIds.includes(t.statusId));
+      filterFns.push((t) => statusIds.includes(t.statusId));
     }
 
     // Location
     const locationId = this.locationId;
     if (isNotNil(locationId)) {
-      filterFns.push(t => (t.locationId === locationId));
+      filterFns.push((t) => t.locationId === locationId);
     }
 
     // Taxon group
     const taxonGroupId = this.taxonGroupId;
     if (isNotNil(taxonGroupId)) {
-      filterFns.push(t => (t.taxonGroupId === taxonGroupId));
+      filterFns.push((t) => t.taxonGroupId === taxonGroupId);
     }
 
     // Date
     if (this.date && isMoment(this.date)) {
-      filterFns.push(t => this.date.isSameOrAfter(t.startDate) && (isNil(t.endDate) || this.date.isSameOrBefore(t.endDate)));
+      filterFns.push((t) => this.date.isSameOrAfter(t.startDate) && (isNil(t.endDate) || this.date.isSameOrBefore(t.endDate)));
     }
 
     return filterFns;

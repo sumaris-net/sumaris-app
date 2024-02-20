@@ -49,17 +49,14 @@
       </div>
 
       <!-- errors -->
-      <mat-error
-        *ngIf="formControl.errors || _inputFormControl.errors | mapKeys | arrayFirst; let errorKey"
-        [ngSwitch]="errorKey"
-      >
+      <mat-error *ngIf="formControl.errors || _inputFormControl.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-        <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate : formControl.errors.min }}</span>
-        <span *ngSwitchCase="'max'">{{ 'ERROR.FIELD_MAX' | translate : formControl.errors.max }}</span>
+        <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
+        <span *ngSwitchCase="'max'">{{ 'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>
         <span *ngSwitchCase="'pattern'">
           {{
             (_inputFormControl.value > 100 ? 'ERROR.FIELD_MAX' : 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT')
-              | translate : { maxDecimals: _inputMaxDecimals, max: 100 }
+              | translate: { maxDecimals: _inputMaxDecimals, max: 100 }
           }}
         </span>
         <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
@@ -67,13 +64,7 @@
     </mat-form-field>
 
     <!-- Sampling coefficient (1/w) -->
-    <mat-form-field
-      *ngSwitchCase="'1/w'"
-      [floatLabel]="floatLabel"
-      [appearance]="appearance"
-      [class]="classList"
-      class="with-prefix"
-    >
+    <mat-form-field *ngSwitchCase="'1/w'" [floatLabel]="floatLabel" [appearance]="appearance" [class]="classList" class="with-prefix">
       <ion-text class="prefix-label">1/</ion-text>
 
       <mat-label>{{ placeholder | translate }}</mat-label>
@@ -99,13 +90,10 @@
       </div>
 
       <!-- errors -->
-      <mat-error
-        *ngIf="formControl.errors || _inputFormControl.errors | mapKeys | arrayFirst; let errorKey"
-        [ngSwitch]="errorKey"
-      >
+      <mat-error *ngIf="formControl.errors || _inputFormControl.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-        <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate : formControl.errors.min }}</span>
-        <span *ngSwitchCase="'max'">{{ 'ERROR.FIELD_MAX' | translate : formControl.errors.max }}</span>
+        <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
+        <span *ngSwitchCase="'max'">{{ 'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>
         <!--<span *ngSwitchCase="'pattern'">{{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: maxDecimals} }}</span>-->
         <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
       </mat-error>

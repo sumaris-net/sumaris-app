@@ -1,35 +1,26 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
-import {AlertController, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription} from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AlertController, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
-import {TranslateService} from '@ngx-translate/core';
-import {AggregatedLandingForm, AggregatedLandingFormOption} from './aggregated-landing.form';
-import {AggregatedLanding, VesselActivity} from './aggregated-landing.model';
-import {Alerts} from '@sumaris-net/ngx-components';
-import {referentialToString}  from '@sumaris-net/ngx-components';
-import {isNil} from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
+import { AggregatedLandingForm, AggregatedLandingFormOption } from './aggregated-landing.form';
+import { AggregatedLanding, VesselActivity } from './aggregated-landing.model';
+import { Alerts } from '@sumaris-net/ngx-components';
+import { referentialToString } from '@sumaris-net/ngx-components';
+import { isNil } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-aggregated-landing-modal',
   templateUrl: './aggregated-landing.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AggregatedLandingModal implements OnInit, OnDestroy {
-
   loading = true;
   _disabled = false;
   subscription = new Subscription();
   $title = new BehaviorSubject<string>('');
 
-  @ViewChild('form', {static: true}) form: AggregatedLandingForm;
+  @ViewChild('form', { static: true }) form: AggregatedLandingForm;
 
   @Input() data: AggregatedLanding;
   @Input() options: AggregatedLandingFormOption;
@@ -48,7 +39,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   get dirty(): boolean {
-    return this.form ? (this.form.enabled && this.form.dirty) : false;
+    return this.form ? this.form.enabled && this.form.dirty : false;
   }
 
   constructor(
@@ -56,8 +47,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.form.enable();
@@ -81,15 +71,13 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   protected async updateTitle() {
-    const title = await this.translate.get(
-      'AGGREGATED_LANDING.TITLE',
-      {vessel: referentialToString(this.data?.vesselSnapshot, ['exteriorMarking', 'name'])}
-    ).toPromise();
+    const title = await this.translate
+      .get('AGGREGATED_LANDING.TITLE', { vessel: referentialToString(this.data?.vesselSnapshot, ['exteriorMarking', 'name']) })
+      .toPromise();
     this.$title.next(title);
   }
 
   async onSave(event: any): Promise<any> {
-
     // Avoid multiple call
     if (this.disabled) return;
 
@@ -107,13 +95,13 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
       const value = {
         aggregatedLanding: this.form.data,
         saveOnDismiss: false,
-        tripToOpen: undefined
+        tripToOpen: undefined,
       };
       this.disable();
       this.form.error = null;
       await this.viewCtrl.dismiss(value);
     } catch (err) {
-      this.form.error = err && err.message || err;
+      this.form.error = (err && err.message) || err;
       this.enable();
       this.loading = false;
     }
@@ -133,7 +121,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
     this.viewCtrl.dismiss({
       aggregatedLanding: undefined,
       saveOnDismiss: false,
-      tripToOpen: undefined
+      tripToOpen: undefined,
     });
   }
 
@@ -146,8 +134,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   async openTrip($event: { activity: VesselActivity }) {
-    if (!$event || !$event.activity)
-      return;
+    if (!$event || !$event.activity) return;
 
     let saveBeforeLeave: boolean;
     if (this.dirty) {
@@ -163,7 +150,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
     this.viewCtrl.dismiss({
       aggregatedLanding: undefined,
       saveOnDismiss: saveBeforeLeave,
-      tripToOpen: $event.activity
+      tripToOpen: $event.activity,
     });
   }
 }

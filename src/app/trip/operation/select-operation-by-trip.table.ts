@@ -4,7 +4,8 @@ import { OperationValidatorService } from './operation.validator';
 import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from './operation.service';
 import {
   AccountService,
-  AppTable, collectByProperty,
+  AppTable,
+  collectByProperty,
   EntitiesTableDataSource,
   isEmptyArray,
   isNotEmptyArray,
@@ -14,7 +15,7 @@ import {
   ReferentialRef,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { Operation, Trip } from '../trip/trip.model';
@@ -36,13 +37,10 @@ class OperationDivider extends Operation {
   selector: 'app-select-operation-by-trip-table',
   templateUrl: 'select-operation-by-trip.table.html',
   styleUrls: ['select-operation-by-trip.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: OperationValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: OperationValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectOperationByTripTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
-
   limitDateForLostOperation = moment().add(-4, 'day');
   trips = new Array<Trip>();
   filterForm: UntypedFormGroup;
@@ -91,7 +89,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     }
   }
 
-  get sortByDistance(): boolean{
+  get sortByDistance(): boolean {
     return this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition');
   }
 
@@ -106,18 +104,19 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     protected network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      RESERVED_START_COLUMNS
-        .concat(
-          ['tripId',
-            'physicalGear',
-            'targetSpecies',
-            'startDateTime',
-            'startPosition',
-            'fishingStartDateTime',
-            'endPosition'])
-        .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+    super(
+      injector,
+      RESERVED_START_COLUMNS.concat([
+        'tripId',
+        'physicalGear',
+        'targetSpecies',
+        'startDateTime',
+        'startPosition',
+        'fishingStartDateTime',
+        'endPosition',
+      ]).concat(RESERVED_END_COLUMNS),
+      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(
+        Operation,
         dataService,
         null,
         // DataSource options
@@ -132,9 +131,10 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
             mapFn: (operations) => this.mapOperations(operations),
             computeRankOrder: false,
             mutable: false, // use a simple load query, not mutable
-            withOffline: true
-          }
-        })
+            withOffline: true,
+          },
+        }
+      )
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
 
@@ -154,7 +154,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.filterForm = formBuilder.group({
       startDate: null,
       gearIds: [null],
-      taxonGroupLabels: [null]
+      taxonGroupLabels: [null],
     });
 
     // Update filter when changes
@@ -165,21 +165,19 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
           filter(() => this.filterForm.valid)
         )
         // Applying the filter
-        .subscribe((json) => this.setFilter({
-            ...this.filter, // Keep previous filter
-            ...json
-          },
-          {emitEvent: true /*always apply*/}))
+        .subscribe((json) =>
+          this.setFilter(
+            {
+              ...this.filter, // Keep previous filter
+              ...json,
+            },
+            { emitEvent: true /*always apply*/ }
+          )
+        )
     );
 
     // Listen settings changed
-    this.registerSubscription(
-      merge(
-        from(this.settings.ready()),
-        this.settings.onChange
-      )
-      .subscribe(value => this.configureFromSettings(value))
-    );
+    this.registerSubscription(merge(from(this.settings.ready()), this.settings.onChange).subscribe((value) => this.configureFromSettings(value)));
   }
 
   ngOnInit() {
@@ -188,10 +186,10 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     // Apply filter value
     const filter = this.filter;
     if (filter?.startDate) {
-      this.filterForm.get('startDate').setValue(filter.startDate, {emitEvent: false});
+      this.filterForm.get('startDate').setValue(filter.startDate, { emitEvent: false });
     }
     if (filter?.gearIds.length === 1) {
-      this.filterForm.get('gearIds').setValue(filter.gearIds[0], {emitEvent: false});
+      this.filterForm.get('gearIds').setValue(filter.gearIds[0], { emitEvent: false });
     }
 
     // Load taxon groups, and gears
@@ -203,7 +201,6 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.highlightedRow = row;
     return super.clickRow(event, row);
   }
-
 
   isDivider(index, item: TableElement<Operation>): boolean {
     return item.currentData instanceof OperationDivider;
@@ -231,9 +228,8 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
     if (settings.accountInheritance) {
       const account = this.accountService.account;
-      this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-    }
-    else {
+      this.latLongPattern = (account && account.settings && account.settings.latLongFormat) || this.settings.latLongFormat;
+    } else {
       this.latLongPattern = this.settings.latLongFormat;
     }
 
@@ -246,7 +242,11 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   protected async loadTaxonGroups() {
-    const { data } = await this.referentialRefService.loadAll(0, 100, null, null,
+    const { data } = await this.referentialRefService.loadAll(
+      0,
+      100,
+      null,
+      null,
       {
         entityName: 'Metier',
         ...METIER_DEFAULT_FILTER,
@@ -254,8 +254,9 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
         levelIds: this.gearIds,
       },
       {
-        withTotal: false
-      });
+        withTotal: false,
+      }
+    );
 
     const items = removeDuplicatesFromArray(data || [], 'label');
 
@@ -263,52 +264,55 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   protected async loadGears() {
-    const { data } = await this.referentialRefService.loadAll(0, 100, null, null,
+    const { data } = await this.referentialRefService.loadAll(
+      0,
+      100,
+      null,
+      null,
       {
         entityName: 'Gear',
         includedIds: this.gearIds,
       },
       {
-        withTotal: false
-      });
+        withTotal: false,
+      }
+    );
 
     this.$gears.next(data || []);
   }
 
   protected async mapOperations(data: Operation[]): Promise<Operation[]> {
-
     data = removeDuplicatesFromArray(data, 'id');
 
     // Add existing parent operation
-    if (this.parent && data.findIndex(o => o.id === this.parent.id) === -1){
+    if (this.parent && data.findIndex((o) => o.id === this.parent.id) === -1) {
       data.push(this.parent);
     }
 
-    if (isEmptyArray((data))) return data;
+    if (isEmptyArray(data)) return data;
 
     // Not done on watch all to apply filter on parent operation
-    if (this.sortByDistance){
+    if (this.sortByDistance) {
       data = await this.dataService.sortByDistance(data, this.sortDirection, this.sortActive);
     }
 
     // Load trips (remote and local)
     const operationByTripIds = collectByProperty(data, 'tripId');
-    const tripIds = Object.keys(operationByTripIds).map(tripId => +tripId);
-    const localTripIds = tripIds.filter(id => id < 0);
-    const remoteTripIds = tripIds.filter(id => id >= 0);
+    const tripIds = Object.keys(operationByTripIds).map((tripId) => +tripId);
+    const localTripIds = tripIds.filter((id) => id < 0);
+    const remoteTripIds = tripIds.filter((id) => id >= 0);
 
     let trips: Trip[];
     if (isNotEmptyArray(localTripIds) && isNotEmptyArray(remoteTripIds)) {
       trips = await Promise.all([
-        this.tripService.loadAll(0, remoteTripIds.length, null, null, {includedIds: remoteTripIds}, {mutable: false}),
-        this.tripService.loadAll(0, localTripIds.length, null, null, {includedIds: localTripIds, synchronizationStatus: 'DIRTY'}),
+        this.tripService.loadAll(0, remoteTripIds.length, null, null, { includedIds: remoteTripIds }, { mutable: false }),
+        this.tripService.loadAll(0, localTripIds.length, null, null, { includedIds: localTripIds, synchronizationStatus: 'DIRTY' }),
       ]).then(([res1, res2]) => mergeLoadResult(res1, res2)?.data);
-    }
-    else if (isNotEmptyArray(localTripIds)) {
-      trips = (await this.tripService.loadAll(0, localTripIds.length, null, null, {includedIds: localTripIds, synchronizationStatus: 'DIRTY'}))?.data;
-    }
-    else {
-      trips = (await this.tripService.loadAll(0, remoteTripIds.length, null, null, {includedIds: remoteTripIds}, {mutable: false}))?.data;
+    } else if (isNotEmptyArray(localTripIds)) {
+      trips = (await this.tripService.loadAll(0, localTripIds.length, null, null, { includedIds: localTripIds, synchronizationStatus: 'DIRTY' }))
+        ?.data;
+    } else {
+      trips = (await this.tripService.loadAll(0, remoteTripIds.length, null, null, { includedIds: remoteTripIds }, { mutable: false }))?.data;
     }
 
     // Remove duplicated trips
@@ -320,10 +324,9 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
       const divider = new OperationDivider();
       divider.id = tripId;
       divider.tripId = tripId;
-      divider.trip = trips.find(t => t.id === tripId);
+      divider.trip = trips.find((t) => t.id === tripId);
       if (!divider.trip) {
-        divider.trip = childrenOperations.find(o => o.trip && o.trip.id === tripId)?.trip
-          || Trip.fromObject({id: tripId, tripId});
+        divider.trip = childrenOperations.find((o) => o.trip && o.trip.id === tripId)?.trip || Trip.fromObject({ id: tripId, tripId });
       }
       return res.concat(divider).concat(...childrenOperations);
     }, []);
@@ -334,6 +337,4 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
-

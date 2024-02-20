@@ -1,4 +1,16 @@
-import { Department, Entity, EntityAsObjectOptions, EntityClass, EntityFilter, fromDateISOString, Image, isNotNil, Person, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import {
+  Department,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  fromDateISOString,
+  Image,
+  isNotNil,
+  Person,
+  toDateISOString,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { StoreObject } from '@apollo/client/core';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
@@ -12,27 +24,24 @@ export class ImageAttachmentComparators {
 }
 
 @EntityClass({ typename: 'ImageAttachmentVO' })
-export class ImageAttachment extends DataEntity<ImageAttachment>
-  implements Image {
-
+export class ImageAttachment extends DataEntity<ImageAttachment> implements Image {
   static fromObject: (source: any, opts?: any) => ImageAttachment;
 
   static fillRankOrder(images: ImageAttachment[]) {
     // Make sure to set a rankOrder (keep original order)
     // This is need by the equals() function
     images.map((image, index) => {
-      image.rankOrder = index+1;
+      image.rankOrder = index + 1;
     });
   }
 
   static equals(s1: ImageAttachment, s2: ImageAttachment) {
-    return isNotNil(s1.id) && s1.id === s2.id
+    return (
+      (isNotNil(s1.id) && s1.id === s2.id) ||
       // Or functional equals
-      || (
-        // Same xxx attribute
-        s1.rankOrder === s2.rankOrder
-        && s1.comments === s2.comments
-      );
+      // Same xxx attribute
+      (s1.rankOrder === s2.rankOrder && s1.comments === s2.comments)
+    );
   }
 
   static isEmpty(source: ImageAttachment) {
@@ -67,7 +76,7 @@ export class ImageAttachment extends DataEntity<ImageAttachment>
     const target = super.asObject(opts);
     target.dateTime = toDateISOString(this.dateTime);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(opts)) || undefined;
 
     // For pod
     if (opts && opts.keepLocalId === false) {
@@ -86,10 +95,7 @@ export class ImageAttachment extends DataEntity<ImageAttachment>
   }
 }
 
-
 @EntityClass({ typename: 'ImageAttachmentFilterVO' })
 export class ImageAttachmentFilter extends EntityFilter<ImageAttachmentFilter, ImageAttachment> {
-
   static fromObject: (source: any, opts?: any) => ImageAttachmentFilter;
-
 }

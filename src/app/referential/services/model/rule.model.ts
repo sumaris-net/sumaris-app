@@ -46,40 +46,34 @@ export function inverseOperator(operator: RuleOperator) {
   }
 }
 function get<T>(obj: T, props: string[]): any {
-  return obj && props.reduce((result, prop) => result == null ? undefined : result[prop], obj);
+  return obj && props.reduce((result, prop) => (result == null ? undefined : result[prop]), obj);
 }
 
-@EntityClass({typename: 'RuleVO'})
-export class Rule<T = any>
-  extends BaseReferential<Rule, number, EntityAsObjectOptions, RuleFromOptionOptions>
-  implements ITreeItemEntity<Rule>{
+@EntityClass({ typename: 'RuleVO' })
+export class Rule<T = any> extends BaseReferential<Rule, number, EntityAsObjectOptions, RuleFromOptionOptions> implements ITreeItemEntity<Rule> {
   static ENTITY_NAME = 'Rule';
   static fromObject: <R>(source: any, opts?: any) => Rule<R>;
 
   static check<R>(rule: Rule<R>) {
-
     // Check rule validity
     if (rule.precondition) {
       if (isEmptyArray(rule.children)) throw new Error('Invalid rule precondition: missing some children rules');
     } else {
-      if (isNilOrBlank(rule.label) || isNilOrBlank(rule.message))
-        throw new Error('Invalid rule: \'label\' and \'message\' are required');
+      if (isNilOrBlank(rule.label) || isNilOrBlank(rule.message)) throw new Error("Invalid rule: 'label' and 'message' are required");
     }
-    if ((isNilOrBlank(rule.operator) || isNilOrBlank(rule.name)) && (typeof rule.filter !== 'function'))
-      throw new Error('Invalid rule: required an attribute \'operator\' or \'filter\'');
+    if ((isNilOrBlank(rule.operator) || isNilOrBlank(rule.name)) && typeof rule.filter !== 'function')
+      throw new Error("Invalid rule: required an attribute 'operator' or 'filter'");
   }
 
   static asFilterFn<R>(rule: Rule<R>): FilterFn<R> {
-
     // Check rule validity
     if (rule.precondition) {
       if (isEmptyArray(rule.children)) throw new Error('Invalid rule precondition: missing some children rules');
-    }
-    else {
+    } else {
       if (isNilOrBlank(rule.label) || isNilOrBlank(rule.name) || isNilOrBlank(rule.message))
-        throw new Error('Invalid rule: \'label\', \'name\' and \'message\' are required');
-      if (isNilOrBlank(rule.operator) && (typeof rule.filter !== 'function'))
-        throw new Error('Invalid rule: required an attribute \'operator\' or \'filter\'');
+        throw new Error("Invalid rule: 'label', 'name' and 'message' are required");
+      if (isNilOrBlank(rule.operator) && typeof rule.filter !== 'function')
+        throw new Error("Invalid rule: required an attribute 'operator' or 'filter'");
     }
 
     const props = rule.name.split('.');
@@ -102,14 +96,14 @@ export class Rule<T = any>
           return (source) => {
             const value = get(source, props);
             const values = Array.isArray(value) ? value : [value];
-            return values.some(av => expectedValue.includes(av));
+            return values.some((av) => expectedValue.includes(av));
           };
         }
         return (source) => {
           const value = get(source, props);
           const values = Array.isArray(value) ? value : [value];
           // eslint-disable-next-line eqeqeq
-          return values.some(v => v == expectedValue);
+          return values.some((v) => v == expectedValue);
         };
       case 'NULL':
         return (source) => isNil(get(source, props));
@@ -120,11 +114,10 @@ export class Rule<T = any>
     }
   }
 
-  static control<R>(source: R, rule: Rule<R>, opts: {depth?: number; indent?: string; debug?: boolean} = {debug: false} ): FormErrors|undefined {
-
+  static control<R>(source: R, rule: Rule<R>, opts: { depth?: number; indent?: string; debug?: boolean } = { debug: false }): FormErrors | undefined {
     const filter = rule.filter || this.asFilterFn(rule);
-    const indent = opts.debug && opts.indent || '';
-    const logPrefix = opts.debug && `${indent}[rule] [${rule.label}] ` || '';
+    const indent = (opts.debug && opts.indent) || '';
+    const logPrefix = (opts.debug && `${indent}[rule] [${rule.label}] `) || '';
 
     // Test precondition
     if (rule.precondition) {
@@ -138,8 +131,8 @@ export class Rule<T = any>
       if (opts.debug) console.debug(`${logPrefix}precondition OK - value:`, source);
 
       // Continue with children
-      const childrenOpts = opts.debug && {depth: (opts.depth || 0)+1, indent: indent + '  ', debug: true} || {debug: false};
-      const errors = (rule.children || []).map(child => this.control(source, child, childrenOpts)).filter(isNotNil);
+      const childrenOpts = (opts.debug && { depth: (opts.depth || 0) + 1, indent: indent + '  ', debug: true }) || { debug: false };
+      const errors = (rule.children || []).map((child) => this.control(source, child, childrenOpts)).filter(isNotNil);
 
       if (isEmptyArray(errors)) return undefined; // No error
 
@@ -159,8 +152,8 @@ export class Rule<T = any>
     // Error
     return {
       [rule.name]: {
-        [rule.label]: rule.message
-      }
+        [rule.label]: rule.message,
+      },
     };
   }
 
@@ -168,8 +161,7 @@ export class Rule<T = any>
     const target = rule.clone();
     if (target.operator) {
       target.operator = inverseOperator(target.operator);
-    }
-    else {
+    } else {
       const filter = Rule.asFilterFn(rule);
       target.filter = (value) => !filter(value);
     }
@@ -205,18 +197,17 @@ export class Rule<T = any>
     this.value = source.value;
     this.values = source.values;
     this.parent = source.parent;
-    this.filter = (typeof source.filter === 'function') ? source.filter : undefined;
+    this.filter = typeof source.filter === 'function' ? source.filter : undefined;
 
     if (!opts || opts.withChildren !== false) {
-      this.children = source.children && source.children.map(child => Rule.fromObject(child, opts)) || undefined;
+      this.children = (source.children && source.children.map((child) => Rule.fromObject(child, opts))) || undefined;
     }
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
-    const target = super.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+    const target = super.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
 
     if (opts?.minify) {
-
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
       delete target.parentId;
@@ -247,11 +238,9 @@ export class Rule<T = any>
   }
 }
 
-
 export class RuleUtils {
-
   static build<T>(rules: Rule<T>[], force?: boolean) {
-    (rules || []).forEach(rule => {
+    (rules || []).forEach((rule) => {
       if (force || !rule.filter) rule.build();
     });
   }
@@ -260,14 +249,13 @@ export class RuleUtils {
     return this.control(entity, rules, debug) === undefined /*no error*/;
   }
 
-  static control<T>(source: T, rules: Rule<T>[], debug?: boolean): FormErrors|undefined {
-
-    const errors = (rules || []).map(r => Rule.control(source, r, {debug})).filter(isNotNil);
+  static control<T>(source: T, rules: Rule<T>[], debug?: boolean): FormErrors | undefined {
+    const errors = (rules || []).map((r) => Rule.control(source, r, { debug })).filter(isNotNil);
 
     if (isEmptyArray(errors)) return undefined; // No error
 
     // Concat errors
-    return errors.reduce((res, error) => ({...res, ...error}), {});
+    return errors.reduce((res, error) => ({ ...res, ...error }), {});
   }
 
   static not<T>(rules: Rule<T>[]): Rule<T>[] {

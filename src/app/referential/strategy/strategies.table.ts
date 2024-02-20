@@ -350,4 +350,3 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     return data;
   }
 }
-

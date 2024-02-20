@@ -6,22 +6,8 @@ import { BluetoothPopover } from '@app/shared/bluetooth/bluetooth.popover';
 import { RxStateModule } from '@app/shared/rx-state.module';
 
 @NgModule({
-  imports: [
-    SharedModule,
-    TranslateModule.forChild(),
-    RxStateModule,
-    AppIconModule
-  ],
-  declarations: [
-    AppBluetoothIcon,
-    BluetoothPopover
-  ],
-  exports: [
-    TranslateModule,
-    AppBluetoothIcon,
-    BluetoothPopover
-  ]
+  imports: [SharedModule, TranslateModule.forChild(), RxStateModule, AppIconModule],
+  declarations: [AppBluetoothIcon, BluetoothPopover],
+  exports: [TranslateModule, AppBluetoothIcon, BluetoothPopover],
 })
-export class AppBluetoothModule {
-
-}
+export class AppBluetoothModule {}

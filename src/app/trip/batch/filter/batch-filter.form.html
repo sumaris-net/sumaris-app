@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form | formGetGroup : 'measurementValues'" (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form | formGetGroup: 'measurementValues'" (ngSubmit)="doSubmit($event)">
   <ion-grid>
     <ion-row>
       <ion-col *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn">

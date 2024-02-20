@@ -91,11 +91,7 @@
       </ng-template>
 
       <div class="ion-padding">
-        <app-form-vessel
-          #formVessel
-          [withNameRequired]="withNameRequired"
-          [maxDate]="maxDateVesselRegistration"
-        ></app-form-vessel>
+        <app-form-vessel #formVessel [withNameRequired]="withNameRequired" [maxDate]="maxDateVesselRegistration"></app-form-vessel>
       </div>
     </mat-tab>
   </mat-tab-group>

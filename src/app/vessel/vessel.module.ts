@@ -29,7 +29,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     // App modules
     AppCoreModule,
     AppReferentialModule,
-    AppDataModule
+    AppDataModule,
   ],
   declarations: [
     // Pipes
@@ -44,7 +44,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselFeaturesHistoryComponent,
     VesselRegistrationHistoryComponent,
     SelectVesselsModal,
-    ToRegistrationCodeDirective
+    ToRegistrationCodeDirective,
   ],
   exports: [
     SharedModule,
@@ -58,8 +58,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselPage,
     VesselsPage,
     VesselForm,
-    VesselsPage
-  ]
+    VesselsPage,
+  ],
 })
-export class VesselModule {
-}
+export class VesselModule {}

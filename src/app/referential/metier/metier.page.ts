@@ -73,4 +73,3 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
     return -1;
   }
 }
-

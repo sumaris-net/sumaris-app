@@ -9,7 +9,6 @@ export interface IProgressionState {
 }
 
 export class ProgressionModel extends RxState<IProgressionState> {
-
   readonly message$ = this.select('message');
   readonly total$ = this.select('total');
   readonly current$ = this.select('current');
@@ -22,17 +21,17 @@ export class ProgressionModel extends RxState<IProgressionState> {
       total: 0,
       current: 0,
       cancelled: false,
-      ...initState
+      ...initState,
     });
   }
 
   increment(value?: number, message?: string) {
-    this.set('current', s => {
+    this.set('current', (s) => {
       const next = (s.current || 0) + Math.abs(value || 1);
       return Math.min(s.total, next);
     });
     if (isNotNil(message)) {
-      this.set('message', _ => message);
+      this.set('message', (_) => message);
     }
   }
 
@@ -41,7 +40,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set total(value: number) {
-    this.set('total', _ => value);
+    this.set('total', (_) => value);
   }
 
   get message(): string {
@@ -49,7 +48,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set message(value: string) {
-    this.set('message', _ => value);
+    this.set('message', (_) => value);
   }
 
   get current(): number {
@@ -57,7 +56,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set current(value: number) {
-    this.set('current', _ => value);
+    this.set('current', (_) => value);
   }
 
   get cancelled(): boolean {
@@ -65,15 +64,15 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set cancelled(value: boolean) {
-    this.set('cancelled', _ => value);
+    this.set('cancelled', (_) => value);
   }
 
   reset() {
-    this.set({current: 0, message: '', total: 0, cancelled: false, ...this.initState});
+    this.set({ current: 0, message: '', total: 0, cancelled: false, ...this.initState });
   }
 
   cancel() {
-    this.set('cancelled', s_ => true);
+    this.set('cancelled', (s_) => true);
   }
 
   next(current: number) {

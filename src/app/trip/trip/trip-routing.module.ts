@@ -68,15 +68,8 @@ const routes: Routes = [
   },
 ];
 
-
 @NgModule({
-  imports: [
-    AppTripModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppTripModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppTripRoutingModule {
-}
+export class AppTripRoutingModule {}

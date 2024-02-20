@@ -17,8 +17,8 @@
       <ion-label color="primary">{{ i18nPrefix + 'LOCATIONS' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let location of data.appliedStrategies | arrayPluck : { property: 'location' }">
-            <span>{{ location | referentialToString : displayAttributes.location }}</span>
+          <li *ngFor="let location of data.appliedStrategies | arrayPluck: { property: 'location' }">
+            <span>{{ location | referentialToString: displayAttributes.location }}</span>
           </li>
         </ul>
       </ion-label>
@@ -29,8 +29,8 @@
       <ion-label color="primary">{{ i18nPrefix + 'TAXON_GROUPS' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck : { property: 'taxonGroup' }">
-            <span>{{ taxonGroup | referentialToString : displayAttributes.taxonGroup }}</span>
+          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck: { property: 'taxonGroup' }">
+            <span>{{ taxonGroup | referentialToString: displayAttributes.taxonGroup }}</span>
           </li>
         </ul>
       </ion-label>
@@ -41,8 +41,8 @@
       <ion-label color="primary">{{ i18nPrefix + 'TAXON_NAMES' | translate }}</ion-label>
       <ion-label class="status">
         <ul>
-          <li *ngFor="let taxonName of data.taxonNames | arrayPluck : { property: 'taxonName' }">
-            <span>{{ taxonName | referentialToString : displayAttributes.taxonName }}</span>
+          <li *ngFor="let taxonName of data.taxonNames | arrayPluck: { property: 'taxonName' }">
+            <span>{{ taxonName | referentialToString: displayAttributes.taxonName }}</span>
           </li>
         </ul>
       </ion-label>

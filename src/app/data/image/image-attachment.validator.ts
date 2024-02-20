@@ -4,9 +4,8 @@ import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { Validators } from '@angular/forms';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ImageAttachmentValidator extends AppValidatorService {
-
   getFormGroupConfig(data?: any): { [p: string]: any } {
     return {
       __typename: ImageAttachment.TYPENAME,
@@ -19,7 +18,7 @@ export class ImageAttachmentValidator extends AppValidatorService {
       creationDate: [data?.creationDate || null],
       qualityFlagId: [data?.qualityFlagId || QualityFlagIds.NOT_QUALIFIED],
       recorderDepartment: [data?.recorderDepartment || null, SharedValidators.entity],
-      recorderPerson: [data?.recorderPerson || null, SharedValidators.entity]
+      recorderPerson: [data?.recorderPerson || null, SharedValidators.entity],
     };
   }
 }

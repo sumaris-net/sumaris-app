@@ -14,11 +14,10 @@ export interface IProductSaleModalOptions extends IEntityEditorModalOptions<Prod
 
 @Component({
   selector: 'app-product-sale-modal',
-  templateUrl: './product-sale.modal.html'
+  templateUrl: './product-sale.modal.html',
 })
-export class ProductSaleModal extends AppEntityEditorModal<Product> implements OnInit,  OnDestroy, IProductSaleModalOptions {
-
-  @ViewChild('productSaleForm', {static: true}) productSaleForm: ProductSaleForm;
+export class ProductSaleModal extends AppEntityEditorModal<Product> implements OnInit, OnDestroy, IProductSaleModalOptions {
+  @ViewChild('productSaleForm', { static: true }) productSaleForm: ProductSaleForm;
 
   @Input() productSalePmfms: DenormalizedPmfmStrategy[];
 
@@ -33,7 +32,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
     protected translate: TranslateService
   ) {
     super(injector, Product, {
-      tabCount: 1
+      tabCount: 1,
     });
   }
 
@@ -51,12 +50,10 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
     this.productSaleForm.markAsReady();
 
     const formArray = this.productSaleForm.form.get('saleProducts') as UntypedFormArray;
-    formArray.statusChanges
-      .pipe(distinctUntilChanged())
-      .subscribe((status) => {
-        const control = formArray.at(0);
-        console.log('saleProducts.dirty=' + control.enabled, control);
-      });
+    formArray.statusChanges.pipe(distinctUntilChanged()).subscribe((status) => {
+      const control = formArray.at(0);
+      console.log('saleProducts.dirty=' + control.enabled, control);
+    });
   }
 
   ngOnDestroy(): void {
@@ -72,7 +69,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
   }
 
   protected async computeTitle(data: Product): Promise<string> {
-    return this.translate.instant('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(data.taxonGroup)});
+    return this.translate.instant('TRIP.PRODUCT.SALE.TITLE', { taxonGroupLabel: referentialToString(data.taxonGroup) });
   }
 
   protected getFirstInvalidTabIndex(): number {

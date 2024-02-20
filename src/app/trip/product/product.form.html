@@ -60,9 +60,7 @@
             [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
             required
           />
-          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -72,12 +70,7 @@
     <ion-row [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else: measurementsSkeleton">
       <!-- Measurements -->
       <ion-col *ngFor="let pmfm of pmfms; index as i" size="12" size-md="6">
-        <app-pmfm-field
-          [pmfm]="pmfm"
-          [compact]="compact"
-          [tabindex]="tabindex + 4 + i"
-          [floatLabel]="floatLabel"
-        ></app-pmfm-field>
+        <app-pmfm-field [pmfm]="pmfm" [compact]="compact" [tabindex]="tabindex + 4 + i" [floatLabel]="floatLabel"></app-pmfm-field>
       </ion-col>
     </ion-row>
 

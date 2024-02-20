@@ -1,12 +1,6 @@
 <mat-toolbar *ngIf="showToolbar">
   <!-- refresh (debug only) -->
-  <button
-    mat-icon-button
-    color="light"
-    *ngIf="debug && !selection.hasValue()"
-    [title]="'COMMON.BTN_REFRESH' | translate"
-    (click)="onRefresh.emit()"
-  >
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
@@ -34,12 +28,7 @@
       <ion-col>
         <!-- search text -->
         <mat-form-field>
-          <input
-            matInput
-            formControlName="searchText"
-            autocomplete="off"
-            [placeholder]="'REFERENTIAL.LIST.FILTER.SEARCH_TEXT' | translate"
-          />
+          <input matInput formControlName="searchText" autocomplete="off" [placeholder]="'REFERENTIAL.LIST.FILTER.SEARCH_TEXT' | translate" />
           <button
             mat-icon-button
             matSuffix
@@ -58,12 +47,7 @@
   </ion-grid>
 </form>
 
-<div
-  class="table-container"
-  [class.has-filter]="showFilter"
-  [class.has-toolbar]="showToolbar"
-  [class.has-paginator]="showPaginator"
->
+<div class="table-container" [class.has-filter]="showFilter" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
   <table
     mat-table
     [dataSource]="dataSource"
@@ -157,10 +141,7 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>
-          <ion-icon
-            *ngIf="row.currentData.statusId &gt;=0"
-            [name]="statusById[row.currentData.statusId]?.icon"
-          ></ion-icon>
+          <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId]?.icon"></ion-icon>
           <span>{{ statusById[row.currentData.statusId]?.label | translate }}</span>
         </ion-text>
       </td>
@@ -172,12 +153,7 @@
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-        <mat-icon
-          color="primary"
-          class="comment"
-          *ngIf="row.currentData.comments"
-          [title]="row.currentData.comments"
-        ></mat-icon>
+        <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
       </td>
     </ng-container>
 

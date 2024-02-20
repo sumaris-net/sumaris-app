@@ -16,17 +16,18 @@ export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'
   styleUrls: ['batches.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: BatchValidatorService, useClass: BatchValidatorService},
-    {provide: InMemoryEntitiesService, useFactory: () =>
+    { provide: BatchValidatorService, useClass: BatchValidatorService },
+    {
+      provide: InMemoryEntitiesService,
+      useFactory: () =>
         new InMemoryEntitiesService(Batch, BatchFilter, {
           equals: Batch.equals,
-          sortByReplacement: {id: 'rankOrder'}
-        })
-    }
-  ]
+          sortByReplacement: { id: 'rankOrder' },
+        }),
+    },
+  ],
 })
 export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestroy {
-
   @Input() modalOptions: Partial<IBatchModalOptions>;
   @Input() compactFields = true;
 
@@ -35,15 +36,9 @@ export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestr
     protected memoryDataService: InMemoryEntitiesService<Batch, BatchFilter>,
     validatorService: BatchValidatorService
   ) {
-    super(injector,
-      Batch,
-      BatchFilter,
-      memoryDataService,
-      validatorService,
-      {
-        reservedStartColumns: BATCH_RESERVED_START_COLUMNS
-      }
-    );
+    super(injector, Batch, BatchFilter, memoryDataService, validatorService, {
+      reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
+    });
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
@@ -84,22 +79,21 @@ export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestr
         usageMode: this.usageMode,
         i18nSuffix: this.i18nColumnSuffix,
         maxVisibleButtons: 3,
-        ...this.modalOptions
+        ...this.modalOptions,
       },
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
 
     if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data, role);
 
     this.markAsLoaded();
 
-    return {data: (data instanceof Batch) ? data as Batch : undefined, role};
+    return { data: data instanceof Batch ? (data as Batch) : undefined, role };
   }
 }
-

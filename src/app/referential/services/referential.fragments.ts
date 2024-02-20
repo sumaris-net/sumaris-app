@@ -1,319 +1,353 @@
-import {gql} from '@apollo/client/core';
+import { gql } from '@apollo/client/core';
 
 export const ReferentialFragments = {
-  lightReferential: gql`fragment LightReferentialFragment on ReferentialVO {
-    id
-    label
-    name
-    rankOrder
-    statusId
-    entityName
-    __typename
-  }`,
-  referential: gql`fragment ReferentialFragment on ReferentialVO {
-    id
-    label
-    name
-    description
-    comments
-    updateDate
-    creationDate
-    statusId
-    validityStatusId
-    levelId
-    parentId
-    parent {
+  lightReferential: gql`
+    fragment LightReferentialFragment on ReferentialVO {
+      id
+      label
+      name
+      rankOrder
+      statusId
+      entityName
+      __typename
+    }
+  `,
+  referential: gql`
+    fragment ReferentialFragment on ReferentialVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      validityStatusId
+      levelId
+      parentId
+      parent {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      rankOrder
+      entityName
+      __typename
+    }
+  `,
+  fullReferential: gql`
+    fragment FullReferentialFragment on ReferentialVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      validityStatusId
+      levelId
+      parentId
+      parent {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      rankOrder
+      entityName
+      properties
+      __typename
+    }
+  `,
+  department: gql`
+    fragment DepartmentFragment on DepartmentVO {
+      id
+      label
+      name
+      logo
+      __typename
+    }
+  `,
+  lightDepartment: gql`
+    fragment LightDepartmentFragment on DepartmentVO {
+      id
+      label
+      name
+      logo
+      __typename
+    }
+  `,
+  lightPerson: gql`
+    fragment LightPersonFragment on PersonVO {
+      id
+      firstName
+      lastName
+      avatar
+      department {
+        id
+        label
+        name
+        __typename
+      }
+      __typename
+    }
+  `,
+  location: gql`
+    fragment LocationFragment on LocationVO {
       id
       label
       name
       entityName
       __typename
     }
-    rankOrder
-    entityName
-    __typename
-  }`,
-  fullReferential: gql`fragment FullReferentialFragment on ReferentialVO {
-    id
-    label
-    name
-    description
-    comments
-    updateDate
-    creationDate
-    statusId
-    validityStatusId
-    levelId
-    parentId
-    parent {
+  `,
+  taxonName: gql`
+    fragment TaxonNameFragment on TaxonNameVO {
+      id
+      label
+      name
+      statusId
+      levelId
+      referenceTaxonId
+      entityName
+      isReferent
+      __typename
+    }
+  `,
+  fullTaxonName: gql`
+    fragment FullTaxonNameFragment on TaxonNameVO {
+      id
+      label
+      name
+      statusId
+      levelId
+      description
+      comments
+      updateDate
+      creationDate
+      referenceTaxonId
+      parentTaxonName {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      entityName
+      isReferent
+      isNaming
+      isVirtual
+      taxonomicLevel {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      startDate
+      endDate
+      __typename
+    }
+  `,
+  lightTaxonName: gql`
+    fragment LightTaxonNameFragment on TaxonNameVO {
+      id
+      label
+      name
+      statusId
+      levelId
+      description
+      comments
+      updateDate
+      creationDate
+      referenceTaxonId
+      parentId
+      entityName
+      isReferent
+      isNaming
+      isVirtual
+      taxonomicLevelId
+      taxonGroupIds
+      startDate
+      endDate
+      __typename
+    }
+  `,
+  taxonGroup: gql`
+    fragment TaxonGroupFragment on TaxonGroupVO {
       id
       label
       name
       entityName
+      taxonNames {
+        ...TaxonNameFragment
+      }
       __typename
     }
-    rankOrder
-    entityName
-    properties
-    __typename
-  }`,
-  department: gql`fragment DepartmentFragment on DepartmentVO {
-    id
-    label
-    name
-    logo
-    __typename
-  }`,
-  lightDepartment: gql`fragment LightDepartmentFragment on DepartmentVO {
-    id
-    label
-    name
-    logo
-    __typename
-  }`,
-  lightPerson: gql`fragment LightPersonFragment on PersonVO {
-    id
-    firstName
-    lastName
-    avatar
-    department {
+  `,
+  lightMetier: gql`
+    fragment LightMetierFragment on MetierVO {
       id
       label
       name
-      __typename
-    }
-    __typename
-  }`,
-  location: gql`fragment LocationFragment on LocationVO {
-    id
-    label
-    name
-    entityName
-    __typename
-  }`,
-  taxonName: gql`fragment TaxonNameFragment on TaxonNameVO {
-    id
-    label
-    name
-    statusId
-    levelId
-    referenceTaxonId
-    entityName
-    isReferent
-    __typename
-  }`,
-  fullTaxonName: gql`fragment FullTaxonNameFragment on TaxonNameVO {
-    id
-    label
-    name
-    statusId
-    levelId
-    description
-    comments
-    updateDate
-    creationDate
-    referenceTaxonId
-    parentTaxonName {
-      id
-      label
-      name
-      entityName
-      __typename
-    }
-    entityName
-    isReferent
-    isNaming
-    isVirtual
-    taxonomicLevel {
-      id
-      label
-      name
-      entityName
-      __typename
-    }
-    startDate
-    endDate
-    __typename
-  }`,
-  lightTaxonName: gql`fragment LightTaxonNameFragment on TaxonNameVO {
-    id
-    label
-    name
-    statusId
-    levelId
-    description
-    comments
-    updateDate
-    creationDate
-    referenceTaxonId
-    parentId
-    entityName
-    isReferent
-    isNaming
-    isVirtual
-    taxonomicLevelId
-    taxonGroupIds
-    startDate
-    endDate
-    __typename
-  }`,
-  taxonGroup: gql`fragment TaxonGroupFragment on TaxonGroupVO {
-    id
-    label
-    name
-    entityName
-    taxonNames {
-      ...TaxonNameFragment
-    }
-    __typename
-  }`,
-  lightMetier:  gql`fragment LightMetierFragment on MetierVO {
-    id
-    label
-    name
-    statusId
-    validityStatusId
-    levelId
-    entityName
-    taxonGroup {
-      id
-      label
-      name
+      statusId
+      validityStatusId
       levelId
       entityName
+      taxonGroup {
+        id
+        label
+        name
+        levelId
+        entityName
+        __typename
+      }
       __typename
     }
-    __typename
-  }`,
-  metier:  gql`fragment MetierFragment on MetierVO {
-    id
-    label
-    name
-    entityName
-    taxonGroup {
+  `,
+  metier: gql`
+    fragment MetierFragment on MetierVO {
       id
       label
       name
       entityName
+      taxonGroup {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
+      gear {
+        id
+        label
+        name
+        entityName
+        __typename
+      }
       __typename
     }
-    gear {
+  `,
+  lightPmfm: gql`
+    fragment LightPmfmFragment on PmfmVO {
       id
       label
       name
+      type
+      minValue
+      maxValue
+      unitLabel
+      defaultValue
+      maximumNumberDecimals
+      signifFiguresNumber
+      detectionThreshold
+      precision
+      unitId
+      parameterId
+      matrixId
+      fractionId
+      methodId
+      levelId: parameterId
       entityName
       __typename
     }
-    __typename
-  }`,
-  lightPmfm: gql`fragment LightPmfmFragment on PmfmVO {
-    id
-    label
-    name
-    type
-    minValue
-    maxValue
-    unitLabel
-    defaultValue
-    maximumNumberDecimals
-    signifFiguresNumber
-    detectionThreshold
-    precision
-    unitId
-    parameterId
-    matrixId
-    fractionId
-    methodId
-    levelId: parameterId
-    entityName
-    __typename
-  }`,
-  pmfm: gql`fragment PmfmFragment on PmfmVO {
-    id
-    label
-    name
-    statusId
-    updateDate
-    creationDate
-    entityName
-    type
-    minValue
-    maxValue
-    defaultValue
-    maximumNumberDecimals
-    signifFiguresNumber
-    detectionThreshold
-    precision
-    parameter {
-      ...ParameterFragment
+  `,
+  pmfm: gql`
+    fragment PmfmFragment on PmfmVO {
+      id
+      label
+      name
+      statusId
+      updateDate
+      creationDate
+      entityName
+      type
+      minValue
+      maxValue
+      defaultValue
+      maximumNumberDecimals
+      signifFiguresNumber
+      detectionThreshold
+      precision
+      parameter {
+        ...ParameterFragment
+      }
+      matrix {
+        ...LightReferentialFragment
+      }
+      fraction {
+        ...LightReferentialFragment
+      }
+      method {
+        ...LightReferentialFragment
+      }
+      unit {
+        ...LightReferentialFragment
+      }
+      qualitativeValues {
+        ...ReferentialFragment
+      }
+      __typename
     }
-    matrix {
-      ...LightReferentialFragment
+  `,
+  pmfmFull: gql`
+    fragment PmfmFullFragment on PmfmVO {
+      id
+      label
+      name
+      completeName
+      unitLabel
+      statusId
+      updateDate
+      creationDate
+      entityName
+      type
+      minValue
+      maxValue
+      defaultValue
+      maximumNumberDecimals
+      signifFiguresNumber
+      detectionThreshold
+      precision
+      parameter {
+        ...ParameterFragment
+      }
+      matrix {
+        ...LightReferentialFragment
+      }
+      fraction {
+        ...LightReferentialFragment
+      }
+      method {
+        ...LightReferentialFragment
+      }
+      unit {
+        ...LightReferentialFragment
+      }
+      qualitativeValues {
+        ...ReferentialFragment
+      }
+      __typename
     }
-    fraction {
-      ...LightReferentialFragment
+  `,
+  parameter: gql`
+    fragment ParameterFragment on ParameterVO {
+      id
+      label
+      name
+      type
+      statusId
+      creationDate
+      updateDate
+      entityName
+      qualitativeValues {
+        ...ReferentialFragment
+      }
+      __typename
     }
-    method {
-      ...LightReferentialFragment
-    }
-    unit {
-      ...LightReferentialFragment
-    }
-    qualitativeValues {
-      ...ReferentialFragment
-    }
-    __typename
-  }`,
-  pmfmFull: gql`fragment PmfmFullFragment on PmfmVO {
-    id
-    label
-    name
-    completeName
-    unitLabel
-    statusId
-    updateDate
-    creationDate
-    entityName
-    type
-    minValue
-    maxValue
-    defaultValue
-    maximumNumberDecimals
-    signifFiguresNumber
-    detectionThreshold
-    precision
-    parameter {
-      ...ParameterFragment
-    }
-    matrix {
-      ...LightReferentialFragment
-    }
-    fraction {
-      ...LightReferentialFragment
-    }
-    method {
-      ...LightReferentialFragment
-    }
-    unit {
-      ...LightReferentialFragment
-    }
-    qualitativeValues {
-      ...ReferentialFragment
-    }
-    __typename
-  }`,
-  parameter: gql`fragment ParameterFragment on ParameterVO {
-    id
-    label
-    name
-    type
-    statusId
-    creationDate
-    updateDate
-    entityName
-    qualitativeValues {
-      ...ReferentialFragment
-    }
-    __typename
-  }`,
+  `,
 };

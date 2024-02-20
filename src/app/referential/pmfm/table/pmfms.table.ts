@@ -10,10 +10,9 @@ import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
   selector: 'app-pmfms-table',
   templateUrl: './pmfms.table.html',
   styleUrls: ['./pmfms.table.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
-
   filterForm: UntypedFormGroup;
 
   readonly statusList = StatusList;
@@ -28,26 +27,20 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
   constructor(
     injector: Injector,
     formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'name',
-          'unit',
-          'matrix',
-          'fraction',
-          'method',
-          'status'])
-        .concat(RESERVED_END_COLUMNS));
+      RESERVED_START_COLUMNS.concat(['name', 'unit', 'matrix', 'fraction', 'method', 'status']).concat(RESERVED_END_COLUMNS)
+    );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = false;
     this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
-      searchText: [null]
+      searchText: [null],
     });
 
     // Update filter when changes
@@ -58,10 +51,15 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
           filter(() => this.filterForm.valid)
         )
         // Applying the filter
-        .subscribe((json) => this.setFilter({
-            ...this.filter, // Keep previous filter
-            ...json},
-          {emitEvent: this.mobile}))
+        .subscribe((json) =>
+          this.setFilter(
+            {
+              ...this.filter, // Keep previous filter
+              ...json,
+            },
+            { emitEvent: this.mobile }
+          )
+        )
     );
 
     this.debug = !environment.production;
@@ -79,4 +77,3 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     this.cd.markForCheck();
   }
 }
-

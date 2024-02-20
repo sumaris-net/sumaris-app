@@ -19,10 +19,9 @@ export declare type AppEntityExtractionButtonStyle = 'mat-icon-button' | 'mat-me
 @Component({
   selector: 'app-extraction-button',
   templateUrl: 'extraction-button.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
-
+export class AppExtractionButton extends RxState<EntityExtractionMenuState> {
   protected readonly types$: Observable<ExtractionType[]>;
 
   @Input() disabled = false;
@@ -34,7 +33,7 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
   @Input() style: AppEntityExtractionButtonStyle = 'mat-icon-button';
 
   @Input() set programLabels(values: string[]) {
-    this.set('programLabels', _ => values);
+    this.set('programLabels', (_) => values);
   }
 
   get programLabels(): string[] {
@@ -42,7 +41,7 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
   }
 
   @Input() set programLabel(value: string) {
-    this.set('programLabels', _ => value ? [value] : null);
+    this.set('programLabels', (_) => (value ? [value] : null));
   }
 
   get programLabel(): string {
@@ -50,7 +49,7 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
   }
 
   @Input() set isSpatial(isSpatial: boolean) {
-    this.set('isSpatial', _ => isSpatial);
+    this.set('isSpatial', (_) => isSpatial);
   }
 
   get isSpatial(): boolean {
@@ -58,13 +57,12 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
   }
 
   @Input() set category(category: ExtractionCategoryType) {
-    this.set('category', _ => category);
+    this.set('category', (_) => category);
   }
 
   get category(): ExtractionCategoryType {
     return this.get('category');
   }
-
 
   @Output() downloadAsJson = new EventEmitter<UIEvent>();
   @Output() downloadAsType = new EventEmitter<ExtractionType>();
@@ -77,28 +75,35 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState>{
     super();
     this.set({
       isSpatial: false,
-      category: 'LIVE'
+      category: 'LIVE',
     });
 
     // Extraction types
-    this.types$ = this.select(['programLabels', 'isSpatial', 'category'], res => res)
-      .pipe(
+    this.types$ = this.select(['programLabels', 'isSpatial', 'category'], (res) => res).pipe(
+      // DEBUG
+      tap(({ programLabels }) =>
+        console.debug(`[entity-extraction-button] Watching extraction types {programLabels: [${programLabels?.join(', ')}]}...`)
+      ),
 
-        // DEBUG
-        tap(({programLabels}) => console.debug(`[entity-extraction-button] Watching extraction types {programLabels: [${programLabels?.join(', ')}]}...`)),
+      filter(({ programLabels }) => isNotEmptyArray(programLabels)),
 
-        filter(({programLabels}) => isNotEmptyArray(programLabels)),
+      // DEBUG
+      tap(({ programLabels }) =>
+        console.debug(`[entity-extraction-button] Watching extraction types {programLabels: [${programLabels.join(', ')}]}...`)
+      ),
 
-        // DEBUG
-        tap(({programLabels}) => console.debug(`[entity-extraction-button] Watching extraction types {programLabels: [${programLabels.join(', ')}]}...`)),
-
-        // Load extraction types, from program's formats
-        switchMap(({programLabels, isSpatial, category}) => this.extractionTypeService.watchAllByProgramLabels(programLabels, <ExtractionTypeFilter>{
+      // Load extraction types, from program's formats
+      switchMap(({ programLabels, isSpatial, category }) =>
+        this.extractionTypeService.watchAllByProgramLabels(
+          programLabels,
+          <ExtractionTypeFilter>{
             statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
             isSpatial,
-            category
-          }, {fetchPolicy: 'cache-first'})
+            category,
+          },
+          { fetchPolicy: 'cache-first' }
         )
-      );
+      )
+    );
   }
 }

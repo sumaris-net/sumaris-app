@@ -9,7 +9,6 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -23,16 +22,13 @@ import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing
     AppSampleModule,
     AppLandingModule,
   ],
-  declarations: [
-    SamplingLandingPage,
-  ],
+  declarations: [SamplingLandingPage],
   exports: [
     // Components
     SamplingLandingPage,
-  ]
+  ],
 })
 export class AppSamplingLandingModule {
-
   constructor() {
     console.debug('[sampling-landing] Creating module...');
   }

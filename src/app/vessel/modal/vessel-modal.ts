@@ -1,14 +1,14 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Vessel} from '../services/model/vessel.model';
-import {IonContent, ModalController} from '@ionic/angular';
-import {VesselForm} from '../form/form-vessel';
-import {VesselService} from '../services/vessel-service';
-import {AppFormUtils, ConfigService, isNil, isNilOrBlank, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
-import {Subscription} from 'rxjs';
-import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {SynchronizationStatus} from '@app/data/services/model/model.utils';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Moment} from 'moment';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Vessel } from '../services/model/vessel.model';
+import { IonContent, ModalController } from '@ionic/angular';
+import { VesselForm } from '../form/form-vessel';
+import { VesselService } from '../services/vessel-service';
+import { AppFormUtils, ConfigService, isNil, isNilOrBlank, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { Subscription } from 'rxjs';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Moment } from 'moment';
 
 export interface VesselModalOptions {
   defaultStatus?: number;
@@ -17,10 +17,9 @@ export interface VesselModalOptions {
 
 @Component({
   selector: 'app-vessel-modal',
-  templateUrl: './vessel-modal.html'
+  templateUrl: './vessel-modal.html',
 })
 export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
-
   loading = false;
   subscription = new Subscription();
 
@@ -44,16 +43,16 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
     return this.formVessel.valid;
   }
 
-  @ViewChild(VesselForm, {static: true}) formVessel: VesselForm;
+  @ViewChild(VesselForm, { static: true }) formVessel: VesselForm;
 
-  @ViewChild(IonContent, {static: true}) content: IonContent;
+  @ViewChild(IonContent, { static: true }) content: IonContent;
 
   constructor(
     private vesselService: VesselService,
     private configService: ConfigService,
     private referentialRefService: ReferentialRefService,
-    private viewCtrl: ModalController) {
-  }
+    private viewCtrl: ModalController
+  ) {}
 
   ngOnInit(): void {
     this.enable(); // Enable the vessel form, by default
@@ -73,7 +72,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
     if (isNil(this.defaultStatus) || isNil(this.defaultRegistrationLocation) || isNil(this.withNameRequired)) {
       // Get default status by config
       this.subscription.add(
-        this.configService.config.subscribe(async config => {
+        this.configService.config.subscribe(async (config) => {
           if (config && config.properties) {
             if (isNil(this.defaultStatus)) {
               const defaultStatus = config.properties[VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS.key];
@@ -92,7 +91,9 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
               this.formVessel.withNameRequired = this.withNameRequired;
             }
 
-            this.formVessel.basePortLocationSuggestLengthThreshold = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH);
+            this.formVessel.basePortLocationSuggestLengthThreshold = config.getPropertyAsInt(
+              VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH
+            );
           }
         })
       );
@@ -104,7 +105,6 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
   }
 
   async onSave(event: any): Promise<any> {
-
     console.debug('[vessel-modal] Saving new vessel...');
 
     // Avoid multiple call
@@ -130,7 +130,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
       }
 
       // If vessel name is not required and blank, copy exterior marking on name field
-      if (isNotNil(this.withNameRequired) && !this.withNameRequired && isNotNil(data.vesselFeatures) && isNilOrBlank(data.vesselFeatures.name)){
+      if (isNotNil(this.withNameRequired) && !this.withNameRequired && isNotNil(data.vesselFeatures) && isNilOrBlank(data.vesselFeatures.name)) {
         data.vesselFeatures.name = data.vesselFeatures.exteriorMarking;
       }
 
@@ -140,7 +140,7 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
       const savedData = await this.vesselService.save(data);
       return await this.viewCtrl.dismiss(savedData);
     } catch (err) {
-      this.formVessel.error = err && err.message || err;
+      this.formVessel.error = (err && err.message) || err;
       this.enable();
       this.loading = false;
       this.scrollToTop();

@@ -1,16 +1,26 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselsTable } from '@app/vessel/list/vessels.table';
 import { isEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Subscription } from 'rxjs';
-import {TableElement} from '@e-is/ngx-material-table';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
+import { TableElement } from '@e-is/ngx-material-table';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
 
 export interface SelectVesselsModalOptions {
   titleI18n: string;
-  vesselFilter: VesselFilter|null;
+  vesselFilter: VesselFilter | null;
   disableStatusFilter: boolean;
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
@@ -21,16 +31,15 @@ export interface SelectVesselsModalOptions {
   templateUrl: 'select-vessel.modal.html',
   styleUrls: ['select-vessel.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, AfterViewInit, OnDestroy {
-
   subscription = new Subscription();
 
   @ViewChild('vesselsTable', { static: true }) vesselsTable: VesselsTable;
 
   @Input() titleI18n = 'VESSEL.SELECT_MODAL.TITLE';
-  @Input() vesselFilter: VesselFilter|null = null;
+  @Input() vesselFilter: VesselFilter | null = null;
   @Input() disableStatusFilter: boolean;
   @Input() showVesselTypeColumn: boolean;
   @Input() showBasePortLocationColumn: boolean;
@@ -46,8 +55,7 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
   constructor(
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     // Set defaults
@@ -80,10 +88,10 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
     try {
       let vessels: VesselSnapshot[];
       if (this.hasSelection()) {
-          vessels = (this.vesselsTable.selection.selected || [])
-            .map(row => row.currentData)
-            .map(VesselSnapshot.fromVessel)
-            .filter(isNotNil);
+        vessels = (this.vesselsTable.selection.selected || [])
+          .map((row) => row.currentData)
+          .map(VesselSnapshot.fromVessel)
+          .filter(isNotNil);
       }
       if (isEmptyArray(vessels)) {
         console.warn('[select-vessel-modal] no selection');

@@ -1,11 +1,6 @@
 <ng-container [ngSwitch]="style">
   <!-- mat-icon-button -->
-  <button
-    *ngSwitchCase="'mat-icon-button'"
-    mat-icon-button
-    [title]="title | translate"
-    [matMenuTriggerFor]="downloadMenu"
-  >
+  <button *ngSwitchCase="'mat-icon-button'" mat-icon-button [title]="title | translate" [matMenuTriggerFor]="downloadMenu">
     <mat-icon *ngIf="matIcon">{{ matIcon }}</mat-icon>
     <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
   </button>

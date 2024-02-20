@@ -430,4 +430,3 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     this.cd.markForCheck();
   }
 }
-

@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ObservedLocationsPage} from '../table/observed-locations.page';
-import {ModalController} from '@ionic/angular';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {Observable, Subscription} from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ObservedLocationsPage } from '../table/observed-locations.page';
+import { ModalController } from '@ionic/angular';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { Observable, Subscription } from 'rxjs';
 import { AppFormUtils, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
-import {ObservedLocation} from '@app/trip/observedlocation/observed-location.model';
-import {ObservedLocationFilter} from '@app/trip/observedlocation/observed-location.filter';
-import {ObservedLocationForm} from '@app/trip/observedlocation/form/observed-location.form';
-import {MatTab, MatTabGroup} from '@angular/material/tabs';
-import {ObservedLocationService} from '@app/trip/observedlocation/observed-location.service';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
+import { ObservedLocationForm } from '@app/trip/observedlocation/form/observed-location.form';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 
 export interface ISelectObservedLocationsModalOptions {
   programLabel: string;
@@ -26,10 +26,9 @@ export interface ISelectObservedLocationsModalOptions {
 @Component({
   selector: 'app-select-observed-locations-modal',
   templateUrl: './select-observed-locations.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectObservedLocationsModalOptions {
-
   selectedTabIndex = 0;
 
   protected _subscription = new Subscription();
@@ -39,10 +38,10 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   @ViewChild('table', { static: true }) table: ObservedLocationsPage;
   @ViewChild('form', { static: true }) form: ObservedLocationForm;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
-  @ViewChild('tabSearch', { static: true}) tabSearch: MatTab;
-  @ViewChild('tabNew', { static: true}) tabNew: MatTab;
+  @ViewChild('tabSearch', { static: true }) tabSearch: MatTab;
+  @ViewChild('tabNew', { static: true }) tabNew: MatTab;
 
-  @Input() filter: ObservedLocationFilter|null = null;
+  @Input() filter: ObservedLocationFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
   @Input() showFilterProgram: boolean;
@@ -72,21 +71,20 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.allowMultipleSelection = toBoolean(this.allowMultipleSelection, false);
     this.filter = this.filter || new ObservedLocationFilter();
-    const programLabel = this.programLabel || this.filter.program && this.filter.program.label;
+    const programLabel = this.programLabel || (this.filter.program && this.filter.program.label);
     this.table.showFilterProgram = !programLabel;
     this.table.showProgramColumn = !programLabel;
     // Avoid to register and load filter form values when we are in modal
     this.table.settingsId = null;
 
     setTimeout(async () => {
-
       await this.table.setFilter(this.filter);
 
       // Select the selected id
       if (!this.allowMultipleSelection && isNotNil(this.selectedId)) {
         this._subscription.add(
-          this.table.dataSource.rowsSubject.subscribe(rows => {
-            this.table.selectRowByData(ObservedLocation.fromObject({id: this.selectedId}));
+          this.table.dataSource.rowsSubject.subscribe((rows) => {
+            this.table.selectRowByData(ObservedLocation.fromObject({ id: this.selectedId }));
           })
         );
         // TODO use permanent selection
@@ -110,11 +108,9 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   }
 
   selectRow(row: TableElement<ObservedLocation>) {
-
     if (this.allowMultipleSelection) {
       this.table.selection.toggle(row);
-    }
-    else {
+    } else {
       this.table.selection.setSelection(row);
       if (row.currentData?.id !== this.selectedId) {
         this.close();
@@ -127,13 +123,12 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
       if (this.tabSearch.isActive) {
         if (this.hasSelection()) {
           const data = (this.table.selection.selected || [])
-            .map(row => row.currentData)
+            .map((row) => row.currentData)
             .map(ObservedLocation.fromObject)
             .filter(isNotNil);
           return this.viewCtrl.dismiss(data);
         }
-      }
-      else if (this.tabNew.isActive) {
+      } else if (this.tabNew.isActive) {
         const newData = await this.createObservedLocation();
         if (newData) {
           return this.viewCtrl.dismiss([newData]);
@@ -152,7 +147,6 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   }
 
   async createObservedLocation(): Promise<ObservedLocation> {
-
     if (!this.form) throw Error(`${this._logPrefix} No Form`);
 
     console.debug(`${this._logPrefix} Saving new ObservedLocation...`);
@@ -176,9 +170,8 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
       this.form.disable();
 
       return await this.observedLocationService.save(data);
-    }
-    catch (err) {
-      this.form.error = err && err.message || err;
+    } catch (err) {
+      this.form.error = (err && err.message) || err;
       this.form.enable();
       return;
     }

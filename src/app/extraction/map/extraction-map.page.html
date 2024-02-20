@@ -28,12 +28,7 @@
     </button>
 
     <!-- select map modal -->
-    <ion-button
-      (click)="openSelectTypeModal($event)"
-      color="accent"
-      fill="solid"
-      [title]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP' | translate"
-    >
+    <ion-button (click)="openSelectTypeModal($event)" color="accent" fill="solid" [title]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP' | translate">
       <ion-icon slot="start" name="list"></ion-icon>
       <ion-label class="hidden-xs hidden-sm" translate>EXTRACTION.MAP.BTN_MAP_LIST</ion-label>
       <ion-label class="visible-xs visible-sm" translate>EXTRACTION.MAP.BTN_MAPS</ion-label>
@@ -52,12 +47,7 @@
 
   <ion-buttons slot="end">
     <!-- Help button -->
-    <button
-      mat-icon-button
-      *ngIf="type?.description"
-      [matTooltip]="'COMMON.BTN_SHOW_HELP' | translate"
-      (click)="openHelpModal($event)"
-    >
+    <button mat-icon-button *ngIf="type?.description" [matTooltip]="'COMMON.BTN_SHOW_HELP' | translate" (click)="openHelpModal($event)">
       <mat-icon>help_outline</mat-icon>
     </button>
   </ion-buttons>
@@ -144,12 +134,7 @@
 
 <ion-content class="no-footer no-paginator">
   <!-- Leaflet map -->
-  <div
-    leaflet
-    (leafletMapReady)="onMapReady($event)"
-    [leafletOptions]="mapOptions"
-    [leafletLayersControl]="layersControl"
-  ></div>
+  <div leaflet (leafletMapReady)="onMapReady($event)" [leafletOptions]="mapOptions" [leafletLayersControl]="layersControl"></div>
 
   <!-- filter panel -->
   <div
@@ -186,12 +171,7 @@
         </mat-expansion-panel-header>
 
         <ion-list>
-          <ion-item
-            *ngFor="let item of $sheetNames | async"
-            [class.selected]="sheetName === item"
-            tappable
-            (click)="setSheetName(item)"
-          >
+          <ion-item *ngFor="let item of $sheetNames | async" [class.selected]="sheetName === item" tappable (click)="setSheetName(item)">
             <ion-label>{{ getI18nSheetName(item) }}</ion-label>
           </ion-item>
         </ion-list>
@@ -312,12 +292,7 @@
         <mat-action-row class="ion-no-padding">
           <span class="toolbar-spacer"></span>
 
-          <ion-button
-            mat-button
-            [color]="dirty ? 'tertiary' : undefined"
-            [fill]="dirty ? 'solid' : 'clear'"
-            (click)="onRefreshClick($event)"
-          >
+          <ion-button mat-button [color]="dirty ? 'tertiary' : undefined" [fill]="dirty ? 'solid' : 'clear'" (click)="onRefreshClick($event)">
             <ion-text translate>COMMON.BTN_APPLY</ion-text>
           </ion-button>
         </mat-action-row>
@@ -327,7 +302,7 @@
 
   <!-- Details -->
   <div class="details" #detailPanel [attr._leaflet_disable_click]="true">
-    <ion-card color="light" *ngIf="details$ | push : 'immediate'; let details" @fadeInOutAnimation>
+    <ion-card color="light" *ngIf="details$ | push: 'immediate'; let details" @fadeInOutAnimation>
       <ion-card-header *ngIf="details.title; let title">
         <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
         <ion-card-title>
@@ -364,12 +339,7 @@
     <ion-row class="ion-align-self-end">
       <ion-col class="ion-align-self-end">
         <!-- chart -->
-        <ion-card
-          *rxIf="techChart$; let tech; else: addChartButton"
-          color="light"
-          class="chart chart-{{ tech.type }}"
-          @fadeInAnimation
-        >
+        <ion-card *rxIf="techChart$; let tech; else: addChartButton" color="light" class="chart chart-{{ tech.type }}" @fadeInAnimation>
           <ion-toolbar color="transparent" [matMenuTriggerFor]="techColumnMenu" (click)="$event.stopPropagation()">
             <ion-text color="primary" [title]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP' | translate">
               <span [innerHTML]="tech.options.plugins.title.text"></span>
@@ -447,11 +417,7 @@
           <ion-card-content>
             <ion-grid class="ion-no-padding">
               <ion-row *rxFor="let item of legendItems$">
-                <ion-col
-                  class="ion-no-padding"
-                  style="max-width: 10px !important"
-                  [style.background-color]="item.color.rgba()"
-                ></ion-col>
+                <ion-col class="ion-no-padding" style="max-width: 10px !important" [style.background-color]="item.color.rgba()"></ion-col>
                 <ion-col size="auto" style="padding-left: 8px">
                   <ion-label nowrap>{{ item.label }}</ion-label>
                 </ion-col>
@@ -498,26 +464,14 @@
                         [cpOKButtonText]="'COMMON.BTN_VALIDATE' | translate"
                         required
                       />
-                      <mat-error *ngIf="legendForm.controls.startColor.hasError('required')" translate>
-                        ERROR.FIELD_REQUIRED
-                      </mat-error>
+                      <mat-error *ngIf="legendForm.controls.startColor.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                     </mat-form-field>
                   </ion-col>
                   <ion-col size="5">
                     <mat-form-field>
                       <ion-icon name="code" matPrefix></ion-icon>
-                      <input
-                        matInput
-                        type="number"
-                        autocomplete="off"
-                        min="0"
-                        placeholder="Min"
-                        step="1"
-                        formControlName="min"
-                      />
-                      <mat-error *ngIf="legendForm.controls.min.hasError('required')" translate>
-                        ERROR.FIELD_REQUIRED
-                      </mat-error>
+                      <input matInput type="number" autocomplete="off" min="0" placeholder="Min" step="1" formControlName="min" />
+                      <mat-error *ngIf="legendForm.controls.min.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                     </mat-form-field>
                   </ion-col>
                 </ion-row>
@@ -542,26 +496,14 @@
                         [cpOutputFormat]="'rgba'"
                         required
                       />
-                      <mat-error *ngIf="legendForm.controls.endColor.hasError('required')" translate>
-                        ERROR.FIELD_REQUIRED
-                      </mat-error>
+                      <mat-error *ngIf="legendForm.controls.endColor.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                     </mat-form-field>
                   </ion-col>
                   <ion-col size="5">
                     <mat-form-field>
                       <ion-icon margin-right name="code" matPrefix></ion-icon>
-                      <input
-                        matInput
-                        type="number"
-                        autocomplete="off"
-                        min="0"
-                        placeholder="Max"
-                        step="1"
-                        formControlName="max"
-                      />
-                      <mat-error *ngIf="legendForm.controls.max.hasError('required')" translate>
-                        ERROR.FIELD_REQUIRED
-                      </mat-error>
+                      <input matInput type="number" autocomplete="off" min="0" placeholder="Max" step="1" formControlName="max" />
+                      <mat-error *ngIf="legendForm.controls.max.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                     </mat-form-field>
                   </ion-col>
                 </ion-row>
@@ -589,7 +531,7 @@
 </ion-content>
 
 <ng-template #animationButtons>
-  <ng-container *ngIf="$years | async | isArrayLength : { greaterThan: 1 } as years">
+  <ng-container *ngIf="$years | async | isArrayLength: { greaterThan: 1 } as years">
     <!-- play button -->
     <button
       mat-icon-button
@@ -602,11 +544,7 @@
 
     <ng-template #pauseButton>
       <!-- pause button -->
-      <button
-        mat-icon-button
-        (click)="toggleAnimation($event)"
-        [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE' | translate"
-      >
+      <button mat-icon-button (click)="toggleAnimation($event)" [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE' | translate">
         <mat-icon>pause</mat-icon>
       </button>
     </ng-template>

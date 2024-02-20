@@ -21,14 +21,14 @@ interface JobListState {
   selector: 'app-job-list',
   templateUrl: './job-list.component.html',
   providers: [RxState],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JobListComponent implements OnInit{
+export class JobListComponent implements OnInit {
   jobs$ = this.state.select('jobs');
   jobsCount$ = this.state.select('jobs', 'length');
 
-  jobSubscriptions: {[key: number]: Subscription} = {};
-  jobProgressions: {[key: number]: ProgressionModel} = {};
+  jobSubscriptions: { [key: number]: Subscription } = {};
+  jobProgressions: { [key: number]: ProgressionModel } = {};
   onRefresh = new EventEmitter<any>();
 
   @Input() set jobs(jobs: Job[]) {
@@ -57,40 +57,37 @@ export class JobListComponent implements OnInit{
     private jobService: JobService,
     private cd: ChangeDetectorRef,
     private state: RxState<JobListState>,
-    @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService,
+    @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService
   ) {
     this.state.set({
       issuer: null, // All
-      status: ['RUNNING', 'PENDING', 'SUCCESS', 'ERROR', 'WARNING', 'CANCELLED']
+      status: ['RUNNING', 'PENDING', 'SUCCESS', 'ERROR', 'WARNING', 'CANCELLED'],
     });
   }
 
   ngOnInit() {
-    this.state.connect('jobs',
+    this.state.connect(
+      'jobs',
       merge(
-        this.state.select(['issuer', 'status'], res => res),
-        this.onRefresh.pipe(
-          map(_ => ({issuer: this.issuer, status: this.status}))
-        )
-      )
-      .pipe(
-        mergeMap(({issuer, status}) => this.jobService.watchAll(<JobFilter>{issuer, status}, {sortBy: 'id', sortDirection: 'DESC'})
-            .pipe(
-              takeUntil(this.onRefresh),
+        this.state.select(['issuer', 'status'], (res) => res),
+        this.onRefresh.pipe(map((_) => ({ issuer: this.issuer, status: this.status })))
+      ).pipe(
+        mergeMap(({ issuer, status }) =>
+          this.jobService.watchAll(<JobFilter>{ issuer, status }, { sortBy: 'id', sortDirection: 'DESC' }).pipe(
+            takeUntil(this.onRefresh),
 
-              // Listen for nex jobs: and force refresh if any
-              tap(jobs => {
-                const excludedIds = jobs?.map(j => j.id);
-                this.jobService.listenChanges(<JobFilter>{issuer, status, excludedIds})
-                  .pipe(
-                    takeUntil(this.onRefresh),
-                    first(),
-                  )
-                  .subscribe(_ => this.onRefresh.emit());
-              })
-            )),
-        map(jobs => {
-          jobs.forEach(job => {
+            // Listen for nex jobs: and force refresh if any
+            tap((jobs) => {
+              const excludedIds = jobs?.map((j) => j.id);
+              this.jobService
+                .listenChanges(<JobFilter>{ issuer, status, excludedIds })
+                .pipe(takeUntil(this.onRefresh), first())
+                .subscribe((_) => this.onRefresh.emit());
+            })
+          )
+        ),
+        map((jobs) => {
+          jobs.forEach((job) => {
             // Add icon/color
             this.decorate(job);
 
@@ -99,10 +96,10 @@ export class JobListComponent implements OnInit{
               job.progression = this.jobProgressions[job.id] || new ProgressionModel();
               job.status = job.status === 'PENDING' && job.progression.total > 0 ? 'RUNNING' : job.status;
               this.jobProgressions[job.id] = job.progression;
-              this.jobSubscriptions[job.id] = this.jobSubscriptions[job.id] || this.jobProgressionService.listenChanges(job.id)
-                .subscribe(progression => job.progression.set({...progression}));
-            }
-            else {
+              this.jobSubscriptions[job.id] =
+                this.jobSubscriptions[job.id] ||
+                this.jobProgressionService.listenChanges(job.id).subscribe((progression) => job.progression.set({ ...progression }));
+            } else {
               job.progression = null;
               if (this.jobSubscriptions[job.id]) {
                 this.jobSubscriptions[job.id].unsubscribe();
@@ -117,16 +114,13 @@ export class JobListComponent implements OnInit{
         // tap(jobs => console.log('Found jobs:', jobs))
       )
     );
-
   }
 
   openAddJobMenu() {
-    const buttons = (this.state.get('types') || [])
-      .map(({ label, name }) => ({
-        text: label,
-        handler: () => this.addJob(name),
-      }));
-
+    const buttons = (this.state.get('types') || []).map(({ label, name }) => ({
+      text: label,
+      handler: () => this.addJob(name),
+    }));
   }
 
   async addJob(type: string) {
@@ -167,17 +161,15 @@ export class JobListComponent implements OnInit{
 
   protected decorate(job: Job) {
     const status = job.status || 'PENDING';
-    const color = (status === 'PENDING' && 'secondary')
-      || (status === 'RUNNING' && 'tertiary')
-      || (status === 'SUCCESS' && 'success')
-      || 'danger';
-    const matIcon = (status === 'PENDING' && 'schedule')
-      || (status === 'RUNNING' && 'pending')
-      || (status === 'SUCCESS' && 'check_circle')
-      || (status === 'WARNING' && 'warning')
-      || (status === 'CANCELLED' && 'cancel')
-      || 'error';
-    job.icon = {matIcon, color};
+    const color = (status === 'PENDING' && 'secondary') || (status === 'RUNNING' && 'tertiary') || (status === 'SUCCESS' && 'success') || 'danger';
+    const matIcon =
+      (status === 'PENDING' && 'schedule') ||
+      (status === 'RUNNING' && 'pending') ||
+      (status === 'SUCCESS' && 'check_circle') ||
+      (status === 'WARNING' && 'warning') ||
+      (status === 'CANCELLED' && 'cancel') ||
+      'error';
+    job.icon = { matIcon, color };
   }
 
   protected markForCheck() {

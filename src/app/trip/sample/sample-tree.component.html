@@ -8,7 +8,7 @@
   animationDuration="0s"
 >
   <!-- TAB: Samples  -->
-  <mat-tab #sampleTab [label]="'TRIP.SAMPLE.TABLE.TAB_SAMPLES' | translateContext : i18nContext.suffix">
+  <mat-tab #sampleTab [label]="'TRIP.SAMPLE.TABLE.TAB_SAMPLES' | translateContext: i18nContext.suffix">
     <ng-template mat-tab-label>
       <mat-icon svgIcon="fish-oblique"></mat-icon>
       <ion-label>{{ sampleTab.textLabel }}</ion-label>
@@ -39,7 +39,7 @@
   <mat-tab
     #individualMonitoringTab
     *ngIf="!mobile"
-    [label]="'TRIP.SAMPLE.TABLE.TAB_SUB_SAMPLES' | translateContext : i18nContext.suffix"
+    [label]="'TRIP.SAMPLE.TABLE.TAB_SUB_SAMPLES' | translateContext: i18nContext.suffix"
     [disabled]="!showIndividualMonitoringTable"
   >
     <ng-template mat-tab-label>
@@ -54,12 +54,7 @@
       >
         {{ individualMonitoringTab.textLabel }}
       </ion-label>
-      <ion-icon
-        slot="end"
-        name="alert-circle"
-        color="danger"
-        *ngIf="submitted && individualMonitoringTable.invalid"
-      ></ion-icon>
+      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
     </ng-template>
 
     <app-individual-monitoring-table
@@ -95,12 +90,7 @@
       >
         {{ individualReleaseTab.textLabel }}
       </ion-label>
-      <ion-icon
-        slot="end"
-        name="alert-circle"
-        color="danger"
-        *ngIf="submitted && individualReleaseTable.invalid"
-      ></ion-icon>
+      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
     </ng-template>
 
     <app-individual-releases-table

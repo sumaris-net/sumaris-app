@@ -40,9 +40,8 @@ import { HttpEventType } from '@angular/common/http';
 export interface BaseReferentialTableOptions<
   T extends Entity<T, ID>,
   ID = number,
-  O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
-  extends BaseTableConfig<T, ID, O> {
-
+  O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+> extends BaseTableConfig<T, ID, O> {
   propertyNames?: string[];
   canUpload?: boolean;
 }
@@ -51,35 +50,33 @@ export const IGNORED_ENTITY_COLUMNS = ['__typename', 'id', 'updateDate'];
 
 @Directive()
 export abstract class BaseReferentialTable<
-  T extends Entity<T, ID>,
-  F extends EntityFilter<any, T, any>,
-  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
-  V extends BaseValidatorService<T, ID> = any,
-  ID = number,
-  O extends BaseReferentialTableOptions<T, ID> = BaseReferentialTableOptions<T, ID>
+    T extends Entity<T, ID>,
+    F extends EntityFilter<any, T, any>,
+    S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+    V extends BaseValidatorService<T, ID> = any,
+    ID = number,
+    O extends BaseReferentialTableOptions<T, ID> = BaseReferentialTableOptions<T, ID>,
   >
   extends AppBaseTable<T, F, S, V, ID, O>
-  implements OnInit, AfterViewInit {
-
+  implements OnInit, AfterViewInit
+{
   /**
    * Compute columns from entity
    *
    * @param dataType
    * @param validatorService
    */
-  static getEntityDisplayProperties<T>(dataType: new () => T,
-                                       validatorService?: ValidatorService,
-                                       excludedProperties?: string[]): string[] {
+  static getEntityDisplayProperties<T>(dataType: new () => T, validatorService?: ValidatorService, excludedProperties?: string[]): string[] {
     excludedProperties = excludedProperties || IGNORED_ENTITY_COLUMNS;
-    return Object.keys(validatorService && validatorService.getRowValidator().controls || new dataType())
-      .filter(key => !excludedProperties.includes(key));
+    return Object.keys((validatorService && validatorService.getRowValidator().controls) || new dataType()).filter(
+      (key) => !excludedProperties.includes(key)
+    );
   }
 
   static getFirstEntityColumn<T>(dataType: new () => T, excludedProperties?: string[]): string {
     excludedProperties = excludedProperties || IGNORED_ENTITY_COLUMNS;
-    return Object.keys(new dataType()).find(key => !excludedProperties.includes(key));
+    return Object.keys(new dataType()).find((key) => !excludedProperties.includes(key));
   }
-
 
   @Input() title: string;
   @Input() showIdColumn = false;
@@ -97,19 +94,12 @@ export abstract class BaseReferentialTable<
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean;
 
-  protected constructor(
-    injector: Injector,
-    dataType: new () => T,
-    filterType: new () => F,
-    entityService: S,
-    validatorService?: V,
-    options?: O
-  ) {
+  protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, entityService: S, validatorService?: V, options?: O) {
     super(
       injector,
       dataType,
       filterType,
-      (options?.propertyNames || BaseReferentialTable.getEntityDisplayProperties(dataType)),
+      options?.propertyNames || BaseReferentialTable.getEntityDisplayProperties(dataType),
       entityService,
       validatorService,
       options
@@ -118,7 +108,7 @@ export abstract class BaseReferentialTable<
     this.referentialRefService = injector.get(ReferentialRefService);
     this.propertyFormatPipe = injector.get(PropertyFormatPipe);
     this.popoverController = injector.get(PopoverController);
-    this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
+    this.title = (this.i18nColumnPrefix && this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;
     this.withStatusId = this.columns.includes('statusId');
@@ -133,11 +123,10 @@ export abstract class BaseReferentialTable<
     // Status
     if (this.withStatusId) {
       this.registerSubscription(
-        this.translate.get(StatusList.map(status => status.label))
-          .subscribe(translations => {
-            const items = StatusList.map(status => ({ ...status, label: translations[status.label] }));
-            this.$status.next(items);
-          })
+        this.translate.get(StatusList.map((status) => status.label)).subscribe((translations) => {
+          const items = StatusList.map((status) => ({ ...status, label: translations[status.label] }));
+          this.$status.next(items);
+        })
       );
       this.registerAutocompleteField('statusId', {
         showAllOnFocus: false,
@@ -149,7 +138,7 @@ export abstract class BaseReferentialTable<
           }
           return this.translate.instant(StatusById[statusId].label);
         },
-        mobile: this.mobile
+        mobile: this.mobile,
       });
     }
 
@@ -163,7 +152,8 @@ export abstract class BaseReferentialTable<
       this.onRefresh.subscribe(() => {
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-      }));
+      })
+    );
 
     // Update filter when changes
     this.registerSubscription(
@@ -176,20 +166,19 @@ export abstract class BaseReferentialTable<
             return valid;
           }),
           // Update the filter, without reloading the content
-          tap(json => this.setFilter(json, {emitEvent: false})),
+          tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, BASE_TABLE_SETTINGS_ENUM.filterKey))
+          tap((json) => this.settings.savePageSetting(this.settingsId, json, BASE_TABLE_SETTINGS_ENUM.filterKey))
         )
-        .subscribe());
+        .subscribe()
+    );
 
     this.ready().then(() => this.restoreFilterOrLoad());
   }
 
   async ready(): Promise<void> {
-    await (this._dataService instanceof StartableService
-      ? this._dataService.ready()
-      : this.settings.ready());
+    await (this._dataService instanceof StartableService ? this._dataService.ready() : this.settings.ready());
 
     return super.ready();
   }
@@ -198,28 +187,29 @@ export abstract class BaseReferentialTable<
     const filename = this.getExportFileName();
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
-    const headers = this.columnDefinitions.map(def => def.key);
-    const rows = this.dataSource.getRows()
-      .map(element => element.currentData)
-      .map(data => this.columnDefinitions.map(definition => this.propertyFormatPipe.transform(data, definition)));
+    const headers = this.columnDefinitions.map((def) => def.key);
+    const rows = this.dataSource
+      .getRows()
+      .map((element) => element.currentData)
+      .map((data) => this.columnDefinitions.map((definition) => this.propertyFormatPipe.transform(data, definition)));
 
-    CsvUtils.exportToFile(rows, {filename, headers, separator, encoding});
+    CsvUtils.exportToFile(rows, { filename, headers, separator, encoding });
   }
 
   async importFromCsv(event?: Event) {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
-        uniqueFile: true,
-        fileExtension: '.csv',
-        uploadFn: (file) => this.uploadFile(file)
-      });
+      uniqueFile: true,
+      fileExtension: '.csv',
+      uploadFn: (file) => this.uploadFile(file),
+    });
 
-    const entities = (data || []).flatMap(file => file.response?.body || []);
+    const entities = (data || []).flatMap((file) => file.response?.body || []);
     if (isEmptyArray(entities)) return; // No entities: skip
 
     console.info(this.logPrefix + `Importing ${entities.length} entities...`, entities);
 
     // Keep non exists entities
-    const newEntities = entities.filter(entity => isNil(entity.id));
+    const newEntities = entities.filter((entity) => isNil(entity.id));
 
     // Add entities, one by one
     await this.dataSource.dataService.saveAll(newEntities);
@@ -232,29 +222,29 @@ export abstract class BaseReferentialTable<
   /* -- protected functions -- */
 
   protected loadColumnDefinitions(options?: O): FormFieldDefinition[] {
-
-    return (options?.propertyNames || BaseReferentialTable.getEntityDisplayProperties(this.dataType))
-      .map(key => this.getColumnDefinition(key, options));
+    return (options?.propertyNames || BaseReferentialTable.getEntityDisplayProperties(this.dataType)).map((key) =>
+      this.getColumnDefinition(key, options)
+    );
   }
 
   protected registerAutocompleteFields() {
     // Can be overwritten by subclasses
   }
 
-  protected getColumnDefinition(key: string, options?: O): FormFieldDefinition{
+  protected getColumnDefinition(key: string, options?: O): FormFieldDefinition {
     if (this.autocompleteFields[key]) {
       return <FormFieldDefinition>{
         key,
         type: 'entity',
-        label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase(),
-        autocomplete: this.autocompleteFields[key]
+        label: this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase(),
+        autocomplete: this.autocompleteFields[key],
       };
     }
 
     return <FormFieldDefinition>{
       key,
       type: this.getColumnType(key),
-      label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase()
+      label: this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase(),
     };
   }
 
@@ -264,19 +254,18 @@ export abstract class BaseReferentialTable<
     if (key.endsWith('date')) return 'date';
     if (key.endsWith('month') || key.endsWith('year')) return 'integer';
     if (key.startsWith('is')) return 'boolean';
-    if (key.endsWith('label') || key.endsWith('name') || key.endsWith('code')
-      || key.endsWith('description') || key.endsWith('comments')) return 'string';
+    if (key.endsWith('label') || key.endsWith('name') || key.endsWith('code') || key.endsWith('description') || key.endsWith('comments'))
+      return 'string';
     return 'string';
   }
 
   protected getFilterFormConfig(): any {
     console.debug(this.logPrefix + ' Creating filter form group...');
-    return BaseReferentialTable.getEntityDisplayProperties(this.filterType, this.validatorService)
-      .reduce((config, key) => {
-        console.debug(this.logPrefix + ' Adding filter control: ' + key);
-        config[key] = [null];
-        return config;
-      }, {});
+    return BaseReferentialTable.getEntityDisplayProperties(this.filterType, this.validatorService).reduce((config, key) => {
+      console.debug(this.logPrefix + ' Adding filter control: ' + key);
+      config[key] = [null];
+      return config;
+    }, {});
   }
 
   protected getExportFileName(): string {
@@ -306,27 +295,25 @@ export abstract class BaseReferentialTable<
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
 
-    return CsvUtils.parseFile(file, {encoding, separator})
-      .pipe(
-        switchMap(event => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const loaded = Math.round(event.loaded * 0.8);
-            return of({...event, loaded});
-          }
-          else if (event instanceof FileResponse){
-            return this.uploadCsvRows(event.body);
-          }
-          // Unknown event: skip
-          else {
-            return of<FileEvent<T[]>>();
-          }
-        }),
-        filter(isNotNil)
-      );
+    return CsvUtils.parseFile(file, { encoding, separator }).pipe(
+      switchMap((event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const loaded = Math.round(event.loaded * 0.8);
+          return of({ ...event, loaded });
+        } else if (event instanceof FileResponse) {
+          return this.uploadCsvRows(event.body);
+        }
+        // Unknown event: skip
+        else {
+          return of<FileEvent<T[]>>();
+        }
+      }),
+      filter(isNotNil)
+    );
   }
 
   protected uploadCsvRows(rows: string[][]): Observable<FileEvent<T[]>> {
-    if (!rows || rows.length <= 1) throw {message: 'FILE.CSV.ERROR.EMPTY_FILE'};
+    if (!rows || rows.length <= 1) throw { message: 'FILE.CSV.ERROR.EMPTY_FILE' };
 
     const $progress = new Subject<FileEvent<T[]>>();
 
@@ -337,33 +324,33 @@ export abstract class BaseReferentialTable<
     // Check headers
     if (headerNames.length <= 1) {
       const message = this.translate.instant('FILE.CSV.ERROR.NO_HEADER_OR_INVALID_SEPARATOR', {
-        separator: this.getExportSeparator()
+        separator: this.getExportSeparator(),
       });
-      throw {message};
+      throw { message };
     }
 
     // Check column names
     console.debug(this.logPrefix + `Checking headers: ${headerNames.join(',')}`);
-    const expectedHeaders = this.columnDefinitions.map(def => def.key);
-    const unknownHeaders = headerNames.filter(h => !expectedHeaders.includes(h));
+    const expectedHeaders = this.columnDefinitions.map((def) => def.key);
+    const unknownHeaders = headerNames.filter((h) => !expectedHeaders.includes(h));
     if (unknownHeaders.length) {
       const message = this.translate.instant('FILE.CSV.ERROR.UNKNOWN_HEADERS', {
-        headers: unknownHeaders.join(', ')
+        headers: unknownHeaders.join(', '),
       });
-      throw {message};
+      throw { message };
     }
 
-    $progress.next({type: HttpEventType.UploadProgress, loaded: -1});
-    const headers = headerNames.map(key => this.columnDefinitions.find(def => def.key === key));
+    $progress.next({ type: HttpEventType.UploadProgress, loaded: -1 });
+    const headers = headerNames.map((key) => this.columnDefinitions.find((def) => def.key === key));
 
     this.parseCsvRowsToEntities(headers, rows)
-      .then(entities => this.resolveEntitiesFields(headers, entities))
-      .then(entities => this.fillEntitiesId(entities))
+      .then((entities) => this.resolveEntitiesFields(headers, entities))
+      .then((entities) => this.fillEntitiesId(entities))
       .then((entities) => {
-        $progress.next(new FileResponse({body: entities}));
+        $progress.next(new FileResponse({ body: entities }));
         $progress.complete();
       })
-      .catch(err => $progress.error(err));
+      .catch((err) => $progress.error(err));
 
     return $progress.asObservable();
   }
@@ -371,9 +358,8 @@ export abstract class BaseReferentialTable<
   protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<T[]> {
     const defaultValue = this.defaultNewRowValue();
     return rows
-      .filter(cells => cells?.length === headers.length)
-      .map(cells => {
-
+      .filter((cells) => cells?.length === headers.length)
+      .map((cells) => {
         // Convert to object
         const source: any = headers.reduce((res, fieldDef, i) => {
           const value = cells[i];
@@ -381,21 +367,18 @@ export abstract class BaseReferentialTable<
           // Parse sub-object
           const attributes = fieldDef.autocomplete?.attributes;
           if (attributes?.length) {
-            res[fieldDef.key] = value?.split(' - ', attributes.length)
-              .reduce((o, v, j) => {
-                o[attributes[j]] = v;
-                return o;
-              }, {});
+            res[fieldDef.key] = value?.split(' - ', attributes.length).reduce((o, v, j) => {
+              o[attributes[j]] = v;
+              return o;
+            }, {});
           }
           // Parse simple field
           else {
             if (fieldDef.type === 'integer') {
               res[fieldDef.key] = parseInt(value);
-            }
-            else if (fieldDef.type === 'double') {
+            } else if (fieldDef.type === 'double') {
               res[fieldDef.key] = parseFloat(value);
-            }
-            else {
+            } else {
               res[fieldDef.key] = isNotNilOrBlank(value) ? value : undefined;
             }
           }
@@ -406,29 +389,30 @@ export abstract class BaseReferentialTable<
           }
           return res;
         }, {});
-      return {
-        ...defaultValue,
-        ...source
-      };
-    });
+        return {
+          ...defaultValue,
+          ...source,
+        };
+      });
   }
 
   protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: T[]): Promise<T[]> {
-
-    const autocompleteFields = headers.filter(def => def.autocomplete && (!!def.autocomplete.suggestFn || def.autocomplete.items));
+    const autocompleteFields = headers.filter((def) => def.autocomplete && (!!def.autocomplete.suggestFn || def.autocomplete.items));
     if (isEmptyArray(autocompleteFields)) return entities;
 
     // Prepare suggest functions, from  autocomplete field
     const suggestFns = autocompleteFields
-      .map(def => def.autocomplete)
-      .map(autocomplete => autocomplete.suggestFn
-        || (isObservable(autocomplete.items)
-          && (async (value, opts) => {
-            const items = await firstNotNilPromise(autocomplete.items as Observable<any[]>);
-            return suggestFromArray(items, value, opts);
-            })
-          )
-        || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts)));
+      .map((def) => def.autocomplete)
+      .map(
+        (autocomplete) =>
+          autocomplete.suggestFn ||
+          (isObservable(autocomplete.items) &&
+            (async (value, opts) => {
+              const items = await firstNotNilPromise(autocomplete.items as Observable<any[]>);
+              return suggestFromArray(items, value, opts);
+            })) ||
+          ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts))
+      );
 
     const result: T[] = [];
 
@@ -472,7 +456,7 @@ export abstract class BaseReferentialTable<
     }
 
     // Convert to entity
-    return result.map(source => {
+    return result.map((source) => {
       const target: T = new this.dataType();
       target.fromObject(source);
       return target;
@@ -481,7 +465,7 @@ export abstract class BaseReferentialTable<
 
   protected async fillEntitiesId(entities: T[]): Promise<T[]> {
     // TODO: manage pagination - using JobUtils.fetchAllPages() ?
-    const existingEntities = (await this.dataSource.getData());
+    const existingEntities = await this.dataSource.getData();
 
     // DEBUG - DEV only
     /*entities.forEach((entity, i) => {
@@ -493,9 +477,9 @@ export abstract class BaseReferentialTable<
       }
     });*/
 
-    entities.forEach(entity => {
+    entities.forEach((entity) => {
       entity.id = -1 as any; // Avoid equals() to use function unique key, instead of id
-      const existingEntity = existingEntities.find(other => entity.equals(other));
+      const existingEntity = existingEntities.find((other) => entity.equals(other));
       // Copy ID, or unset
       entity.id = isNotNil(existingEntity) ? existingEntity.id : undefined;
     });
@@ -504,9 +488,9 @@ export abstract class BaseReferentialTable<
   }
 
   protected defaultNewRowValue(): any {
-    const statusId = this.withStatusId && (this.$status.value || [])[0] || undefined;
+    const statusId = (this.withStatusId && (this.$status.value || [])[0]) || undefined;
     return {
-      statusId
+      statusId,
     };
   }
 }

@@ -10,7 +10,6 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -19,20 +18,15 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 
     // Functional modules
     AppReferentialModule,
-    AppMeasurementModule
+    AppMeasurementModule,
   ],
-  declarations: [
-    ProductsTable,
-    ProductModal,
-    ProductForm
-  ],
+  declarations: [ProductsTable, ProductModal, ProductForm],
   exports: [
     // Components
-    ProductsTable
-  ]
+    ProductsTable,
+  ],
 })
 export class AppProductModule {
-
   constructor() {
     console.debug('[product] Creating module...');
   }

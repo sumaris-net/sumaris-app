@@ -14,7 +14,6 @@ import { LandingsPage } from '@app/trip/landing/landings.page';
 import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 import { AppSelectObservedLocationsModalModule } from '@app/trip/observedlocation/select-modal/select-observed-locations.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -27,26 +26,19 @@ import { AppSelectObservedLocationsModalModule } from '@app/trip/observedlocatio
     AppMeasurementModule,
     AppSampleModule,
     AppObservedLocationOfflineModule,
-    AppSelectObservedLocationsModalModule
+    AppSelectObservedLocationsModalModule,
   ],
-  declarations: [
-    LandingsTable,
-    LandingForm,
-    LandingPage,
-    SelectLandingsModal,
-    LandingsPage
-  ],
+  declarations: [LandingsTable, LandingForm, LandingPage, SelectLandingsModal, LandingsPage],
   exports: [
     // Components
     LandingsTable,
     LandingForm,
     LandingPage,
     SelectLandingsModal,
-    LandingsPage
-  ]
+    LandingsPage,
+  ],
 })
 export class AppLandingModule {
-
   constructor() {
     console.debug('[landing] Creating module...');
   }

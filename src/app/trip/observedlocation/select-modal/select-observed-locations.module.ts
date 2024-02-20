@@ -7,7 +7,6 @@ import { SelectObservedLocationsModal } from '@app/trip/observedlocation/select-
 import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/table/observed-location-table.module';
 import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/observed-location-form.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -18,14 +17,10 @@ import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/o
     AppObservedLocationsTableModule,
     AppObservedLocationFormModule,
   ],
-  declarations: [
-    SelectObservedLocationsModal
-  ],
+  declarations: [SelectObservedLocationsModal],
   exports: [
     // Components
-    SelectObservedLocationsModal
-  ]
+    SelectObservedLocationsModal,
+  ],
 })
-export class AppSelectObservedLocationsModalModule {
-
-}
+export class AppSelectObservedLocationsModalModule {}

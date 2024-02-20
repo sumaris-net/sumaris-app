@@ -88,9 +88,8 @@ const SamplingStrategyQueries = {
   `,
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class SamplingStrategyService extends BaseReferentialService<SamplingStrategy, StrategyFilter> {
-
   constructor(
     injector: Injector,
     protected network: NetworkService,
@@ -102,45 +101,56 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, SamplingStrategy, StrategyFilter,
-      {
-        queries: SamplingStrategyQueries
-      });
+    super(injector, SamplingStrategy, StrategyFilter, {
+      queries: SamplingStrategyQueries,
+    });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
-           opts?: {
-             fetchPolicy?: FetchPolicy;
-             withTotal?: boolean;
-             withEffort?: boolean;
-             toEntity?: boolean;
-          }): Observable<LoadResult<SamplingStrategy>> {
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: StrategyFilter,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      withTotal?: boolean;
+      withEffort?: boolean;
+      toEntity?: boolean;
+    }
+  ): Observable<LoadResult<SamplingStrategy>> {
     // Call normal watch all
-    return super.watchAll(offset, size, sortBy, sortDirection, filter, {
-      fetchPolicy: 'network-only',
-      ...opts
-    })
+    return super
+      .watchAll(offset, size, sortBy, sortDirection, filter, {
+        fetchPolicy: 'network-only',
+        ...opts,
+      })
       .pipe(
         // Then fill parameter groups
-        mergeMap(res => this.fillParameterGroups(res.data).then(_ => res)),
+        mergeMap((res) => this.fillParameterGroups(res.data).then((_) => res)),
 
         // Then fill efforts (but NOT wait end, before return a value - using startWith)
-        switchMap(res => timer(100)
-          .pipe(map(_ => res))
-          .pipe(
-            // DEBUG
-            //tap(_ => console.debug('[sampling-strategy-service] timer reach !')),
+        switchMap((res) =>
+          timer(100)
+            .pipe(map((_) => res))
+            .pipe(
+              // DEBUG
+              //tap(_ => console.debug('[sampling-strategy-service] timer reach !')),
 
-            mergeMap((_) => this.fillEfforts(res.data).then(() => res)),
-            startWith(res as LoadResult<SamplingStrategy>)
-          )
+              mergeMap((_) => this.fillEfforts(res.data).then(() => res)),
+              startWith(res as LoadResult<SamplingStrategy>)
+            )
         )
       );
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-                filter?: Partial<StrategyFilter>,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal?: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean }
+  async loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<StrategyFilter>,
+    opts?: { fetchPolicy?: FetchPolicy; withTotal?: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
@@ -152,19 +162,22 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return this.strategyService.deleteAll(entities, options);
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean;
-    withParameterGroups?: boolean;
-    withEffort?: boolean;
-  }): Promise<SamplingStrategy> {
-    const data = await this.strategyService.load(id, { ...opts, toEntity: false});
+  async load(
+    id: number,
+    opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean; withParameterGroups?: boolean; withEffort?: boolean }
+  ): Promise<SamplingStrategy> {
+    const data = await this.strategyService.load(id, { ...opts, toEntity: false });
 
-    const entity = (!opts || opts.toEntity!== false) ? SamplingStrategy.fromObject(data) : data as SamplingStrategy;
+    const entity = !opts || opts.toEntity !== false ? SamplingStrategy.fromObject(data) : (data as SamplingStrategy);
 
-    await this.fillEntities({data: [entity]}, {
-      withEffort: true,
-      withParameterGroups: false,
-      ...opts
-    });
+    await this.fillEntities(
+      { data: [entity] },
+      {
+        withEffort: true,
+        withParameterGroups: false,
+        ...opts,
+      }
+    );
 
     return entity;
   }
@@ -177,21 +190,24 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     if (isNilOrBlank(label)) return undefined;
     try {
       const res = await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label });
-      return firstArrayValue(res && res.data || []);
+      return firstArrayValue((res && res.data) || []);
     } catch (err) {
       console.error('Error while loading analyticReference by label', err);
-      return ReferentialRef.fromObject({label});
+      return ReferentialRef.fromObject({ label });
     }
   }
 
-  canUserWrite(data?: Strategy, opts?: {program: Program}) {
+  canUserWrite(data?: Strategy, opts?: { program: Program }) {
     return this.strategyService.canUserWrite(data, opts);
   }
 
-  async save(entity: SamplingStrategy, opts?: EntitySaveOptions & {
-    clearCache?: boolean;
-    withEffort?: boolean;
-  }): Promise<SamplingStrategy> {
+  async save(
+    entity: SamplingStrategy,
+    opts?: EntitySaveOptions & {
+      clearCache?: boolean;
+      withEffort?: boolean;
+    }
+  ): Promise<SamplingStrategy> {
     const isNew = isNil(entity.id);
 
     console.debug('[sampling-strategy-service] Saving sampling strategy...');
@@ -208,22 +224,21 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
           this.insertIntoMutableCachedQueries(cache, {
             queries: this.getLoadQueries(),
-            data: entity.asObject({...NOT_MINIFY_OPTIONS, keepEffort: true})
+            data: entity.asObject({ ...NOT_MINIFY_OPTIONS, keepEffort: true }),
           });
         }
-      }
+      },
     });
 
     // Update entity effort
     if (!isNew) {
-      await this.fillEntities({data : [entity]}, opts);
+      await this.fillEntities({ data: [entity] }, opts);
     }
 
     return entity;
   }
 
   async duplicateAllToYear(sources: SamplingStrategy[], year: number): Promise<Strategy[]> {
-
     if (isEmptyArray(sources)) return [];
     if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
 
@@ -241,7 +256,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
       const targetAsSampling = SamplingStrategy.fromObject(target.asObject());
 
-      const savedEntity = await this.save(targetAsSampling, {clearCache: false /*already done once*/});
+      const savedEntity = await this.save(targetAsSampling, { clearCache: false /*already done once*/ });
 
       savedEntities.push(savedEntity);
     }
@@ -252,27 +267,47 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   /* -- protected -- */
 
   watchPmfmIdsByParameterLabels(parameterLabels: string[]): Observable<number[]> {
-    return this.referentialRefService.watchAll(0, 1000, 'id', 'asc', {
-      entityName: 'Pmfm',
-      levelLabels: parameterLabels
-    }, {
-      withTotal: false
-    }).pipe(
-      map((res) => (res.data || []).map(p => p.id)));
+    return this.referentialRefService
+      .watchAll(
+        0,
+        1000,
+        'id',
+        'asc',
+        {
+          entityName: 'Pmfm',
+          levelLabels: parameterLabels,
+        },
+        {
+          withTotal: false,
+        }
+      )
+      .pipe(map((res) => (res.data || []).map((p) => p.id)));
   }
 
-  async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment, opts?: {withRealized?: boolean}): Promise<StrategyEffort> {
+  async loadStrategyEffortByDate(
+    programLabel: string,
+    strategyLabel: string,
+    date: Moment,
+    opts?: { withRealized?: boolean }
+  ): Promise<StrategyEffort> {
     if (!programLabel || !strategyLabel || !date) throw new Error('Missing a required argument');
 
-    const {data} = await this.loadAll(0, 1, 'label', 'asc', {
-      label: strategyLabel,
-      levelLabel: programLabel
-    }, {
-      withEffort: opts?.withRealized,
-      withTotal: false,
-      withParameterGroups: false,
-      fetchPolicy: 'cache-first'
-    });
+    const { data } = await this.loadAll(
+      0,
+      1,
+      'label',
+      'asc',
+      {
+        label: strategyLabel,
+        levelLabel: programLabel,
+      },
+      {
+        withEffort: opts?.withRealized,
+        withTotal: false,
+        withParameterGroups: false,
+        fetchPolicy: 'cache-first',
+      }
+    );
     const strategy = firstArrayValue(data);
     if (strategy && strategy.effortByQuarter) {
       const effortByQuarter = strategy.effortByQuarter[date?.quarter()];
@@ -284,12 +319,15 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return undefined; // No effort at this date
   }
 
-  async fillEntities(res: LoadResult<SamplingStrategy>, opts?: {
-    fetchPolicy?: FetchPolicy;
-    withEffort?: boolean;
-    withParameterGroups?: boolean;
-    cache?: boolean;
-  }): Promise<LoadResult<SamplingStrategy>> {
+  async fillEntities(
+    res: LoadResult<SamplingStrategy>,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      withEffort?: boolean;
+      withParameterGroups?: boolean;
+      cache?: boolean;
+    }
+  ): Promise<LoadResult<SamplingStrategy>> {
     if (!res || isEmptyArray(res.data)) return res;
 
     const jobs: Promise<void>[] = [];
@@ -301,9 +339,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     // Fill strategy efforts
     if (!opts || opts.withEffort !== false) {
-      jobs.push(this.fillEfforts(res.data, opts)
-        .catch(err => {
-          console.error('Error while computing effort: ' + err && err.message || err, err);
+      jobs.push(
+        this.fillEfforts(res.data, opts).catch((err) => {
+          console.error(('Error while computing effort: ' + err && err.message) || err, err);
           res.errors = (res.errors || []).concat(err);
         })
       );
@@ -321,37 +359,48 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
    * @param entities
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]) {
-
     // DEBUG
     //console.debug('[sampling-strategy-service] Fill parameters groups...');
 
     const parameterLabelGroups = Parameters.getSampleParameterLabelGroups({
-      excludedGroups: ['TAG_ID', 'DRESSING', 'PRESERVATION']
+      excludedGroups: ['TAG_ID', 'DRESSING', 'PRESERVATION'],
     });
     const groupKeys = Object.keys(parameterLabelGroups);
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(parameterLabelGroups);
 
-    entities.forEach(s => {
+    entities.forEach((s) => {
       const pmfms = s.pmfms;
-      s.parameterGroups = (pmfms && groupKeys || []).reduce((res, groupKey) => pmfms.some(p => pmfmIdsMap[groupKey].includes(p.pmfmId) || (p.parameter?.label && p.parameter.label.includes(groupKey))) ? res.concat(groupKey) : res, []);
+      s.parameterGroups = ((pmfms && groupKeys) || []).reduce(
+        (res, groupKey) =>
+          pmfms.some((p) => pmfmIdsMap[groupKey].includes(p.pmfmId) || (p.parameter?.label && p.parameter.label.includes(groupKey)))
+            ? res.concat(groupKey)
+            : res,
+        []
+      );
     });
   }
 
-  async fillEfforts(entities: SamplingStrategy[], opts?: {
-    fetchPolicy?: FetchPolicy;
-    cache?: boolean; // enable by default
-    cacheDuration?: ExtractionCacheDurationType;
-  }): Promise<void> {
-
-    const withCache = (!opts || opts.cache !== false);
-    const cacheDuration = withCache ? (opts && opts.cacheDuration || 'default') : undefined;
+  async fillEfforts(
+    entities: SamplingStrategy[],
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      cache?: boolean; // enable by default
+      cacheDuration?: ExtractionCacheDurationType;
+    }
+  ): Promise<void> {
+    const withCache = !opts || opts.cache !== false;
+    const cacheDuration = withCache ? (opts && opts.cacheDuration) || 'default' : undefined;
 
     const now = Date.now();
-    console.debug(`[sampling-strategy-service] Fill efforts on ${entities.length} strategies... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`);
+    console.debug(
+      `[sampling-strategy-service] Fill efforts on ${entities.length} strategies... {cache: ${withCache}${
+        withCache ? ", cacheDuration: '" + cacheDuration + "'" : ''
+      }}`
+    );
 
     const ids = (entities || [])
-      .filter(s => isNotNil(s.id) && (!withCache || !s.hasRealizedEffort)) // Remove new, or existing efforts
-      .map(s => s.id.toString());
+      .filter((s) => isNotNil(s.id) && (!withCache || !s.hasRealizedEffort)) // Remove new, or existing efforts
+      .map((s) => s.id.toString());
     if (isEmptyArray(ids)) {
       console.debug(`[sampling-strategy-service] No effort to load: Skip`);
       return; // Skip is empty
@@ -363,66 +412,65 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       size: 1000, // All rows
       sortBy: 'start_date',
       sortDirection: 'asc',
-      cacheDuration
+      cacheDuration,
     };
 
     console.debug('[sampling-strategy-service] Fill efforts using variables:', variables);
 
-    const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
+    const { data } = await this.graphql.query<{ data: { strategy: string; startDate: string; endDate: string; expectedEffort }[] }>({
       query: SamplingStrategyQueries.loadEffort,
       variables,
-      fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
+      fetchPolicy: (opts && opts.fetchPolicy) || 'no-cache',
     });
 
-    entities.forEach(s => {
+    entities.forEach((s) => {
       // Clean existing efforts
       s.efforts = undefined;
 
       // Clean realized efforts
       // /!\ BUT keep expected effort (comes from strategies table)
       if (s.effortByQuarter) {
-        [1, 2, 3, 4].map(quarter => s.effortByQuarter[quarter])
+        [1, 2, 3, 4]
+          .map((quarter) => s.effortByQuarter[quarter])
           .filter(isNotNil)
-          .forEach(effort => {
+          .forEach((effort) => {
             effort.realizedEffort = 0;
           });
       }
     });
 
     // Add effort to entities
-    (data || [])
-      .map(StrategyEffort.fromObject)
-      .forEach(effort => {
-        const strategy = entities.find(s => s.label === effort.strategyLabel);
-        if (strategy) {
-          strategy.efforts = strategy.efforts || [];
+    (data || []).map(StrategyEffort.fromObject).forEach((effort) => {
+      const strategy = entities.find((s) => s.label === effort.strategyLabel);
+      if (strategy) {
+        strategy.efforts = strategy.efforts || [];
 
-          if (isNotNil(effort.quarter)) {
-            strategy.effortByQuarter = strategy.effortByQuarter || {};
-            const existingEffort = strategy.effortByQuarter[effort.quarter];
+        if (isNotNil(effort.quarter)) {
+          strategy.effortByQuarter = strategy.effortByQuarter || {};
+          const existingEffort = strategy.effortByQuarter[effort.quarter];
 
-            // Set the quarter's effort
-            if (!existingEffort) {
-              // Do a copy, to be able to increment if more than one effort by quarter
-              //strategy.effortByQuarter[effort.quarter] = effort.clone(); => Code disable since it keeps strategy efforts for deleted applied period efforts
-            }
-            // More than one effort, on this quarter
-            else {
-              effort.expectedEffort = existingEffort.expectedEffort; // Update efforts expected effort with last value from effortByQuarter.
-              strategy.efforts.push(effort); // moved here from global loop in order to prevent copy of obsolete deleted efforts.
-              // Merge properties
-              existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
-              existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
-              existingEffort.realizedEffort += effort.realizedEffort;
-            }
+          // Set the quarter's effort
+          if (!existingEffort) {
+            // Do a copy, to be able to increment if more than one effort by quarter
+            //strategy.effortByQuarter[effort.quarter] = effort.clone(); => Code disable since it keeps strategy efforts for deleted applied period efforts
+          }
+          // More than one effort, on this quarter
+          else {
+            effort.expectedEffort = existingEffort.expectedEffort; // Update efforts expected effort with last value from effortByQuarter.
+            strategy.efforts.push(effort); // moved here from global loop in order to prevent copy of obsolete deleted efforts.
+            // Merge properties
+            existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
+            existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
+            existingEffort.realizedEffort += effort.realizedEffort;
           }
         }
-        else {
-          console.warn(`[sampling-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'strat'.`);
-        }
-      });
+      } else {
+        console.warn(
+          `[sampling-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'strat'.`
+        );
+      }
+    });
 
     console.debug(`[sampling-strategy-service] Efforts filled in ${Date.now() - now}ms`);
-
   }
 }

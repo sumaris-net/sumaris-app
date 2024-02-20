@@ -24,7 +24,6 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     SoftwarePage,
   ],
@@ -32,8 +31,7 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     TranslateModule,
 
     // Components
-    SoftwarePage
+    SoftwarePage,
   ],
 })
-export class AppSoftwareModule {
-}
+export class AppSoftwareModule {}

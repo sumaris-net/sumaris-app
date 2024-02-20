@@ -9,24 +9,28 @@ export class PhysicalGearTestUtils {
   static getExample(key: string): Partial<PhysicalGear>[] {
     switch (key) {
       case 'default':
-        return [{
-          id: null,
-          rankOrder: 1,
-          gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
-          measurementValues: this.getMeasurementValues({label: 'Gear #1', meshSize: 110}),
-          children: <PhysicalGear[]>[{
+        return [
+          {
             id: null,
             rankOrder: 1,
             gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
-            measurementValues: this.getMeasurementValues({label: 'Chalut sélectif mailles carrées', meshSize: 110, selectiveDevice: 'MACAR'})
+            measurementValues: this.getMeasurementValues({ label: 'Gear #1', meshSize: 110 }),
+            children: <PhysicalGear[]>[
+              {
+                id: null,
+                rankOrder: 1,
+                gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
+                measurementValues: this.getMeasurementValues({ label: 'Chalut sélectif mailles carrées', meshSize: 110, selectiveDevice: 'MACAR' }),
+              },
+              {
+                id: null,
+                rankOrder: 2,
+                gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
+                measurementValues: this.getMeasurementValues({ label: 'Chalut sélectif T90', meshSize: 150, selectiveDevice: 'T90' }),
+              },
+            ],
           },
-          {
-            id: null,
-            rankOrder: 2,
-            gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
-            measurementValues: this.getMeasurementValues({label: 'Chalut sélectif T90', meshSize: 150, selectiveDevice: 'T90'}),
-          }]
-        }];
+        ];
 
       case 'empty':
         return [];
@@ -35,8 +39,7 @@ export class PhysicalGearTestUtils {
     throw new Error('Unknown key: ' + key);
   }
 
-
-  static getMeasurementValues(values: { label?: string; meshSize: number; selectiveDevice?: 'T90'|'MACAR' }): MeasurementModelValues {
+  static getMeasurementValues(values: { label?: string; meshSize: number; selectiveDevice?: 'T90' | 'MACAR' }): MeasurementModelValues {
     const result: MeasurementModelValues = {};
     result[PmfmIds.GEAR_LABEL] = values?.label || null;
     result['3'] = isNotNil(values?.meshSize) ? '' + values?.meshSize : null;
@@ -50,7 +53,6 @@ export class PhysicalGearTestUtils {
           break;
       }
     }
-
 
     return result;
   }

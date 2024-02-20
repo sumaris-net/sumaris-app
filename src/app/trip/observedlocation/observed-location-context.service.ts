@@ -9,9 +9,8 @@ export interface ObservedLocationContext extends TripContext {
   landing?: Landing;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ObservedLocationContextService<C extends ObservedLocationContext = ObservedLocationContext> extends TripContextService<C> {
-
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
     super(defaultState || <C>{});
   }
@@ -24,11 +23,11 @@ export class ObservedLocationContextService<C extends ObservedLocationContext = 
     return this.get('observedLocation');
   }
 
-  get landing(): Landing|undefined {
+  get landing(): Landing | undefined {
     return this.get('landing');
   }
 
   set landing(value: Landing) {
-    this.set('landing', _ => value);
+    this.set('landing', (_) => value);
   }
 }

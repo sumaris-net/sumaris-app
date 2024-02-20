@@ -221,4 +221,3 @@ export class AppComponent implements OnInit {
     await this.devicePositionService.start();
   }
 }
-

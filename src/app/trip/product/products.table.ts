@@ -33,21 +33,18 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Product, ProductFilter, {
-        equals: Product.equals
-      })
-    }
+      useFactory: () =>
+        new InMemoryEntitiesService(Product, ProductFilter, {
+          equals: Product.equals,
+        }),
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsTable
-  extends BaseMeasurementsTable<Product,
-    ProductFilter,
-    InMemoryEntitiesService<Product, ProductFilter>,
-    ProductValidatorService
-    >
-  implements OnInit, OnDestroy {
-
+  extends BaseMeasurementsTable<Product, ProductFilter, InMemoryEntitiesService<Product, ProductFilter>, ProductValidatorService>
+  implements OnInit, OnDestroy
+{
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
 
@@ -95,16 +92,12 @@ export class ProductsTable
     dataService: InMemoryEntitiesService<Product, ProductFilter>,
     validatorService: ProductValidatorService
   ) {
-    super(injector,
-      Product, ProductFilter,
-      dataService,
-      validatorService,
-      {
-        suppressErrors: true,
-        reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: settings.mobile ? [] : PRODUCT_RESERVED_END_COLUMNS,
-        i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'
-      });
+    super(injector, Product, ProductFilter, dataService, validatorService, {
+      suppressErrors: true,
+      reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
+      reservedEndColumns: settings.mobile ? [] : PRODUCT_RESERVED_END_COLUMNS,
+      i18nColumnPrefix: 'TRIP.PRODUCT.LIST.',
+    });
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
@@ -127,29 +120,28 @@ export class ProductsTable
         items: this.$parents,
         attributes: this.parentAttributes,
         columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
-        mobile: this.mobile
+        columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+        mobile: this.mobile,
       });
     }
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
-      mobile: this.mobile
+      columnSizes: taxonGroupAttributes.map((attr) => (attr === 'label' ? 3 : undefined)),
+      mobile: this.mobile,
     });
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         // if main pmfms are loaded, then other pmfm can be loaded
-        .pipe(
-          mergeMap(() => this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE}))
-        )
+        .pipe(mergeMap(() => this.programRefService.loadProgramPmfms(this.programLabel, { acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE })))
         .subscribe((productSalePmfms) => {
-           this.productSalePmfms = productSalePmfms;
-        }));
+          this.productSalePmfms = productSalePmfms;
+        })
+    );
 
-    this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
+    this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditProduct(row)));
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
@@ -161,7 +153,7 @@ export class ProductsTable
       // update sales if any
       if (isNotEmptyArray(row.currentData.saleProducts)) {
         const updatedSaleProducts = SaleProductUtils.updateSaleProducts(row.currentData, this.productSalePmfms);
-        row.validator.patchValue({saleProducts: updatedSaleProducts}, {emitEvent: true});
+        row.validator.patchValue({ saleProducts: updatedSaleProducts }, { emitEvent: true });
       }
     }
     return confirmed;
@@ -176,10 +168,10 @@ export class ProductsTable
         disabled: this.disabled,
         mobile: this.mobile,
         data: row.currentData,
-        productSalePmfms: this.productSalePmfms
+        productSalePmfms: this.productSalePmfms,
       },
       backdropDismiss: false,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     await modal.present();
@@ -187,8 +179,8 @@ export class ProductsTable
 
     if (data) {
       // patch saleProducts only
-      row.validator.patchValue({saleProducts: data.saleProducts}, {emitEvent: true});
-      this.markAsDirty({emitEvent: false});
+      row.validator.patchValue({ saleProducts: data.saleProducts }, { emitEvent: true });
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
     }
   }
@@ -203,7 +195,7 @@ export class ProductsTable
 
     const samples = row.currentData.samples || [];
     const taxonGroup = row.currentData.taxonGroup;
-    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label: referentialToString(taxonGroup)}).toPromise();
+    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', { label: referentialToString(taxonGroup) }).toPromise();
 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
@@ -216,11 +208,11 @@ export class ProductsTable
         showLabel: false,
         showTaxonGroup: false,
         showTaxonName: false,
-        title
+        title,
         // onReady: (obj) => this.onInitForm && this.onInitForm.emit({form: obj.form.form, pmfms: obj.$pmfms.getValue()})
       },
       backdropDismiss: false,
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
@@ -233,8 +225,8 @@ export class ProductsTable
       if (this.debug) console.debug('[products-table] Modal result: ', res.data);
 
       // patch samples only
-      row.validator.patchValue({samples: res?.data}, {emitEvent: true});
-      this.markAsDirty({emitEvent: false});
+      row.validator.patchValue({ samples: res?.data }, { emitEvent: true });
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
     }
   }
@@ -256,7 +248,6 @@ export class ProductsTable
     return true;
   }
 
-
   protected async openRow(id: number, row: TableElement<Product>): Promise<boolean> {
     if (!this.allowRowDetail || this.readOnly) return false;
 
@@ -264,7 +255,7 @@ export class ProductsTable
 
     const { data, role } = await this.openDetailModal(entity);
     if (data && role !== 'delete') {
-      await this.updateEntityToTable(data, row, {confirmEdit: false});
+      await this.updateEntityToTable(data, row, { confirmEdit: false });
     } else {
       this.editedRow = null;
     }
@@ -287,9 +278,9 @@ export class ProductsTable
       await this.onNewEntity(dataToOpen);
 
       if (this.filter?.parent) {
-       dataToOpen.parent = this.filter.parent;
+        dataToOpen.parent = this.filter.parent;
       } else if (this.$parents.value?.length === 1) {
-        dataToOpen.parent =  this.$parents.value[0];
+        dataToOpen.parent = this.$parents.value[0];
       }
     }
 
@@ -306,31 +297,30 @@ export class ProductsTable
         disabled: this.disabled,
         mobile: this.mobile,
         isNew,
-        onDelete: (event, data) => this.deleteEntity(event, data)
+        onDelete: (event, data) => this.deleteEntity(event, data),
       },
       cssClass: 'modal-large',
-      keyboardClose: true
+      keyboardClose: true,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[product-table] product modal result: ', data, role);
     this.markAsLoaded();
 
-    return {data: (data as Product) ? data as Product : undefined, role};
+    return { data: (data as Product) ? (data as Product) : undefined, role };
   }
 
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected markForCheck() {
@@ -340,9 +330,9 @@ export class ProductsTable
   private onStartEditProduct(row: TableElement<Product>) {
     if (row.currentData && !row.currentData.parent) {
       if (this.filter?.parent) {
-        row.validator.patchValue({parent: this.filter.parent});
+        row.validator.patchValue({ parent: this.filter.parent });
       } else if (this.$parents.value?.length === 1) {
-        row.validator.patchValue({parent: this.$parents.value[0]});
+        row.validator.patchValue({ parent: this.$parents.value[0] });
       }
     }
   }

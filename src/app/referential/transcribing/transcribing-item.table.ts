@@ -1,17 +1,28 @@
-import {ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnInit, Self} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {StrategyValidatorService} from '@app/referential/services/validator/strategy.validator';
-import {TranscribingItem, TranscribingItemFilter, TranscribingItemType} from '@app/referential/transcribing/transcribing.model';
-import {BaseReferentialTable} from '@app/referential/table/base-referential.table';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {TranscribingItemValidatorService} from '@app/referential/transcribing/transcribing-item.validator';
-import {DateUtils, EntityUtils, IEntitiesService, InMemoryEntitiesService, LoadResult, ReferentialRef, SharedValidators, StatusIds} from '@sumaris-net/ngx-components';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Validators} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnInit, Self } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { StrategyValidatorService } from '@app/referential/services/validator/strategy.validator';
+import { TranscribingItem, TranscribingItemFilter, TranscribingItemType } from '@app/referential/transcribing/transcribing.model';
+import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { TranscribingItemValidatorService } from '@app/referential/transcribing/transcribing-item.validator';
+import {
+  DateUtils,
+  EntityUtils,
+  IEntitiesService,
+  InMemoryEntitiesService,
+  LoadResult,
+  ReferentialRef,
+  SharedValidators,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Validators } from '@angular/forms';
 import moment from 'moment/moment';
-import {RxState} from '@rx-angular/state';
+import { RxState } from '@rx-angular/state';
 
-export const TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<TranscribingItem, TranscribingItemFilter>>('TranscribingItemService');
+export const TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<TranscribingItem, TranscribingItemFilter>>(
+  'TranscribingItemService'
+);
 
 export interface TranscribingItemTableState {
   type: TranscribingItemType;
@@ -21,25 +32,22 @@ export interface TranscribingItemTableState {
 @Component({
   selector: 'app-transcribing-item-table',
   templateUrl: '../table/base-referential.table.html',
-  styleUrls: [
-    '../table/base-referential.table.scss',
-    './transcribing-item.table.scss'
-  ],
+  styleUrls: ['../table/base-referential.table.scss', './transcribing-item.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: StrategyValidatorService},
+    { provide: ValidatorService, useExisting: StrategyValidatorService },
     {
       provide: TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN,
-      useFactory: () => new InMemoryEntitiesService(TranscribingItem, TranscribingItemFilter, {
-        equals: TranscribingItem.equals,
-        onSort: (data, sortBy= 'label', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
-      })
+      useFactory: () =>
+        new InMemoryEntitiesService(TranscribingItem, TranscribingItemFilter, {
+          equals: TranscribingItem.equals,
+          onSort: (data, sortBy = 'label', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
+        }),
     },
-    RxState
+    RxState,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem, TranscribingItemFilter> implements OnInit {
-
   @Input()
   set value(data: TranscribingItem[]) {
     this.memoryDataService.value = data;
@@ -50,7 +58,7 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
   }
 
   @Input() set objectFilter(value: Partial<ReferentialRefFilter>) {
-    this.state.set('objectFilter', _ => value);
+    this.state.set('objectFilter', (_) => value);
   }
 
   get objectFilter(): Partial<ReferentialRefFilter> {
@@ -58,29 +66,24 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
   }
 
   @Input() set type(value: TranscribingItemType) {
-    this.state.set('type', _ => value);
+    this.state.set('type', (_) => value);
   }
 
   get type(): TranscribingItemType {
     return this.state.get('type');
   }
 
-  constructor(injector: Injector,
-              @Self() @Inject(TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN) dataService: IEntitiesService<TranscribingItem, TranscribingItemFilter>,
-              validatorService: TranscribingItemValidatorService,
-              protected referentialRefService: ReferentialRefService,
-              protected state: RxState<TranscribingItemTableState>
+  constructor(
+    injector: Injector,
+    @Self() @Inject(TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN) dataService: IEntitiesService<TranscribingItem, TranscribingItemFilter>,
+    validatorService: TranscribingItemValidatorService,
+    protected referentialRefService: ReferentialRefService,
+    protected state: RxState<TranscribingItemTableState>
   ) {
-    super(injector,
-      TranscribingItem,
-      TranscribingItemFilter,
-      dataService,
-      validatorService,
-      {
-        i18nColumnPrefix: 'REFERENTIAL.TRANSCRIBING_ITEM.',
-        canUpload: true
-      }
-    );
+    super(injector, TranscribingItem, TranscribingItemFilter, dataService, validatorService, {
+      i18nColumnPrefix: 'REFERENTIAL.TRANSCRIBING_ITEM.',
+      canUpload: true,
+    });
     this.showTitle = false;
     this.showIdColumn = false;
     this.autoLoad = false; // Wait filter
@@ -93,16 +96,15 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
   }
 
   protected registerAutocompleteFields() {
-
     // Type
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('type', {
       showAllOnFocus: false,
       service: this.referentialRefService,
       filter: {
         entityName: TranscribingItemType.ENTITY_NAME,
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Object
@@ -110,18 +112,17 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestObject(value, filter),
       filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
-
   }
 
   protected getFilterFormConfig(): any {
     console.debug(this.logPrefix + ' Creating filter form group...');
     return {
       searchText: [null],
-      type: [null, Validators.compose([SharedValidators.entity, Validators.required])]
+      type: [null, Validators.compose([SharedValidators.entity, Validators.required])],
     };
   }
 
@@ -129,14 +130,14 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
     return {
       ...super.defaultNewRowValue(),
       type: this.type,
-      creationDate: DateUtils.moment()
+      creationDate: DateUtils.moment(),
     };
   }
 
   protected async suggestObject(value: any, filter: ReferentialRefFilter): Promise<LoadResult<ReferentialRef>> {
     return this.referentialRefService.suggest(value, {
       ...filter,
-      ...this.objectFilter
+      ...this.objectFilter,
     });
   }
 }

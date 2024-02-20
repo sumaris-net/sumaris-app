@@ -17,19 +17,17 @@ import { MetierPage } from '@app/referential/metier/metier.page';
     // Sub modules
     AppReferentialFormModule,
     AppReferentialPipesModule,
-    AppReferentialTableModule
+    AppReferentialTableModule,
   ],
   declarations: [
-
     // Components
-    MetierPage
+    MetierPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    MetierPage
+    MetierPage,
   ],
 })
-export class AppMetierModule {
-}
+export class AppMetierModule {}

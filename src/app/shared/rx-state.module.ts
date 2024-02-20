@@ -5,13 +5,7 @@ import { IfModule } from '@rx-angular/template/if';
 import { LetModule } from '@rx-angular/template/let';
 
 @NgModule({
-  imports: [
-    PushModule, ForModule, IfModule, LetModule
-  ],
-  exports: [
-    PushModule, ForModule, IfModule, LetModule
-  ]
+  imports: [PushModule, ForModule, IfModule, LetModule],
+  exports: [PushModule, ForModule, IfModule, LetModule],
 })
-export class RxStateModule {
-
-}
+export class RxStateModule {}

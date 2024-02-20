@@ -19,20 +19,18 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialPipesModule
+    AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     RoundWeightConversionTable,
-    TaxonGroupPage
+    TaxonGroupPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    TaxonGroupPage
+    TaxonGroupPage,
   ],
 })
-export class AppTaxonGroupModule {
-}
+export class AppTaxonGroupModule {}

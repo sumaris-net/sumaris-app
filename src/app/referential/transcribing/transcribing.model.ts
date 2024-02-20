@@ -47,22 +47,21 @@ export class TranscribingItemType extends BaseReferential<TranscribingItemType> 
   }
 }
 
-@EntityClass({typename: 'TranscribingItemVO'})
+@EntityClass({ typename: 'TranscribingItemVO' })
 export class TranscribingItem extends BaseReferential<TranscribingItem> {
-
   static ENTITY_NAME = 'TranscribingItem';
   static fromObject: (source: any, opts?: any) => TranscribingItem;
   static equals(o1, o2): boolean {
-    return o1 && o2 && o1.id === o2.id
+    return (
+      (o1 && o2 && o1.id === o2.id) ||
       // Or
-      || (
-        // Same label
-        (o1.label === o2.label)
+      // Same label
+      (o1.label === o2.label &&
         // Same object id
-        && (toNumber(o1.objectId, o1.object?.id) === toNumber(o2.objectId, o2.object?.id))
+        toNumber(o1.objectId, o1.object?.id) === toNumber(o2.objectId, o2.object?.id) &&
         // Same type id
-        && (toNumber(o1.typeId, o1.type?.id) === toNumber(o2.typeId, o2.type?.id))
-      );
+        toNumber(o1.typeId, o1.type?.id) === toNumber(o2.typeId, o2.type?.id))
+    );
   }
 
   constructor() {
@@ -97,7 +96,7 @@ export class TranscribingItem extends BaseReferential<TranscribingItem> {
   }
 }
 
-@EntityClass({typename: 'TranscribingItemVO'})
+@EntityClass({ typename: 'TranscribingItemVO' })
 export class TranscribingItemFilter extends BaseReferentialFilter<TranscribingItemFilter, TranscribingItem> {
   static fromObject: (source: any, opts?: any) => TranscribingItemFilter;
 
@@ -122,12 +121,11 @@ export class TranscribingItemFilter extends BaseReferentialFilter<TranscribingIt
     // Type
     const typeId = toNumber(this.typeId, this.type?.id);
     if (isNotNil(typeId)) {
-      filterFns.push(t => t.typeId === typeId || t.type?.id === typeId);
-    }
-    else {
+      filterFns.push((t) => t.typeId === typeId || t.type?.id === typeId);
+    } else {
       const typeLabel = this.type?.label;
       if (isNotNilOrBlank(typeLabel)) {
-        filterFns.push(t => t.type?.label === typeLabel);
+        filterFns.push((t) => t.type?.label === typeLabel);
       }
     }
 

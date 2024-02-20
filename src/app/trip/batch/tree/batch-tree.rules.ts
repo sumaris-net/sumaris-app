@@ -3,14 +3,13 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { Injectable } from '@angular/core';
 import { ConfigService } from '@sumaris-net/ngx-components';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class BatchRules {
-
   private _cache = new Map<string, Rule>();
 
   constructor(configService: ConfigService) {
     // Clean cache when config change (PmfmIds can changes)
-    configService.config.subscribe(_ => this.resetCache());
+    configService.config.subscribe((_) => this.resetCache());
   }
 
   getNotLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
@@ -32,19 +31,19 @@ export class BatchRules {
   private createNotLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
     return [
       Rule.fromObject(<Partial<Rule>>{
-          label: 'no-size-category-pmfm',
-          controlledAttribute: `${pmfmPath}id`,
-          operator: '!=',
-          value: PmfmIds.SIZE_CATEGORY.toString(),
-          message: 'Size category not allowed',
-        }),
-        Rule.fromObject(<Partial<Rule>>{
-          label: 'no-batch-sorting-pmfm',
-          controlledAttribute: `${pmfmPath}id`,
-          operator: '!=',
-          value: PmfmIds.TRAWL_SIZE_CAT.toString(),
-          message: 'Trawl size category not allowed'
-        })
+        label: 'no-size-category-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.SIZE_CATEGORY.toString(),
+        message: 'Size category not allowed',
+      }),
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'no-batch-sorting-pmfm',
+        controlledAttribute: `${pmfmPath}id`,
+        operator: '!=',
+        value: PmfmIds.TRAWL_SIZE_CAT.toString(),
+        message: 'Trawl size category not allowed',
+      }),
     ];
   }
 
@@ -55,15 +54,15 @@ export class BatchRules {
         controlledAttribute: `${pmfmPath}id`,
         operator: '!=',
         value: PmfmIds.BATCH_SORTING.toString(),
-        message: 'Discard sorting pmfm not allowed'
+        message: 'Discard sorting pmfm not allowed',
       }),
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-discard-weight-pmfm',
         controlledAttribute: `${pmfmPath}id`,
         operator: '!=',
         value: PmfmIds.DISCARD_WEIGHT.toString(),
-        message: 'Discard weight pmfm not allowed'
-      })
+        message: 'Discard weight pmfm not allowed',
+      }),
     ];
   }
 }

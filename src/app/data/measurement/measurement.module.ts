@@ -14,11 +14,9 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
     // App module
     AppCoreModule,
     AppReferentialModule,
-    AppPmfmFormFieldModule
+    AppPmfmFormFieldModule,
   ],
-  declarations: [
-    MeasurementsForm
-  ],
+  declarations: [MeasurementsForm],
   exports: [
     // Modules
     TranslateModule,
@@ -27,9 +25,7 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
     // Pipes
 
     // Components
-    MeasurementsForm
-  ]
+    MeasurementsForm,
+  ],
 })
-export class AppMeasurementModule {
-
-}
+export class AppMeasurementModule {}

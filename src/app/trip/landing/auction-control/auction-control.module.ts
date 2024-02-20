@@ -9,7 +9,6 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -23,16 +22,13 @@ import { AppLandingModule } from '@app/trip/landing/landing.module';
     AppSampleModule,
     AppLandingModule,
   ],
-  declarations: [
-    AuctionControlPage,
-  ],
+  declarations: [AuctionControlPage],
   exports: [
     // Components
     AuctionControlPage,
-  ]
+  ],
 })
 export class AppAuctionControlModule {
-
   constructor() {
     console.debug('[auction-control] Creating module...');
   }

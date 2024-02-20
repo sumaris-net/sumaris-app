@@ -25,15 +25,14 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     AppReferentialFormModule,
     AppReferentialTableModule,
     AppReferentialPipesModule,
-    AppStrategyModule
+    AppStrategyModule,
   ],
   declarations: [
-
     // Components
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
   exports: [
     TranslateModule,
@@ -42,8 +41,7 @@ import { SelectProgramModal } from '@app/referential/program/select-program.moda
     ProgramsPage,
     ProgramPage,
     PersonPrivilegesTable,
-    SelectProgramModal
+    SelectProgramModal,
   ],
 })
-export class AppProgramModule {
-}
+export class AppProgramModule {}

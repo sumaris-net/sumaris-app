@@ -1,10 +1,10 @@
-import {Observable} from 'rxjs';
-import {Inject, Injectable, InjectionToken, Optional} from '@angular/core';
-import {Moment} from 'moment';
-import {DateUtils, fromDateISOString} from '@sumaris-net/ngx-components';
-import {RxState} from '@rx-angular/state';
-import {Program} from '@app/referential/services/model/program.model';
-import {Strategy} from '@app/referential/services/model/strategy.model';
+import { Observable } from 'rxjs';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
+import { Moment } from 'moment';
+import { DateUtils, fromDateISOString } from '@sumaris-net/ngx-components';
+import { RxState } from '@rx-angular/state';
+import { Program } from '@app/referential/services/model/program.model';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 export interface Clipboard<T = any> {
   data?: T;
@@ -19,21 +19,18 @@ export interface Context<T = any> {
 
 export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('ContextDefaultState');
 
-
 @Injectable()
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
-
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
     super();
     this.reset();
   }
 
-  setValue<K extends keyof S>(key: K, value: S[K],) {
-
+  setValue<K extends keyof S>(key: K, value: S[K]) {
     // DEBUG
     //console.debug(`[context-service] Set '${String(key)}'`, value);
 
-    this.set(key, _ => value);
+    this.set(key, (_) => value);
   }
 
   getObservable<K extends keyof S>(key: K): Observable<S[K]> {
@@ -61,22 +58,22 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
   }
 
   set clipboard(value: Clipboard<T> | undefined) {
-    this.set('clipboard', _ => ({...value, updateDate: DateUtils.moment()}));
+    this.set('clipboard', (_) => ({ ...value, updateDate: DateUtils.moment() }));
   }
 
-  get program(): Program|undefined {
+  get program(): Program | undefined {
     return this.get('program');
   }
 
-  set program(value: Program|undefined) {
-    this.set('clipboard', _ => value);
+  set program(value: Program | undefined) {
+    this.set('clipboard', (_) => value);
   }
 
-  get strategy(): Strategy|undefined {
+  get strategy(): Strategy | undefined {
     return this.get('strategy');
   }
 
-  set strategy(value: Strategy|undefined) {
-    this.set('strategy', _ => value);
+  set strategy(value: Strategy | undefined) {
+    this.set('strategy', (_) => value);
   }
 }

@@ -48,7 +48,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     SamplingStrategyPage,
     SamplingStrategyForm,
     SamplingStrategiesTable,
-    StrategyModal
+    StrategyModal,
   ],
   exports: [
     TranslateModule,
@@ -61,8 +61,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     StrategiesTable,
     SamplingStrategyPage,
     SamplingStrategiesTable,
-    PmfmStrategiesTable
-  ]
+    PmfmStrategiesTable,
+  ],
 })
-export class AppStrategyModule {
-}
+export class AppStrategyModule {}

@@ -12,22 +12,11 @@
 
     <ion-buttons slot="end" [class.cdk-visually-hidden]="!tabSearch.isActive">
       <!-- Refresh -->
-      <button
-        mat-icon-button
-        *ngIf="!mobile"
-        [title]="'COMMON.BTN_REFRESH' | translate"
-        (click)="table?.onRefresh.emit()"
-      >
+      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="table?.onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
 
-      <ion-button
-        *ngIf="(loadingSubject | async) === false && hasSelection()"
-        (click)="close($event)"
-        visible-xs
-        visible-sm
-        visible-mobile
-      >
+      <ion-button *ngIf="(loadingSubject | async) === false && hasSelection()" (click)="close($event)" visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>

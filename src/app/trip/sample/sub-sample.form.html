@@ -25,7 +25,7 @@
             formControlName="label"
             [appAutofocus]="enabled && focusFieldName === 'label'"
             [tabindex]="tabindex"
-            [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext : i18nFullSuffix"
+            [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext: i18nFullSuffix"
             (click)="selectInputContent($event)"
             required
           />
@@ -41,8 +41,8 @@
           formControlName="parent"
           [autofocus]="enabled && focusFieldName === 'parent'"
           [placeholder]="
-            (displayParentPmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }) ||
-            ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext : i18nFullSuffix)
+            (displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }) ||
+            ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)
           "
           [config]="autocompleteFields.parent"
           [tabindex]="(showLabel ? 1 : 0) + tabindex"
@@ -54,14 +54,10 @@
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row
-      *ngIf="pmfms$ | async | arrayFilter : isNotHiddenPmfm; let pmfms"
-      [formGroup]="measurementValuesForm"
-      class="ion-no-padding"
-    >
+    <ion-row *ngIf="pmfms$ | async | arrayFilter: isNotHiddenPmfm; let pmfms" [formGroup]="measurementValuesForm" class="ion-no-padding">
       <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
         <ion-col
-          *ngVar="{ computed: pmfm | isComputedPmfm, style: pmfm | pmfmFieldStyle : 10 } as vars"
+          *ngVar="{ computed: pmfm | isComputedPmfm, style: pmfm | pmfmFieldStyle: 10 } as vars"
           [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
           size="12"
           [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
@@ -70,7 +66,7 @@
           <app-pmfm-field
             #matInput
             [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
             [style]="vars.style"
             [readonly]="vars.computed"
             [floatLabel]="vars.computed && 'always'"

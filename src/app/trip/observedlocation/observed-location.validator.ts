@@ -1,5 +1,13 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControlOptions,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from './observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
@@ -15,14 +23,9 @@ export interface ObservedLocationValidatorOptions extends DataRootEntityValidato
   timezone?: string;
 }
 
-@Injectable({providedIn: 'root'})
-export class ObservedLocationValidatorService
-  extends DataRootEntityValidatorService<ObservedLocation, ObservedLocationValidatorOptions>{
-
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService) {
+@Injectable({ providedIn: 'root' })
+export class ObservedLocationValidatorService extends DataRootEntityValidatorService<ObservedLocation, ObservedLocationValidatorOptions> {
+  constructor(formBuilder: UntypedFormBuilder, translate: TranslateService, settings: LocalSettingsService) {
     super(formBuilder, translate, settings);
   }
 
@@ -35,9 +38,9 @@ export class ObservedLocationValidatorService
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       // TODO: find strategy from date and location
-      (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
-        .forEach(p => {
+      ((opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) || [])
+        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
+        .forEach((p) => {
           const key = p.id.toString();
           const value = data?.measurementValues?.[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
@@ -51,13 +54,12 @@ export class ObservedLocationValidatorService
     return {
       ...super.getFormGroupConfig(data),
       __typename: [ObservedLocation.TYPENAME],
-      location: [data && data.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      startDateTime: [data && data.startDateTime || null, this.createStartDateValidator(opts)],
-      endDateTime: [data && data.endDateTime || null],
+      location: [(data && data.location) || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      startDateTime: [(data && data.startDateTime) || null, this.createStartDateValidator(opts)],
+      endDateTime: [(data && data.endDateTime) || null],
       measurementValues: this.formBuilder.group({}),
-      observers: this.getObserversFormArray(data)
+      observers: this.getObserversFormArray(data),
     };
-
   }
 
   updateFormGroup(formGroup: UntypedFormGroup, opts?: ObservedLocationValidatorOptions) {
@@ -69,19 +71,22 @@ export class ObservedLocationValidatorService
     return formGroup;
   }
 
-
   getFormGroupOptions(data?: any): AbstractControlOptions {
     return {
-      validators: [SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime')]
+      validators: [SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime')],
     };
   }
 
   protected fillDefaultOptions(opts?: ObservedLocationValidatorOptions): ObservedLocationValidatorOptions {
     opts = super.fillDefaultOptions(opts);
 
-    opts.withObservers = toBoolean(opts.withObservers,
-      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-        ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'));
+    opts.withObservers = toBoolean(
+      opts.withObservers,
+      toBoolean(
+        opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
+        ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'
+      )
+    );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
 
@@ -98,11 +103,14 @@ export class ObservedLocationValidatorService
       validators.push((control: UntypedFormControl): ValidationErrors | null => {
         if (!DateUtils.isAtDay(control.value, weekday, timezone)) {
           control.markAsTouched();
-          return {msg: {
+          return {
+            msg: {
               key: 'OBSERVED_LOCATION.ERROR.START_DATE_INVALID',
               params: {
-                day: moment().day(weekday).format('dddd')
-              }}};
+                day: moment().day(weekday).format('dddd'),
+              },
+            },
+          };
         }
         return null;
       });
@@ -111,4 +119,3 @@ export class ObservedLocationValidatorService
     return validators.length === 1 ? validators[0] : Validators.compose(validators);
   }
 }
-

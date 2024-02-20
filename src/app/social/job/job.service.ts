@@ -1,4 +1,13 @@
-import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, LoadResult, SocialErrorCodes, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseGraphqlService,
+  EntityUtils,
+  GraphqlService,
+  isNil,
+  LoadResult,
+  SocialErrorCodes,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
 import { ErrorCodes } from '@app/referential/services/errors';
@@ -11,12 +20,14 @@ import { JobReportModal, JobReportModalOptions } from '@app/social/job/report/jo
 import { Page } from '@app/shared/service/page.model';
 
 export const JobFragments = {
-  light: gql`fragment LightJobFragment on JobVO {
-    id
-    name
-    startDate
-    status
-  }`,
+  light: gql`
+    fragment LightJobFragment on JobVO {
+      id
+      name
+      startDate
+      status
+    }
+  `,
   full: gql`
     fragment JobFragment on JobVO {
       id
@@ -30,7 +41,7 @@ export const JobFragments = {
       report
       log
     }
-  `
+  `,
 };
 
 const JobQueries = {
@@ -40,14 +51,17 @@ const JobQueries = {
         ...LightJobFragment
       }
     }
-    ${JobFragments.light}`,
+    ${JobFragments.light}
+  `,
 
-  load: gql`query Job($id: Int!) {
+  load: gql`
+    query Job($id: Int!) {
       data: job(id: $id) {
         ...JobFragment
       }
     }
-    ${JobFragments.full}`,
+    ${JobFragments.full}
+  `,
 };
 
 const JobMutations = {
@@ -57,26 +71,29 @@ const JobMutations = {
         ...JobFragment
       }
     }
-    ${JobFragments.full}`,
+    ${JobFragments.full}
+  `,
 };
 const JobSubscriptions = {
-  listenChanges: gql`subscription UpdateJobs($filter: JobFilterVOInput, $interval: Int) {
+  listenChanges: gql`
+    subscription UpdateJobs($filter: JobFilterVOInput, $interval: Int) {
       data: updateJobs(filter: $filter, interval: $interval) {
         ...JobFragment
       }
     }
-    ${JobFragments.full}`
+    ${JobFragments.full}
+  `,
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class JobService extends BaseGraphqlService<Job, JobFilter> {
-
   onCancel = new Subject<Job>();
 
-  constructor(protected graphql: GraphqlService,
-              protected accountService: AccountService,
-              protected modalCtrl: ModalController,
-              ) {
+  constructor(
+    protected graphql: GraphqlService,
+    protected accountService: AccountService,
+    protected modalCtrl: ModalController
+  ) {
     super(graphql);
     this._logPrefix = '[job-service]';
   }
@@ -88,9 +105,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
     job.issuer = job.issuer || this.accountService.account?.pubkey;
 
     const data: Job = job.asObject();
-    this.insertIntoMutableCachedQueries(
-      this.graphql.cache,
-      {queryName: 'loadAll', data});
+    this.insertIntoMutableCachedQueries(this.graphql.cache, { queryName: 'loadAll', data });
   }
 
   async load(id: number): Promise<Job> {
@@ -109,9 +124,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
     return Job.fromObject(data);
   }
 
-  async loadAll(filter: Partial<JobFilter>,
-                page?: Page,
-                opts?: {fetchPolicy?: FetchPolicy; toEntity?: boolean}): Promise<Job[]> {
+  async loadAll(filter: Partial<JobFilter>, page?: Page, opts?: { fetchPolicy?: FetchPolicy; toEntity?: boolean }): Promise<Job[]> {
     filter = JobFilter.fromObject(filter);
 
     const now = Date.now();
@@ -122,31 +135,27 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
       size: 100,
       sortBy: 'id',
       sortDirection: 'ASC',
-      ...page
+      ...page,
     };
 
     const { data } = await this.graphql.query<{ data: any[] }>({
       query: JobQueries.loadAll,
-      variables : {
+      variables: {
         filter: filter && filter.asPodObject(),
-        page
+        page,
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
       fetchPolicy: opts?.fetchPolicy || 'no-cache',
     });
 
-    const entities = opts?.toEntity !== false
-      ? (data || []).map(Job.fromObject)
-      : (data || []) as Job[];
+    const entities = opts?.toEntity !== false ? (data || []).map(Job.fromObject) : ((data || []) as Job[]);
 
     if (this._debug) console.debug(`${this._logPrefix} jobs loaded in ${Date.now() - now}ms`, entities);
 
     return entities;
   }
 
-  watchAll(filter: Partial<JobFilter>,
-           page?: Page,
-           opts?: {fetchPolicy?: WatchQueryFetchPolicy; toEntity?: boolean}): Observable<Job[]> {
+  watchAll(filter: Partial<JobFilter>, page?: Page, opts?: { fetchPolicy?: WatchQueryFetchPolicy; toEntity?: boolean }): Observable<Job[]> {
     filter = JobFilter.fromObject(filter);
 
     let now = Date.now();
@@ -165,24 +174,21 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
       query: JobQueries.loadAll,
       variables: {
         filter: filter && filter.asPodObject(),
-        page
+        page,
       },
       insertFilterFn: filter && filter.asFilterFn(),
-      error: {code: SocialErrorCodes.LOAD_JOB_PROGRESSIONS_ERROR, message: 'REFERENTIAL.ERROR.LOAD_JOB_PROGRESSIONS_ERROR'},
-      fetchPolicy: opts?.fetchPolicy || 'cache-and-network'
-    })
-      .pipe(
-        map(({data}) => {
-          const entities = opts?.toEntity !== false
-            ? (data || []).map(Job.fromObject)
-            : ((data || []) as Job[]);
-          if (now && this._debug) {
-            console.debug(`${this._logPrefix} ${entities.length} jobs loaded in ${Date.now() - now}ms`, entities);
-            now = null;
-          }
-          return entities;
-        })
-      );
+      error: { code: SocialErrorCodes.LOAD_JOB_PROGRESSIONS_ERROR, message: 'REFERENTIAL.ERROR.LOAD_JOB_PROGRESSIONS_ERROR' },
+      fetchPolicy: opts?.fetchPolicy || 'cache-and-network',
+    }).pipe(
+      map(({ data }) => {
+        const entities = opts?.toEntity !== false ? (data || []).map(Job.fromObject) : ((data || []) as Job[]);
+        if (now && this._debug) {
+          console.debug(`${this._logPrefix} ${entities.length} jobs loaded in ${Date.now() - now}ms`, entities);
+          now = null;
+        }
+        return entities;
+      })
+    );
   }
 
   listenChanges(filter: Partial<JobFilter>, options?: { interval?: number; fetchPolicy?: FetchPolicy }): Observable<Job[]> {
@@ -196,7 +202,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
         fetchPolicy: options?.fetchPolicy || 'no-cache',
         variables: {
           filter: filter.asPodObject(),
-          interval: toNumber(options?.interval, 10)
+          interval: toNumber(options?.interval, 10),
         },
         error: {
           code: SocialErrorCodes.SUBSCRIBE_USER_EVENTS_ERROR,
@@ -217,10 +223,10 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
     const modal = await this.modalCtrl.create({
       component: JobReportModal,
       componentProps: <Partial<JobReportModalOptions>>{
-        job
+        job,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
@@ -228,19 +234,18 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
 
     // On dismiss
     const res = await modal.onDidDismiss();
-
   }
 
   async cancelJob(job: Job): Promise<Job> {
-    await this.graphql.mutate<{data: Job}>({
+    await this.graphql.mutate<{ data: Job }>({
       mutation: JobMutations.cancel,
       variables: {
-        id: job.id
+        id: job.id,
       },
-      update:  (proxy, {data}) => {
+      update: (proxy, { data }) => {
         const savedEntity = Job.fromObject(data.data);
         EntityUtils.copyIdAndUpdateDate(savedEntity, job);
-      }
+      },
     });
 
     this.onCancel.next(job);

@@ -22,7 +22,11 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('wlcTable', { static: true }) wlcTable: WeightLengthConversionTable;
 
-  constructor(protected injector: Injector, dataService: TaxonNameService, validatorService: TaxonNameValidatorService) {
+  constructor(
+    protected injector: Injector,
+    dataService: TaxonNameService,
+    validatorService: TaxonNameValidatorService
+  ) {
     super(injector, TaxonName, dataService, validatorService.getFormGroup(), {
       entityName: TaxonName.ENTITY_NAME,
       tabCount: 2,
@@ -155,4 +159,3 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
     await super.onNewEntity(data, options);
   }
 }
-

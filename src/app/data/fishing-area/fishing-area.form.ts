@@ -15,7 +15,6 @@ import { map, startWith } from 'rxjs/operators';
   styleUrls: ['./fishing-area.form.scss'],
 })
 export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
-
   mobile: boolean;
 
   @Input() required = true;
@@ -30,7 +29,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   }
 
   get valid(): boolean {
-    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+    return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
   get locationControl(): AbstractControl {
@@ -38,11 +37,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   }
 
   get hasNoLocation$(): Observable<boolean> {
-    return this.locationControl.valueChanges
-      .pipe(
-        startWith(this.locationControl.value),
-        map(ReferentialUtils.isEmpty)
-      );
+    return this.locationControl.valueChanges.pipe(startWith(this.locationControl.value), map(ReferentialUtils.isEmpty));
   }
 
   get value(): any {
@@ -52,7 +47,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     return value;
   }
 
-  set value(value: any){
+  set value(value: any) {
     super.value = value;
   }
 
@@ -73,49 +68,53 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     super.ngOnInit();
 
     // Set if required or not
-    this.validatorService.updateFormGroup(this.form, {required: this.required});
+    this.validatorService.updateFormGroup(this.form, { required: this.required });
 
     // Combo: fishing area location
     const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation');
     this.registerAutocompleteField('fishingAreaLocation', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        levelIds: this.locationLevelIds
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this.locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: fishingAreaAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: distance to coast gradient
     this.registerAutocompleteField('distanceToCoastGradient', {
       suggestFn: (value, options) => this.suggest(value, options, 'DistanceToCoastGradient'),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: depth gradient
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, options) => this.suggest(value, options, 'DepthToCoastGradient'),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: nearby specific area
     this.registerAutocompleteField('nearbySpecificArea', {
       suggestFn: (value, options) => this.suggest(value, options, 'NearbySpecificArea'),
-      mobile: this.mobile
+      mobile: this.mobile,
     });
   }
 
   private suggest(value: string, options: any, entityName: string) {
-    return this.referentialRefService.suggest(value, {
+    return this.referentialRefService.suggest(
+      value,
+      {
         entityName,
-        searchAttribute: options && options.searchAttribute
+        searchAttribute: options && options.searchAttribute,
       },
       'rankOrder',
-      'asc');
+      'asc'
+    );
   }
 
   protected markForCheck() {

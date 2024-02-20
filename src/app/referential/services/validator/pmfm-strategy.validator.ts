@@ -1,14 +1,13 @@
-import {Injectable} from '@angular/core';
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {PmfmStrategy} from '../model/pmfm-strategy.model';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { PmfmStrategy } from '../model/pmfm-strategy.model';
 
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {SharedValidators} from '@sumaris-net/ngx-components';
-import {isNotNil} from '@sumaris-net/ngx-components';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { SharedValidators } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PmfmStrategyValidatorService implements ValidatorService {
-
   private _withDetails = true;
 
   public get withDetails(): boolean {
@@ -19,9 +18,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
     this._withDetails = value;
   }
 
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     this._withDetails = true;
   }
 
@@ -29,52 +26,61 @@ export class PmfmStrategyValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: PmfmStrategy, opts?: {
-    withDetails?: boolean;
-    required?: boolean;
-  }): UntypedFormGroup {
+  getFormGroup(
+    data?: PmfmStrategy,
+    opts?: {
+      withDetails?: boolean;
+      required?: boolean;
+    }
+  ): UntypedFormGroup {
     opts = {
       withDetails: this._withDetails,
-      ...opts
+      ...opts,
     };
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
-  getFormGroupConfig(data?: PmfmStrategy, opts?: {
-    withDetails?: boolean;
-    required?: boolean;
-  }): {[key: string]: any} {
-    const config: {[key: string]: any} = {
-      id: [data && data.id || null],
-      pmfm: [data && data.pmfm || null, SharedValidators.entity],
-      parameter: [data && data.parameter || null, SharedValidators.entity],
-      matrix: [data && data.matrix || null, SharedValidators.entity],
-      fraction: [data && data.fraction || null, SharedValidators.entity],
-      method: [data && data.method || null, SharedValidators.entity]
+  getFormGroupConfig(
+    data?: PmfmStrategy,
+    opts?: {
+      withDetails?: boolean;
+      required?: boolean;
+    }
+  ): { [key: string]: any } {
+    const config: { [key: string]: any } = {
+      id: [(data && data.id) || null],
+      pmfm: [(data && data.pmfm) || null, SharedValidators.entity],
+      parameter: [(data && data.parameter) || null, SharedValidators.entity],
+      matrix: [(data && data.matrix) || null, SharedValidators.entity],
+      fraction: [(data && data.fraction) || null, SharedValidators.entity],
+      method: [(data && data.method) || null, SharedValidators.entity],
     };
     if (opts.withDetails) {
-      config.acquisitionLevel = [data && data.acquisitionLevel || null, Validators.required];
-      config.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
-      config.isMandatory = [data && data.isMandatory || false, Validators.required];
-      config.acquisitionNumber = [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
-      config.minValue = [data && data.minValue || null, SharedValidators.decimal()];
-      config.maxValue = [data && data.maxValue || null, SharedValidators.decimal()];
+      config.acquisitionLevel = [(data && data.acquisitionLevel) || null, Validators.required];
+      config.rankOrder = [(data && data.rankOrder) || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
+      config.isMandatory = [(data && data.isMandatory) || false, Validators.required];
+      config.acquisitionNumber = [
+        (data && data.acquisitionNumber) || 1,
+        Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)]),
+      ];
+      config.minValue = [(data && data.minValue) || null, SharedValidators.decimal()];
+      config.maxValue = [(data && data.maxValue) || null, SharedValidators.decimal()];
       config.defaultValue = [isNotNil(data && data.defaultValue) ? data.defaultValue : null];
-      config.gearIds = [data && data.gearIds || null];
-      config.taxonGroupIds = [data && data.taxonGroupIds || null];
-      config.referenceTaxonIds = [data && data.referenceTaxonIds || null];
+      config.gearIds = [(data && data.gearIds) || null];
+      config.taxonGroupIds = [(data && data.taxonGroupIds) || null];
+      config.referenceTaxonIds = [(data && data.referenceTaxonIds) || null];
     }
 
     return config;
   }
 
-  getFormGroupOptions(data?: PmfmStrategy, opts?: {
-    withDetails?: boolean;
-    required?: boolean;
-  }): AbstractControlOptions | any {
+  getFormGroupOptions(
+    data?: PmfmStrategy,
+    opts?: {
+      withDetails?: boolean;
+      required?: boolean;
+    }
+  ): AbstractControlOptions | any {
     if (!opts || opts.required !== false) {
       return {
         validator: (form: UntypedFormGroup) => {
@@ -82,12 +88,12 @@ export class PmfmStrategyValidatorService implements ValidatorService {
           const parameter = form.get('parameter').value;
           const fraction = form.get('fraction').value;
           if (!pmfm && !parameter && !fraction) {
-            return {required: true};
+            return { required: true };
           }
           return null;
-        }
+        },
       };
     }
-    return { };
+    return {};
   }
 }

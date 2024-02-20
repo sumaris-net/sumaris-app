@@ -5,27 +5,18 @@ import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { TranslateService } from '@ngx-translate/core';
 
-@Injectable({providedIn: 'root'})
-export class ExpectedSaleValidatorService
-  extends DataEntityValidatorService<ExpectedSale> {
-
-  constructor(
-    formBuilder: FormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService) {
+@Injectable({ providedIn: 'root' })
+export class ExpectedSaleValidatorService extends DataEntityValidatorService<ExpectedSale> {
+  constructor(formBuilder: FormBuilder, translate: TranslateService, settings: LocalSettingsService) {
     super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: ExpectedSale, opts?: DataEntityValidatorOptions): FormGroup {
     opts = this.fillDefaultOptions(opts);
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
   getFormGroupConfig(data?: ExpectedSale, opts?: DataEntityValidatorOptions): { [key: string]: any } {
-
     return {
       __typename: [ExpectedSale.TYPENAME],
       id: [data?.id || null],
@@ -35,5 +26,4 @@ export class ExpectedSaleValidatorService
       saleLocation: [data?.saleLocation || null, SharedValidators.entity],
     };
   }
-
 }

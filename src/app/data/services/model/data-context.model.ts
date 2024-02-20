@@ -26,9 +26,7 @@ export interface DataContext {
 
 @Injectable()
 export abstract class DataContextService<C extends DataContext = DataContext> extends ContextService<C> {
-
   protected constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
     super(defaultState || <C>{});
   }
-
 }

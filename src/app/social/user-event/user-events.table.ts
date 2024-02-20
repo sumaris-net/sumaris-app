@@ -52,19 +52,16 @@ export interface UserEventIcon {
 
 const DEFAULT_ICONS_BY_TYPE: { [key: string]: IconRef } = {
   DEBUG_DATA: { matIcon: 'bug_report' },
-  INBOX_MESSAGE: { matIcon: 'mail' }
+  INBOX_MESSAGE: { matIcon: 'mail' },
 };
 
 @Component({
   selector: 'app-user-events-table',
   styleUrls: ['user-events.table.scss'],
   templateUrl: './user-events.table.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserEventsTable
-  extends AppTable<UserEvent, UserEventFilter>
-  implements OnInit {
-
+export class UserEventsTable extends AppTable<UserEvent, UserEventFilter> implements OnInit {
   dateTimePattern: string;
   canEdit: boolean;
   canDelete: boolean;
@@ -85,17 +82,13 @@ export class UserEventsTable
     protected entities: EntitiesStorage,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'creationDate',
-          'icon',
-          'message'
-        ])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat(['creationDate', 'icon', 'message']).concat(RESERVED_END_COLUMNS),
       null,
-      null);
+      null
+    );
 
     this.i18nColumnPrefix = 'SOCIAL.USER_EVENT.';
     this.autoLoad = false; // this.start()
@@ -104,7 +97,6 @@ export class UserEventsTable
     this.defaultSortDirection = 'desc';
 
     this.mobile = this.settings.mobile;
-
   }
 
   ngOnInit() {
@@ -122,32 +114,31 @@ export class UserEventsTable
     this.canDelete = this.canEdit;
     this.allowRowDetail = this.onOpenRow.observed;
 
-    this.setDatasource(new EntitiesTableDataSource(UserEvent,
-      this.userEvenService,
-      null,
-      {
+    this.setDatasource(
+      new EntitiesTableDataSource(UserEvent, this.userEvenService, null, {
         prependNewElements: false,
         suppressErrors: true,
         watchAllOptions: {
-          withContent: this.withContent
-        }
-      }));
-
-
-    this.registerSubscription(
-      this.onRefresh.pipe(
-        debounceTime(200),
-        mergeMap(_ => this.waitIdle({stop: this.destroySubject})),
-        map(_ => this.filter),
-        switchMap(filter => this.userEvenService.listenCountChanges({...filter, excludeRead: false})),
-        filter(count => !this.loading && count !== this.totalRowCount)
-      )
-      .subscribe(count => {
-        this.onRefresh.emit();
+          withContent: this.withContent,
+        },
       })
     );
 
-     // Apply filter
+    this.registerSubscription(
+      this.onRefresh
+        .pipe(
+          debounceTime(200),
+          mergeMap((_) => this.waitIdle({ stop: this.destroySubject })),
+          map((_) => this.filter),
+          switchMap((filter) => this.userEvenService.listenCountChanges({ ...filter, excludeRead: false })),
+          filter((count) => !this.loading && count !== this.totalRowCount)
+        )
+        .subscribe((count) => {
+          this.onRefresh.emit();
+        })
+    );
+
+    // Apply filter
     {
       const filter = this.filter || new UserEventFilter();
       if (this.recipient) {
@@ -155,8 +146,6 @@ export class UserEventsTable
       }
       this.setFilter(filter, { emitEvent: true });
     }
-
-
   }
 
   async start() {
@@ -174,7 +163,6 @@ export class UserEventsTable
   }
 
   async doAction(action: IUserEventAction, row: TableElement<UserEvent>): Promise<any> {
-
     const event = row.currentData;
 
     this.markAsLoading();
@@ -182,15 +170,14 @@ export class UserEventsTable
     if (action && typeof action.executeAction === 'function') {
       try {
         let res = action.executeAction(event);
-        res = (res instanceof Promise) ? await res : res;
+        res = res instanceof Promise ? await res : res;
         return res;
       } catch (err) {
-        this.setError(err && err.message || err);
-        console.error(`[user-event] Failed to execute action ${action.name}: ${err && err.message || err}`, err);
+        this.setError((err && err.message) || err);
+        console.error(`[user-event] Failed to execute action ${action.name}: ${(err && err.message) || err}`, err);
       } finally {
         this.markAsLoaded();
       }
     }
   }
-
 }

@@ -14,7 +14,7 @@ export const TRIP_FEATURE_NAME = 'trip';
 export const OBSERVED_LOCATION_FEATURE_NAME = 'observedLocation';
 export const TRIP_FEATURE_DEFAULT_PROGRAM_FILTER: Partial<ProgramFilter> = Object.freeze({
   statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-  acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+  acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
 });
 
 /**
@@ -24,7 +24,7 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
   TRIP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.enable',
     label: 'TRIP.OPTIONS.ENABLE',
-    type: 'boolean'
+    type: 'boolean',
   },
   TRIP_NAME: <FormFieldDefinition>{
     key: 'sumaris.trip.name',
@@ -33,23 +33,23 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     values: [
       {
         key: 'MENU.TRIPS',
-        value: 'MENU.TRIPS'
+        value: 'MENU.TRIPS',
       },
       {
         key: 'MENU.SCIENTIFIC_CRUISES',
-        value: 'MENU.SCIENTIFIC_CRUISES'
+        value: 'MENU.SCIENTIFIC_CRUISES',
       },
       {
         key: 'MENU.LOGBOOKS',
-        value: 'MENU.LOGBOOKS'
-      }
+        value: 'MENU.LOGBOOKS',
+      },
     ],
-    defaultValue: 'MENU.TRIPS'
+    defaultValue: 'MENU.TRIPS',
   },
   OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
-    type: 'boolean'
+    type: 'boolean',
   },
   OBSERVED_LOCATION_NAME: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.name',
@@ -58,25 +58,25 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     values: [
       {
         key: 'MENU.OBSERVATIONS',
-        value: 'MENU.OBSERVATIONS'
+        value: 'MENU.OBSERVATIONS',
       },
       {
         key: 'MENU.OCCASIONS',
-        value: 'MENU.OCCASIONS'
+        value: 'MENU.OCCASIONS',
       },
       {
         key: 'MENU.AUCTION_OCCASIONS',
-        value: 'MENU.AUCTION_OCCASIONS'
-      }
+        value: 'MENU.AUCTION_OCCASIONS',
+      },
     ],
-    defaultValue: 'MENU.OCCASIONS'
+    defaultValue: 'MENU.OCCASIONS',
   },
   OBSERVED_LOCATION_LANDINGS_TAB_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.landings.tab.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.LANDINGS_TAB_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
-  }
+    defaultValue: 'false',
+  },
 });
 
 export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
@@ -87,20 +87,20 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     values: [
       {
         key: UnitLabel.KG,
-        value: UnitLabel.KG
+        value: UnitLabel.KG,
       },
       {
         key: UnitLabel.GRAM,
-        value: UnitLabel.GRAM
+        value: UnitLabel.GRAM,
       },
       {
         key: UnitLabel.MG,
-        value: UnitLabel.MG
+        value: UnitLabel.MG,
       },
       {
         key: UnitLabel.TON,
-        value: UnitLabel.TON
-      }
+        value: UnitLabel.TON,
+      },
     ],
     // No default value (keep program or PMFM unit)
     //defaultValue: UnitLabel.KG
@@ -113,32 +113,32 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     values: [
       {
         key: '20',
-        value: '20'
+        value: '20',
       },
       {
         key: '40',
-        value: '40'
+        value: '40',
       },
       {
         key: '60',
-        value: '60'
-      }
+        value: '60',
+      },
     ],
     // 40s
-    defaultValue: '40'
-  }
+    defaultValue: '40',
+  },
 });
 
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   MeasurementVO: {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
   },
   AggregatedLandingVO: {
-    keyFields: ['observedLocationId', 'vesselSnapshot', ['id']]
+    keyFields: ['observedLocationId', 'vesselSnapshot', ['id']],
   },
   VesselActivityVO: {
-    keyFields: ['date', 'rankOrder', 'observedLocationId', 'tripId'] //'landingId',
-  }
+    keyFields: ['date', 'rankOrder', 'observedLocationId', 'tripId'], //'landingId',
+  },
 };
 
 /**
@@ -148,7 +148,7 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
   TripVO: <EntityStoreTypePolicy<Trip>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
-    lightFieldsExcludes: ['measurements', 'sale', 'gears', 'operationGroups', 'operations']
+    lightFieldsExcludes: ['measurements', 'sale', 'gears', 'operationGroups', 'operations'],
   },
 
   OperationVO: <EntityStoreTypePolicy<Operation>>{
@@ -159,20 +159,20 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
       'catchBatch',
       'samples',
       // Keep only childOperationId and parentOperationId, but NOT entities
-      'childOperation', 'parentOperation'
-    ]
-
+      'childOperation',
+      'parentOperation',
+    ],
   },
 
   ObservedLocationVO: <EntityStoreTypePolicy<ObservedLocation>>{
     mode: 'by-id',
-    skipNonLocalEntities: true
+    skipNonLocalEntities: true,
   },
 
   LandingVO: <EntityStoreTypePolicy<Landing>>{
     mode: 'by-id',
     skipNonLocalEntities: true,
-    lightFieldsExcludes: ['samples']
+    lightFieldsExcludes: ['samples'],
   },
 
   // 'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
@@ -190,12 +190,11 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
   // Entity used to to generate local ids, and store historical data
   // TODO: use 'Remote#' for historical data
   PhysicalGearVO: <EntityStoreTypePolicy<PhysicalGear>>{
-    skipNonLocalEntities: false // Keep remote entities
+    skipNonLocalEntities: false, // Keep remote entities
   },
 
   // Fake entity, use to store historical data
   'Remote#LandingVO': <EntityStoreTypePolicy<Landing>>{
-    skipNonLocalEntities: false // Keep remote entities
-  }
+    skipNonLocalEntities: false, // Keep remote entities
+  },
 };
-

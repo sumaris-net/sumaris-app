@@ -10,20 +10,10 @@
   >
     <mat-icon>add</mat-icon>
   </button>
-  <button
-    mat-icon-button
-    *ngIf="!selection.hasValue()"
-    [title]="'COMMON.BTN_REFRESH' | translate"
-    (click)="onRefresh.emit()"
-  >
+  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button
-    mat-icon-button
-    *ngIf="selection.hasValue() && enabled"
-    [title]="'COMMON.BTN_DELETE' | translate"
-    (click)="deleteSelection($event)"
-  >
+  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
     <mat-icon>delete</mat-icon>
   </button>
 
@@ -97,7 +87,7 @@
         ></mat-autocomplete-field>
         <ng-template #readOnly>
           <ion-label>
-            {{ row.currentData.parent | referentialToString : autocompleteFields.parent.attributes }}
+            {{ row.currentData.parent | referentialToString: autocompleteFields.parent.attributes }}
           </ion-label>
         </ng-template>
       </td>
@@ -127,11 +117,7 @@
     <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
         <span class="ion-float-end">
-          <button
-            mat-icon-button
-            [title]="'COMMON.DISPLAYED_COLUMNS' | translate"
-            (click)="openSelectColumnsModal($event)"
-          >
+          <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
             <mat-icon>more_vert</mat-icon>
           </button>
         </span>
@@ -167,12 +153,8 @@
           [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
         >
           <mat-icon
-            [matBadge]="
-              (row.currentData.saleProducts?.length || 0) / (row.currentData.composition?.length || 1).toString()
-            "
-            [matBadgeHidden]="
-              (row.currentData.saleProducts | isEmptyArray) || (row.currentData.composition | isEmptyArray)
-            "
+            [matBadge]="(row.currentData.saleProducts?.length || 0) / (row.currentData.composition?.length || 1).toString()"
+            [matBadgeHidden]="(row.currentData.saleProducts | isEmptyArray) || (row.currentData.composition | isEmptyArray)"
             matBadgeColor="accent"
             matBadgeSize="small"
             matBadgePosition="above after"

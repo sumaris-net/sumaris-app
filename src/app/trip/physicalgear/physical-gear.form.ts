@@ -32,10 +32,9 @@ interface PhysicalGearFormState extends MeasurementValuesState {
   selector: 'app-physical-gear-form',
   templateUrl: './physical-gear.form.html',
   styleUrls: ['./physical-gear.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, PhysicalGearFormState> implements OnInit {
-
   gears$ = this._state.select('gears');
 
   @Input() tabindex: number;
@@ -65,7 +64,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     protected programRefService: ProgramRefService,
     protected validatorService: PhysicalGearValidatorService,
     protected operationService: OperationService,
-    protected referentialRefService: ReferentialRefService,
+    protected referentialRefService: ReferentialRefService
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
     this._enable = true;
@@ -76,10 +75,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
 
     // Load gears from program
-    this._state.connect('gears', this.programLabel$
-      .pipe(
-        mergeMap(programLabel => this.programRefService.loadGears(programLabel))
-      ));
+    this._state.connect('gears', this.programLabel$.pipe(mergeMap((programLabel) => this.programRefService.loadGears(programLabel))));
 
     this.debug = !environment.production;
   }
@@ -94,7 +90,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     this.registerAutocompleteField('gear', {
       items: this.gears$,
       mobile: this.mobile,
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
 
     // Disable gear field
@@ -105,11 +101,10 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
     // Propagate data.gear into gearId
     this.registerSubscription(
-      this.form.get('gear').valueChanges
-        .pipe(
-          filter(ReferentialUtils.isNotEmpty)
-        )
-        .subscribe(gear => {
+      this.form
+        .get('gear')
+        .valueChanges.pipe(filter(ReferentialUtils.isNotEmpty))
+        .subscribe((gear) => {
           this.data = this.data || new PhysicalGear();
           this.data.gear = gear;
           this.gearId = gear.id;
@@ -117,7 +112,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
         })
     );
   }
-
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
@@ -127,21 +121,23 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   }
 
   async focusFirstInput() {
-    await waitFor(() => this.enabled, {timeout: 2000});
+    await waitFor(() => this.enabled, { timeout: 2000 });
 
     const inputElements = getFocusableInputElements(this.matInputs);
     if (inputElements.length) inputElements[0].focus();
   }
 
   focusNextInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
-
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});
 
     return focusNextInput(event, this.matInputs, opts);
   }
 
-  async setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
+  async setValue(
+    data: PhysicalGear,
+    opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }
+  ) {
     // For ce to clean previous gearId (to for pmfms recomputation)
     if (isNotNil(this.gearId)) {
       this.gearId = null;
@@ -149,7 +145,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
     // Can edite only if not used yet, in any operation
     if (isNotNil(data?.tripId) && this.canEditGear) {
-      this.canEditGear =  await this.operationService.areUsedPhysicalGears(data.tripId,[data.id]);
+      this.canEditGear = await this.operationService.areUsedPhysicalGears(data.tripId, [data.id]);
     }
 
     this.showComment = this.showComment || isNotNilOrBlank(data.comments);
@@ -179,8 +175,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
   /* -- protected methods -- */
 
-  protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any}) {
-
+  protected onApplyingEntity(data: PhysicalGear, opts?: { [key: string]: any }) {
     if (!data) return; // Skip
 
     super.onApplyingEntity(data, opts);

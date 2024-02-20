@@ -25,13 +25,12 @@ export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
   selector: 'app-sub-batch-modal',
   templateUrl: 'sub-batch.modal.html',
   providers: [
-    {provide: ContextService, useExisting: TripContextService},
-    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
+    { provide: ContextService, useExisting: TripContextService },
+    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubBatchModal implements OnInit, OnDestroy {
-
   private _subscription = new Subscription();
   debug = false;
   loading = false;
@@ -80,7 +79,6 @@ export class SubBatchModal implements OnInit, OnDestroy {
     //this.debug = !environment.production;
   }
 
-
   ngOnInit() {
     this.disabled = toBoolean(this.disabled, false);
     this.isNew = toBoolean(this.isNew, false);
@@ -91,11 +89,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
 
     // Update title each time value changes
     if (!this.isNew) {
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(debounceTime(250))
-          .subscribe(json => this.computeTitle(json))
-      );
+      this._subscription.add(this.form.valueChanges.pipe(debounceTime(250)).subscribe((json) => this.computeTitle(json)));
     }
 
     this.setValue(this.data);
@@ -147,8 +141,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
       }*/
 
       await this.computeTitle();
-    }
-    finally {
+    } finally {
       if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
@@ -156,8 +149,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
     }
   }
 
-  protected getDataToSave(opts?: {disable?: boolean}): Batch {
-
+  protected getDataToSave(opts?: { disable?: boolean }): Batch {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
       this.form.error = 'COMMON.FORM.HAS_ERROR';
@@ -185,10 +177,9 @@ export class SubBatchModal implements OnInit, OnDestroy {
     data = data || this.data;
     if (this.isNew || !data) {
       this.$title.next(await this.translate.get('TRIP.SUB_BATCH.NEW.TITLE').toPromise());
-    }
-    else {
+    } else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', { label }).toPromise());
     }
   }
 

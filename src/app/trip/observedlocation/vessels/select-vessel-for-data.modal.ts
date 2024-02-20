@@ -1,4 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
 
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -21,8 +31,8 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { debounceTime, mergeMap } from 'rxjs/operators';
 
 export interface SelectVesselsForDataModalOptions {
-  landingFilter: LandingFilter|null;
-  vesselFilter: VesselFilter|null;
+  landingFilter: LandingFilter | null;
+  vesselFilter: VesselFilter | null;
   allowMultiple: boolean;
   allowAddNewVessel: boolean;
   showVesselTypeColumn?: boolean;
@@ -38,10 +48,9 @@ export interface SelectVesselsForDataModalOptions {
   templateUrl: 'select-vessel-for-data.modal.html',
   styleUrls: ['select-vessel-for-data.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptions, OnInit, AfterViewInit, OnDestroy {
-
   selectedTabIndex = 0;
 
   protected _subscription = new Subscription();
@@ -51,8 +60,8 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
-  @Input() landingFilter: LandingFilter|null = null;
-  @Input() vesselFilter: VesselFilter|null = null;
+  @Input() landingFilter: LandingFilter | null = null;
+  @Input() vesselFilter: VesselFilter | null = null;
   @Input() allowMultiple: boolean;
   @Input() allowAddNewVessel: boolean;
   @Input() showVesselTypeColumn: boolean;
@@ -106,8 +115,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
     protected viewCtrl: ModalController,
     private referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     // Init landing table
@@ -131,12 +139,10 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
       this.selectedTabIndex = 0;
       this.tabGroup.realignInkBar();
       this.markForCheck();
-
     }, 200);
   }
 
   ngAfterViewInit() {
-
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this._subscription.add(
@@ -175,8 +181,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
         table.selection.clear();
         table.selection.select(row);
         await this.close();
-      }
-      else {
+      } else {
         table.selection.select(row);
       }
     }
@@ -189,17 +194,16 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
         const vessel = await this.createVessel();
         if (!vessel) return false;
         vessels = [vessel];
-      }
-      else if (this.hasSelection()) {
+      } else if (this.hasSelection()) {
         if (this.showLandings) {
           vessels = (this.landingsTable.selection.selected || [])
-            .map(row => row.currentData)
+            .map((row) => row.currentData)
             .map(Landing.fromObject)
             .filter(isNotNil)
-            .map(l => l.vesselSnapshot);
+            .map((l) => l.vesselSnapshot);
         } else if (this.showVessels) {
           vessels = (this.vesselsTable.selection.selected || [])
-            .map(row => row.currentData)
+            .map((row) => row.currentData)
             .map(VesselSnapshot.fromVessel)
             .filter(isNotNil);
         }
@@ -216,7 +220,6 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
   }
 
   async createVessel(): Promise<VesselSnapshot> {
-
     if (!this.vesselForm) throw Error('No Vessel Form');
 
     console.debug('[select-vessel-modal] Saving new vessel...');
@@ -241,9 +244,8 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
       const savedData = await this.vesselService.save(data);
       return VesselSnapshot.fromVessel(savedData);
-    }
-    catch (err) {
-      this.vesselForm.error = err && err.message || err;
+    } catch (err) {
+      this.vesselForm.error = (err && err.message) || err;
       this.vesselForm.enable();
       return;
     }

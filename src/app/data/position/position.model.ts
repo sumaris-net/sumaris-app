@@ -2,16 +2,13 @@ import { Moment } from 'moment';
 import { Entity, EntityAsObjectOptions, fromDateISOString, IEntity, IPosition, toDateISOString } from '@sumaris-net/ngx-components';
 import { StoreObject } from '@apollo/client/core';
 
-export interface IPositionWithDate extends IPosition{
+export interface IPositionWithDate extends IPosition {
   dateTime: Moment;
 }
 
-export interface IPositionEntity<T = any> extends IEntity<T>, IPositionWithDate {
-}
+export interface IPositionEntity<T = any> extends IEntity<T>, IPositionWithDate {}
 
-export class PositionEntity<T extends PositionEntity<any>>
-  extends Entity<T>
-  implements IPositionEntity<T> {
+export class PositionEntity<T extends PositionEntity<any>> extends Entity<T> implements IPositionEntity<T> {
   latitude: number;
   longitude: number;
   dateTime: Moment;

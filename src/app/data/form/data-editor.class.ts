@@ -47,7 +47,7 @@ export abstract class AppDataEntityEditor<
     T extends DataEntity<T, ID>,
     S extends IEntityService<T, ID, any> = BaseEntityService<T, any, any>,
     ID = number,
-    ST extends BaseEditorState = BaseEditorState
+    ST extends BaseEditorState = BaseEditorState,
   >
   extends AppEntityEditor<T, S, ID>
   implements OnInit, OnDestroy
@@ -233,7 +233,6 @@ export abstract class AppDataEntityEditor<
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     if (error && typeof error !== 'string') {
-
       // Convert form errors
       if (error.details?.errors) {
         // Create a details message, from errors in forms (e.g. returned by control())

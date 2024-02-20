@@ -39,9 +39,7 @@
       <tr class="mat-footer-row mat-row-disabled">
         <!-- total  -->
         <td class="mat-footer-cell mat-column-saleType ion-text-end">
-          <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>
-            TRIP.PRODUCT.SALE.TOTAL_PRODUCT
-          </ion-label>
+          <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
         </td>
 
         <td class="mat-footer-cell mat-column-ratio"></td>
@@ -56,12 +54,7 @@
 
         <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-individualCount">
           <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
-            <input
-              matInput
-              formControlName="individualCount"
-              [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
-              readonly
-            />
+            <input matInput formControlName="individualCount" [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate" readonly />
           </mat-form-field>
         </td>
 
@@ -100,7 +93,7 @@
         <td class="mat-cell mat-column-ratio" [class.even]="hasIndividualCount">
           <mat-form-field
             floatLabel="never"
-            [class.computed]="hasIndividualCount || (saleForm | formGetValue : 'ratioCalculated')"
+            [class.computed]="hasIndividualCount || (saleForm | formGetValue: 'ratioCalculated')"
             [class.mat-form-field-disabled]="hasIndividualCount"
           >
             <input
@@ -115,9 +108,7 @@
               [readonly]="hasIndividualCount"
               required
             />
-            <mat-error *ngIf="!hasIndividualCount && saleForm.controls.ratio.hasError('required')" translate>
-              ERROR.FIELD_REQUIRED
-            </mat-error>
+            <mat-error *ngIf="!hasIndividualCount && saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </td>
 
@@ -125,7 +116,7 @@
         <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-weight even" [class.even]="hasIndividualCount">
           <mat-form-field
             floatLabel="never"
-            [class.computed]="hasIndividualCount || (saleForm | formGetValue : 'weightCalculated')"
+            [class.computed]="hasIndividualCount || (saleForm | formGetValue: 'weightCalculated')"
             [class.mat-form-field-disabled]="hasIndividualCount"
           >
             <input
@@ -143,10 +134,7 @@
 
         <!-- avg weight price -->
         <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-averageWeightPrice">
-          <mat-form-field
-            floatLabel="never"
-            [class.computed]="saleForm | formGetValue : 'averageWeightPriceCalculated'"
-          >
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averageWeightPriceCalculated'">
             <input
               matInput
               formControlName="averageWeightPrice"
@@ -177,10 +165,7 @@
 
         <!-- avg packaging price -->
         <td *ngIf="hasIndividualCount" class="mat-cell mat-column-averagePackagingPrice">
-          <mat-form-field
-            floatLabel="never"
-            [class.computed]="saleForm | formGetValue : 'averagePackagingPriceCalculated'"
-          >
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averagePackagingPriceCalculated'">
             <input
               matInput
               formControlName="averagePackagingPrice"
@@ -195,7 +180,7 @@
 
         <!-- total price -->
         <td class="mat-cell mat-column-totalPrice">
-          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue : 'totalPriceCalculated'">
+          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'totalPriceCalculated'">
             <input
               matInput
               formControlName="totalPrice"

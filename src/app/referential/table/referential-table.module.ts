@@ -20,15 +20,14 @@ import { ReferentialFileService } from '@app/referential/table/referential-file.
     AppCoreModule,
 
     // Sub modules
-    AppReferentialPipesModule
+    AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     ReferentialTable,
     SimpleReferentialTable,
     ReferentialRefTable,
-    SelectReferentialModal
+    SelectReferentialModal,
   ],
   exports: [
     TranslateModule,
@@ -37,8 +36,7 @@ import { ReferentialFileService } from '@app/referential/table/referential-file.
     ReferentialTable,
     SimpleReferentialTable,
     ReferentialRefTable,
-    SelectReferentialModal
+    SelectReferentialModal,
   ],
 })
-export class AppReferentialTableModule {
-}
+export class AppReferentialTableModule {}

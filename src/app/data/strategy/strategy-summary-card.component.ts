@@ -16,10 +16,9 @@ export const STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX = 'PROGRAM.STRATEGY.SUMMARY.';
   templateUrl: './strategy-summary-card.component.html',
   styleUrls: ['./strategy-summary-card.component.scss'],
   animations: [fadeInAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>> implements OnInit, OnDestroy {
-
   private _debug = false;
   private _subscription = new Subscription();
 
@@ -53,8 +52,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef
   ) {
-
-    Object.keys(this.displayAttributes).forEach(fieldName => {
+    Object.keys(this.displayAttributes).forEach((fieldName) => {
       this.displayAttributes[fieldName] = localSettings.getFieldDisplayAttributes(fieldName, ['label', 'name']);
     });
     this.displayAttributes.taxonName = ['name']; // Override
@@ -62,20 +60,13 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   }
 
   ngOnInit(): void {
-
     // Check editor exists
-    if (!this.editor) throw new Error('Missing mandatory \'editor\' input!');
+    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
-    this.title = this.title || (this.i18nPrefix + 'TITLE');
+    this.title = this.title || this.i18nPrefix + 'TITLE';
 
     // Subscribe to refresh events
-    this._subscription
-        .add(
-            merge(
-                this.editor.onUpdateView
-            )
-            .subscribe(() => this.updateView())
-        );
+    this._subscription.add(merge(this.editor.onUpdateView).subscribe(() => this.updateView()));
   }
 
   ngOnDestroy(): void {
@@ -85,15 +76,14 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
   /* -- protected method -- */
 
   protected updateView(data?: T) {
-    data = data || this.data || (this.editor && this.editor.strategy as T);
+    data = data || this.data || (this.editor && (this.editor.strategy as T));
 
     if (isNil(data) || isNil(data.id)) {
       this.loading = true;
       this.data = null;
       this.showOpenLink = false;
       this.markForCheck();
-    }
-    else if (this.data !== data){
+    } else if (this.data !== data) {
       console.debug('[strategy-summary-card] updating view using strategy:', data);
       this.data = data;
       this.showOpenLink = isNotNil(data.programId);
@@ -109,7 +99,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     if (isNil(programId) || isNil(this.data.id)) return; // Skip if missing ids
 
     // Get the strategy editor to use
-    const program = await this.programRefService.load(programId, {fetchPolicy: 'cache-first'});
+    const program = await this.programRefService.load(programId, { fetchPolicy: 'cache-first' });
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
 
     // Open the expected editor page

@@ -288,10 +288,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     );
   }
 
-  registerAutocompleteField<E = any, EF = any>(
-    fieldName: string,
-    opts?: MatAutocompleteFieldAddOptions<E, EF>
-  ): MatAutocompleteFieldConfig<E, EF> {
+  registerAutocompleteField<E = any, EF = any>(fieldName: string, opts?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
     return super.registerAutocompleteField(fieldName, opts);
   }
 

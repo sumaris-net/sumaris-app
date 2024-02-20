@@ -1,12 +1,11 @@
-import {Injectable} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ReferentialValidatorService} from './referential.validator';
-import {Parameter} from '../model/parameter.model';
-import {Referential}  from '@sumaris-net/ngx-components';
+import { Injectable } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ReferentialValidatorService } from './referential.validator';
+import { Parameter } from '../model/parameter.model';
+import { Referential } from '@sumaris-net/ngx-components';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {
-
   constructor(
     protected formBuilder: UntypedFormBuilder,
     protected referentialValidatorService: ReferentialValidatorService<Referential>
@@ -22,11 +21,9 @@ export class ParameterValidatorService extends ReferentialValidatorService<Param
     const config = super.getFormGroupConfig(data, opts);
     return {
       ...config,
-      type : [data && data.type || null, Validators.required],
-      qualitativeValues: this.formBuilder.array(
-        (data && data.qualitativeValues || []).map(item => this.getQualitativeValuesFormGroup(item))
-      )
-    } ;
+      type: [(data && data.type) || null, Validators.required],
+      qualitativeValues: this.formBuilder.array(((data && data.qualitativeValues) || []).map((item) => this.getQualitativeValuesFormGroup(item))),
+    };
   }
 
   getQualitativeValuesFormGroup(data?: Referential): UntypedFormGroup {

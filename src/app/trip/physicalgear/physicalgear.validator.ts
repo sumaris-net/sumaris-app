@@ -14,7 +14,6 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils }
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { OperationValidators } from '@app/trip/operation/operation.validator';
 
-
 export interface PhysicalGearValidatorOptions {
   program?: Program;
   withMeasurementValues?: boolean;
@@ -25,16 +24,17 @@ export interface PhysicalGearValidatorOptions {
   minChildrenCount?: number;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PhysicalGearValidatorService
   extends DataRootEntityValidatorService<PhysicalGear, PhysicalGearValidatorOptions>
-  implements ValidatorService {
-
-  constructor(formBuilder: UntypedFormBuilder,
-              translate: TranslateService,
-              protected measurementsValidatorService: MeasurementsValidatorService,
-              settings?: LocalSettingsService,
-              ) {
+  implements ValidatorService
+{
+  constructor(
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
+    settings?: LocalSettingsService
+  ) {
     super(formBuilder, translate, settings);
   }
 
@@ -45,9 +45,12 @@ export class PhysicalGearValidatorService
 
     // Add measurement values form
     if (opts.withMeasurementValues) {
-      form.setControl('measurementValues', this.getMeasurementValuesForm(data?.measurementValues, {
-        pmfms: opts.pmfms
-      }));
+      form.setControl(
+        'measurementValues',
+        this.getMeasurementValuesForm(data?.measurementValues, {
+          pmfms: opts.pmfms,
+        })
+      );
     }
 
     return form;
@@ -60,7 +63,7 @@ export class PhysicalGearValidatorService
       rankOrder: [toNumber(data?.rankOrder, null), Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       gear: [data?.gear || null, Validators.compose([Validators.required, SharedValidators.entity])],
       measurementValues: this.formBuilder.group({}),
-      tripId: [toNumber(data?.tripId, null)]
+      tripId: [toNumber(data?.tripId, null)],
     };
 
     // Change program is optional
@@ -79,37 +82,42 @@ export class PhysicalGearValidatorService
 
   getChildrenFormArray(data?: PhysicalGear[], opts?: PhysicalGearValidatorOptions): AppFormArray<PhysicalGear, UntypedFormGroup> {
     const formArray = new AppFormArray<PhysicalGear, UntypedFormGroup>(
-      (value) => this.getFormGroup(value, {
-        ...opts,
-        pmfms: opts?.childrenPmfms || opts?.pmfms,
-        withChildren: false, // Allow only one level allowed
-        acquisitionLevel: AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR // Force the acquisition level for children
-      }),
+      (value) =>
+        this.getFormGroup(value, {
+          ...opts,
+          pmfms: opts?.childrenPmfms || opts?.pmfms,
+          withChildren: false, // Allow only one level allowed
+          acquisitionLevel: AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR, // Force the acquisition level for children
+        }),
       PhysicalGear.equals,
       (value) => isNil(value),
       {
         allowEmptyArray: true,
         allowReuseControls: false,
-        validators: opts?.minChildrenCount > 0
-          ? OperationValidators.requiredArrayMinLength(opts.minChildrenCount)
-          : undefined
-      });
+        validators: opts?.minChildrenCount > 0 ? OperationValidators.requiredArrayMinLength(opts.minChildrenCount) : undefined,
+      }
+    );
     if (data) {
       formArray.patchValue(data);
     }
     return formArray;
   }
 
-  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean; withTypename?: boolean}) {
+  protected getMeasurementValuesForm(
+    data: undefined | MeasurementFormValues | MeasurementModelValues,
+    opts: { pmfms: IPmfm[]; forceOptional?: boolean; withTypename?: boolean }
+  ) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
   protected fillDefaultOptions(opts?: PhysicalGearValidatorOptions): PhysicalGearValidatorOptions {
-
     opts = super.fillDefaultOptions(opts);
 
-    opts.withChildren = toBoolean(opts.withChildren, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN), false));
+    opts.withChildren = toBoolean(
+      opts.withChildren,
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN), false)
+    );
     opts.minChildrenCount = toNumber(opts.minChildrenCount, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
 
     return opts;

@@ -39,4 +39,3 @@ export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService
     };
   }
 }
-

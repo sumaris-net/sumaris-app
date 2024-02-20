@@ -393,7 +393,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms});
+    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {

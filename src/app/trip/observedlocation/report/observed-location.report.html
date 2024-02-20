@@ -46,7 +46,7 @@
   <app-reveal #reveal [class.cdk-visually-hidden]="loading || error" [options]="revealOptions">
     <section *sectionDef>
       <section class="summary">
-        <h2>{{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT' | translateContext : i18nContext.suffix }}</h2>
+        <h2>{{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT' | translateContext: i18nContext.suffix }}</h2>
         <ul>
           <li>
             <ion-icon name="location"></ion-icon>
@@ -56,7 +56,7 @@
           <li>
             <ion-icon name="calendar"></ion-icon>
             {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME' | translate }}
-            <b>{{ data.startDateTime | dateFormat : { time: true } }}</b>
+            <b>{{ data.startDateTime | dateFormat: { time: true } }}</b>
           </li>
           <li>
             <ion-icon name="people"></ion-icon>
@@ -72,29 +72,28 @@
                       html: true
                     }
             }}
-            : {{ data | measurementValueGet : { pmfm: pmfm, html: true } }}
+            : {{ data | measurementValueGet: { pmfm: pmfm, html: true } }}
           </li>
           <li>
             <ion-icon name="boat"></ion-icon>
-            {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT' | translateContext : i18nContext.suffix }}
+            {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT' | translateContext: i18nContext.suffix }}
             {{ stats.vesselCount }}
           </li>
         </ul>
       </section>
       <section>
-        <h3>{{ 'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE' | translateContext : i18nContext.suffix }}</h3>
+        <h3>{{ 'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE' | translateContext: i18nContext.suffix }}</h3>
 
         <table
           [style.--col-count]="
-            (stats.landingPmfms | arrayPluck : { property: 'qualitativeValues' }).flat().length +
-            (stats.landingShowSampleCount ? 2 : 1)
+            (stats.landingPmfms | arrayPluck: { property: 'qualitativeValues' }).flat().length + (stats.landingShowSampleCount ? 2 : 1)
           "
         >
           <thead>
             <tr>
               <th [rowSpan]="2">{{ 'LANDING.TABLE.VESSEL' | translate }}</th>
               <th [rowSpan]="2" *ngIf="stats.landingShowSampleCount">
-                {{ 'LANDING.TABLE.SAMPLES_COUNT' | translateContext : i18nContext.suffix }}
+                {{ 'LANDING.TABLE.SAMPLES_COUNT' | translateContext: i18nContext.suffix }}
               </th>
               <th
                 *ngFor="let pmfm of stats.landingPmfms"
@@ -113,9 +112,9 @@
               </th>
             </tr>
             <tr>
-              <ng-container *ngFor="let pmfm of stats.landingPmfms | arrayFilter : isQualitativePmfm">
+              <ng-container *ngFor="let pmfm of stats.landingPmfms | arrayFilter: isQualitativePmfm">
                 <th *ngFor="let qv of pmfm.qualitativeValues">
-                  {{ qv | pmfmValue : { pmfm: pmfm, html: true } }}
+                  {{ qv | pmfmValue: { pmfm: pmfm, html: true } }}
                 </th>
               </ng-container>
             </tr>
@@ -127,7 +126,7 @@
               <td *ngIf="stats.landingShowSampleCount">{{ landing.samplesCount }}</td>
               <ng-container *ngFor="let pmfm of stats.landingPmfms">
                 <td *ngIf="isNotQualitativePmfm(pmfm); else qualitative">
-                  {{ landing | measurementValueGet : { pmfm: pmfm, html: true } }}
+                  {{ landing | measurementValueGet: { pmfm: pmfm, html: true } }}
                 </td>
                 <ng-template #qualitative>
                   <td *ngFor="let qv of pmfm.qualitativeValues">
@@ -142,10 +141,7 @@
     </section>
 
     <!-- landing reports -->
-    <ng-container
-      *ngFor="let landing of data?.landings | arrayFilter : hasSamples; index as index"
-      [ngSwitch]="stats.landingEditor"
-    >
+    <ng-container *ngFor="let landing of data?.landings | arrayFilter: hasSamples; index as index" [ngSwitch]="stats.landingEditor">
       <!-- auction control -->
       <app-auction-control-report
         #landingReport

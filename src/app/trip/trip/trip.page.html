@@ -131,10 +131,7 @@
           slot="end"
           name="alert-circle"
           color="danger"
-          *ngIf="
-            error ||
-            (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))
-          "
+          *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))"
         ></ion-icon>
       </ng-template>
 
@@ -216,11 +213,7 @@
                 <ion-grid class="ion-no-padding ion-padding-top">
                   <ion-row>
                     <ion-col size="12" size-md="2" size-lg="3">
-                      <ion-label
-                        class="ion-float-end"
-                        [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
-                        translate
-                      >
+                      <ion-label class="ion-float-end" [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray" translate>
                         TRIP.EDIT.OTHER_FEATURES
                       </ion-label>
                     </ion-col>
@@ -244,13 +237,18 @@
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
               <app-entity-metadata [value]="data">
-
                 <!-- Compose message -->
-                <ion-button recorderSuffix *ngIf="canSendMessage"
-                            slot="end" size="small" fill="clear" color="tertiary"
-                        class="visible-hover ion-no-margin"
-                        [title]="'DATA.BTN_WRITE_TO_RECORDER'|translate"
-                        (click)="openComposeMessageModal(data?.recorderPerson)">
+                <ion-button
+                  recorderSuffix
+                  *ngIf="canSendMessage"
+                  slot="end"
+                  size="small"
+                  fill="clear"
+                  color="tertiary"
+                  class="visible-hover ion-no-margin"
+                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                  (click)="openComposeMessageModal(data?.recorderPerson)"
+                >
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
@@ -385,30 +383,18 @@
     </ion-fab>
 
     <ng-template #allowParentFabButton>
-      <ion-fab
-        slot="fixed"
-        vertical="bottom"
-        horizontal="end"
-        [class.cdk-visually-hidden]="operationsTable.disabled"
-        @fadeInOutAnimation
-      >
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.cdk-visually-hidden]="operationsTable.disabled" @fadeInOutAnimation>
         <ion-fab-button color="tertiary">
           <ion-icon name="add"></ion-icon>
         </ion-fab-button>
 
         <ion-fab-list side="top">
-          <ion-fab-button
-            [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate"
-            (click)="onNewOperation($event, { type: 'child' })"
-          >
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate" (click)="onNewOperation($event, { type: 'child' })">
             <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
             <ion-icon class="icon-secondary" name="add"></ion-icon>
           </ion-fab-button>
 
-          <ion-fab-button
-            [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate"
-            (click)="onNewOperation($event, { type: 'parent' })"
-          >
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate" (click)="onNewOperation($event, { type: 'parent' })">
             <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
             <ion-icon class="icon-secondary" name="add"></ion-icon>
           </ion-fab-button>

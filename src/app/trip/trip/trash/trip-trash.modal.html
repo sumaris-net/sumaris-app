@@ -114,7 +114,7 @@
         <mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label translate>TRIP.TRASH.DELETION_DATE</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat : { time: true } }}</mat-cell>
+        <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat: { time: true } }}</mat-cell>
       </ng-container>
 
       <!-- Program Column -->
@@ -123,7 +123,7 @@
           <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          {{ row.currentData.program | referentialToString : ['label'] }}
+          {{ row.currentData.program | referentialToString: ['label'] }}
         </mat-cell>
       </ng-container>
 
@@ -134,7 +134,7 @@
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ion-label>
-            {{ row.currentData.vesselSnapshot | referentialToString : displayedAttributes.vesselSnapshot }}
+            {{ row.currentData.vesselSnapshot | referentialToString: displayedAttributes.vesselSnapshot }}
           </ion-label>
         </mat-cell>
       </ng-container>
@@ -145,7 +145,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          {{ row.currentData.departureLocation | referentialToString : displayedAttributes.location }}
+          {{ row.currentData.departureLocation | referentialToString: displayedAttributes.location }}
         </mat-cell>
       </ng-container>
 
@@ -155,7 +155,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData.departureDateTime | dateFormat : { time: true } }}</ion-text>
+          <ion-text>{{ row.currentData.departureDateTime | dateFormat: { time: true } }}</ion-text>
         </mat-cell>
       </ng-container>
 
@@ -165,7 +165,7 @@
           <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <ion-text>{{ row.currentData?.returnDateTime | dateFormat : { time: true } }}</ion-text>
+          <ion-text>{{ row.currentData?.returnDateTime | dateFormat: { time: true } }}</ion-text>
         </mat-cell>
       </ng-container>
 
@@ -183,12 +183,7 @@
       <ng-container matColumnDef="comments">
         <mat-header-cell *matHeaderCellDef></mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <mat-icon
-            color="primary"
-            class="comment"
-            *ngIf="row.currentData.comments"
-            [title]="row.currentData.comments"
-          ></mat-icon>
+          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
         </mat-cell>
       </ng-container>
 
@@ -196,20 +191,10 @@
       <ng-container matColumnDef="actions">
         <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile"></mat-header-cell>
         <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
-          <button
-            mat-icon-button
-            color="warn"
-            [title]="'COMMON.BTN_RESTORE' | translate"
-            (click)="restore($event, [row])"
-          >
+          <button mat-icon-button color="warn" [title]="'COMMON.BTN_RESTORE' | translate" (click)="restore($event, [row])">
             <mat-icon>open_in_new</mat-icon>
           </button>
-          <button
-            mat-icon-button
-            color="warn"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="cleanRemoteTrash($event, [row])"
-          >
+          <button mat-icon-button color="warn" [title]="'COMMON.BTN_DELETE' | translate" (click)="cleanRemoteTrash($event, [row])">
             <mat-icon>close</mat-icon>
           </button>
         </mat-cell>

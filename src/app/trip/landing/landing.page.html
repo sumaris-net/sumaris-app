@@ -95,7 +95,7 @@
               <app-strategy-summary-card
                 #strategyCard
                 [editor]="this"
-                [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE' | translateContext : i18nContext.suffix"
+                [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE' | translateContext: i18nContext.suffix"
               ></app-strategy-summary-card>
 
               <!-- data quality -->
@@ -109,7 +109,7 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab #samplesTab [label]="'LANDING.EDIT.TAB_SAMPLES' | translateContext : i18nContext.suffix">
+    <mat-tab #samplesTab [label]="'LANDING.EDIT.TAB_SAMPLES' | translateContext: i18nContext.suffix">
       <ng-template mat-tab-label>
         <mat-icon>center_focus_strong</mat-icon>
         <ion-label
@@ -122,12 +122,7 @@
         >
           {{ samplesTab.textLabel }}
         </ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="samplesTable.error || samplesTable.invalid"
-        ></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.error || samplesTable.invalid"></ion-icon>
       </ng-template>
 
       <div>
@@ -175,13 +170,7 @@
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab
-  vertical="bottom"
-  horizontal="end"
-  slot="fixed"
-  *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
-  @fadeInOutAnimation
->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

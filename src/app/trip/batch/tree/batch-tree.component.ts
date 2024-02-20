@@ -93,7 +93,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
  */
 export interface IBatchTreeStatus {
   valid: boolean;
-  rowCount: number|undefined;
+  rowCount: number | undefined;
 }
 
 export interface BatchTreeState {
@@ -318,27 +318,21 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   get statusChanges(): Observable<FormControlStatus> {
     const delegates: Observable<any>[] = [
       // Listen on forms
-      ...(this.forms || []).filter(c => c.form).map((c) => c.form.statusChanges
-        .pipe(
-          startWith(c.form.invalid ? 'INVALID': 'VALID')
-        ),
-      ),
+      ...(this.forms || []).filter((c) => c.form).map((c) => c.form.statusChanges.pipe(startWith(c.form.invalid ? 'INVALID' : 'VALID'))),
       // Listen on tables
       ...(this.tables || []).map((t) =>
-        t.onStartEditingRow
-          .pipe(
-            //map(_ => t.editedRow),
-            switchMap(row => row.validator ? row.validator.statusChanges
-                .pipe(
-                  startWith(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID': 'VALID')
-                )
-              :
-              of(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID')),
-
-            // DEBUG
-            // tap(status => console.debug(this._logPrefix + 'table row status=', status)),
-            // finalize(() => console.debug(this._logPrefix + 'table row stop')),
+        t.onStartEditingRow.pipe(
+          //map(_ => t.editedRow),
+          switchMap((row) =>
+            row.validator
+              ? row.validator.statusChanges.pipe(startWith(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID'))
+              : of(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID')
           )
+
+          // DEBUG
+          // tap(status => console.debug(this._logPrefix + 'table row status=', status)),
+          // finalize(() => console.debug(this._logPrefix + 'table row stop')),
+        )
       ),
     ];
     // Warn if empty
@@ -356,7 +350,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         if (this.valid) return <FormControlStatus>'VALID';
         return this.pending ? <FormControlStatus>'PENDING' : <FormControlStatus>'INVALID';
       }),
-      distinctUntilChanged(),
+      distinctUntilChanged()
 
       // DEBUG
       //tap((status) => this.debug && console.debug(this._logPrefix + 'Status changed: ' + status))
@@ -602,8 +596,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // DEBUG
     //console.debug(this._logPrefix + 'setValue()', source);
-    this.markAsLoading({emitEvent: false});
-    this.markAsNotReady({emitEvent: false});
+    this.markAsLoading({ emitEvent: false });
+    this.markAsNotReady({ emitEvent: false });
 
     try {
       this.data = source;
@@ -668,8 +662,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected method -- */
 
-
-
   protected get form(): UntypedFormGroup {
     return this.catchBatchForm.form;
   }
@@ -687,7 +679,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   async setProgram(program: Program, opts = { emitEvent: true }) {
     if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.markAsLoading({emitEvent: false});
+    this.markAsLoading({ emitEvent: false });
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -772,13 +764,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Emit to children
       if (!opts || opts.onlySelf !== true) {
-        this.children.filter(c => c.loading)
-          .forEach(c => c.markAsLoading(opts));
+        this.children.filter((c) => c.loading).forEach((c) => c.markAsLoading(opts));
       }
 
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
-
   }
 
   markAsNotReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

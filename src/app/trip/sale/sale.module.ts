@@ -10,7 +10,6 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { SaleForm } from '@app/trip/sale/sale.form';
 import { AppProductModule } from '@app/trip/product/product.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -18,29 +17,20 @@ import { AppProductModule } from '@app/trip/product/product.module';
 
     // Functional modules
     AppMeasurementModule,
-    AppProductModule
+    AppProductModule,
   ],
-  declarations: [
-    SaleForm,
-    ProductSaleForm,
-    ProductSaleModal,
-    ExpectedSaleForm,
-    PacketSaleForm,
-    PacketSaleModal
-  ],
+  declarations: [SaleForm, ProductSaleForm, ProductSaleModal, ExpectedSaleForm, PacketSaleForm, PacketSaleModal],
   exports: [
-
     // Components
     SaleForm,
     ProductSaleForm,
     ProductSaleModal,
     ExpectedSaleForm,
     PacketSaleForm,
-    PacketSaleModal
-  ]
+    PacketSaleModal,
+  ],
 })
 export class AppSaleModule {
-
   constructor() {
     console.debug('[sale] Creating module...');
   }

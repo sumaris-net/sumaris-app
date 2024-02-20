@@ -25,7 +25,7 @@
           </h4>
           <p>
             <ng-container *ngIf="job.startDate && !runningOrPending">
-              {{ job.startDate | dateFormat : { time: true } }}
+              {{ job.startDate | dateFormat: { time: true } }}
               &nbsp;|&nbsp;{{ job.startDate | dateFromNow }}
             </ng-container>
 

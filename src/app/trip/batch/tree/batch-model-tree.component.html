@@ -91,9 +91,7 @@
   &nbsp;
 
   <!-- pmfm count  -->
-  <ion-badge *ngIf="node.pmfms?.length; let count" slot="end" class="visible-hover" color="secondary">
-    {{ count }} pmfms
-  </ion-badge>
+  <ion-badge *ngIf="node.pmfms?.length; let count" slot="end" class="visible-hover" color="secondary">{{ count }} pmfms</ion-badge>
 </ng-template>
 
 <!-- leaf nodes badges -->
@@ -109,7 +107,7 @@
     color="secondary"
     slot="end"
     class="visible-hover"
-    [title]="node.childrenPmfms | arrayPluck : 'label'"
+    [title]="node.childrenPmfms | arrayPluck: 'label'"
   >
     {{ count }} col
   </ion-badge>

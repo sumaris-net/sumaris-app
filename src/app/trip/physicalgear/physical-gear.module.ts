@@ -24,14 +24,9 @@ import { AppPmfmModule } from '@app/referential/pmfm/pmfm.module';
 
     // Functional modules
     VesselModule,
-    AppMeasurementModule
+    AppMeasurementModule,
   ],
-  declarations: [
-    PhysicalGearTable,
-    PhysicalGearForm,
-    PhysicalGearModal,
-    SelectPhysicalGearModal,
-  ],
+  declarations: [PhysicalGearTable, PhysicalGearForm, PhysicalGearModal, SelectPhysicalGearModal],
   exports: [
     // Modules
     TranslateModule,
@@ -40,11 +35,10 @@ import { AppPmfmModule } from '@app/referential/pmfm/pmfm.module';
 
     // Components
     PhysicalGearTable,
-    SelectPhysicalGearModal
-  ]
+    SelectPhysicalGearModal,
+  ],
 })
 export class AppPhysicalGearModule {
-
   constructor() {
     console.debug('[physical-gear] Creating module...');
   }

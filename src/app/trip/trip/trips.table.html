@@ -41,12 +41,7 @@
     <!-- if row selection -->
     <ng-template #hasSelection>
       <!-- synchronize -->
-      <ion-button
-        *ngIf="hasReadyToSyncSelection"
-        expand="block"
-        [color]="offline ? 'danger100' : 'danger'"
-        (click)="synchronizeSelection()"
-      >
+      <ion-button *ngIf="hasReadyToSyncSelection" expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
         <ion-icon slot="start" name="cloud-upload"></ion-icon>
         <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
       </ion-button>
@@ -62,12 +57,7 @@
       ></app-extraction-button>
 
       <!-- map -->
-      <button
-        mat-icon-button
-        *ngIf="canOpenMap"
-        [title]="'EXTRACTION.BTN_OPEN_MAP' | translate"
-        (click)="openSelectionMap($event)"
-      >
+      <button mat-icon-button *ngIf="canOpenMap" [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
         <mat-icon>
           <ion-icon name="earth"></ion-icon>
         </mat-icon>
@@ -181,22 +171,14 @@
         <ion-row>
           <ion-col>
             <!-- Start date -->
-            <mat-date-field
-              [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate"
-              formControlName="startDate"
-              [clearable]="true"
-            >
+            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date-field>
           </ion-col>
 
           <ion-col>
             <!-- End date -->
-            <mat-date-field
-              [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate"
-              formControlName="endDate"
-              [clearable]="true"
-            ></mat-date-field>
+            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true"></mat-date-field>
           </ion-col>
         </ion-row>
 
@@ -242,13 +224,13 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <ng-container *ngIf="showQuality && filterForm | formGetControl : 'dataQualityStatus'; let control">
+          <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
             <!-- Data quality status -->
             <ion-col>
               <mat-form-field>
                 <mat-select [formControl]="control" [placeholder]="'TRIP.TABLE.QUALITY' | translate">
                   <mat-select-trigger>
-                    <span *ngIf="statusById | mapGet : control.value; let item">
+                    <span *ngIf="statusById | mapGet: control.value; let item">
                       <ion-icon [name]="item.icon"></ion-icon>
                       {{ item.label | translate }}
                     </span>
@@ -274,16 +256,16 @@
 
             <!-- Quality flag -->
             <ion-col
-              *ngIf="filterForm | formGetControl : 'qualityFlagId'; let flagControl"
+              *ngIf="filterForm | formGetControl: 'qualityFlagId'; let flagControl"
               [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
             >
               <mat-form-field>
                 <mat-select [formControl]="flagControl" [placeholder]="'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
                   <mat-option
-                    *ngFor="let item of qualityFlags | arrayFilter : excludeNotQualified"
-                    style="background-color: var(--ion-color-{{
+                    *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
+                    style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{
                       item.id | qualityFlagToColor
-                    }}); color: var(--ion-color-{{ item.id | qualityFlagToColor }}-contrast)"
+                    }}-contrast)"
                     [value]="item.id"
                   >
                     {{ item.label | translate }}
@@ -309,15 +291,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label
-        [hidden]="(loadingSubject | async) || filterForm.dirty"
-        [color]="empty && 'danger'"
-        class="ion-padding"
-      >
-        {{
-          (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT')
-            | translate : { count: (totalRowCount | numberFormat) }
-        }}
+      <ion-label [hidden]="(loadingSubject | async) || filterForm.dirty" [color]="empty && 'danger'" class="ion-padding">
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (totalRowCount | numberFormat) } }}
       </ion-label>
 
       <div class="toolbar-spacer"></div>
@@ -366,8 +341,8 @@
   <app-update-offline-mode-card
     *ngIf="showUpdateOfflineFeature && (needUpdateOfflineFeature || importing)"
     (onUpdateClick)="prepareOfflineMode($event, { toggleToOfflineMode: false, showToast: false })"
-    [progressionMessage]="progressionMessage | translate : { pct: $progression | async }"
-    [progressionValue]="$progression | push : 'low'"
+    [progressionMessage]="progressionMessage | translate: { pct: $progression | async }"
+    [progressionValue]="$progression | push: 'low'"
   ></app-update-offline-mode-card>
 
   <!-- error -->
@@ -447,7 +422,7 @@
           <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-label>{{ row.currentData.program | referentialToString : ['label'] }}</ion-label>
+          <ion-label>{{ row.currentData.program | referentialToString: ['label'] }}</ion-label>
         </td>
       </ng-container>
 
@@ -458,7 +433,7 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton">
-            {{ row.currentData.vesselSnapshot | referentialToString : autocompleteFields.vesselSnapshot.attributes }}
+            {{ row.currentData.vesselSnapshot | referentialToString: autocompleteFields.vesselSnapshot.attributes }}
           </ion-label>
         </td>
       </ng-container>
@@ -469,7 +444,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          {{ row.currentData.departureLocation | referentialToString : autocompleteFields.location.attributes }}
+          {{ row.currentData.departureLocation | referentialToString: autocompleteFields.location.attributes }}
         </td>
       </ng-container>
 
@@ -479,7 +454,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
         </th>
         <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ row.currentData.departureDateTime | dateFormat : { time: true } }}</ion-text>
+          <ion-text>{{ row.currentData.departureDateTime | dateFormat: { time: true } }}</ion-text>
         </td>
       </ng-container>
 
@@ -489,7 +464,7 @@
           <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
         </th>
         <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ row.currentData.returnDateTime | dateFormat : { time: true } }}</ion-text>
+          <ion-text>{{ row.currentData.returnDateTime | dateFormat: { time: true } }}</ion-text>
         </td>
       </ng-container>
 
@@ -522,12 +497,7 @@
       <ng-container matColumnDef="comments">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let row">
-          <mat-icon
-            color="primary"
-            class="comment"
-            *ngIf="row.currentData.comments"
-            [title]="row.currentData.comments"
-          ></mat-icon>
+          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
         </td>
       </ng-container>
 
@@ -535,11 +505,7 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>
           <!-- display columns -->
-          <button
-            mat-icon-button
-            [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate"
-            (click)="openSelectColumnsModal($event)"
-          >
+          <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
@@ -576,10 +542,7 @@
         <ion-text
           color="danger"
           class="text-italic"
-          [innerHTML]="
-            (hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT')
-              | translate
-          "
+          [innerHTML]="(hasOfflineMode && synchronizationStatus !== 'SYNC' ? 'TRIP.TABLE.NO_LOCAL_RESULT' : 'COMMON.NO_RESULT') | translate"
         ></ion-text>
       </ion-item>
     </ng-template>
@@ -603,20 +566,12 @@
   </ion-fab-button>
 
   <ion-fab-list side="top">
-    <ion-fab-button
-      [disabled]="offline || importing"
-      [title]="'TRIP.TABLE.BTN_NEW_ONLINE' | translate"
-      (click)="addRowToSyncStatus($event, 'SYNC')"
-    >
+    <ion-fab-button [disabled]="offline || importing" [title]="'TRIP.TABLE.BTN_NEW_ONLINE' | translate" (click)="addRowToSyncStatus($event, 'SYNC')">
       <mat-icon color="primary">cloud_done</mat-icon>
       <ion-icon name="add" class="icon-secondary"></ion-icon>
     </ion-fab-button>
 
-    <ion-fab-button
-      [disabled]="importing"
-      [title]="'TRIP.TABLE.BTN_NEW_OFFLINE' | translate"
-      (click)="addRowToSyncStatus($event, 'DIRTY')"
-    >
+    <ion-fab-button [disabled]="importing" [title]="'TRIP.TABLE.BTN_NEW_OFFLINE' | translate" (click)="addRowToSyncStatus($event, 'DIRTY')">
       <mat-icon color="primary">cloud_off</mat-icon>
       <ion-icon name="add" class="icon-secondary"></ion-icon>
     </ion-fab-button>

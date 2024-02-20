@@ -72,7 +72,7 @@ export const LANDING_PAGE_RESERVED_START_COLUMNS = [
   'observers',
   'creationDate',
   'recorderPerson',
-  'samplesCount'
+  'samplesCount',
 ];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
@@ -87,17 +87,12 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Land
   templateUrl: 'landings.page.html',
   styleUrls: ['landings.page.scss'],
   animations: [slideUpDownAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingsPage extends AppRootDataTable<
-  Landing,
-  LandingFilter,
-  LandingService,
-  LandingValidatorService,
-  number,
-  LandingPageConfig
-> implements OnInit {
-
+export class LandingsPage
+  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, LandingPageConfig>
+  implements OnInit
+{
   protected $title = new BehaviorSubject<string>(undefined);
   protected $observedLocationTitle = new BehaviorSubject<string>(undefined);
   protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
@@ -156,7 +151,6 @@ export class LandingsPage extends AppRootDataTable<
     return this.getShowColumn('vesselBasePortLocation');
   }
 
-
   @Input()
   set showObserversColumn(value: boolean) {
     this.setShowColumn('observers', value);
@@ -165,7 +159,6 @@ export class LandingsPage extends AppRootDataTable<
   get showObserversColumn(): boolean {
     return this.getShowColumn('observers');
   }
-
 
   @Input()
   set showCreationDateColumn(value: boolean) {
@@ -236,22 +229,16 @@ export class LandingsPage extends AppRootDataTable<
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
-      Landing, LandingFilter,
-      [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS],
-      dataService,
-      null,
-      {
-        reservedStartColumns:  LANDING_PAGE_RESERVED_START_COLUMNS,
-        reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
-        i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
-        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
-        watchAllOptions: <LandingServiceWatchOptions>{
-          computeRankOrder: false, // Not need, because this table use the landing 'id'
-          //withObservedLocation: true, // Need to get observers
-        }
-      }
-    );
+    super(injector, Landing, LandingFilter, [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS], dataService, null, {
+      reservedStartColumns: LANDING_PAGE_RESERVED_START_COLUMNS,
+      reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
+      i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
+      i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
+      watchAllOptions: <LandingServiceWatchOptions>{
+        computeRankOrder: false, // Not need, because this table use the landing 'id'
+        //withObservedLocation: true, // Need to get observers
+      },
+    });
     this.inlineEdition = false;
     this.i18nPmfmPrefix = this.options.i18nPmfmPrefix;
     this.filterForm = formBuilder.group({
@@ -266,7 +253,7 @@ export class LandingsPage extends AppRootDataTable<
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       sampleLabel: [null],
-      sampleTagId: [null]
+      sampleTagId: [null],
     });
     this.autoLoad = false;
     this.defaultSortBy = 'dateTime';
@@ -279,10 +266,7 @@ export class LandingsPage extends AppRootDataTable<
     this.debug = !environment.production;
   }
 
-
-
   ngOnInit() {
-
     super.ngOnInit();
 
     // Qualitative values display attributes
@@ -293,11 +277,10 @@ export class LandingsPage extends AppRootDataTable<
       service: this.programRefService,
       filter: {
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
-
 
     // Strategy combo (filter)
     this.registerAutocompleteField('strategy', {
@@ -305,21 +288,21 @@ export class LandingsPage extends AppRootDataTable<
         const program = this.filterForm.get('program').value;
         return this.strategyRefService.suggest(value, <StrategyRefFilter>{
           ...filter,
-          levelId: program?.id
+          levelId: program?.id,
         });
       },
       attributes: ['label'],
       filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: vessels
     this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts => {
-        this.registerAutocompleteField('vesselSnapshot', opts);
-        this.vesselSnapshotAttributes = opts.attributes;
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', opts);
+      this.vesselSnapshotAttributes = opts.attributes;
     });
 
     // Locations combo (filter)
@@ -327,18 +310,18 @@ export class LandingsPage extends AppRootDataTable<
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT]
+        levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: recorder department
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
-        entityName: 'Department'
+        entityName: 'Department',
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: recorder person
@@ -346,54 +329,52 @@ export class LandingsPage extends AppRootDataTable<
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: personAttributes,
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: observers
     this.registerAutocompleteField('observers', {
       service: this.personService,
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: personAttributes,
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config
-        .pipe(
-          filter(isNotNil)
-        )
-        .subscribe(config => this.onConfigLoaded(config)));
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the context
     this.resetContext();
-
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
-
     // Program
     const programLabel = filter?.program?.label;
     if (isNotNilOrBlank(programLabel)) {
       const program = await this.programRefService.loadByLabel(programLabel);
       await this.setProgram(program);
-    }
-    else {
+    } else {
       // Check if user can access more than one program
-      const {data, total} = await this.programRefService.loadAll(0, 1, null, null, {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }, {withTotal: true});
+      const { data, total } = await this.programRefService.loadAll(
+        0,
+        1,
+        null,
+        null,
+        {
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        },
+        { withTotal: true }
+      );
       if (isNotEmptyArray(data) && total === 1) {
         const program = data[0];
         await this.setProgram(program);
-      }
-      else {
+      } else {
         await this.resetProgram();
       }
     }
@@ -415,15 +396,15 @@ export class LandingsPage extends AppRootDataTable<
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, {emitEvent: false});
+    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-    this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
+    this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
 
     // Observer
     this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-    this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+    this.setShowColumn('observers', this.showObservers, { emitEvent: false });
 
     // Manage filters display according to config settings.
     this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
@@ -435,7 +416,6 @@ export class LandingsPage extends AppRootDataTable<
 
     this.updateColumns();
   }
-
 
   protected async setProgram(program: Program) {
     if (!program?.label) throw new Error('Invalid program');
@@ -468,14 +448,14 @@ export class LandingsPage extends AppRootDataTable<
     // Landing pmfms
     const includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
     const landingPmfms = await this.programRefService.loadProgramPmfms(program?.label, {
-      acquisitionLevel: AcquisitionLevelCodes.LANDING
+      acquisitionLevel: AcquisitionLevelCodes.LANDING,
     });
-    const columnPmfms = landingPmfms.filter(p => p.required || includedPmfmIds?.includes(p.id));
+    const columnPmfms = landingPmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
 
     this.$pmfms.next(columnPmfms);
 
     const samplePmfms = await this.programRefService.loadProgramPmfms(program?.label, {
-      acquisitionLevels: [AcquisitionLevelCodes.SAMPLE, AcquisitionLevelCodes.INDIVIDUAL_MONITORING, AcquisitionLevelCodes.INDIVIDUAL_RELEASE]
+      acquisitionLevels: [AcquisitionLevelCodes.SAMPLE, AcquisitionLevelCodes.INDIVIDUAL_MONITORING, AcquisitionLevelCodes.INDIVIDUAL_RELEASE],
     });
     this.showFilterSampleTagId = samplePmfms?.some(PmfmUtils.isTagId) || false;
 
@@ -513,7 +493,10 @@ export class LandingsPage extends AppRootDataTable<
     const observedLocationId = this.route.snapshot.paramMap.get('observedLocationId');
     if (isNotNilOrNaN(observedLocationId)) {
       const observedLocation = await this.observedLocationService.load(+observedLocationId);
-      await this.setFilter(<Partial<LandingFilter>>{observedLocationId: +observedLocationId, program: observedLocation.program}, {emitEvent: true, ...opts});
+      await this.setFilter(<Partial<LandingFilter>>{ observedLocationId: +observedLocationId, program: observedLocation.program }, {
+        emitEvent: true,
+        ...opts,
+      });
       return;
     }
 
@@ -521,14 +504,14 @@ export class LandingsPage extends AppRootDataTable<
     const tripId = this.route.snapshot.paramMap.get('tripId');
     if (isNotNilOrNaN(tripId)) {
       const trip = await this.tripService.load(+tripId);
-      await this.setFilter(<Partial<LandingFilter>>{tripId: +tripId, program: trip.program}, {emitEvent: true, ...opts});
+      await this.setFilter(<Partial<LandingFilter>>{ tripId: +tripId, program: trip.program }, { emitEvent: true, ...opts });
       return;
     }
 
     // For to use queryParams, if any
-    const {q} = this.route.snapshot.queryParams;
+    const { q } = this.route.snapshot.queryParams;
     if (isNotNilOrBlank(q)) {
-      return super.restoreFilterOrLoad({...opts, sources:['queryParams']});
+      return super.restoreFilterOrLoad({ ...opts, sources: ['queryParams'] });
     }
 
     // Default implementation
@@ -543,19 +526,20 @@ export class LandingsPage extends AppRootDataTable<
 
     const pmfmColumnNames = pmfms
       //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
-      .filter(p => !p.hidden)
-      .map(p => p.id.toString());
+      .filter((p) => !p.hidden)
+      .map((p) => p.id.toString());
 
-    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
-    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const startColumns = ((this.options && this.options.reservedStartColumns) || []).filter((c) => !userColumns || userColumns.includes(c));
+    const endColumns = ((this.options && this.options.reservedEndColumns) || []).filter((c) => !userColumns || userColumns.includes(c));
 
-    return RESERVED_START_COLUMNS
-      .concat(startColumns)
-      .concat(pmfmColumnNames)
-      .concat(endColumns)
-      .concat(RESERVED_END_COLUMNS)
-      // Remove columns to hide
-      .filter(column => !this.excludesColumns.includes(column));
+    return (
+      RESERVED_START_COLUMNS.concat(startColumns)
+        .concat(pmfmColumnNames)
+        .concat(endColumns)
+        .concat(RESERVED_END_COLUMNS)
+        // Remove columns to hide
+        .filter((column) => !this.excludesColumns.includes(column))
+    );
 
     // DEBUG
     //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
@@ -570,11 +554,11 @@ export class LandingsPage extends AppRootDataTable<
 
     // Prepare filter for next page
     const nextFilter = ObservedLocationFilter.fromLandingFilter(this.asFilter());
-    const json = nextFilter?.asObject({keepTypename: true}) || {};
+    const json = nextFilter?.asObject({ keepTypename: true }) || {};
     await this.settings.savePageSetting(ObservedLocationsPageSettingsEnum.PAGE_ID, json, ObservedLocationsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
-      await this.navController.navigateRoot(path, {animated: false});
+      await this.navController.navigateRoot(path, { animated: false });
 
       // Reset the selected segment
       this.selectedSegment = '';
@@ -590,17 +574,13 @@ export class LandingsPage extends AppRootDataTable<
     // if (this.debug) console.debug("[landings] onSwipeTab()");
 
     // Skip, if not a valid swipe event
-    if (!event
-      || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented)
-      || event.pointerType !== 'touch'
-    ) {
+    if (!event || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented) || event.pointerType !== 'touch') {
       return false;
     }
 
     this.toggleSynchronizationStatus();
     return true;
   }
-
 
   protected async openRow(id: number, row: TableElement<Landing>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
@@ -623,11 +603,10 @@ export class LandingsPage extends AppRootDataTable<
     return await this.navController.navigateForward([editor, id], {
       relativeTo: this.route,
       queryParams: {
-        parent: AcquisitionLevelCodes.OBSERVED_LOCATION
-      }
+        parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
+      },
     });
   }
-
 
   protected async openNewRowDetail(event?: any): Promise<boolean> {
     if (!this.allowRowDetail) return false;
@@ -650,8 +629,8 @@ export class LandingsPage extends AppRootDataTable<
       queryParams: {
         program: program?.label,
         parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
-        tableId: this.settingsId
-      }
+        tableId: this.settingsId,
+      },
     });
   }
 
@@ -675,26 +654,30 @@ export class LandingsPage extends AppRootDataTable<
     if (!res) return; // CANCELLED*/
   }
 
-  async prepareOfflineMode(event?: Event, opts?: {
-    toggleToOfflineMode?: boolean;
-    showToast?: boolean;
-    filter?: any;
-  }): Promise<undefined | boolean> {
+  async prepareOfflineMode(
+    event?: Event,
+    opts?: {
+      toggleToOfflineMode?: boolean;
+      showToast?: boolean;
+      filter?: any;
+    }
+  ): Promise<undefined | boolean> {
     if (this.importing) return; // Skip
 
     if (event) {
       const feature = this.settings.getOfflineFeature(this.featureName) || {
-        name: this.featureName
+        name: this.featureName,
       };
       const value = <ObservedLocationOfflineFilter>{
         ...this.filter,
-        ...feature.filter
+        ...feature.filter,
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
         componentProps: {
-          value
-        }, keyboardClose: true
+          value,
+        },
+        keyboardClose: true,
       });
 
       // Open the modal
@@ -716,28 +699,29 @@ export class LandingsPage extends AppRootDataTable<
     return super.prepareOfflineMode(event, opts);
   }
 
-  async deleteSelection(event: Event, opts?: {interactive?: boolean}): Promise<number> {
+  async deleteSelection(event: Event, opts?: { interactive?: boolean }): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
     const landingIds = (rowsToDelete || [])
-      .map(row => row.currentData as Landing)
+      .map((row) => row.currentData as Landing)
       .map(ObservedLocation.fromObject)
-      .map(o => o.id);
+      .map((o) => o.id);
 
     // ask confirmation if one landing has samples (with tagId)
     if (isNotEmptyArray(landingIds) && (!opts || opts.interactive !== false)) {
       const hasSample = await this._dataService.hasSampleWithTagId(landingIds);
       if (hasSample) {
-        const messageKey = landingIds.length === 1
-          ? 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_ONE_HAS_SAMPLE'
-          : 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_MANY_HAS_SAMPLE';
+        const messageKey =
+          landingIds.length === 1
+            ? 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_ONE_HAS_SAMPLE'
+            : 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_MANY_HAS_SAMPLE';
         const confirmed = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
         if (!confirmed) return; // skip
       }
     }
 
     // Use inherited function, when no sample
-    return super.deleteSelection(event, {interactive: false /*already confirmed*/});
+    return super.deleteSelection(event, { interactive: false /*already confirmed*/ });
   }
 
   get canUserCancelOrDelete(): boolean {
@@ -756,18 +740,17 @@ export class LandingsPage extends AppRootDataTable<
     const user = this.accountService.person;
 
     // Find a row that user CANNOT delete
-    const invalidRow = this.selection.selected
-      .find(row => {
-        const entity = row.currentData;
+    const invalidRow = this.selection.selected.find((row) => {
+      const entity = row.currentData;
 
-        // When observed location has been recorded by connected user
-        if (user.id === entity?.recorderPerson?.id) {
-          return false; // OK
-        }
+      // When observed location has been recorded by connected user
+      if (user.id === entity?.recorderPerson?.id) {
+        return false; // OK
+      }
 
-        // When connected user is in observed location observers
-        return !(entity.observers || []).some(observer => (user.id === observer?.id));
-      });
+      // When connected user is in observed location observers
+      return !(entity.observers || []).some((observer) => user.id === observer?.id);
+    });
 
     //
     return !invalidRow;
@@ -787,9 +770,9 @@ export class LandingsPage extends AppRootDataTable<
   getI18nColumnName(columnName: string): string {
     // Translate pmfm column
     if (PMFM_ID_REGEXP.test(columnName)) {
-      const pmfm = this.pmfms.find(p => p.id.toString() === columnName);
+      const pmfm = this.pmfms.find((p) => p.id.toString() === columnName);
       if (pmfm) {
-        return this.pmfmNamePipe.transform(pmfm, {html: false, i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix});
+        return this.pmfmNamePipe.transform(pmfm, { html: false, i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix });
       }
     }
     return super.getI18nColumnName(columnName);
@@ -800,8 +783,7 @@ export class LandingsPage extends AppRootDataTable<
   protected async getDetailProgram(source?: Landing): Promise<Program | undefined> {
     // Find data program
     const programLabel = source?.program?.label || this.filter?.program?.label;
-    let program: Program = programLabel && (await this.programRefService.loadByLabel(programLabel))
-      || this.$detailProgram.value;
+    let program: Program = (programLabel && (await this.programRefService.loadByLabel(programLabel))) || this.$detailProgram.value;
 
     if (!program) {
       const modal = await this.modalCtrl.create({
@@ -809,14 +791,14 @@ export class LandingsPage extends AppRootDataTable<
         componentProps: <ISelectProgramModalOptions>{
           filter: {
             statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-            acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
-          }
+            acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING],
+          },
         },
         keyboardClose: true,
-        cssClass: 'modal-large'
+        cssClass: 'modal-large',
       });
       await modal.present();
-      const {data} = await modal.onDidDismiss();
+      const { data } = await modal.onDidDismiss();
 
       program = data?.[0];
       if (!(program instanceof Program)) return; // User cancelled

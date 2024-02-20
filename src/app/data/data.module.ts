@@ -18,7 +18,7 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppDataEntityPipesModule
+    AppDataEntityPipesModule,
   ],
   declarations: [
     // Pipes
@@ -27,8 +27,7 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
-
+    StrategySummaryCardComponent,
   ],
   exports: [
     // Sub modules
@@ -42,11 +41,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
+    StrategySummaryCardComponent,
   ],
-  providers: [
-    DevicePositionService,
-  ],
+  providers: [DevicePositionService],
 })
-export class AppDataModule {
-}
+export class AppDataModule {}

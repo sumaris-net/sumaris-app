@@ -386,4 +386,3 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     this.qualitativeValuesTable.selection.toggle(row);
   }
 }
-

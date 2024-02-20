@@ -16,12 +16,7 @@
         <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
       </button>
 
-      <button
-        *ngIf="!options?.readonly"
-        mat-menu-item
-        [title]="'COMMON.BTN_DELETE' | translate"
-        (click)="removeActivity(index)"
-      >
+      <button *ngIf="!options?.readonly" mat-menu-item [title]="'COMMON.BTN_DELETE' | translate" (click)="removeActivity(index)">
         <mat-icon>delete</mat-icon>
         <ion-label translate>COMMON.BTN_DELETE</ion-label>
       </button>
@@ -46,7 +41,7 @@
         <ion-card>
           <mat-toolbar>
             <ion-label *ngIf="formGroup.get('rankOrder').valueChanges | async; let rankOrder">
-              {{ 'AGGREGATED_LANDING.ACTIVITY' | translate : { rankOrder: rankOrder } }}
+              {{ 'AGGREGATED_LANDING.ACTIVITY' | translate: { rankOrder: rankOrder } }}
             </ion-label>
 
             <div class="toolbar-spacer"></div>

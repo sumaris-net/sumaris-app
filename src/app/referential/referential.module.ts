@@ -27,8 +27,7 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     AppStrategyModule,
     AppTranscribingModule,
   ],
-  declarations: [
-  ],
+  declarations: [],
   exports: [
     TranslateModule,
 
@@ -41,5 +40,4 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
     AppTranscribingModule,
   ],
 })
-export class AppReferentialModule {
-}
+export class AppReferentialModule {}

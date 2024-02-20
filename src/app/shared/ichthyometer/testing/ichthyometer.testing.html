@@ -44,9 +44,7 @@
           </ion-text>
         </ion-col>
         <ion-col>
-          <ion-button *rxIf="ichthyometer.enabled$; else disabled" (click)="disconnect(ichthyometer)">
-            Disconnect
-          </ion-button>
+          <ion-button *rxIf="ichthyometer.enabled$; else disabled" (click)="disconnect(ichthyometer)">Disconnect</ion-button>
           <ng-template #disabled>
             <ion-text color="medium">Disabled</ion-text>
           </ng-template>

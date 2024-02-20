@@ -190,21 +190,24 @@ export const ProgramRefQueries = {
   `,
 };
 
-const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions & { listenAuthorizedPrograms: any} = {
-  listenChanges: gql`subscription UpdateProgram($id: Int!, $interval: Int){
-    data: updateProgram(id: $id, interval: $interval) {
-      ...LightProgramFragment
+const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions & { listenAuthorizedPrograms: any } = {
+  listenChanges: gql`
+    subscription UpdateProgram($id: Int!, $interval: Int) {
+      data: updateProgram(id: $id, interval: $interval) {
+        ...LightProgramFragment
+      }
     }
-  }
-  ${ProgramFragments.lightProgram}`,
+    ${ProgramFragments.lightProgram}
+  `,
 
-  listenAuthorizedPrograms: gql`subscription UpdateAuthorizedPrograms($interval: Int){
-    data: authorizedPrograms(interval: $interval) {
-      ...LightProgramFragment
+  listenAuthorizedPrograms: gql`
+    subscription UpdateAuthorizedPrograms($interval: Int) {
+      data: authorizedPrograms(interval: $interval) {
+        ...LightProgramFragment
+      }
     }
-  }
-  ${ProgramFragments.lightProgram}`
-
+    ${ProgramFragments.lightProgram}
+  `,
 };
 
 const ProgramRefCacheKeys = {
@@ -217,29 +220,29 @@ const ProgramRefCacheKeys = {
   TAXON_GROUPS: 'programTaxonGroups',
   TAXON_GROUP_ENTITIES: 'programTaxonGroupEntities',
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
-  TAXON_NAMES: 'taxonNameByGroup'
+  TAXON_NAMES: 'taxonNameByGroup',
 };
 
-const noopFilter = (() => true);
+const noopFilter = () => true;
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ProgramRefService
   extends BaseReferentialService<Program, ProgramFilter>
-  implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>,
-    SuggestService<Program, Partial<ProgramFilter>> {
-
-
-  private _subscriptionCache: {[key: string]: {
+  implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>, SuggestService<Program, Partial<ProgramFilter>>
+{
+  private _subscriptionCache: {
+    [key: string]: {
       subject: Subject<Program>;
       subscription: Subscription;
-    };} = {};
+    };
+  } = {};
   private _listenAuthorizedSubscription: Subscription = null;
 
   private _enableQualityProcess = false;
   private _accessNotSelfDataDepartmentIds: number[] = [];
   private _accessNotSelfDataMinProfile: UserProfileLabel = 'ADMIN';
 
-  get enableQualityProcess(): boolean  {
+  get enableQualityProcess(): boolean {
     return this._enableQualityProcess;
   }
 
@@ -258,40 +261,36 @@ export class ProgramRefService
     protected strategyRefService: StrategyRefService,
     protected translate: TranslateService
   ) {
-    super(injector, Program, ProgramFilter,
-      {
-        queries: ProgramRefQueries,
-        subscriptions: ProgramRefSubscriptions
-      });
+    super(injector, Program, ProgramFilter, {
+      queries: ProgramRefQueries,
+      subscriptions: ProgramRefSubscriptions,
+    });
 
     this._debug = !environment.production;
     this._logPrefix = '[program-ref-service] ';
 
-    this.configService.config.subscribe(config => this.onConfigChanged(config));
+    this.configService.config.subscribe((config) => this.onConfigChanged(config));
     this.start();
   }
 
   protected async ngOnStart(): Promise<void> {
     await super.ngOnStart();
     this.registerSubscription(
-      merge(
-        this.networkService.onNetworkStatusChanges,
-        this.accountService.onLogin,
-        this.accountService.onLogout
-      )
+      merge(this.networkService.onNetworkStatusChanges, this.accountService.onLogin, this.accountService.onLogout)
         .pipe(
-          map(_ => this.networkService.online
-              && this.accountService.isLogin()
+          map(
+            (_) =>
+              this.networkService.online &&
+              this.accountService.isLogin() &&
               // Skip if admin (can see all programs)
-              && !this.accountService.isAdmin()
+              !this.accountService.isAdmin()
           ),
           distinctUntilChanged()
         )
         .subscribe((onlineAndLogin) => {
           if (onlineAndLogin) {
             this.startListenAuthorizedProgram();
-          }
-          else {
+          } else {
             this.stopListenAuthorizedProgram();
           }
         })
@@ -303,7 +302,7 @@ export class ProgramRefService
     return false;
   }
 
-  canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
+  canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: { program?: Program }): boolean {
     if (!entity) return false;
 
     // Validator and Manager can write data
@@ -315,7 +314,6 @@ export class ProgramRefService
     // If user has observer privileges and the option to allow observer to write data is enabled
     // OBSERVER = User has write access to program
     if (this.hasUpperOrEqualPrivilege(opts?.program, ProgramPrivilegeEnum.OBSERVER)) {
-
       // If the user is the recorder: can write
       if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
         return true;
@@ -323,9 +321,9 @@ export class ProgramRefService
 
       // Check if declared as observers (in data)
       if (
-        DataEntityUtils.isWithObservers(entity)
-        && opts?.program?.getPropertyAsBoolean(ProgramProperties.DATA_OBSERVERS_CAN_WRITE)
-        && entity.observers?.some(o => ReferentialUtils.equals(o, this.accountService.person))
+        DataEntityUtils.isWithObservers(entity) &&
+        opts?.program?.getPropertyAsBoolean(ProgramProperties.DATA_OBSERVERS_CAN_WRITE) &&
+        entity.observers?.some((o) => ReferentialUtils.equals(o, this.accountService.person))
       ) {
         return true;
       }
@@ -353,7 +351,7 @@ export class ProgramRefService
 
     // Should have min role to access not self data
     if (!this.accountService.hasMinProfile(this._accessNotSelfDataMinProfile)) {
-     return false;
+      return false;
     }
 
     // Same recorder department: OK, user can write
@@ -374,8 +372,7 @@ export class ProgramRefService
     }
 
     // Supervisor profile + Validator privilege
-    return this.accountService.isSupervisor()
-      && (!program || this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.VALIDATOR));
+    return this.accountService.isSupervisor() && (!program || this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.VALIDATOR));
   }
 
   canUserQualify(program: Program): boolean {
@@ -388,57 +385,57 @@ export class ProgramRefService
 
     // Supervisor profile (TODO replace with a new Qualifier profile?)
     //  + Qualifier privilege
-    return this.accountService.isSupervisor()
-      && this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.QUALIFIER);
+    return this.accountService.isSupervisor() && this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.QUALIFIER);
   }
 
-  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-                filter?: Partial<ProgramFilter>,
-                opts?: EntitiesServiceLoadOptions & {debug?: boolean}): Promise<LoadResult<Program>> {
+  async loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<ProgramFilter>,
+    opts?: EntitiesServiceLoadOptions & { debug?: boolean }
+  ): Promise<LoadResult<Program>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter?.searchAttribute
-      || filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
-      || 'label';
+    sortBy =
+      sortBy || filter?.searchAttribute || (filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) || 'label';
 
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+      return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     }
 
     // Call inherited function
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
-
-  protected async loadAllLocally(offset: number,
-                                 size: number,
-                                 sortBy?: string,
-                                 sortDirection?: SortDirection,
-                                 filter?: Partial<ProgramFilter>,
-                                 opts?: {
-                                   [key: string]: any;
-                                   toEntity?: boolean;
-                                 }): Promise<LoadResult<Program>> {
-
+  protected async loadAllLocally(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<ProgramFilter>,
+    opts?: {
+      [key: string]: any;
+      toEntity?: boolean;
+    }
+  ): Promise<LoadResult<Program>> {
     filter = this.asFilter(filter);
 
     const variables = {
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute
-        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
-        || 'label',
+      sortBy:
+        sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter.asFilterFn()
+      filter: filter.asFilterFn(),
     };
 
-    const {data, total} = await this.entities.loadAll(Program.TYPENAME, variables);
+    const { data, total } = await this.entities.loadAll(Program.TYPENAME, variables);
 
-    const entities = (!opts || opts.toEntity !== false) ?
-      (data || []).map(Program.fromObject) :
-      (data || []) as Program[];
+    const entities = !opts || opts.toEntity !== false ? (data || []).map(Program.fromObject) : ((data || []) as Program[]);
 
-    const res: LoadResult<Program> = {data: entities, total};
+    const res: LoadResult<Program> = { data: entities, total };
 
     // Add fetch more function
     const nextOffset = (offset || 0) + entities.length;
@@ -455,26 +452,33 @@ export class ProgramRefService
    * @param label
    * @param opts
    */
-  watchByLabel(label: string, opts?: {
-    withStrategies?: boolean;
-    strategyFilter?: Partial<StrategyFilter>;
-    toEntity?: boolean;
-    debug?: boolean;
-    query?: any;
-    cache?: boolean;
-    fetchPolicy?: WatchQueryFetchPolicy;
-  }): Observable<Program> {
-
+  watchByLabel(
+    label: string,
+    opts?: {
+      withStrategies?: boolean;
+      strategyFilter?: Partial<StrategyFilter>;
+      toEntity?: boolean;
+      debug?: boolean;
+      query?: any;
+      cache?: boolean;
+      fetchPolicy?: WatchQueryFetchPolicy;
+    }
+  ): Observable<Program> {
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, opts && JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
+      const cacheKey = [
+        ProgramRefCacheKeys.PROGRAM_BY_LABEL,
+        label,
+        opts && JSON.stringify({ withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter }),
+      ].join('|');
       // FIXME - BLA - using loadFromDelayedObservable() as a workaround for offline mode+mobile, when cache is empty. Avoid to get an empty result
-      return this.cache.loadFromDelayedObservable(cacheKey,
-          defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
+      return this.cache
+        .loadFromDelayedObservable(
+          cacheKey,
+          defer(() => this.watchByLabel(label, { ...opts, cache: false, toEntity: false })),
           ProgramRefCacheKeys.CACHE_GROUP
-        ).pipe(
-          map(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data)
-        );
+        )
+        .pipe(map((data) => (!opts || opts.toEntity !== false ? Program.fromObject(data) : data)));
     }
 
     // StrategyFilter
@@ -488,43 +492,46 @@ export class ProgramRefService
 
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      res = this.entities.watchAll<any>(Program.TYPENAME, {
-        size: 1,
-        filter: (p) => p.label === label
-      }).pipe(
-        map(res => firstArrayValue(res && res.data)),
-        map(program => {
-          const filterFn = strategyFilter && strategyFilter.asFilterFn();
-          if (filterFn) {
-            // /!\ Make sure to clone the strategy, to keep cache object unchanged
-            program = {
-              ...program,
-              strategies: (program.strategies || []).filter(filterFn)
-            };
-          }
-          return program;
+      res = this.entities
+        .watchAll<any>(Program.TYPENAME, {
+          size: 1,
+          filter: (p) => p.label === label,
         })
-      );
-    }
-    else {
-      const query = opts && opts.query || (opts?.withStrategies ? ProgramRefQueries.loadWithStrategies : ProgramRefQueries.load);
-      res = this.graphql.watchQuery<{data: any}>({
-        query,
-        variables: {
-          label,
-          strategyFilter: opts?.withStrategies && strategyFilter?.asPodObject()
-        },
-        // Important: do NOT using cache here, as default (= 'no-cache')
-        // because cache is manage by Ionic cache (easier to clean)
-        fetchPolicy: opts && (opts.fetchPolicy as FetchPolicy) || 'no-cache',
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'}
-      }).pipe(map(res => res && res.data));
+        .pipe(
+          map((res) => firstArrayValue(res && res.data)),
+          map((program) => {
+            const filterFn = strategyFilter && strategyFilter.asFilterFn();
+            if (filterFn) {
+              // /!\ Make sure to clone the strategy, to keep cache object unchanged
+              program = {
+                ...program,
+                strategies: (program.strategies || []).filter(filterFn),
+              };
+            }
+            return program;
+          })
+        );
+    } else {
+      const query = (opts && opts.query) || (opts?.withStrategies ? ProgramRefQueries.loadWithStrategies : ProgramRefQueries.load);
+      res = this.graphql
+        .watchQuery<{ data: any }>({
+          query,
+          variables: {
+            label,
+            strategyFilter: opts?.withStrategies && strategyFilter?.asPodObject(),
+          },
+          // Important: do NOT using cache here, as default (= 'no-cache')
+          // because cache is manage by Ionic cache (easier to clean)
+          fetchPolicy: (opts && (opts.fetchPolicy as FetchPolicy)) || 'no-cache',
+          error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
+        })
+        .pipe(map((res) => res && res.data));
     }
 
     return res.pipe(
       filter(isNotNil),
-      map(data => {
-        const entity = (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data;
+      map((data) => {
+        const entity = !opts || opts.toEntity !== false ? Program.fromObject(data) : data;
         if (now) {
           console.debug(`[program-ref-service] Watching program {${label}} [OK] in ${Date.now() - now}ms`);
           now = undefined;
@@ -537,25 +544,27 @@ export class ProgramRefService
   async existsByLabel(label: string): Promise<boolean> {
     if (isNilOrBlank(label)) return false;
 
-    const program = await this.loadByLabel(label, {toEntity: false});
+    const program = await this.loadByLabel(label, { toEntity: false });
     return ReferentialUtils.isNotEmpty(program);
   }
 
-  async loadByLabel(label: string, opts?: {
-    toEntity?: boolean;
-    query?: any;
-    cache?: boolean;
-    fetchPolicy?: FetchPolicy;
-  }): Promise<Program> {
-    if (isNilOrBlank(label)) throw new Error('Missing \'label\' argument');
+  async loadByLabel(
+    label: string,
+    opts?: {
+      toEntity?: boolean;
+      query?: any;
+      cache?: boolean;
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<Program> {
+    if (isNilOrBlank(label)) throw new Error("Missing 'label' argument");
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
 
     // Use cache (enable by default, if no custom query)
     if (!opts || (!opts.query && opts.cache !== false && opts.fetchPolicy !== 'no-cache' && opts.fetchPolicy !== 'network-only')) {
-      return this.cache.getOrSetItem<Program>(cacheKey,
-        () => this.loadByLabel(label, {...opts, cache: false, toEntity: false}),
-        ProgramRefCacheKeys.CACHE_GROUP)
-        .then(data => (!opts || opts.toEntity !== false) ? Program.fromObject(data) : data);
+      return this.cache
+        .getOrSetItem<Program>(cacheKey, () => this.loadByLabel(label, { ...opts, cache: false, toEntity: false }), ProgramRefCacheKeys.CACHE_GROUP)
+        .then((data) => (!opts || opts.toEntity !== false ? Program.fromObject(data) : data));
     }
 
     let data: any;
@@ -564,120 +573,130 @@ export class ProgramRefService
     // If offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      data = await this.entities.loadAll<Program>(Program.TYPENAME, {
-        offset: 0, size: 1,
-        filter: (p) => p.label ===  label
-      }).then(res => firstArrayValue(res && res.data));
-    }
-    else {
-      const query = opts && opts.query || this.queries.load;
+      data = await this.entities
+        .loadAll<Program>(Program.TYPENAME, {
+          offset: 0,
+          size: 1,
+          filter: (p) => p.label === label,
+        })
+        .then((res) => firstArrayValue(res && res.data));
+    } else {
+      const query = (opts && opts.query) || this.queries.load;
       const res = await this.graphql.query<{ data: any }>({
         query,
         variables: { label },
-        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAM_ERROR'}
+        error: { code: ErrorCodes.LOAD_PROGRAM_ERROR, message: 'PROGRAM.ERROR.LOAD_PROGRAM_ERROR' },
       });
       data = res && res.data;
     }
 
     // Convert to entity (if need)
-    const entity = (!opts || opts.toEntity !== false)
-      ? Program.fromObject(data)
-      : data as Program;
+    const entity = !opts || opts.toEntity !== false ? Program.fromObject(data) : (data as Program);
 
     if (this._debug) console.debug(`[program-ref-service] Program loaded {${label}}`, entity);
     return entity;
   }
 
-  loadAllByLabels(labels: string[], opts?: {
-    toEntity?: boolean;
-    query?: any;
-    cache?: boolean;
-    fetchPolicy?: FetchPolicy;
-  }) {
-    return Promise.all(
-      arrayDistinct(labels).map(label => this.loadByLabel(label, opts))
-    ).then(programs => programs.filter(isNotNil));
+  loadAllByLabels(
+    labels: string[],
+    opts?: {
+      toEntity?: boolean;
+      query?: any;
+      cache?: boolean;
+      fetchPolicy?: FetchPolicy;
+    }
+  ) {
+    return Promise.all(arrayDistinct(labels).map((label) => this.loadByLabel(label, opts))).then((programs) => programs.filter(isNotNil));
   }
 
   /**
    * Watch program pmfms
    */
-  watchProgramPmfms(programLabel: string, opts: {
-    cache?: boolean;
-    acquisitionLevel?: string;
-    acquisitionLevels?: string[];
-    strategyLabel?: string;
-    gearId?: number;
-    taxonGroupId?: number;
-    referenceTaxonId?: number;
-    toEntity?: boolean;
-  }, debug?: boolean): Observable<DenormalizedPmfmStrategy[]> {
-
+  watchProgramPmfms(
+    programLabel: string,
+    opts: {
+      cache?: boolean;
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyLabel?: string;
+      gearId?: number;
+      taxonGroupId?: number;
+      referenceTaxonId?: number;
+      toEntity?: boolean;
+    },
+    debug?: boolean
+  ): Observable<DenormalizedPmfmStrategy[]> {
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
-      return this.cache.loadFromObservable(cacheKey,
-        defer(() => this.watchProgramPmfms(programLabel, {...opts, cache: false, toEntity: false})),
-        ProgramRefCacheKeys.CACHE_GROUP)
+      const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify({ ...opts, cache: undefined, toEntity: undefined })].join('|');
+      return this.cache
+        .loadFromObservable(
+          cacheKey,
+          defer(() => this.watchProgramPmfms(programLabel, { ...opts, cache: false, toEntity: false })),
+          ProgramRefCacheKeys.CACHE_GROUP
+        )
         .pipe(
-          map(data => (!opts || opts.toEntity !== false)
-            ? (data || []).map(DenormalizedPmfmStrategy.fromObject)
-            : (data || []) as DenormalizedPmfmStrategy[])
+          map((data) =>
+            !opts || opts.toEntity !== false ? (data || []).map(DenormalizedPmfmStrategy.fromObject) : ((data || []) as DenormalizedPmfmStrategy[])
+          )
         );
     }
 
     // Watch the program
     const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
+    return this.watchByLabel(programLabel, {
+      toEntity: false,
+      withStrategies: true,
+      strategyFilter: opts && {
         label: opts?.strategyLabel,
-        acquisitionLevels
-      }})
-      .pipe(
-        map(program => program.strategies || []),
-        // Filter strategy's pmfms
-        map(strategies => {
-          const filterFn = DenormalizedPmfmStrategyFilter.fromObject(opts).asFilterFn();
-          if (!filterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
-          return strategies
-            .flatMap(strategy => (strategy?.denormalizedPmfms || [])
-            .filter(filterFn));
-        }),
-        // Merge duplicated pmfms (make to a unique pmfm, by id)
-        map(pmfms => pmfms.reduce((res, p) => {
-            const index = res.findIndex(other => other.id === p.id);
-            if (index !== -1) {
-              console.debug('[program-ref-service] Merging duplicated pmfms:', res[index], p);
-              res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
-              return res;
-            }
-            return res.concat(p);
-          }, [])
-        ),
-        // Sort on rank order (asc)
-        map(data => data.sort((p1, p2) => p1.rankOrder - p2.rankOrder)),
-        map(data => {
-          if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, data);
+        acquisitionLevels,
+      },
+    }).pipe(
+      map((program) => program.strategies || []),
+      // Filter strategy's pmfms
+      map((strategies) => {
+        const filterFn = DenormalizedPmfmStrategyFilter.fromObject(opts).asFilterFn();
+        if (!filterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
+        return strategies.flatMap((strategy) => (strategy?.denormalizedPmfms || []).filter(filterFn));
+      }),
+      // Merge duplicated pmfms (make to a unique pmfm, by id)
+      map((pmfms) =>
+        pmfms.reduce((res, p) => {
+          const index = res.findIndex((other) => other.id === p.id);
+          if (index !== -1) {
+            console.debug('[program-ref-service] Merging duplicated pmfms:', res[index], p);
+            res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
+            return res;
+          }
+          return res.concat(p);
+        }, [])
+      ),
+      // Sort on rank order (asc)
+      map((data) => data.sort((p1, p2) => p1.rankOrder - p2.rankOrder)),
+      map((data) => {
+        if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, data);
 
-          // Convert into entities
-          return (!opts || opts.toEntity !== false)
-            ? data.map(DenormalizedPmfmStrategy.fromObject)
-            : data as DenormalizedPmfmStrategy[];
-        }
-      )
+        // Convert into entities
+        return !opts || opts.toEntity !== false ? data.map(DenormalizedPmfmStrategy.fromObject) : (data as DenormalizedPmfmStrategy[]);
+      })
     );
   }
 
   /**
    * Load program pmfms
    */
-  loadProgramPmfms(programLabel: string, options?: {
-    acquisitionLevel?: string;
-    acquisitionLevels?: string[];
-    strategyLabel?: string;
-    gearId?: number;
-    taxonGroupId?: number;
-    referenceTaxonId?: number;
-  }, debug?: boolean): Promise<DenormalizedPmfmStrategy[]> {
+  loadProgramPmfms(
+    programLabel: string,
+    options?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyLabel?: string;
+      gearId?: number;
+      taxonGroupId?: number;
+      referenceTaxonId?: number;
+    },
+    debug?: boolean
+  ): Promise<DenormalizedPmfmStrategy[]> {
     // DEBUG
     if (options) console.debug(`[program-ref-service] Loading ${programLabel} PMFMs on ${options.acquisitionLevel}`);
 
@@ -687,46 +706,53 @@ export class ProgramRefService
   /**
    * Watch program gears
    */
-  watchGears(programLabel: string, opts?: {
-    acquisitionLevel?: string;
-    acquisitionLevels?: string[];
-    strategyLabel?: string;
-    toEntity?: boolean;
-    cache?: boolean;
-  }): Observable<ReferentialRef[]> {
-
+  watchGears(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Observable<ReferentialRef[]> {
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.GEARS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
-      return this.cache.loadFromObservable(cacheKey,
-        defer(() => this.watchGears(programLabel, {...opts, cache: false, toEntity: false})),
-        ProgramRefCacheKeys.CACHE_GROUP)
-        .pipe(
-          map(data => (!opts || opts.toEntity !== false)
-            ? (data || []).map(ReferentialRef.fromObject)
-            : (data || []) as ReferentialRef[])
-        );
+      const cacheKey = [ProgramRefCacheKeys.GEARS, programLabel, JSON.stringify({ ...opts, cache: undefined, toEntity: undefined })].join('|');
+      return this.cache
+        .loadFromObservable(
+          cacheKey,
+          defer(() => this.watchGears(programLabel, { ...opts, cache: false, toEntity: false })),
+          ProgramRefCacheKeys.CACHE_GROUP
+        )
+        .pipe(map((data) => (!opts || opts.toEntity !== false ? (data || []).map(ReferentialRef.fromObject) : ((data || []) as ReferentialRef[]))));
     }
 
     // Load the program, with strategies
     const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
-      label: opts?.strategyLabel,
-      acquisitionLevels
-    }})
-        .pipe(
-          map(program => program.strategies || []),
-          // get all gears
-          map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.gears ||[]), 'id')),
-          map(data => {
-            if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${programLabel}}`);
+    return this.watchByLabel(programLabel, {
+      toEntity: false,
+      withStrategies: true,
+      strategyFilter: opts && {
+        label: opts?.strategyLabel,
+        acquisitionLevels,
+      },
+    }).pipe(
+      map((program) => program.strategies || []),
+      // get all gears
+      map((strategies) =>
+        arrayDistinct(
+          strategies.flatMap((strategy) => strategy.gears || []),
+          'id'
+        )
+      ),
+      map((data) => {
+        if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${programLabel}}`);
 
-            // Convert into entities
-            return (!opts || opts.toEntity !== false)
-              ? data.map(ReferentialRef.fromObject)
-              : data as ReferentialRef[];
-          })
-        );
+        // Convert into entities
+        return !opts || opts.toEntity !== false ? data.map(ReferentialRef.fromObject) : (data as ReferentialRef[]);
+      })
+    );
   }
 
   /**
@@ -739,56 +765,67 @@ export class ProgramRefService
   /**
    * Watch program taxon groups
    */
-  watchTaxonGroups(programLabel: string, opts?: {
-    acquisitionLevel?: string;
-    acquisitionLevels?: string[];
-    strategyLabel?: string;
-    toEntity?: boolean;
-    cache?:  boolean;
-  }): Observable<TaxonGroupRef[]> {
-
+  watchTaxonGroups(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Observable<TaxonGroupRef[]> {
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
-      const cacheKey = [ProgramRefCacheKeys.TAXON_GROUPS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
-      return this.cache.loadFromObservable(cacheKey,
-        defer(() => this.watchTaxonGroups(programLabel, {...opts, cache: false, toEntity: false})),
-        ProgramRefCacheKeys.CACHE_GROUP)
-        .pipe(
-          map(data => (!opts || opts.toEntity !== false)
-            ? (data || []).map(TaxonGroupRef.fromObject)
-            : (data || []) as TaxonGroupRef[])
-        );
+      const cacheKey = [ProgramRefCacheKeys.TAXON_GROUPS, programLabel, JSON.stringify({ ...opts, cache: undefined, toEntity: undefined })].join('|');
+      return this.cache
+        .loadFromObservable(
+          cacheKey,
+          defer(() => this.watchTaxonGroups(programLabel, { ...opts, cache: false, toEntity: false })),
+          ProgramRefCacheKeys.CACHE_GROUP
+        )
+        .pipe(map((data) => (!opts || opts.toEntity !== false ? (data || []).map(TaxonGroupRef.fromObject) : ((data || []) as TaxonGroupRef[]))));
     }
 
     // Watch program
     const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
+    return this.watchByLabel(programLabel, {
+      toEntity: false,
+      withStrategies: true,
+      strategyFilter: opts && {
         label: opts?.strategyLabel,
-        acquisitionLevels
-      }})
-      .pipe(
-        // Get strategies
-        map(program => (program.strategies || [])),
-        // Get taxon groups strategies
-        map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.taxonGroups || []), ['priorityLevel', 'taxonGroup.id'])),
-          // Sort taxonGroupStrategies, on priorityLevel
-        map(data => data.sort(propertiesPathComparator(
-               ['priorityLevel', 'taxonGroup.label', 'taxonGroup.name'],
-               // Use default values, because priorityLevel can be null in the DB
-               [1, 'ZZZ', 'ZZZ'])
-             )
-            // Merge priority into taxonGroup
-            .map(v => <any>{...v.taxonGroup, priority: v.priorityLevel})
-        ),
-        map(data => {
-          if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
+        acquisitionLevels,
+      },
+    }).pipe(
+      // Get strategies
+      map((program) => program.strategies || []),
+      // Get taxon groups strategies
+      map((strategies) =>
+        arrayDistinct(
+          strategies.flatMap((strategy) => strategy.taxonGroups || []),
+          ['priorityLevel', 'taxonGroup.id']
+        )
+      ),
+      // Sort taxonGroupStrategies, on priorityLevel
+      map((data) =>
+        data
+          .sort(
+            propertiesPathComparator(
+              ['priorityLevel', 'taxonGroup.label', 'taxonGroup.name'],
+              // Use default values, because priorityLevel can be null in the DB
+              [1, 'ZZZ', 'ZZZ']
+            )
+          )
+          // Merge priority into taxonGroup
+          .map((v) => <any>{ ...v.taxonGroup, priority: v.priorityLevel })
+      ),
+      map((data) => {
+        if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
 
-          // Convert into entities
-          return (!opts || opts.toEntity !== false)
-            ? data.map(TaxonGroupRef.fromObject)
-            : data as TaxonGroupRef[];
-        })
-      );
+        // Convert into entities
+        return !opts || opts.toEntity !== false ? data.map(TaxonGroupRef.fromObject) : (data as TaxonGroupRef[]);
+      })
+    );
   }
 
   /**
@@ -804,10 +841,10 @@ export class ProgramRefService
   async suggestTaxonGroups(value: any, filter?: Partial<ReferentialRefFilter & { program: string }>): Promise<LoadResult<IReferentialRef>> {
     // Search on program's taxon groups
     if (filter && isNotNil(filter.program)) {
-      const programItems = await this.loadTaxonGroups(filter.program, {toEntity: false});
+      const programItems = await this.loadTaxonGroups(filter.program, { toEntity: false });
       if (isNotEmptyArray(programItems)) {
         return suggestFromArray(programItems, value, {
-          searchAttributes: filter.searchAttributes || ['priority', 'label', 'name']
+          searchAttributes: filter.searchAttributes || ['priority', 'label', 'name'],
         });
       }
     }
@@ -816,35 +853,35 @@ export class ProgramRefService
     return this.referentialRefService.suggest(value, {
       ...filter,
       entityName: 'TaxonGroup',
-      levelId: TaxonGroupTypeIds.FAO
+      levelId: TaxonGroupTypeIds.FAO,
     });
   }
 
   /**
    * Load program taxon groups
    */
-  async suggestTaxonNames(value: any, opts: {
-    programLabel?: string;
-    levelId?: number;
-    levelIds?: number[];
-    searchAttribute?: string;
-    taxonGroupId?: number;
-  }): Promise<LoadResult<TaxonNameRef>> {
-
+  async suggestTaxonNames(
+    value: any,
+    opts: {
+      programLabel?: string;
+      levelId?: number;
+      levelIds?: number[];
+      searchAttribute?: string;
+      taxonGroupId?: number;
+    }
+  ): Promise<LoadResult<TaxonNameRef>> {
     // Search on taxon group's taxon'
     if (isNotNil(opts.programLabel) && isNotNil(opts.taxonGroupId)) {
-
       // Get map from program
       const taxonNamesByTaxonGroupId = await this.loadTaxonNamesByTaxonGroupIdMap(opts.programLabel);
       const values = taxonNamesByTaxonGroupId[opts.taxonGroupId];
       if (isNotEmptyArray(values)) {
-
         // All values
-        if (isNilOrBlank(opts.searchAttribute)) return {data: values};
+        if (isNilOrBlank(opts.searchAttribute)) return { data: values };
 
         // Text search
         return suggestFromArray<TaxonNameRef>(values, value, {
-          searchAttribute: opts.searchAttribute
+          searchAttribute: opts.searchAttribute,
         });
       }
     }
@@ -854,35 +891,39 @@ export class ProgramRefService
       levelId: opts.levelId,
       levelIds: opts.levelIds,
       taxonGroupId: opts.taxonGroupId,
-      searchAttribute: opts.searchAttribute
+      searchAttribute: opts.searchAttribute,
     });
 
     // If there result, use it
-    if (res && isNotEmptyArray(res.data) || res.total > 0) return res;
+    if ((res && isNotEmptyArray(res.data)) || res.total > 0) return res;
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(opts.taxonGroupId)) {
       return this.taxonNameRefService.suggest(value, {
         levelId: opts.levelId,
         levelIds: opts.levelIds,
-        searchAttribute: opts.searchAttribute
+        searchAttribute: opts.searchAttribute,
       });
     }
 
     // Nothing found
-    return {data: []};
+    return { data: [] };
   }
 
-  async loadTaxonNamesByTaxonGroupIdMap(programLabel: string, opts?: {
-    cache?: boolean;
-    toEntity?: boolean;
-  }): Promise<{[key: number]: TaxonNameRef[]}> {
-
+  async loadTaxonNamesByTaxonGroupIdMap(
+    programLabel: string,
+    opts?: {
+      cache?: boolean;
+      toEntity?: boolean;
+    }
+  ): Promise<{ [key: number]: TaxonNameRef[] }> {
     if (!opts || opts.cache !== false) {
       const mapCacheKey = [ProgramRefCacheKeys.TAXON_NAME_BY_GROUP, programLabel].join('|');
-      return this.cache.getOrSetItem(mapCacheKey,
-        () => this.loadTaxonNamesByTaxonGroupIdMap(programLabel, {...opts, cache: false, toEntity: false}),
-        ProgramRefCacheKeys.CACHE_GROUP);
+      return this.cache.getOrSetItem(
+        mapCacheKey,
+        () => this.loadTaxonNamesByTaxonGroupIdMap(programLabel, { ...opts, cache: false, toEntity: false }),
+        ProgramRefCacheKeys.CACHE_GROUP
+      );
     }
 
     const taxonGroups = await this.loadTaxonGroups(programLabel, opts);
@@ -895,16 +936,17 @@ export class ProgramRefService
     }, {});
   }
 
-  async executeImport(filter: Partial<ProgramFilter>,
-                      opts?: {
-                        progression?: BehaviorSubject<number>;
-                        maxProgression?: number;
-                        acquisitionLevels?: string[];
-                        program?: Program;
-                        [key: string]: any;
-                      }) {
-
-    const maxProgression = opts && opts.maxProgression || 100;
+  async executeImport(
+    filter: Partial<ProgramFilter>,
+    opts?: {
+      progression?: BehaviorSubject<number>;
+      maxProgression?: number;
+      acquisitionLevels?: string[];
+      program?: Program;
+      [key: string]: any;
+    }
+  ) {
+    const maxProgression = (opts && opts.maxProgression) || 100;
 
     const now = this._debug && Date.now();
     console.info('[program-ref-service] Importing programs...');
@@ -917,11 +959,12 @@ export class ProgramRefService
       filter = {
         ...filter,
         acquisitionLevelLabels: opts?.acquisitionLevels,
-        statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       };
-      const strategyFilter = isNotEmptyArray(filter.strategyIds) ? StrategyFilter.fromObject({includedIds: filter.strategyIds})
-        // By default, all strategies of imported programs
-        : null;
+      const strategyFilter = isNotEmptyArray(filter.strategyIds)
+        ? StrategyFilter.fromObject({ includedIds: filter.strategyIds })
+        : // By default, all strategies of imported programs
+          null;
 
       // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
       if (strategyFilter) {
@@ -934,44 +977,42 @@ export class ProgramRefService
 
       // Step 1. load all programs, with strategies
       const importedProgramLabels = [];
-      const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
+      const { data } = await JobUtils.fetchAllPages<any>(
+        (offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', filter, {
-            query: (offset === 0) ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
+            query: offset === 0 ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
             variables: {
-              strategyFilter: strategyFilter?.asPodObject()
+              strategyFilter: strategyFilter?.asPodObject(),
             },
             fetchPolicy: 'no-cache',
-            toEntity: false
+            toEntity: false,
           }),
         {
           progression: opts?.progression,
           maxProgression: maxProgression * 0.9,
-          onPageLoaded: ({data}) => {
-            const labels = (data || []).map(p => p.label) as string[];
+          onPageLoaded: ({ data }) => {
+            const labels = (data || []).map((p) => p.label) as string[];
             importedProgramLabels.push(...labels);
           },
           logPrefix: '[program-ref-service]',
-          fetchSize: 5 /* limit to 5 program, because a program graph it can be huge ! */
+          fetchSize: 5 /* limit to 5 program, because a program graph it can be huge ! */,
         }
       );
 
       // Step 2. Saving locally
       await this.entities.saveAll(data || [], {
         entityName: Program.TYPENAME,
-        reset: resetLocalStorage
+        reset: resetLocalStorage,
       });
 
       if (this._debug) console.debug(`[program-ref-service] Importing programs [OK] in ${Date.now() - now}ms`, data);
-
-    }
-    catch (err) {
+    } catch (err) {
       console.error('[program-ref-service] Error during programs importation', err);
       throw err;
     }
   }
 
   listenChanges(id: number, opts?: { interval?: number }): Observable<Program> {
-
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_ID, id].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
@@ -981,29 +1022,28 @@ export class ProgramRefService
       const subject = new Subject<Program>();
       cache = {
         subject,
-        subscription: super.listenChanges(id, opts).subscribe(subject)
+        subscription: super.listenChanges(id, opts).subscribe(subject),
       };
       this._subscriptionCache[cacheKey] = cache;
     }
 
-    return cache.subject.asObservable()
-      .pipe(
-        finalize(() => {
-          // DEBUG
-          //console.debug(`[program-ref-service] Finalize program {${id}} changes (${cache.subject.observers.length} observers)`);
+    return cache.subject.asObservable().pipe(
+      finalize(() => {
+        // DEBUG
+        //console.debug(`[program-ref-service] Finalize program {${id}} changes (${cache.subject.observers.length} observers)`);
 
-          // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
-          setTimeout(() => {
-            if (cache.subject.observers?.length > 0) return; // Skip if has observers
-            // DEBUG
-            //console.debug(`[program-ref-service] Closing program {${id}} changes listener`);
-            this._subscriptionCache[cacheKey] = undefined;
-            cache.subject.complete();
-            cache.subject.unsubscribe();
-            cache.subscription.unsubscribe();
-          }, 100);
-        })
-      );
+        // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
+        setTimeout(() => {
+          if (cache.subject.observers?.length > 0) return; // Skip if has observers
+          // DEBUG
+          //console.debug(`[program-ref-service] Closing program {${id}} changes listener`);
+          this._subscriptionCache[cacheKey] = undefined;
+          cache.subject.complete();
+          cache.subject.unsubscribe();
+          cache.subscription.unsubscribe();
+        }, 100);
+      })
+    );
   }
 
   async clearCache() {
@@ -1029,30 +1069,39 @@ export class ProgramRefService
     // const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
     this._enableQualityProcess = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
     this._accessNotSelfDataDepartmentIds = config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS) || [];
-    this._accessNotSelfDataMinProfile = PersonUtils.roleToProfile(config.getProperty(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_ROLE)?.replace(/^ROLE_/, ''), 'ADMIN');
+    this._accessNotSelfDataMinProfile = PersonUtils.roleToProfile(
+      config.getProperty(DATA_CONFIG_OPTIONS.ACCESS_NOT_SELF_DATA_ROLE)?.replace(/^ROLE_/, ''),
+      'ADMIN'
+    );
   }
 
-  protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number }) {
+  protected startListenAuthorizedProgram(opts?: { intervalInSeconds?: number }) {
     if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
 
     console.debug(`${this._logPrefix}Watching authorized programs...`);
 
     const variables = {
-      interval: Math.max(10, opts?.intervalInSeconds || environment['program']?.listenIntervalInSeconds || 10)
+      interval: Math.max(10, opts?.intervalInSeconds || environment['program']?.listenIntervalInSeconds || 10),
     };
 
-    this._listenAuthorizedSubscription = this.graphql.subscribe<{data: any}>({
-      query: ProgramRefSubscriptions.listenAuthorizedPrograms,
-      variables,
-      error: {
-        code: ErrorCodes.SUBSCRIBE_AUTHORIZED_PROGRAMS_ERROR,
-        message: 'PROGRAM.ERROR.SUBSCRIBE_AUTHORIZED_PROGRAMS'
-      }
-    })
+    this._listenAuthorizedSubscription = this.graphql
+      .subscribe<{ data: any }>({
+        query: ProgramRefSubscriptions.listenAuthorizedPrograms,
+        variables,
+        error: {
+          code: ErrorCodes.SUBSCRIBE_AUTHORIZED_PROGRAMS_ERROR,
+          message: 'PROGRAM.ERROR.SUBSCRIBE_AUTHORIZED_PROGRAMS',
+        },
+      })
       .pipe(
         //takeUntil(this.accountService.onLogout),
         // Map to sorted labels
-        map(({data}) => (data||[]).map(p => p?.label).sort().join(',')),
+        map(({ data }) =>
+          (data || [])
+            .map((p) => p?.label)
+            .sort()
+            .join(',')
+        ),
         distinctUntilChanged()
       )
       .subscribe(async (programLabels) => {
@@ -1063,10 +1112,10 @@ export class ProgramRefService
           this.graphql.clearCache(),
           this.strategyRefService.clearCache(),
           // Clear cache (e.g. used by autocomplete fields)
-          this.clearCache()
+          this.clearCache(),
         ]);
 
-        this.showToast({message: 'PROGRAM.INFO.AUTHORIZED_PROGRAMS_UPDATED', type: 'info'});
+        this.showToast({ message: 'PROGRAM.INFO.AUTHORIZED_PROGRAMS_UPDATED', type: 'info' });
       });
 
     this._listenAuthorizedSubscription.add(() => console.debug(`${this._logPrefix}Stop watching authorized programs`));
@@ -1086,5 +1135,4 @@ export class ProgramRefService
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
   }
-
 }

@@ -60,7 +60,7 @@
             </li>
             <li>
               <ion-icon name="calendar"></ion-icon>
-              {{ 'LANDING.EDIT.SAMPLING.DATE' | translate }} : {{ data.dateTime | dateFormat : { time: false } }}
+              {{ 'LANDING.EDIT.SAMPLING.DATE' | translate }} : {{ data.dateTime | dateFormat: { time: false } }}
             </li>
             <li *ngIf="!reveal?.embedded">
               <ion-icon name="people"></ion-icon>
@@ -102,15 +102,9 @@
           </ul>
         </section>
 
-        <section
-          markdown
-          ngPreserveWhitespaces
-          *ngFor="let samples of data.samples | splitArrayInChunks : 14; index as index; count as count"
-        >
-          ### {{ 'LANDING.REPORT.SAMPLING.SAMPLES_TITLE' | translate }} {{ index | paginationToString : count }}
-          <ng-container
-            *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"
-          ></ng-container>
+        <section markdown ngPreserveWhitespaces *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
+          ### {{ 'LANDING.REPORT.SAMPLING.SAMPLES_TITLE' | translate }} {{ index | paginationToString: count }}
+          <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
         </section>
       </section>
     </app-reveal>
@@ -124,13 +118,11 @@
 </ng-container>
 
 <ng-container *ngIf="embedded && loaded">
-  <ng-container *ngFor="let samples of data.samples | splitArrayInChunks : 14; index as index; count as count">
+  <ng-container *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
     <section markdown ngPreserveWhitespaces *sectionDef>
-      ### {{ data.vesselSnapshot?.name }} {{ data.dateTime | dateFormat : { time: false } }} -
-      {{ stats.strategyLabel }} {{ index | paginationToString : count }}
-      <ng-container
-        *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"
-      ></ng-container>
+      ### {{ data.vesselSnapshot?.name }} {{ data.dateTime | dateFormat: { time: false } }} - {{ stats.strategyLabel }}
+      {{ index | paginationToString: count }}
+      <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
     </section>
   </ng-container>
 </ng-container>
@@ -141,11 +133,7 @@
       <tr>
         <th
           *ngFor="let pmfm of pmfms"
-          [innerHTML]="
-            pmfm
-              | pmfmName
-                : { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true }
-          "
+          [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true }"
         ></th>
       </tr>
     </thead>
@@ -154,8 +142,7 @@
         <td
           *ngFor="let pmfm of pmfms"
           [innerHTML]="
-            sample.measurementValues[pmfm.id]
-              | pmfmValue : { pmfm: pmfm, html: true, propertyNames: ['name'], applyDisplayConversion: true }
+            sample.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: ['name'], applyDisplayConversion: true }
           "
         ></td>
       </tr>

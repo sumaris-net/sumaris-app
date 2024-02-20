@@ -37,13 +37,8 @@ export const BASE_TABLE_SETTINGS_ENUM = {
   compactRowsKey: 'compactRows',
 };
 
-export interface BaseTableConfig<
-  T extends Entity<T, ID>,
-  ID = number,
-  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-  SO = any>
+export interface BaseTableConfig<T extends Entity<T, ID>, ID = number, WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions, SO = any>
   extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
-
   restoreCompactMode?: boolean;
   restoreColumnWidths?: boolean;
   i18nColumnPrefix?: string;
@@ -56,7 +51,7 @@ export abstract class AppBaseTable<
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
+    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>,
   >
   extends AppTable<T, F, ID>
   implements OnInit, AfterViewInit
@@ -577,7 +572,7 @@ export abstract class AppBaseTable<
       } else {
         row.currentData.comments = data;
       }
-      this.markAsDirty({emitEvent: false});
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
     }
   }

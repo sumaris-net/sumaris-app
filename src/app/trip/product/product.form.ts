@@ -11,15 +11,13 @@ import { environment } from '@environments/environment';
 import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
 import { ProductValidatorService } from '@app/trip/product/product.validator';
 
-
 @Component({
   selector: 'app-product-form',
   templateUrl: './product.form.html',
   styleUrls: ['./product.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductForm extends MeasurementValuesForm<Product> implements OnInit {
-
   readonly mobile: boolean;
 
   @Input() tabindex: number;
@@ -35,9 +33,13 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
     protected programRefService: ProgramRefService,
     protected validatorService: ProductValidatorService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService,
+    super(
+      injector,
+      measurementsValidatorService,
+      formBuilder,
+      programRefService,
       validatorService.getFormGroup(null, {
-        withMeasurements: false
+        withMeasurements: false,
       })
     );
 
@@ -46,7 +48,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
 
     this.mobile = this.settings.mobile;
     this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -58,27 +60,25 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
       items: this.parents,
       attributes: this.parentAttributes,
       columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
-      mobile: this.mobile
+      columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+      mobile: this.mobile,
     });
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
-      mobile: this.mobile
+      columnSizes: taxonGroupAttributes.map((attr) => (attr === 'label' ? 3 : undefined)),
+      mobile: this.mobile,
     });
   }
-
 
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
+    return this.programRefService.suggestTaxonGroups(value, {
+      program: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+    });
   }
 
   protected markForCheck() {

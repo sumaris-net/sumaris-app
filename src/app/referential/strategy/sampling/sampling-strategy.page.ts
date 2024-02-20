@@ -323,4 +323,3 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     }
   }
 }
-

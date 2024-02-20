@@ -4,12 +4,9 @@ import { Referential, SharedValidators, toNumber } from '@sumaris-net/ngx-compon
 import { ReferentialValidatorService } from '@app/referential/services/validator/referential.validator';
 import { TranscribingItem } from '@app/referential/transcribing/transcribing.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TranscribingItemValidatorService extends ReferentialValidatorService<TranscribingItem> {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -26,5 +23,4 @@ export class TranscribingItemValidatorService extends ReferentialValidatorServic
       type: [data?.type || null, SharedValidators.entity],
     };
   }
-
 }

@@ -5,19 +5,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
-  imports: [
-    SharedModule,
-    TranslateModule.forChild(),
-    MatExpansionModule
-  ],
-  declarations: [
-    DebugComponent
-  ],
-  exports: [
-    DebugComponent,
-    TranslateModule
-  ]
+  imports: [SharedModule, TranslateModule.forChild(), MatExpansionModule],
+  declarations: [DebugComponent],
+  exports: [DebugComponent, TranslateModule],
 })
-export class AppSharedDebugModule {
-
-}
+export class AppSharedDebugModule {}

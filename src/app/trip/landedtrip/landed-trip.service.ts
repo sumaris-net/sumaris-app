@@ -1,5 +1,13 @@
 import { Injectable, Injector, Optional } from '@angular/core';
-import { EntitiesStorage, FormErrors, FormErrorTranslator, GraphqlService, LocalSettingsService, NetworkService, PersonService } from '@sumaris-net/ngx-components';
+import {
+  EntitiesStorage,
+  FormErrors,
+  FormErrorTranslator,
+  GraphqlService,
+  LocalSettingsService,
+  NetworkService,
+  PersonService,
+} from '@sumaris-net/ngx-components';
 import { OperationService } from '../operation/operation.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -12,11 +20,8 @@ import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service
 import { TripService } from '@app/trip/trip/trip.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 
-@Injectable({providedIn: 'root'})
-export class LandedTripService
-  extends TripService {
-
-
+@Injectable({ providedIn: 'root' })
+export class LandedTripService extends TripService {
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
@@ -35,8 +40,23 @@ export class LandedTripService
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
-    super(injector, graphql, network, referentialRefService, vesselSnapshotService, personService,
-      entities, operationService, physicalGearService, settings, validatorService,
-      trashRemoteService, formErrorTranslator, userEventService, translate, toastController);
+    super(
+      injector,
+      graphql,
+      network,
+      referentialRefService,
+      vesselSnapshotService,
+      personService,
+      entities,
+      operationService,
+      physicalGearService,
+      settings,
+      validatorService,
+      trashRemoteService,
+      formErrorTranslator,
+      userEventService,
+      translate,
+      toastController
+    );
   }
 }

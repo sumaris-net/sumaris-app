@@ -6,14 +6,11 @@ import { AppInboxMessageModule } from '@app/social/message/inbox-message.module'
 import { JobReportModal } from '@app/social/job/report/job.report.modal';
 
 @NgModule({
-  imports: [
-    AppCoreModule
-  ],
+  imports: [AppCoreModule],
   declarations: [JobReportModal],
   exports: [
     // Components
-    JobReportModal
-  ]
+    JobReportModal,
+  ],
 })
-export class AppJobReportModule {
-}
+export class AppJobReportModule {}

@@ -13,10 +13,11 @@ export interface OperationGroupValidatorOptions extends DataEntityValidatorOptio
   withMeasurements?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class OperationGroupValidatorService<O extends OperationGroupValidatorOptions = OperationGroupValidatorOptions>
-  extends DataEntityValidatorService<OperationGroup, O> implements ValidatorService {
-
+  extends DataEntityValidatorService<OperationGroup, O>
+  implements ValidatorService
+{
   constructor(
     protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService,
@@ -45,17 +46,14 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
   }
 
   getFormGroupConfig(data?: OperationGroup, opts?: O): { [key: string]: any } {
-
-    return Object.assign(
-      super.getFormGroupConfig(data, opts),
-      {
-        __typename: [OperationGroup.TYPENAME],
-        rankOrderOnPeriod: [data?.rankOrderOnPeriod || null],
-        metier: [data?.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGearId: [data?.physicalGearId || null],
-        measurementValues: this.formBuilder.group({}),
-        comments: [data?.comments || null, Validators.maxLength(2000)]
-      });
+    return Object.assign(super.getFormGroupConfig(data, opts), {
+      __typename: [OperationGroup.TYPENAME],
+      rankOrderOnPeriod: [data?.rankOrderOnPeriod || null],
+      metier: [data?.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      physicalGearId: [data?.physicalGearId || null],
+      measurementValues: this.formBuilder.group({}),
+      comments: [data?.comments || null, Validators.maxLength(2000)],
+    });
   }
 
   /* -- protected methods -- */
@@ -68,5 +66,4 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
 
     return opts;
   }
-
 }

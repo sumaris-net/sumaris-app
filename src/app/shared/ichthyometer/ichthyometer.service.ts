@@ -18,7 +18,7 @@ import {
   removeDuplicatesFromArray,
   StartableService,
   suggestFromArray,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
 import { catchError, debounceTime, filter, finalize, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
@@ -26,7 +26,6 @@ import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { Platform } from '@ionic/angular';
 import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
-
 
 export declare type IchthyometerType = 'gwaleen';
 
@@ -39,8 +38,7 @@ export interface IchthyometerDevice extends BluetoothDevice {
   };
 }
 export interface Ichthyometer extends IchthyometerDevice, OnDestroy {
-
-  ping: () => Promise<boolean|BluetoothDeviceWithMeta>;
+  ping: () => Promise<boolean | BluetoothDeviceWithMeta>;
   watchLength: () => Observable<{ value: number; unit: LengthUnitSymbol }>;
   isEnabled: () => Promise<boolean>;
   enabled$: Observable<boolean>;
@@ -54,9 +52,8 @@ export interface IchthyometerServiceState {
   knownDevices: IchthyometerDevice[];
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class IchthyometerService extends StartableService implements OnDestroy, SuggestService<IchthyometerDevice, any> {
-
   static DEFAULT_TYPE: IchthyometerType = GwaleenIchthyometer.TYPE;
 
   private readonly _logger: ILogger;
@@ -76,15 +73,17 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   }
 
   set knownDevices(value: IchthyometerDevice[]) {
-    this._state.set('knownDevices', _ => value);
+    this._state.set('knownDevices', (_) => value);
   }
 
-  constructor(private injector: Injector,
-              private platform: Platform,
-              private settings: LocalSettingsService,
-              private bluetoothService: BluetoothService,
-              private audioProvider: AudioProvider,
-              @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService) {
+  constructor(
+    private injector: Injector,
+    private platform: Platform,
+    private settings: LocalSettingsService,
+    private bluetoothService: BluetoothService,
+    private audioProvider: AudioProvider,
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
+  ) {
     super(bluetoothService);
 
     if (this.isApp()) {
@@ -104,35 +103,30 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
     let canAutoStop = false;
     this.registerSubscription(
-      this.bluetoothService.connectedDevices$
-        .pipe(
-          mergeMap(devices => this.getAll(devices))
-        )
-        .subscribe(ichthyometers => {
-          // DEBUG
-          //console.debug('[ichthyometer] Updated ichthyometers: ' + ichthyometers.map(d => d?.address).join(','));
+      this.bluetoothService.connectedDevices$.pipe(mergeMap((devices) => this.getAll(devices))).subscribe((ichthyometers) => {
+        // DEBUG
+        //console.debug('[ichthyometer] Updated ichthyometers: ' + ichthyometers.map(d => d?.address).join(','));
 
-          this._state.set('ichthyometers', _ => ichthyometers);
-          if (isNotEmptyArray(ichthyometers)) {
-            canAutoStop = true;
-          }
-          else if (canAutoStop) {
-            console.debug('[ichthyometer] Not more ichthyometers: will stop...');
-            this.stop();
-          }
-        })
-      );
+        this._state.set('ichthyometers', (_) => ichthyometers);
+        if (isNotEmptyArray(ichthyometers)) {
+          canAutoStop = true;
+        } else if (canAutoStop) {
+          console.debug('[ichthyometer] Not more ichthyometers: will stop...');
+          this.stop();
+        }
+      })
+    );
 
     this.registerSubscription(
       this.ichthyometers$
         .pipe(
-          filter(_ => !this._restoring),
+          filter((_) => !this._restoring),
           debounceTime(1000),
           filter(isNotEmptyArray) // Skip if no more devices (.g. auto disconnected)
         )
         // Save into settings
-        .subscribe(devices => this.saveToSettings(devices))
-      );
+        .subscribe((devices) => this.saveToSettings(devices))
+    );
 
     await this.restoreFromSettings();
   }
@@ -142,7 +136,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
     this._logger?.debug('Stopping...');
 
     // Reset state
-    this._state.set({ichthyometers: null, knownDevices: null});
+    this._state.set({ ichthyometers: null, knownDevices: null });
 
     return super.ngOnStop();
   }
@@ -164,57 +158,57 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   async checkAudioMode() {
     try {
       await this.audioProvider.setAudioMode(AudioManagement.AudioMode.NORMAL);
-    }
-    catch(err) {
+    } catch (err) {
       // Continue
     }
   }
 
-  watchLength(): Observable<{value: number; unit: LengthUnitSymbol}> {
-
+  watchLength(): Observable<{ value: number; unit: LengthUnitSymbol }> {
     // Wait service to be started (e.g. if all ichthyometer has been disconnected, then we should restart the service)
     if (!this.started) {
-      return from(this.ready())
-        .pipe(switchMap(() => this.watchLength())); // Loop
+      return from(this.ready()).pipe(switchMap(() => this.watchLength())); // Loop
     }
 
     const stopSubject = new Subject<void>();
     console.info('[ichthyometer] Watching length values...');
 
-    return this.ichthyometers$
-      .pipe(
-        // DEBUG
-        //tap(ichthyometers => console.debug(`[ichthyometer] Watching length values from ${ichthyometers?.length || 0} devices`)),
-        filter(isNotEmptyArray),
-        switchMap(ichthyometers => merge(
-          ...(ichthyometers.map(ichthyometer => ichthyometer.watchLength()
-            .pipe(
+    return this.ichthyometers$.pipe(
+      // DEBUG
+      //tap(ichthyometers => console.debug(`[ichthyometer] Watching length values from ${ichthyometers?.length || 0} devices`)),
+      filter(isNotEmptyArray),
+      switchMap((ichthyometers) =>
+        merge(
+          ...ichthyometers.map((ichthyometer) =>
+            ichthyometer.watchLength().pipe(
               takeUntil(stopSubject),
-              tap(({value, unit}) => console.info(`[ichthyometer] Received value '${value} ${unit}' from device '${ichthyometer.address}'`)),
-              catchError(err => {
-                console.error(`[ichthyometer] Error while watching length values from device '${ichthyometer.address}': ${err?.message||''}`);
+              tap(({ value, unit }) => console.info(`[ichthyometer] Received value '${value} ${unit}' from device '${ichthyometer.address}'`)),
+              catchError((err) => {
+                console.error(`[ichthyometer] Error while watching length values from device '${ichthyometer.address}': ${err?.message || ''}`);
                 if (err?.code === BluetoothErrorCodes.BLUETOOTH_CONNECTION_ERROR) {
                   this.bluetoothService.disconnect(ichthyometer);
-                }
-                else if (err?.code === BluetoothErrorCodes.BLUETOOTH_DISABLED) {
+                } else if (err?.code === BluetoothErrorCodes.BLUETOOTH_DISABLED) {
                   this.stop();
                 }
                 return EMPTY;
               })
-            )))
-        )),
-        finalize(() => {
-          console.info('[ichthyometer] Stop watching length values...');
-          stopSubject.next();
-        })
-      );
+            )
+          )
+        )
+      ),
+      finalize(() => {
+        console.info('[ichthyometer] Stop watching length values...');
+        stopSubject.next();
+      })
+    );
   }
 
   async disconnectAll(): Promise<void> {
     await Promise.all(
-      Array.from(this._cache.values())
-        .map(instance => instance.disconnect()
-          .catch(_ => {/*continue*/}))
+      Array.from(this._cache.values()).map((instance) =>
+        instance.disconnect().catch((_) => {
+          /*continue*/
+        })
+      )
     );
   }
 
@@ -225,28 +219,29 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   async getAll(devices: IchthyometerDevice[]): Promise<Ichthyometer[]> {
     if (isEmptyArray(devices)) return [];
 
-    console.debug(`[ichthyometer] Trying to find ichthyometers, from device(s): ${JSON.stringify(devices.map(d => d.address))}`);
-    const instances = (await Promise.all(devices.map(async (device) => {
-      try {
-        return this.get(device);
-      }
-      catch (err) {
-        console.error(`[ichthyometer] Cannot find an ichthyometer from device {${device?.address}}: ${err?.message || err}`);
-        return null; // Skip
-      }
-    })))
-    .filter(isNotNil);
+    console.debug(`[ichthyometer] Trying to find ichthyometers, from device(s): ${JSON.stringify(devices.map((d) => d.address))}`);
+    const instances = (
+      await Promise.all(
+        devices.map(async (device) => {
+          try {
+            return this.get(device);
+          } catch (err) {
+            console.error(`[ichthyometer] Cannot find an ichthyometer from device {${device?.address}}: ${err?.message || err}`);
+            return null; // Skip
+          }
+        })
+      )
+    ).filter(isNotNil);
 
-    console.debug(`[ichthyometer] ${instances.length} ichthyometer(s) - device(s): ${JSON.stringify(instances.map(d => d.address))}`);
+    console.debug(`[ichthyometer] ${instances.length} ichthyometer(s) - device(s): ${JSON.stringify(instances.map((d) => d.address))}`);
 
     return instances;
   }
 
-  async get(device: IchthyometerDevice, type?: IchthyometerType, opts?: {cache?: boolean}): Promise<Ichthyometer> {
+  async get(device: IchthyometerDevice, type?: IchthyometerType, opts?: { cache?: boolean }): Promise<Ichthyometer> {
     type = device?.meta?.type || type || IchthyometerService.DEFAULT_TYPE;
     if (!device?.address) throw new Error('Missing device address');
     if (!type) throw new Error('Missing device type');
-
 
     // Check if exists from the cache
     if (!opts || opts.cache !== false) {
@@ -255,7 +250,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
       // Not found in cache
       if (!target) {
-        target = await this.get(device, type, {cache: false});
+        target = await this.get(device, type, { cache: false });
         this._cache.set(cacheKey, target);
       }
       return target;
@@ -273,8 +268,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
       const result = await ichthyometer.ping();
       if (!result) console.debug('[ichthyometer] Ping failed!');
       return result;
-    }
-    catch (err) {
+    } catch (err) {
       console.error('[ichthyometer] Error while send ping: ' + (err?.message || err), err);
       return false; // Continue
     }
@@ -283,7 +277,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   async suggest(value: any, filter: any): Promise<LoadResult<BluetoothDevice>> {
     console.info('[ichthyometer] call suggest() with value: ' + value);
 
-    if (value && typeof value === 'object' && isNotNilOrBlank(value.address)) return {data: [value]};
+    if (value && typeof value === 'object' && isNotNilOrBlank(value.address)) return { data: [value] };
 
     // Wait service started
     if (!this.started) await this.ready();
@@ -297,23 +291,20 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   }
 
   private registerSettingsOptions() {
+    const options = Object.values(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS).map((definition) => {
+      // Replace the devices suggest function
+      if (definition === ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES) {
+        return {
+          ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES,
+          autocomplete: {
+            ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES.autocomplete,
+            suggestFn: (value, filter) => this.suggest(value, filter),
+          },
+        };
+      }
 
-    const options = Object.values(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS)
-      .map(definition => {
-
-        // Replace the devices suggest function
-        if (definition === ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES) {
-          return {
-            ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES,
-            autocomplete: {
-              ...ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES.autocomplete,
-              suggestFn: (value, filter) => this.suggest(value, filter)
-            }
-          };
-        }
-
-        return definition;
-      });
+      return definition;
+    });
 
     this.settings.registerOptions(options);
   }
@@ -351,18 +342,14 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
       } else {
         const now = Date.now();
         console.info(`[ichthyometer] Restoring ${devices.length} ichthyometers...`);
-        const count = (await chainPromises(devices.map(d => () => this.bluetoothService.connect(d)
-            .catch(_ => false /*continue*/)
-          )))
-          .filter(connected => connected)
-          .length;
+        const count = (await chainPromises(devices.map((d) => () => this.bluetoothService.connect(d).catch((_) => false /*continue*/)))).filter(
+          (connected) => connected
+        ).length;
         console.info(`[ichthyometer] Restored ${count} ichthyometers in ${Date.now() - now}ms`);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error('[ichthyometer] Error while restoring devices from settings: ' + err?.message || err, err);
-    }
-    finally {
+    } finally {
       this._restoring = false;
     }
   }
@@ -375,7 +362,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
     devices = (devices || [])
       .filter(isNotNil)
       // Serialize to JSON
-      .map(device => (<IchthyometerDevice>{name: device.name, address: device.address, meta: device.meta}))
+      .map((device) => <IchthyometerDevice>{ name: device.name, address: device.address, meta: device.meta })
       // Append existing
       .concat(...knownDevices);
 
@@ -392,13 +379,12 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
       // Apply settings
       if (isEmptyArray(devices)) {
-        this.settings.setProperty(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES, null, {immediate: true});
-      }
-      else {
+        this.settings.setProperty(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES, null, { immediate: true });
+      } else {
         this.settings.setProperty(ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS.DEVICES, JSON.stringify(devices));
       }
     } catch (err) {
-      console.error(`[ichthyometer] Failed to save devices into local settings: ${err?.message||''}`);
+      console.error(`[ichthyometer] Failed to save devices into local settings: ${err?.message || ''}`);
       // Continue
     }
   }

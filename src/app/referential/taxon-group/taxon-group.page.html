@@ -52,11 +52,7 @@
                   <ion-row>
                     <ion-col>
                       <!-- Type -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.level"
-                        formControlName="levelId"
-                        required
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.level" formControlName="levelId" required></app-form-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
@@ -110,10 +106,7 @@
     </mat-tab>
 
     <!-- TAB: Weight/Length relation -->
-    <mat-tab
-      label="{{ 'REFERENTIAL.TAXON_GROUP.TAB_ROUND_WEIGHT_CONVERSION' | translate }}"
-      [disabled]="(rwcTable.readySubject | async) === false"
-    >
+    <mat-tab label="{{ 'REFERENTIAL.TAXON_GROUP.TAB_ROUND_WEIGHT_CONVERSION' | translate }}" [disabled]="(rwcTable.readySubject | async) === false">
       <ng-template mat-tab-label>
         <mat-icon>list</mat-icon>
         <ion-label translate>REFERENTIAL.TAXON_GROUP.TAB_ROUND_WEIGHT_CONVERSION</ion-label>

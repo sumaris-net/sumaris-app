@@ -12,7 +12,10 @@ export class RevealSectionDirective implements OnInit, OnDestroy {
 
   @Output() entered = new EventEmitter<{ currentSlide: HTMLElement }>();
 
-  constructor(private readonly _elementRef: ElementRef, @Optional() private readonly _reveal: RevealComponent) {}
+  constructor(
+    private readonly _elementRef: ElementRef,
+    @Optional() private readonly _reveal: RevealComponent
+  ) {}
 
   ngOnInit() {
     // DEBUG

@@ -399,4 +399,3 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     this.$pmfms.next(pmfms);
   }
 }
-

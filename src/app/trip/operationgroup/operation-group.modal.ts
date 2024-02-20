@@ -18,10 +18,9 @@ export interface IOperationGroupModalOptions extends IDataEntityModalOptions<Ope
 @Component({
   selector: 'app-operation-group-modal',
   templateUrl: 'operation-group.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupModalOptions {
-
   private _subscription = new Subscription();
 
   readonly debug = !environment.production;
@@ -61,17 +60,11 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     return !this.disabled;
   }
 
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.enable(opts);
   }
 
-  disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.disable(opts);
   }
 
@@ -81,14 +74,13 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
   }
 
   ngOnInit() {
-
     this.isNew = toBoolean(this.isNew, !this.data);
     this.data = this.data || new OperationGroup();
 
@@ -98,8 +90,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
 
     if (this.disabled) {
       this.disable();
-    }
-    else {
+    } else {
       this.enable();
     }
 
@@ -110,9 +101,8 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges.subscribe(operationGroup => this.computeTitle(operationGroup));
+      this.form.valueChanges.subscribe((operationGroup) => this.computeTitle(operationGroup));
     }
-
   }
 
   ngOnDestroy(): void {
@@ -142,17 +132,16 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
       this.form.error = null;
 
       const operationGroup = this.form.value;
-      if (operationGroup.metier && !operationGroup.metier.taxonGroup){
+      if (operationGroup.metier && !operationGroup.metier.taxonGroup) {
         operationGroup.metier.taxonGroup = this.form.metier.taxonGroup;
       }
-      if (operationGroup.metier && ! operationGroup.metier.gear){
+      if (operationGroup.metier && !operationGroup.metier.gear) {
         operationGroup.metier.gear = this.form.metier.gear;
       }
       return await this.modalCtrl.dismiss(operationGroup);
-    }
-    catch (err) {
+    } catch (err) {
       this.loading = false;
-      this.form.error = err && err.message || err;
+      this.form.error = (err && err.message) || err;
       return false;
     }
   }
@@ -174,7 +163,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
     // User cancelled
-    if (isNil(confirmation) || event && event.defaultPrevented) {
+    if (isNil(confirmation) || (event && event.defaultPrevented)) {
       return;
     }
 
@@ -193,8 +182,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     data = data || this.data;
     if (this.isNew) {
       this.$title.next(await this.translate.get('TRIP.OPERATION_GROUP.NEW.TITLE').toPromise());
-    }
-    else {
+    } else {
       this.$title.next(await this.translate.get('TRIP.OPERATION_GROUP.EDIT.TITLE', this.data).toPromise());
     }
   }

@@ -1,15 +1,7 @@
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button
-      mat-icon-button
-      hidden-xs
-      hidden-sm
-      hidden-mobile
-      [disabled]="disabled"
-      [title]="'COMMON.BTN_ADD' | translate"
-      (click)="addRow()"
-    >
+    <button mat-icon-button hidden-xs hidden-sm hidden-mobile [disabled]="disabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -29,7 +21,7 @@
     <!-- Duplicate -->
     <button
       mat-icon-button
-      *ngIf="canDuplicate && enabled && selection.selected | isArrayLength : { equals: 1 }"
+      *ngIf="canDuplicate && enabled && selection.selected | isArrayLength: { equals: 1 }"
       [title]="'COMMON.BTN_DUPLICATE' | translate"
       (click)="duplicateRow($event)"
     >
@@ -64,12 +56,7 @@
   </button>
 
   <!-- show map -->
-  <button
-    mat-icon-button
-    *ngIf="showMap"
-    [title]="'TRIP.OPERATION.BTN_SHOW_MAP' | translate"
-    (click)="openMapModal($event)"
-  >
+  <button mat-icon-button *ngIf="showMap" [title]="'TRIP.OPERATION.BTN_SHOW_MAP' | translate" (click)="openMapModal($event)">
     <mat-icon>
       <ion-icon name="earth"></ion-icon>
     </mat-icon>
@@ -129,19 +116,9 @@
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div
-  #tableContainer
-  class="table-container"
-  [class.has-toolbar]="showToolbar"
-  [class.has-paginator]="paginator && true"
->
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
   <!-- search -->
-  <mat-expansion-panel
-    #filterExpansionPanel
-    class="filter-panel"
-    [class.ion-no-padding]="mobile"
-    [class.filter-panel-floating]="filterPanelFloating"
-  >
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.ion-no-padding]="mobile" [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <!-- Data quality status -->
@@ -154,7 +131,7 @@
             <mat-form-field floatLabel="never">
               <mat-select [formControl]="control" [placeholder]="'COMMON.EMPTY_OPTION' | translate">
                 <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet : control.value; let item">
+                  <span *ngIf="statusById | mapGet: control.value; let item">
                     <ion-icon [name]="item.icon"></ion-icon>
                     {{ item.label | translate }}
                   </span>
@@ -183,15 +160,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label
-        [hidden]="(loadingSubject | async) || filterForm.dirty"
-        [color]="empty && 'danger'"
-        class="ion-padding"
-      >
-        {{
-          (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT')
-            | translate : { count: (totalRowCount | numberFormat) }
-        }}
+      <ion-label [hidden]="(loadingSubject | async) || filterForm.dirty" [color]="empty && 'danger'" class="ion-padding">
+        {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (totalRowCount | numberFormat) } }}
       </ion-label>
 
       <div class="toolbar-spacer"></div>
@@ -273,11 +243,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.QUALITY</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <app-operation-icon
-          [value]="row.currentData"
-          [allowParentOperation]="allowParentOperation"
-          [showError]="showRowError"
-        ></app-operation-icon>
+        <app-operation-icon [value]="row.currentData" [allowParentOperation]="allowParentOperation" [showError]="showRowError"></app-operation-icon>
       </td>
     </ng-container>
 
@@ -289,10 +255,10 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-label *ngIf="row.currentData.physicalGear?.gear; else metier">
-          {{ row.currentData.physicalGear | referentialToString : displayAttributes.physicalGear }}
+          {{ row.currentData.physicalGear | referentialToString: displayAttributes.physicalGear }}
         </ion-label>
         <ng-template #metier>
-          <ion-label>{{ row.currentData.metier?.gear | referentialToString : displayAttributes.gear }}</ion-label>
+          <ion-label>{{ row.currentData.metier?.gear | referentialToString: displayAttributes.gear }}</ion-label>
         </ng-template>
       </td>
     </ng-container>
@@ -304,7 +270,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{ row.currentData.metier | referentialToString : displayAttributes.taxonGroup }}</ion-label>
+        <ion-label>{{ row.currentData.metier | referentialToString: displayAttributes.taxonGroup }}</ion-label>
       </td>
     </ng-container>
 
@@ -314,7 +280,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        <ion-text>{{ row.currentData.startDateTime | dateFormat : { time: true } }}</ion-text>
+        <ion-text>{{ row.currentData.startDateTime | dateFormat: { time: true } }}</ion-text>
         <ion-text *ngIf="mobile" class="computed">
           <br />
           <small>{{ row.currentData.startDateTime | dateFromNow }}</small>
@@ -329,14 +295,9 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-end">
-          {{
-            row.currentData.startPosition?.latitude | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-          }}
+          {{ row.currentData.startPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
           <br />
-          {{
-            row.currentData.startPosition?.longitude
-              | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-          }}
+          {{ row.currentData.startPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
         </ion-text>
       </td>
     </ng-container>
@@ -347,7 +308,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        {{ row.currentData.endDateTime | dateFormat : { time: true } }}
+        {{ row.currentData.endDateTime | dateFormat: { time: true } }}
       </td>
     </ng-container>
 
@@ -357,7 +318,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.FISHING_END_DATE_TIME</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        {{ row.currentData.fishingEndDateTime | dateFormat : { time: true } }}
+        {{ row.currentData.fishingEndDateTime | dateFormat: { time: true } }}
       </td>
     </ng-container>
 
@@ -368,13 +329,9 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-end">
-          {{
-            row.currentData.endPosition?.latitude | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-          }}
+          {{ row.currentData.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
           <br />
-          {{
-            row.currentData.endPosition?.longitude | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-          }}
+          {{ row.currentData.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
         </ion-text>
       </td>
     </ng-container>
@@ -384,11 +341,7 @@
         <ion-label translate>TRIP.OPERATION.LIST.FISHING_AREA</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        {{
-          row.currentData.fishingAreas
-            | arrayPluck : { property: 'location' }
-            | referentialToString : displayAttributes.fishingArea
-        }}
+        {{ row.currentData.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: displayAttributes.fishingArea }}
       </td>
     </ng-container>
 
@@ -396,12 +349,7 @@
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon
-          *ngIf="row.currentData.comments"
-          class="comment"
-          color="primary"
-          [title]="row.currentData.comments"
-        ></mat-icon>
+        <mat-icon *ngIf="row.currentData.comments" class="comment" color="primary" [title]="row.currentData.comments"></mat-icon>
       </td>
     </ng-container>
 

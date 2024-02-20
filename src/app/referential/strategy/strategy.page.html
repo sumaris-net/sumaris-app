@@ -1,10 +1,4 @@
-<app-toolbar
-  color="primary"
-  [hasValidate]="!loading"
-  (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref"
-  [canGoBack]="true"
->
+<app-toolbar color="primary" [hasValidate]="!loading" (onValidate)="save($event)" [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-title [innerHTML]="$title | async"></ion-title>
 
   <button
@@ -132,13 +126,7 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<ion-modal
-  #importModal
-  [isOpen]="showImportModal"
-  class="modal-large"
-  enter-animation="modal-slide-in"
-  leave-animation="modal-slide-out"
->
+<ion-modal #importModal [isOpen]="showImportModal" class="modal-large" enter-animation="modal-slide-in" leave-animation="modal-slide-out">
   <ng-template>
     <app-modal-toolbar color="secondary">
       <ion-title>{{ 'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate }}</ion-title>

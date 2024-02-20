@@ -17,10 +17,9 @@ export interface ISelectOperationModalOptions {
 @Component({
   selector: 'app-select-operation-modal',
   templateUrl: './select-operation.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectOperationModal implements OnInit, ISelectOperationModalOptions {
-
   selectedTabIndex = 0;
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
 
@@ -38,14 +37,12 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
   constructor(
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
-  ) {
-
-  }
+  ) {}
 
   ngOnInit() {
     // Init table
     if (!this.table) throw new Error('Missing table child component');
-    if (!this.filter) throw new Error('Missing argument \'filter\'');
+    if (!this.filter) throw new Error("Missing argument 'filter'");
 
     this.filter = OperationFilter.fromObject(this.filter);
     this.table.filter = this.filter;
@@ -63,7 +60,6 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
 
   async selectRow(row: TableElement<Operation>) {
     if (row && this.table) {
-
       // Select the clicked row, then close
       this.table.selection.clear();
       this.table.selection.select(row);
@@ -75,10 +71,9 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
     try {
       if (this.hasSelection()) {
         const items = (this.table.selection.selected || [])
-          .map(row => row.currentData)
-          .map(source => Operation.fromObject(source, {withBatchTree: false, withSamples: false}))
-          .filter(isNotNil)
-        ;
+          .map((row) => row.currentData)
+          .map((source) => Operation.fromObject(source, { withBatchTree: false, withSamples: false }))
+          .filter(isNotNil);
         await this.viewCtrl.dismiss(items[0] || null);
       }
       return true;
@@ -94,7 +89,7 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
 
   hasSelection(): boolean {
     const table = this.table;
-    return table && table.selection.hasValue() &&  table.selection.selected.length === 1;
+    return table && table.selection.hasValue() && table.selection.selected.length === 1;
   }
 
   protected markForCheck() {

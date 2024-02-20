@@ -14,47 +14,46 @@ import {
   QualityFlagIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
-  UnitIds
+  UnitIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
 // Keep existing cache object, when incoming is minified (without entityName)
-const mergeNotMinified: FieldMergeFunction = (existing, incoming) =>
-  (incoming?.__ref?.includes('"entityName":null') ? existing : incoming);
+const mergeNotMinified: FieldMergeFunction = (existing, incoming) => (incoming?.__ref?.includes('"entityName":null') ? existing : incoming);
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   MetierVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   PmfmVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   TaxonGroupVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   TaxonNameVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   LocationVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   ReferentialVO: {
     keyFields: ['entityName', 'id'],
-    merge: mergeNotMinified
+    merge: mergeNotMinified,
   },
   TaxonGroupStrategyVO: {
-    keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
+    keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']],
   },
   TaxonNameStrategyVO: {
-    keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']]
+    keyFields: ['__typename', 'strategyId', 'taxonName', ['entityName', 'id']],
   },
   DenormalizedPmfmStrategyVO: {
-    keyFields: ['__typename', 'strategyId', 'acquisitionLevel', 'id']
+    keyFields: ['__typename', 'strategyId', 'acquisitionLevel', 'id'],
   },
 };
 
@@ -62,24 +61,24 @@ const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
   attributes: ['id', 'name'],
   filter: {
     entityName: 'LocationLevel',
-    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-  }
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
 };
 const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
   attributes: ['id', 'label'],
   columnSizes: [3, 'auto'],
   filter: {
     entityName: 'Pmfm',
-    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-  }
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
 };
 const QualitativeValueAutocompleteConfig = <MatAutocompleteFieldConfig>{
   attributes: ['id', 'label', 'name'],
   columnSizes: [3, 3, 'auto'],
   filter: {
     entityName: 'QualitativeValue',
-    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-  }
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
 };
 
 export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
@@ -87,85 +86,85 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
   ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.analyticReferences.enable',
     label: 'CONFIGURATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
   PROGRAM_SIH_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Program.SIH.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PROGRAM_SIH_LABEL',
     type: 'string',
-    defaultValue: ProgramLabel.SIH
+    defaultValue: ProgramLabel.SIH,
   },
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.COUNTRY
+    defaultValue: LocationLevelIds.COUNTRY,
   },
   LOCATION_LEVEL_PORT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.HARBOUR.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_PORT_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.PORT
+    defaultValue: LocationLevelIds.PORT,
   },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.AUCTION
+    defaultValue: LocationLevelIds.AUCTION,
   },
   LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_RECTANGLE
+    defaultValue: LocationLevelIds.ICES_RECTANGLE,
   },
   LOCATION_LEVEL_GFCM_RECTANGLE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_GFCM_RECTANGLE_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.GFCM_RECTANGLE
+    defaultValue: LocationLevelIds.GFCM_RECTANGLE,
   },
   LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_DIVISION
+    defaultValue: LocationLevelIds.ICES_DIVISION,
   },
   LOCATION_LEVEL_ICES_SUB_AREA_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_SUB_AREA_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_SUB_AREA
+    defaultValue: LocationLevelIds.ICES_SUB_AREA,
   },
   LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_IDS',
     type: 'string',
-    defaultValue: LocationLevelGroups.FISHING_AREA.join(',')
+    defaultValue: LocationLevelGroups.FISHING_AREA.join(','),
   },
   WEIGHT_LENGTH_CONVERSION_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.WEIGHT_LENGTH_CONVERSION_AREA.ids',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.WEIGHT_LENGTH_CONVERSION_AREA_IDS',
     type: 'string',
-    defaultValue: LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA.join(',')
+    defaultValue: LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA.join(','),
   },
   ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Location.ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID',
-    type: 'integer'
+    type: 'integer',
   },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
@@ -175,10 +174,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonomicLevelIds.FAMILY
+    defaultValue: TaxonomicLevelIds.FAMILY,
   },
   TAXONOMIC_LEVEL_GENUS_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.GENUS.id',
@@ -188,10 +187,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonomicLevelIds.GENUS
+    defaultValue: TaxonomicLevelIds.GENUS,
   },
   TAXONOMIC_LEVEL_SPECIES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.SPECIES.id',
@@ -201,10 +200,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonomicLevelIds.SPECIES
+    defaultValue: TaxonomicLevelIds.SPECIES,
   },
   TAXONOMIC_LEVEL_SUBSPECIES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.SUBSPECIES.id',
@@ -214,192 +213,192 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonomicLevelIds.SUBSPECIES
+    defaultValue: TaxonomicLevelIds.SUBSPECIES,
   },
   PMFM_TRIP_PROGRESS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.TRIP_PROGRESS
+    defaultValue: PmfmIds.TRIP_PROGRESS,
   },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.STRATEGY_LABEL
+    defaultValue: PmfmIds.STRATEGY_LABEL,
   },
   PMFM_TAG_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TAG_ID.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.TAG_ID
+    defaultValue: PmfmIds.TAG_ID,
   },
   PMFM_DRESSING: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.DRESSING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.DRESSING
+    defaultValue: PmfmIds.DRESSING,
   },
   PMFM_PRESERVATION: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.PRESERVATION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PRESERVATION',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.PRESERVATION
+    defaultValue: PmfmIds.PRESERVATION,
   },
   PMFM_TRAWL_SIZE_CAT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRAWL_SIZE_CAT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRAWL_SIZE_CAT',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.TRAWL_SIZE_CAT
+    defaultValue: PmfmIds.TRAWL_SIZE_CAT,
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.AGE
+    defaultValue: PmfmIds.AGE,
   },
   PMFM_SEX_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SEX.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEX_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SEX
+    defaultValue: PmfmIds.SEX,
   },
   PMFM_PACKAGING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.PACKAGING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PACKAGING_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.PACKAGING
+    defaultValue: PmfmIds.PACKAGING,
   },
   PMFM_SIZE_CATEGORY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SIZE_CATEGORY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_CATEGORY_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SIZE_CATEGORY
+    defaultValue: PmfmIds.SIZE_CATEGORY,
   },
   PMFM_SALE_RANK_ORDER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SALE_RANK_ORDER.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_RANK_ORDER_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SALE_RANK_ORDER
+    defaultValue: PmfmIds.SALE_RANK_ORDER,
   },
   PMFM_SALE_ESTIMATED_RATIO_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SALE_ESTIMATED_RATIO.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_ESTIMATED_RATIO_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SALE_ESTIMATED_RATIO
+    defaultValue: PmfmIds.SALE_ESTIMATED_RATIO,
   },
   PMFM_AVERAGE_WEIGHT_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AVERAGE_WEIGHT_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_WEIGHT_PRICE_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.AVERAGE_WEIGHT_PRICE
+    defaultValue: PmfmIds.AVERAGE_WEIGHT_PRICE,
   },
   PMFM_AVERAGE_PACKAGING_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AVERAGE_PACKAGING_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_PACKAGING_PRICE_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.AVERAGE_PACKAGING_PRICE
+    defaultValue: PmfmIds.AVERAGE_PACKAGING_PRICE,
   },
   PMFM_TOTAL_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TOTAL_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TOTAL_PRICE_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.TOTAL_PRICE
+    defaultValue: PmfmIds.TOTAL_PRICE,
   },
   PMFM_REFUSED_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.REFUSED_SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.REFUSED_SURVEY
+    defaultValue: PmfmIds.REFUSED_SURVEY,
   },
   PMFM_GEAR_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.GEAR_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_LABEL_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.GEAR_LABEL
+    defaultValue: PmfmIds.GEAR_LABEL,
   },
   PMFM_CHILD_GEAR_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.CHILD_GEAR.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CHILD_GEAR_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.CHILD_GEAR
+    defaultValue: PmfmIds.CHILD_GEAR,
   },
   PMFM_CATCH_WEIGHT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.CATCH_WEIGHT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CATCH_WEIGHT_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.CATCH_WEIGHT
+    defaultValue: PmfmIds.CATCH_WEIGHT,
   },
   PMFM_DISCARD_WEIGHT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.DISCARD_WEIGHT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_WEIGHT_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.DISCARD_WEIGHT
+    defaultValue: PmfmIds.DISCARD_WEIGHT,
   },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES
+    defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES,
   },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
   },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM,
   },
   PMFM_BATCH_SORTING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.PMFM_BATCH_SORTING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_SORTING_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.BATCH_SORTING
+    defaultValue: PmfmIds.BATCH_SORTING,
   },
   PMFM_HULL_MATERIAL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HULL_MATERIAL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HULL_MATERIAL_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.HULL_MATERIAL
+    defaultValue: PmfmIds.HULL_MATERIAL,
   },
   PMFM_SELECTIVITY_DEVICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SELECTIVITY_DEVICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SELECTIVITY_DEVICE_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SELECTIVITY_DEVICE
+    defaultValue: PmfmIds.SELECTIVITY_DEVICE,
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
@@ -409,10 +408,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'ParameterGroup',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: ParameterGroupIds.SURVEY
+    defaultValue: ParameterGroupIds.SURVEY,
   },
   METHOD_MEASURED_BY_OBSERVER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.MEASURED_BY_OBSERVER.id',
@@ -422,10 +421,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.MEASURED_BY_OBSERVER
+    defaultValue: MethodIds.MEASURED_BY_OBSERVER,
   },
   METHOD_OBSERVED_BY_OBSERVER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.OBSERVED_BY_OBSERVER.id',
@@ -435,10 +434,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.OBSERVED_BY_OBSERVER
+    defaultValue: MethodIds.OBSERVED_BY_OBSERVER,
   },
   METHOD_ESTIMATED_BY_OBSERVER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.ESTIMATED_BY_OBSERVER.id',
@@ -448,10 +447,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.ESTIMATED_BY_OBSERVER
+    defaultValue: MethodIds.ESTIMATED_BY_OBSERVER,
   },
   METHOD_CALCULATED_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.CALCULATED.id',
@@ -461,10 +460,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.CALCULATED
+    defaultValue: MethodIds.CALCULATED,
   },
   METHOD_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.CALCULATED_WEIGHT_LENGTH.id',
@@ -474,10 +473,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH
+    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH,
   },
   METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Method.CALCULATED_WEIGHT_LENGTH_SUM.id',
@@ -487,10 +486,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM
+    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM,
   },
 
   METHOD_UNKNOWN_ID: <FormFieldDefinition>{
@@ -501,10 +500,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MethodIds.UNKNOWN
+    defaultValue: MethodIds.UNKNOWN,
   },
   FRACTION_INDIVIDUAL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Fraction.INDIVIDUAL.id',
@@ -514,52 +513,52 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Matrix',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: MatrixIds.INDIVIDUAL
+    defaultValue: MatrixIds.INDIVIDUAL,
   },
   PARAMETER_GROUP_TAG_ID_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.tagId.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_TAG_ID_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.TAG_ID.join(',')
+    defaultValue: ParameterLabelGroups.TAG_ID.join(','),
   },
   PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.age.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.AGE.join(',')
+    defaultValue: ParameterLabelGroups.AGE.join(','),
   },
   PARAMETER_GROUP_SEX_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.sex.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SEX_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.SEX.join(',')
+    defaultValue: ParameterLabelGroups.SEX.join(','),
   },
   PARAMETER_GROUP_WEIGHT_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.weight.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_WEIGHT_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.WEIGHT.join(',')
+    defaultValue: ParameterLabelGroups.WEIGHT.join(','),
   },
   PARAMETER_GROUP_LENGTH_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.length.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_LENGTH_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.LENGTH.join(',')
+    defaultValue: ParameterLabelGroups.LENGTH.join(','),
   },
   PARAMETER_GROUP_MATURITY_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.maturity.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_MATURITY_LABELS',
     type: 'string',
-    defaultValue: ParameterLabelGroups.MATURITY.join(',')
+    defaultValue: ParameterLabelGroups.MATURITY.join(','),
   },
   FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS: <FormFieldDefinition>{
     key: 'sumaris.list.fraction.calcifiedStructure.ids',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS',
     type: 'string',
-    defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(',')
+    defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(','),
   },
   UNIT_NONE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Unit.NONE.id',
@@ -569,59 +568,59 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'Unit',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: UnitIds.NONE
+    defaultValue: UnitIds.NONE,
   },
   QUALITATIVE_VALUE_LANDING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.LANDING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_LANDING_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.LANDING
+    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.LANDING,
   },
   QUALITATIVE_VALUE_DISCARD_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.DISCARD.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DISCARD_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD,
   },
   QUALITATIVE_VALUE_DRESSING_WHOLE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.DRESSING_WHOLE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DRESSING_WHOLE_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.DRESSING.WHOLE
+    defaultValue: QualitativeValueIds.DRESSING.WHOLE,
   },
   QUALITATIVE_VALUE_PRESERVATION_FRESH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.PRESERVATION_FRESH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_PRESERVATION_FRESH_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.PRESERVATION.FRESH
+    defaultValue: QualitativeValueIds.PRESERVATION.FRESH,
   },
   QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SIZE_UNLI_CAT_NONE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.SIZE_UNLI_CAT.NONE
+    defaultValue: QualitativeValueIds.SIZE_UNLI_CAT.NONE,
   },
   QUALITATIVE_VALUE_SORTING_BULK_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SORTING_BULK.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_BULK_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.BATCH_SORTING.BULK
+    defaultValue: QualitativeValueIds.BATCH_SORTING.BULK,
   },
   QUALITATIVE_VALUE_SORTING_NON_BULK_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SORTING_NON_BULK.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_NON_BULK_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK
+    defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK,
   },
 
   QUALITATIVE_VALUE_SEX_UNSEXED_ID: <FormFieldDefinition>{
@@ -629,7 +628,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SEX_UNSEXED_ID',
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
-    defaultValue: QualitativeValueIds.SEX.UNSEXED
+    defaultValue: QualitativeValueIds.SEX.UNSEXED,
   },
 
   QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{
@@ -640,10 +639,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'QualityFlag',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: QualityFlagIds.NOT_COMPLETED
+    defaultValue: QualityFlagIds.NOT_COMPLETED,
   },
 
   QUALITY_FLAG_MISSING_ID: <FormFieldDefinition>{
@@ -654,10 +653,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'QualityFlag',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: QualityFlagIds.MISSING
+    defaultValue: QualityFlagIds.MISSING,
   },
 
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{
@@ -668,10 +667,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonGroupTypeIds.FAO.toString()
+    defaultValue: TaxonGroupTypeIds.FAO.toString(),
   },
   TAXON_GROUP_TYPE_NATIONAL_METIER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonGroupType.NATIONAL.id',
@@ -681,10 +680,10 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonGroupTypeIds.NATIONAL_METIER.toString()
+    defaultValue: TaxonGroupTypeIds.NATIONAL_METIER.toString(),
   },
   TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonGroupType.DCF_METIER_LVL_5.id',
@@ -694,11 +693,11 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
     },
-    defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString()
-  }
+    defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString(),
+  },
 });
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
@@ -712,11 +711,11 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
         label: `SETTINGS.FIELDS.${i18nFieldName}`,
         type: 'enum',
         values: [
-          {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
-          {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
-          {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
-          {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
-        ]
+          { key: 'label,name', value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME' },
+          { key: 'name', value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME' },
+          { key: 'name,label', value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL' },
+          { key: 'label', value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL' },
+        ],
       };
       return res;
     }, {})

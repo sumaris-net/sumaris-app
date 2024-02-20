@@ -51,22 +51,18 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
-
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<Batch>>('SubBatchesTableOptions');
 
-export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
+export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   parentId?: number;
   operationId?: number;
   landingId?: number;
 
   asFilterFn<E extends Batch>(): FilterFn<E> {
-    return (data) =>
-      (isNil(this.operationId) || data.operationId === this.operationId)
-      && (isNil(this.parentId) || data.parentId === this.parentId)
+    return (data) => (isNil(this.operationId) || data.operationId === this.operationId) && (isNil(this.parentId) || data.parentId === this.parentId);
 
-      // TODO enable this:
-      // && (isNil(this.landingId) || data.landingId === this.landingId))
-      ;
+    // TODO enable this:
+    // && (isNil(this.landingId) || data.landingId === this.landingId))
   }
 }
 

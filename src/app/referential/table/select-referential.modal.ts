@@ -13,12 +13,12 @@ export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntit
 @Component({
   selector: 'app-select-referential-modal',
   templateUrl: './select-referential.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectReferentialModal
   extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
-  implements OnInit, ISelectReferentialModalOptions {
-
+  implements OnInit, ISelectReferentialModalOptions
+{
   @Input() showLevelFilter = true;
 
   constructor(
@@ -30,11 +30,10 @@ export class SelectReferentialModal
   }
 
   ngOnInit() {
-    this.filter = ReferentialRefFilter.fromObject({entityName: this.entityName, ...this.filter});
-    if (isNilOrBlank(this.filter?.entityName)) throw new Error('Missing \'entityName\' or \'filter.entityName\'');
+    this.filter = ReferentialRefFilter.fromObject({ entityName: this.entityName, ...this.filter });
+    if (isNilOrBlank(this.filter?.entityName)) throw new Error("Missing 'entityName' or 'filter.entityName'");
 
     super.ngOnInit();
-
   }
 
   protected async computeTitle(): Promise<string> {
@@ -48,8 +47,7 @@ export class SelectReferentialModal
   protected onRowClick(row: TableElement<ReferentialRef>) {
     if (this.allowMultipleSelection) {
       this.table.selection.toggle(row);
-    }
-    else {
+    } else {
       this.close();
     }
   }

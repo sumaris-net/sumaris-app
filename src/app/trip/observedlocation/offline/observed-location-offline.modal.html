@@ -26,7 +26,7 @@
         </ion-col>
       </ion-row>
 
-      <ion-row class="ion-padding-start" [class.cdk-visually-hidden]="(form | formGetControl : 'strategy').disabled">
+      <ion-row class="ion-padding-start" [class.cdk-visually-hidden]="(form | formGetControl: 'strategy').disabled">
         <ion-col>
           <!-- Strategy -->
           <mat-chips-field
@@ -57,9 +57,7 @@
               <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
             </mat-checkbox>
 
-            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>
-              ERROR.FIELD_REQUIRED
-            </mat-error>
+            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>
@@ -73,7 +71,7 @@
             [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
             [config]="autocompleteFields.location"
             [clearable]="true"
-            [chipColor]="(form | formGetControl : 'location').enabled ? 'accent' : 'medium'"
+            [chipColor]="(form | formGetControl: 'location').enabled ? 'accent' : 'medium'"
             [tabindex]="3"
           >
             <mat-icon matPrefix>room</mat-icon>
@@ -97,9 +95,7 @@
               </mat-option>
             </mat-select>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>
-              ERROR.FIELD_REQUIRED
-            </mat-error>
+            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>

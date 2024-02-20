@@ -10,7 +10,7 @@ import {
   isNil,
   LoadResult,
   NetworkService,
-  PlatformService
+  PlatformService,
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
@@ -22,37 +22,46 @@ import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';
 
 const QUERIES: BaseEntityGraphqlQueries = {
-  loadAll: gql`query RoundWeightConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: RoundWeightConversionFilterVOInput){
-    data: roundWeightConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...RoundWeightConversionRefFragment
+  loadAll: gql`
+    query RoundWeightConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: RoundWeightConversionFilterVOInput) {
+      data: roundWeightConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...RoundWeightConversionRefFragment
+      }
     }
-  }
-  ${RoundWeightConversionFragments.reference}`,
+    ${RoundWeightConversionFragments.reference}
+  `,
 
-  loadAllWithTotal: gql`query RoundWeightConversionsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: RoundWeightConversionFilterVOInput){
-      data: roundWeightConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-          ...RoundWeightConversionRefFragment
+  loadAllWithTotal: gql`
+    query RoundWeightConversionsWithTotal(
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+      $filter: RoundWeightConversionFilterVOInput
+    ) {
+      data: roundWeightConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...RoundWeightConversionRefFragment
       }
       total: roundWeightConversionsCount(filter: $filter)
-  }
-  ${RoundWeightConversionFragments.reference}`
+    }
+    ${RoundWeightConversionFragments.reference}
+  `,
 };
-
 
 const CacheKeys = {
   CACHE_GROUP: RoundWeightConversion.TYPENAME,
 
   LOAD: 'roundWeightConversionByFilter',
 
-  EMPTY_VALUE: new RoundWeightConversionRef()
+  EMPTY_VALUE: new RoundWeightConversionRef(),
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 // @ts-ignore
-export class RoundWeightConversionRefService extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionFilter>
-  implements IEntityService<RoundWeightConversionRef> {
-
-
+export class RoundWeightConversionRefService
+  extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionFilter>
+  implements IEntityService<RoundWeightConversionRef>
+{
   constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
@@ -60,11 +69,9 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     protected network: NetworkService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform,
-      RoundWeightConversionRef, RoundWeightConversionFilter,
-      {
-        queries: QUERIES
-      });
+    super(graphql, platform, RoundWeightConversionRef, RoundWeightConversionFilter, {
+      queries: QUERIES,
+    });
   }
 
   /**
@@ -73,46 +80,44 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
    * @param conversion
    * @param value
    */
-  inverseAliveWeight(conversion: RoundWeightConversionRef|undefined, value: number|undefined): number | undefined {
+  inverseAliveWeight(conversion: RoundWeightConversionRef | undefined, value: number | undefined): number | undefined {
     if (isNil(value) || !conversion) return undefined;
 
     // Apply round weight (inverse) conversion
     return value / conversion.conversionCoefficient;
   }
 
-
-  async loadByFilter(filter: Partial<RoundWeightConversionFilter>
-            // Force theis filter's attributes as required
-            & {
-              date: Moment;
-              taxonGroupId: number;
-              locationId: number;
-              dressingId: number;
-              preservingId: number;
-            },
-             opts?: {cache?: boolean}): Promise<RoundWeightConversionRef | undefined>{
-
+  async loadByFilter(
+    filter: Partial<RoundWeightConversionFilter> & {
+      // Force theis filter's attributes as required
+      date: Moment;
+      taxonGroupId: number;
+      locationId: number;
+      dressingId: number;
+      preservingId: number;
+    },
+    opts?: { cache?: boolean }
+  ): Promise<RoundWeightConversionRef | undefined> {
     filter = this.asFilter(filter);
 
     // Use cache
     if (!opts || opts.cache !== false) {
       // Create a unique hash, from args
-      const cacheKey = [
-        CacheKeys.LOAD,
-        CryptoService.sha256(JSON.stringify(filter.asObject())).substring(0, 8)
-      ].join('|');
-      return this.cache.getOrSetItem(
-        cacheKey,
-        () => this.loadByFilter(filter, {...opts, cache: false})
-          .then(c => c || CacheKeys.EMPTY_VALUE), // Cache not allowed nil value
-        CacheKeys.CACHE_GROUP
-      )
-        // map EMPTY to undefined
-        .then(c => RoundWeightConversionRef.isNotNilOrBlank(c) ? c : undefined);
+      const cacheKey = [CacheKeys.LOAD, CryptoService.sha256(JSON.stringify(filter.asObject())).substring(0, 8)].join('|');
+      return (
+        this.cache
+          .getOrSetItem(
+            cacheKey,
+            () => this.loadByFilter(filter, { ...opts, cache: false }).then((c) => c || CacheKeys.EMPTY_VALUE), // Cache not allowed nil value
+            CacheKeys.CACHE_GROUP
+          )
+          // map EMPTY to undefined
+          .then((c) => (RoundWeightConversionRef.isNotNilOrBlank(c) ? c : undefined))
+      );
     }
 
     const size = 1;
-    const res = await this.loadAll(0, size, 'startDate', 'desc', filter, {withTotal: false, toEntity: false});
+    const res = await this.loadAll(0, size, 'startDate', 'desc', filter, { withTotal: false, toEntity: false });
 
     // Not found
     if (isEmptyArray(res?.data)) {
@@ -123,16 +128,24 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     return res.data[0];
   }
 
-  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<RoundWeightConversionFilter>,
-          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<RoundWeightConversionRef>> {
-
+  loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<RoundWeightConversionFilter>,
+    opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }
+  ): Promise<LoadResult<RoundWeightConversionRef>> {
     filter = this.asFilter(filter);
 
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       return this.entities.loadAll<any>(RoundWeightConversion.TYPENAME, {
-        offset, size, sortBy, sortDirection,
-        filter: filter.asFilterFn()
+        offset,
+        size,
+        sortBy,
+        sortDirection,
+        filter: filter.asFilterFn(),
       });
     }
 

@@ -1,11 +1,6 @@
 <ng-container [ngSwitch]="acquisitionLevel$ | async">
   <!-- CATCH_BATCH (root) -->
-  <form
-    *ngSwitchCase="'CATCH_BATCH'"
-    class="form-container"
-    [formGroup]="form | formGetGroup : 'measurementValues'"
-    (ngSubmit)="doSubmit($event)"
-  >
+  <form *ngSwitchCase="'CATCH_BATCH'" class="form-container" [formGroup]="form | formGetGroup: 'measurementValues'" (ngSubmit)="doSubmit($event)">
     <!-- error -->
     <ion-item *ngIf="showError && (errorSubject | push); let error" visible-xs visible-sm visible-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -83,7 +78,7 @@
 
     <ng-template #pmfmsRow let-pmfms="pmfms" let-title="title" let-tabindex="tabindex" let-gridColCount="gridColCount">
       <!-- error ci-dessous : -->
-      <ng-container *ngIf="pmfms | asObservable | async | arrayFilter : isVisiblePmfm; let filteredPmfms">
+      <ng-container *ngIf="pmfms | asObservable | async | arrayFilter: isVisiblePmfm; let filteredPmfms">
         <ion-row *ngIf="filteredPmfms | isNotEmptyArray">
           <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
             <ion-label class="ion-float-end">
@@ -92,7 +87,7 @@
           </ion-col>
           <ng-container *rxFor="let pmfm of filteredPmfms; trackBy: trackPmfmFn; index as i; strategy: rxStrategy">
             <ion-col
-              *ngVar="pmfm | pmfmFieldStyle : maxItemCountForButtons as style"
+              *ngVar="pmfm | pmfmFieldStyle: maxItemCountForButtons as style"
               [size]="gridColCount"
               [offsetMd]="pmfm.isQualitative && style === 'button' ? labelColSize : undefined"
               [sizeMd]="pmfm.isQualitative && style === 'button' ? gridColCount - labelColSize : 1"

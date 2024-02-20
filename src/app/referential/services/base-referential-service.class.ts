@@ -26,9 +26,8 @@ export interface IReferentialEntityService<
   T extends IReferentialRef<T, ID>,
   F extends IReferentialFilter<F, T, ID>,
   ID = number,
-  LO = EntityServiceLoadOptions
+  LO = EntityServiceLoadOptions,
 > extends IEntityService<T, ID, LO> {
-
   /**
    * Check if a label already exists in database
    *
@@ -36,52 +35,58 @@ export interface IReferentialEntityService<
    * @param filter
    * @param opts
    */
-  existsByLabel(label: string, filter?: Partial<ReferentialFilter>, opts?: {
-    fetchPolicy?: FetchPolicy;
-  }): Promise<boolean>;
-
+  existsByLabel(
+    label: string,
+    filter?: Partial<ReferentialFilter>,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<boolean>;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseReferentialService<
-  T extends IReferentialRef<T, ID>,
-  F extends IReferentialFilter<F, T, ID>,
-  ID = number
-  >
+export abstract class BaseReferentialService<T extends IReferentialRef<T, ID>, F extends IReferentialFilter<F, T, ID>, ID = number>
   extends BaseEntityService<T, F, ID>
-  implements SuggestService<T, F> {
-
-
+  implements SuggestService<T, F>
+{
   protected constructor(
     injector: Injector,
-    protected dataType: new() => T,
-    protected filterType: new() => F,
+    protected dataType: new () => T,
+    protected filterType: new () => F,
     options: BaseEntityServiceOptions<T, ID>
   ) {
-    super(
-      injector.get(GraphqlService),
-      injector.get(PlatformService),
-      dataType,
-      filterType,
-      {
-        ...options
-      });
+    super(injector.get(GraphqlService), injector.get(PlatformService), dataType, filterType, {
+      ...options,
+    });
   }
 
-  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: {
-    fetchPolicy?: WatchQueryFetchPolicy; withTotal?: boolean; toEntity?: boolean; }): Observable<LoadResult<T>> {
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: F,
+    opts?: {
+      fetchPolicy?: WatchQueryFetchPolicy;
+      withTotal?: boolean;
+      toEntity?: boolean;
+    }
+  ): Observable<LoadResult<T>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter && filter.searchAttribute;
+    sortBy = sortBy || (filter && filter.searchAttribute);
     // Call inherited function
     return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
-  async loadAll(offset: number, size: number,
-                sortBy?: string | keyof T,
-                sortDirection?: SortDirection,
-                filter?: Partial<F>,
-                opts?: EntitiesServiceLoadOptions & { debug?: boolean }): Promise<LoadResult<T>> {
+  async loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string | keyof T,
+    sortDirection?: SortDirection,
+    filter?: Partial<F>,
+    opts?: EntitiesServiceLoadOptions & { debug?: boolean }
+  ): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter?.searchAttribute;
 
@@ -90,7 +95,7 @@ export abstract class BaseReferentialService<
   }
 
   async load(id: ID, opts?: EntityServiceLoadOptions): Promise<T> {
-    const query = opts && opts.query || this.queries.load;
+    const query = (opts && opts.query) || this.queries.load;
     if (!query) {
       if (!this.queries.loadAll) throw new Error('Not implemented');
       const data = await this.loadAll(0, 1, null, null, { id } as unknown as F, opts);
@@ -99,15 +104,18 @@ export abstract class BaseReferentialService<
     return super.load(id, opts);
   }
 
-  async suggest(value: any, filter?: Partial<F>,
-                sortBy?: string | keyof T,
-                sortDirection?: SortDirection,
-                opts?: {
-                  fetchPolicy?: FetchPolicy;
-                  [key: string]: any;
-                }): Promise<LoadResult<T>> {
-    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
+  async suggest(
+    value: any,
+    filter?: Partial<F>,
+    sortBy?: string | keyof T,
+    sortDirection?: SortDirection,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      [key: string]: any;
+    }
+  ): Promise<LoadResult<T>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
     // Replace '*' character by undefined
     if (!value || value === '*') {
       value = undefined;
@@ -117,12 +125,16 @@ export abstract class BaseReferentialService<
       value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
     }
 
-    return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
+    return this.loadAll(
+      0,
+      !value ? 30 : 10,
+      sortBy,
+      sortDirection,
       {
         ...filter,
-        searchText: value as string
+        searchText: value as string,
       },
-      {withTotal: true /* Used by autocomplete */, ...opts}
+      { withTotal: true /* Used by autocomplete */, ...opts }
     );
   }
 
@@ -131,5 +143,4 @@ export abstract class BaseReferentialService<
   }
 
   /* -- protected functions -- */
-
 }

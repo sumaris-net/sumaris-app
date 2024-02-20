@@ -17,12 +17,7 @@
     </ion-button>
 
     <!-- Options menu -->
-    <button
-      mat-icon-button
-      *ngIf="!isNew && mobile"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-      [matMenuTriggerFor]="optionsMenu"
-    >
+    <button mat-icon-button *ngIf="!isNew && mobile" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
   </ion-buttons>
@@ -51,22 +46,12 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="error || (submitted && physicalGearForm.invalid)"
-        ></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && physicalGearForm.invalid)"></ion-icon>
       </ng-template>
 
       <div>
         <!-- help message (only in leaf modal) -->
-        <ion-item
-          *ngIf="enabled && helpMessage && (showChildrenTable$ | push) === false"
-          color="accent"
-          lines="none"
-          @slideDownAnimation
-        >
+        <ion-item *ngIf="enabled && helpMessage && (showChildrenTable$ | push) === false" color="accent" lines="none" @slideDownAnimation>
           <ion-icon slot="start" name="information-circle-outline"></ion-icon>
           <ion-label [innerHTML]="helpMessage | translate"></ion-label>
         </ion-item>
@@ -96,7 +81,7 @@
                 <br />
                 modal.minChildrenCount: {{ minChildrenCount }}
                 <br />
-                modal.showChildrenTable: {{ showChildrenTable$ | push : 'immediate' }}
+                modal.showChildrenTable: {{ showChildrenTable$ | push: 'immediate' }}
                 <br />
                 modal.usageMode: {{ usageMode }}
                 <br />
@@ -135,10 +120,7 @@
     </mat-tab>
 
     <!-- TAB: sub-gears -->
-    <mat-tab
-      label="{{ 'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS' | translate }}"
-      [disabled]="!(showChildrenTable$ | push)"
-    >
+    <mat-tab label="{{ 'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS' | translate }}" [disabled]="!(showChildrenTable$ | push)">
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
         <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
@@ -169,9 +151,9 @@
         [programLabel]="programLabel"
         [tripId]="tripId"
         [showGearColumn]="false"
-        [defaultGear]="gear$ | push : 'immediate'"
+        [defaultGear]="gear$ | push: 'immediate'"
         [canEditGear]="false"
-        [gearId]="gearId$ | push : 'immediate'"
+        [gearId]="gearId$ | push: 'immediate'"
         [allowChildrenGears]="false"
         [minRowCount]="minChildrenCount"
         [requiredGear]="true"
@@ -186,14 +168,7 @@
 </ion-content>
 
 <!-- Add Fab Button  -->
-<ion-fab
-  vertical="bottom"
-  horizontal="end"
-  *ngIf="enabled && mobile && selectedTabIndex === 1"
-  visible-xs
-  visible-sm
-  visible-mobile
->
+<ion-fab vertical="bottom" horizontal="end" *ngIf="enabled && mobile && selectedTabIndex === 1" visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="childrenTable?.addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

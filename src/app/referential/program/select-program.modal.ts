@@ -13,12 +13,9 @@ export interface ISelectProgramModalOptions extends Partial<IBaseSelectEntityMod
 @Component({
   selector: 'app-select-program-modal',
   templateUrl: './select-program.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SelectProgramModal
-  extends BaseSelectEntityModal<Program, ProgramFilter>
-  implements OnInit, ISelectProgramModalOptions {
-
+export class SelectProgramModal extends BaseSelectEntityModal<Program, ProgramFilter> implements OnInit, ISelectProgramModalOptions {
   constructor(
     injector: Injector,
     dataService: ProgramRefService,
@@ -30,7 +27,7 @@ export class SelectProgramModal
   ngOnInit() {
     this.filter = ProgramFilter.fromObject({
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      ...this.filter
+      ...this.filter,
     });
 
     super.ngOnInit();
@@ -47,8 +44,7 @@ export class SelectProgramModal
   protected onRowClick(row: TableElement<Program>) {
     if (this.allowMultipleSelection) {
       this.table.selection.toggle(row);
-    }
-    else {
+    } else {
       this.table.selection.setSelection(row);
       this.close();
     }

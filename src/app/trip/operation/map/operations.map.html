@@ -33,30 +33,18 @@
           <ion-grid>
             <ion-row>
               <ion-col class="ion-text-center">
-                {{
-                  item.properties.startPosition.latitude
-                    | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-                }}
+                {{ item.properties.startPosition.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
               </ion-col>
               <ion-col class="ion-text-center">
-                {{
-                  item.properties.startPosition.longitude
-                    | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-                }}
+                {{ item.properties.startPosition.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
               </ion-col>
             </ion-row>
             <ion-row>
               <ion-col class="ion-text-center">
-                {{
-                  item.properties.endPosition?.latitude
-                    | latitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-                }}
+                {{ item.properties.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
               </ion-col>
               <ion-col class="ion-text-center">
-                {{
-                  item.properties.endPosition?.longitude
-                    | longitudeFormat : { pattern: latLongPattern, placeholderChar: '0' }
-                }}
+                {{ item.properties.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -67,10 +55,4 @@
 </ion-grid>
 
 <!-- Leaflet map -->
-<div
-  leaflet
-  [attr.id]="mapId"
-  (leafletMapReady)="onMapReady($event)"
-  [leafletOptions]="options"
-  [leafletLayersControl]="layersControl"
-></div>
+<div leaflet [attr.id]="mapId" (leafletMapReady)="onMapReady($event)" [leafletOptions]="options" [leafletLayersControl]="layersControl"></div>

@@ -14,7 +14,7 @@ import {
   PlatformService,
   suggestFromArray,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { Sample } from './sample.model';
@@ -30,20 +30,14 @@ import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-
-
 @Component({
   selector: 'app-sub-samples-table',
   templateUrl: 'sub-samples.table.html',
   styleUrls: ['sub-samples.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: SubSampleValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
-  implements OnInit, OnDestroy {
-
+export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> implements OnInit, OnDestroy {
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
 
@@ -84,16 +78,16 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 
-  constructor(
-    protected injector: Injector
-  ) {
-    super(injector,
-      Sample, SampleFilter,
+  constructor(protected injector: Injector) {
+    super(
+      injector,
+      Sample,
+      SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         equals: Sample.equals,
-        sortByReplacement: {id: 'rankOrder'}
+        sortByReplacement: { id: 'rankOrder' },
       }),
       injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
@@ -101,14 +95,14 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         suppressErrors: environment.production,
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       }
     );
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
-    this.errorTranslatorOptions = {controlPathTranslator: this, separator: '\n'};
+    this.errorTranslatorOptions = { controlPathTranslator: this, separator: '\n' };
 
     // Default value
     this.showCommentsColumn = !this.mobile;
@@ -128,25 +122,24 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, opts?: any) => this.suggestParent(value, opts),
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Compute parent, when parents or pmfms changed
     this.registerSubscription(
       merge(
-        this.onParentChanges
-          .pipe(mergeMap(() => this.$pmfms)),
+        this.onParentChanges.pipe(mergeMap(() => this.$pmfms)),
         this.$pmfms.pipe(
           filter(isNotEmptyArray),
           distinctUntilChanged(),
-          tap(pmfms => this.onPmfmsLoaded(pmfms))
+          tap((pmfms) => this.onPmfmsLoaded(pmfms))
         )
       )
-      .pipe(
-        debounceTime(250),
-        tap(pmfms => this.updateParents(pmfms))
-      )
-      .subscribe()
+        .pipe(
+          debounceTime(250),
+          tap((pmfms) => this.updateParents(pmfms))
+        )
+        .subscribe()
     );
   }
 
@@ -170,29 +163,25 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.markAsLoading();
 
     try {
-
-
       // Read existing rows
-      const existingSamples = this.dataSource.getRows().map(r => r.currentData);
+      const existingSamples = this.dataSource.getRows().map((r) => r.currentData);
 
       const displayParentPmfmId = this.displayParentPmfm?.id;
-      const availableParents = this._availableSortedParents || this._availableParents
-          .filter(p => (isNil(displayParentPmfmId) || isNotNil(p.measurementValues[displayParentPmfmId])));
-      const parents = availableParents
-        .filter(p => !existingSamples.find(s => Sample.equals(s.parent, p)));
+      const availableParents =
+        this._availableSortedParents ||
+        this._availableParents.filter((p) => isNil(displayParentPmfmId) || isNotNil(p.measurementValues[displayParentPmfmId]));
+      const parents = availableParents.filter((p) => !existingSamples.find((s) => Sample.equals(s.parent, p)));
 
       // Create new row for each parent
       for (const parent of parents) {
-          const sample = new Sample();
-          sample.parent = parent;
-          await this.addEntityToTable(sample);
+        const sample = new Sample();
+        sample.parent = parent;
+        await this.addEntityToTable(sample);
       }
-
     } catch (err) {
-      console.error(err && err.message || err);
-      this.error = err && err.message || err;
-    }
-    finally {
+      console.error((err && err.message) || err);
+      this.error = (err && err.message) || err;
+    } finally {
       this.markAsLoaded();
     }
   }
@@ -206,11 +195,10 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService.value = data;
   }
 
-  async addOrUpdateEntityToTable(subSample: Sample){
-    if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)){
+  async addOrUpdateEntityToTable(subSample: Sample) {
+    if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)) {
       await this.addEntityToTable(subSample);
-    }
-    else {
+    } else {
       const row = await this.findRowByEntity(subSample);
       await this.updateEntityToTable(subSample, row);
     }
@@ -218,7 +206,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[sub-samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
+    const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject });
 
     const isNew = !dataToOpen && true;
     if (isNew) {
@@ -228,7 +216,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
     this.markAsLoading();
     const i18PrefixParts = this.i18nColumnPrefix && this.i18nColumnPrefix.split('.');
-    const i18nPrefix = i18PrefixParts && (i18PrefixParts.slice(0, i18PrefixParts.length - 2).join('.') + '.');
+    const i18nPrefix = i18PrefixParts && i18PrefixParts.slice(0, i18PrefixParts.length - 2).join('.') + '.';
 
     const modal = await this.modalCtrl.create({
       component: SubSampleModal,
@@ -251,23 +239,22 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
         // Data to open
         isNew,
-        data: dataToOpen
+        data: dataToOpen,
       },
       keyboardClose: true,
-      backdropDismiss: false
+      backdropDismiss: false,
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[sub-samples-table] Modal result: ', data);
     this.markAsLoaded();
 
     return data instanceof Sample ? data : undefined;
   }
-
 
   async deleteEntity(event: Event, data: Sample): Promise<boolean> {
     const row = await this.findRowByEntity(data);
@@ -277,7 +264,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
     const confirmed = await this.canDeleteRows([row]);
     if (confirmed === true) {
-      return this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+      return this.deleteRow(null, row, { interactive: false /*already confirmed*/ });
     }
     return confirmed;
   }
@@ -288,7 +275,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // DEBUG
     console.debug('[sub-samples-table] Mapping PMFMs...', pmfms);
 
-    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID);
+    const tagIdPmfmIndex = pmfms.findIndex((p) => p.id === PmfmIds.TAG_ID);
     if (tagIdPmfmIndex !== -1) {
       const tagIdPmfm = pmfms[tagIdPmfmIndex];
       this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
@@ -314,33 +301,35 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     console.debug('[sub-samples-table] Update parents...', pmfms);
 
     const parents = this._availableParents || [];
-    const hasTaxonName = parents.some(s => isNotNil(s.taxonName?.id));
+    const hasTaxonName = parents.some((s) => isNotNil(s.taxonName?.id));
     const attributeName = hasTaxonName ? 'taxonName' : 'taxonGroup';
-    const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName)
-      .map(key => `${attributeName}.${key}`);
+    const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName).map((key) => `${attributeName}.${key}`);
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {
       const parentDisplayPmfmId = this.displayParentPmfm.id;
       const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmId}`;
       // Keep parents with this pmfms
-      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmId]));
+      const filteredParents = parents.filter((s) => isNotNil(s.measurementValues[parentDisplayPmfmId]));
       this._availableSortedParents = EntityUtils.sort(filteredParents, parentDisplayPmfmPath);
 
       this.autocompleteFields.parent.attributes = [parentDisplayPmfmPath].concat(baseDisplayAttributes);
-      this.autocompleteFields.parent.columnSizes = [4].concat(baseDisplayAttributes.map(attr =>
-        // If label then col size = 2
-        attr.endsWith('label') ? 2 : undefined));
+      this.autocompleteFields.parent.columnSizes = [4].concat(
+        baseDisplayAttributes.map((attr) =>
+          // If label then col size = 2
+          attr.endsWith('label') ? 2 : undefined
+        )
+      );
       this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
-      this.autocompleteFields.parent.displayWith = (obj) => PmfmValueUtils.valueToString(obj?.measurementValues[parentDisplayPmfmId], {pmfm: this.displayParentPmfm}) || undefined;
-    }
-    else {
+      this.autocompleteFields.parent.displayWith = (obj) =>
+        PmfmValueUtils.valueToString(obj?.measurementValues[parentDisplayPmfmId], { pmfm: this.displayParentPmfm }) || undefined;
+    } else {
       const displayAttributes = ['rankOrder'].concat(baseDisplayAttributes);
       this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
       this.autocompleteFields.parent.attributes = displayAttributes;
       this.autocompleteFields.parent.columnSizes = undefined; // use defaults
       this.autocompleteFields.parent.columnNames = undefined; // use defaults
-      this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
+      this.autocompleteFields.parent.displayWith = (obj) => (obj && joinPropertiesPath(obj, displayAttributes)) || undefined;
     }
 
     // Configure the filter for suggestParent()
@@ -395,8 +384,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return this.dataSource.getRows()
-      .find(r => r.currentData.rankOrder === data.rankOrder);
+    return this.dataSource.getRows().find((r) => r.currentData.rankOrder === data.rankOrder);
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
@@ -412,7 +400,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   protected getI18nColumnName(columnName: string): string {
-
     // Replace parent by TAG_ID pmfms
     columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.id.toString() : columnName;
 
@@ -425,11 +412,11 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // DEBUG
     //console.debug("[sub-samples-table] Calling linkDataToParent()");
 
-    data.forEach(s => {
+    data.forEach((s) => {
       const parentId = toNumber(s.parentId, s.parent?.id);
-      s.parent = this._availableParents.find(p => p.id === parentId
-        || (s.parent && p.label === s.parent.label && p.rankOrder === s.parent.rankOrder))
-        || s.parent;
+      s.parent =
+        this._availableParents.find((p) => p.id === parentId || (s.parent && p.label === s.parent.label && p.rankOrder === s.parent.rankOrder)) ||
+        s.parent;
       if (!s.parent) console.warn('[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:', s);
     });
   }
@@ -438,7 +425,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
    * Remove samples in table, if there have no more parent
    */
   protected async linkDataToParentAndDeleteOrphan() {
-
     const rows = this.dataSource.getRows();
 
     //console.debug("[sub-samples-table] Calling linkDataToParentAndDeleteOrphan()", rows);
@@ -447,24 +433,23 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
-      .map(row => {
+      .map((row) => {
         const item = row.currentData;
         const parentId = toNumber(item.parentId, item.parent?.id);
 
         let parent;
         if (isNotNil(parentId)) {
           // Update the parent, by id
-          parent = this._availableParents.find(p => p.id === parentId);
+          parent = this._availableParents.find((p) => p.id === parentId);
         }
         // No parent, search from parent Pmfm
-        else if (isNotNil(parentDisplayPmfmId)){
+        else if (isNotNil(parentDisplayPmfmId)) {
           const parentPmfmValue = item?.measurementValues?.[parentDisplayPmfmId];
           if (isNil(parentPmfmValue)) {
             parent = undefined; // remove link to parent
-          }
-          else {
+          } else {
             // Update the parent, by tagId
-            parent = this._availableParents.find(p => (p && p.measurementValues?.[parentDisplayPmfmId]) === parentPmfmValue);
+            parent = this._availableParents.find((p) => (p && p.measurementValues?.[parentDisplayPmfmId]) === parentPmfmValue);
           }
         }
 
@@ -473,9 +458,8 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
             item.parent = parent;
             // If row use a validator, force update
             if (row.validator) {
-              if (!row.editing) row.validator.patchValue({parent}, {emitEvent: false});
-            }
-            else {
+              if (!row.editing) row.validator.patchValue({ parent }, { emitEvent: false });
+            } else {
               row.currentData.parent = parent;
             }
           }
@@ -490,12 +474,12 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
     if (hasRemovedItem) {
       // Make sure to convert into a Sample - fix issue #371
-      this.value = data.map(c => Sample.fromObject(c));
+      this.value = data.map((c) => Sample.fromObject(c));
     }
   }
 
   protected sortData(data: Sample[], sortBy?: string, sortDirection?: SortDirection): Sample[] {
-    sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
+    sortBy = (sortBy !== 'parent' && sortBy) || 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
@@ -505,17 +489,16 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   protected async suggestParent(value: any, opts?: any): Promise<LoadResult<Sample>> {
-    if (EntityUtils.isNotEmpty(value, 'label')) return {data: [value]};
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
+    if (EntityUtils.isNotEmpty(value, 'label')) return { data: [value] };
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
 
     // All
-    if (isNil(value)) return {data: this._availableSortedParents, total: this._availableSortedParents.length};
+    if (isNil(value)) return { data: this._availableSortedParents, total: this._availableSortedParents.length };
 
     return suggestFromArray(this._availableSortedParents, value, {
-      ...opts
+      ...opts,
     });
   }
-
 
   protected markForCheck() {
     this.cd.markForCheck();

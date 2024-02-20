@@ -83,7 +83,7 @@
         *ngFor="let index of $packetIndexes | async; even as colEven"
         [class.even]="colEven"
       >
-        <ion-label>{{ 'PACKET.SAMPLED_WEIGHT' | translate : { rankOrder: index + 1 } }}</ion-label>
+        <ion-label>{{ 'PACKET.SAMPLED_WEIGHT' | translate: { rankOrder: index + 1 } }}</ion-label>
       </th>
     </tr>
 
@@ -99,11 +99,7 @@
       </td>
 
       <!-- Packet weight column -->
-      <td
-        class="mat-cell mat-column-small"
-        *ngFor="let index of $packetIndexes | async; even as colEven"
-        [class.even]="colEven"
-      >
+      <td class="mat-cell mat-column-small" *ngFor="let index of $packetIndexes | async; even as colEven" [class.even]="colEven">
         <mat-form-field floatLabel="never">
           <input
             matInput
@@ -111,7 +107,7 @@
             type="number"
             decimal="true"
             step="0.1"
-            [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate : { rankOrder: index + 1 }"
+            [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: { rankOrder: index + 1 }"
             [formControlName]="'sampledWeight' + index"
             [tabIndex]="tabindex + 10 + (index + 1) * 100"
             (click)="selectInputContent($event)"
@@ -146,11 +142,7 @@
       </td>
 
       <!-- ratios -->
-      <td
-        class="mat-cell mat-column-small"
-        *ngFor="let packetIndex of $packetIndexes | async; even as colEven"
-        [class.even]="colEven"
-      >
+      <td class="mat-cell mat-column-small" *ngFor="let packetIndex of $packetIndexes | async; even as colEven" [class.even]="colEven">
         <mat-form-field *ngIf="compositionForm.get('ratio' + packetIndex); let control">
           <input
             matInput
@@ -210,20 +202,12 @@
           <ion-row>
             <ion-col size="auto">
               <!-- add composition (mobile) -->
-              <ion-fab-button
-                *ngIf="mobile"
-                size="small"
-                class="ion-float-start"
-                color="tertiary"
-                (click)="addComposition()"
-              >
+              <ion-fab-button *ngIf="mobile" size="small" class="ion-float-start" color="tertiary" (click)="addComposition()">
                 <ion-icon name="add"></ion-icon>
               </ion-fab-button>
             </ion-col>
             <ion-col class="ion-text-end" style="align-self: center">
-              <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>
-                PACKET.COMPOSITION.TOTAL_PCT_DOTS
-              </ion-label>
+              <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>PACKET.COMPOSITION.TOTAL_PCT_DOTS</ion-label>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -233,11 +217,7 @@
         *ngFor="let index of $packetIndexes | async; even as colEven"
         [class.even]="colEven"
       >
-        <ion-text
-          *ngIf="form.get('sampledRatio' + index).value; let sampledRatio"
-          [color]="sampledRatio > 100 ? 'danger' : 'primary'"
-          class="error"
-        >
+        <ion-text *ngIf="form.get('sampledRatio' + index).value; let sampledRatio" [color]="sampledRatio > 100 ? 'danger' : 'primary'" class="error">
           <small *ngIf="sampledRatio > 100">
             <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           </small>

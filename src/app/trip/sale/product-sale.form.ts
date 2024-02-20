@@ -1,7 +1,16 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Product } from '../product/product.model';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { AppForm, AppFormUtils, FormArrayHelper, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  AppFormUtils,
+  FormArrayHelper,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { ProductValidatorService } from '../product/product.validator';
@@ -14,10 +23,9 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
   selector: 'app-product-sale-form',
   templateUrl: './product-sale.form.html',
   styleUrls: ['./product-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestroy {
-
   private _saleSubscription: Subscription;
   private _data: Product;
 
@@ -35,7 +43,9 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     const json = this.form.value;
 
     // Convert products sales to products
-    json.saleProducts = (json.saleProducts || []).map(saleProduct => SaleProductUtils.saleProductToProduct(this._data, saleProduct, this.productSalePmfms, {keepId: true}));
+    json.saleProducts = (json.saleProducts || []).map((saleProduct) =>
+      SaleProductUtils.saleProductToProduct(this._data, saleProduct, this.productSalePmfms, { keepId: true })
+    );
 
     return json;
   }
@@ -52,7 +62,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
+    super(injector, validatorService.getFormGroup(undefined, { withSaleProducts: true }));
   }
 
   ngOnInit() {
@@ -67,14 +77,14 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
+        entityName: 'SaleType',
       },
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerSubscription(
-      this.form.get('individualCount').valueChanges.subscribe(value => {
+      this.form.get('individualCount').valueChanges.subscribe((value) => {
         this.hasIndividualCount = isNotNil(value);
         this.markForCheck();
       })
@@ -87,18 +97,19 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   async setValue(data: Product, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return;
     this._data = data;
 
     // Initialize product sales by converting products to sale products
-    data.saleProducts = isNotEmptyArray(data.saleProducts) ? data.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, this.productSalePmfms)) : [null];
+    data.saleProducts = isNotEmptyArray(data.saleProducts)
+      ? data.saleProducts.map((p) => SaleProductUtils.productToSaleProduct(p, this.productSalePmfms))
+      : [null];
     this.salesHelper.resize(Math.max(1, data.saleProducts.length));
 
     super.setValue(data, opts);
 
     // update saleFromArray validators
-    this.validatorService.updateFormGroup(this.form, {withSaleProducts: true});
+    this.validatorService.updateFormGroup(this.form, { withSaleProducts: true });
 
     this.computeAllPrices();
 
@@ -106,34 +117,32 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   private initSubscription() {
-
     // clear and re-create
     this._saleSubscription?.unsubscribe();
     this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
-      this._saleSubscription.add(saleForm.valueChanges.subscribe(() => {
-        const dirty = saleForm.dirty;
-        this.computePrices(saleForm.controls);
+    for (const saleForm of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
+      this._saleSubscription.add(
+        saleForm.valueChanges.subscribe(() => {
+          const dirty = saleForm.dirty;
+          this.computePrices(saleForm.controls);
 
-        // Restore previous state - fix OBSDEB bug
-        if (!dirty) saleForm.markAsPristine();
-      }));
+          // Restore previous state - fix OBSDEB bug
+          if (!dirty) saleForm.markAsPristine();
+        })
+      );
     }
-
   }
 
   private computeAllPrices() {
-    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
+    for (const saleForm of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
       this.computePrices(saleForm.controls);
     }
   }
 
   computePrices(controls: { [key: string]: AbstractControl }) {
-
-    if (this.computing)
-      return;
+    if (this.computing) return;
 
     try {
       this.computing = true;
@@ -148,11 +157,9 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
         true,
         'individualCount'
       );
-
     } finally {
       this.computing = false;
     }
-
   }
 
   isProductWithNumber(): boolean {
@@ -171,7 +178,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       SaleProductUtils.isSaleProductEmpty,
       {
         allowEmptyArray: true,
-        validators: this.validatorService.getDefaultSaleProductValidators()
+        validators: this.validatorService.getDefaultSaleProductValidators(),
       }
     );
     if (this.salesHelper.size() === 0) {
@@ -179,7 +186,6 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       this.salesHelper.resize(1);
     }
     this.markForCheck();
-
   }
 
   asFormGroup(control): UntypedFormGroup {
@@ -199,15 +205,14 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     this.salesHelper.removeAt(index);
     this.initSubscription();
 
-    this.editSale(index - 1, {focus: false});
+    this.editSale(index - 1, { focus: false });
   }
 
-  editSale(index: number, opts = {focus: true}) {
+  editSale(index: number, opts = { focus: true }) {
     const maxIndex = this.salesHelper.size() - 1;
     if (index < 0) {
       index = 0;
-    }
-    else if (index > maxIndex) {
+    } else if (index > maxIndex) {
       index = maxIndex;
     }
     if (this.salesEditedIndex === index) return; // Skip if same
@@ -228,5 +233,4 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

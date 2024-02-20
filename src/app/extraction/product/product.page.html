@@ -104,13 +104,7 @@
             <ion-col size="12" size-xl="3" class="ion-no-padding">
               <app-entity-metadata [value]="data">
                 <!-- open map button -->
-                <ion-button
-                  color="secondary"
-                  size="full"
-                  *ngIf="productForm.isSpatial"
-                  (click)="openMap($event)"
-                  [disabled]="loading"
-                >
+                <ion-button color="secondary" size="full" *ngIf="productForm.isSpatial" (click)="openMap($event)" [disabled]="loading">
                   <mat-icon slot="start">
                     <ion-icon name="earth"></ion-icon>
                   </mat-icon>
@@ -164,13 +158,7 @@
         <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_RESULT</ion-label>
       </ng-template>
 
-      <app-extraction-table-page
-        #resultTable
-        queryTabIndexParamName="subtab"
-        [autoload]="false"
-        [embedded]="true"
-        [showFilter]="false"
-      >
+      <app-extraction-table-page #resultTable queryTabIndexParamName="subtab" [autoload]="false" [embedded]="true" [showFilter]="false">
         <!-- Run extraction -->
         <button
           mat-raised-button

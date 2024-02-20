@@ -334,11 +334,11 @@ export class BatchUtils {
           ? // Recursive call
             BatchUtils.sumObservedIndividualCount(b.children)
           : // Or get value from individual batches
-          b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
-          ? toNumber(b.individualCount, 1)
-          : // Default value, if not an individual batches
-            // Use '0' because we want only observed batches count
-            0
+            b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+            ? toNumber(b.individualCount, 1)
+            : // Default value, if not an individual batches
+              // Use '0' because we want only observed batches count
+              0
       )
       .reduce((sum, individualCount) => sum + individualCount, 0);
   }

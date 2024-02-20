@@ -1,17 +1,14 @@
-import {Injectable} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ReferentialValidatorService} from '../../services/validator/referential.validator';
-import {TaxonName} from '../../services/model/taxon-name.model';
+import { Injectable } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ReferentialValidatorService } from '../../services/validator/referential.validator';
+import { TaxonName } from '../../services/model/taxon-name.model';
 import { AppValidatorService, toBoolean } from '@sumaris-net/ngx-components';
-import {SharedValidators} from '@sumaris-net/ngx-components';
+import { SharedValidators } from '@sumaris-net/ngx-components';
 import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class WeightLengthConversionValidatorService extends AppValidatorService<WeightLengthConversion> {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -21,7 +18,7 @@ export class WeightLengthConversionValidatorService extends AppValidatorService<
 
   getFormGroupConfig(data?: WeightLengthConversion, opts?: {}): { [p: string]: any } {
     return {
-      id: [data && data.id || null],
+      id: [(data && data.id) || null],
       year: [data?.year || null, Validators.compose([Validators.required, Validators.min(1970)])],
       startMonth: [data?.startMonth || null, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])],
       endMonth: [data?.endMonth || null, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])],
@@ -36,8 +33,7 @@ export class WeightLengthConversionValidatorService extends AppValidatorService<
       comments: [data?.comments || null],
       updateDate: [data?.updateDate || null],
       creationDate: [data?.creationDate || null],
-      statusId: [data?.statusId || null, Validators.required]
+      statusId: [data?.statusId || null, Validators.required],
     };
   }
-
 }

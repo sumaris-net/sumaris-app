@@ -267,8 +267,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
             case 'enums': {
               const keys = (value || '').trim().split(/[|,]+/);
               if (isNotEmptyArray(keys)) {
-                const enumValues = keys.map((key) =>
-                  (def.values as (string | Property)[])?.find((defValue) => defValue && key === (defValue['key'] || defValue))
+                const enumValues = keys.map(
+                  (key) => (def.values as (string | Property)[])?.find((defValue) => defValue && key === (defValue['key'] || defValue))
                 );
                 data.properties[def.key] = enumValues || null;
               } else {

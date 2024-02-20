@@ -91,52 +91,61 @@ export const SaleFragments = {
 };
 
 const Queries: BaseEntityGraphqlQueries = {
-  load: gql`query Sale($id: Int) {
+  load: gql`
+    query Sale($id: Int) {
       data: sale(id: $id) {
         ...SaleFragment
       }
     }
-    ${SaleFragments.sale}`,
+    ${SaleFragments.sale}
+  `,
 
-  loadAll: gql`query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: sales(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...LightSaleFragment
+  loadAll: gql`
+    query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: sales(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...LightSaleFragment
+      }
     }
-  }
-  ${SaleFragments.lightSale}`
+    ${SaleFragments.lightSale}
+  `,
 };
 
 const Mutations: BaseEntityGraphqlMutations = {
-  save: gql`mutation SaveSales($data:[SaleVOInput]){
-    data: saveSales(data: $data){
-      ...SaleFragment
+  save: gql`
+    mutation SaveSales($data: [SaleVOInput]) {
+      data: saveSales(data: $data) {
+        ...SaleFragment
+      }
     }
-  }
-  ${SaleFragments.sale}`,
+    ${SaleFragments.sale}
+  `,
 
-  deleteAll: gql`mutation DeleteSales($ids:[Int]){
-    deleteSales(ids: $ids)
-  }`
+  deleteAll: gql`
+    mutation DeleteSales($ids: [Int]) {
+      deleteSales(ids: $ids)
+    }
+  `,
 };
 
 const Subscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateSale($id: Int, $interval: Int){
-    data: updateSale(id: $id, interval: $interval) {
-      ...SaleFragment
+  listenChanges: gql`
+    subscription UpdateSale($id: Int, $interval: Int) {
+      data: updateSale(id: $id, interval: $interval) {
+        ...SaleFragment
+      }
     }
-  }
-  ${SaleFragments.sale}`
+    ${SaleFragments.sale}
+  `,
 };
 
 const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
   const d1 = n1.endDateTime || n1.startDateTime;
   const d2 = n2.endDateTime || n2.startDateTime;
-  return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+  return d1.isSame(d2) ? 0 : d1.isAfter(d2) ? 1 : -1;
 };
 
-@Injectable({providedIn: 'root'})
-export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter>{
-
+@Injectable({ providedIn: 'root' })
+export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter> {
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService
@@ -157,15 +166,16 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
    * @param filter
    * @param options
    */
-  watchAll(offset: number,
-           size: number,
-           sortBy?: string,
-           sortDirection?: SortDirection,
-           dataFilter?: SaleFilter,
-           options?: {
-             fetchPolicy?: WatchQueryFetchPolicy;
-           }): Observable<LoadResult<Sale>> {
-
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: SaleFilter,
+    options?: {
+      fetchPolicy?: WatchQueryFetchPolicy;
+    }
+  ): Observable<LoadResult<Sale>> {
     dataFilter = this.asFilter(dataFilter);
 
     const variables: any = {
@@ -173,11 +183,10 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: dataFilter.asPodObject()
+      filter: dataFilter.asPodObject(),
     };
 
     if (this._debug) console.debug('[sale-service] Loading sales... using options:', variables);
-
 
     // TODO: manage options.withTotal, and query selection
     const withTotal = false;
@@ -191,73 +200,79 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       query,
       variables,
       error: { code: DataErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
-    })
-      .pipe(
-        map((res) => {
-          const entities = (res && res.data || []).map(Sale.fromObject);
-          if (this._debug) console.debug(`[sale-service] Loaded ${entities.length} sales`);
+      fetchPolicy: (options && options.fetchPolicy) || 'cache-and-network',
+    }).pipe(
+      map((res) => {
+        const entities = ((res && res.data) || []).map(Sale.fromObject);
+        if (this._debug) console.debug(`[sale-service] Loaded ${entities.length} sales`);
 
-          // Compute rankOrderOnPeriod, when loading by parent entity
-          if (offset === 0 && (size === -1) && isNotNil(dataFilter.observedLocationId)) {
-            if (offset === 0 && (size === -1)) {
-              // apply a sorted copy (do NOT change original order), then compute rankOrder
-              entities.slice()
-                .sort(sortByEndDateOrStartDateFn)
-                .forEach((o, i) => o.rankOrder = i+1);
+        // Compute rankOrderOnPeriod, when loading by parent entity
+        if (offset === 0 && size === -1 && isNotNil(dataFilter.observedLocationId)) {
+          if (offset === 0 && size === -1) {
+            // apply a sorted copy (do NOT change original order), then compute rankOrder
+            entities
+              .slice()
+              .sort(sortByEndDateOrStartDateFn)
+              .forEach((o, i) => (o.rankOrder = i + 1));
 
-              // sort by rankOrder (aka id)
-              if (!sortBy || sortBy === 'id') {
-                const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-                entities.sort((a, b) => {
-                  const valueA = a.rankOrder;
-                  const valueB = b.rankOrder;
-                  return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-                });
-              }
+            // sort by rankOrder (aka id)
+            if (!sortBy || sortBy === 'id') {
+              const after = !sortDirection || sortDirection === 'asc' ? 1 : -1;
+              entities.sort((a, b) => {
+                const valueA = a.rankOrder;
+                const valueB = b.rankOrder;
+                return valueA === valueB ? 0 : valueA > valueB ? after : -1 * after;
+              });
             }
           }
+        }
 
-          const total = res.total || entities.length;
+        const total = res.total || entities.length;
 
-          return { data: entities, total};
-        }));
+        return { data: entities, total };
+      })
+    );
   }
 
   load(id: number): Observable<Sale | null> {
     if (this._debug) console.debug('[sale-service] Loading sale {' + id + '}...');
 
-    return this.graphql.watchQuery<{ data: any }>({
-      query: Queries.load,
-      variables: { id },
-      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' }
-    })
+    return this.graphql
+      .watchQuery<{ data: any }>({
+        query: Queries.load,
+        variables: { id },
+        error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+      })
       .pipe(
-        map(res => {
-          const entity = res?.data && Sale.fromObject(res.data) || null;
+        map((res) => {
+          const entity = (res?.data && Sale.fromObject(res.data)) || null;
           if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded`, entity);
           return entity;
         })
       );
   }
 
-  public listenChanges(id: number, opts?: {
-    interval?: number;
-    fetchPolicy: FetchPolicy;
-  }): Observable<Sale> {
-    if (!id && id !== 0) throw 'Missing argument \'id\' ';
+  public listenChanges(
+    id: number,
+    opts?: {
+      interval?: number;
+      fetchPolicy: FetchPolicy;
+    }
+  ): Observable<Sale> {
+    if (!id && id !== 0) throw "Missing argument 'id' ";
 
     if (this._debug) console.debug(`[sale-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: Sale }, { id: number; interval: number }>({
-      query: Subscriptions.listenChanges,
-      fetchPolicy: opts && opts.fetchPolicy || undefined,
-      variables: {id, interval: toNumber(opts && opts.interval, 10)},
-      error: {
-        code: DataErrorCodes.SUBSCRIBE_ENTITY_ERROR,
-        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
-      }
-    })
+    return this.graphql
+      .subscribe<{ data: Sale }, { id: number; interval: number }>({
+        query: Subscriptions.listenChanges,
+        fetchPolicy: (opts && opts.fetchPolicy) || undefined,
+        variables: { id, interval: toNumber(opts && opts.interval, 10) },
+        error: {
+          code: DataErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+          message: 'ERROR.SUBSCRIBE_ENTITY_ERROR',
+        },
+      })
       .pipe(
         map(({ data }) => {
           const entity = data && Sale.fromObject(data);
@@ -283,11 +298,10 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     if (this._debug) console.debug('[sale-service] Saving sales...');
 
     // Compute rankOrder
-    entities.sort(sortByEndDateOrStartDateFn)
-      .forEach((o, i) => o.rankOrder = i+1);
+    entities.sort(sortByEndDateOrStartDateFn).forEach((o, i) => (o.rankOrder = i + 1));
 
     // Transform to json
-    const json = entities.map(t => {
+    const json = entities.map((t) => {
       // Fill default properties (as recorder department and person)
       this.fillDefaultProperties(t, options);
       return t.asObject(SAVE_AS_OBJECT_OPTIONS);
@@ -297,19 +311,18 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     await this.graphql.mutate<{ data: Sale[] }>({
       mutation: Mutations.saveAll,
       variables: {
-        data: json
+        data: json,
       },
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         // Copy id and update date
-        (data && data.data && entities || [])
-          .forEach(entity => {
-            const savedSale = data.data.find(res => entity.equals(res));
-            this.copyIdAndUpdateDate(savedSale, entity);
-          });
+        ((data && data.data && entities) || []).forEach((entity) => {
+          const savedSale = data.data.find((res) => entity.equals(res));
+          this.copyIdAndUpdateDate(savedSale, entity);
+        });
 
         if (this._debug) console.debug(`[sale-service] Sales saved and updated in ${Date.now() - now}ms`, entities);
-      }
+      },
     });
 
     return entities;
@@ -336,10 +349,10 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     await this.graphql.mutate<{ data: Sale[] }>({
       mutation: Mutations.saveAll,
       variables: {
-        data: [json]
+        data: [json],
       },
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
-      update: (proxy, {data}) => {
+      update: (proxy, { data }) => {
         const savedEntity = data && data.data && data.data[0];
         if (savedEntity && savedEntity !== entity) {
           // Copy id and update Date
@@ -351,10 +364,10 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         if (isNew) {
           this.insertIntoMutableCachedQueries(proxy, {
             queries: this.getLoadQueries(),
-            data: savedEntity
+            data: savedEntity,
           });
         }
-      }
+      },
     });
 
     return entity;
@@ -366,10 +379,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
    * @param entities
    */
   async deleteAll(entities: Sale[]): Promise<any> {
-
-    const ids = entities && entities
-      .map(t => t.id)
-      .filter(id => (id > 0));
+    const ids = entities && entities.map((t) => t.id).filter((id) => id > 0);
 
     const now = Date.now();
     if (this._debug) console.debug('[sale-service] Deleting sales... ids:', ids);
@@ -377,17 +387,17 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     await this.graphql.mutate<any>({
       mutation: Mutations.deleteAll,
       variables: {
-        ids
+        ids,
       },
       update: (proxy) => {
         // Remove from cache
-        this.removeFromMutableCachedQueriesByIds(proxy,{
+        this.removeFromMutableCachedQueriesByIds(proxy, {
           queries: this.getLoadQueries(),
-          ids
+          ids,
         });
 
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
-      }
+      },
     });
   }
 
@@ -398,13 +408,10 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   /* -- protected methods -- */
 
   protected fillDefaultProperties(entity: Sale, options?: any) {
-
     // If new trip
     if (!entity.id || entity.id < 0) {
-
       // Fill Recorder department and person
       this.fillRecorderPersonAndDepartment(entity);
-
     }
 
     // Fill parent entity id
@@ -448,8 +455,8 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
-      targets.forEach(target => {
-        const source = sources.find(json => target.equals(json));
+      targets.forEach((target) => {
+        const source = sources.find((json) => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
 
         // Apply to children

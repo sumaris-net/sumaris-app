@@ -234,4 +234,3 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
     this.cd.markForCheck();
   }
 }
-

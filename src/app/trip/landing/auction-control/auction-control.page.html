@@ -59,10 +59,12 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab [label]="'LANDING.EDIT.TAB_GENERAL' | translate"
-             appSubMenuTab
-             [parentPath]="defaultBackHref"
-             [subMenuTitle]="(titleSubject|async|noHtml)||''">
+    <mat-tab
+      [label]="'LANDING.EDIT.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [parentPath]="defaultBackHref"
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+    >
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
@@ -103,8 +105,7 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab #samplesTab [label]="'AUCTION_CONTROL.TAB_SAMPLES' | translate"
-             appSubMenuTab>
+    <mat-tab #samplesTab [label]="'AUCTION_CONTROL.TAB_SAMPLES' | translate" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="icon-only" name="flag"></ion-icon>
@@ -125,11 +126,7 @@
       <div>
         <!-- error -->
         <ion-item
-          *ngIf="
-            submitted &&
-              (samplesTable.error || (landingForm.measurementValuesForm | translateFormError : errorTranslatorOptions));
-            let error
-          "
+          *ngIf="submitted && (samplesTable.error || (landingForm.measurementValuesForm | translateFormError: errorTranslatorOptions)); let error"
           visible-xs
           visible-sm
           visible-mobile
@@ -151,9 +148,7 @@
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding">
               <!-- pmfms -->
-              <ng-container
-                *rxFor="let pmfm of pmfms; trackBy: landingForm.trackPmfmFn; strategy: 'immediate'; index as i"
-              >
+              <ng-container *rxFor="let pmfm of pmfms; trackBy: landingForm.trackPmfmFn; strategy: 'immediate'; index as i">
                 <ion-col size="11" size-md="5">
                   <app-pmfm-field [pmfm]="pmfm" [controlName]="pmfm | pmfmIdString"></app-pmfm-field>
                 </ion-col>
@@ -209,12 +204,7 @@
         >
           <ion-buttons slot="end">
             <!-- Help button -->
-            <button
-              mat-icon-button
-              *ngIf="helpContent"
-              [matTooltip]="'COMMON.BTN_SHOW_HELP' | translate"
-              (click)="openHelpModal($event)"
-            >
+            <button mat-icon-button *ngIf="helpContent" [matTooltip]="'COMMON.BTN_SHOW_HELP' | translate" (click)="openHelpModal($event)">
               <mat-icon>help_outline</mat-icon>
             </button>
           </ion-buttons>
@@ -240,13 +230,7 @@
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab
-  vertical="bottom"
-  horizontal="end"
-  slot="fixed"
-  *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1"
-  @fadeInOutAnimation
->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
@@ -297,11 +281,11 @@
           landingForm.dirty: {{ landingForm.dirty }}
           <br />
           <br />
-          landingForm.observedLocationId: {{ form | formGetValue : 'observedLocationId' }}
+          landingForm.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}
           <br />
-          landingForm.dateTime: {{ form | formGetValue : 'dateTime' | dateFormat : { time: true } }}
+          landingForm.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
           <br />
-          landingForm.location: {{ form | formGetValue : 'location' | propertyGet : 'label' }}
+          landingForm.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
           <br />
           <br />
           landingForm.acquisitionLevel: {{ landingForm.acquisitionLevel }}

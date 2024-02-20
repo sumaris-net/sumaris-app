@@ -77,11 +77,10 @@ export class BaseReportStats {
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
-    return  {
+    return {
       program: this.program?.asObject(opts),
     };
   }
-
 }
 
 export interface IReportI18nContext {
@@ -98,12 +97,13 @@ export interface IComputeStatsOpts<S> {
 
 @Directive()
 export abstract class AppBaseReport<
-  T extends IReportData,
-  ID = number,
-  S extends BaseReportStats = BaseReportStats,
-  O extends BaseReportOptions = BaseReportOptions>
-  implements OnInit, AfterViewInit, OnDestroy {
-
+    T extends IReportData,
+    ID = number,
+    S extends BaseReportStats = BaseReportStats,
+    O extends BaseReportOptions = BaseReportOptions,
+  >
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private _printing = false;
 
   protected logPrefix = 'base-report';
@@ -156,7 +156,7 @@ export abstract class AppBaseReport<
     if (isNil(value)) return;
     if (instanceOf(value, this.statsType)) this._stats = value;
     else this._stats = this.statsFromObject(value);
-  };
+  }
   get stats(): S {
     return this._stats;
   }
@@ -167,16 +167,20 @@ export abstract class AppBaseReport<
 
   @Input() i18nContextSuffix: string;
 
-  @ViewChild(RevealComponent, {static: false}) protected reveal: RevealComponent;
+  @ViewChild(RevealComponent, { static: false }) protected reveal: RevealComponent;
 
-  get loaded(): boolean { return !this.loadingSubject.value; }
-  get loading(): boolean { return this.loadingSubject.value; }
+  get loaded(): boolean {
+    return !this.loadingSubject.value;
+  }
+  get loading(): boolean {
+    return this.loadingSubject.value;
+  }
 
   get modalName(): string {
     return this.constructor.name;
   }
 
-  get latLongFormat(): LatLongPattern{
+  get latLongFormat(): LatLongPattern {
     return this.settings?.latLongFormat;
   }
 
@@ -198,8 +202,8 @@ export abstract class AppBaseReport<
 
   protected constructor(
     injector: Injector,
-    protected dataType: new() => T,
-    protected statsType: new() => S,
+    protected dataType: new () => T,
+    protected statsType: new () => S,
     @Optional() protected options?: O
   ) {
     this.injector = injector;
@@ -227,9 +231,7 @@ export abstract class AppBaseReport<
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
 
-    this.onRefresh
-      .pipe(filter(_ => this.loaded))
-      .subscribe(() => this.reload({cache: false}));
+    this.onRefresh.pipe(filter((_) => this.loaded)).subscribe(() => this.reload({ cache: false }));
 
     this.debug = !environment.production;
   }
@@ -265,7 +267,6 @@ export abstract class AppBaseReport<
 
     this.markAsReady();
     try {
-
       // Load or fill this.data, this.stats and this.i18nContext
       await this.ngOnStart(opts);
 
@@ -277,13 +278,12 @@ export abstract class AppBaseReport<
 
       // Update the view: initialise reveal
       await this.updateView();
-
     } catch (err) {
       console.error(err);
       this.setError(err);
       this.markAsLoaded();
     }
-  };
+  }
 
   async reload(opts?: any) {
     if (!this.loaded) return; // skip
@@ -317,8 +317,7 @@ export abstract class AppBaseReport<
     let clipboard: Clipboard<any>;
     if (isNotNil(this.context.clipboard)) {
       clipboard = this.context.clipboard;
-    }
-    else if (isNotNilOrBlank(this.uuid)) {
+    } else if (isNotNilOrBlank(this.uuid)) {
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared ressource`);
       const http = this.injector.get(HttpClient);
       const peerUrl = this.settings.settings.peerUrl;
@@ -356,7 +355,7 @@ export abstract class AppBaseReport<
       this.i18nContext = {
         ...this.i18nContext,
         ...clipboard.data.i18nContext,
-        pmfmPrefix: this.options?.i18nPmfmPrefix
+        pmfmPrefix: this.options?.i18nPmfmPrefix,
       };
       consumed = true;
       if (this.debug) console.debug(`[${this.logPrefix}] i18nContext loaded from clipboard`, this.i18nContext);
@@ -373,14 +372,11 @@ export abstract class AppBaseReport<
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T, stats: S): string;
 
-
   protected computeI18nContext(stats: BaseReportStats): IReportI18nContext {
     if (this.debug) console.debug(`[${this.logPrefix}] computeI18nContext]`);
-    const suffix = isNilOrBlank(this.i18nContextSuffix)
-      ? stats.program?.getProperty(ProgramProperties.I18N_SUFFIX) || ''
-      : this.i18nContextSuffix;
+    const suffix = isNilOrBlank(this.i18nContextSuffix) ? stats.program?.getProperty(ProgramProperties.I18N_SUFFIX) || '' : this.i18nContextSuffix;
 
-    return  {
+    return {
       prefix: this.options?.i18nPrefix || '',
       suffix: suffix === 'legacy' ? '' : suffix,
       pmfmPrefix: this.options?.i18nPmfmPrefix || '',
@@ -390,7 +386,7 @@ export abstract class AppBaseReport<
   computePrintHref(data: T, stats: S): URL {
     if (this.uuid) return new URL(`${this.baseHref}/${this.computeShareBasePath()}?uuid=${this.uuid}`);
     else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report');
-  };
+  }
 
   protected abstract computeShareBasePath(): string;
 
@@ -405,7 +401,7 @@ export abstract class AppBaseReport<
       pdfMaxPagesPerSlide: 1,
       disableLayout: mobile,
       touch: mobile,
-      printUrl: this.computePrintHref(data, stats)
+      printUrl: this.computePrintHref(data, stats),
     };
   }
 
@@ -414,7 +410,7 @@ export abstract class AppBaseReport<
     const id = route.params[pathIdAttribute] as R;
     if (isNotNil(id)) {
       if (typeof id === 'string' && isNumber(id)) {
-        return (+id) as any as R;
+        return +id as any as R;
       }
       return id;
     }
@@ -423,7 +419,7 @@ export abstract class AppBaseReport<
 
   async updateView() {
     this.cd.detectChanges();
-    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject});
+    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject });
     if (!this.embedded) await this.reveal.initialize();
   }
 
@@ -441,14 +437,14 @@ export abstract class AppBaseReport<
     this.cd.markForCheck();
   }
 
-  protected markAsLoading(opts = {emitEvent: true}) {
+  protected markAsLoading(opts = { emitEvent: true }) {
     if (!this.loadingSubject.value) {
       this.loadingSubject.next(true);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
-  protected markAsLoaded(opts = {emitEvent: true}) {
+  protected markAsLoaded(opts = { emitEvent: true }) {
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
@@ -466,28 +462,27 @@ export abstract class AppBaseReport<
     await waitForTrue(this.readySubject, opts);
   }
 
-  setError(err: string | AppErrorWithDetails, opts?: {
-    detailsCssClass?: string;
-    emitEvent?: boolean;
-  }) {
+  setError(
+    err: string | AppErrorWithDetails,
+    opts?: {
+      detailsCssClass?: string;
+      emitEvent?: boolean;
+    }
+  ) {
     if (!err) {
       this.error = undefined;
     } else if (typeof err === 'string') {
       this.error = err as string;
     } else {
       // NOTE: Case when `|| err` is possible ?
-      let userMessage: string = err.message && this.translate.instant(err.message) || err;
+      let userMessage: string = (err.message && this.translate.instant(err.message)) || err;
       // NOTE: replace || by && ???
-      const detailMessage: string = (!err.details || typeof (err.message) === 'string')
-        ? err.details as string
-        : err.details.message;
+      const detailMessage: string = !err.details || typeof err.message === 'string' ? (err.details as string) : err.details.message;
       // NOTE: !isNotNilOrBlank ??? (invert the test)
       if (isNotNilOrBlank(detailMessage)) {
         const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
         userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
-        userMessage += detailMessage.length < 70
-          ? detailMessage
-          : detailMessage.substring(0, 67) + '...';
+        userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
         userMessage += '</small>';
       }
       this.error = userMessage;
@@ -498,14 +493,13 @@ export abstract class AppBaseReport<
   abstract dataAsObject(source: T, opts?: EntityAsObjectOptions): any;
 
   dataFromObject(source: any): T {
-   if (this.dataType) {
-     const data = new this.dataType();
-     data.fromObject(source);
-     return data;
-   }
-   return source as T;
-  };
-
+    if (this.dataType) {
+      const data = new this.dataType();
+      data.fromObject(source);
+      return data;
+    }
+    return source as T;
+  }
 
   statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
     return source.asObject(opts);
@@ -518,7 +512,6 @@ export abstract class AppBaseReport<
   }
 
   protected async showSharePopover(event?: UIEvent) {
-
     if (isNilOrBlank(this.uuid)) {
       try {
         this.uuid = await this.uploadReportFile();
@@ -540,10 +533,9 @@ export abstract class AppBaseReport<
         dialogTitle: this.translate.instant('COMMON.SHARE.DIALOG_TITLE'),
         title: this.$title.value,
         text: this.translate.instant('COMMON.SHARE.LINK'),
-        url: shareUrl
+        url: shareUrl,
       });
-    }
-    else {
+    } else {
       await Popovers.showText(
         this.injector.get(PopoverController),
         event,
@@ -571,16 +563,17 @@ export abstract class AppBaseReport<
                 });
 
                 await Toasts.show(this.toastController, this.translate, {
-                  type: 'info', message: 'INFO.COPY_SUCCEED'
+                  type: 'info',
+                  message: 'INFO.COPY_SUCCEED',
                 });
 
                 return false; // Avoid dismiss
-              }
-            }
-          ]
+              },
+            },
+          ],
         } as any,
         {
-          backdropDismiss: true
+          backdropDismiss: true,
         } as any
       );
     }
@@ -588,7 +581,7 @@ export abstract class AppBaseReport<
 
   protected async uploadReportFile(): Promise<string> {
     // Wait data loaded
-    await this.waitIdle({timeout: 5000});
+    await this.waitIdle({ timeout: 5000 });
 
     const uploadFileName = this.getExportFileName('json');
 
@@ -606,26 +599,30 @@ export abstract class AppBaseReport<
           i18nContext: this.i18nContext,
         },
         // eslint-disable-next-line no-bitwise
-        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT
-      }
+        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT,
+      },
     };
 
-    const file = JsonUtils.writeToFile(sharedElement, {filename: uploadFileName});
+    const file = JsonUtils.writeToFile(sharedElement, { filename: uploadFileName });
 
-    const { fileName, message } = await lastValueFrom(this.fileTransferService.uploadResource(file, {
-      resourceType: 'report',
-      resourceId: sharedElement.uuid + '.json',
-      reportProgress: false
-    }).pipe(
-      map(event => {
-        if (event.type === HttpEventType.Response) {
-          return event.body;
-        }
-      }),
-      filter(body => !!body),
-      first(),
-      takeUntil(this.destroySubject)
-    ));
+    const { fileName, message } = await lastValueFrom(
+      this.fileTransferService
+        .uploadResource(file, {
+          resourceType: 'report',
+          resourceId: sharedElement.uuid + '.json',
+          reportProgress: false,
+        })
+        .pipe(
+          map((event) => {
+            if (event.type === HttpEventType.Response) {
+              return event.body;
+            }
+          }),
+          filter((body) => !!body),
+          first(),
+          takeUntil(this.destroySubject)
+        )
+    );
 
     if (message !== 'OK' || !fileName) {
       throw new Error('Failed to upload report data!');
@@ -645,14 +642,10 @@ export abstract class AppBaseReport<
 
   protected getExportFileName(format = 'json', params?: any): string {
     const key = `${this.i18nContext.prefix}EXPORT_${format.toUpperCase()}_FILENAME`;
-    const filename = this.translateContext.instant(
-      key,
-      this.i18nContext.suffix,
-      params || {title: this.$title.value});
+    const filename = this.translateContext.instant(key, this.i18nContext.suffix, params || { title: this.$title.value });
     if (filename !== key) return filename;
     return `export.${format}`; // Default filename
   }
-
 
   private isPrintingPDF(): boolean {
     if (this._printing) return true;
@@ -666,6 +659,4 @@ export abstract class AppBaseReport<
     await this.ready();
     this.reveal?.print();
   }
-
-
 }

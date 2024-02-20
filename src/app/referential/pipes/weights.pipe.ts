@@ -4,16 +4,18 @@ import { isNil } from '@sumaris-net/ngx-components';
 import { WeightUtils } from '@app/referential/services/model/model.utils';
 
 @Pipe({
-  name: 'weightFormat'
+  name: 'weightFormat',
 })
 export class WeightFormatPipe implements PipeTransform {
-
-  transform(value: number|string, opts?: {
-    withUnit?: boolean;
-    fromUnit?: WeightUnitSymbol|string;
-    toUnit?: WeightUnitSymbol|string|'auto';
-    maxDecimals?: number;
-  }): string {
+  transform(
+    value: number | string,
+    opts?: {
+      withUnit?: boolean;
+      fromUnit?: WeightUnitSymbol | string;
+      toUnit?: WeightUnitSymbol | string | 'auto';
+      maxDecimals?: number;
+    }
+  ): string {
     if (isNil(value)) return '';
 
     let fromUnit = (opts?.fromUnit || 'kg') as WeightUnitSymbol;
@@ -32,7 +34,6 @@ export class WeightFormatPipe implements PipeTransform {
     if (fromUnit !== toUnit) {
       value = WeightUtils.convert(+value, fromUnit, toUnit);
     }
-    return WeightUtils.format(value, {...opts, unit: toUnit});
+    return WeightUtils.format(value, { ...opts, unit: toUnit });
   }
-
 }

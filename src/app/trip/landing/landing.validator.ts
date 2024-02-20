@@ -18,32 +18,33 @@ export interface LandingValidatorOptions extends DataRootEntityValidatorOptions 
   strategy: Strategy;
 }
 
-@Injectable({providedIn: 'root'})
-export class LandingValidatorService<O extends LandingValidatorOptions = LandingValidatorOptions>
-  extends DataRootVesselEntityValidatorService<Landing, O> {
-
+@Injectable({ providedIn: 'root' })
+export class LandingValidatorService<O extends LandingValidatorOptions = LandingValidatorOptions> extends DataRootVesselEntityValidatorService<
+  Landing,
+  O
+> {
   constructor(
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService
   ) {
-    super(formBuilder,translate, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: Landing, opts?: O): UntypedFormGroup {
-
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
     if (opts && opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
-        || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
-        || [];
+      const pmfms =
+        (opts.strategy && opts.strategy.denormalizedPmfms) ||
+        (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) ||
+        [];
       pmfms
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
-        .forEach(p => {
+        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
+        .forEach((p) => {
           const key = p.pmfmId.toString();
           const value = data && data.measurementValues && data.measurementValues[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
@@ -54,7 +55,6 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   }
 
   getFormGroupConfig(data?: Landing, opts?: O): { [p: string]: any } {
-
     const formConfig = Object.assign(super.getFormGroupConfig(data), {
       __typename: [Landing.TYPENAME],
       location: [data?.location || null, SharedValidators.entity],
@@ -68,9 +68,8 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       tripId: [toNumber(data?.tripId, null)],
 
       // Computed values (e.g. for SIH-OBSBIO program)
-      samplesCount: [toNumber(data?.samplesCount, null), null]
+      samplesCount: [toNumber(data?.samplesCount, null), null],
     });
-
 
     // Add observed location
     if (opts.withObservedLocation) {
@@ -88,13 +87,17 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
 
-    opts.withObservers = toBoolean(opts.withObservers,
-      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE) || false);
+    opts.withObservers = toBoolean(
+      opts.withObservers,
+      (opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE)) || false
+    );
 
-    opts.withStrategy = toBoolean(opts.withStrategy,
-      opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) || false);
+    opts.withStrategy = toBoolean(
+      opts.withStrategy,
+      (opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE)) || false
+    );
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
 
     // TODO add more options, for all form parts:
     // opts.withFishingArea = ...
@@ -102,5 +105,4 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
     return opts;
   }
-
 }

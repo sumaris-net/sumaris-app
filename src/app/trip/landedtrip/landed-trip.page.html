@@ -92,13 +92,7 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
               <!-- trip -->
-              <app-form-trip
-                #tripForm
-                (onSubmit)="save($event)"
-                [showError]="false"
-                [allowAddNewVessel]="false"
-                [returnFieldsRequired]="true"
-              >
+              <app-form-trip #tripForm (onSubmit)="save($event)" [showError]="false" [allowAddNewVessel]="false" [returnFieldsRequired]="true">
                 <!-- Main fishing area  -->
                 <app-fishing-area-form
                   #fishingAreaForm
@@ -147,12 +141,7 @@
           <ion-icon matPrefix slot="start" name="locate"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_OPERATION_GROUPS</ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="submitted && operationGroupTable.invalid"
-        ></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && operationGroupTable.invalid"></ion-icon>
       </ng-template>
 
       <app-operation-group-table
@@ -169,12 +158,7 @@
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="scan"></ion-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="submitted && (productsTable.invalid || packetsTable.invalid)"
-        ></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && (productsTable.invalid || packetsTable.invalid)"></ion-icon>
       </ng-template>
 
       <div class="mat-tab-group-body-catches" [class.has-filter]="showCatchFilter">
@@ -214,12 +198,7 @@
               >
                 TRIP.LANDED_CATCH.TAB_PRODUCT
               </ion-label>
-              <ion-icon
-                slot="end"
-                name="alert-circle"
-                color="danger"
-                *ngIf="submitted && productsTable.invalid"
-              ></ion-icon>
+              <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && productsTable.invalid"></ion-icon>
             </ng-template>
 
             <app-products-table
@@ -249,12 +228,7 @@
               >
                 TRIP.LANDED_CATCH.TAB_BATCH
               </ion-label>
-              <ion-icon
-                slot="end"
-                name="alert-circle"
-                color="danger"
-                *ngIf="submitted && packetsTable.invalid"
-              ></ion-icon>
+              <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && packetsTable.invalid"></ion-icon>
             </ng-template>
 
             <app-packets-table
@@ -277,20 +251,10 @@
       <ng-template mat-tab-label>
         <mat-icon slot="start">local_offer</mat-icon>
         <ion-label translate>TRIP.TAB_SALES</ion-label>
-        <ion-icon
-          slot="end"
-          name="alert-circle"
-          color="danger"
-          *ngIf="submitted && expectedSaleForm.invalid"
-        ></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expectedSaleForm.invalid"></ion-icon>
       </ng-template>
 
-      <app-expected-sale-form
-        #expectedSaleForm
-        [programLabel]="programLabel$ | async"
-        [showError]="true"
-        [mobile]="mobile"
-      ></app-expected-sale-form>
+      <app-expected-sale-form #expectedSaleForm [programLabel]="programLabel$ | async" [showError]="true" [mobile]="mobile"></app-expected-sale-form>
     </mat-tab>
 
     <!-- TAB: expenses -->

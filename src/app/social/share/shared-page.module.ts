@@ -5,7 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { HttpClientModule } from '@angular/common/http';
 
 import { SharedPage } from './shared-page.component';
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [SharedPage],
@@ -18,9 +18,9 @@ import {TranslateModule} from '@ngx-translate/core';
       {
         path: ':uuid',
         pathMatch: 'full',
-        component: SharedPage
-      }
-    ])
+        component: SharedPage,
+      },
+    ]),
   ],
 })
-export class SharedPageModule { }
+export class SharedPageModule {}

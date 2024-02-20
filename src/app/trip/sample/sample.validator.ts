@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,11 +17,11 @@ export interface SampleValidatorOptions {
   withImages?: boolean;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions>
   extends BaseValidatorService<Sample, number, O>
-  implements ValidatorService {
-
+  implements ValidatorService
+{
   constructor(
     protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService,
@@ -34,26 +34,26 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     const config = {
       __typename: [Sample.TYPENAME],
       id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      creationDate: [data && data.creationDate || null],
+      updateDate: [(data && data.updateDate) || null],
+      creationDate: [(data && data.creationDate) || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null, (!opts || opts.requiredLabel !== false) ? Validators.required : null],
+      label: [(data && data.label) || null, !opts || opts.requiredLabel !== false ? Validators.required : null],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      sampleDate: [data && data.sampleDate || null, Validators.required],
-      taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
-      taxonName: [data && data.taxonName || null, SharedValidators.entity],
+      sampleDate: [(data && data.sampleDate) || null, Validators.required],
+      taxonGroup: [(data && data.taxonGroup) || null, SharedValidators.entity],
+      taxonName: [(data && data.taxonName) || null, SharedValidators.entity],
       matrixId: [toNumber(data && data.matrixId, null)],
       batchId: [toNumber(data && data.batchId, null)],
       size: [toNumber(data && data.size, null)],
-      sizeUnit: [data && data.sizeUnit || null],
-      comments: [data && data.comments || null],
+      sizeUnit: [(data && data.sizeUnit) || null],
+      comments: [(data && data.comments) || null],
       children: this.formBuilder.array([]),
-      parent: [data && data.parent || null, SharedValidators.entity],
+      parent: [(data && data.parent) || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [data && data.controlDate || null],
-      validationDate: [data && data.validationDate || null],
-      qualificationDate: [data && data.qualificationDate || null],
-      qualificationComments: [data && data.qualificationComments || null],
+      controlDate: [(data && data.controlDate) || null],
+      validationDate: [(data && data.validationDate) || null],
+      qualificationDate: [(data && data.qualificationDate) || null],
+      qualificationComments: [(data && data.qualificationComments) || null],
       qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
     };
 
@@ -65,13 +65,12 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     // Add measurement values
     if (!opts || opts.measurementValuesAsGroup !== false) {
       config['measurementValues'] = this.formBuilder.group({});
-    }
-    else {
+    } else {
       config['measurementValues'] = this.formBuilder.control(data?.measurementValues || null);
     }
 
     // Add image attachments
-    if (this.imageAttachmentValidator && (opts?.withImages === true)) {
+    if (this.imageAttachmentValidator && opts?.withImages === true) {
       config['images'] = this.getImagesFormArray(data?.images);
     }
 
@@ -82,8 +81,8 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     return {
       validators: [
         SharedFormGroupValidators.requiredIfEmpty('taxonGroup', 'taxonName'),
-        SharedFormGroupValidators.requiredIfEmpty('taxonName', 'taxonGroup')
-      ]
+        SharedFormGroupValidators.requiredIfEmpty('taxonName', 'taxonGroup'),
+      ],
     };
   }
 
@@ -92,25 +91,23 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
     // Label required validator
     const labelControl = form.get('label');
-    if ((!opts || opts.requiredLabel !== false)) {
+    if (!opts || opts.requiredLabel !== false) {
       if (labelControl && !labelControl.hasValidator(Validators.required)) {
         labelControl.setValidators(Validators.required);
       }
-    }
-    else if (labelControl && labelControl.hasValidator(Validators.required)) {
-        labelControl.removeValidators(Validators.required);
+    } else if (labelControl && labelControl.hasValidator(Validators.required)) {
+      labelControl.removeValidators(Validators.required);
     }
 
     // Add image attachments
     let imageFormArray = form.get('images');
-    if (this.imageAttachmentValidator && (opts?.withImages === true)) {
+    if (this.imageAttachmentValidator && opts?.withImages === true) {
       if (!imageFormArray) {
         imageFormArray = this.getImagesFormArray();
         form.addControl('images', imageFormArray);
       }
-    }
-    else if (imageFormArray) {
-        form.removeControl('images');
+    } else if (imageFormArray) {
+      form.removeControl('images');
     }
   }
 
@@ -120,10 +117,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
   }
 
   protected getImagesFormArray(data?: ImageAttachment[], opts?: O) {
-    const formArray = new AppFormArray(
-      (image) => this.imageAttachmentValidator.getFormGroup(image),
-      ImageAttachment.equals,
-      ImageAttachment.isEmpty);
+    const formArray = new AppFormArray((image) => this.imageAttachmentValidator.getFormGroup(image), ImageAttachment.equals, ImageAttachment.isEmpty);
     if (isNotEmptyArray(data)) {
       formArray.patchValue(data);
     }
@@ -131,7 +125,6 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     return formArray;
   }
 }
-
 
 export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
   missingWeightOrSize: 'TRIP.SAMPLE.ERROR.WEIGHT_OR_LENGTH_REQUIRED',

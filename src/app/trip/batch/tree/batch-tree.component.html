@@ -135,7 +135,7 @@
 </ion-item>
 
 <!-- catch batch form -->
-<div class="ion-padding" [class.cdk-visually-hidden]="(showCatchForm$ | push : rxStrategy) === false">
+<div class="ion-padding" [class.cdk-visually-hidden]="(showCatchForm$ | push: rxStrategy) === false">
   <app-form-catch-batch
     #catchBatchForm
     [programLabel]="programLabel$ | async"
@@ -155,7 +155,7 @@
 <mat-tab-group
   #tabGroup
   class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"
-  [class.cdk-visually-hidden]="!(showBatchTables$ | push : rxStrategy)"
+  [class.cdk-visually-hidden]="!(showBatchTables$ | push: rxStrategy)"
   [class.mat-tab-group-header-hidden]="mobile"
   [(selectedIndex)]="selectedTabIndex"
   (selectedTabChange)="onTabChange($event)"
@@ -166,12 +166,7 @@
     <ng-template mat-tab-label>
       <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
-      <ion-icon
-        slot="end"
-        name="alert-circle"
-        color="danger"
-        *ngIf="submitted && (batchGroupsTable?.invalid || false)"
-      ></ion-icon>
+      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && (batchGroupsTable?.invalid || false)"></ion-icon>
     </ng-template>
 
     <!-- Batches group -->
@@ -193,12 +188,7 @@
   </mat-tab>
 
   <!-- TAB: individual measure -->
-  <mat-tab
-    #measureTab
-    label="{{ 'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL' | translate }}"
-    [disabled]="showSubBatchesTable !== true"
-    *ngIf="!mobile"
-  >
+  <mat-tab #measureTab label="{{ 'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL' | translate }}" [disabled]="showSubBatchesTable !== true" *ngIf="!mobile">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
       <ion-label

@@ -6,7 +6,6 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppObservedLocationOfflineModule } from '../offline/observed-location-offline.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -17,15 +16,12 @@ import { AppObservedLocationOfflineModule } from '../offline/observed-location-o
     //AppReferentialModule,
 
     // Sub modules
-    AppObservedLocationOfflineModule
+    AppObservedLocationOfflineModule,
   ],
-  declarations: [
-    ObservedLocationsPage
-  ],
+  declarations: [ObservedLocationsPage],
   exports: [
     // Components
-    ObservedLocationsPage
-  ]
+    ObservedLocationsPage,
+  ],
 })
-export class AppObservedLocationsTableModule {
-}
+export class AppObservedLocationsTableModule {}

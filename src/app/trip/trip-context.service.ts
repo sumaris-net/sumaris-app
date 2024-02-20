@@ -9,9 +9,8 @@ export interface TripContext extends DataContext, BatchContext {
   operation?: Operation;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TripContextService<C extends TripContext = TripContext> extends DataContextService<C> {
-
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: C) {
     super(defaultState || <C>{});
   }
@@ -24,11 +23,11 @@ export class TripContextService<C extends TripContext = TripContext> extends Dat
     return this.get('trip');
   }
 
-  get operation(): Operation|undefined {
+  get operation(): Operation | undefined {
     return this.get('operation');
   }
 
   set operation(value: Operation) {
-    this.set('operation', _ => value);
+    this.set('operation', (_) => value);
   }
 }

@@ -17,10 +17,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    DevicePositionModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [DevicePositionModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class DevicePositionRoutingModule { }
+export class DevicePositionRoutingModule {}

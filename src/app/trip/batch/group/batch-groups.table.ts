@@ -53,7 +53,7 @@ import { environment } from '@environments/environment';
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
 declare type BatchGroupColumnKey = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount' | string;
-declare type BatchComputedFn<T extends Batch = Batch> = (batch: T, parent: T|undefined, samplingRatioFormat: SamplingRatioFormat) => boolean;
+declare type BatchComputedFn<T extends Batch = Batch> = (batch: T, parent: T | undefined, samplingRatioFormat: SamplingRatioFormat) => boolean;
 
 /**
  * Compose many computed functions to one function.<br/>
@@ -62,7 +62,7 @@ declare type BatchComputedFn<T extends Batch = Batch> = (batch: T, parent: T|und
  *
  * @param values
  */
-export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): BatchComputedFn|boolean {
+export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): BatchComputedFn | boolean {
   // Remove nil value
   values = values?.filter(isNotNil);
   if (isEmptyArray(values)) return false; // Empty
@@ -71,14 +71,13 @@ export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): Bat
   if (values.length === 1) return values[0];
 
   // Convert boolean values to functions
-  const fns: BatchComputedFn[] = values
-    .map(value => {
-      if (typeof value !== 'function') return () => value;
-      return value; // already a function
-    });
+  const fns: BatchComputedFn[] = values.map((value) => {
+    if (typeof value !== 'function') return () => value;
+    return value; // already a function
+  });
 
   // Compose functions: return true (=computed) when one function return true (= OR operand between functions)
-  return (batch, parent, samplingRatioFormat) => fns.some(fn => fn(batch, parent, samplingRatioFormat));
+  return (batch, parent, samplingRatioFormat) => fns.some((fn) => fn(batch, parent, samplingRatioFormat));
 }
 
 export const BatchGroupColumnFlags = Object.freeze({
@@ -88,13 +87,12 @@ export const BatchGroupColumnFlags = Object.freeze({
   IS_SAMPLING_RATIO: 0x0001000,
   IS_ALWAYS_COMPUTED: 0x0010000,
   IS_TOTAL: 0x0100000,
-  IS_LANDING: 0x1000000
+  IS_LANDING: 0x1000000,
 });
 
 declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
 
 declare interface BatchGroupColumnDefinition extends FormFieldDefinition<BatchGroupColumnKey, BatchGroupColumnType> {
-
   computed: boolean | BatchComputedFn;
   hidden: boolean;
   unitLabel?: string;

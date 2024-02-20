@@ -18,18 +18,12 @@ export function markedOptionsFactory(markdownAnchorService: MarkdownAnchorServic
 }
 
 @NgModule({
-  imports: [
-    MarkdownModule.forChild()
-  ],
+  imports: [MarkdownModule.forChild()],
   declarations: [
     // Directive
-    MarkdownAnchorDirective
+    MarkdownAnchorDirective,
   ],
-  exports: [
-    MarkdownModule,
-
-    MarkdownAnchorDirective
-  ],
+  exports: [MarkdownModule, MarkdownAnchorDirective],
 })
 export class AppMarkdownModule {
   static forRoot(): ModuleWithProviders<AppMarkdownModule> {
@@ -46,8 +40,8 @@ export class AppMarkdownModule {
             provide: MarkedOptions,
             deps: [MarkdownAnchorService],
             useFactory: (s: MarkdownAnchorService) => markedOptionsFactory(s),
-          }
-        }).providers
+          },
+        }).providers,
       ],
     };
   }

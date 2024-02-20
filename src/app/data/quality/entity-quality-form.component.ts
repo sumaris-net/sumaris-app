@@ -60,21 +60,22 @@ export const APP_DATA_ENTITY_EDITOR = new InjectionToken<AppDataEntityEditor<any
   templateUrl: './entity-quality-form.component.html',
   styleUrls: ['./entity-quality-form.component.scss'],
   animations: [fadeInAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityQualityFormComponent<
-  T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
-  S extends IEntityService<T, ID> = IEntityService<any, any>,
-  ID = number>
-  implements OnInit, OnDestroy {
-
+    T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
+    S extends IEntityService<T, ID> = IEntityService<any, any>,
+    ID = number,
+  >
+  implements OnInit, OnDestroy
+{
   private _subscription = new Subscription();
   private _isSynchroService: boolean;
   private _isRootDataQualityService: boolean;
 
   protected readonly _debug: boolean;
   protected readonly _mobile: boolean;
-  protected readonly _progression = new ProgressionModel({total: 100});
+  protected readonly _progression = new ProgressionModel({ total: 100 });
 
   protected data: T;
   protected loading = true;
@@ -94,7 +95,6 @@ export class EntityQualityFormComponent<
   @Input() service: IDataEntityQualityService<T, ID>;
 
   @Output() cancel = new EventEmitter<boolean>();
-
 
   protected get serviceForRootEntity() {
     // tslint:disable-next-line:no-unused-expression
@@ -128,29 +128,22 @@ export class EntityQualityFormComponent<
   }
 
   ngOnInit() {
-
     // Check editor exists
-    if (!this.editor) throw new Error('Missing mandatory \'editor\' input!');
+    if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
     // Check data service exists
     this.service = this.service || (isDataQualityService(this.editor.service) ? this.editor.service : null);
-    if (!this.service) throw new Error('Missing mandatory \'service\' input!');
+    if (!this.service) throw new Error("Missing mandatory 'service' input!");
     this._isRootDataQualityService = isRootDataQualityService(this.service);
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to update events
-    let updateViewEvents = merge(
-      this.editor.onUpdateView,
-      this.accountService.onLogin,
-      this.network.onNetworkStatusChanges
-    )
+    let updateViewEvents = merge(this.editor.onUpdateView, this.accountService.onLogin, this.network.onNetworkStatusChanges);
 
     // Add a debounce time
     if (this._mobile) updateViewEvents = updateViewEvents.pipe(debounceTime(500));
 
-    this._subscription.add(
-      updateViewEvents.subscribe(() => this.updateView(this.editor.data))
-    );
+    this._subscription.add(updateViewEvents.subscribe(() => this.updateView(this.editor.data)));
   }
 
   ngOnDestroy(): void {
@@ -161,8 +154,7 @@ export class EntityQualityFormComponent<
     this.service = null;
   }
 
-  async control(event?: Event, opts?: {emitEvent?: boolean} & IProgressionOptions): Promise<boolean> {
-
+  async control(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.CONTROL_DOTS');
 
@@ -180,7 +172,7 @@ export class EntityQualityFormComponent<
       this.editor.disable();
 
       if (this._debug) console.debug(`[entity-quality] Control ${data.constructor.name}...`);
-      let errors: FormErrors|AppErrorWithDetails = await this.service.control(data, opts);
+      let errors: FormErrors | AppErrorWithDetails = await this.service.control(data, opts);
       valid = isNil(errors);
 
       if (!valid) {
@@ -190,10 +182,9 @@ export class EntityQualityFormComponent<
         if (isNil(errors.details)) {
           errors = <AppErrorWithDetails>{
             message: errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR',
-            details: { errors: errors as FormErrors}
+            details: { errors: errors as FormErrors },
           };
-        }
-        else {
+        } else {
           errors.message = errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR';
         }
 
@@ -202,21 +193,18 @@ export class EntityQualityFormComponent<
         if (!opts || opts.emitEvent !== false) {
           this.markForCheck();
         }
-      }
-      else {
+      } else {
         // Clean previous error
         this.editor.resetError(opts);
 
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
           this.updateView(data);
-        }
-        else {
+        } else {
           this.data = data;
         }
       }
-    }
-    finally {
+    } finally {
       this.editor.enable(opts);
       this.busy = false;
       this.markForCheck();
@@ -226,7 +214,7 @@ export class EntityQualityFormComponent<
     return valid;
   }
 
-  async terminate(event?: Event, opts?: {emitEvent?: boolean} & IProgressionOptions): Promise<boolean> {
+  async terminate(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
     if (this.busy) return;
 
     opts = opts || {};
@@ -234,14 +222,10 @@ export class EntityQualityFormComponent<
     const endProgression = opts.progression.current + opts.maxProgression;
 
     // Control data
-    const controlled = await this.control(event, {...opts,
-      emitEvent: false,
-      maxProgression: opts?.maxProgression * 0.9
-    });
+    const controlled = await this.control(event, { ...opts, emitEvent: false, maxProgression: opts?.maxProgression * 0.9 });
 
     // Control failed
     if (!controlled || event?.defaultPrevented || opts.progression?.cancelled) {
-
       progressionSubscription?.unsubscribe();
 
       // If mode was on field: force desk mode, to show errors
@@ -266,20 +250,17 @@ export class EntityQualityFormComponent<
       if (!opts || opts.emitEvent !== false) {
         this.busy = false;
         await this.updateEditor(data);
-      }
-      else {
+      } else {
         this.data = data;
       }
       return true;
-    }
-    finally {
+    } finally {
       this.editor.enable(opts);
       this.busy = false;
       this.markForCheck();
       progressionSubscription?.unsubscribe();
     }
   }
-
 
   async synchronize(event?: Event, opts?: IProgressionOptions): Promise<boolean> {
     if (this.busy) return;
@@ -289,7 +270,7 @@ export class EntityQualityFormComponent<
     if (this.network.offline) {
       this.network.showOfflineToast({
         showRetryButton: true,
-        onRetrySuccess: () => this.synchronize()
+        onRetrySuccess: () => this.synchronize(),
       });
       return;
     }
@@ -304,9 +285,9 @@ export class EntityQualityFormComponent<
     const controlled = await this.control(event, {
       ...opts,
       emitEvent: false,
-      maxProgression: progressionStep
+      maxProgression: progressionStep,
     });
-    if (!controlled || event?.defaultPrevented || opts.progression?.cancelled){
+    if (!controlled || event?.defaultPrevented || opts.progression?.cancelled) {
       progressionSubscription?.unsubscribe();
       return false;
     }
@@ -319,10 +300,10 @@ export class EntityQualityFormComponent<
       console.debug('[entity-quality] Synchronizing entity...');
       const remoteData = await this.synchroService.synchronize(this.editor.data);
 
-      opts.progression.increment(progressionStep);  // Increment progression
+      opts.progression.increment(progressionStep); // Increment progression
 
       // Success message
-      this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
+      this.showToast({ message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true });
 
       // Remove the page from the history (because of local id)
       await this.settings.removePageHistory(path);
@@ -335,25 +316,21 @@ export class EntityQualityFormComponent<
 
       // Update the editor (Will refresh the component)
       this.busy = false;
-      await this.updateEditor(data, {updateRoute: true});
-    }
-    catch (error) {
+      await this.updateEditor(data, { updateRoute: true });
+    } catch (error) {
       this.editor.setError(error);
-      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
+      const context = (error && error.context) || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
       this.userEventService.showToastErrorWithContext({
         error,
-        context
+        context,
       });
-
-    }
-    finally {
+    } finally {
       this.editor.enable();
       this.busy = false;
       this.markForCheck();
 
       progressionSubscription?.unsubscribe();
     }
-
   }
 
   async validate(event: Event, opts?: IProgressionOptions) {
@@ -365,7 +342,8 @@ export class EntityQualityFormComponent<
     // Control data
     const controlled = await this.control(event, {
       ...opts,
-      emitEvent: false});
+      emitEvent: false,
+    });
 
     if (!controlled || event?.defaultPrevented || opts.progression?.cancelled) {
       progressionSubscription?.unsubscribe();
@@ -387,19 +365,17 @@ export class EntityQualityFormComponent<
       // Update the editor (Will refresh the component)
       this.busy = false;
       await this.updateEditor(data);
-    }
-    catch (error) {
+    } catch (error) {
       this.editor.setError(error);
-      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
+      const context = (error && error.context) || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
       this.userEventService.showToastErrorWithContext({
         error,
-        context
+        context,
       });
       this.editor.enable();
       this.busy = false;
       this.markForCheck();
-    }
-    finally {
+    } finally {
       progressionSubscription?.unsubscribe();
     }
   }
@@ -409,7 +385,7 @@ export class EntityQualityFormComponent<
     await this.updateEditor(data);
   }
 
-  async qualify(event: Event, qualityFlagId: number ) {
+  async qualify(event: Event, qualityFlagId: number) {
     const data = await this.service.qualify(this.data, qualityFlagId);
     await this.updateEditor(data);
   }
@@ -432,9 +408,7 @@ export class EntityQualityFormComponent<
       this.canUnvalidate = false;
       this.canQualify = false;
       this.canUnqualify = false;
-    }
-    else if (data instanceof DataEntity) {
-
+    } else if (data instanceof DataEntity) {
       console.debug('[entity-quality] Updating view...');
 
       // If local, avoid to check too many properties (for performance in mobile devices)
@@ -442,7 +416,7 @@ export class EntityQualityFormComponent<
       const canWrite = isLocalData || this.editor.canUserWrite(data);
 
       // Terminate and control
-      this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
+      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate));
       this.canTerminate = this.canControl && this._isRootDataQualityService && (!isLocalData || data.synchronizationStatus === 'DIRTY');
 
       // Validation and qualification
@@ -452,7 +426,8 @@ export class EntityQualityFormComponent<
         const isValidator = isAdmin || this.programRefService.canUserValidate(program);
         const isQualifier = isAdmin || this.programRefService.canUserQualify(program);
         this.canValidate = canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNil(data.validationDate);
-        this.canUnvalidate = !canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+        this.canUnvalidate =
+          !canWrite && isValidator && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
         this.canQualify = !canWrite && isQualifier && isNotNil(data.validationDate) && isNil(data.qualificationDate);
         this.canUnqualify = !canWrite && isQualifier && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
       } else {
@@ -468,26 +443,28 @@ export class EntityQualityFormComponent<
 
     // Load available quality flags
     if ((this.canQualify || this.canUnqualify) && !this.qualityFlags) {
-      this.referentialRefService.loadQualityFlags().then(items => {
+      this.referentialRefService.loadQualityFlags().then((items) => {
         this.qualityFlags = items;
         this.markForCheck();
       });
-    }
-    else {
+    } else {
       this.markForCheck();
     }
   }
 
   protected async showToast<R = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<R>> {
-    if (!this.toastController) throw new Error('Missing toastController in component\'s constructor');
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 
-  protected async updateEditor(data: T, opts?: {
+  protected async updateEditor(
+    data: T,
+    opts?: {
       emitEvent?: boolean;
       openTabIndex?: number;
       updateRoute?: boolean;
-    }) {
+    }
+  ) {
     return this.editor.updateView(data, opts);
   }
 
@@ -495,8 +472,8 @@ export class EntityQualityFormComponent<
     this.cd.markForCheck();
   }
 
-  protected fillProgressionOptions(opts: IProgressionOptions, defaultProgressionMessage: string): Subscription|undefined {
-    if (!opts) throw new Error('Argument \'opts\' is required');
+  protected fillProgressionOptions(opts: IProgressionOptions, defaultProgressionMessage: string): Subscription | undefined {
+    if (!opts) throw new Error("Argument 'opts' is required");
 
     // Init max progression
     opts.maxProgression = toNumber(opts.maxProgression, 100);

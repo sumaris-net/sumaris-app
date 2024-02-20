@@ -9,7 +9,10 @@ import { Subscription } from 'rxjs';
 export class MarkdownAnchorDirective implements OnDestroy {
   private _subscription = new Subscription();
 
-  constructor(private service: MarkdownAnchorService, private element: ElementRef<HTMLElement>) {}
+  constructor(
+    private service: MarkdownAnchorService,
+    private element: ElementRef<HTMLElement>
+  ) {}
 
   @HostListener('ready')
   public processAnchors() {
