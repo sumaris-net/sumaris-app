@@ -1554,7 +1554,8 @@
       "TITLE": "Control report - {{vessel}} - {{date}}",
       "TITLE_SHORT": "Control report",
       "AUCTION": "Auction:",
-      "CONTROLLED_SPECIES": "Controlled species:"
+      "CONTROLLED_SPECIES": "Controlled species:",
+      "CONTROL_REALIZED_ON": "Control carried out on {{date}} at {{ location }}"
     }
   },
   "EXPENSE": {

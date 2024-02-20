@@ -1,6 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmValuePipe } from '@app/referential/pipes/pmfms.pipe';
+import { PmfmValueOptions } from '@app/referential/services/model/pmfm-value.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Pipe({
@@ -21,17 +22,9 @@ export class IsMeasurementModelValuesPipe implements PipeTransform {
   name: 'measurementValueGet',
 })
 export class MeasurementValueGetPipe extends PmfmValuePipe implements PipeTransform {
-  transform(
-    entity: IEntityWithMeasurement<any>,
-    opts: {
-      pmfm: IPmfm;
-      propertyNames?: string[];
-      html?: boolean;
-      hideIfDefaultValue?: boolean;
-      showLabelForPmfmIds?: number[];
-      separator?: string;
-    }
-  ): any {
+  transform(entity: IEntityWithMeasurement<any>, opts: PmfmValueOptions & {
+    separator?: string;
+  }): any {
     if (!entity.measurementValues || !opts?.pmfm) return undefined;
     return this.format(entity.measurementValues[opts.pmfm.id], {
       applyDisplayConversion: opts.pmfm.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),

@@ -20,6 +20,15 @@ import { isNilOrNaN } from '@app/shared/functions';
 import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { MathUtils } from '@app/shared/math.utils';
 
+export interface PmfmValueOptions {
+  pmfm: IPmfm;
+  propertyNames?: string[];
+  html?: boolean;
+  hideIfDefaultValue?: boolean;
+  showLabelForPmfmIds?: number[];
+  applyDisplayConversion?: boolean;
+}
+
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 
 export const PMFM_VALUE_SEPARATOR = '|';
@@ -195,10 +204,7 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static valueToString(
-    value: any,
-    opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }
-  ): string | undefined {
+  static valueToString(value: any, opts: PmfmValueOptions): string | undefined {
     if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
       case 'qualitative_value':
@@ -230,11 +236,13 @@ export abstract class PmfmValueUtils {
       case 'date':
         return value || null;
       case 'boolean':
-        return value === 'true' || value === true || value === 1
-          ? '&#x2714;' /*checkmark*/
-          : value === 'false' || value === false || value === 0
-            ? '&#x2718;'
-            : null; /*empty*/
+        if (value === 'true' || value === true || value === 1) {
+          return  opts.html ? '&#x2714' : 'COMMON.YES';
+        } else if (value === 'false' || value === false || value === 0) {
+          return opts.html ? '&#x2718' : 'COMMON.NO';
+        } else {
+          return null;
+        }
       default:
         throw new Error("Unknown pmfm's type: " + opts.pmfm.type);
     }

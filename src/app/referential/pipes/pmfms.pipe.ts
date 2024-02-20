@@ -1,5 +1,5 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { PmfmValue, PmfmValueOptions, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import {
   ColorName,
@@ -74,21 +74,13 @@ export class PmfmNamePipe implements PipeTransform {
   }
 }
 
-interface PmfmValueOptions {
-  pmfm: IPmfm;
-  propertyNames?: string[];
-  html?: boolean;
-  hideIfDefaultValue?: boolean;
-  showLabelForPmfmIds?: number[];
-  applyDisplayConversion?: boolean;
-}
-
 @Pipe({
   name: 'pmfmValue',
 })
 @Injectable({ providedIn: 'root' })
 export class PmfmValuePipe implements PipeTransform {
   constructor(
+    private translate: TranslateService,
     private dateFormat: DateFormatService,
     private settings: LocalSettingsService
   ) {}
@@ -121,6 +113,10 @@ export class PmfmValuePipe implements PipeTransform {
           value = opts.pmfm.displayConversion.conversionCoefficient * value;
         }
         return PmfmValueUtils.valueToString(value, opts);
+      case 'boolean':
+        const label = PmfmValueUtils.valueToString(value, opts);
+        if (!opts.html && label) return this.translate.instant(label);
+        return label;
       default:
         return PmfmValueUtils.valueToString(value, opts);
     }
