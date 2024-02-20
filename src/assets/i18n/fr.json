@@ -309,6 +309,7 @@
         "QUALITATIVE_VALUE_SORTING_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Vrac",
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
+        "QUALITATIVE_FILTER_DRESSING": "Référentiel > Filtre valeur qualitative > Présentation",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",

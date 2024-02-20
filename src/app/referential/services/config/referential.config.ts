@@ -10,6 +10,7 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
+  QualitativeFilterIds,
   QualitativeValueIds,
   QualityFlagIds,
   TaxonGroupTypeIds,
@@ -629,6 +630,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.SEX.UNSEXED,
+  },
+
+  QUALITATIVE_FILTER_DRESSING: <FormFieldDefinition>{
+    key: 'sumaris.list.DressingQualitative.ids',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_FILTER_DRESSING',
+    type: 'string',
+    defaultValue: QualitativeFilterIds.DRESSING.join(','),
   },
 
   QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{

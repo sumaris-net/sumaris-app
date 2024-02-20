@@ -310,6 +310,7 @@
         "QUALITATIVE_VALUE_SORTING_BULK_ID": "Referential > Qualitative value > Sorting batch / Bulk",
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Referential > Qualitative value > Sorting batch / Non Bulk",
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Referential > Qualitative value > Sex / Unsexed",
+        "QUALITATIVE_FILTER_DRESSING": "Referential > Qualitative filter > Dressing",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Referential > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5",

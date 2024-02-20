@@ -94,7 +94,7 @@
     "@rx-angular/state": "^14.0.0",
     "@rx-angular/template": "^14.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "2.4.156",
+    "@sumaris-net/ngx-components": "2.4.157",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.2.1",

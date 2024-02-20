@@ -31,6 +31,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import {
+  QualitativeFilterIds,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
@@ -802,6 +803,9 @@ export class ReferentialRefService
 
     // Fractions Groups
     FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
+
+    // Qualitative value filters
+    QualitativeFilterIds.DRESSING = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_FILTER_DRESSING);
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration

@@ -40,7 +40,7 @@ import {
   selectInputRange,
   isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../services/model/model.enum';
+import { QualitativeFilterIds, PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
 
@@ -156,6 +156,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
     // Exclude disabled values
     this._qualitativeValues = qualitativeValues.filter((qv) => qv.statusId !== StatusIds.DISABLE);
+
+    // Filter qualititative values depending on system settings
+    if (this.pmfm.id === PmfmIds.DRESSING && QualitativeFilterIds.DRESSING.length > 0) {
+      this._qualitativeValues = this._qualitativeValues.filter(
+        (x) => x.id === this.formControl.value || QualitativeFilterIds.DRESSING.includes(x.id)
+      );
+    }
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
