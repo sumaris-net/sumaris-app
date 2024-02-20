@@ -15,15 +15,15 @@ describe('AppImageAttachmentsModal', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ AppImageAttachmentsModal ],
+      declarations: [AppImageAttachmentsModal],
       imports: [
         AppImageAttachmentModule,
         ImageGalleryModule,
         IonicModule.forRoot(),
         AppSharedModule.forRoot(environment),
         AppCoreModule.forRoot(),
-        TranslateModule.forRoot()
-      ]
+        TranslateModule.forRoot(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppImageAttachmentsModal);

@@ -1,4 +1,3 @@
-
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px));
@@ -21,7 +20,6 @@
   .mat-table {
     .mat-header-row,
     .mat-row {
-
       .mat-column-id {
         width: 50px;
       }
@@ -29,7 +27,7 @@
       .mat-column-TAG_ID,
       .mat-column-DRESSING {
         min-width: 80px !important;
-        max-width: 120px !important;;
+        max-width: 120px !important;
       }
 
       .mat-column-taxonName,
@@ -86,7 +84,6 @@
       .mat-column-81 {
         max-width: 100px;
       }
-
     }
 
     /* First header row (group) */
@@ -98,7 +95,7 @@
       &.cdk-visually-hidden {
         visibility: hidden;
         display: none;
-        height: 0!important;
+        height: 0 !important;
       }
 
       .mat-header-cell {
@@ -141,21 +138,15 @@
         visibility: hidden;
       }
 
-      &:hover  .visible-hover {
+      &:hover .visible-hover {
         visibility: unset;
       }
     }
-
-
   }
 
-
   &.has-pmfm-header-details {
-
     /* Second header row : increase row height */
     .mat-header-row.second-header-row {
-
-
       height: 90px;
       max-height: 90px;
 
@@ -166,9 +157,8 @@
         max-height: 100%;
         background-color: var(--mat-cell-background-color);
 
-
         mat-label,
-        ion-label  {
+        ion-label {
           max-height: 100%;
           max-width: 100%;
         }
@@ -176,7 +166,6 @@
         &.even {
           --mat-cell-background-color: var(--ion-color-light);
         }
-
       }
 
       mat-label,
@@ -192,7 +181,5 @@
       min-width: unset !important;
       max-width: unset !important;
     }
-
   }
-
 }

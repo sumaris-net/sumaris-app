@@ -1,4 +1,3 @@
-
 .table-container {
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
@@ -38,13 +37,13 @@
     max-width: 200px;
   }
 
-  .mat-cell.divider{
+  .mat-cell.divider {
     background-color: var(--ion-color-light, whitesmoke) !important;
     font-weight: bold;
     font-size: 12px !important;
   }
 }
-.warning{
+.warning {
   color: var(--ion-color-danger);
   font-style: italic;
 }

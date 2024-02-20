@@ -1,4 +1,3 @@
-
 .mat-table {
   --packet-count: 6;
   --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
@@ -43,9 +42,8 @@
     }
 
     .mat-cell.even {
-      background-color: rgba(0,0,0, 0.1) !important;
+      background-color: rgba(0, 0, 0, 0.1) !important;
     }
-
   }
 
   .mat-header-row,
@@ -84,6 +82,3 @@
     }
   }
 }
-
-
-

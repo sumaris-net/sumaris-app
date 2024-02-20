@@ -13,39 +13,31 @@ export const APP_SHARED_TESTING_PAGES: TestingPage[] = [
   ...MATERIAL_TESTING_PAGES,
   ...REPORT_TESTING_PAGES,
   ...BLUETOOTH_TESTING_PAGES,
-  ...ICHTHYOMETER_TESTING_PAGES
+  ...ICHTHYOMETER_TESTING_PAGES,
 ];
 
 const routes: Routes = [
   {
-    path: 'material', loadChildren: () => import('./material/material.testing.module').then(m => m.AppSharedMaterialTestingModule)
+    path: 'material',
+    loadChildren: () => import('./material/material.testing.module').then((m) => m.AppSharedMaterialTestingModule),
   },
   {
-    path: 'report', loadChildren: () => import('./report/testing/report.testing.module').then(m => m.AppSharedReportTestingModule)
+    path: 'report',
+    loadChildren: () => import('./report/testing/report.testing.module').then((m) => m.AppSharedReportTestingModule),
   },
   {
-    path: 'bluetooth', loadChildren: () => import('./bluetooth/testing/bluetooth.testing.module').then(m => m.AppBluetoothTestingModule)
+    path: 'bluetooth',
+    loadChildren: () => import('./bluetooth/testing/bluetooth.testing.module').then((m) => m.AppBluetoothTestingModule),
   },
   {
-    path: 'ichthyometer', loadChildren: () => import('./ichthyometer/testing/ichthyometer.testing.module').then(m => m.AppIchthyometerTestingModule)
-  }
+    path: 'ichthyometer',
+    loadChildren: () => import('./ichthyometer/testing/ichthyometer.testing.module').then((m) => m.AppIchthyometerTestingModule),
+  },
 ];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    SharedModule,
-    CoreModule,
-    TranslateModule.forChild(),
-    RouterModule.forChild(routes),
-    SharedTestingModule
-  ],
-  declarations: [
-
-  ],
-  exports: [
-  ]
+  imports: [CommonModule, SharedModule, CoreModule, TranslateModule.forChild(), RouterModule.forChild(routes), SharedTestingModule],
+  declarations: [],
+  exports: [],
 })
-export class AppSharedTestingModule {
-
-}
+export class AppSharedTestingModule {}

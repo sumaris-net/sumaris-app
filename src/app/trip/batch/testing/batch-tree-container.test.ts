@@ -16,7 +16,7 @@ import {
   SharedValidators,
   StatusIds,
   toNumber,
-  waitFor
+  waitFor,
 } from '@sumaris-net/ngx-components';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -32,17 +32,13 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
 import { ActivatedRoute } from '@angular/router';
 import { TripService } from '@app/trip/trip/trip.service';
 
-
 @Component({
   selector: 'app-batch-tree-container-test',
   templateUrl: './batch-tree-container.test.html',
   styleUrls: ['./batch-tree-container.test.scss'],
-  providers: [
-    { provide: ContextService, useClass: TripContextService}
-  ]
+  providers: [{ provide: ContextService, useClass: TripContextService }],
 })
 export class BatchTreeContainerTestPage implements OnInit {
-
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
@@ -58,11 +54,8 @@ export class BatchTreeContainerTestPage implements OnInit {
   @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeContainerComponent;
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
 
-
   get batchTree(): BatchTreeContainerComponent {
-    return (this.selectedTabIndex === 0)
-      ? this.mobileBatchTree
-      : this.desktopBatchTree;
+    return this.selectedTabIndex === 0 ? this.mobileBatchTree : this.desktopBatchTree;
   }
 
   constructor(
@@ -74,30 +67,30 @@ export class BatchTreeContainerTestPage implements OnInit {
     private tripService: TripService,
     private activeRoute: ActivatedRoute
   ) {
-
     this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
-      autofill: [false, Validators.required]
+      autofill: [false, Validators.required],
     });
     this.selectedTabIndex = toNumber(activeRoute.snapshot.queryParamMap['tab'], this.selectedTabIndex || 0);
   }
 
   ngOnInit() {
-
     // Program
     this.autocomplete.add('program', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: 'Program'
-      }),
-      attributes: ['label', 'name']
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: 'Program',
+        }),
+      attributes: ['label', 'name'],
     });
-    this.filterForm.get('program').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(p => {
+    this.filterForm
+      .get('program')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((p) => {
         const label = p && p.label;
         if (label) {
           this.$programLabel.next(label);
@@ -107,10 +100,9 @@ export class BatchTreeContainerTestPage implements OnInit {
     this.$programLabel
       .pipe(
         filter(isNotNilOrBlank),
-        mergeMap(programLabel => this.referentialRefService.ready()
-          .then(() => this.programRefService.loadByLabel(programLabel)))
+        mergeMap((programLabel) => this.referentialRefService.ready().then(() => this.programRefService.loadByLabel(programLabel)))
       )
-      .subscribe(program => this.setProgram(program));
+      .subscribe((program) => this.setProgram(program));
 
     // Gears (from program)
     this.autocomplete.add('gear', {
@@ -121,10 +113,9 @@ export class BatchTreeContainerTestPage implements OnInit {
         })
       ),
       attributes: ['label', 'name'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('gear').valueChanges
-      .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
+    this.filterForm.get('gear').valueChanges.subscribe((g) => this.$gearId.next(toNumber(g && g.id, null)));
 
     // Fishing areas
     this.autocomplete.add('fishingArea', {
@@ -132,32 +123,32 @@ export class BatchTreeContainerTestPage implements OnInit {
       filter: {
         entityName: 'Location',
         levelIds: LocationLevels.getStatisticalRectangleLevelIds(),
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name']
+      attributes: ['label', 'name'],
     });
-    this.filterForm.get('fishingArea').valueChanges
-      .subscribe(location => {
-        if (location) {
-          this.context.setValue('fishingAreas', [FishingArea.fromObject({
-            location
-          })]);
-        }
-        else {
-          this.context.resetValue('fishingAreas');
-        }
-      });
-
+    this.filterForm.get('fishingArea').valueChanges.subscribe((location) => {
+      if (location) {
+        this.context.setValue('fishingAreas', [
+          FishingArea.fromObject({
+            location,
+          }),
+        ]);
+      } else {
+        this.context.resetValue('fishingAreas');
+      }
+    });
 
     // Input example
     this.autocomplete.add('example', {
-      items: BATCH_TREE_EXAMPLES.map((label, index) => ({id: index+1, label})),
+      items: BATCH_TREE_EXAMPLES.map((label, index) => ({ id: index + 1, label })),
       attributes: ['label'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('example').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(example => {
+    this.filterForm
+      .get('example')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((example) => {
         if (example && typeof example.label == 'string') {
           const json = getExampleTree(example.label);
           if (this.outputs.example) {
@@ -166,22 +157,20 @@ export class BatchTreeContainerTestPage implements OnInit {
         }
       });
 
-
     this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
       //program: {id: 10, label: 'ADAP-MER' },
-      program: {id: 70, label: 'APASE' },
+      program: { id: 70, label: 'APASE' },
       //gear: {id: 6, label: 'OTB'},
-      gear: {id: 7, label: 'OTT'},
-      fishingArea: {id: 110, label: '65F1'},
-      example: {id: 1, label: 'selectivity'}
+      gear: { id: 7, label: 'OTT' },
+      fishingArea: { id: 110, label: '65F1' },
+      example: { id: 1, label: 'selectivity' },
     });
 
     this.applyExample();
   }
 
   setProgram(program: Program) {
-
     // DEBUG
     console.debug('[batch-tree-test] Applying program:', program);
 
@@ -190,11 +179,10 @@ export class BatchTreeContainerTestPage implements OnInit {
 
   // Load data into components
   async updateView(data: Batch) {
-
     // Load program's taxon groups
 
     const program = await firstNotNilPromise(this.$program);
-    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program .label);
+    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program.label);
 
     await waitFor(() => !!this.batchTree);
 
@@ -226,12 +214,10 @@ export class BatchTreeContainerTestPage implements OnInit {
     // Nothing to do
   }
 
-
   async getExampleTree(key?: string): Promise<Batch> {
-
     if (!key) {
       const example = this.filterForm.get('example').value;
-      key = example && example.label || 'default';
+      key = (example && example.label) || 'default';
     }
 
     // Get program
@@ -245,7 +231,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     // - only the parentId, and NOT the parent
     const batches = EntityUtils.treeToArray(json) || [];
     await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues(Batch.TYPENAME, count));
-    batches.forEach(b => {
+    batches.forEach((b) => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
     });
@@ -278,11 +264,10 @@ export class BatchTreeContainerTestPage implements OnInit {
 
   async dumpExample(key?: string) {
     const catchBatch = await this.getExampleTree(key);
-     this.dumpCatchBatch(catchBatch, 'example');
+    this.dumpCatchBatch(catchBatch, 'example');
   }
 
   async dumpBatchTree(batchTree: IBatchTreeComponent, outputName?: string, finalize?: boolean) {
-
     const catchBatch = await this.getValue(batchTree, finalize);
 
     // Dump
@@ -293,15 +278,14 @@ export class BatchTreeContainerTestPage implements OnInit {
       const batches = catchBatch.children;
       if (isEmptyArray(batches)) {
         html += '&nbsp;No result';
-      }
-      else {
+      } else {
         let html = '<ul>';
-        batches.forEach(b => {
+        batches.forEach((b) => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
               html += '<li>' + m + '</li>';
-            }
+            },
           });
         });
         html += '</ul>';
@@ -310,9 +294,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       // Append to result
       this.outputs[outputName] += html;
     }
-
   }
-
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
     let html = '';
@@ -321,13 +303,12 @@ export class BatchTreeContainerTestPage implements OnInit {
         showAll: false,
         println: (m) => {
           html += '<br/>' + m;
-        }
+        },
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 
       this.outputs[outputName] = html;
-    }
-    else {
+    } else {
       this.outputs[outputName] = '&nbsp;No result';
     }
 
@@ -343,8 +324,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       const value = await this.getValue(source, true);
 
       await target.setValue(value);
-    }
-    finally {
+    } finally {
       source.enable();
       target.enable();
     }
@@ -357,7 +337,6 @@ export class BatchTreeContainerTestPage implements OnInit {
   /* -- protected methods -- */
 
   async getValue(batchTree: IBatchTreeComponent, finalize?: boolean): Promise<Batch> {
-
     await batchTree.save();
     const catchBatch = batchTree.value;
 
@@ -376,4 +355,3 @@ export class BatchTreeContainerTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
-

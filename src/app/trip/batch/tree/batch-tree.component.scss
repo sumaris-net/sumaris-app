@@ -1,8 +1,8 @@
 :host {
   --mat-tab-body-content-base: var(--mat-tab-body-content-height);
 
- .mat-tab-group {
-   --mat-tab-body-content-height: calc(var(--mat-tab-body-content-base) - var(--mat-tab-link-height, 0px));
+  .mat-tab-group {
+    --mat-tab-body-content-height: calc(var(--mat-tab-body-content-base) - var(--mat-tab-link-height, 0px));
   }
 
   .mat-tab-group-header-hidden {

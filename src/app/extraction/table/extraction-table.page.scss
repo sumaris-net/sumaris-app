@@ -22,7 +22,7 @@ ion-content {
 }
 
 .mat-expansion-panel {
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
   margin-bottom: 0;
   &.filter-panel-floating {
     z-index: 999;
@@ -43,8 +43,6 @@ ion-content {
       line-height: 36px;
     }
   }
-
-
 }
 
 .table-container {
@@ -62,7 +60,7 @@ ion-content {
   }
 }
 
-.mat-table  {
+.mat-table {
   min-width: 100%;
   --mat-cell-vertical-padding: 4px;
 

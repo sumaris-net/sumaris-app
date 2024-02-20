@@ -1,16 +1,16 @@
-
 .mat-table {
   --mat-column-saleType: 210px;
   --mat-column-small-count: 4;
   --mat-column-actions-width: 82px;
-  --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
+  --mat-column-small-size: calc(
+    min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType))
+  );
 
   --mat-cell-vertical-padding: 4px;
   --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
   --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
-
 
   &.mobile {
     --mat-column-actions-width: 41px;
@@ -42,7 +42,7 @@
     }
 
     .mat-cell.even {
-      background-color: rgba(0,0,0, 0.1) !important;
+      background-color: rgba(0, 0, 0, 0.1) !important;
     }
   }
 
@@ -66,8 +66,7 @@
     .mat-column-subgroupCount,
     .mat-column-weight,
     .mat-column-averagePackagingPrice,
-    .mat-column-totalPrice,
-    {
+    .mat-column-totalPrice {
       max-width: var(--mat-column-small-size, 150px);
     }
 

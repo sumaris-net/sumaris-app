@@ -1,10 +1,9 @@
-
 .filter-panel {
   margin-bottom: 5px;
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   &.filter-panel-floating {
-    z-index: 10000
+    z-index: 10000;
   }
 
   .form-container {
@@ -33,11 +32,10 @@
     width: 100%;
     padding: 0;
   }
-
 }
 
 .table-panel {
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   &.table-panel-floating {
     z-index: 10000;

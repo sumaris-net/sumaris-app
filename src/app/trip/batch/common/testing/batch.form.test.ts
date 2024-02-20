@@ -4,7 +4,17 @@ import { BehaviorSubject } from 'rxjs';
 import { Batch, BatchWeight } from '../../common/batch.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
-import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, Property, SharedValidators, toNumber, waitFor } from '@sumaris-net/ngx-components';
+import {
+  EntitiesStorage,
+  EntityUtils,
+  firstNotNilPromise,
+  isNotNilOrBlank,
+  MatAutocompleteConfigHolder,
+  Property,
+  SharedValidators,
+  toNumber,
+  waitFor,
+} from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
@@ -15,20 +25,15 @@ import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/bat
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import {BatchValidatorService} from '@app/trip/batch/common/batch.validator';
-import {BatchForm} from '@app/trip/batch/common/batch.form';
-
+import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
+import { BatchForm } from '@app/trip/batch/common/batch.form';
 
 @Component({
   selector: 'app-batch-form-test',
   templateUrl: './batch.form.test.html',
-  providers: [
-    {provide: BatchValidatorService, useClass: BatchValidatorService}
-  ]
+  providers: [{ provide: BatchValidatorService, useClass: BatchValidatorService }],
 })
 export class BatchFormTestPage implements OnInit {
-
-
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: UntypedFormGroup;
@@ -65,9 +70,8 @@ export class BatchFormTestPage implements OnInit {
     formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
-    private entities: EntitiesStorage,
+    private entities: EntitiesStorage
   ) {
-
     this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
@@ -76,18 +80,19 @@ export class BatchFormTestPage implements OnInit {
   }
 
   ngOnInit() {
-
     // Program
     this.autocomplete.add('program', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: 'Program',
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: 'Program',
+        }),
       attributes: ['label', 'name'],
     });
-    this.filterForm.get('program').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(p => {
+    this.filterForm
+      .get('program')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((p) => {
         const label = p && p.label;
         if (label) {
           this.$programLabel.next(label);
@@ -97,10 +102,9 @@ export class BatchFormTestPage implements OnInit {
     this.$programLabel
       .pipe(
         filter(isNotNilOrBlank),
-        mergeMap(programLabel => this.referentialRefService.ready()
-          .then(() => this.programRefService.loadByLabel(programLabel)))
+        mergeMap((programLabel) => this.referentialRefService.ready().then(() => this.programRefService.loadByLabel(programLabel)))
       )
-      .subscribe(program => this.setProgram(program));
+      .subscribe((program) => this.setProgram(program));
 
     // Gears (from program)
     this.autocomplete.add('gear', {
@@ -108,26 +112,27 @@ export class BatchFormTestPage implements OnInit {
         mergeMap((programLabel) => {
           if (!programLabel) return Promise.resolve([]);
           return this.programRefService.loadGears(programLabel);
-        }),
+        })
       ),
       attributes: ['label', 'name'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('gear').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
-
+    this.filterForm
+      .get('gear')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((g) => this.$gearId.next(toNumber(g && g.id, null)));
 
     // Input example
     this.autocomplete.add('example', {
-      items: BATCH_TREE_EXAMPLES.map((label, index) => ({id: index+1, label})),
+      items: BATCH_TREE_EXAMPLES.map((label, index) => ({ id: index + 1, label })),
       attributes: ['label'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('example').valueChanges
-      //.pipe(debounceTime(450))
+    this.filterForm
+      .get('example')
+      .valueChanges //.pipe(debounceTime(450))
       .pipe()
-      .subscribe(example => {
+      .subscribe((example) => {
         if (example && typeof example.label == 'string' && this.outputs.example) {
           const json = this.getExampleBatch(example.label);
           this.dumpBatch(Batch.fromObject(json), 'example');
@@ -145,7 +150,6 @@ export class BatchFormTestPage implements OnInit {
   }
 
   setProgram(program: Program) {
-
     // DEBUG
     console.debug('[batch-group-form-test] Applying program:', program);
 
@@ -159,7 +163,6 @@ export class BatchFormTestPage implements OnInit {
 
   // Load data into components
   async updateView(data?: Batch) {
-
     await waitFor(() => !!this.form);
 
     await firstNotNilPromise(this.$program);
@@ -168,11 +171,9 @@ export class BatchFormTestPage implements OnInit {
     console.debug('[batch-form-test] Applying data:', data);
 
     this.markAsReady();
-    this.form.value = data && data.clone() || new Batch();
+    this.form.value = (data && data.clone()) || new Batch();
     this.form.enable();
-
   }
-
 
   markAsReady() {
     this.form.markAsReady();
@@ -186,12 +187,10 @@ export class BatchFormTestPage implements OnInit {
     // Nothing to do
   }
 
-
   async getExampleBatch(key?: string, index?: number): Promise<Batch> {
-
     if (!key) {
       const example = this.filterForm.get('example').value;
-      key = example && example.label || 'default';
+      key = (example && example.label) || 'default';
     }
 
     // Get program
@@ -205,7 +204,7 @@ export class BatchFormTestPage implements OnInit {
     // - only the parentId, and NOT the parent
     const batches = EntityUtils.treeToArray(json) || [];
     await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
-    batches.forEach(b => {
+    batches.forEach((b) => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
     });
@@ -224,7 +223,7 @@ export class BatchFormTestPage implements OnInit {
 
     // Add a childrenWeight value, on the sampling batch
     if (samplingBatch) {
-      samplingBatch.childrenWeight = <BatchWeight>{value: 0.2510, computed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM};
+      samplingBatch.childrenWeight = <BatchWeight>{ value: 0.251, computed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM };
     }
 
     return batch;
@@ -232,7 +231,6 @@ export class BatchFormTestPage implements OnInit {
 
   // Load data into components
   async applyExample(key?: string) {
-
     // Wait enumerations override
     await this.referentialRefService.ready();
 
@@ -248,7 +246,6 @@ export class BatchFormTestPage implements OnInit {
   async dumpBatchForm(form: BatchForm, outputName?: string) {
     this.dumpBatch(form.value, outputName);
   }
-
 
   dumpBatch(batch: Batch, outputName?: string) {
     let html = '';
@@ -273,7 +270,6 @@ export class BatchFormTestPage implements OnInit {
   }
 
   async copyBatch(source: BatchForm, target: BatchForm) {
-
     source.disable();
     target.disable();
     try {
@@ -290,4 +286,3 @@ export class BatchFormTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
-

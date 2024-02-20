@@ -1,4 +1,3 @@
-
 .batch-tree {
   --app-tree-indent: 16px;
   --padding-start: 0;
@@ -34,11 +33,10 @@
   .mat-tree-node {
     display: block;
   }
-
-
 }
 
-mat-tree, ion-list {
+mat-tree,
+ion-list {
   background: transparent !important;
 }
 
@@ -92,10 +90,7 @@ ion-item {
   }
 }
 
-
-.cdk-visually-hidden{
+.cdk-visually-hidden {
   visibility: hidden !important;
   display: none !important;
 }
-
-

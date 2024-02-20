@@ -27,7 +27,6 @@
 
     .mat-sidenav-content {
       --mat-tab-body-content-height: calc(var(--mat-drawer-content-container-height) - var(--mat-toolbar-height, 0px));
-
     }
   }
 }
@@ -43,7 +42,6 @@ mat-toolbar {
     /*font-family: var(--ion-font-family, inherit);*/
     font-size: inherit;
   }
-
 
   .breadcrumb-separator {
     color: var(--ion-color-step-550, #73849a);
@@ -70,8 +68,6 @@ mat-toolbar {
     &.mat-badge-overlap .mat-badge-content {
       top: 0px !important;
     }
-
-
   }
 
   ion-item.help {
@@ -80,7 +76,6 @@ mat-toolbar {
       font-size: 14px;
     }
   }
-
 }
 
 .form-container {
@@ -101,18 +96,17 @@ mat-toolbar {
     right: 0;
   }
 
-  mat-tree, ion-list {
+  mat-tree,
+  ion-list {
     background: transparent !important;
   }
 
   .mat-action-row {
     border-top: 0 !important;
   }
-
 }
 
-
-.cdk-visually-hidden{
+.cdk-visually-hidden {
   visibility: hidden !important;
   display: none !important;
 }
