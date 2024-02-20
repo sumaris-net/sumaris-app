@@ -13,7 +13,7 @@ import {
   isNotNilOrBlank,
   ReferentialRef,
   toDateISOString,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
@@ -44,6 +44,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   basePortLocation: ReferentialRef;
   vesselType: ReferentialRef;
   vesselTypeId: number;
+  onlyWithRegistration: boolean;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -60,6 +61,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
     this.synchronizationStatus = source.synchronizationStatus;
+    this.onlyWithRegistration = source.onlyWithRegistration;
     this.registrationLocation =
       ReferentialRef.fromObject(source.registrationLocation) ||
       (isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({ id: source.registrationLocationId })) ||
@@ -77,6 +79,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.date = toDateISOString(this.date);
     if (opts?.minify) {
       target.programLabel = this.program && this.program.label;
       delete target.program;
@@ -92,16 +95,15 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
       target.vesselTypeId = toNumber(this.vesselTypeId, this.vesselType?.id);
       delete target.vesselType;
+
+      target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
+      delete target.statusId;
     } else {
       target.program = this.program?.asObject(opts);
       target.registrationLocation = this.registrationLocation?.asObject(opts);
       target.basePortLocation = this.basePortLocation?.asObject(opts);
       target.vesselType = this.vesselType?.asObject(opts);
     }
-
-    target.date = toDateISOString(this.date);
-    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
-    delete target.statusId;
 
     return target;
   }

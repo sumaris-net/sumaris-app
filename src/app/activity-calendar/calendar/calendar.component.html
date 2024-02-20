@@ -1,150 +1,159 @@
-<mat-table #table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
-  <!-- hidden columns (required by AppTable) -->
-  <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
-    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="cdk-visually-hidden">
-    </mat-cell>
-  </ng-container>
+<div class="table-container">
+  <mat-table #table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+    <!-- hidden columns (required by AppTable) -->
+    <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+      <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="cdk-visually-hidden">
+      </mat-cell>
+    </ng-container>
 
-  <ng-container matColumnDef="month">
-    <mat-header-cell *matHeaderCellDef>
-      &nbsp;
-    </mat-header-cell>
-    <mat-header-cell *matCellDef="let row">
-      <ion-label class="ion-text-center">
-      {{ row.currentData.vesselUseFeatures?.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-      </ion-label>
-    </mat-header-cell>
-  </ng-container>
+    <ng-container matColumnDef="month" [sticky]="sticky">
+      <mat-header-cell *matHeaderCellDef>
+        &nbsp;
+      </mat-header-cell>
+      <mat-header-cell *matCellDef="let row">
+        <ion-label class="ion-text-center">
+        {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+        </ion-label>
+      </mat-header-cell>
+    </ng-container>
 
-  <ng-container matColumnDef="vesselOwner">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      TODO
-    </mat-cell>
-  </ng-container>
+    <ng-container matColumnDef="vesselOwner">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" >
+        <ion-label class="computed">TODO Vessel Owner</ion-label>
+      </mat-cell>
+    </ng-container>
 
 
-  <ng-container matColumnDef="registrationLocation">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      TODO
-    </mat-cell>
-  </ng-container>
+    <ng-container matColumnDef="registrationLocation">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" >
+        <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
+          {{ vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes }}
+        </ion-label>
+      </mat-cell>
+    </ng-container>
 
-  <ng-container matColumnDef="isActive">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <ng-container matColumnDef="isActive">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-cell-resizable" #cell>
+        <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'isActive'; let control; else readonlyCell">
+          <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate">
+            <mat-select-trigger>
+              {{ isActiveMap[control.value]?.label | translate }}
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of isActiveList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label | translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="control.hasError('required')" translate>
+            ERROR.FIELD_REQUIRED
+          </mat-error>
+        </mat-form-field>
 
-    </mat-cell>
-  </ng-container>
+        <ng-template #readonlyCell>
+          {{ isActiveMap[row.currentData.isActive]?.label | translate }}
+        </ng-template>
 
-  <ng-container matColumnDef="basePortLocation">
-    <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="mat-cell-resizable" #cell>
+        <!-- resize handlers -->
+        <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"></ng-container>
+      </mat-cell>
+    </ng-container>
 
-      <!-- handlers -->
-      <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation' }"></ng-container>
-    </mat-cell>
-  </ng-container>
+    <!-- Base port location -->
+    <ng-container matColumnDef="basePortLocation">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-cell-resizable" #cell>
 
-  <!--
-  <ng-container *ngFor="let col of columnDefinitions" [matColumnDef]="col.id">
-    <mat-header-cell *matHeaderCellDef class="mat-column-month">
-      <ion-label>{{ col.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="mat-column-month mat-cell-resizable"
-        (click)="focusColumn = col.id"
-        #cell>
+        <mat-autocomplete-field
+          *ngIf="row.editing && row.validator | formGetControl: 'basePortLocation'; let control; else readonlyCell"
+          floatLabel="never"
+          [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+          [formControl]="control"
+          [config]="autocompleteFields.basePortLocation">
+        </mat-autocomplete-field>
+        <ng-template #readonlyCell>
+          {{row.currentData.basePortLocation | referentialToString: locationDisplayAttributes}}
+        </ng-template>
 
-      <mat-form-field floatLabel="never" *ngIf="row.editing; else readonlyCell">
-        <input matInput type="text"
-               [appAutofocus]="focusColumn === col.id"
-               value="test">
-      </mat-form-field>
+        <!-- resize handlers -->
+        <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"></ng-container>
+      </mat-cell>
+    </ng-container>
 
-      <ng-template #readonlyCell>
-        {{ row.currentData.comments }}-{{ col.startDate|dateFormat: {pattern: 'MMM'} }}
-      </ng-template>
+    <!-- Base port location -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-fab style="width: 100%">
+          <ion-fab-button size="small" color="tertiary" (click)="addMetier($event, row)">
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
+        </ion-fab>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+       &nbsp;
+      </mat-cell>
+    </ng-container>
 
-      <div
-        class="resize-handle-left"
-        (mousedown)="onMouseDown($event, cell, row, col.month, 'x')"
-        (mouseup)="onMouseUp($event)"
-      ></div>
-      <div
-        class="resize-handle-right"
-        (mousedown)="onMouseDown($event, cell, row, col.month, 'x')"
-        (mouseup)="onMouseUp($event)"
-      ></div>
-      <div
-        class="resize-handle-top"
-        (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
-        (mouseup)="onMouseUp($event)"
-      ></div>
-      <div
-        class="resize-handle-bottom"
-        (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
-        (mouseup)="onMouseUp($event)"
-      ></div>
-      <div
-        class="resize-handle-corner"
-        (mousedown)="onMouseDown($event, cell, row, col.month)"
-        (mouseup)="onMouseUp($event)"
-      ></div>
-    </mat-cell>
-  </ng-container>-->
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      [class.mat-row-error]="row.invalid"
+      [class.mat-row-dirty]="row.dirty"
+      [class.mat-row-disabled]="!row.editing"
+      [class.mat-row-selected]="row.editing"
+      (keydown.escape)="escapeEditingRow($event)"
+      [cdkTrapFocus]="!row.valid"
+      (click)="clickRow($event, row)"
+      (press)="pressRow($event, row)"
+    ></mat-row>
 
-  <mat-row
-    *matRowDef="let row; columns: displayedColumns"
-    [class.mat-row-error]="row.invalid"
-    [class.mat-row-dirty]="row.dirty"
-    [class.mat-row-disabled]="!row.editing"
-    [class.mat-row-selected]="row.editing"
-    (keydown.escape)="escapeEditingRow($event)"
-    [cdkTrapFocus]="!row.valid"
-    (click)="clickRow($event, row)"
-    (press)="pressRow($event, row)"
-  ></mat-row>
+  </mat-table>
+</div>
 
-  <!--<div mat-row *matRowDef="let row; columns: displayedColumns; when: isDivider"></div>-->
-</mat-table>
-
-<ng-template #cellHandlers let-row let-col="col" let-cell="cell">
+<ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
   <div
-    class="resize-handle-left"
+    class="resize-handle-left" *ngIf="x !== false"
     (mousedown)="onMouseDown($event, cell, row, col,'x')"
     (mouseup)="onMouseUp($event)"
   ></div>
   <div
-    class="resize-handle-right"
+    class="resize-handle-right" *ngIf="x !== false"
     (mousedown)="onMouseDown($event, cell, row, col, 'x')"
     (mouseup)="onMouseUp($event)"
   ></div>
   <div
-    class="resize-handle-top"
+    class="resize-handle-top" *ngIf="y !== false"
     (mousedown)="onMouseDown($event, cell, row, col, 'y')"
     (mouseup)="onMouseUp($event)"
   ></div>
   <div
-    class="resize-handle-bottom"
+    class="resize-handle-bottom" *ngIf="y !== false"
     (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
     (mouseup)="onMouseUp($event)"
   ></div>
   <div
-    class="resize-handle-corner"
+    class="resize-handle-corner" *ngIf="x !== false && y !== false"
     (mousedown)="onMouseDown($event, cell, row, col.month)"
     (mouseup)="onMouseUp($event)"
   ></div>
+</ng-template>
+
+
+<ng-template #skeletonText80>
+  <ion-text style="width: 80%">
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </ion-text>
 </ng-template>

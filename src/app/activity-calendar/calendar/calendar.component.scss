@@ -1,7 +1,29 @@
 
+.table-container {
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
+  min-width: 100%;
+  overflow: auto;
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+
+  .visible-hover {
+    visibility: hidden;
+  }
+
+  .mat-row:hover {
+    .visible-hover {
+      visibility: unset;
+    }
+  }
+}
+
 mat-table {
   --col-header-size: 150px;
-  --col-size: calc((100% - var(--col-header-size)) / 12);
+  --col-min-size: 100px;
+  --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / 12));
   --mat-cell-border-color-hover: var(--ion-color-secondary);
   --mat-row-height: 52px;
   --mat-row-max-height: 52px;
@@ -24,23 +46,26 @@ mat-table {
   }
 
   mat-header-row {
+    min-width: var(--col-header-size) !important;
     width: var(--col-header-size) !important;
     max-width: var(--col-header-size) !important;
-    border: 0;
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
   }
 
   mat-row {
+    min-width: var(--col-size) !important;
     width: var(--col-size) !important;
     max-width: var(--col-size) !important;
+  }
+
+  mat-header-row, mat-row {
     border: 0;
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
   }
 
   mat-header-cell {
     padding: 0;
     padding-inline-start: 8px;
     padding-inline-end: 8px;
+    min-height: var(--mat-row-height);
     ion-label {
       width: 100%;
     }
@@ -52,17 +77,23 @@ mat-table {
     border: 1px solid transparent;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     height: var(--mat-row-height) !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    margin-left: -1px;
+    margin-bottom: -1px;
   }
 
-
-  .mat-column-id, .mat-column-select,.mat-column-actions{
-    visibility: hidden;
-    display: none;
+  mat-cell {
+    //margin-bottom: -1px;
   }
 
-  .mat-column-month {
-    //width: calc(var(--width) / var(--col-count));
-    //max-width: calc(var(--width) / var(--col-count));
+  mat-cell .computed {
+    color: var(--ion-color-primary-tint) !important;
+    font-style: italic !important;
+  }
+
+  .mat-column-actions {
+    border: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   .mat-cell-resizable {

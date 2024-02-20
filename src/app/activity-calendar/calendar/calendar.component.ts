@@ -1,42 +1,39 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, OnInit } from '@angular/core';
-import { DateUtils, Entity, EntityAsObjectOptions, EntityFilter, EntityUtils, InMemoryEntitiesService, sleep } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, Input, OnInit } from '@angular/core';
+import { DateUtils, EntityUtils, IEntitiesService, InMemoryEntitiesService, isNotNil, sleep } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
-import { AppBaseTable } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableState } from '@app/shared/table/base.table';
 import { TableElement } from '@e-is/ngx-material-table';
-import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
-import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { StoreObject } from '@apollo/client/core';
+import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
+import { StatusIds } from '../../../../ngx-sumaris-components/src/app/core/services/model/model.enum';
+import { IStatus } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { splitById } from '../../../../ngx-sumaris-components/src/app/shared/functions';
+import { ActivityMonthValidatorService } from '@app/activity-calendar/calendar/activity-month.validator';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { RxState } from '@rx-angular/state';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 
-export class ActivityMonth extends Entity<ActivityMonth> {
-  month: number = null;
+const BASE_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
 
-  vesselUseFeatures: VesselUseFeatures;
-  gearUseFeatures: GearUseFeatures[];
-
-  constructor() {
-    super();
+export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
+  {
+    id: StatusIds.ENABLE,
+    icon: 'checkmark',
+    label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.ENABLE'
+  },
+  {
+    id: StatusIds.DISABLE,
+    icon: 'close',
+    label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE'
   }
+]);
 
-  fromObject(source: any, opts?: any) {
-    super.fromObject(source, opts);
-    this.vesselUseFeatures = VesselUseFeatures.fromObject(source.vesselUseFeatures);
-    this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject);
-    this.month = source.month || this.vesselUseFeatures?.startDate?.month();
-  }
-
-  asObject(opts?: EntityAsObjectOptions): StoreObject {
-    const target = super.asObject(opts);
-    target.vesselUseFeatures = this.vesselUseFeatures?.asObject(opts);
-    target.gearUseFeatures = this.gearUseFeatures?.map((guf) => guf.asObject(opts));
-
-    return target;
-  }
+export interface ActivityCalendarState extends BaseTableState {
+  vesselSnapshots: VesselSnapshot[];
 }
-export class ActivityMonthFilter extends EntityFilter<ActivityMonthFilter, ActivityMonth> {
-
-}
-
-const BASE_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation']
 
 @Component({
   selector: 'app-calendar',
@@ -50,12 +47,19 @@ const BASE_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive'
           equals: EntityUtils.equals,
         }),
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CalendarComponent extends AppBaseTable<ActivityMonth, ActivityMonthFilter> implements OnInit {
+export class CalendarComponent extends AppBaseTable<ActivityMonth, ActivityMonthFilter,
+  IEntitiesService<ActivityMonth, ActivityMonthFilter>,
+  ActivityMonthValidatorService, number, ActivityCalendarState> implements OnInit {
 
-  hiddenColumns = ['select', 'id', 'actions'];
+  @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
+  readonly isActiveList = IsActiveList;
+  readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+
+  hiddenColumns = ['select', 'id'];
   resizingCell: {
     validating?: boolean;
     axis?: 'x' | 'y';
@@ -67,38 +71,84 @@ export class CalendarComponent extends AppBaseTable<ActivityMonth, ActivityMonth
   originalMouseY: number;
   originalMouseX: number;
 
-  constructor(injector: Injector, private element: ElementRef) {
+  @RxStateProperty() vesselSnapshots: VesselSnapshot[];
+  @RxStateProperty() @Input() locationDisplayAttributes: string[];
+  @RxStateProperty() @Input() basePortLocationLevelIds: number[];
+
+  constructor(injector: Injector,
+              validatorService: ActivityMonthValidatorService,
+              private vesselSnapshotService: VesselSnapshotService,
+              private referentialRefService: ReferentialRefService,
+              private element: ElementRef) {
     super(
       injector,
       ActivityMonth,
       ActivityMonthFilter,
       BASE_COLUMNS,
-      new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter)
+      injector.get(InMemoryEntitiesService),
+      validatorService
     );
     this.inlineEdition = true;
     this.autoLoad = true;
-
+    this.sticky = true;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
+
+    this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
+
+    await this.referentialRefService.ready();
+
+    this.registerAutocompleteField('basePortLocation', {
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT]}),
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      },
+      attributes: this.locationDisplayAttributes,
+      mobile: this.mobile
+    });
 
     this.markAsReady();
   }
 
-  setValue(data: ActivityCalendar) {
+  async setValue(data: ActivityCalendar) {
     const year = data?.year || DateUtils.moment().year() - 1;
+    const vesselId = data.vesselSnapshot?.id;
 
     this.memoryDataService.value = new Array(12).fill(null)
       .map((_, month) => {
-        const activity = new ActivityMonth();
-        activity.month = month;
         const startDate = DateUtils.moment().utc(false).year(year).month(month).startOf('month');
-        activity.vesselUseFeatures = data.vesselUseFeatures?.find(vuf => DateUtils.isSame(startDate, vuf.startDate))
-          || VesselUseFeatures.fromObject({startDate});
-        activity.gearUseFeatures = data.gearUseFeatures?.filter(guf => guf.startDate?.month() === month);
-        return activity;
+        const endDate = DateUtils.moment().utc(false).year(year).month(month).endOf('month');
+        const source = data.vesselUseFeatures?.find(vuf => DateUtils.isSame(startDate, vuf.startDate))
+          || { startDate };
+        const target = ActivityMonth.fromObject(source);
+        target.gearUseFeatures = data.gearUseFeatures?.filter(guf => guf.startDate?.month() === month);
+        target.vesselId = vesselId;
+        target.endDate = endDate;
+        return target;
       });
+
+    // Load vessels
+    if (isNotNil(vesselId)) {
+      await this.loadVessels(vesselId, year);
+    }
+  }
+
+  async loadVessels(vesselId: number, year: number) {
+    this.vesselSnapshots = await Promise.all(new Array(12).fill(null)
+      .map(async (_, month) => {
+        //await sleep(500);
+
+        const date = DateUtils.moment().utc(false).year(year).startOf('year');
+        const {data} = await this.vesselSnapshotService.loadAll(0,1, null, null, {
+          vesselId,
+          date,
+          onlyWithRegistration: true
+        }, {withTotal: false});
+        return data?.[0] || null;
+    }));
   }
 
   onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: TableElement<any>, columnName: string, axis?: 'x' | 'y') {
@@ -209,6 +259,10 @@ export class CalendarComponent extends AppBaseTable<ActivityMonth, ActivityMonth
     if (this.resizingCell || event.defaultPrevented) return; // Skip
 
     return super.clickRow(event, row);
+  }
+
+  addMetier(event: UIEvent, row: TableElement<ActivityMonth>) {
+    console.log('TODO add metier');
   }
 
 }

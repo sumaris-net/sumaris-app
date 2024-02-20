@@ -3073,7 +3073,11 @@
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
-      "BASE_PORT_LOCATION": "Port d'attache / exploit."
+      "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+      "IS_ACTIVE_ENUM": {
+        "ENABLE": "Actif",
+        "DISABLE": "Inactif"
+      }
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne"

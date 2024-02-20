@@ -74,9 +74,9 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
       super.getFormGroupConfig(data, opts),
       {
         __typename: [GearUseFeatures.TYPENAME],
-        vesselId: [toNumber(data?.vesselId, 0)],
+        vesselId: [toNumber(data?.vesselId, null)],
         startDate: [data?.startDate || null, Validators.required],
-        endDate: [data?.startDate || null, Validators.required],
+        endDate: [data?.endDate || null, Validators.required],
         rankOrder: [toNumber(data?.rankOrder, 0)],
         measurementValues: this.formBuilder.group({}),
       });
