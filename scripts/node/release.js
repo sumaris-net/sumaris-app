@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-const { async } = require('rxjs');
-
 (async () => {
 
   const path = require('path');
@@ -60,9 +58,7 @@ const { async } = require('rxjs');
 
   const GITLAB = new Gitlab({
     host: `https://${GITLAB_HOST_NAME}`,
-    jobToken: OPTIONS.token,
-    // For local testing with user token
-    // token: OPTIONS.token,
+    token: OPTIONS.token,
   });
 
   function computeGitlabApiProjectUrl() {
@@ -93,11 +89,11 @@ const { async } = require('rxjs');
   async function descriptionGetChanges(milestone) {
     utils.logMessage('I', LOG_PREFIX, 'gen changes for release description...');
     try {
-      const res = await fetch(`${computeGitlabApiProjectUrl()}/merge_requests/?milestone=${milestone}&state=merged`);
-      if (res.status !== 200) {
-        throw new Error(`${res.status} ${res.statusText}`);
-      }
-      const items = await res.json();
+      const items = await GITLAB.MergeRequests.all({
+        projectId: GITLAB_PROJECT_ID,
+        milestone: milestone,
+        state: 'merged',
+      });
       if (items.length === 0) return '* no changes\n';
       return items
         .map((i) => `* ${i.title} ([!${i.iid}](${i.web_url}))`)
@@ -111,11 +107,11 @@ const { async } = require('rxjs');
   async function descriptionGetIssues(milestone) {
     utils.logMessage('I', LOG_PREFIX, 'gen issues for release description...');
     try {
-      const res = await fetch(`${computeGitlabApiProjectUrl()}/issues/?milestone=${milestone}&state=closed`);
-      if (res.status !== 200) {
-        throw new Error(`${res.status} ${res.statusText}`);
-      }
-      const items = await res.json();
+      const items = await GITLAB.Issues.all({
+        projectId: GITLAB_PROJECT_ID,
+        milestone: milestone,
+        state: 'closed',
+      })
       if (items.length === 0) return '* no issues fixed\n';
       return items
         .map((i) => `* ${i.title} ([#${i.iid}](${i.web_url}) - ${i.state})`)
@@ -177,9 +173,7 @@ const { async } = require('rxjs');
         headers: {
           "Content-Length": fs.statSync(filePath).size,
           "Content-type": 'application/octet-stream',
-          // For local testing with user token
-          // "PRIVATE-TOKEN": OPTIONS.token,
-          "JOB-TOKEN": OPTIONS.token,
+          "PRIVATE-TOKEN": OPTIONS.token,
         },
         body: fs.readFileSync(filePath),
       });
@@ -206,7 +200,6 @@ const { async } = require('rxjs');
         utils.logMessage('I', LOG_PREFIX, `Remove package existing file "${fileName}" for version "${version}"`);
         await GITLAB.Packages.removeFile(GITLAB_PROJECT_ID, packageId, item.id);
       } catch(e) {
-        console.error(e);
         utils.logMessage('E', LOG_PREFIX, e);
         process.exit(1);
       }
@@ -230,11 +223,7 @@ const { async } = require('rxjs');
 
   async function packagesGetFiles(packageId) {
     try {
-      const res = await fetch(`${computeGitlabApiProjectUrl()}/packages/${packageId}/package_files`);
-      if (res.status !== 200) {
-        throw new Error(`${res.status} ${res.statusText}`);
-      }
-      return await res.json();
+      return await await GITLAB.Packages.allFiles(GITLAB_PROJECT_ID, packageId);
     } catch(e) {
       utils.logMessage('E', LOG_PREFIX, e);
       process.exit(1);
