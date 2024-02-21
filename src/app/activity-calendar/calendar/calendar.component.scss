@@ -1,4 +1,8 @@
+:host {
 
+  --mat-row-height: 52px !important;
+  --mat-row-max-height: 52px !important;
+}
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
@@ -25,8 +29,8 @@ mat-table {
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / 12));
   --mat-cell-border-color-hover: var(--ion-color-secondary);
-  --mat-row-height: 52px;
-  --mat-row-max-height: 52px;
+  --mat-row-height: 52px !important;
+  --mat-row-max-height: 52px !important;
   --mat-cell-resizable-handle-size: 5px;
   --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
 
@@ -58,14 +62,11 @@ mat-table {
   }
 
   mat-header-row, mat-row {
-    border: 0;
+    border: 0 !important;
   }
 
   mat-header-cell {
     padding: 0;
-    padding-inline-start: 8px;
-    padding-inline-end: 8px;
-    min-height: var(--mat-row-height);
     ion-label {
       width: 100%;
     }
@@ -76,9 +77,12 @@ mat-table {
     width: 100%;
     border: 1px solid transparent;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    min-height: var(--mat-row-height) !important;
     height: var(--mat-row-height) !important;
+    max-height: var(--mat-row-height) !important;
+    padding-inline-start: 8px;
+    padding-inline-end: 8px;
     border-left: 1px solid rgba(0, 0, 0, 0.12);
-    margin-left: -1px;
     margin-bottom: -1px;
   }
 
@@ -91,6 +95,11 @@ mat-table {
     font-style: italic !important;
   }
 
+  .mat-column-select, .mat-column-id {
+    display: none;
+    visibility: hidden;
+    width: 0 !important;
+  }
   .mat-column-actions {
     border: 0 !important;
     margin-bottom: 0 !important;

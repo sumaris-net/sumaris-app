@@ -1,5 +1,27 @@
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- display columns option -->
+  <button *ngIf="showDisplayColumnModal" mat-menu-item (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Compact mode -->
+  <button mat-menu-item (click)="toggleCompactMode()">
+    <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
+    <ng-template #disabledIcon>
+      <mat-icon>check_box_outline_blank</mat-icon>
+    </ng-template>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
+</mat-menu>
+
 <div class="table-container">
-  <mat-table #table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+  <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
     <!-- hidden columns (required by AppTable) -->
     <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
       <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
@@ -8,13 +30,13 @@
       </mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="month" [sticky]="sticky">
+    <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-column-sticky]="sticky">
       <mat-header-cell *matHeaderCellDef>
-        &nbsp;
+        <ion-label>&nbsp;</ion-label>
       </mat-header-cell>
       <mat-header-cell *matCellDef="let row">
         <ion-label class="ion-text-center">
-        {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+          {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
         </ion-label>
       </mat-header-cell>
     </ng-container>
@@ -92,22 +114,21 @@
       </mat-cell>
     </ng-container>
 
-    <!-- Base port location -->
-    <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-fab style="width: 100%">
-          <ion-fab-button size="small" color="tertiary" (click)="addMetier($event, row)">
-            <ion-icon name="add"></ion-icon>
-          </ion-fab-button>
-        </ion-fab>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-       &nbsp;
-      </mat-cell>
-    </ng-container>
+    <!-- Actions -->
+    <app-actions-column [stickyEnd]="stickyEnd" [style]="'mat-table'"
+      (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+      (backward)="confirmAndBackward($event.event, $event.row)"
+      (forward)="confirmAndForward($event.event, $event.row)"
+      [canCancel]="true" [dirtyIcon]="false"
+    >
+      <!-- Options menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </app-actions-column>
 
     <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-
     <mat-row
       *matRowDef="let row; columns: displayedColumns"
       [class.mat-row-error]="row.invalid"
@@ -145,7 +166,7 @@
     (mouseup)="onMouseUp($event)"
   ></div>
   <div
-    class="resize-handle-corner" *ngIf="x !== false && y !== false"
+    class="resize-handle-corner" *ngIf="x !== false || y !== false"
     (mousedown)="onMouseDown($event, cell, row, col.month)"
     (mouseup)="onMouseUp($event)"
   ></div>
