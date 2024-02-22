@@ -9,6 +9,7 @@ import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 import { RxUnpatch } from '@rx-angular/template/unpatch';
+import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
 
 @NgModule({
   imports: [

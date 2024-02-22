@@ -65,7 +65,6 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { MarkdownModule, MARKED_OPTIONS } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
 import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
@@ -146,22 +145,7 @@ import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar
         deps: [HttpClient],
       },
     }),
-    MarkdownModule.forRoot({
-      loader: HttpClient, // Allow to load using [src]
-      sanitize: SecurityContext.NONE,
-      markedOptions: {
-        provide: MARKED_OPTIONS,
-        useValue: {
-          gfm: true,
-          breaks: false,
-          pedantic: false,
-          smartLists: true,
-          smartypants: false,
-        },
-      },
-    }),
-    // TODO migration
-    //AppMarkdownModule.forRoot(),
+    AppMarkdownModule.forRoot(),
     NgChartsModule.forRoot({
       plugins: [],
     }),
@@ -190,7 +174,7 @@ import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: {
-        appearance: 'outline',
+        appearance: 'fill',
         subscriptSizing: 'dynamic',
       },
     },

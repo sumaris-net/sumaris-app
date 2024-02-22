@@ -34,20 +34,20 @@ export class ConfigurationService implements IEntityService<Configuration> {
     });
   }
 
-  canUserWrite(data: Configuration, opts?: any): boolean {
-    return this.delegateService.canUserWrite(data, opts);
+  canUserWrite(data: Configuration): boolean {
+    return this.delegateService.canUserWrite(data);
   }
 
-  save(data: Configuration, opts?: any): Promise<Configuration> {
+  save(data: Configuration): Promise<Configuration> {
     return this.delegateService.save(data);
   }
 
-  delete(data: Configuration, opts?: any): Promise<any> {
-    return this.delegateService.delete(data, opts);
+  delete(data: Configuration): Promise<any> {
+    return this.delegateService.delete(data);
   }
 
-  listenChanges(id: any, opts?: any): Observable<Configuration> {
-    return this.delegateService.listenChanges(id, opts);
+  listenChanges(id: any): Observable<Configuration> {
+    return this.delegateService.listenChanges(id);
   }
 
   getCacheStatistics() {

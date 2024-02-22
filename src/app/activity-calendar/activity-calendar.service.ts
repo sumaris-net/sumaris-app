@@ -903,7 +903,7 @@ export class ActivityCalendarService
     trash?: boolean; // True by default
   }): Promise<any> {
 
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts.trash !== false;
     const trashUpdateDate = trash && moment();
     if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar #${entity.id}... {trash: ${trash}`);
 
