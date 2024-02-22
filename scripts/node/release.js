@@ -58,7 +58,8 @@
 
   const GITLAB = new Gitlab({
     host: `https://${GITLAB_HOST_NAME}`,
-    token: OPTIONS.token,
+    // token: OPTIONS.token,
+    jobToken: OPTIONS.token,
   });
 
   function computeGitlabApiProjectUrl() {
@@ -173,7 +174,8 @@
         headers: {
           "Content-Length": fs.statSync(filePath).size,
           "Content-type": 'application/octet-stream',
-          "PRIVATE-TOKEN": OPTIONS.token,
+          // "PRIVATE-TOKEN": OPTIONS.token,
+          "JOB-TOKEN": OPTIONS.token,
         },
         body: fs.readFileSync(filePath),
       });
