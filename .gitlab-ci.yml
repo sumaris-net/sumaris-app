@@ -102,6 +102,11 @@ variables:
     - npm install
     - npm run electron:install
     - npm version
+    # TODO : dirty fix to solve incompatibility between minimatch and @type/minimatch
+    #        see : https://github.com/isaacs/rimraf/issues/264
+    #        when solved : this to remove "overrides" section in "electron/package.json"
+    #        (it is related to this problem)
+    - npm rm @types/glob @types/minimatch
 
 .configure-webext-template: &webext-setup
   image: ${CI_BUILD_IMAGE}
@@ -183,7 +188,7 @@ build:feature:
 build:tags:
   <<: *git-setup
   image: ${CI_BUILD_IMAGE}
-  stage: release
+  stage: build
   script:
     - echo "--- Build in progress"
     - git checkout -b release/${CI_COMMIT_TAG}
