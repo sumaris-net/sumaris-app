@@ -414,8 +414,6 @@ gitlab-release:
     - cd ${CI_PROJECT_DIR}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
   artifacts:
-    paths:
-      - release
     reports:
       dotenv: ${ENV_FILE}
     expire_in: 24 hours
@@ -457,10 +455,6 @@ deploy:web:tags:
     - if [[ -f "${releaseFile}" ]]; then rm "${releaseFile}"; fi
     - mv "${sourceFile}" "${releaseFile}"
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
-  artifacts:
-    paths:
-      - release
-    expire_in: 24 hours
   allow_failure: true
 
 deploy:android:
@@ -511,10 +505,6 @@ deploy:android:tags:
     - fileName=${CI_PROJECT_NAME}-${APP_VERSION}-windows-x64.exe
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
-  artifacts:
-    paths:
-      - release
-    expire_in: 24 hours
   allow_failure: false
 
 deploy:electron:
@@ -555,10 +545,6 @@ deploy:electron:tags:
     - fileName=$(basename $(echo release/cesium-*.xpi))
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
-  artifacts:
-    paths:
-      - release
-    expire_in: 24 hours
   allow_failure: false
   when: manual
 
