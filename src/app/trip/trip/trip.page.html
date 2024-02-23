@@ -98,7 +98,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -249,7 +249,7 @@
         [requiredGear]="false"
         (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
         [showToolbar]="!mobile"
-        [useSticky]="!mobile"
+        [sticky]="!mobile"
         [usageMode]="usageMode"
         [mobile]="mobile"
         [debug]="debug"

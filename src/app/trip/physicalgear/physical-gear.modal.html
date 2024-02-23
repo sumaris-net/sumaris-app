@@ -38,7 +38,7 @@
 <ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="ion-no-padding">
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
     [class.mat-tab-group-header-hidden]="!(showChildrenTable$ | push)"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"

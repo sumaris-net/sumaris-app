@@ -1,0 +1,32 @@
+// --------------------------------------------------
+// Material Tab
+// --------------------------------------------------
+
+.mat-mdc-tab-group.mat-secondary, .mat-mdc-tab-nav-bar.mat-secondary {
+  background-color: var(--ion-color-secondary, $secondary);
+  .mat-mdc-tab-link {
+    color: var(--ion-color-secondary-contrast);
+    --mat-tab-header-label-text-tracking: normal;
+  }
+}
+.mat-mdc-tab-group.mat-primary .mat-ink-bar, .mat-mdc-tab-nav-bar.mat-primary .mat-ink-bar {
+  background-color: var(--ion-color-primary, $primary);
+}
+
+.mat-mdc-tab-fixed-content {
+  height: 100%;
+  .mat-mdc-tab-body-wrapper {
+    height: 100%;
+    .mat-mdc-tab-body {
+      height: 100%;
+    }
+  }
+
+  .mat-mdc-tab-body-content {
+    height: var(--mat-tab-body-content-height, 100%) !important;
+    overflow: auto;
+    & > .ng-star-inserted {
+      height: var(--mat-tab-body-content-height, 100%);
+    }
+  }
+}

@@ -171,7 +171,7 @@
 
 <mat-tab-group
   #tabGroup
-  class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"
+  class="mat-mdc-tab-disabled-visible mat-mdc-tab-group-header-pagination-hidden"
   [class.cdk-visually-hidden]="(showBatchTables$ | push : rxStrategy) !== true"
   [class.mat-tab-group-header-hidden]="!allowQvPmfmGroup || mobile"
   [(selectedIndex)]="selectedTabIndex"
@@ -179,7 +179,7 @@
   [animationDuration]="tabGroupAnimationDuration"
 >
   <!-- TAB: species list -->
-  <mat-tab label="{{ 'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES' | translate }}">
+  <mat-tab [label]="'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES' | translate">
     <ng-template mat-tab-label>
       <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
@@ -219,7 +219,7 @@
   <mat-tab
     #measureTab
     *ngIf="allowQvPmfmGroup && !mobile"
-    label="{{ 'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL' | translate }}"
+    [label]="'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL' | translate"
     [disabled]="showSubBatchesTable !== true"
   >
     <ng-template mat-tab-label>

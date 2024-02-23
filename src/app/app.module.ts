@@ -99,7 +99,7 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions } from '@angular/material/form-field';
 import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
@@ -173,9 +173,10 @@ import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar
     Downloader,
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: {
+      useValue: <MatFormFieldDefaultOptions>{
         appearance: 'fill',
-        subscriptSizing: 'dynamic',
+        //appearance: 'outline',
+        //subscriptSizing: 'dynamic',
       },
     },
     {

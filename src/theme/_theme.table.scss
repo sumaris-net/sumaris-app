@@ -1,0 +1,66 @@
+// --------------------------------------------------
+// Material Table
+// --------------------------------------------------
+
+.mat-mdc-table {
+  .mat-row {
+    overflow: hidden;
+    /*FIXME not need anymore ?
+    height: calc(min(var(--mat-row-max-height), 48px));
+    */
+  }
+
+  .mat-row.mat-row-selected {
+    .mat-cell .visible-selected-row {
+      visibility: visible !important;
+    }
+  }
+
+  .mat-header-row,
+  .mat-row,
+  .mat-footer-row {
+
+    .mat-column-select {
+      width: 50px; // Force to 50px, because sticky column must have fixed width
+    }
+
+    .mat-header-cell,
+    .mat-cell,
+    .mat-footer-cell {
+
+      // Remove right border, of sticky columns
+      &.mat-table-sticky-border-elem-left {
+        border-right: 0 !important; // 1px solid #{$app-table-border-color};
+      }
+    }
+  }
+
+  .mat-header-row  .mat-header-cell {
+    --mat-cell-overflow: hidden;
+
+    &.mat-column-pmfm .mat-sort-header-content {
+      max-width: 90%;
+    }
+
+    .pmfm-details {
+      margin-top: 4px;
+      font-size: 90% !important;
+      max-width: 100%;
+      overflow: var(--mat-cell-overflow);
+    }
+
+    /* Pour les navigateurs supportant la propriété line-clamp (WebKit, Blink et Firefox récent) */
+    @supports (-webkit-line-clamp: 5) {
+      .pmfm-details {
+        display: -webkit-box;
+        -webkit-line-clamp: 5; /* Affiche 3 lignes puis coupe si besoin avec '...' */
+        -webkit-box-orient: vertical;
+
+        &:hover {
+          -webkit-line-clamp: 10;
+        }
+      }
+    }
+  }
+
+}

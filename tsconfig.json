@@ -35,6 +35,9 @@
       ],
       "rxjs/*": [
         "node_modules/rxjs/*"
+      ],
+      "@sumaris-net/ngx-components": [
+        "node_modules/@sumaris-net/ngx-components/*"
       ]
     },
     "useDefineForClassFields": false

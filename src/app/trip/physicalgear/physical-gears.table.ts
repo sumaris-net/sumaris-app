@@ -48,7 +48,6 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
-  @Input() useSticky = false;
   @Input() title: string = null;
   @Input() defaultGear: ReferentialRef = null;
   @Input() canEditGear = true;

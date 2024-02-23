@@ -155,7 +155,7 @@
     [matSortActive]="defaultSortBy"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -169,7 +169,7 @@
     </ng-container>
 
     <!-- id (=rankOrder) Column -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
       </th>
