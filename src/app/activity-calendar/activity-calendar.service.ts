@@ -104,6 +104,7 @@ export const ActivityCalendarFragments = {
     ${DataCommonFragments.lightPerson}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.referential}
+    ${DataCommonFragments.location}
   `,
 
   activityCalendar: gql`fragment ActivityCalendarFragment on ActivityCalendarVO {
@@ -142,6 +143,7 @@ export const ActivityCalendarFragments = {
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${DataFragments.vesselUseFeatures}
   ${DataFragments.gearUseFeatures}
