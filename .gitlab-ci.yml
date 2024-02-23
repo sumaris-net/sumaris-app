@@ -106,7 +106,9 @@ variables:
     #        see : https://github.com/isaacs/rimraf/issues/264
     #        when solved : this to remove "overrides" section in "electron/package.json"
     #        (it is related to this problem)
+    - cd ./electron/
     - npm rm @types/glob @types/minimatch
+    - cd ..
 
 .configure-webext-template: &webext-setup
   image: ${CI_BUILD_IMAGE}
