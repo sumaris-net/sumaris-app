@@ -106,7 +106,7 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}"
+    <mat-tab [label]="'TRIP.TAB_GENERAL' | translate"
              appSubMenuTab
              [subMenuTitle]="(titleSubject|async|noHtml)||''"
              [parentPath]="defaultBackHref">
