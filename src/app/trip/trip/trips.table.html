@@ -88,7 +88,7 @@
 </app-toolbar>
 
 <!-- Table options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
+<mat-menu #optionsMenu="matMenu" xPosition="before">
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>

@@ -28,7 +28,7 @@
 </ng-container>
 
 <!-- Download menu -->
-<mat-menu #downloadMenu="matMenu" xPosition="after" class="ion-no-padding">
+<mat-menu #downloadMenu="matMenu" xPosition="before" class="ion-no-padding">
   <ng-template matMenuContent>
     <ng-container *ngIf="!downloadAsJson.observed && downloadAsType.observed; else subMenu">
       <ng-container *ngTemplateOutlet="typesTemplate"></ng-container>
@@ -51,7 +51,7 @@
 </mat-menu>
 
 <!-- Types menu -->
-<mat-menu #typesMenu="matMenu" xPosition="after" class="ion-no-padding">
+<mat-menu #typesMenu="matMenu" xPosition="before" class="ion-no-padding">
   <ng-template matMenuContent>
     <ng-container *ngTemplateOutlet="typesTemplate"></ng-container>
   </ng-template>
