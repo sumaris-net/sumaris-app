@@ -3,7 +3,7 @@ ion-row {
     background-color: var(--ion-color-light, grey);
   }
 
-  &.mat-row-selected {
+  &.mat-mdc-row-selected {
     background-color: var(--ion-color-secondary100) !important;
   }
 }

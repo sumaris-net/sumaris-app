@@ -10,8 +10,8 @@
   }
 
   .mat-mdc-table {
-    .mat-header-row,
-    .mat-row {
+    .mat-mdc-header-row,
+    .mat-mdc-row {
 
       .mat-column-id {
         width: 50px;
@@ -61,7 +61,7 @@
 
   &.has-pmfm-header-details {
 
-    .mat-header-row {
+    .mat-mdc-header-row {
       position: sticky;
       top: 43px;
       z-index: 10;

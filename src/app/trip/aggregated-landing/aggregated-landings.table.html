@@ -141,7 +141,7 @@
           [class.even]="even"
           (click)="clickCell($event, row, date)"
         >
-          <div *ngFor="let activity of getActivities(row, date)" [class.mat-cell-error]="activity.invalid">
+          <div *ngFor="let activity of getActivities(row, date)" [class.mat-mdc-cell-error]="activity.invalid">
             <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
               {{
                 activity.measurementValues[pmfm.id]
@@ -177,8 +177,8 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns; even as even"
-      class="mat-row-disabled mat-row-height-auto"
-      [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      class="mat-mdc-row-disabled mat-mdc-row-height-auto"
+      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       [class.even]="mobile && even"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"

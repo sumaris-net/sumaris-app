@@ -488,20 +488,20 @@
 
       <!-- year  -->
       <ng-container matColumnDef="year">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.YEAR</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ row.currentData.year }}</ion-text>
         </td>
       </ng-container>
 
       <!-- direct survey investigation ?-->
       <ng-container matColumnDef="directSurveyInvestigation">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ (row.currentData.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
         </td>
       </ng-container>
@@ -560,9 +560,9 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
+        class="mat-mdc-row-disabled"
         [class.cdk-visually-hidden]="loadingSubject | async"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

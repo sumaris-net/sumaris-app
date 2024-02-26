@@ -43,8 +43,8 @@
     max-width: 40px;
   }
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  .mat-mdc-header-cell.hidden,
+  .mat-mdc-cell.hidden {
     visibility: hidden;
     display: none;
   }
@@ -62,7 +62,7 @@
     }
 
     mat-cell:first-of-type,
-    .mat-cell:first-of-type {
+    .mat-mdc-cell:first-of-type {
       padding-left: 0 !important;
     }
   }

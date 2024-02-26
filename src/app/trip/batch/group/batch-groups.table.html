@@ -213,8 +213,8 @@
           mat-cell
           *ngVar="isComputed(col, row) as computed"
           [class]="col.classList"
-          [class.mat-cell-computed]="computed"
-          class="mat-cell-content-start-padding"
+          [class.mat-mdc-cell-computed]="computed"
+          class="mat-mdc-cell-content-start-padding"
           (click)="focusColumn = col.key"
         >
           <ng-container
@@ -318,10 +318,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-selected]="row.editing"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"
@@ -466,8 +466,8 @@
             mat-cell
             *ngVar="isComputed(col, row) as computed"
             [class]="col.classList"
-            [class.mat-cell-computed]="computed"
-            class="mat-cell-content-start-padding"
+            [class.mat-mdc-cell-computed]="computed"
+            class="mat-mdc-cell-content-start-padding"
           >
             <ion-label *ngIf="!mobile; else mobileCellContent" [ngSwitch]="col.type">
               <ng-container *ngSwitchCase="'pmfm'">
@@ -549,10 +549,10 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-dirty]="!row.currentData.id"
-        [class.mat-row-error]="row.currentData.qualityFlagId === 4"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-dirty]="!row.currentData.id"
+        [class.mat-mdc-row-error]="row.currentData.qualityFlagId === 4"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

@@ -135,7 +135,7 @@
         <ion-row
           *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
           class="typed-expense-row ion-padding-bottom"
-          [class.mat-row-selected]="baitEditedIndex === i"
+          [class.mat-mdc-row-selected]="baitEditedIndex === i"
           [class.odd]="odd"
           (focusin)="baitEditedIndex = i"
         >

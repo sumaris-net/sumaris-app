@@ -319,20 +319,20 @@
 
     <!-- Start date column -->
     <ng-container matColumnDef="vesselFeatures.startDate">
-      <th mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell class="mat-mdc-cell-date-time" *matHeaderCellDef mat-sort-header>
         <ion-label translate>VESSEL.VESSEL_FEATURES.START_DATE</ion-label>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         <ion-text>{{ row.currentData.vesselFeatures?.startDate | dateFormat }}</ion-text>
       </td>
     </ng-container>
 
     <!-- End date column -->
     <ng-container matColumnDef="vesselFeatures.endDate">
-      <th mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell class="mat-mdc-cell-date-time" *matHeaderCellDef mat-sort-header>
         <ion-label translate>VESSEL.VESSEL_FEATURES.END_DATE</ion-label>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         <ion-text>{{ row.currentData.vesselFeatures?.endDate | dateFormat }}</ion-text>
       </td>
     </ng-container>
@@ -439,9 +439,9 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      class="mat-row-disabled"
+      class="mat-mdc-row-disabled"
       [class.cdk-visually-hidden]="loadingSubject | async"
-      [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>

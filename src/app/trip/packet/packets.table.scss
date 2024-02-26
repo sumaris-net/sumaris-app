@@ -12,18 +12,18 @@
 
 .mat-mdc-table {
   --mat-row-max-height: 56px;
-  --mat-cell-vertical-padding: 0;
+  --mat-cell-horizontal-padding: 0;
   --mat-column-actions-min-width: 82px;
   --mat-column-actions-max-width: 82px;
 
-  .mat-header-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-row {
     padding: 0 0;
     z-index: 999;
 
-    .mat-header-cell,
-    .mat-cell {
-      padding-inline-start: var(--mat-cell-vertical-padding, 0) !important;
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      padding-inline-start: var(--mat-cell-horizontal-padding, 0) !important;
     }
 
     .mat-column-id {

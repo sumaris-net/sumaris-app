@@ -14,15 +14,15 @@
 
   .mat-mdc-table {
     background-color: transparent !important;
-    --mat-cell-vertical-padding: 4px;
+    --mat-cell-horizontal-padding: 4px;
 
     /* First header row (group) */
-    .mat-header-row.first-header-row {
+    .mat-mdc-header-row.first-header-row {
       background-color: var(--mat-toolbar-background-color, whitesmoke);
       height: var(--mat-toolbar-height, 64px);
-      --mat-cell-vertical-padding: 0;
+      --mat-cell-horizontal-padding: 0;
 
-      .mat-header-cell {
+      .mat-mdc-header-cell {
         background-color: transparent;
 
         &.mat-column-top-start {
@@ -55,19 +55,19 @@
     }
 
 
-    .mat-header-row,
-    .mat-row {
+    .mat-mdc-header-row,
+    .mat-mdc-row {
 
-      .mat-header-cell.total {
+      .mat-mdc-header-cell.total {
         background-color: rgba(var(--ion-color-light-rgb), 0.6) !important;
       }
 
-      .mat-cell.total {
+      .mat-mdc-cell.total {
         background-color: rgba(var(--ion-color-light-rgb), 0.6);
       }
 
-      &.mat-row-selected {
-        .mat-cell.total {
+      &.mat-mdc-row-selected {
+        .mat-mdc-cell.total {
           background-color: rgba(0, 0, 0, 0.1) !important;
         }
       }
@@ -119,7 +119,7 @@
       visibility: hidden;
     }
 
-    .mat-row:hover {
+    .mat-mdc-row:hover {
       .visible-hover {
         visibility: unset;
       }

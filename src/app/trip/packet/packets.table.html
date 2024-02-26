@@ -195,11 +195,11 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      class="mat-row-disabled"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      class="mat-mdc-row-disabled"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>

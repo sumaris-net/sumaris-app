@@ -136,8 +136,8 @@
           *matCellDef="let row"
           [class.ion-padding-start]="first"
           [class.mat-form-field-disabled]="!row.editing"
-          [class.mat-cell-date]="definition.type === 'date'"
-          [class.mat-cell-date-time]="definition.type === 'dateTime'"
+          [class.mat-mdc-cell-date]="definition.type === 'date'"
+          [class.mat-mdc-cell-date-time]="definition.type === 'dateTime'"
         >
           <app-form-field
             *ngIf="row.editing && row.validator.controls | mapGet : definition.key; let control; else: readonly"
@@ -175,11 +175,11 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-selected]="row.editing"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-status-disabled]="row.validator.controls.statusId?.value === 0"
+      [class.mat-mdc-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-status-disabled]="row.validator.controls.statusId?.value === 0"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="row.validator.invalid"

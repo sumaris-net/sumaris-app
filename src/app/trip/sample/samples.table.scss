@@ -8,19 +8,23 @@
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height, 0px);
   }
-  &.has-group-header .mat-header-row.second-header-row {
-    position: sticky;
-    top: var(--mat-toolbar-height, 0px);
-    z-index: 10;
+  &.has-group-header {
+    --mat-cell-horizontal-padding: 4px;
 
-    .mat-header-cell {
-      top: 0 !important;
+    .mat-mdc-header-row.second-header-row {
+      position: sticky;
+      top: var(--mat-toolbar-height, 0px);
+      z-index: 10;
+
+      .mat-mdc-header-cell {
+        top: 0 !important;
+      }
     }
   }
 
   .mat-mdc-table {
-    .mat-header-row,
-    .mat-row {
+    .mat-mdc-header-row,
+    .mat-mdc-row {
 
       .mat-column-id {
         width: 50px;
@@ -90,10 +94,10 @@
     }
 
     /* First header row (group) */
-    .mat-header-row.first-header-row {
+    .mat-mdc-header-row.first-header-row {
       background-color: var(--mat-toolbar-background-color, whitesmoke);
       height: var(--mat-toolbar-height);
-      --mat-cell-vertical-padding: 0;
+      --mat-cell-horizontal-padding: 0;
 
       &.cdk-visually-hidden {
         visibility: hidden;
@@ -101,7 +105,7 @@
         height: 0!important;
       }
 
-      .mat-header-cell {
+      .mat-mdc-header-cell {
         // IMAGINE-653 Remove transparent attribute for header since values are visible on header row otherwise
         //background-color: transparent;
 
@@ -126,12 +130,12 @@
     }
 
     // Normal row
-    .mat-row {
-      .mat-cell.mat-column-pmfm {
+    .mat-mdc-row {
+      .mat-mdc-cell.mat-column-pmfm {
         &.even {
           background-color: rgba(var(--ion-color-light-rgb), 0.8) !important;
           color: var(--ion-color-light-contrast, black) !important;
-          &.mat-cell-computed {
+          &.mat-mdc-cell-computed {
             color: var(--ion-color-primary-tint) !important;
           }
         }
@@ -153,7 +157,7 @@
   &.has-pmfm-header-details {
 
     /* Second header row : increase row height */
-    .mat-header-row.second-header-row {
+    .mat-mdc-header-row.second-header-row {
 
 
       height: 90px;

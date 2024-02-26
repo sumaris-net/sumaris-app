@@ -18,14 +18,14 @@
     padding-right: 5px;
   }
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  mat-mdc-header-cell.hidden,
+  mat-mdc-cell.hidden {
     visibility: hidden;
     display: none;
   }
 
-  .mat-header-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-row {
 
     .mat-column-vessel {
 
@@ -38,14 +38,14 @@
       background-color: var(--ion-color-light-tint, whitesmoke);
     }
 
-    .mat-header-cell,
-    .mat-cell {
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
       &.even {
         background-color: var(--ion-color-light, whitesmoke);
       }
     }
 
-    .mat-header-cell.mat-column-day {
+    .mat-mdc-header-cell.mat-column-day {
       ion-label {
         margin-inline-start: 4px;
         margin-inline-end: 4px;
@@ -54,13 +54,13 @@
         white-space: break-spaces;
       }
     }
-    .mat-cell.mat-column-day:hover {
+    .mat-mdc-cell.mat-column-day:hover {
       background-color: var(--ion-color-secondary) !important;
       color: var(--ion-color-secondary-contrast);
       cursor: pointer !important;
     }
 
-    div.mat-cell-error {
+    div.mat-mdc-cell-error {
       background-color: var(--ion-color-danger);
       color: var(--ion-color-danger-contrast);
       cursor: pointer !important;

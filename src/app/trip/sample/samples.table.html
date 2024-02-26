@@ -330,10 +330,10 @@
 
     <!-- Date -->
     <ng-container matColumnDef="sampleDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label>{{ 'TRIP.SAMPLE.TABLE.SAMPLE_DATE' | translateContext : i18nColumnSuffix }}</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
+      <td mat-cell *matCellDef="let row" class="mat-mdc-cell-date-time">
         <mat-date-time-field
           floatLabel="never"
           [formControl]="row.validator.controls.sampleDate"
@@ -358,9 +358,9 @@
         class="mat-column-pmfm mat-column-{{ pmfm.label }}"
         [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
         [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-        [class.mat-cell-content-start-padding]="showGroupHeader"
+        [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
       >
         <ion-label
           [innerHTML]="
@@ -385,10 +385,10 @@
           row.currentData.measurementValues[pmfm.id]
             | pmfmValueColor : { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
         "
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-cell-computed]="pmfm | isComputedPmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
         [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-        [class.mat-cell-content-start-padding]="showGroupHeader"
+        [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
         (click)="focusColumn = (pmfm.id || index).toString()"
       >
         <app-pmfm-field
@@ -404,13 +404,13 @@
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
-          <span
+          <ion-text
             [innerHTML]="
               row.validator
                 | formGetValue : ['measurementValues', pmfm.id]
                 | pmfmValue : { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
-          ></span>
+          ></ion-text>
         </ng-template>
       </td>
     </ng-container>
@@ -491,7 +491,7 @@
         mat-footer-cell
         *matFooterCellDef
         [attr.colspan]="displayedColumns.length - 2"
-        class="mat-cell-content-start-padding"
+        class="mat-mdc-cell-content-start-padding"
       >
         <ion-text
           color="primary"
@@ -513,10 +513,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"
       (click)="clickRow($event, row)"
@@ -541,7 +541,7 @@
       matSort
       matSortDisableClear
       [class.compact]="compact"
-      [class.mat-table-hide-sort-arrow]="mobile"
+      [class.mat-mdc-table-hide-sort-arrow]="mobile"
       [dataSource]="dataSource"
       [matSortActive]="defaultSortBy"
       [matSortDirection]="defaultSortDirection"
@@ -645,10 +645,10 @@
 
       <!-- Date -->
       <ng-container matColumnDef="sampleDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label>{{ 'TRIP.SAMPLE.TABLE.SAMPLE_DATE' | translateContext : i18nColumnSuffix }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
+        <td mat-cell *matCellDef="let row" class="mat-mdc-cell-date-time">
           <ion-text>{{ row.currentData.sampleDate | dateFormat : { time: true } }}</ion-text>
         </td>
       </ng-container>
@@ -663,7 +663,7 @@
           *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-cell-content-start-padding"
-          [class.mat-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
         >
           <ion-label
@@ -683,8 +683,8 @@
           mat-cell
           *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-cell-content-start-padding"
-          [class.mat-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-cell-computed]="pmfm | isComputedPmfm"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [style.background-color]="
             row.currentData.measurementValues[pmfm.id]
@@ -792,10 +792,10 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-dirty]="!row.currentData.id"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
-        [class.mat-row-error]="row.currentData.qualityFlagId | qualityFlagInvalid"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-dirty]="!row.currentData.id"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-error]="row.currentData.qualityFlagId | qualityFlagInvalid"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

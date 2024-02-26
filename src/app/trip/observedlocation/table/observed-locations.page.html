@@ -487,10 +487,10 @@
 
       <!-- date time  -->
       <ng-container matColumnDef="startDateTime">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ row.currentData.startDateTime | dateFormat : { time: true } }}</ion-text>
         </td>
       </ng-container>
@@ -554,8 +554,8 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

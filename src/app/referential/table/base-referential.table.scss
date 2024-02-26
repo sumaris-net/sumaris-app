@@ -22,15 +22,15 @@
 
   .mat-mdc-table {
     min-width: 100%;
-    --mat-cell-vertical-padding: 4px;
+    --mat-cell-horizontal-padding: 4px;
 
-    .mat-header-cell,
-    .mat-cell {
-      padding-inline-start: var(--mat-cell-vertical-padding);
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      padding-inline-start: var(--mat-cell-horizontal-padding);
     }
 
     &.compact {
-      .mat-row {
+      .mat-mdc-row {
         height: 33px !important;
       }
     }

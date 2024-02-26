@@ -441,14 +441,14 @@
     >
       <!-- iterate on columns -->
       <ng-container *ngFor="let column of $columns | async" matColumnDef="{{ column.columnName }}">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type === 'date'">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="column.type === 'date'">
           <ion-label>{{ column.name }}</ion-label>
         </th>
         <td
           mat-cell
           *matCellDef="let row"
-          [class.mat-cell-date-time]="column.type === 'date'"
-          [class.mat-cell-numeric]="column.type === 'integer'"
+          [class.mat-mdc-cell-date-time]="column.type === 'date'"
+          [class.mat-mdc-cell-numeric]="column.type === 'integer'"
         >
           <a
             [title]="row.currentData[column.index]"
@@ -473,25 +473,25 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></tr>
     </table>
 
     <!-- loading skeleton -->
     <ng-container *ngIf="loading; else loaded">
-      <table class="mat-table">
-        <tr class="mat-header-row">
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell" colspan="4">&nbsp;</th>
+      <table class="mat-mdc-table">
+        <tr class="mat-mdc-header-row">
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell" colspan="4">&nbsp;</th>
         </tr>
-        <tr class="mat-row">
-          <td class="mat-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
+        <tr class="mat-mdc-row">
+          <td class="mat-mdc-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
         </tr>
       </table>
     </ng-container>

@@ -27,7 +27,7 @@
     </ion-row>
 
     <ng-container *ngFor="let device of bluetoothService.connectedDevices$ | async; odd as odd; even as even">
-      <ion-row class="mat-row" [class.odd]="odd" [class.even]="even">
+      <ion-row class="mat-mdc-row" [class.odd]="odd" [class.even]="even">
         <ion-col>
           <ion-text>{{ device.name }}</ion-text>
           <br />

@@ -17,14 +17,14 @@
     visibility: hidden;
   }
 
-  .mat-row:hover {
+  .mat-mdc-row:hover {
     .visible-hover {
       visibility: unset;
     }
   }
 }
 
-mat-table {
+.mat-mdc-table {
   --col-header-size: 150px;
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / 12));
@@ -37,42 +37,42 @@ mat-table {
   display: flex !important;
   flex-direction: row !important;
 
-  mat-header-row {
+  .mat-mdc-header-row {
     flex-direction: column !important;
     height: unset;
     max-height: unset;
   }
-  mat-row {
+  .mat-mdc-row {
     display: flex !important;
     flex-direction: column !important;
     height: unset;
     max-height: unset;
   }
 
-  mat-header-row {
+  .mat-mdc-header-row {
     min-width: var(--col-header-size) !important;
     width: var(--col-header-size) !important;
     max-width: var(--col-header-size) !important;
   }
 
-  mat-row {
+  .mat-mdc-row {
     min-width: var(--col-size) !important;
     width: var(--col-size) !important;
     max-width: var(--col-size) !important;
   }
 
-  mat-header-row, mat-row {
+  .mat-mdc-header-row, .mat-mdc-row {
     border: 0 !important;
   }
 
-  mat-header-cell {
+  .mat-mdc-header-cell {
     padding: 0;
     ion-label {
       width: 100%;
     }
   }
 
-  mat-cell, mat-header-cell {
+  .mat-mdc-cell, .mat-mdc-header-cell {
     flex: 1 !important;
     width: 100%;
     border: 1px solid transparent;
@@ -86,11 +86,11 @@ mat-table {
     margin-bottom: -1px;
   }
 
-  mat-cell {
+  .mat-mdc-cell {
     //margin-bottom: -1px;
   }
 
-  mat-cell .computed {
+  .mat-mdc-cell .computed {
     color: var(--ion-color-primary-tint) !important;
     font-style: italic !important;
   }
@@ -105,7 +105,7 @@ mat-table {
     margin-bottom: 0 !important;
   }
 
-  .mat-cell-resizable {
+  .mat-mdc-cell-resizable {
     position: relative;
 
     &:hover {
@@ -176,12 +176,12 @@ mat-table {
   &.resizing {
     --mat-cell-resizable-handle-color-hover: transparent;
 
-    .mat-cell-resizable:hover {
+    .mat-mdc-cell-resizable:hover {
       border: 1px solid transparent;
       border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     }
 
-    .mat-row.mat-row-disabled:hover {
+    .mat-mdc-row.mat-mdc-row-disabled:hover {
       background-color: unset;
       cursor: crosshair;
     }

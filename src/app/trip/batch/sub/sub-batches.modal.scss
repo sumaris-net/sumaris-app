@@ -1,6 +1,7 @@
 @import 'sub-batches.table';
 :host {
   --toolbar-min-height: 56px;
+  --mat-row-height: 33px !important;
 }
 .table-container {
   max-height: calc(100vh - var(--toolbar-min-height, 56px));
@@ -25,12 +26,12 @@ ion-grid.disabled {
   /*Hide selected row (if scale by an animation) */
   overflow-x: hidden;
 
-  .mat-row.mat-row-small {
+  .mat-mdc-row.mat-mdc-row-small {
     --mat-row-max-height: 33px !important;
   }
 
-  .mat-header-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-row {
     .mat-column-parentGroup,
     .mat-column-taxonName,
     .mat-column-taxonGroup {

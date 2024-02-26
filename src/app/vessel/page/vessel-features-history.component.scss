@@ -12,8 +12,8 @@
     max-width: 110px;
   }
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  mat-mdc-header-cell.hidden,
+  mat-mdc-cell.hidden {
     visibility: hidden;
     display: none;
   }
