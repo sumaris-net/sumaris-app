@@ -3,39 +3,36 @@
 // --------------------------------------------------
 
 .mat-mdc-table {
-  .mat-row {
+  .mat-mdc-row {
     overflow: hidden;
-    /*FIXME not need anymore ?
-    height: calc(min(var(--mat-row-max-height), 48px));
-    */
   }
 
-  .mat-row.mat-row-selected {
-    .mat-cell .visible-selected-row {
+  .mat-mdc-row.mat-row-selected {
+    .mat-mdc-cell .visible-selected-row {
       visibility: visible !important;
     }
   }
 
-  .mat-header-row,
-  .mat-row,
-  .mat-footer-row {
+  .mat-mdc-header-row,
+  .mat-mdc-row,
+  .mat-mdc-footer-row {
 
     .mat-column-select {
       width: 50px; // Force to 50px, because sticky column must have fixed width
     }
 
-    .mat-header-cell,
-    .mat-cell,
-    .mat-footer-cell {
+    .mat-mdc-header-cell,
+    .mat-mdc-cell,
+    .mat-mdc-footer-cell {
 
       // Remove right border, of sticky columns
-      &.mat-table-sticky-border-elem-left {
+      &.mat-mdc-table-sticky-border-elem-left {
         border-right: 0 !important; // 1px solid #{$app-table-border-color};
       }
     }
   }
 
-  .mat-header-row  .mat-header-cell {
+  .mat-mdc-header-row  .mat-mdc-header-cell {
     --mat-cell-overflow: hidden;
 
     &.mat-column-pmfm .mat-sort-header-content {
