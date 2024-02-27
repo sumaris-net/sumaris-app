@@ -46,6 +46,7 @@
             type="button"
             mat-icon-button
             tabindex="-1"
+            [class.large]="mobile"
             *ngIf="allowAddNewVessel && network.online"
             [title]="'TRIP.BTN_ADD_VESSEL' | translate"
             (click)="addVesselModal($event)"
