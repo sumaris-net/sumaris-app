@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional, Provider } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional, Provider, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
@@ -22,6 +22,7 @@ export const DEFAULT_MAX_DECIMALS = 6;
   selector: 'mat-sampling-ratio-field',
   templateUrl: './material.sampling-ratio.html',
   styleUrls: ['./material.sampling-ratio.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [
     DEFAULT_VALUE_ACCESSOR
   ],
