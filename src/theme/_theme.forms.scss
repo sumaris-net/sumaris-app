@@ -3,22 +3,24 @@
 form.form-container {
   .mat-mdc-form-field {
     width: 100%;
+    --mat-form-field-filled-with-label-container-padding-top: 16px;
+    --mat-form-field-filled-with-label-container-padding-bottom: 4px;
+    --mat-form-field-filled-no-label-container-padding-top: 16px;
+    --mat-form-field-filled-no-label-container-padding-bottom: 2px;
+    //--mdc-filled-text-field-container-color: rgb(245, 245, 245);
 
     ion-icon[matPrefix],
     mat-icon[matPrefix],
-    .mat-form-field-prefix ion-icon,
-    .mat-form-field-prefix .mat-icon {
-      color: rgba(0, 0, 0, 0.57);
-      fill: rgba(0, 0, 0, 0.57);
+    .mat-mdc-form-field-icon-prefix {
+      --mdc-icon-button-margin-vertical: 8px;
+      --mdc-icon-button-icon-color: rgba(0, 0, 0, 0.57);
     }
 
     &.mat-focused {
       ion-icon[matPrefix],
       mat-icon[matPrefix],
-      .mat-form-field-prefix ion-icon,
-      .mat-form-field-prefix .mat-icon {
-        color: var(--ion-color-dark);
-        fill: var(--ion-color-dark);
+      .mat-mdc-form-field-icon-prefix{
+        --mdc-icon-button-icon-color: var(--ion-color-dark);
       }
     }
 
@@ -58,6 +60,22 @@ form.form-container {
       @extend .mat-form-field-suffix;
       display: inline;
     }
+
+    .mdc-text-field--no-label  {
+      .mat-mdc-form-field-infix {
+        padding-top: var(--mat-form-field-filled-no-label-container-padding-top);
+        padding-bottom: var(--mat-form-field-container-no-label-padding-bottom);
+      }
+    }
+
+    .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
+      top: calc(var(--mat-form-field-container-height)/2);
+    }
+
+    .mat-mdc-form-field-hint {
+
+    }
+
   }
 
   ion-grid ion-col:has(ion-label) {

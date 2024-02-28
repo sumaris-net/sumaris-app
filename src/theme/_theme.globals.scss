@@ -51,5 +51,14 @@ $app-card-status-font-size: 0.9em;
 $app-card-status-font-color: var(--ion-color-step-850);
 $app-text-color-disable: rgba(0, 0, 0, 0.57);
 
+// Form's field background
+$app-form-field-background-color: rgb(245,245,245) !default;
+$app-form-field-disabled-background-color: #fafafa !default;
+
+// Form fields background : transparent
+//$app-form-field-background-color: transparent !default;
+//$app-form-field-disabled-background-color: transparent !default;
+
+
 // Load defaults
 @import "@sumaris-net/ngx-components/src/theme/globals";
