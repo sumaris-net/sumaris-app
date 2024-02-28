@@ -307,7 +307,7 @@
             </ion-col>
 
             <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
+            <ion-col size="12" size-xl="3" class="ion-no-padding" *ngIf="!mobile">
               <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
                 <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
