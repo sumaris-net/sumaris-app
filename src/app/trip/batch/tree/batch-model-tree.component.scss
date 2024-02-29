@@ -25,6 +25,10 @@
       --min-height: var(--ion-item-min-height);
       font-size: 14px;
 
+      *[slot="start"] {
+        margin-inline-end: 4px; // Reduce space after expand button
+      }
+
       &.tappable {
         cursor: pointer;
       }
