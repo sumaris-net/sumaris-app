@@ -133,7 +133,7 @@
     >
       <ng-template #cellTemplate let-row>
 
-        <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+        <ng-container *ngIf="!mobile || !selection.hasValue(); else hasSelection">
           <!-- composition (always visible) -->
           <button
             mat-icon-button
@@ -181,7 +181,7 @@
           <!-- delete  -->
           <button
             mat-icon-button
-            *ngIf="mobile && canEdit && singleSelectedRow === row"
+            *ngIf="mobile && enabled && singleSelectedRow === row"
             [title]="'COMMON.BTN_DELETE' | translate"
             (click)="cancelOrDelete($event, row)"
           >

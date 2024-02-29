@@ -108,6 +108,7 @@ export class PacketsTable extends AppBaseTable<Packet, PacketFilter, InMemoryEnt
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
+    this.canEdit = true;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
