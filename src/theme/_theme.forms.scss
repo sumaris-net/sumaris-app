@@ -35,6 +35,17 @@ form.form-container {
       justify-content: flex-start;
       align-items: center;
 
+      // TODO
+      /*.mat-mdc-form-field-infix {
+        padding-top: 16px;
+      }
+
+      .mdc-floating-label {
+        transform: unset !important;
+        padding-left: 30px;
+        top: 20px;
+      }*/
+
       .mat-form-field-button {
         --button-padding-end: 2px;
         --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
