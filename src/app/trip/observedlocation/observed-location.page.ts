@@ -48,13 +48,14 @@ import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
+import { ImagineLandingsTable } from '@app/trip/landing/imagine-landing/imagine-landings.table';
 
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1,
 };
 
-type LandingTableType = 'legacy' | 'aggregated';
+type LandingTableType = 'imagine' | 'legacy' | 'aggregated';
 type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | undefined) };
 
 @Component({
@@ -69,6 +70,7 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
   @ViewChild('observedLocationForm', { static: true }) observedLocationForm: ObservedLocationForm;
   @ViewChild('landingsTable') landingsTable: LandingsTable;
   @ViewChild('aggregatedLandingsTable') aggregatedLandingsTable: AggregatedLandingsTable;
+  @ViewChild('imagineLandingsTable') imagineLandingsTable: ImagineLandingsTable;
 
   showLandingTab = false;
   $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
@@ -76,6 +78,7 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
   dbTimeZone = DateUtils.moment().tz();
   allowAddNewVessel: boolean;
   showVesselType: boolean;
+  imagineShowAreasAndTaxonNames: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
   showRecorder = true;
@@ -212,16 +215,17 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
 
     try {
       // Add landing using vessels modal
+      const landingType = this.imagineShowAreasAndTaxonNames ? this.imagineLandingsTable : this.landingsTable;
       if (this.addLandingUsingHistoryModal) {
         const vessel = await this.openSelectVesselModal();
-        if (vessel && this.landingsTable) {
-          const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
+        if (vessel && landingType) {
+          const rankOrder = ((await landingType.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
       }
       // Create landing without vessel selection
       else {
-        const rankOrder = ((await this.landingsTable.getMaxRankOrder()) || 0) + 1;
+        const rankOrder = ((await landingType.getMaxRankOrder()) || 0) + 1;
         await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
       }
     } finally {
@@ -368,6 +372,8 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
       this.landingsTable.addRow(event);
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.addRow(event);
+    } else if (this.imagineLandingsTable) {
+      this.imagineLandingsTable.addRow(event);
     }
   }
 
@@ -428,11 +434,20 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
+      this.imagineShowAreasAndTaxonNames = program.getPropertyAsBoolean(ProgramProperties.FIELD_IMAGINE_FILTER_ENABLE);
 
-      this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
+      this.$landingTableType.next(this.imagineShowAreasAndTaxonNames ? 'imagine' : aggregatedLandings ? 'aggregated' : 'legacy');
 
       // Wait the expected table (set using ngInit - see template)
-      const table$ = this.$table.pipe(filter((t) => (aggregatedLandings ? t instanceof AggregatedLandingsTable : t instanceof LandingsTable)));
+      const table$ = this.$table.pipe(
+        filter((t) =>
+          this.imagineShowAreasAndTaxonNames
+            ? t instanceof ImagineLandingsTable
+            : aggregatedLandings
+              ? t instanceof AggregatedLandingsTable
+              : t instanceof LandingsTable
+        )
+      );
       const table = await firstNotNilPromise(table$, { stop: this.destroySubject });
 
       // Configure table
@@ -614,6 +629,8 @@ export class ObservedLocationPage extends AppRootDataEntityEditor<ObservedLocati
       await this.landingsTable.save();
     } else if (this.aggregatedLandingsTable?.dirty) {
       await this.aggregatedLandingsTable.save();
+    } else if (this.imagineLandingsTable?.dirty) {
+      await this.imagineLandingsTable.save();
     }
   }
 

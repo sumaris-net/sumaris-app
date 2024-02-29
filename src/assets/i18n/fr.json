@@ -337,7 +337,8 @@
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
-        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
+        "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?",
+        "FILTER_FIELD": "Sorties > Échantillonnages > Afficher les champs 'Zone(s) de pêche' et 'Espèce cible' ?"
       }
     },
     "CACHE": {
@@ -1432,6 +1433,9 @@
     },
     "TABLE": {
       "TITLE": "Débarquements",
+      "FISHING_AREA": "Zone(s) de pêche",
+      "LOCATIONS": "Zone(s) de pêche",
+      "TAXON_NAMES": "Espèce cible",
       "VESSEL": "Navire",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Port d'attache",

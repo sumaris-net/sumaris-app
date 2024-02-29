@@ -212,7 +212,6 @@
             (ngInit)="$table.next(aggregatedLandingsTable)"
           ></app-aggregated-landings-table>
 
-          <!-- landings -->
           <app-landings-table
             #landingsTable
             *ngSwitchCase="'legacy'"
@@ -227,6 +226,20 @@
             (newTrip)="onNewTrip($event)"
             (ngInit)="$table.next(landingsTable)"
           ></app-landings-table>
+          <app-imagine-landings-table
+            #imagineLandingsTable
+            *ngSwitchCase="'imagine'"
+            [debug]="debug"
+            [programLabel]="programLabel$ | async"
+            [showObserversColumn]="false"
+            [showDateTimeColumn]="false"
+            [showToolbar]="!mobile"
+            (onOpenRow)="onOpenLanding($event)"
+            (onNewRow)="onNewLanding($event)"
+            (openTrip)="onOpenTrip($event)"
+            (newTrip)="onNewTrip($event)"
+            (ngInit)="$table.next(imagineLandingsTable)"
+          ></app-imagine-landings-table>
         </ng-container>
       </div>
     </mat-tab>

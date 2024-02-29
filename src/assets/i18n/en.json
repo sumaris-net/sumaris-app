@@ -338,7 +338,8 @@
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
-        "FILTER_PERIOD": "Landing > Show period filter?"
+        "FILTER_PERIOD": "Landing > Show period filter?",
+        "FILTER_FIELD": "Occasions > Sampling > Display the 'Fishing Zone(s)' and 'Target Species' fields?"
       }
     },
     "CACHE": {
@@ -1424,6 +1425,9 @@
     },
     "TABLE": {
       "TITLE": "Landings",
+      "FISHING_AREA": "Fishing area(s)",
+      "LOCATIONS": "Fishing area(s)",
+      "TAXON_NAMES": "Target species",
       "VESSEL": "Vessel",
       "VESSEL_TYPE": "Type",
       "VESSEL_BASE_PORT_LOCATION": "Base port",

@@ -627,6 +627,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+
+  FIELD_IMAGINE_FILTER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.filter.imagine.field.enable',
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_FIELD',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   OBSERVED_LOCATION_START_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.startTime.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_START_TIME_ENABLE',

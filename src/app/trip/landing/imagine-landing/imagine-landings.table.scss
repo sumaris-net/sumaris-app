@@ -1,0 +1,45 @@
+.table-container {
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-paginator-height, 0px));
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
+.mat-table {
+  .mat-header-row,
+  .mat-row {
+    .mat-column-select {
+      width: 50px;
+    }
+
+    .mat-column-id {
+      min-width: 30px;
+      max-width: 30px;
+    }
+
+    .mat-column-vessel {
+      min-width: 150px;
+      max-width: 250px;
+    }
+
+    .mat-column-location {
+      min-width: 150px;
+    }
+
+    .mat-column-observers,
+    .mat-column-recorderPerson {
+      min-width: 180px;
+    }
+
+    .mat-column-pmfm {
+      min-width: 120px;
+      max-width: 250px;
+    }
+  }
+}

@@ -13,6 +13,7 @@ import { VesselModule } from '@app/vessel/vessel.module';
 import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/table/observed-location-table.module';
 import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/observed-location-form.module';
+import { AppImagineLandingModule } from '@app/trip/landing/imagine-landing/imagine-landing.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,9 @@ import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/o
     AppLandingModule,
     AppLandedTripModule,
     AppAggregatedLandingModule,
+
+    //Imagine Custom landing tab
+    AppImagineLandingModule,
 
     // Sub modules
     AppObservedLocationsTableModule,
