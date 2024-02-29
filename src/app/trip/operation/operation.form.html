@@ -8,7 +8,7 @@
   <ion-grid class="ion-no-padding">
     <ion-row [class.has-buttons]="mobile && canEditType" *ngIf="allowParentOperation">
       <ion-col size="0" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" hidden-xs hidden-sm translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
+        <ion-label class="ion-float-end hidden-xs hidden-sm" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
       <ng-container *ngIf="readySubject | async; else colsSkeleton">
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
@@ -31,11 +31,12 @@
             [class.mat-form-field-invalid]="control.invalid"
             *ngVar="parentControl as control"
           >
+            <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input
               matInput
               type="text"
               hidden
-              [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION' | translate"
+              [placeholder]=""
               formControlName="parentOperation"
             />
             <input
@@ -498,8 +499,8 @@
     <!-- Fishing areas -->
     <ng-container *ngIf="showFishingArea">
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
-        <ion-col size="12" size-md="2" size-lg="3">
-          <ion-label class="ion-float-end"  *ngIf="first" translate>
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" *ngIf="first" translate>
             TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS
           </ion-label>
         </ion-col>

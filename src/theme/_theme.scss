@@ -76,12 +76,6 @@ ion-content.ion-flex-direction-column::part(scroll) {
   }
 }
 
-// Mobile: change form labels style
-@media screen and (max-width: $screen-sm-max) {
-  form ion-col > ion-label.ion-float-center, form ion-col > ion-label.ion-float-end {
-    font-weight: bold;
-  }
-}
 
 ion-toast {
   &.secondary {

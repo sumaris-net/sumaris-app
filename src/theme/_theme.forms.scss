@@ -35,17 +35,6 @@ form.form-container {
       justify-content: flex-start;
       align-items: center;
 
-      // TODO
-      /*.mat-mdc-form-field-infix {
-        padding-top: 16px;
-      }
-
-      .mdc-floating-label {
-        transform: unset !important;
-        padding-left: 30px;
-        top: 20px;
-      }*/
-
       .mat-form-field-button {
         --button-padding-end: 2px;
         --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
@@ -85,11 +74,21 @@ form.form-container {
   }
 
 
-  ion-grid ion-col:has(ion-label) {
+  & > ion-grid > ion-col:has(ion-label) {
     align-content: end;
   }
 }
 
+// Mobile: change form labels style
+@media screen and (max-width: $screen-sm-max) {
+  form.form-container > ion-grid,
+  ion-grid.form-container {
+    & > ion-row > ion-col > ion-label.ion-float-center,
+    & > ion-row > ion-col > ion-label.ion-float-end {
+      font-weight: bold;
+    }
+  }
+}
 
 /* special case for sampling ratio: override the 'left' style, of placeholder field */
 mat-sampling-ratio-field {

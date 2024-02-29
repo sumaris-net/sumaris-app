@@ -254,9 +254,9 @@
           <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -275,7 +275,7 @@
               >
                 <!-- Other features (Measurements) -->
                 <ion-grid
-                  class="ion-no-padding ion-padding-top"
+                  class="form-container ion-no-padding ion-padding-top"
                   [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
                 >
                   <ion-row>
