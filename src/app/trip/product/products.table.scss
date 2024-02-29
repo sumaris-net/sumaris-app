@@ -5,18 +5,18 @@
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
+
+  &.mobile {
+    --mat-cell-horizontal-padding: 0px;
+  }
 }
 
 .mat-mdc-table {
   min-width: 100%;
-  --mat-cell-horizontal-padding: 0;
+  --mat-cell-horizontal-padding: 4;
   --mat-row-max-height: 56px;
-  --mat-column-actions-min-width: 82px;
-  --mat-column-actions-max-width: 82px;
-
-  &.mobile {
-    --mat-cell-horizontal-padding: 4px;
-  }
+  --mat-column-actions-min-width: 98px;
+  --mat-column-actions-max-width: 98px;
 
   .mat-mdc-header-row,
   .mat-mdc-row {

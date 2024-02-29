@@ -6,15 +6,16 @@
     --table-toolbar-height: var(--mat-toolbar-height);
   }
   &.mobile {
-    --mat-column-actions-width: 40px;
+    --mat-cell-horizontal-padding: 0px;
   }
 }
 
 .mat-mdc-table {
   --mat-row-max-height: 56px;
-  --mat-cell-horizontal-padding: 0;
-  --mat-column-actions-min-width: 82px;
-  --mat-column-actions-max-width: 82px;
+  --mat-cell-horizontal-padding: 4;
+  --mat-column-actions-min-width: 98px;
+  --mat-column-actions-max-width: 98px;
+
 
   .mat-mdc-header-row,
   .mat-mdc-row {

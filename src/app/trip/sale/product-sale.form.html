@@ -225,7 +225,7 @@
             <button
               type="button"
               mat-icon-button
-              *ngIf="!mobile || (salesEditedIndex === i && !disabled)"
+              *ngIf="salesEditedIndex === i && !disabled && (saleFormArray?.controls && saleFormArray?.controls.length > 1)"
               [class.visible-hover-row]="!mobile"
               [tabindex]="-1"
               [title]="'COMMON.BTN_DELETE' | translate"

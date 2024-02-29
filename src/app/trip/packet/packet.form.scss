@@ -3,7 +3,7 @@
   --packet-count: 6;
   --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
   --mat-column-small-count: calc(var(--packet-count) + 2);
-  --mat-column-actions-width: 82px;
+  --mat-column-actions-width: 98px;
   --mat-cell-horizontal-padding: 4px;
   --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
@@ -11,7 +11,8 @@
   --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
 
   &.mobile {
-    --mat-column-actions-width: 41px;
+    --mat-column-actions-width: 44px;
+    --mat-cell-horizontal-padding: 0px;
   }
 
   .mat-mdc-header-row {

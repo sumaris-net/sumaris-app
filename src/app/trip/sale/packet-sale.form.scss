@@ -2,7 +2,7 @@
 .mat-mdc-table {
   --mat-column-saleType: 210px;
   --mat-column-small-count: 4;
-  --mat-column-actions-width: 82px;
+  --mat-column-actions-width: 98px;
   --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
 
   --mat-cell-horizontal-padding: 4px;
@@ -13,7 +13,8 @@
 
 
   &.mobile {
-    --mat-column-actions-width: 41px;
+    --mat-column-actions-width: 44px;
+    --mat-cell-horizontal-padding: 0px;
   }
 
   .mat-mdc-header-row {

@@ -41,14 +41,14 @@
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.mobile]="mobile">
   <table
     mat-table
     [dataSource]="dataSource"
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
     class="table-products"
-    [class.mobile]="mobile"
+    
     matSort
     matSortDisableClear
     [trackBy]="trackByFn"
