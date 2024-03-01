@@ -39,7 +39,7 @@
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
-    [class.mat-tab-group-header-hidden]="!(showChildrenTable$ | push)"
+    [class.mat-mdc-tab-group-header-hidden]="!(showChildrenTable$ | push)"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"

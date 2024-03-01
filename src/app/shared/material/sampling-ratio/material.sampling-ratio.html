@@ -23,7 +23,10 @@
   <ng-container [ngSwitch]="format">
     <!-- Percent -->
     <mat-form-field *ngSwitchCase="'%'" [floatLabel]="floatLabel" [appearance]="appearance" [class]="classList">
-      <mat-label>{{ placeholder | translate }}</mat-label>
+
+      @if(placeholder && floatLabel !== 'never') {
+        <mat-label>{{ placeholder | translate }}</mat-label>
+      }
 
       <div matPrefix>
         <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
@@ -39,6 +42,7 @@
         [formControl]="_inputFormControl"
         [required]="required"
         [pattern]="_pattern"
+        [placeholder]="floatLabel === 'never' && (placeholder | translate)"
         (click)="selectInputContent($event)"
         [appAutofocus]="autofocus"
         [tabindex]="tabindex"

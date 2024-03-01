@@ -173,7 +173,7 @@
   #tabGroup
   class="mat-mdc-tab-disabled-visible mat-mdc-tab-group-header-pagination-hidden"
   [class.cdk-visually-hidden]="(showBatchTables$ | push : rxStrategy) !== true"
-  [class.mat-tab-group-header-hidden]="!allowQvPmfmGroup || mobile"
+  [class.mat-mdc-tab-group-header-hidden]="!allowQvPmfmGroup || mobile"
   [(selectedIndex)]="selectedTabIndex"
   (selectedTabChange)="onTabChange($event)"
   [animationDuration]="tabGroupAnimationDuration"

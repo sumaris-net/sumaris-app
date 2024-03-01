@@ -109,7 +109,7 @@
   </div>
 
   <!-- integer -->
-  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel | asFloatLabelType">
     <mat-label>{{ placeholder }}</mat-label>
     <input
       matInput
