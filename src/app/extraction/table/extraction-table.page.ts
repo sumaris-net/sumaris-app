@@ -711,7 +711,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (!this.type?.label) return; // skip
 
     // To many call
-    if (this.stopSubject.observers.length >= 1) throw new Error('Too many call of loadData()');
+    if (this.stopSubject.observed) throw new Error('Too many call of loadData()');
 
     const typeLabel = this.type.label;
     this.markAsLoading();

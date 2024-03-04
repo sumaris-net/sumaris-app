@@ -327,7 +327,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     // check all bait children forms having totalValueChange registered,
     this.baitForms.forEach(baitForm => {
       // add it if missing
-      if (baitForm.totalValueChanges.observers.length === 0) {
+      if (!baitForm.totalValueChanges.observed) {
         this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
       }
     });

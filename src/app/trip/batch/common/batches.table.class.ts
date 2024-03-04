@@ -186,7 +186,7 @@ export abstract class AbstractBatchesTable<
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }

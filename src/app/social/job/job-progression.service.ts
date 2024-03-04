@@ -1,4 +1,14 @@
-import { AccountService, BaseGraphqlService, GraphqlService, IJobProgressionService, isNil, JobProgression, removeDuplicatesFromArray, SocialErrorCodes, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseGraphqlService,
+  GraphqlService,
+  IJobProgressionService,
+  isNil,
+  JobProgression,
+  removeDuplicatesFromArray,
+  SocialErrorCodes,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -8,18 +18,22 @@ import { environment } from '@environments/environment';
 import { JobService } from '@app/social/job/job.service';
 
 export const JobProgressionFragments = {
-  light: gql`fragment LightJobProgressionFragment on JobProgressionVO {
-    id
-    name
-  }`,
+  light: gql`
+    fragment LightJobProgressionFragment on JobProgressionVO {
+      id
+      name
+    }
+  `,
 
-  full: gql`fragment JobProgressionFragment on JobProgressionVO {
-    id
-    name
-    message
-    current
-    total
-  }`,
+  full: gql`
+    fragment JobProgressionFragment on JobProgressionVO {
+      id
+      name
+      message
+      current
+      total
+    }
+  `,
 };
 
 const JobProgressionQueries = {
@@ -50,7 +64,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
               protected accountService: AccountService
               ) {
     super(graphql, environment);
-    this._logPrefix = '[job-progression-service]';
+    this._logPrefix = '[job-progression-service] ';
 
     // Clean data on logout
     this.accountService.onLogout.subscribe(() => this.dataSubject.next([]));

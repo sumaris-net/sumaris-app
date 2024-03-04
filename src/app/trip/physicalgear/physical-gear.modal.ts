@@ -229,7 +229,7 @@ export class PhysicalGearModal
 
   async openSearchModal(event?: Event) {
 
-    if (this.searchButtonClick.observers.length === 0) return; // Skip
+    if (!this.searchButtonClick.observed) return; // Skip
 
     // Emit event, then wait for a result
     try {
@@ -406,7 +406,7 @@ export class PhysicalGearModal
   async openSearchChildrenModal(event: PromiseEvent<PhysicalGear>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
 
-    if (this.searchButtonClick.observers.length === 0) {
+    if (!this.searchButtonClick.observed) {
       event.detail.error('CANCELLED');
       return; // Skip
     }

@@ -78,7 +78,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
         this.form
           .get(totalPmfm.id.toString())
           .valueChanges.pipe(
-            filter(() => this.totalValueChanges.observers.length > 0),
+            filter(() => this.totalValueChanges.observed),
             debounceTime(250)
           )
           .subscribe(() => this.totalValueChanges.emit(this.form.get(totalPmfm.id.toString()).value));

@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import moment from 'moment';
 import * as L from 'leaflet';
+import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import {
   AppFormUtils,
   arraySize,
@@ -38,7 +39,6 @@ import {
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
-import {ControlOptions, CRS, MapOptions, WMSParams} from 'leaflet';
 import { Feature } from 'geojson';
 import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil } from 'rxjs/operators';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
@@ -52,7 +52,7 @@ import {
   LegendOptions,
   PluginOptionsByType,
   ScaleType,
-  TitleOptions
+  TitleOptions,
 } from 'chart.js';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
@@ -1191,7 +1191,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   async fitToBounds(opts = {skipDebounce : false}) {
 
     if (!opts.skipDebounce) {
-      if (!this.$fitToBounds.observers.length) {
+      if (!this.$fitToBounds.observed) {
         this.registerSubscription(
           this.$fitToBounds
             .pipe(

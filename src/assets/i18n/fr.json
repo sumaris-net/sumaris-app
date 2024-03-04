@@ -2921,7 +2921,6 @@
           "WARNINGS": "Avertissement(s) : {{warnings}}",
           "ERRORS": "Erreur(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
-          "VESSELS": "Navire(s): {{vessels}}",
           "VESSELS": "Navire(s): {{vessels}}"
         },
         "ERROR": {
@@ -2930,7 +2929,13 @@
         }
       },
       "TYPE_ENUM": {
-        "VESSEL_SNAPSHOTS_INDEXATION": "Indexation des navires dans ElasticSearch"
+        "VESSEL_SNAPSHOTS_INDEXATION": "Indexation des navires dans ElasticSearch",
+        "SIOP_VESSELS_IMPORTATION": "Importation des navires SIOP",
+        "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Mise à jour de la hiérarchie des groupes de taxons",
+        "SYS_P_FILL_LOCATION_HIERARCHY": "Mise à jour de la hiérarchie des lieux",
+        "SUMARIS_EXTRACTION": "Extraction de données",
+        "DENORMALIZE_BATCH": "Dénormalisation des lots",
+        "VESSEL_SNAPSHOT_INDEXATION": "Indexation des navires"
       },
       "ERROR": {
         "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",

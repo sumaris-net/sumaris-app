@@ -184,7 +184,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   async flyToBounds(opts = {skipDebounce : false}): Promise<void> {
 
     if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
-      if (!this.$fitToBounds.observers.length) {
+      if (!this.$fitToBounds.observed) {
         this.subscription.add(
           this.$fitToBounds
             .pipe(
