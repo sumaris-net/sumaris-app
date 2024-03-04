@@ -1,4 +1,13 @@
-import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, LoadResult, SocialErrorCodes, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseGraphqlService,
+  EntityUtils,
+  GraphqlService,
+  isNil,
+  LoadResult,
+  SocialErrorCodes,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
 import { ErrorCodes } from '@app/referential/services/errors';
@@ -12,12 +21,14 @@ import { Page } from '@app/shared/service/page.model';
 import { AppJobErrorCodes } from '@app/social/job/job.errors';
 
 export const JobFragments = {
-  light: gql`fragment LightJobFragment on JobVO {
-    id
-    name
-    startDate
-    status
-  }`,
+  light: gql`
+    fragment LightJobFragment on JobVO {
+      id
+      name
+      startDate
+      status
+    }
+  `,
   full: gql`
     fragment JobFragment on JobVO {
       id
@@ -31,7 +42,7 @@ export const JobFragments = {
       report
       log
     }
-  `
+  `,
 };
 
 const JobQueries = {
@@ -93,6 +104,7 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
               ) {
     super(graphql);
     this._logPrefix = '[job-service]';
+    this._debug = true;
   }
 
   addJob(id: number, job?: Job) {
