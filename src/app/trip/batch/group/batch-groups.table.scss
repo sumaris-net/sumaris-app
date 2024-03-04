@@ -15,6 +15,7 @@
   .mat-mdc-table {
     background-color: transparent !important;
     --mat-cell-horizontal-padding: 4px;
+    --mat-column-actions-max-width: 48px;
 
     /* First header row (group) */
     .mat-mdc-header-row.first-header-row {
@@ -100,12 +101,8 @@
         padding-left: 6px;
       }
 
-      .mat-column-top-end,
-      .mat-column-actions {
-        max-width: 40px;
-        padding-inline-start: 0;
-        padding-inline-end: 0;
-        color: unset;
+      .mat-column-top-end {
+        @extend .mat-column-actions;
       }
 
       /* reset computed*/
