@@ -9,12 +9,14 @@
     <!-- Autocomplete combo -->
     <ng-container *ngSwitchCase="'autocomplete'">
       <mat-form-field
-        [floatLabel]="floatLabel"
+        [floatLabel]="floatLabel | asFloatLabelType"
         [appearance]="appearance"
         [class.mat-form-field-disabled]="disabled"
         [title]="_displayValue"
       >
-        <mat-label>{{ placeholder }}</mat-label>
+        @if(placeholder && floatLabel !== 'never') {
+          <mat-label>{{ placeholder }}</mat-label>
+        }
 
         <div matPrefix>
           <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
@@ -25,7 +27,7 @@
           #matInput
           type="text"
           [formControl]="formControl"
-          [placeholder]="placeholder"
+          [placeholder]="floatLabel === 'never' && placeholder"
           [matAutocomplete]="autoCombo"
           [appAutofocus]="autofocus"
           (click)="_onClick($event)"
@@ -166,13 +168,13 @@
     </mat-form-field>
 
     <!-- Buttons -->
-    <mat-form-field *ngSwitchCase="'button'" [floatLabel]="floatLabel === 'never' ? 'never' : 'always'">
+    <mat-form-field *ngSwitchCase="'button'" [floatLabel]="floatLabel | asFloatLabelType">
+      <mat-label>{{ placeholder }}</mat-label>
       <input
         matInput
         type="text"
         hidden
         [formControl]="formControl"
-        [placeholder]="placeholder"
         [required]="required"
       />
       <div

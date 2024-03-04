@@ -1,11 +1,13 @@
-<ng-container *ngIf="showSheetsTab && type?.sheetNames as sheetNames">
-  <nav mat-tab-nav-bar [tabPanel]="tabPanel" *ngIf="sheetNames | isArrayLength : { greaterThan: 1 }">
-    <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
-      <ion-text>{{ item }}</ion-text>
-      <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
-    </a>
-  </nav>
-</ng-container>
+@if(showSheetsTab && type?.sheetNames; as sheetNames) {
+  @if(sheetNames | isArrayLength : { greaterThan: 1 }) {
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+      <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
+        <ion-text>{{ item }}</ion-text>
+        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
+      </a>
+    </nav>
+  }
+}
 
 <form
   #tabPanel
