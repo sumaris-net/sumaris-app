@@ -112,7 +112,7 @@
             [matMenuTriggerFor]="programTypesMenu"
             [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
           >
-            <ion-label class="ion-text-wrap">
+            <ion-label class="ion-text-nowrap">
               <span>{{ program | referentialToString }}</span>
             </ion-label>
           </button>
@@ -120,7 +120,7 @@
 
         <ng-template #types>
           <button mat-menu-item (click)="setType(type)">
-            <ion-label class="ion-text-wrap">
+            <ion-label class="ion-text-nowrap">
               <ion-icon name="eye-off" *ngIf="type.statusId === 2"></ion-icon>
               &nbsp;
               <span>{{ type.name }}</span>
@@ -162,7 +162,7 @@
 
     <ng-container *ngFor="let type of types">
       <button mat-menu-item (click)="setType(type)">
-        <ion-label class="ion-text-wrap">
+        <ion-label class="ion-text-nowrap">
           <ion-icon name="eye-off" *ngIf="type.statusId === 2"></ion-icon>
           &nbsp;
           <span>{{ type.name }}</span>
@@ -189,7 +189,7 @@
       [matMenuTriggerFor]="programTypesMenu"
       [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
     >
-      <ion-label class="ion-text-wrap">
+      <ion-label class="ion-text-nowrap">
         <span>{{ program | referentialToString }}</span>
       </ion-label>
     </button>

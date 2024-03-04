@@ -146,6 +146,13 @@ ion-fab {
   }
 }
 
+.mat-mdc-menu-content {
+  .mat-mdc-menu-item-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 /* -- image gallery -- */
 
 .gallery-container {
