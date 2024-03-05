@@ -1,6 +1,18 @@
 // --------------------------------------------------
 // Material Tab
 // --------------------------------------------------
+.dark {
+  .mat-mdc-tab-group, .mat-mdc-tab-nav-bar {
+    --mat-tab-header-active-label-text-color: var(--ion-text-color, #000000de) !important;
+    --mat-tab-header-active-focus-label-text-color: var(--ion-text-color, #000000de) !important;
+    --mat-tab-header-active-hover-label-text-color: var(--ion-text-color, #000000de) !important;
+    --mat-tab-header-inactive-label-text-color: var(--app-form-color-disabled);
+    --mat-tab-header-inactive-hover-label-text-color: var(--ion-text-color, #000000de);
+  }
+  .mat-mdc-tab-label-container, .mat-mdc-tab-link-container {
+    --mat-tab-header-divider-color: var(--ion-border-color, rgba(0,0,0,.12)) !important;
+  }
+}
 
 .mat-mdc-tab-group.mat-secondary, .mat-mdc-tab-nav-bar.mat-secondary {
   background-color: var(--ion-color-secondary, $secondary);

@@ -7,6 +7,10 @@
 }
 
 .mat-mdc-table {
+  --mat-table-background-color: var(--ion-background-color);
+  --mat-table-row-item-label-text-color: var(--ion-text-color);
+  --mat-table-row-item-outline-color: var(--ion-border-color);
+
   .mat-mdc-row {
     overflow: hidden;
   }

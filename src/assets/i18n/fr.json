@@ -530,6 +530,7 @@
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
+    "BTN_DARK_MODE": "Mode sombre/clair",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",

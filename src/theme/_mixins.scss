@@ -1,8 +1,4 @@
 
 @mixin css-app-variables-to-root() {
   @include css-variables-to-root();
-
-  --mat-tab-link-height: #{$mat-tab-link-height};
-  --mat-toolbar-background-color: #{$mat-toolbar-background-color};
-  --ion-text-color-disable: #{$app-text-color-disable};
 }

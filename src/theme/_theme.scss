@@ -222,3 +222,18 @@ app-toolbar ion-segment-button {
   }
 }
 
+
+ion-menu ion-content {
+  --background: var(--ion-item-background, var(--ion-background-color, #fff));
+  --background-color: var(--background);
+
+  ion-list-header.title {
+    color: yellow;
+    text-shadow:
+      0 0 10px var(--background-color),
+      0 0 20px var(--background-color),
+      0 0 30px var(--background-color),
+      0 0 40px var(--background-color);
+    overflow: visible;
+  }
+}
