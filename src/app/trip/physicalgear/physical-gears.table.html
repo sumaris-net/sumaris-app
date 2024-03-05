@@ -66,8 +66,7 @@
     <!-- Refresh -->
     <button
       mat-icon-button
-      *ngIf="!mobile"
-      [disabled]="dirty || loading"
+      *ngIf="debug && !mobile"
       [title]="'COMMON.BTN_REFRESH' | translate"
       (click)="onRefresh.emit()"
     >
