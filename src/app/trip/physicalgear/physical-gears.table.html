@@ -67,6 +67,7 @@
     <button
       mat-icon-button
       *ngIf="!mobile"
+      [disabled]="dirty || loading"
       [title]="'COMMON.BTN_REFRESH' | translate"
       (click)="onRefresh.emit()"
     >
