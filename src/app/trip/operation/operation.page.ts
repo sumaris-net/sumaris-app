@@ -1100,6 +1100,10 @@ export class OperationPage<S extends OperationState = OperationState>
         this.acquisitionLevel = acquisitionLevel;
       }
 
+      // Do not wait measurements forms when no default gear (because of requiredGear=true)
+      if (this.isNewData && isNil(gearId)) {
+        this.measurementsForm.pmfms = [];
+      }
       jobs.push(this.measurementsForm.setValue((data && data.measurements) || []));
 
       // Set batch tree
