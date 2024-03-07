@@ -91,6 +91,7 @@ const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
       }
     }
     ${PhysicalGearFragments.physicalGear}
+    ${ReferentialFragments.location}
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightDepartment}

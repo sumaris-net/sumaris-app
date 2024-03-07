@@ -116,9 +116,9 @@
                 <br />
                 form.programLabel: {{ physicalGearForm.programLabel$ | async }}
                 <br />
-                form.strategy {{ physicalGearForm.requiredStrategy ? '(required)' : '' }}: {{physicalGearForm.strategyId || physicalGearForm.strategyLabel}}
+                form.strategy{{ physicalGearForm.requiredStrategy ? ' (required)' : '' }}: {{physicalGearForm.strategyId || physicalGearForm.strategyLabel}}
                 <br />
-                form.gear {{ physicalGearForm.requiredGear ? '(required)' : '' }}: {{physicalGearForm.gearId}}
+                form.gear{{ physicalGearForm.requiredGear ? ' (required)' : '' }}: {{physicalGearForm.gearId}}
                 <br />
                 form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
                 <br />

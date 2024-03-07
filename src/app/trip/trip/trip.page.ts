@@ -34,6 +34,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   sleep,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
@@ -659,8 +660,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const withOffline = EntityUtils.isLocal(trip) || trip.synchronizationStatus === 'DIRTY';
     if (!vessel || !date) return; // Skip
 
-    const programLabel = this.programLabel;
     const acquisitionLevel = event.type || this.physicalGearsTable.acquisitionLevel;
+    const programLabel = this.programLabel;
+    const strategyId = toNumber(this.strategy?.id, this.physicalGearsTable.strategyId);
     const filter = <PhysicalGearFilter>{
       program: { label: programLabel },
       vesselId: vessel.id,
@@ -685,8 +687,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       component: SelectPhysicalGearModal,
       componentProps: <ISelectPhysicalGearModalOptions>{
         allowMultiple: false,
-        programLabel,
         acquisitionLevel,
+        programLabel,
+        strategyId,
         filter,
         distinctBy,
         withOffline,
