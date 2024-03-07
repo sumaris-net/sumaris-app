@@ -1,8 +1,7 @@
 export abstract class UrlUtils {
-
   static isInternalUrl(href: string | null): boolean {
     if (!href) return false;
-    if (href.startsWith(window.location.origin)) return true
+    if (href.startsWith(window.location.origin)) return true;
     return !href.startsWith('http:') && !href.startsWith('https:') && !href.startsWith('mailto:') && !href.startsWith('tel:');
   }
 

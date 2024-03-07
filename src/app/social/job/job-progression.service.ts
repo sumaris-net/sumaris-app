@@ -1,4 +1,15 @@
-import { AccountService, BaseGraphqlService, GraphqlService, IJobProgressionService, isNil, JobProgression, removeDuplicatesFromArray, SocialErrorCodes, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseGraphqlService,
+  GraphqlService,
+  IJobProgressionService,
+  isNil,
+  isNotNil,
+  JobProgression,
+  removeDuplicatesFromArray,
+  SocialErrorCodes,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -8,18 +19,22 @@ import { environment } from '@environments/environment';
 import { JobService } from '@app/social/job/job.service';
 
 export const JobProgressionFragments = {
-  light: gql`fragment LightJobProgressionFragment on JobProgressionVO {
-    id
-    name
-  }`,
+  light: gql`
+    fragment LightJobProgressionFragment on JobProgressionVO {
+      id
+      name
+    }
+  `,
 
-  full: gql`fragment JobProgressionFragment on JobProgressionVO {
-    id
-    name
-    message
-    current
-    total
-  }`,
+  full: gql`
+    fragment JobProgressionFragment on JobProgressionVO {
+      id
+      name
+      message
+      current
+      total
+    }
+  `,
 };
 
 const JobProgressionQueries = {
@@ -50,7 +65,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
               protected accountService: AccountService
               ) {
     super(graphql, environment);
-    this._logPrefix = '[job-progression-service]';
+    this._logPrefix = '[job-progression-service] ';
 
     // Clean data on logout
     this.accountService.onLogout.subscribe(() => this.dataSubject.next([]));
@@ -59,6 +74,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   addJob(id: number, job?: JobProgression) {
+    if (isNil(id)) throw new Error('Missing required argument \'id\'');
     const exists = this.dataSubject.value.some(j => j.id === id);
     if (!exists) {
       job = job || new JobProgression();
@@ -68,7 +84,8 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   removeJob(id: number) {
-    const jobs = this.dataSubject.value;
+    if (isNil(id)) throw new Error('Missing required argument \'id\'');
+    const jobs = this.dataSubject.value || [];
     const index = jobs.findIndex(j => j.id === id);
     if (index !== -1) {
       jobs.splice(index, 1);
@@ -77,19 +94,19 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   watchAll(): Observable<JobProgression[]> {
-    return combineLatest(
-      this.dataSubject.asObservable(),
-      this.accountService.onLogin
-      .pipe(
-        mergeMap((account) => this.jobService.watchAll({
-          issuer: account.pubkey,
-          status: ['PENDING', 'RUNNING']
-        }, null, {toEntity: false})),
-        takeUntil(this.accountService.onLogout)
-      )
-    ).pipe(
-      map(([d1, d2]) => removeDuplicatesFromArray([...d1, ...d2], 'id')),
-      map(data => data.map(JobProgression.fromObject))
+    return combineLatest([
+        this.dataSubject.asObservable(),
+        this.accountService.onLogin
+        .pipe(
+          mergeMap((account) => this.jobService.watchAll({
+            issuer: account.pubkey,
+            status: ['PENDING', 'RUNNING']
+          }, null, {toEntity: false})),
+          takeUntil(this.accountService.onLogout)
+        )
+    ]).pipe(
+      map(([jobs1, jobs2]) => removeDuplicatesFromArray([...jobs1, ...jobs2], 'id')),
+      map(data => data.map(JobProgression.fromObject).filter(job => isNotNil(job.id)))
     );
   }
 

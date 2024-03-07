@@ -336,7 +336,7 @@ release:
   image: ${CI_BUILD_IMAGE}
   needs: [build]
   only:
-  - develop
+    - develop
 
 release:feature:
   extends: .release
@@ -379,18 +379,18 @@ release:tags:
 #     - develop
 
 gitlab-release:
-    stage: release
-    tags: [sih_public_runner]
-    image: ${CI_BUILD_IMAGE}
-    script:
-      - echo "running release for ${CI_COMMIT_TAG}"
-      - '[ -d "${BUILD_CACHE_DIR}" ] || mkdir "${BUILD_CACHE_DIR}"'
-      - ls -artl "${BUILD_CACHE_DIR}"
-      - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
-      - npm install
-      - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
-    only:
-        - tags
+  stage: release
+  tags: [sih_public_runner]
+  image: ${CI_BUILD_IMAGE}
+  script:
+    - echo "running release for ${CI_COMMIT_TAG}"
+    - '[ -d "${BUILD_CACHE_DIR}" ] || mkdir "${BUILD_CACHE_DIR}"'
+    - ls -artl "${BUILD_CACHE_DIR}"
+    - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
+    - npm install
+    - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
+  only:
+    - tags
 
 # ---------------------------------------------------------------
 # Deploy jobs

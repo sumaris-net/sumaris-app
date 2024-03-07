@@ -654,7 +654,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Control batches (skip if abnormal operation)
     if (!entity.abnormal && entity.catchBatch && opts?.program) {
       const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES);
-      const physicalGear = entity.physicalGear?.clone();
+      const physicalGear = opts.trip.gears.find(g => g.id == entity.physicalGear?.id)?.clone();
 
       const wasInvalid = BatchUtils.isInvalid(entity.catchBatch);
 

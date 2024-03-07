@@ -573,6 +573,10 @@ export abstract class AppBaseTable<
   }
 
   async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
+
+    // Avoid to autofocus
+    event?.preventDefault();
+
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
     const { data } = await Popovers.showText(this.popoverController, event, {
       editing: this.inlineEdition && this.enabled,

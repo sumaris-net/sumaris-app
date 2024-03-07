@@ -98,7 +98,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -106,7 +106,7 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}"
+    <mat-tab [label]="'TRIP.TAB_GENERAL' | translate"
              appSubMenuTab
              [subMenuTitle]="(titleSubject|async|noHtml)||''"
              [parentPath]="defaultBackHref">
@@ -162,7 +162,7 @@
                 ></app-form-sale>
 
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top" afterObservers>
+                <ion-grid class="ion-no-padding ion-padding-top form-container" afterObservers>
                   <ion-row>
                     <ion-col size="12" size-md="2" size-lg="3">
                       <ion-label
@@ -249,7 +249,7 @@
         [requiredGear]="false"
         (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
         [showToolbar]="!mobile"
-        [useSticky]="!mobile"
+        [sticky]="!mobile"
         [usageMode]="usageMode"
         [mobile]="mobile"
         [debug]="debug"
@@ -295,6 +295,7 @@
         [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
         [defaultSortDirection]="mobile ? 'desc' : 'asc'"
       ></app-operations-table>
+
     </mat-tab>
   </mat-tab-group>
 </ion-content>

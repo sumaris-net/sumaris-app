@@ -113,6 +113,8 @@ export class JobListComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
+
+
   constructor(
     private translate: TranslateService,
     private alertCtrl: AlertController,
@@ -121,9 +123,9 @@ export class JobListComponent implements OnInit, OnDestroy {
     private accountService: AccountService,
     private settings: LocalSettingsService,
     private personService: PersonService,
-    private formBuilder: UntypedFormBuilder,
     private cd: ChangeDetectorRef,
     private state: RxState<JobListState>,
+    formBuilder: UntypedFormBuilder,
     @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService,
   ) {
     this.state.set({
@@ -141,7 +143,7 @@ export class JobListComponent implements OnInit, OnDestroy {
     });
     this.autocompleteFields = this.autocompleteHelper.fields;
   }
-
+  
   ngOnInit() {
     this.state.connect('jobs',
       merge(
@@ -183,7 +185,7 @@ export class JobListComponent implements OnInit, OnDestroy {
 
             // Watch progression, if not finished
             if (!JobStatusUtils.isFinished(job.status) && this.jobProgressionService) {
-              job.progression = this.jobProgressions[job.id] || new ProgressionModel();
+              job.progression = this.jobProgressions[job.id] || ProgressionModel.create();
               job.status = job.status === 'PENDING' && job.progression.total > 0 ? 'RUNNING' : job.status;
               this.jobProgressions[job.id] = job.progression;
 

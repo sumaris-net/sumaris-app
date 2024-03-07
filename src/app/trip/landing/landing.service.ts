@@ -66,7 +66,6 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
@@ -96,7 +95,6 @@ export declare interface LandingServiceWatchOptions
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
   translatorOptions?: FormErrorTranslatorOptions;
-  initialPmfms?: DenormalizedPmfmStrategy[];
 }
 
 export const LandingFragments = {
@@ -301,7 +299,7 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => n1.rankOrder === n2.ra
 
 @Injectable({providedIn: 'root'})
 export class LandingService
-  extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceLoadOptions>
+  extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceWatchOptions, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
 
@@ -1328,16 +1326,11 @@ export class LandingService
     // Load the strategy from measurementValues (if exists)
     if (!opts.strategy) {
       const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
-      opts.strategy = isNotNilOrBlank(strategyLabel)
-        && (await this.strategyRefService.loadByLabel(strategyLabel, {programId: opts.program?.id}))
-        || null;
-      if (opts.strategy) {
-        // TODO check this
-        //opts.withStrategy = true;
+      if (isNotNilOrBlank(strategyLabel)) {
+        opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, {programId: opts.program?.id});
       }
-      else {
-        opts.withStrategy = false;
-        console.debug(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
+      if (!opts.strategy) {
+        console.warn(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
       }
     }
 

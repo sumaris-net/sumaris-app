@@ -11,22 +11,15 @@ import {
   PmfmNamePipe,
   PmfmValueColorPipe,
   PmfmValueIconPipe,
-  PmfmValuePipe
+  PmfmValuePipe,
 } from './pmfms.pipe';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    TextMaskModule,
-    TranslateModule.forChild(),
-
-    AppCoreModule,
-  ],
+  imports: [CommonModule, TranslateModule.forChild(), AppCoreModule],
   declarations: [
     // Pipes
     ReferentialToStringPipe,
@@ -60,5 +53,4 @@ import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
     WeightFormatPipe,
   ],
 })
-export class AppReferentialPipesModule {
-}
+export class AppReferentialPipesModule {}

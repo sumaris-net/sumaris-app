@@ -37,3 +37,14 @@ form {
 input.cursor-pointer {
   cursor: pointer !important;
 }
+
+.form-container {
+  .mat-mdc-form-field {
+
+    &.physicalGear,
+    &.metier,
+    &.parentOperation {
+      max-height: 63px;
+    }
+  }
+}

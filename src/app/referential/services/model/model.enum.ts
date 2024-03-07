@@ -9,6 +9,7 @@ export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3,
+  MARITIME_DISTRICT: 8,
 
   // At sea
   SUB_AREA_ICES: 110,
@@ -375,7 +376,8 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CHILD_PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION'
+  | 'ACTIVITY_CALENDAR' | 'MONTHLY_ACTIVITY';
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
@@ -399,7 +401,9 @@ export const AcquisitionLevelCodes = {
   EXPENSE: <AcquisitionLevelType>'EXPENSE',
   BAIT_EXPENSE: <AcquisitionLevelType>'BAIT_EXPENSE',
   ICE_EXPENSE: <AcquisitionLevelType>'ICE_EXPENSE',
-  CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION'
+  CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION',
+  ACTIVITY_CALENDAR: <AcquisitionLevelType>'ACTIVITY_CALENDAR',
+  MONTHLY_ACTIVITY: <AcquisitionLevelType>'MONTHLY_ACTIVITY',
 };
 
 export const SaleTypeIds = {

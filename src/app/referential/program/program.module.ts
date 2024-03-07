@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { ProgramPage } from './program.page';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { ProgramsPage } from './programs.page';
 import { AppCoreModule } from '@app/core/core.module';
@@ -17,7 +16,6 @@ import { AppSharedModule } from '@app/shared/shared.module';
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
     TranslateModule.forChild(),
 
     AppSharedModule,

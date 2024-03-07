@@ -75,9 +75,7 @@ export abstract class BaseReferentialService<
       injector.get(PlatformService),
       dataType,
       filterType,
-      {
-        ...options
-      });
+      options);
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: F, opts?: WO): Observable<LoadResult<T>> {

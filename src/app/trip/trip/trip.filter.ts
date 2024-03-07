@@ -189,7 +189,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
 export class TripSynchroImportFilter extends DataSynchroImportFilter {
 
-  static toTripFilter(source: TripSynchroImportFilter): TripFilter {
+  static toTripFilter(source: Partial<TripSynchroImportFilter>): TripFilter {
     if (!source) return undefined;
 
     const target = TripFilter.fromObject({
@@ -201,7 +201,7 @@ export class TripSynchroImportFilter extends DataSynchroImportFilter {
     });
     // Transform duration into start/end period
     if (!target.startDate && !target.endDate && source.periodDuration > 0 && source.periodDurationUnit) {
-      target.startDate = DateUtils.moment().startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
+      target.startDate = DateUtils.moment().utc(false).startOf('day').add(-1 * source.periodDuration, source.periodDurationUnit);
     }
 
     return target;

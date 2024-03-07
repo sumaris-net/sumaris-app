@@ -358,7 +358,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }

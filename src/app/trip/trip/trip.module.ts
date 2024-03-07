@@ -10,7 +10,7 @@ import { TripTrashModal } from './trash/trip-trash.modal';
 import { AppCoreModule } from '@app/core/core.module';
 import { TripOfflineModal } from '@app/trip/trip/offline/trip-offline.modal';
 import { A11yModule } from '@angular/cdk/a11y';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
@@ -31,7 +31,7 @@ import { MatTabsModule } from '@angular/material/tabs';
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
     AppExtractionButtonModule,
 
     // Functional modules

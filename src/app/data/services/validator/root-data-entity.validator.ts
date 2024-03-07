@@ -11,10 +11,12 @@ import { RootDataEntity } from '../model/root-data-entity.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 import { TranslateService } from '@ngx-translate/core';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
   program?: Program;
+  strategy?: Strategy;
 }
 
 export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>

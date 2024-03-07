@@ -1,9 +1,8 @@
-import {RouterModule, Routes} from '@angular/router';
-import {NgModule} from '@angular/core';
-import {VesselsPage} from './list/vessels.page';
-import {VesselPage} from './page/vessel.page';
-import {SharedRoutingModule} from '@sumaris-net/ngx-components';
-import {VesselModule} from './vessel.module';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { VesselsPage } from './list/vessels.page';
+import { VesselPage } from './page/vessel.page';
+import { AppVesselModule } from './vessel.module';
 
 const routes: Routes = [
   {
@@ -12,22 +11,22 @@ const routes: Routes = [
     component: VesselsPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'USER'
-    }
+      profile: 'USER',
+    },
   },
   {
     path: ':id',
     component: VesselPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'USER'
-    }
-  }
+      profile: 'USER',
+    },
+  },
 ];
 
 @NgModule({
   imports: [
-    VesselModule,
+    AppVesselModule,
     RouterModule.forChild(routes)
   ],
   exports: [RouterModule]

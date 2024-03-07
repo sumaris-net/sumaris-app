@@ -41,14 +41,14 @@
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.mobile]="mobile">
   <table
     mat-table
     [dataSource]="dataSource"
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
     class="table-products"
-    [class.mobile]="mobile"
+    
     matSort
     matSortDisableClear
     [trackBy]="trackByFn"
@@ -62,11 +62,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -190,7 +186,7 @@
 
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
         <ion-label [innerHTML]="pmfm | pmfmName : { html: true }"></ion-label>
       </th>
 
@@ -198,8 +194,8 @@
         mat-cell
         *matCellDef="let row"
         class="mat-column-pmfm"
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-cell-computed]="pmfm | isComputedPmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
       >
         <app-pmfm-field
           *ngIf="row.editing; else readonlyPmfmField"
@@ -282,7 +278,7 @@
           <!-- delete  -->
           <button
             mat-icon-button
-            *ngIf="mobile && canEdit && singleSelectedRow === row"
+            *ngIf="mobile && enabled && singleSelectedRow === row"
             [title]="'COMMON.BTN_DELETE' | translate"
             (click)="cancelOrDelete($event, row)"
           >
@@ -297,10 +293,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>

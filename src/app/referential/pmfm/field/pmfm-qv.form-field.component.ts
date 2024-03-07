@@ -12,32 +12,34 @@ import {
   Output,
   QueryList,
   ViewChild,
-  ViewChildren
+  ViewChildren,
 } from '@angular/core';
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
-
+import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormControl, Validators } from '@angular/forms';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 import {
+  AppFloatLabelType,
   AppFormUtils,
   focusInput,
   InputElement,
   IReferentialRef,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  selectInputRange,
   SharedValidators,
   sort,
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber, selectInputRange, isNotNilOrBlank
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
@@ -91,7 +93,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() placeholder: string;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() required: boolean;
   @Input() readonly = false;

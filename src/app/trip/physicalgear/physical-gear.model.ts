@@ -1,10 +1,26 @@
-import {EntityClass, EntityUtils, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef} from '@sumaris-net/ngx-components';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/data/measurement/measurement.model';
-import {SortDirection} from '@angular/material/sort';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
-import {TripRef} from '@app/trip/trip/trip-ref.model';
+import {
+  EntityClass,
+  EntityUtils,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  ITreeItemEntity,
+  ReferentialRef,
+} from '@sumaris-net/ngx-components';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import {
+  IEntityWithMeasurement,
+  Measurement,
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils,
+  MeasurementValuesUtils,
+} from '@app/data/measurement/measurement.model';
+import { SortDirection } from '@angular/material/sort';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { TripRef } from '@app/trip/trip/trip-ref.model';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -165,7 +181,7 @@ export class PhysicalGear
     const target = super.asObject(opts);
     target.gear = this.gear && this.gear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
     if (target.gear && !target.gear.entityName) {
-      console.warn('Fixme : manually set gear entityName!');
+      console.warn('Fixme: manually set gear entityName!');
       target.gear.entityName = 'GearVO';
     }
 

@@ -99,9 +99,13 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions } from '@angular/material/form-field';
+import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
+import { ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES, ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES } from '@app/activity-calendar/activity-calendar.config';
+import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -167,7 +171,21 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     Network,
     AudioManagement,
     Downloader,
-
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: <MatFormFieldDefaultOptions>{
+        appearance: 'fill',
+        //appearance: 'outline',
+        //subscriptSizing: 'dynamic',
+      },
+    },
+    {
+      provide: MAT_TABS_CONFIG,
+      useValue: <MatTabsConfig>{
+        stretchTabs: false,
+        // preserveContent: true
+      },
+    },
     {
       provide: APP_BASE_HREF,
       useFactory: () => {
@@ -345,6 +363,14 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name',
         },
+        {
+          title: 'MENU.ACTIVITY_CALENDAR',
+          path: '/activity-calendar',
+          icon: 'calendar',
+          profile: 'USER',
+          ifProperty: 'sumaris.activityCalendar.enable',
+          titleProperty: 'sumaris.activityCalendar.name',
+        },
 
         // Data extraction
         { title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST' },
@@ -484,6 +510,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...DATA_GRAPHQL_TYPE_POLICIES,
         ...VESSEL_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES,
       },
     },
@@ -493,6 +520,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
       provide: APP_LOCAL_STORAGE_TYPE_POLICIES,
       useValue: <EntitiesStorageTypePolicies>{
         ...TRIP_STORAGE_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
       },
     },
 
@@ -506,6 +534,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
         ...TRIP_TESTING_PAGES,
+        ...ACTIVITY_CALENDAR_TESTING_PAGES,
       ],
     },
 

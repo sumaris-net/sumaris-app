@@ -90,7 +90,7 @@
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
   >
-    <ng-container matColumnDef="select" [sticky]="sticky" [class.mat-column-sticky]="sticky">
+    <ng-container matColumnDef="select" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -99,16 +99,12 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- id (=rankOrder) -->
-    <ng-container matColumnDef="id" [sticky]="sticky" [class.mat-column-sticky]="sticky">
+    <ng-container matColumnDef="id" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -154,10 +150,10 @@
 
     <!-- start date time  -->
     <ng-container matColumnDef="startDateTime">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         <ion-text>{{ row.currentData.startDateTime | dateFormat : { time: true } }}</ion-text>
         <ion-text
           *ngIf="mobile"
@@ -193,10 +189,10 @@
 
     <!-- fishing start date time -->
     <ng-container matColumnDef="fishingStartDateTime">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label translate>TRIP.OPERATION.LIST.FISHING_START_DATE_TIME</ion-label>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         {{ row.currentData.fishingStartDateTime | dateFormat : { time: true } }}
       </td>
     </ng-container>
@@ -233,7 +229,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [class.mat-column-sticky]="sticky">
+    <ng-container matColumnDef="actions" [class.mat-mdc-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <button
           mat-icon-button
@@ -250,13 +246,13 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns; when: isOperation"
-      class="mat-row-disabled"
-      [class.mat-row-selected]="row.currentData.id === selectedOperation?.id"
+      class="mat-mdc-row-disabled"
+      [class.mat-mdc-row-selected]="row.currentData.id === selectedOperation?.id"
       (click)="clickRow($event, row)"
     ></tr>
 
     <!-- Divider -->
-    <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-column-sticky]="sticky">
+    <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <td mat-cell colspan="4" *matCellDef="let row" class="divider">
         <ion-text>
           {{ row.currentData.trip.id | mathAbs }} -

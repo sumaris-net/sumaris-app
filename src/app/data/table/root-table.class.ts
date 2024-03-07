@@ -654,7 +654,7 @@ export abstract class AppRootDataTable<
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    console.log(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
 
     const json = this.restoreFilterSources !== false && (opts?.sources || this.restoreFilterSources || []).map(source => {
       switch (source) {

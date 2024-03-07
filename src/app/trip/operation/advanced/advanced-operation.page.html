@@ -69,7 +69,7 @@
 </app-toolbar>
 
 <!-- Last operations menu -->
-<mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
+<mat-menu #lastOperationsMenu="matMenu" xPosition="before" class="mat-menu-size-75vw ion-no-padding">
   <ng-template matMenuContent>
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
@@ -223,7 +223,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -306,7 +306,7 @@
             </ion-col>
 
             <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode | isOnDesk">
+            <ion-col size="12" size-xl="3" class="ion-no-padding" *ngIf="!mobile">
               <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
                 <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
@@ -491,7 +491,7 @@
           <br />
           measurementsForm.valid: {{ measurementsForm.valid }}
           <br />
-          measurementsForm.gearId: {{ measurementsForm.gearId }}
+          measurementsForm.gearId{{ measurementsForm.requiredGear ? ' (required)' : '' }}: {{ measurementsForm.gearId }}
           <br />
           measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
           <br />

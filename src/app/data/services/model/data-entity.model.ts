@@ -15,6 +15,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import {StoreObject} from '@apollo/client/core';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -88,9 +89,9 @@ export abstract class DataEntity<
   }
 
   asObject(opts?: AO): any {
-    const target = super.asObject(opts);
-    if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
-    if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;
+    const target:StoreObject = super.asObject(opts);
+    if (opts && opts.keepRemoteId === false && (target.id as number) >= 0) delete target.id;
+    if (opts && opts.keepUpdateDate === false && (target.id as number) >= 0) delete target.updateDate;
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);

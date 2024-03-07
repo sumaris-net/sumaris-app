@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { TaxonGroupPage } from './taxon-group.page';
@@ -12,27 +11,24 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
     TranslateModule.forChild(),
 
     AppCoreModule,
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialPipesModule
+    AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     RoundWeightConversionTable,
-    TaxonGroupPage
+    TaxonGroupPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    TaxonGroupPage
+    TaxonGroupPage,
   ],
 })
-export class AppTaxonGroupModule {
-}
+export class AppTaxonGroupModule {}

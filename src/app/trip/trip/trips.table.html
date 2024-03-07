@@ -88,7 +88,7 @@
 </app-toolbar>
 
 <!-- Table options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
+<mat-menu #optionsMenu="matMenu" xPosition="before">
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
@@ -378,7 +378,7 @@
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus">
+    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus" [tabPanel]="tableContainer">
       <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
@@ -412,11 +412,7 @@
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox
-            (click)="$event.stopPropagation()"
-            (change)="$event ? selection.toggle(row) : null"
-            [checked]="selection.isSelected(row)"
-          ></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
         </td>
       </ng-container>
 
@@ -475,20 +471,20 @@
 
       <!-- departure date time  -->
       <ng-container matColumnDef="departureDateTime">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ row.currentData.departureDateTime | dateFormat : { time: true } }}</ion-text>
         </td>
       </ng-container>
 
       <!-- return date time -->
       <ng-container matColumnDef="returnDateTime">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ row.currentData.returnDateTime | dateFormat : { time: true } }}</ion-text>
         </td>
       </ng-container>
@@ -557,9 +553,9 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
+        class="mat-mdc-row-disabled"
         [class.cdk-visually-hidden]="loadingSubject | async"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

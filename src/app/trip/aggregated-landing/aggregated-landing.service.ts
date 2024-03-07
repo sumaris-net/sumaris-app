@@ -64,6 +64,7 @@ const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on Aggr
 }
 ${VesselSnapshotFragments.lightVesselSnapshot}
 ${ReferentialFragments.lightReferential}
+${ReferentialFragments.location}
 ${VesselActivityFragment}`;
 
 const Queries: BaseEntityGraphqlQueries = {

@@ -5,7 +5,7 @@ import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
@@ -24,7 +24,7 @@ import { AdvancedOperationPage } from '@app/trip/operation/advanced/advanced-ope
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
 
     // Functional modules
     AppMeasurementModule,

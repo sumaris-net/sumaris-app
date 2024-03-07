@@ -2,6 +2,7 @@
 // Import theme
 // --------------------------------------------------
 @import "theme";
+@import "theme.variables";
 @import "leaflet";
 @import "reveal";
 
@@ -16,23 +17,23 @@
 // Inject theme colors (as CSS variables)
 // --------------------------------------------------
 :root {
-  @include css-app-variables-to-root();
-
-  // FIXME: Ceci empêche la surcharge des couleurs. Voir si cela est encore nécessaire
-  ion-app {
-    @include css-variables-to-root();
-  }
-
-  &.plt-mobile {
-    @include css-variables-to-root-mobile();
-    ion-app {
-      @include css-variables-to-root-mobile();
-    }
-  }
+  //@include css-app-variables-to-root();
+  //
+  //// FIXME: Ceci empêche la surcharge des couleurs. Voir si cela est encore nécessaire
+  //ion-app {
+  //  @include css-variables-to-root();
+  //}
+  //
+  //&.plt-mobile {
+  //  @include css-variables-to-root-mobile();
+  //  ion-app {
+  //    @include css-variables-to-root-mobile();
+  //  }
+  //}
 
   // Extra small device
   @media screen and (max-width: #{$screen-xs-max}) {
-    --mat-toolbar-height: #{56px};
+    --mat-toolbar-height: mat.$toolbar-height-mobile;
   }
 
   ion-icon {

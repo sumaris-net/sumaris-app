@@ -72,7 +72,6 @@ import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landi
 import { AggregatedLandingService } from '@app/trip/aggregated-landing/aggregated-landing.service';
 import moment from 'moment';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
-import { Trip } from '@app/trip/trip/trip.model';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { OverlayEventDetail } from '@ionic/core';
@@ -82,6 +81,8 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -299,6 +300,7 @@ export class ObservedLocationService
     protected trashRemoteService: TrashRemoteService,
     protected progressBarService: ProgressBarService,
     protected formErrorTranslator: FormErrorTranslator,
+    protected strategyRefService: StrategyRefService,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
@@ -662,9 +664,9 @@ export class ObservedLocationService
     // Remove from the local trash
     if (opts.deletedFromTrash) {
       if (isLocal) {
-        await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
+        await this.entities.deleteFromTrash(source, {entityName: ObservedLocation.TYPENAME});
       } else {
-        await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
+        await this.trashRemoteService.delete(ObservedLocation.ENTITY_NAME, source.id);
       }
     }
 
@@ -744,7 +746,7 @@ export class ObservedLocationService
   async deleteLocally(entity: ObservedLocation, opts?: {
     trash?: boolean; // True by default
   }): Promise<any> {
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts?.trash !== false;
     const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);
@@ -1251,6 +1253,17 @@ export class ObservedLocationService
       enable: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       withMeasurements: true, // Need by full validation
     };
+
+    // Load the strategy from measurementValues (if exists)
+    if (!opts.strategy) {
+      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+      opts.strategy = isNotNilOrBlank(strategyLabel)
+        && (await this.strategyRefService.loadByLabel(strategyLabel, {programId: opts.program?.id}))
+        || null;
+      if (!opts.strategy) {
+        console.debug(this._logPrefix + 'No strategy loaded from ObservedLocation#' + entity.id);
+      }
+    }
 
     if (!opts.translatorOptions) {
       opts.translatorOptions = {

@@ -47,6 +47,9 @@ export const VesselSnapshotFragments = {
       vesselType {
         ...LightReferentialFragment
       }
+      registrationLocation {
+        ...LocationFragment
+      }
       vesselStatusId
     }
   `,
@@ -60,11 +63,14 @@ export const VesselSnapshotFragments = {
       startDate
       endDate
       updateDate
-      basePortLocation {
-        ...LocationFragment
-      }
       vesselType {
         ...LightReferentialFragment
+      }
+      registrationLocation {
+        ...LocationFragment
+      }
+      basePortLocation {
+        ...LocationFragment
       }
       vesselStatusId
     }
@@ -90,7 +96,7 @@ export const VesselSnapshotFragments = {
   `,
 };
 
-const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
+const VesselSnapshotQueries: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
   // Load all
   loadAll: gql`query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     data: vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -98,6 +104,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightReferential}`,
 
   // Load all with total
@@ -108,6 +115,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     total: vesselSnapshotsCount(filter: $filter)
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightReferential}`,
 
   // Load one item
@@ -117,6 +125,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.location}
   ${ReferentialFragments.lightReferential}`,
 
   // Load all WITH base port location
@@ -255,8 +264,8 @@ export class VesselSnapshotService
     else {
       // Online: use GraphQL
       const query = withTotal
-        ? (opts?.withBasePortLocation ? QUERIES.loadAllWithPortAndTotal : QUERIES.loadAllWithTotal)
-        : (opts?.withBasePortLocation ? QUERIES.loadAllWithPort : QUERIES.loadAll);
+        ? (opts?.withBasePortLocation ? VesselSnapshotQueries.loadAllWithPortAndTotal : VesselSnapshotQueries.loadAllWithTotal)
+        : (opts?.withBasePortLocation ? VesselSnapshotQueries.loadAllWithPort : VesselSnapshotQueries.loadAll);
       res = await this.graphql.query<LoadResult<any>>({
         query,
         variables: {
@@ -352,7 +361,7 @@ export class VesselSnapshotService
     }
 
     const {data} = await this.graphql.query<{ data: any[] }>({
-      query: QUERIES.load,
+      query: VesselSnapshotQueries.load,
       variables: {
         vesselId: id,
         vesselFeaturesId: null

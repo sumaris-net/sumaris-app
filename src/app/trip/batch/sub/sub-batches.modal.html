@@ -173,7 +173,7 @@
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn">
             <ng-container [matColumnDef]="pmfm | pmfmIdString">
-              <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+              <th mat-header-cell *matHeaderCellDef [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
                 <ion-label
                   [innerHTML]="
                     pmfm
@@ -186,8 +186,8 @@
                 mat-cell
                 *matCellDef="let row"
                 class="mat-column-pmfm"
-                [class.mat-cell-date-time]="pmfm | isDatePmfm"
-                [class.mat-cell-computed]="pmfm | isComputedPmfm"
+                [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+                [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
               >
                 <ion-text
                   [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue : { pmfm: pmfm }"
@@ -242,10 +242,9 @@
           <tr
             mat-row
             *matRowDef="let row; columns: displayedColumns"
-            class="mat-row-small"
-            [class.mat-row-dirty]="isNewRow(row)"
-            [class.mat-row-animated]="animationSelection.isSelected(row)"
-            [class.mat-row-selected]="selection.isSelected(row)"
+            [class.mat-mdc-row-dirty]="isNewRow(row)"
+            [class.mat-mdc-row-animated]="animationSelection.isSelected(row)"
+            [class.mat-mdc-row-selected]="selection.isSelected(row)"
             [matMenuTriggerFor]="rowActionsMenu"
             [matMenuTriggerRestoreFocus]="false"
             (click)="selectRow($event, row)"

@@ -69,7 +69,7 @@
 </app-toolbar>
 
 <!-- Last operations menu -->
-<mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
+<mat-menu #lastOperationsMenu="matMenu" xPosition="before" class="mat-menu-size-75vw ion-no-padding">
   <ng-template matMenuContent>
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
@@ -223,7 +223,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -257,7 +257,7 @@
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
         </ng-container>
 
-        <ion-grid class="ion-no-padding">
+        <ion-grid class=" ion-no-padding">
           <ion-row>
             <ion-col class="ion-padding">
               <!-- form -->
@@ -273,7 +273,7 @@
               >
                 <!-- Other features (Measurements) -->
                 <ion-grid
-                  class="ion-no-padding ion-padding-top"
+                  class="ion-no-padding ion-padding-top form-container"
                   [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
                 >
                   <ion-row>
@@ -425,7 +425,7 @@
           <br />
           measurementsForm.valid: {{ measurementsForm.valid }}
           <br />
-          measurementsForm.gearId: {{ measurementsForm.gearId }}
+          measurementsForm.gearId{{ measurementsForm.requiredGear ? ' (required)' : '' }}: {{ measurementsForm.gearId }}
           <br />
           measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
           <br />

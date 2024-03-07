@@ -206,11 +206,11 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
 
-  isDivider(index, item: TableElement<Operation>): boolean {
+  isDivider(index: number, item: TableElement<Operation>): boolean {
     return item.currentData instanceof OperationDivider;
   }
 
-  isOperation(index, item: TableElement<Operation>): boolean {
+  isOperation(index: number, item: TableElement<Operation>): boolean {
     return !(item.currentData instanceof OperationDivider);
   }
 

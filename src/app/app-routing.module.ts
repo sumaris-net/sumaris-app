@@ -96,6 +96,15 @@ const routes: Routes = [
     loadChildren: () => import('./trip/landing/landings-routing.module').then((m) => m.AppLandingsRoutingModule),
   },
 
+  // Activity Calendar
+  {
+    path: 'activity-calendar',
+    data: {
+      profile: 'USER',
+    },
+    loadChildren: () => import('./activity-calendar/activity-calendar-routing.module').then((m) => m.AppActivityCalendarRoutingModule),
+  },
+
   // Extraction path
   {
     path: 'extraction',
@@ -169,6 +178,14 @@ const routes: Routes = [
           preload: false,
         },
       },
+      // Referential module
+      {
+        path: 'referential',
+        loadChildren: () => import('./referential/referential.testing.module').then((m) => m.ReferentialTestingModule),
+        data: {
+          preload: false,
+        },
+      },
       // Trip module
       {
         path: 'trip',
@@ -177,10 +194,10 @@ const routes: Routes = [
           preload: false,
         },
       },
-      // Referential module
+      // Activity calendar
       {
-        path: 'referential',
-        loadChildren: () => import('./referential/referential.testing.module').then((m) => m.ReferentialTestingModule),
+        path: 'activity-calendar',
+        loadChildren: () => import('./activity-calendar/calendar/testing/calendar.testing.module').then((m) => m.CalendarTestingModule),
         data: {
           preload: false,
         },

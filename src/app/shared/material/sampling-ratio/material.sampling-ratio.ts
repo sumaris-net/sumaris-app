@@ -1,8 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional, Provider } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Provider,
+  ViewEncapsulation,
+} from '@angular/core';
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
-import { AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
+import { AppFloatLabelType, AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
 import { filter } from 'rxjs/operators';
 import { isNilOrNaN, roundHalfUp } from '@app/shared/functions';
 
@@ -22,6 +33,7 @@ export const DEFAULT_MAX_DECIMALS = 6;
   selector: 'mat-sampling-ratio-field',
   templateUrl: './material.sampling-ratio.html',
   styleUrls: ['./material.sampling-ratio.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [
     DEFAULT_VALUE_ACCESSOR
   ],
@@ -49,7 +61,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() required = false;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() tabindex: number;
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;

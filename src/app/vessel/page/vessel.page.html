@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && dirty"
   (onValidate)="save($event)"
@@ -13,7 +13,7 @@
 <!-- Vessel actions -->
 <mat-menu #actionMenu="matMenu" xPosition="after">
   <!-- vessel registration -->
-  <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
   <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">
     VESSEL.ACTION.NEW_REGISTRATION
@@ -21,7 +21,7 @@
   <mat-divider></mat-divider>
 
   <!-- vessel features -->
-  <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
   <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
   <mat-divider></mat-divider>
@@ -43,7 +43,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden"
+    class="mat-mdc-tab-disabled-hidden"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="tabGroupAnimationDuration"
@@ -66,7 +66,11 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- main form -->
-            <app-form-vessel (onSubmit)="save($event)" #vesselForm [showError]="false"></app-form-vessel>
+            <app-form-vessel #vesselForm
+                             [registrationLocationLevelIds]="registrationLocationLevelIds"
+                             [showError]="false"
+                             (onSubmit)="save($event)">
+            </app-form-vessel>
           </ion-col>
 
           <!-- quality process -->

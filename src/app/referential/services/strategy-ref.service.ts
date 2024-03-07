@@ -324,8 +324,8 @@ export class StrategyRefService extends BaseReferentialService<
    * Load strategy pmfms
    */
   loadPmfms(filter: Partial<StrategyFilter & DenormalizedPmfmFilter>,
-            options: StrategyRefLoadOptions): Promise<DenormalizedPmfmStrategy[]> {
-    return firstValueFrom(this.watchPmfms(filter, options));
+            opts?: StrategyRefLoadOptions): Promise<DenormalizedPmfmStrategy[]> {
+    return firstValueFrom(this.watchPmfms(filter, opts));
   }
 
   async clearCache() {

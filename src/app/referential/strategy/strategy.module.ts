@@ -6,7 +6,6 @@ import { StrategyForm } from './strategy.form';
 import { TranslateModule } from '@ngx-translate/core';
 import { StrategyPage } from './strategy.page';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { SamplingStrategyForm } from './sampling/sampling-strategy.form';
 import { SamplingStrategyPage } from './sampling/sampling-strategy.page';
@@ -20,12 +19,15 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
+import { MaskitoDirective } from '@maskito/angular';
+import { SharedPipesModule } from '@sumaris-net/ngx-components';
 import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
+    MaskitoDirective,
+    SharedPipesModule,
     TranslateModule.forChild(),
     MatSidenavModule,
 

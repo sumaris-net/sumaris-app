@@ -118,7 +118,6 @@
 
     "YES": "Oui",
     "NO": "Non",
-    "DEBUG": "Debug",
 
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
@@ -255,6 +254,7 @@
         "ACQUISITION_LEVEL_OPERATION_LABEL": "Référentiel > Niveau d'acquisition > Opération",
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
+        "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Référentiel > Niveau de lieu > Quartier maritime",
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_RECTANGLE_ICES_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_AREA_FAO_ID": "Référentiel > Niveau de lieu > Zone FAO",
@@ -361,6 +361,9 @@
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
         "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
+      },
+      "ACCOUNT": {
+        "ENABLE_AUTH_TOKENS": "Activer les jetons d'authentification"
       }
     },
     "CACHE": {
@@ -383,6 +386,7 @@
     "DATA_ACCESS_DIVIDER": "Accès aux données",
     "OBSERVATIONS": "Observations",
     "AUCTION_OCCASIONS": "Sorties en criée",
+    "ACTIVITY_CALENDAR": "Calendriers d'activité",
     "OCCASIONS": "Sorties",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
@@ -478,6 +482,38 @@
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
+    "TOKENS": {
+      "TITLE": "Jetons",
+      "DESCRIPTION": "Liste des jetons d'authentification",
+      "SCOPES": {
+        "READ": "Lecture",
+        "WRITE": "Écriture",
+        "ADMIN": "Administration"
+      },
+      "TABLE": {
+        "NAME": "Nom",
+        "UNKNOWN": "Jeton inconnu",
+        "FLAGS": "Droits (numeric)",
+        "SCOPES": "Droits",
+        "CREATION_DATE": "Date de création",
+        "UPDATE_DATE": "Date de modification",
+        "LAST_USED_DATE": "Date de dernière utilisation",
+        "EXPIRATION_DATE": "Date d'expiration"
+      },
+      "CREATE": {
+        "TITLE": "Création d'un nouveau jeton",
+        "DESCRIPTION": "Donnez un nom à ce jeton, mais n'entrez pas d'information sensible qui pourrait être récupérée par une tierce personne !",
+        "NAME": "Nom",
+        "NAME_ALREADY_EXISTS": "Ce nom est déjà utilisé",
+        "SCOPES": "Droits",
+        "EXPIRATION_DATE": "Date d'expiration",
+        "BTN_GENERATE": "Générer",
+        "BTN_GENERATE_TITLE": "Générer",
+        "COPY_HELP": "Veuillez copier le jeton ci-dessous dans le presse-papier en cliquant sur le bouton. Une fois validé, ce jeton ne sera plus visible.",
+        "BTN_COPY_TITLE": "Copier le jeton dans le presse-papier",
+        "COPIED": "Copié"
+      }
+    },
     "INFO": {
       "RELOADED": "Votre compte utilisateur a été <b>actualisé</b> !"
     },
@@ -494,6 +530,7 @@
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
+    "BTN_DARK_MODE": "Mode sombre/clair",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
@@ -2885,7 +2922,6 @@
           "WARNINGS": "Avertissement(s) : {{warnings}}",
           "ERRORS": "Erreur(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
-          "VESSELS": "Navire(s): {{vessels}}",
           "VESSELS": "Navire(s): {{vessels}}"
         },
         "ERROR": {
@@ -2894,7 +2930,13 @@
         }
       },
       "TYPE_ENUM": {
-        "VESSEL_SNAPSHOTS_INDEXATION": "Indexation des navires dans ElasticSearch"
+        "VESSEL_SNAPSHOTS_INDEXATION": "Indexation des navires dans ElasticSearch",
+        "SIOP_VESSELS_IMPORTATION": "Importation des navires SIOP",
+        "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Mise à jour de la hiérarchie des groupes de taxons",
+        "SYS_P_FILL_LOCATION_HIERARCHY": "Mise à jour de la hiérarchie des lieux",
+        "SUMARIS_EXTRACTION": "Extraction de données",
+        "DENORMALIZE_BATCH": "Dénormalisation des lots",
+        "VESSEL_SNAPSHOT_INDEXATION": "Indexation des navires"
       },
       "ERROR": {
         "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",
@@ -3046,6 +3088,40 @@
       "ERROR": {
         "CONNECTION_ERROR": "Échec de la connection à l'ichtyomètre '{{name}}'"
       }
+    }
+  },
+  "ACTIVITY_CALENDAR": {
+    "TABLE": {
+      "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+      "QUALITY": "État",
+      "PROGRAM": "Programme de collecte",
+      "RECORDER_PERSON": "Saisisseur",
+      "RECORDER_DEPARTMENT": "Organisme saisisseur",
+      "VESSEL": "Navire",
+      "YEAR": "Année",
+      "FILTER": {
+        "PROGRAM": "Programme de collecte",
+        "REGISTRATION_LOCATION": "Quartier maritime",
+        "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+        "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+        "RECORDER_PERSON": "Saisisseur",
+        "RECORDER_DEPARTMENT": "Organisme saisisseur",
+        "VESSEL": "Navire",
+        "YEAR": "Année"
+      }
+    },
+    "EDIT": {
+      "VESSEL_OWNER": "Armateur",
+      "REGISTRATION_LOCATION": "Quartier maritime",
+      "IS_ACTIVE": "Actif ?",
+      "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+      "IS_ACTIVE_ENUM": {
+        "ENABLE": "Actif",
+        "DISABLE": "Inactif"
+      }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne"
     }
   },
   "ERROR": {

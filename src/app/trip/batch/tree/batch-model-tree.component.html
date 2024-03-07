@@ -15,9 +15,9 @@
           [class.cdk-visually-hidden]="node.hidden"
           [class.tappable]="!node.disabled"
         >
-          <button mat-icon-button slot="start" (click)="toggle($event, node)">
-            <mat-icon class="mat-icon-rtl-mirror">{{ vars.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
-          </button>
+          <ion-button slot="start" fill="clear" size="small" shape="round" (click)="toggle($event, node)">
+            <mat-icon slot="icon-only" class="mat-icon-rtl-mirror">{{ vars.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+          </ion-button>
 
           <!-- name -->
           <ion-label>
@@ -54,7 +54,9 @@
                   [class.tappable]="!node.disabled"
                   [class.disabled]="node.disabled">
           <!-- spacer for alignment -->
-          <app-icon slot="start" [ref]="node.icon || {}"></app-icon>
+          <div slot="start">
+            <app-icon [ref]="node.icon || {}"></app-icon>
+          </div>
 
           <!-- name + error -->
           <ion-label>

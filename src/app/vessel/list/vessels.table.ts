@@ -54,7 +54,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   @Input() canDelete: boolean;
   @Input() showFabButton = false;
-  @Input() useSticky = true;
   @Input() disableStatusFilter = false;
   @Input() showVesselTypeFilter = true;
   @Input() showSearchbar = false;

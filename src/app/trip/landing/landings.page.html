@@ -402,7 +402,7 @@
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus">
+    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus" [tabPanel]="tableContainer">
       <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
@@ -532,10 +532,10 @@
 
       <!-- date time  -->
       <ng-container matColumnDef="dateTime">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text *ngIf="row.currentData.dateTime; let landingDateTime">
             {{ landingDateTime | dateFormat : { time: true } }}
             <ion-text *ngIf="mobile" class="computed">
@@ -563,10 +563,10 @@
 
       <!-- creation date -->
       <ng-container matColumnDef="creationDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <span translate>LANDING.TABLE.CREATION_DATE</span>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           {{ row.currentData.creationDate | dateFormat : { time: false } }}
         </td>
       </ng-container>
@@ -592,7 +592,7 @@
       <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
         <th mat-header-cell *matHeaderCellDef
             class="mat-column-pmfm"
-            [class.mat-cell-date-time]="pmfm | isDatePmfm">
+            [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label>
             {{ pmfm | pmfmName : { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
           </ion-label>
@@ -601,8 +601,8 @@
           mat-cell
           *matCellDef="let row"
           class="mat-column-pmfm"
-          [class.mat-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-cell-computed]="pmfm | isComputedPmfm"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
         >
           <app-pmfm-field
             *ngIf="row.editing; else readOnly"
@@ -673,8 +673,8 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

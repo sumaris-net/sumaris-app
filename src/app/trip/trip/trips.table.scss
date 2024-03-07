@@ -1,20 +1,20 @@
 
 
 
-.mat-table {
+.mat-mdc-table {
   min-width: 100%;
-  --mat-cell-vertical-padding: 4px;
+  --mat-cell-horizontal-padding: 4px;
 
   .mat-column-id {
     min-width: 50px;
     max-width: 120px;
-    padding-right: var(--mat-cell-vertical-padding, 4px);
+    padding-right: var(--mat-cell-horizontal-padding, 4px);
   }
 
   .mat-column-quality {
     min-width: calc(1.2em + 8px);
-    padding-inline-start: var(--mat-cell-vertical-padding, 4px);
-    padding-inline-end: var(--mat-cell-vertical-padding, 4px);
+    padding-inline-start: var(--mat-cell-horizontal-padding, 4px);
+    padding-inline-end: var(--mat-cell-horizontal-padding, 4px);
 
     mat-icon,
     ion-icon {
