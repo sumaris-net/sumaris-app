@@ -13,8 +13,8 @@ import 'zone.js/plugins/zone-error';
 // Environment to use only with unit tests
 import { Environment, StorageDrivers } from '@sumaris-net/ngx-components';
 
+/* eslint-disable */
 const pkg = require('../../package.json');
-
 export const environment = Object.freeze(<Environment>{
   name: pkg.name as string,
   version: pkg.version as string,

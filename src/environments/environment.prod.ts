@@ -1,9 +1,8 @@
 import { AppEnvironment } from '@environments/environment.class';
 import { StorageDrivers } from '@sumaris-net/ngx-components';
 
+/* eslint-disable */
 const pkg = require('../../package.json');
-
-/* tslint:disable */
 export const environment = Object.freeze(<AppEnvironment>{
   name: pkg.name as string,
   version: pkg.version as string,

@@ -12,8 +12,8 @@ import { StorageDrivers } from '@sumaris-net/ngx-components';
 import 'zone.js/plugins/zone-error';
 import { AppEnvironment } from '@environments/environment.class';
 
+/* eslint-disable */
 const pkg = require('../../package.json');
-
 export const environment = Object.freeze(<AppEnvironment>{
   name: pkg.name as string,
   version: pkg.version as string,
