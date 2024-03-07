@@ -32,7 +32,8 @@ export declare type ExtendedPmfmType = PmfmType | 'latitude' | 'longitude' | 'du
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
+// eslint-disable-next-line no-useless-escape
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
 
 export interface IPmfm<T extends IPmfm<T, ID> = IPmfm<any, any>, ID = number> extends IEntity<T, ID> {
   id: ID;

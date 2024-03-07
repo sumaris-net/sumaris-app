@@ -266,7 +266,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.form.valueChanges
         .pipe(
           debounceTime(250),
-          filter((_) => this._showMetiers)
+          filter(() => this._showMetiers)
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );

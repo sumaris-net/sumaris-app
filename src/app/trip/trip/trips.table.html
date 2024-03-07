@@ -178,7 +178,9 @@
 
           <ion-col>
             <!-- End date -->
-            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true"></mat-date-field>
+            <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            </mat-date-field>
           </ion-col>
         </ion-row>
 
@@ -228,6 +230,7 @@
             <!-- Data quality status -->
             <ion-col>
               <mat-form-field>
+                <ion-icon matPrefix name="create"></ion-icon>
                 <mat-select [formControl]="control" [placeholder]="'TRIP.TABLE.QUALITY' | translate">
                   <mat-select-trigger>
                     <span *ngIf="statusById | mapGet: control.value; let item">

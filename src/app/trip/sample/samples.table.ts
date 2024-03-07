@@ -791,7 +791,7 @@ export class SamplesTable
           break;
 
         // Remote generation
-        case 'remote':
+        case 'remote': {
           const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this.strategyLabel, '-', this.tagIdMinLength);
           const nextTagIdSuffix = parseInt(nextTagIdComplete.slice(-1 * this.tagIdMinLength));
           newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix).padStart(
@@ -799,6 +799,7 @@ export class SamplesTable
             '0'
           );
           break;
+        }
       }
 
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;

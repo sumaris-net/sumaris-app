@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Self, ViewChild } from '@angular/core';
 
 import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
@@ -6,6 +6,7 @@ import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -94,7 +95,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number, TripPageState> implements OnDestroy, AfterViewInit {
+export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number, TripPageState> implements OnInit, OnDestroy, AfterViewInit {
   static TABS = {
     GENERAL: 0,
     PHYSICAL_GEARS: 1,
@@ -172,7 +173,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         from(this.ready())
       )
         .pipe(debounceTime(500), throttleTime(500))
-        .subscribe((_) => this.updateDataContext())
+        .subscribe(() => this.updateDataContext())
     );
   }
 
@@ -183,7 +184,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.registerSubscription(
       this.onUpdateView
         .pipe(
-          filter((_) => !this.loading),
+          filter(() => !this.loading),
           debounceTime(250)
         )
         .subscribe(() => this.operationsTable.onRefresh.emit())
@@ -207,7 +208,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     );
 
     // Allow to show operations tab, when add gear
-    this.registerSubscription(this.physicalGearsTable.onConfirmEditCreateRow.subscribe((_) => (this.showOperationTable = true)));
+    this.registerSubscription(this.physicalGearsTable.onConfirmEditCreateRow.subscribe(() => (this.showOperationTable = true)));
 
     if (this.measurementsForm) {
       this.registerSubscription(
@@ -215,9 +216,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           .pipe(
             //debounceTime(400),
             filter(isNotNil),
-            mergeMap((_) => this.measurementsForm.ready())
+            mergeMap(() => this.measurementsForm.ready())
           )
-          .subscribe((_) => this.onMeasurementsFormReady())
+          .subscribe(() => this.onMeasurementsFormReady())
       );
     }
   }
@@ -349,7 +350,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
-      const subscription = this.network.onNetworkStatusChanges.pipe(filter((status) => status === 'none')).subscribe((_) => {
+      const subscription = this.network.onNetworkStatusChanges.pipe(filter((status) => status === 'none')).subscribe(() => {
         this.operationsTable.showMap = false;
         this.markForCheck();
         subscription.unsubscribe(); // Remove the subscription (not need anymore)
@@ -439,11 +440,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           .pipe(
             filter((event) => this.showOperationTable && event.index === TripPage.TABS.OPERATIONS),
             // Save trip when opening the operation tab
-            mergeMap((_) => this.save()),
+            mergeMap(() => this.save()),
             filter((saved) => saved === true),
             first(),
             // If save succeed, propagate the tripId to the table
-            tap((_) => this.operationsTable.setTripId(this.data.id))
+            tap(() => this.operationsTable.setTripId(this.data.id))
           )
           .subscribe()
       );

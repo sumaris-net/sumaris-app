@@ -142,9 +142,7 @@ export class JobListComponent implements OnInit, OnDestroy {
       }
     );
     this.autocompleteFields = this.autocompleteHelper.fields;
-  }
 
-  ngOnInit() {
     this.state.connect(
       'jobs',
       merge(
@@ -237,7 +235,9 @@ export class JobListComponent implements OnInit, OnDestroy {
         })
       )
     );
+  }
 
+  ngOnInit() {
     // Issuer combo
     const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName']);
     this.registerAutocompleteField('issuer', {
@@ -336,11 +336,11 @@ export class JobListComponent implements OnInit, OnDestroy {
     console.debug(`[job-list] Running job ${type} ....`);
     try {
       const job = await this.jobService.runJob(type);
+      return true; // Should close the actions
     } catch (err) {
       console.error(err);
       const message = this.translate.instant(err?.details?.message || 'SOCIAL.JOB.ERROR.RUN_JOB_ERROR');
       await Alerts.showError(message, this.alertCtrl, this.translate);
-    } finally {
       return true; // Should close the actions
     }
   }

@@ -333,7 +333,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
           return 'success';
         }
 
-      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG:
+      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG: {
         const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;
 
         if (isNotNil(pmfmValue) && auctionDensityCategory) {
@@ -348,6 +348,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
           }
         }
         break;
+      }
     }
 
     return null;

@@ -37,6 +37,8 @@
         "jsdoc/newline-after-description": "off",
         "@angular-eslint/component-class-suffix": "off",
         "@angular-eslint/no-output-rename": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
         "@typescript-eslint/consistent-type-definitions": "error",
         "@typescript-eslint/naming-convention": "off",
@@ -44,6 +46,10 @@
         "prefer-arrow/prefer-arrow-functions": "off",
         "@typescript-eslint/ban-types": "off",
         "@angular-eslint/no-output-on-prefix": "warn",
+        "@rx-angular/no-explicit-change-detection-apis": "warn",
+        "@rx-angular/no-zone-critical-rxjs-operators": "warn",
+        "@rx-angular/no-zone-critical-rxjs-creation-apis": "warn",
+        "@rx-angular/prefer-no-layout-sensitive-apis": "warn",
         "@typescript-eslint/explicit-member-accessibility": [
           "off",
           {

@@ -59,7 +59,7 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
   }
 
   protected async loadData(id: number, opts?: any): Promise<Operation> {
-    if (this.debug) console.debug(`[${this.logPrefix}.loadData]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.loadData]`, id, opts);
     const data = await this.operationService.load(id);
 
     await this.fillParent(data);
@@ -83,12 +83,12 @@ export class OperationReport extends AppDataEntityReport<Operation, number, Oper
   }
 
   protected computeDefaultBackHref(data: Operation): string {
-    if (this.debug) console.debug(`[${this.logPrefix}.computeDefaultBackHref]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.computeDefaultBackHref]`, data);
     return `/trips/${data.trip.id}/operation/${data.id}`;
   }
 
   protected async computeTitle(data: Operation, stats: OperationStats): Promise<string> {
-    if (this.debug) console.debug(`[${this.logPrefix}.computeTitle]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.computeTitle]`, data, stats);
     // TODO Need option with prefix
     // const titlePrefix = (!opts || opts.withPrefix) && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
     const titlePrefix = await lastValueFrom(

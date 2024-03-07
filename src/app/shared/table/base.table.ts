@@ -529,7 +529,7 @@ export abstract class AppBaseTable<
             if (isNilOrBlank(this.settingsId)) return;
             console.debug(this.logPrefix + 'Restoring filter from settings...');
             return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
-          case 'queryParams':
+          case 'queryParams': {
             const { q } = this.route.snapshot.queryParams;
             if (q) {
               console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
@@ -540,6 +540,7 @@ export abstract class AppBaseTable<
               }
             }
             break;
+          }
         }
         return null;
       })

@@ -130,7 +130,7 @@ export class StrategiesPage implements OnInit {
 
     // Redirect to editor
     switch (acquisitionLevel) {
-      case AcquisitionLevelCodes.LANDING:
+      case AcquisitionLevelCodes.LANDING: {
         const editor = this.data.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
         return this.navController.navigateForward(`/observations/landings/${editor}/new`, {
           queryParams: {
@@ -139,6 +139,7 @@ export class StrategiesPage implements OnInit {
             strategyLabel: strategy.label,
           },
         });
+      }
       case AcquisitionLevelCodes.OBSERVED_LOCATION:
       default:
         return this.navController.navigateForward('/observations/new', {

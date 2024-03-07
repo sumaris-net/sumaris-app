@@ -80,6 +80,7 @@ export class AppComponent implements OnInit {
   }
 
   onActivate(event) {
+    /* eslint-disable @rx-angular/no-zone-critical-browser-apis */
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {

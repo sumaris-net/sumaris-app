@@ -7,6 +7,7 @@ import { ConfigService, firstNotNilPromise, isEmptyArray, LatLongPattern, LocalS
 import { Feature } from 'geojson';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { environment } from '@environments/environment';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import { v4 as uuidv4 } from 'uuid';
@@ -169,6 +170,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected abstract onFeatureClick(feature: Feature);
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
+    /* eslint-disable @rx-angular/no-zone-run-apis */
     layer.on('mouseover', () => this.zone.run(() => this.$onOverFeature.next(feature)));
     layer.on('mouseout', () => this.zone.run(() => this.$onOutFeature.next(feature)));
     layer.on('click', () => this.zone.run(() => this.onFeatureClick(feature)));

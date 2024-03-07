@@ -200,8 +200,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       this.registerSubscription(
         this.onSearchBarChanged
           .pipe(
-            filter((_) => !this.filterExpansionPanel.expanded),
-            tap((_) => this.markAsLoading()),
+            filter(() => !this.filterExpansionPanel.expanded),
+            tap(() => this.markAsLoading()),
             debounceTime(650)
           )
           .subscribe((searchText) => this.patchFilter({ searchText }))

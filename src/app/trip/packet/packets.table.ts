@@ -322,7 +322,7 @@ export class PacketsTable
     if (event) event.stopPropagation();
 
     // Make sure to save before open sale modal, because sale's product use packet id
-    if (isNil(row.currentData?.id) || true) {
+    if (isNil(row.currentData?.id)) {
       console.info(this.logPrefix + 'Cannot open packet sale modal: missing packet id. Trying to save editor...');
       const packet = Packet.fromObject(row.currentData);
 

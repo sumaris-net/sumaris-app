@@ -1,4 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AppEditorOptions,
@@ -225,7 +226,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       err?.code === ServerErrorCodes.DATA_NOT_UNIQUE &&
       err?.details &&
       typeof err.details === 'object' &&
-      err.details.hasOwnProperty('duplicatedValues')
+      isNotNil(err.details['duplicatedValues'])
     ) {
       const details = err.details as any;
       this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', { duplicatedValues: details.duplicatedValues });

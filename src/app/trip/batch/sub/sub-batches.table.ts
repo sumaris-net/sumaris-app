@@ -10,6 +10,8 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';

@@ -1639,10 +1639,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   getDebugData(type: 'rowValidator'): any {
     switch (type) {
-      case 'rowValidator':
+      case 'rowValidator': {
         const form = this.validatorService.getRowValidator();
         form.disable();
         return form;
+      }
     }
   }
 }

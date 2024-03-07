@@ -129,7 +129,7 @@ export class BatchModelValidatorService<
         const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map((p) => p.clone());
         if (isNotEmptyArray(weightPmfms)) {
           // Add weights PMFM (if not found)
-          const initialPmfms = removeDuplicatesFromArray([...batch.state?.initialPmfms, ...weightPmfms], 'id');
+          const initialPmfms = removeDuplicatesFromArray([...(batch.state?.initialPmfms || []), ...weightPmfms], 'id');
 
           // Update the state, to enable weight (and sampling weight)
           batch.state = {

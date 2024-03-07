@@ -1,5 +1,7 @@
 import { Directive, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AppTable,
   EntitiesTableDataSource,
@@ -14,7 +16,6 @@ import {
 import { Subject } from 'rxjs';
 import { environment } from '@environments/environment';
 import { TableElement } from '@e-is/ngx-material-table';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   entityName: string;

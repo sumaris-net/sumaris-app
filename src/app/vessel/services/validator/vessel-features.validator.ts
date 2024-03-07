@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { VesselFeatures } from '../model/vessel.model';
-import { fromDateISOString, isNotNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { fromDateISOString, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { VesselValidatorOptions } from '@app/vessel/services/validator/vessel.validator';
-import { Moment, unitOfTime } from 'moment';
+import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';
 

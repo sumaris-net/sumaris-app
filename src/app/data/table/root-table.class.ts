@@ -475,6 +475,7 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
+      // eslint-disable-next-line no-async-promise-executor
       await new Promise<void>(async (resolve, reject) => {
         const res = await this.network.showOfflineToast({
           showRetryButton: true,
@@ -538,6 +539,7 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
+      // eslint-disable-next-line no-async-promise-executor
       await new Promise<void>(async (resolve, reject) => {
         const res = await this.network.showOfflineToast({
           showRetryButton: true,
@@ -629,7 +631,7 @@ export abstract class AppRootDataTable<
               if (isNilOrBlank(this.settingsId)) return;
               console.debug(this.logPrefix + 'Restoring filter from settings...');
               return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
-            case 'queryParams':
+            case 'queryParams': {
               const { q } = this.route.snapshot.queryParams;
               if (q) {
                 console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
@@ -639,6 +641,8 @@ export abstract class AppRootDataTable<
                   console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
                 }
               }
+              break;
+            }
           }
 
           return null;

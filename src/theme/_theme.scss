@@ -43,6 +43,15 @@ ion-content.ion-flex-direction-column::part(scroll) {
   margin-bottom: 5px;
   --expansion-panel-padding: 0 !important;
 
+  // Reduce filter form field subscript size
+  .form-container {
+    --app-form-field-background-color: tranparent;
+    --mat-form-field-subscript-text-line-height: 16px;
+    .mat-mdc-form-field-bottom-align::before {
+      height: 16px;
+    }
+  }
+
   mat-action-row {
     height: 46px;
 

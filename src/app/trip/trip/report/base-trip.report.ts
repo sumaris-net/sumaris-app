@@ -181,7 +181,7 @@ export abstract class BaseTripReport<
       cache?: boolean;
     }
   ): Promise<T> {
-    if (this.debug) console.debug(`[${this.logPrefix}] load`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}] load`, filter, opts);
     // Load data
     return this.loadData(filter, opts);
   }
@@ -497,7 +497,7 @@ export abstract class BaseTripReport<
 
     if (opts.getSubCategory) {
       const dataBySubCategory = collectByFunction<HL>(data, opts.getSubCategory);
-      const subCategories = removeDuplicatesFromArray([...opts?.subCategories, ...Object.keys(dataBySubCategory)]);
+      const subCategories = removeDuplicatesFromArray([...(opts?.subCategories || []), ...Object.keys(dataBySubCategory)]);
       if (isNotEmptyArray(subCategories)) {
         console.warn(`[${this.constructor.name}] No sub categories found for species '${species}'`);
         subCategories.forEach((subCategory, index) => {

@@ -10,6 +10,8 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import moment from 'moment';
 import * as L from 'leaflet';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';

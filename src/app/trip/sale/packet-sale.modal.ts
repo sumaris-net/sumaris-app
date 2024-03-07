@@ -6,6 +6,7 @@ import { Packet } from '../packet/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface IPacketSaleModalOptions {
   disabled: boolean;

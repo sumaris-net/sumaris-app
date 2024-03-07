@@ -5,6 +5,7 @@ import { Operation } from '@app/trip/trip/trip.model';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface ISelectOperationModalOptions {
   filter: OperationFilter;

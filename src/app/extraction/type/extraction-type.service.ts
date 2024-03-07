@@ -208,7 +208,6 @@ export class ExtractionTypeService
     typeFilter?: Partial<ExtractionTypeFilter>,
     opts?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<ExtractionType[]> {
-    // @ts-ignore
     return of(programs).pipe(
       filter(isNotEmptyArray),
       // Get extraction formats of selected programs (apply an intersection)

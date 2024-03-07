@@ -12,6 +12,8 @@ import {
   Self,
   ViewChild,
 } from '@angular/core';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearForm } from './physical-gear.form';
 import {

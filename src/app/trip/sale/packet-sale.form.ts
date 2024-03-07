@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-packet-sale-form',

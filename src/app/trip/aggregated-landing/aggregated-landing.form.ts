@@ -243,7 +243,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
     this.enable();
     this.markAsLoaded();
-    //setTimeout(() => this.markAsLoaded(), 500);
   }
 
   private newActivity(): VesselActivity {

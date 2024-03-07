@@ -384,13 +384,14 @@ export class UserEventService
     // Analyse type
     switch (source.type) {
       // Debug data
-      case UserEventTypeEnum.FEED:
+      case UserEventTypeEnum.FEED: {
         source.avatarIcon = { matIcon: 'rss_feed' };
         source.icon = { matIcon: 'information-circle-outline', color: 'success' };
-
         break;
+      }
+
       // Debug data
-      case UserEventTypeEnum.DEBUG_DATA:
+      case UserEventTypeEnum.DEBUG_DATA: {
         issuer = await this.getPersonByPubkey(source.issuer);
         source.icon = { matIcon: 'bug_report', color: 'danger' };
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.DEBUG_DATA', {
@@ -402,9 +403,10 @@ export class UserEventService
           executeAction: () => this.navigate(['admin', 'config'], { queryParams: { tab: '2' } }),
         });
         break;
+      }
 
       // Inbox messages:
-      case UserEventTypeEnum.INBOX_MESSAGE:
+      case UserEventTypeEnum.INBOX_MESSAGE: {
         issuer = await this.getPersonByPubkey(source.issuer);
         if (isNotNil(issuer?.avatar)) {
           source.avatar = issuer?.avatar;
@@ -422,9 +424,10 @@ export class UserEventService
           executeAction: (e) => this.navigate(['inbox', e.id]),
         });
         break;
+      }
 
       // Job event:
-      case UserEventTypeEnum.JOB:
+      case UserEventTypeEnum.JOB: {
         if (source.hasContent && !source.content) {
           source.content = await this.loadContent(source.id, { fetchPolicy: 'no-cache' });
         }
@@ -447,6 +450,7 @@ export class UserEventService
         this.decorateJobUserEvent(source, job);
 
         break;
+      }
 
       default:
         if (this._debug) console.debug(this._logPrefix + `[user-event-service] Unknown event type '${source.type}': `, source);

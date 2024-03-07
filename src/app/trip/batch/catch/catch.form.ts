@@ -77,8 +77,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
 
   /* -- protected functions -- */
 
-  // @ts-ignore
-  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
+  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<CatchBatchFormState>> {
     if (!pmfms) return; // Skip
 
     // DEBUG

@@ -6,9 +6,7 @@ declare type Constructor = new (...args: any[]) => any;
 const STATE_VAR_NAME_KEY = '__stateName';
 const DEFAULT_STATE_VAR_NAME = '_state';
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function RxStateRegister(): PropertyDecorator {
-  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function (target: Constructor, key: string) {
     // DEBUG
     //console.debug(`${target.constructor?.name} @State() ${key}`);
@@ -24,12 +22,10 @@ export function RxStateRegister(): PropertyDecorator {
   };
 }
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function RxStateProperty<T = any, K extends keyof T = any, V extends T[K] = any>(
   statePropertyName?: string | K,
   projectValueReducer?: ProjectValueReducer<T, K, V>
 ): PropertyDecorator {
-  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function (target: Constructor, key: string) {
     // DEBUG
     //console.debug(`${target.constructor?.name} @StateProperty() ${key}`);
@@ -67,9 +63,7 @@ export function RxStateProperty<T = any, K extends keyof T = any, V extends T[K]
   };
 }
 
-// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function RxStateSelect<T = any>(statePropertyName?: string | keyof T | '$', opts?: { stateName?: string }): PropertyDecorator {
-  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   return function (target: Constructor, key: string) {
     // DEBUG
     //console.debug(`${target.constructor?.name} @RxStateSelect() ${key}`);

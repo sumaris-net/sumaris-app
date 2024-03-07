@@ -64,6 +64,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   @Input() tabindex: number;
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
   @Input() autofocus: boolean;
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('class') classList: string;
 
   @Input() set readonly(value: boolean) {
