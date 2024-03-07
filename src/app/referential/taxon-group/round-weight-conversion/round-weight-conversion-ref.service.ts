@@ -70,7 +70,7 @@ export class RoundWeightConversionRefService
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform, RoundWeightConversionRef, RoundWeightConversionRefFilter, {
-      queries: QUERIES
+      queries: QUERIES,
     });
     this._logPrefix = '[round-weight-conversion-ref-service] ';
   }

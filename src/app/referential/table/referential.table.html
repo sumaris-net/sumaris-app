@@ -313,12 +313,7 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'label'; let control; else readonlyCell">
-            <input
-              matInput
-              [formControl]="control"
-              [placeholder]="'REFERENTIAL.LABEL' | translate"
-              [appAutofocus]="row.id === -1 && row.editing"
-            />
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.LABEL' | translate" [appAutofocus]="row.id === -1 && row.editing" />
             <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
 
@@ -373,7 +368,7 @@
         </th>
         <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" [class.cdk-visually-hidden]="!showLevelColumn">
           <mat-form-field floatLabel="never">
-            <mat-select [formControl]="row.validator | formGetControl:'levelId'" [placeholder]="i18nLevelName | translate">
+            <mat-select [formControl]="row.validator | formGetControl: 'levelId'" [placeholder]="i18nLevelName | translate">
               <mat-option *ngFor="let level of $levels | async" [value]="level.id">{{ level.label }} - {{ level.name }}</mat-option>
             </mat-select>
             <mat-error *ngIf="row.validator.controls['levelId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
