@@ -75,8 +75,8 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
 
-    if (opts && opts.keepRemoteId === false) {
-      AppReferentialUtils.cleanIdAndDates(target, true, ['gears', 'taxonGroups', 'taxonNames']);
+    if (opts?.keepRemoteId === false && (EntityUtils.isRemoteId(target.id) || EntityUtils.isRemoteId(target.programId))) {
+      AppReferentialUtils.cleanIdAndDates(target, true, ['appliedStrategies', 'pmfms', 'departments', 'gears', 'taxonGroups', 'taxonNames']);
       delete target.programId;
     }
 
@@ -92,6 +92,13 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
         // Same program
         ((!this.programId && !other.programId) || this.programId === other.programId))
     );
+  }
+
+  duplicate(): Strategy {
+    const target = this.clone();
+    AppReferentialUtils.cleanIdAndDates(target, true, ['gears', 'taxonGroups', 'taxonNames']);
+
+    return target;
   }
 }
 
@@ -114,11 +121,14 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
     return target;
   }
 
-  asObject(opts?: ReferentialAsObjectOptions): any {
+  asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.location = (this.location && this.location.asObject(opts)) || undefined;
     target.privilege = this.privilege && this.privilege.asObject(opts);
     target.department = this.department && this.department.asObject(opts);
+    if (opts?.keepRemoteId === false && EntityUtils.isRemoteId(target.strategyId)) {
+      delete target.strategyId;
+    }
     return target;
   }
 
@@ -158,15 +168,13 @@ export class AppliedStrategy extends Entity<AppliedStrategy, number, StrategyAsO
 
   asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = super.asObject(opts);
-    target.location = this.location && this.location.asObject(opts);
+    target.location = this.location && this.location.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
     target.appliedPeriods = (this.appliedPeriods && this.appliedPeriods.map((p) => p.asObject(opts))) || undefined;
 
     // Clean remote id
-    if (opts && opts.keepRemoteId === false) {
-      delete target.id;
-      delete target.updateDate; // Make to sens to keep updateDate of a local entity to save
+    if (opts && opts.keepRemoteId === false && (EntityUtils.isRemoteId(target.id) || EntityUtils.isRemoteId(target.strategyId))) {
+      AppReferentialUtils.cleanIdAndDates(target, false);
       delete target.strategyId;
-      if (EntityUtils.isRemoteId(target.location.id)) delete target.location.id;
     }
     return target;
   }
@@ -214,7 +222,7 @@ export class AppliedPeriod {
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     // Clean remote id
-    if (opts && opts.keepRemoteId === false && EntityUtils.isRemoteId(target.appliedStrategyId)) {
+    if (opts?.keepRemoteId === false && EntityUtils.isRemoteId(target.appliedStrategyId)) {
       delete target.appliedStrategyId;
     }
     return target;
@@ -236,6 +244,8 @@ export class AppliedPeriod {
 }
 
 export class TaxonGroupStrategy {
+  static TYPENAME = 'TaxonGroupStrategyVO';
+
   strategyId: number;
   priorityLevel: number;
   taxonGroup: TaxonGroupRef;
@@ -247,10 +257,13 @@ export class TaxonGroupStrategy {
     return res;
   }
 
-  asObject(opts?: ReferentialAsObjectOptions): any {
+  asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...MINIFY_OPTIONS });
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...MINIFY_OPTIONS, ...opts });
+    if (opts?.keepRemoteId === false && EntityUtils.isRemoteId(target.strategyId)) {
+      delete target.strategyId;
+    }
     return target;
   }
 
@@ -280,9 +293,12 @@ export class TaxonNameStrategy {
     return target;
   }
 
-  asObject(opts?: ReferentialAsObjectOptions): any {
+  asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.taxonName.__typename;
+    if (opts?.keepRemoteId === false && EntityUtils.isRemoteId(target.strategyId)) {
+      delete target.strategyId;
+    }
     return target;
   }
 

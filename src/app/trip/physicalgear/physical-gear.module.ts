@@ -8,9 +8,8 @@ import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
-import { AppPmfmModule } from '@app/referential/pmfm/pmfm.module';
 
 @NgModule({
   imports: [
@@ -23,7 +22,7 @@ import { AppPmfmModule } from '@app/referential/pmfm/pmfm.module';
     AppDataModule,
 
     // Functional modules
-    VesselModule,
+    AppVesselModule,
     AppMeasurementModule,
   ],
   declarations: [PhysicalGearTable, PhysicalGearForm, PhysicalGearModal, SelectPhysicalGearModal],

@@ -14,7 +14,7 @@
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+  <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
@@ -51,7 +51,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -60,18 +60,14 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
+        <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">{{ row.currentData.rankOrder || row.currentData.parent?.rankOrder }}</td>
     </ng-container>
@@ -129,11 +125,11 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; index as index; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+    <ng-container *ngFor="let pmfm of pmfms$ | async; index as index; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+      <th mat-header-cell *matHeaderCellDef [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true }"></ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm" (click)="focusColumn = pmfm.label">
+      <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" (click)="focusColumn = pmfm.label">
         <app-pmfm-field
           *ngIf="row.editing; else readonlyPmfmField"
           floatLabel="never"
@@ -175,7 +171,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -187,10 +183,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-selected]="row.editing"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"
@@ -216,11 +212,7 @@
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row">
-          <mat-checkbox
-            (click)="$event.stopPropagation()"
-            (change)="$event ? selection.toggle(row) : null"
-            [checked]="selection.isSelected(row)"
-          ></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
         </td>
       </ng-container>
 
@@ -265,11 +257,11 @@
       </ng-container>
 
       <!-- Pmfm columns -->
-      <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-        <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+      <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+        <th mat-header-cell *matHeaderCellDef [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true }"></ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm">
+        <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true }"></ion-text>
         </td>
       </ng-container>
@@ -291,7 +283,7 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.mat-row-error]="row.invalid" (click)="clickRow($event, row)"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.mat-mdc-row-error]="row.invalid" (click)="clickRow($event, row)"></tr>
     </table>
   </ng-template>
 </div>

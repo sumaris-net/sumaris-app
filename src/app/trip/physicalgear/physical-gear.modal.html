@@ -33,8 +33,8 @@
 <ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="ion-no-padding">
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
-    [class.mat-tab-group-header-hidden]="!(showChildrenTable$ | push)"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
+    [class.mat-mdc-tab-group-header-hidden]="!(showChildrenTable$ | push)"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -67,9 +67,9 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                modal.loading: {{ loading }}
-                <br />
                 modal.ready: {{ readySubject | async }}
+                <br />
+                modal.loading: {{ loading }}
                 <br />
                 modal.dirty: {{ dirty }}
                 <br />
@@ -95,7 +95,18 @@
                 <br />
                 form.valid: {{ physicalGearForm.valid }}
                 <br />
-                form.pmfms: {{ (physicalGearForm.pmfms$ | async)?.length }}
+              </ion-col>
+              <ion-col>
+                form.acquisitionLevel: {{ physicalGearForm.acquisitionLevel$ | async }}
+                <br />
+                form.programLabel: {{ physicalGearForm.programLabel$ | async }}
+                <br />
+                form.strategy{{ physicalGearForm.requiredStrategy ? ' (required)' : '' }}:
+                {{ physicalGearForm.strategyId || physicalGearForm.strategyLabel }}
+                <br />
+                form.gear{{ physicalGearForm.requiredGear ? ' (required)' : '' }}: {{ physicalGearForm.gearId }}
+                <br />
+                form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
                 <br />
               </ion-col>
             </ion-row>
@@ -105,8 +116,10 @@
         <!-- base form -->
         <app-physical-gear-form
           #physicalGearForm
-          [programLabel]="programLabel"
           [acquisitionLevel]="acquisitionLevel"
+          [programLabel]="programLabel"
+          [requiredStrategy]="requiredStrategy"
+          [strategyId]="strategyId"
           [canEditGear]="canEditGear"
           [canEditRankOrder]="canEditRankOrder"
           [showGear]="showGear"
@@ -149,6 +162,8 @@
         (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
         [acquisitionLevel]="childAcquisitionLevel"
         [programLabel]="programLabel"
+        [requiredStrategy]="requiredStrategy"
+        [strategyId]="strategyId"
         [tripId]="tripId"
         [showGearColumn]="false"
         [defaultGear]="gear$ | push: 'immediate'"

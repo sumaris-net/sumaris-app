@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
-import { VesselModule } from '@app/vessel/vessel.module';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
@@ -30,7 +30,7 @@ import { AppExtractionButtonModule } from '@app/extraction/button/extraction-but
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    VesselModule,
+    AppVesselModule,
     AppExtractionButtonModule,
 
     // Functional modules

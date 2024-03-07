@@ -1,3 +1,4 @@
+
 .table-container {
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
@@ -11,8 +12,8 @@
   }
 }
 
-.mat-header-row,
-.mat-row {
+.mat-mdc-header-row,
+.mat-mdc-row {
   max-height: 140px;
   padding: 0 0;
 
@@ -27,7 +28,7 @@
     max-width: 180px;
   }
 
-  .mat-cell-date-time {
+  .mat-mdc-cell-date-time {
     min-width: 125px;
     max-width: 180px;
   }
@@ -37,13 +38,13 @@
     max-width: 200px;
   }
 
-  .mat-cell.divider {
+  .mat-mdc-cell.divider{
     background-color: var(--ion-color-light, whitesmoke) !important;
     font-weight: bold;
     font-size: 12px !important;
   }
 }
-.warning {
+.warning{
   color: var(--ion-color-danger);
   font-style: italic;
 }

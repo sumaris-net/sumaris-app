@@ -16,11 +16,12 @@ import {
   AccountService,
   Alerts,
   AppForm,
+  AppFormArray,
   DateFormatService,
   DateUtils,
   EntityUtils,
+  equals,
   firstNotNilPromise,
-  FormArrayHelper,
   fromDateISOString,
   getPropertyByPath,
   IReferentialRef,
@@ -44,9 +45,9 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
-import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -57,7 +58,6 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { LocationLevelGroups, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -67,6 +67,8 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -93,6 +95,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _trip: Trip;
   private _$physicalGears = new BehaviorSubject<PhysicalGear[]>(undefined);
   private _$metiers = new BehaviorSubject<LoadResult<IReferentialRef>>(undefined);
+  private _showMetier = true;
   private _showMetierFilter = false;
   private _allowParentOperation = false;
   private _showPosition = true;
@@ -101,6 +104,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _showGeolocationSpinner = true;
+  private _lastValidatorOpts: any;
   protected _usageMode: UsageMode;
 
   startProgram: Date | Moment;
@@ -114,7 +118,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   isParentOperationControl: UntypedFormControl;
   canEditType: boolean;
   $parentOperationLabel = new BehaviorSubject<string>('');
-  fishingAreasHelper: FormArrayHelper<FishingArea>;
   fishingAreaFocusIndex = -1;
   autocompleteFilters = {
     metier: false,
@@ -146,6 +149,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get usageMode(): UsageMode {
     return this._usageMode;
+  }
+
+  @Input() set showMetier(value: boolean) {
+    // Change metier filter button
+    if (this._showMetier !== value) {
+      this._showMetier = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showMetier(): boolean {
+    return this._showMetier;
   }
 
   @Input() set showMetierFilter(value: boolean) {
@@ -246,8 +261,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return this.form?.controls.childOperation as UntypedFormControl;
   }
 
-  get fishingAreasForm(): UntypedFormArray {
-    return this.form?.controls.fishingAreas as UntypedFormArray;
+  get fishingAreasForm() {
+    return this.form?.controls.fishingAreas as AppFormArray<FishingArea, UntypedFormGroup>;
   }
 
   get qualityFlagControl(): UntypedFormControl {
@@ -339,7 +354,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     protected physicalGearService: PhysicalGearService,
     protected pmfmService: PmfmService,
     protected formBuilder: UntypedFormBuilder,
-    protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
   ) {
@@ -389,6 +403,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: fishingAreaAttributes,
+      showAllOnFocus: false,
       suggestLengthThreshold: 2,
       mobile: this.mobile,
     });
@@ -490,12 +505,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       data.endPosition = null;
     }
 
-    if (!isNew && !this._showFishingArea) data.fishingAreas = [];
-    if (!isNew && this._showFishingArea && data.fishingAreas.length) {
-      this.fishingAreasHelper.resize(Math.max(data.fishingAreas.length, 1));
+    //this._showFishingArea = this._showFishingArea || isNotEmptyArray(data.fishingAreas);
+    if (this._showFishingArea) {
+      data.fishingAreas = isNotEmptyArray(data.fishingAreas) ? data.fishingAreas : [null];
+    } else {
+      data.fishingAreas = [];
     }
 
-    if (isParentOperation && isNil(data.qualityFlagId)) {
+    if (isParentOperation && DataEntityUtils.hasNoQualityFlag(data)) {
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
 
@@ -675,7 +692,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           gearIds,
         },
         gearIds,
-        parent,
+        selectedOperation: parent,
         enableGeolocation: this.enableGeolocation,
       },
       keyboardClose: true,
@@ -701,11 +718,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     // Compute parent operation label
     let parentLabel = '';
     if (isNotNil(parentOperation?.id)) {
-      parentLabel = (await this.translate
-        .get(this.i18nFieldPrefix + 'TITLE_NO_RANK', {
+      parentLabel = (await firstValueFrom(
+        this.translate.get(this.i18nFieldPrefix + 'TITLE_NO_RANK', {
           startDateTime: parentOperation.startDateTime && (this.dateFormat.transform(parentOperation.startDateTime, { time: true }) as string),
         })
-        .toPromise()) as string;
+      )) as string;
 
       // Append end time
       if (parentOperation.fishingStartDateTime && !parentOperation.startDateTime.isSame(parentOperation.fishingStartDateTime)) {
@@ -813,8 +830,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       const fishingAreasCopy = parentOperation.fishingAreas
         .filter((fa) => ReferentialUtils.isNotEmpty(fa.location))
         .map((fa) => <FishingArea>{ location: fa.location });
-      if (isNotEmptyArray(fishingAreasCopy) && this.fishingAreasHelper.size() <= 1) {
-        this.fishingAreasHelper.resize(fishingAreasCopy.length);
+      if (isNotEmptyArray(fishingAreasCopy) && this.fishingAreasForm.length <= 1) {
         fishingAreasControl.patchValue(fishingAreasCopy);
       }
     }
@@ -829,9 +845,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   addFishingArea() {
-    this.fishingAreasHelper.add();
+    this.fishingAreasForm.add();
     if (!this.mobile) {
-      this.fishingAreaFocusIndex = this.fishingAreasHelper.size() - 1;
+      this.fishingAreaFocusIndex = this.fishingAreasForm.length - 1;
     }
   }
 
@@ -873,6 +889,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.allowParentOperation && this.isChildOperation,
+      withMetier: this._showMetier,
       withPosition: this._showPosition,
       withFishingAreas: this._showFishingArea,
       withFishingStart: this.fishingStartDateTimeEnable,
@@ -884,18 +901,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       maxTotalDurationInHours: this.maxTotalDurationInHours,
     };
 
-    // DEBUG
-    console.debug(`[operation] Updating form group (validators)`, validatorOpts);
+    if (!equals(validatorOpts, this._lastValidatorOpts)) {
+      // DEBUG
+      console.debug(`[operation] Updating form group (validators)`, validatorOpts);
 
-    this.validatorService.updateFormGroup(this.form, validatorOpts);
+      this.validatorService.updateFormGroup(this.form, validatorOpts);
 
-    if (validatorOpts.withFishingAreas) this.initFishingAreas(this.form);
+      this.initPositionSubscription();
 
-    this.initPositionSubscription();
+      if (!opts || opts.emitEvent !== false) {
+        this.form.updateValueAndValidity();
+        this.markForCheck();
+      }
 
-    if (!opts || opts.emitEvent !== false) {
-      this.form.updateValueAndValidity();
-      this.markForCheck();
+      // Remember used opts, for next call
+      this._lastValidatorOpts = validatorOpts;
     }
   }
 
@@ -912,16 +932,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
 
     // Change metier status, if need
-    const enableMetier = (hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears)) || this.allowParentOperation;
-    if (enableMetier) {
-      if (metierControl.disabled) metierControl.enable();
-    } else {
-      if (metierControl.enabled) metierControl.disable();
-    }
+    if (this._showMetier) {
+      const enableMetier = (hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears)) || this.allowParentOperation;
+      if (enableMetier) {
+        if (metierControl.disabled) metierControl.enable();
 
-    if (hasPhysicalGear && enableMetier) {
-      // Refresh metiers
-      await this.loadMetiers(physicalGear);
+        // Refresh metiers
+        await this.loadMetiers(physicalGear);
+      } else {
+        if (metierControl.enabled) metierControl.disable();
+      }
     }
   }
 
@@ -936,23 +956,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     if (isNotNil(this._$metiers.value)) this._$metiers.next(null);
 
     // No gears selected: skip
-    if (EntityUtils.isEmpty(physicalGear, 'id')) {
-      return undefined;
-    }
+    if (EntityUtils.isEmpty(physicalGear, 'id') || !this._showMetier) return;
 
     await this.ready();
 
     const gear = physicalGear?.gear;
     console.debug('[operation-form] Loading Metier ref items for the gear: ' + gear?.label);
 
-    let res;
+    let res: LoadResult<Metier | ReferentialRef>;
     if (this.autocompleteFilters.metier) {
       res = await this.operationService.loadPracticedMetier(0, 30, null, null, {
         ...METIER_DEFAULT_FILTER,
         searchJoin: 'TaxonGroup',
         vesselId: this.trip.vesselSnapshot.id,
         startDate: this.startProgram as Moment,
-        endDate: moment().add(1, 'day'), // Tomorrow
+        endDate: DateUtils.moment().add(1, 'day'), // Tomorrow
         programLabel: this.programLabel,
         gearIds: gear && [gear.id],
         levelId: (gear && gear.id) || undefined,
@@ -1031,8 +1049,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
 
     this._$metiers.next(res);
-
-    return res;
   }
 
   setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean }) {
@@ -1177,15 +1193,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return suggestFromArray(res.data, value, filter);
   }
 
-  protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<ReferentialRef>> {
-    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+  protected async suggestFishingAreaLocations(value: string | any, filter: any): Promise<LoadResult<ReferentialRef>> {
+    const currentControlValue: ReferentialRef = ReferentialUtils.isNotEmpty(value) ? value : null;
 
     // Excluded existing locations, BUT keep the current control value
     const excludedIds = (this.fishingAreasForm.value || [])
-      .map((fa) => fa.location)
+      .map((fa: FishingArea) => fa?.location)
       .filter(ReferentialUtils.isNotEmpty)
-      .filter((item) => !currentControlValue || currentControlValue !== item)
-      .map((item) => parseInt(item.id));
+      .filter((item: ReferentialRef) => !currentControlValue || currentControlValue !== item)
+      .map((item: ReferentialRef) => +item.id);
 
     if (this.autocompleteFilters.fishingArea && isNotNil(this.filteredFishingAreaLocations)) {
       return suggestFromArray(this.filteredFishingAreaLocations, value, {
@@ -1210,20 +1226,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       this.markForCheck();
       if (field) field.reloadItems();
     }
-  }
-
-  protected initFishingAreas(form: UntypedFormGroup) {
-    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
-      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, { required: true }),
-      (o1, o2) => (isNil(o1) && isNil(o2)) || (o1 && o1.equals(o2)),
-      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
-      { allowEmptyArray: false }
-    );
-    if (this.fishingAreasHelper.size() === 0) {
-      this.fishingAreasHelper.resize(1);
-    }
-    //this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
   protected initPositionSubscription() {

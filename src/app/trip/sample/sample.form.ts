@@ -24,11 +24,13 @@ import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-sample-form',
   templateUrl: 'sample.form.html',
   styleUrls: ['sample.form.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy, IFormControlPathTranslator {

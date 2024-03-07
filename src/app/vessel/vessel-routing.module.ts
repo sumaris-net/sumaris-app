@@ -2,8 +2,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { VesselsPage } from './list/vessels.page';
 import { VesselPage } from './page/vessel.page';
-import { SharedRoutingModule } from '@sumaris-net/ngx-components';
-import { VesselModule } from './vessel.module';
+import { AppVesselModule } from './vessel.module';
 
 const routes: Routes = [
   {
@@ -26,7 +25,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [VesselModule, RouterModule.forChild(routes)],
+  imports: [AppVesselModule, RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
 export class VesselRoutingModule {}

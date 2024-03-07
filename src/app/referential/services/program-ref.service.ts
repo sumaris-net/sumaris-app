@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, defer, merge, mergeMap, Observable, Subject, Subscription, tap } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
@@ -10,6 +10,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   ConfigService,
   Configuration,
+  DateUtils,
   Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
@@ -99,9 +100,6 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
-    ${StrategyFragments.strategyDepartment}
-    ${StrategyFragments.appliedStrategy}
-    ${StrategyFragments.appliedPeriod}
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
@@ -149,9 +147,6 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
-    ${StrategyFragments.strategyDepartment}
-    ${StrategyFragments.appliedStrategy}
-    ${StrategyFragments.appliedPeriod}
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
@@ -179,9 +174,6 @@ export const ProgramRefQueries = {
     }
     ${ProgramFragments.programRef}
     ${StrategyFragments.strategyRef}
-    ${StrategyFragments.strategyDepartment}
-    ${StrategyFragments.appliedStrategy}
-    ${StrategyFragments.appliedPeriod}
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
@@ -464,12 +456,14 @@ export class ProgramRefService
       fetchPolicy?: WatchQueryFetchPolicy;
     }
   ): Observable<Program> {
+    const toEntity = opts?.toEntity !== false ? Program.fromObject : (data: any) => data as Program;
+
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
       const cacheKey = [
         ProgramRefCacheKeys.PROGRAM_BY_LABEL,
         label,
-        opts && JSON.stringify({ withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter }),
+        JSON.stringify({ withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter }),
       ].join('|');
       // FIXME - BLA - using loadFromDelayedObservable() as a workaround for offline mode+mobile, when cache is empty. Avoid to get an empty result
       return this.cache
@@ -478,29 +472,27 @@ export class ProgramRefService
           defer(() => this.watchByLabel(label, { ...opts, cache: false, toEntity: false })),
           ProgramRefCacheKeys.CACHE_GROUP
         )
-        .pipe(map((data) => (!opts || opts.toEntity !== false ? Program.fromObject(data) : data)));
+        .pipe(map(toEntity));
     }
 
-    // StrategyFilter
-    const strategyFilter = StrategyFilter.fromObject(opts?.strategyFilter);
     // Debug
     const debug = this._debug && (!opts || opts.debug !== false);
-    let now = debug && Date.now();
+    let startTime = debug && Date.now();
     if (debug) console.debug(`[program-ref-service] Watching program {${label}}...`);
 
     let res: Observable<any>;
-
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
+      const strategyFilter = StrategyFilter.fromObject(opts?.strategyFilter);
       res = this.entities
         .watchAll<any>(Program.TYPENAME, {
           size: 1,
           filter: (p) => p.label === label,
         })
         .pipe(
-          map((res) => firstArrayValue(res && res.data)),
+          map(({ data }) => firstArrayValue(data)),
           map((program) => {
-            const filterFn = strategyFilter && strategyFilter.asFilterFn();
+            const filterFn = strategyFilter?.asFilterFn();
             if (filterFn) {
               // /!\ Make sure to clone the strategy, to keep cache object unchanged
               program = {
@@ -512,31 +504,48 @@ export class ProgramRefService
           })
         );
     } else {
-      const query = (opts && opts.query) || (opts?.withStrategies ? ProgramRefQueries.loadWithStrategies : ProgramRefQueries.load);
+      //const query = opts && opts.query || (opts?.withStrategies ? ProgramRefQueries.loadWithStrategies : ProgramRefQueries.load);
+      const query = (opts && opts.query) || ProgramRefQueries.load;
       res = this.graphql
         .watchQuery<{ data: any }>({
           query,
           variables: {
             label,
-            strategyFilter: opts?.withStrategies && strategyFilter?.asPodObject(),
+            //strategyFilter: opts?.withStrategies && strategyFilter?.asPodObject()
           },
           // Important: do NOT using cache here, as default (= 'no-cache')
           // because cache is manage by Ionic cache (easier to clean)
           fetchPolicy: (opts && (opts.fetchPolicy as FetchPolicy)) || 'no-cache',
           error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
         })
-        .pipe(map((res) => res && res.data));
+        .pipe(
+          map(({ data }) => data),
+          mergeMap(async (program) => {
+            if (program && opts?.withStrategies) {
+              const strategy = await this.strategyRefService.loadByFilter(
+                { ...opts?.strategyFilter, programId: program.id },
+                { toEntity: false, cache: undefined, failIfMissing: false, fullLoad: true }
+              );
+              // /!\ Make sure to clone the strategy, to keep cache object unchanged
+              program = {
+                ...program,
+                strategies: (strategy && [strategy]) || [],
+              };
+            }
+            return program;
+          })
+        );
     }
 
     return res.pipe(
       filter(isNotNil),
-      map((data) => {
-        const entity = !opts || opts.toEntity !== false ? Program.fromObject(data) : data;
-        if (now) {
-          console.debug(`[program-ref-service] Watching program {${label}} [OK] in ${Date.now() - now}ms`);
-          now = undefined;
+      map(toEntity),
+      // DEBUG
+      tap((_) => {
+        if (startTime) {
+          console.debug(`[program-ref-service] Watching program {${label}} [OK] in ${Date.now() - startTime}ms`);
+          startTime = undefined;
         }
-        return entity;
       })
     );
   }
@@ -618,6 +627,7 @@ export class ProgramRefService
       cache?: boolean;
       acquisitionLevel?: string;
       acquisitionLevels?: string[];
+      strategyId?: number;
       strategyLabel?: string;
       gearId?: number;
       taxonGroupId?: number;
@@ -642,13 +652,18 @@ export class ProgramRefService
         );
     }
 
-    // Watch the program
     const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
+
+    // DEBUG
+    //console.debug(`[program-ref-service] Watching '${programLabel}' pmfms...`, acquisitionLevels);
+
+    // Watch the program
     return this.watchByLabel(programLabel, {
       toEntity: false,
       withStrategies: true,
       strategyFilter: opts && {
-        label: opts?.strategyLabel,
+        includedIds: isNotNil(opts.strategyId) ? [opts.strategyId] : undefined,
+        label: opts.strategyLabel,
         acquisitionLevels,
       },
     }).pipe(
@@ -690,6 +705,7 @@ export class ProgramRefService
     options?: {
       acquisitionLevel?: string;
       acquisitionLevels?: string[];
+      strategyId?: number;
       strategyLabel?: string;
       gearId?: number;
       taxonGroupId?: number;
@@ -711,6 +727,7 @@ export class ProgramRefService
     opts?: {
       acquisitionLevel?: string;
       acquisitionLevels?: string[];
+      strategyId?: number;
       strategyLabel?: string;
       toEntity?: boolean;
       cache?: boolean;
@@ -734,7 +751,8 @@ export class ProgramRefService
       toEntity: false,
       withStrategies: true,
       strategyFilter: opts && {
-        label: opts?.strategyLabel,
+        includedIds: isNotNil(opts.strategyId) ? [opts.strategyId] : undefined,
+        label: opts.strategyLabel,
         acquisitionLevels,
       },
     }).pipe(
@@ -758,8 +776,18 @@ export class ProgramRefService
   /**
    * Load program gears
    */
-  loadGears(programLabel: string): Promise<ReferentialRef[]> {
-    return firstNotNilPromise(this.watchGears(programLabel));
+  loadGears(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyId?: number;
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Promise<ReferentialRef[]> {
+    return firstNotNilPromise(this.watchGears(programLabel, opts));
   }
 
   /**
@@ -770,6 +798,7 @@ export class ProgramRefService
     opts?: {
       acquisitionLevel?: string;
       acquisitionLevels?: string[];
+      strategyId?: number;
       strategyLabel?: string;
       toEntity?: boolean;
       cache?: boolean;
@@ -793,7 +822,8 @@ export class ProgramRefService
       toEntity: false,
       withStrategies: true,
       strategyFilter: opts && {
-        label: opts?.strategyLabel,
+        includedIds: isNotNil(opts.strategyId) ? [opts.strategyId] : undefined,
+        label: opts.strategyLabel,
         acquisitionLevels,
       },
     }).pipe(
@@ -961,10 +991,10 @@ export class ProgramRefService
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       };
-      const strategyFilter = isNotEmptyArray(filter.strategyIds)
-        ? StrategyFilter.fromObject({ includedIds: filter.strategyIds })
-        : // By default, all strategies of imported programs
-          null;
+      const strategyFilter = StrategyFilter.fromObject({
+        includedIds: filter.strategyIds,
+        startDate: DateUtils.moment().startOf('day'), // Active strategies
+      });
 
       // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
       if (strategyFilter) {

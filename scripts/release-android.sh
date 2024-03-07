@@ -33,16 +33,15 @@ echo ""
 echo "--- Building Capacitor App..."
 echo ""
 cd ${PROJECT_DIR}
-npm run android-build.prod
+npm run android:build:prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "--- Building Capacitor App [OK]"
 
-
-echo "**********************************"
-echo " /!\ You should now :"
-echo " - Open Android Studio and Build the release APK..."
-echo " - Then run: "
+# Run the packaging
+echo "--- Packaging Android APK..."
 echo ""
-echo "cd $PROJECT_DIR/scripts"
-echo "./release-android-sign.sh"
+npm run android:package:prod
+[[ $? -ne 0 ]] && exit 1
+
+echo "--- Packaging Android APK [OK]"

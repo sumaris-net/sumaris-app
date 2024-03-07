@@ -1,6 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
 import {
+  AcquisitionLevelCodes,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
@@ -15,6 +16,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselTypeIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
@@ -88,6 +90,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false',
   },
+
   ANALYTIC_REFERENCES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.analyticReferences.enable',
     label: 'CONFIGURATION.OPTIONS.ANALYTIC_REFERENCES_ENABLE',
@@ -100,6 +103,27 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: ProgramLabel.SIH,
   },
+  /* -- Acquisition levels -- */
+  ACQUISITION_LEVEL_TRIP_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.TRIP.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_TRIP_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.TRIP,
+  },
+  ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.PHYSICAL_GEAR.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.PHYSICAL_GEAR,
+  },
+  ACQUISITION_LEVEL_OPERATION_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.OPERATION.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_OPERATION_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.OPERATION,
+  },
+
+  /* -- Location levels -- */
   LOCATION_LEVEL_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
@@ -114,6 +138,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.PORT,
   },
+  LOCATION_LEVEL_MARITIME_DISTRICT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.MARITIME_DISTRICT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_MARITIME_DISTRICT_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.MARITIME_DISTRICT,
+  },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
@@ -121,34 +152,68 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.AUCTION,
   },
-  LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
+
+  // CIEM/ICES levels
+  LOCATION_LEVEL_SUB_AREA_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_AREA_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_AREA_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.SUB_AREA_ICES,
+  },
+  LOCATION_LEVEL_DIVISION_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.DIVISION_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_DIVISION_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.DIVISION_ICES,
+  },
+  LOCATION_LEVEL_SUB_DIVISION_ICES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_DIVISION_ICES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_DIVISION_ICES_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.SUB_DIVISION_ICES,
+  },
+  LOCATION_LEVEL_RECTANGLE_ICES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_RECTANGLE_ICES_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_RECTANGLE,
+    defaultValue: LocationLevelIds.RECTANGLE_ICES,
   },
-  LOCATION_LEVEL_GFCM_RECTANGLE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_GFCM_RECTANGLE_ID',
+
+  // CGPM/GFCM levels
+  LOCATION_LEVEL_SUB_AREA_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_AREA_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_AREA_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.GFCM_RECTANGLE,
+    defaultValue: LocationLevelIds.SUB_AREA_GFCM,
   },
-  LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
+  LOCATION_LEVEL_DIVISION_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.DIVISION_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_DIVISION_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_DIVISION,
+    defaultValue: LocationLevelIds.DIVISION_GFCM,
   },
-  LOCATION_LEVEL_ICES_SUB_AREA_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_SUB_AREA_ID',
+  LOCATION_LEVEL_SUB_DIVISION_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.SUB_DIVISION_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_SUB_DIVISION_GFCM_ID',
     type: 'entity',
     autocomplete: LocationLevelAutocompleteConfig,
-    defaultValue: LocationLevelIds.ICES_SUB_AREA,
+    defaultValue: LocationLevelIds.SUB_DIVISION_GFCM,
   },
+  LOCATION_LEVEL_RECTANGLE_GFCM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.RECTANGLE_GFCM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_RECTANGLE_GFCM_ID',
+    type: 'entity',
+    autocomplete: LocationLevelAutocompleteConfig,
+    defaultValue: LocationLevelIds.RECTANGLE_GFCM,
+  },
+
+  // Fishing Areas
   LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_IDS',
@@ -218,6 +283,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES,
   },
+  PMFM_NB_FISHERMEN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.NB_FISHERMEN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_NB_FISHERMEN_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.NB_FISHERMEN,
+  },
+  PMFM_GPS_USED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.GPS_USED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GPS_USED_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.GPS_USED,
+  },
   PMFM_TRIP_PROGRESS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
@@ -231,6 +310,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.STRATEGY_LABEL,
+  },
+  PMFM_SEA_STATE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SEA_STATE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEA_STATE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SEA_STATE,
   },
   PMFM_TAG_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TAG_ID.id',
@@ -259,6 +345,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TRAWL_SIZE_CAT,
+  },
+  PMFM_DIURNAL_OPERATION_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DIURNAL_OPERATION.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DIURNAL_OPERATION_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DIURNAL_OPERATION,
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
@@ -358,12 +451,47 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.DISCARD_WEIGHT,
   },
+  PMFM_DISCARD_REASON_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_REASON.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_REASON_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_REASON,
+  },
+  PMFM_DISCARD_TYPE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_TYPE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_TYPE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_TYPE,
+  },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES,
+  },
+  PMFM_BATCH_MEASURED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_MEASURED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_MEASURED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_MEASURED_WEIGHT,
+  },
+  PMFM_BATCH_CALCULATED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT,
+  },
+  PMFM_BATCH_ESTIMATED_WEIGHT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_ESTIMATED_WEIGHT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_ESTIMATED_WEIGHT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_ESTIMATED_WEIGHT,
   },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH.id',
@@ -399,6 +527,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SELECTIVITY_DEVICE,
+  },
+  PMFM_LANDING_CATEGORY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.LANDING_CATEGORY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_LANDING_CATEGORY_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.LANDING_CATEGORY,
+  },
+  PMFM_IS_SAMPLING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.IS_SAMPLING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_IS_SAMPLING_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.IS_SAMPLING,
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
@@ -697,6 +839,32 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       },
     },
     defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString(),
+  },
+  VESSEL_TYPE_FISHING_VESSEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.VesselType.FISHING_VESSEL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_TYPE_FISHING_VESSEL_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+    },
+    defaultValue: VesselTypeIds.FISHING_VESSEL.toString(),
+  },
+  VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.VesselType.SCIENTIFIC_RESEARCH_VESSEL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+    },
+    defaultValue: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL.toString(),
   },
 });
 

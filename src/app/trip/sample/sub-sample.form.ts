@@ -23,11 +23,13 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
 import { filter, mergeMap } from 'rxjs/operators';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-sub-sample-form',
   templateUrl: 'sub-sample.form.html',
   styleUrls: ['sub-sample.form.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy {

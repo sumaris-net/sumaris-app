@@ -94,18 +94,14 @@
 
         <!-- showEstimatedWeight -->
         <ion-col class="ion-padding">
-          <mat-checkbox (change)="showEstimatedWeight = !showEstimatedWeight" [disabled]="!showEstimatedWeight" [checked]="showEstimatedWeight">
+          <mat-checkbox (change)="showEstimatedWeight = !showEstimatedWeight" [disabled]="!showWeight" [checked]="showEstimatedWeight">
             <mat-label>showEstimatedWeight ?</mat-label>
           </mat-checkbox>
         </ion-col>
 
         <!-- showExhaustiveInventory -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="showExhaustiveInventory = !showExhaustiveInventory"
-            [disabled]="!showExhaustiveInventory"
-            [checked]="showExhaustiveInventory"
-          >
+          <mat-checkbox (change)="showExhaustiveInventory = !showExhaustiveInventory" [checked]="showExhaustiveInventory">
             <mat-label>showExhaustiveInventory ?</mat-label>
           </mat-checkbox>
         </ion-col>
@@ -168,7 +164,11 @@
 
         <!-- showSampleIndividualCount -->
         <ion-col class="ion-padding">
-          <mat-checkbox (change)="showSampleIndividualCount = !showSampleIndividualCount" [checked]="showSampleIndividualCount">
+          <mat-checkbox
+            (change)="showSampleIndividualCount = !showSampleIndividualCount"
+            [disabled]="!showSamplingBatch"
+            [checked]="showSampleIndividualCount"
+          >
             <mat-label>showSampleIndividualCount ?</mat-label>
           </mat-checkbox>
         </ion-col>

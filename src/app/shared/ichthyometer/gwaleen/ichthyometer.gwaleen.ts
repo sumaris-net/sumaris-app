@@ -400,11 +400,11 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   }
 
   protected markAsConnected() {
-    this._state.set('connected', (_) => true);
+    this._state.set('connected', () => true);
   }
 
   protected markAsDisconnected() {
-    this._state.set('connected', (_) => false);
+    this._state.set('connected', () => false);
   }
 
   protected incrementUsage() {

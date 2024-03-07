@@ -12,7 +12,7 @@ import {
 import { ModalController } from '@ionic/angular';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselsTable } from '@app/vessel/list/vessels.table';
-import { isEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
+import { isEmptyArray, isNil, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -22,6 +22,7 @@ export interface SelectVesselsModalOptions {
   titleI18n: string;
   vesselFilter: VesselFilter | null;
   disableStatusFilter: boolean;
+  showVesselTypeFilter: boolean;
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
 }
@@ -41,6 +42,8 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
   @Input() titleI18n = 'VESSEL.SELECT_MODAL.TITLE';
   @Input() vesselFilter: VesselFilter | null = null;
   @Input() disableStatusFilter: boolean;
+  @Input() vesselTypeId: number = null;
+  @Input() showVesselTypeFilter: boolean;
   @Input() showVesselTypeColumn: boolean;
   @Input() showBasePortLocationColumn: boolean;
 
@@ -59,9 +62,10 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
 
   ngOnInit() {
     // Set defaults
-    this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
     this.showBasePortLocationColumn = toBoolean(this.showBasePortLocationColumn, true);
     this.disableStatusFilter = toBoolean(this.disableStatusFilter, true);
+    this.showVesselTypeFilter = toBoolean(this.showVesselTypeFilter, isNil(this.vesselTypeId));
+    this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
 
     this.vesselsTable.dataSource.watchAllOptions = { ...this.vesselsTable.dataSource.watchAllOptions, fetchPolicy: 'no-cache' };
   }
@@ -70,6 +74,7 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
     setTimeout(() => {
       // Init vessel table filter
       this.vesselsTable.filter = this.vesselFilter;
+      this.vesselsTable.markAsReady();
     });
   }
 

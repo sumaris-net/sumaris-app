@@ -198,7 +198,7 @@ export class PhysicalGear
     const target = super.asObject(opts);
     target.gear = (this.gear && this.gear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     if (target.gear && !target.gear.entityName) {
-      console.warn('Fixme : manually set gear entityName!');
+      console.warn('Fixme: manually set gear entityName!');
       target.gear.entityName = 'GearVO';
     }
 

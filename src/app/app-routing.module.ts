@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { environment } from '@environments/environment';
 import {
   AccountPage,
   AuthGuardService,
@@ -61,6 +62,15 @@ const routes: Routes = [
     loadChildren: () => import('./vessel/vessel-routing.module').then((m) => m.VesselRoutingModule),
   },
 
+  // ScientificCruise
+  {
+    path: 'scientific-cruise',
+    data: {
+      profile: 'USER',
+    },
+    loadChildren: () => import('./trip/scientific-cruise/scientific-cruise-routing.module').then((m) => m.AppScientificCruiseRoutingModule),
+  },
+
   // Trips
   {
     path: 'trips',
@@ -84,6 +94,15 @@ const routes: Routes = [
       profile: 'USER',
     },
     loadChildren: () => import('./trip/landing/landings-routing.module').then((m) => m.AppLandingsRoutingModule),
+  },
+
+  // Activity Calendar
+  {
+    path: 'activity-calendar',
+    data: {
+      profile: 'USER',
+    },
+    loadChildren: () => import('./activity-calendar/activity-calendar-routing.module').then((m) => m.AppActivityCalendarRoutingModule),
   },
 
   // Extraction path
@@ -159,6 +178,14 @@ const routes: Routes = [
           preload: false,
         },
       },
+      // Referential module
+      {
+        path: 'referential',
+        loadChildren: () => import('./referential/referential.testing.module').then((m) => m.ReferentialTestingModule),
+        data: {
+          preload: false,
+        },
+      },
       // Trip module
       {
         path: 'trip',
@@ -167,10 +194,10 @@ const routes: Routes = [
           preload: false,
         },
       },
-      // Referential module
+      // Activity calendar
       {
-        path: 'referential',
-        loadChildren: () => import('./referential/referential.testing.module').then((m) => m.ReferentialTestingModule),
+        path: 'activity-calendar',
+        loadChildren: () => import('./activity-calendar/calendar/testing/calendar.testing.module').then((m) => m.CalendarTestingModule),
         data: {
           preload: false,
         },
@@ -194,7 +221,7 @@ const routes: Routes = [
       //enableTracing: !environment.production,
       enableTracing: false,
 
-      useHash: false,
+      useHash: environment.useHash || false,
       onSameUrlNavigation: 'reload',
       preloadingStrategy: QuicklinkStrategy,
     }),

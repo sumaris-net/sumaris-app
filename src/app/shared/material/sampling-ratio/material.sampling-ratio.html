@@ -1,7 +1,7 @@
 <!-- readonly -->
 <mat-form-field
   *ngIf="readonly; else writable"
-  [floatLabel]="floatLabel"
+  [floatLabel]="floatLabel | asFloatLabelType"
   [appearance]="appearance"
   [class]="classList"
   class="mat-form-field-disabled"
@@ -23,7 +23,9 @@
   <ng-container [ngSwitch]="format">
     <!-- Percent -->
     <mat-form-field *ngSwitchCase="'%'" [floatLabel]="floatLabel" [appearance]="appearance" [class]="classList">
-      <mat-label>{{ placeholder | translate }}</mat-label>
+      @if (placeholder && floatLabel !== 'never') {
+        <mat-label>{{ placeholder | translate }}</mat-label>
+      }
 
       <div matPrefix>
         <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
@@ -39,6 +41,7 @@
         [formControl]="_inputFormControl"
         [required]="required"
         [pattern]="_pattern"
+        [placeholder]="floatLabel === 'never' && (placeholder | translate)"
         (click)="selectInputContent($event)"
         [appAutofocus]="autofocus"
         [tabindex]="tabindex"
@@ -64,7 +67,13 @@
     </mat-form-field>
 
     <!-- Sampling coefficient (1/w) -->
-    <mat-form-field *ngSwitchCase="'1/w'" [floatLabel]="floatLabel" [appearance]="appearance" [class]="classList" class="with-prefix">
+    <mat-form-field
+      *ngSwitchCase="'1/w'"
+      [floatLabel]="floatLabel | asFloatLabelType"
+      [appearance]="appearance"
+      [class]="classList"
+      class="with-prefix"
+    >
       <ion-text class="prefix-label">1/</ion-text>
 
       <mat-label>{{ placeholder | translate }}</mat-label>

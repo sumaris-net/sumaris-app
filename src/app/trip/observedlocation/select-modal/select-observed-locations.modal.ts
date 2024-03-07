@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ObservedLocationsPage } from '../table/observed-locations.page';
 import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { AppFormUtils, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
@@ -21,6 +21,7 @@ export interface ISelectObservedLocationsModalOptions {
   defaultNewObservedLocation: ObservedLocation;
   selectedId: number;
   mobile: boolean;
+  debug: boolean;
 }
 
 @Component({
@@ -34,6 +35,7 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   protected _subscription = new Subscription();
   protected _logPrefix = '[select-observed-location-modal]';
   protected readonly settings: LocalSettingsService;
+  protected readonly loadingSubject = new BehaviorSubject(true);
 
   @ViewChild('table', { static: true }) table: ObservedLocationsPage;
   @ViewChild('form', { static: true }) form: ObservedLocationForm;
@@ -50,9 +52,10 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   @Input() defaultNewObservedLocation: ObservedLocation;
   @Input() selectedId: number;
   @Input() mobile: boolean;
+  @Input() debug = false;
 
-  get loadingSubject(): Observable<boolean> {
-    return this.table.loadingSubject;
+  get loading(): boolean {
+    return this.loadingSubject.value;
   }
 
   constructor(
@@ -83,12 +86,18 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
       // Select the selected id
       if (!this.allowMultipleSelection && isNotNil(this.selectedId)) {
         this._subscription.add(
-          this.table.dataSource.rowsSubject.subscribe((rows) => {
-            this.table.selectRowByData(ObservedLocation.fromObject({ id: this.selectedId }));
+          this.table.dataSource.rowsSubject.subscribe(async (rows) => {
+            this.markAsLoading(); // Mark component as loading, to avoid closing the modal - see selectRow() below
+            await this.table.selectRowByData(ObservedLocation.fromObject({ id: this.selectedId }));
+            await this.table.waitIdle({ timeout: 500 });
+            this.markAsLoaded();
           })
         );
         // TODO use permanent selection
         //this.table.permanentSelection?.setSelection(ObservedLocation.fromObject({id: this.selectedId}));
+      } else {
+        await this.table.waitIdle({ timeout: 200 });
+        this.markAsLoaded();
       }
 
       if (this.allowNewObservedLocation) {
@@ -107,13 +116,20 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
     this._subscription.unsubscribe();
   }
 
-  selectRow(row: TableElement<ObservedLocation>) {
+  async selectRow(row: TableElement<ObservedLocation>) {
     if (this.allowMultipleSelection) {
       this.table.selection.toggle(row);
     } else {
       this.table.selection.setSelection(row);
-      if (row.currentData?.id !== this.selectedId) {
-        this.close();
+
+      // Skip if first selection (from selectedId)
+      if (this.loading && row.currentData?.id === this.selectedId) return;
+
+      // Use has reselect the same row => cancel
+      if (row.currentData?.id === this.selectedId) {
+        await this.cancel();
+      } else {
+        await this.close();
       }
     }
   }
@@ -178,7 +194,15 @@ export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectO
   }
 
   hasSelection(): boolean {
-    return this.table.selection.hasValue() && this.table.selection.selected.length === 1;
+    return this.table.selection.hasValue() && (this.allowMultipleSelection || this.table.selection.selected.length === 1);
+  }
+
+  protected markAsLoading() {
+    this.loadingSubject.next(true);
+  }
+
+  protected markAsLoaded() {
+    this.loadingSubject.next(false);
   }
 
   protected markForCheck() {

@@ -144,13 +144,13 @@
       </mat-panel-title>
       <mat-panel-description></mat-panel-description>
     </mat-expansion-panel-header>
-    <ion-grid class="mat-table" #table>
-      <ion-row class="mat-header-row">
-        <ion-col class="mat-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
-        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
-        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
-        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
-        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
+    <ion-grid class="mat-mdc-table" #table>
+      <ion-row class="mat-mdc-header-row">
+        <ion-col class="mat-mdc-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
+        <ion-col class="mat-mdc-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
+        <ion-col class="mat-mdc-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
+        <ion-col class="mat-mdc-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
+        <ion-col class="mat-mdc-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
       </ion-row>
 
       <ng-container *rxIf="loading$; else rows">
@@ -165,17 +165,17 @@
         <ion-row
           *rxFor="let feature of features$"
           #tableRows
-          class="mat-row"
-          [class.mat-row-selected]="selection.isSelected(feature)"
+          class="mat-mdc-row"
+          [class.mat-mdc-row-selected]="selection.isSelected(feature)"
           (click)="onRowClick($event, feature)"
         >
-          <ion-col class="mat-cell mat-column-dateTime">
+          <ion-col class="mat-mdc-cell mat-column-dateTime">
             {{ feature.properties.dateTime }}
           </ion-col>
-          <ion-col class="mat-cell" size="2">{{ feature.properties.latitude | numberFormat }}</ion-col>
-          <ion-col class="mat-cell" size="2">{{ feature.properties.longitude | numberFormat }}</ion-col>
-          <ion-col class="mat-cell">{{ feature.properties.recorderPerson }}</ion-col>
-          <ion-col class="mat-cell ion-no-padding ion-padding-horizontal">
+          <ion-col class="mat-mdc-cell" size="2">{{ feature.properties.latitude | numberFormat }}</ion-col>
+          <ion-col class="mat-mdc-cell" size="2">{{ feature.properties.longitude | numberFormat }}</ion-col>
+          <ion-col class="mat-mdc-cell">{{ feature.properties.recorderPerson }}</ion-col>
+          <ion-col class="mat-mdc-cell ion-no-padding ion-padding-horizontal">
             <ion-button
               class="text-button"
               size="small"

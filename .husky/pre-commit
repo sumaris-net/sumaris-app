@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+
+export NODE_OPTIONS="--max-old-space-size=14000"
 npx lint-staged
+#node --max-old-space-size=7096 node_modules/lint-staged/bin/lint-staged.js

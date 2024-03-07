@@ -12,6 +12,7 @@ export abstract class DataEntityFilter<
   FO = any,
 > extends EntityFilter<T, E, EID, AO, FO> {
   recorderDepartment: Department;
+  recorderDepartments: Department[];
   qualityFlagId?: number;
   dataQualityStatus?: DataQualityStatusIdType;
 

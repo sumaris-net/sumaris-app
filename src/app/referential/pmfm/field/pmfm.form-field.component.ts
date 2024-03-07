@@ -21,8 +21,8 @@ import {
   UntypedFormBuilder,
   UntypedFormControl,
 } from '@angular/forms';
-import { FloatLabelType } from '@angular/material/form-field';
 import {
+  AppFloatLabelType,
   AppFormArray,
   filterNumberInput,
   focusInput,
@@ -133,7 +133,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() hidden = false;
   @Input() placeholder: string;
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;

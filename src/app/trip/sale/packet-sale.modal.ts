@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { AppFormUtils, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Packet } from '../packet/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
@@ -10,7 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 export interface IPacketSaleModalOptions {
   disabled: boolean;
   data: Packet;
-  packetSalePmfms: DenormalizedPmfmStrategy[];
+  pmfms: DenormalizedPmfmStrategy[];
   mobile: boolean;
 }
 
@@ -27,7 +27,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
 
   @Input() data: Packet;
   @Input() mobile: boolean;
-  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
+  @Input() pmfms: DenormalizedPmfmStrategy[];
   @Input() disabled: boolean;
 
   get enabled() {

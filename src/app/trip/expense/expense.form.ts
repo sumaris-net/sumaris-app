@@ -34,6 +34,7 @@ import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { RxState } from '@rx-angular/state';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -47,6 +48,7 @@ class TupleValue {
   templateUrl: './expense.form.html',
   styleUrls: ['./expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
   mobile: boolean;
@@ -313,7 +315,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     // check all bait children forms having totalValueChange registered,
     this.baitForms.forEach((baitForm) => {
       // add it if missing
-      if (baitForm.totalValueChanges.observers.length === 0) {
+      if (!baitForm.totalValueChanges.observed) {
         this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
       }
     });

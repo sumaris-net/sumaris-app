@@ -19,9 +19,12 @@ export const environment = Object.freeze(<AppEnvironment>{
   version: pkg.version as string,
   production: false,
   baseUrl: '/',
+  useHash: false,
+  connectionTimeout: 5000,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
+  allowDarkMode: true,
 
   // FIXME: enable cache
   persistCache: false,
@@ -29,7 +32,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '2.4.3',
+  peerMinVersion: '2.9.0',
 
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
@@ -89,6 +92,10 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 443,
     },
     {
+      host: 'obsmer.sumaris.net',
+      port: 443,
+    },
+    {
       host: 'open.sumaris.net',
       port: 443,
     },
@@ -143,7 +150,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   menu: {
     subMenu: {
-      enable: false,
+      enable: true,
     },
   },
 });

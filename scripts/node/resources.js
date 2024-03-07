@@ -1,4 +1,9 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
+const path = require('path');
+
+const projectDir = path.resolve(__dirname, '../..');
 
 const SOURCE_IOS_ICON = 'resources/ios/icon/';
 const SOURCE_IOS_SPLASH = 'resources/ios/splash/';
@@ -72,19 +77,32 @@ const ANDROID_SPLASHES = [
 
 function copyImages(sourcePath, targetPath, images) {
   for (const icon of images) {
-    let source = sourcePath + icon.source;
-    let target = targetPath + icon.target;
-    fs.copyFile(source, target, err => {
-      if (err) throw err;
-      console.log(`${source} >> ${target}`);
-    });
+    let source = path.join(projectDir, sourcePath, icon.source);
+    let target = path.join(projectDir, targetPath, icon.target);
+    console.debug(` - Copying ${source} -> ${target}`);
+    fs.copyFileSync(source, target);
   }
 }
 
-// Copy ressource for iOS
-//copyImages(SOURCE_IOS_ICON, TARGET_IOS_ICON, IOS_ICONS);
-//copyImages(SOURCE_IOS_SPLASH, TARGET_IOS_SPLASH, IOS_SPLASHES);
+function copyResources() {
 
-// Copy ressource for Android
+  // Copy resources for iOS
+  if (fs.existsSync(path.join(projectDir, 'ios'))) {
+    console.debug(`--- Copy iOS images...`);
+    copyImages(SOURCE_IOS_ICON, TARGET_IOS_ICON, IOS_ICONS);
+    copyImages(SOURCE_IOS_SPLASH, TARGET_IOS_SPLASH, IOS_SPLASHES);
+    console.debug(`--- Copy iOS images [OK]`);
+  }
+
+// Copy resources for Android
+  if (fs.existsSync(path.join(projectDir, 'android'))) {
+    console.debug(`--- Copy Android images...`);
 copyImages(SOURCE_ANDROID_ICON, TARGET_ANDROID_ICON, ANDROID_ICONS);
 copyImages(SOURCE_ANDROID_SPLASH, TARGET_ANDROID_SPLASH, ANDROID_SPLASHES);
+    console.debug(`--- Copy Android images [OK]`);
+  }
+
+}
+
+// MAIN
+copyResources();

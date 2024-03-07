@@ -65,6 +65,7 @@ const AggregatedLandingFragment = gql`
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.lightReferential}
+  ${ReferentialFragments.location}
   ${VesselActivityFragment}
 `;
 

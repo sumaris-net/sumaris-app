@@ -13,12 +13,14 @@ import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service'
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-vessel-activity-form',
   templateUrl: './vessel-activity.form.html',
   styleUrls: ['./vessel-activity.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> implements OnInit {
   @Input() showError = true;

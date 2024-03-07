@@ -18,8 +18,9 @@ export const ImageAttachmentFragments = {
       id
       url
       comments
-      updateDate
       creationDate
+      updateDate
+      contentType
       __typename
     }
   `,
@@ -27,12 +28,19 @@ export const ImageAttachmentFragments = {
   full: gql`
     fragment ImageAttachmentFragment on ImageAttachmentVO {
       id
+      objectTypeId
+      objectId
+      dateTime
       url
+      contentType
       comments
       updateDate
       creationDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualificationComments
       qualityFlagId
-      contentType
       recorderDepartment {
         ...LightDepartmentFragment
       }
@@ -46,7 +54,7 @@ export const ImageAttachmentFragments = {
 
 const ImageAttachmentQueries: BaseEntityGraphqlQueries = {
   loadAll: gql`
-    query Images($filter: ImageAttachmentVOInput) {
+    query Images($filter: ImageAttachmentFilterVOInput) {
       data: images(filter: $filter) {
         ...LightImageAttachmentFragment
       }

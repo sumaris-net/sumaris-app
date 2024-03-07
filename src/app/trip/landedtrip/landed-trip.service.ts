@@ -1,7 +1,7 @@
 import { Injectable, Injector, Optional } from '@angular/core';
 import {
+  AppErrorWithDetails,
   EntitiesStorage,
-  FormErrors,
   FormErrorTranslator,
   GraphqlService,
   LocalSettingsService,
@@ -11,13 +11,13 @@ import {
 import { OperationService } from '../operation/operation.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { TripValidatorOptions, TripValidatorService } from '../trip/trip.validator';
+import { TripValidatorService } from '../trip/trip.validator';
 import { Trip } from '../trip/trip.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { TripService } from '@app/trip/trip/trip.service';
+import { TripControlOptions, TripService } from '@app/trip/trip/trip.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 
 @Injectable({ providedIn: 'root' })
@@ -58,5 +58,9 @@ export class LandedTripService extends TripService {
       translate,
       toastController
     );
+  }
+
+  async control(entity: Trip, opts?: TripControlOptions): Promise<AppErrorWithDetails> {
+    return super.control(entity, { ...opts, withOperationGroup: true });
   }
 }

@@ -22,7 +22,6 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { BatchGroupForm } from './batch-group.form';
 import { debounceTime, filter, map, startWith } from 'rxjs/operators';
 import { BatchGroup } from './batch-group.model';
-import { environment } from '@environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TripContextService } from '@app/trip/trip-context.service';
@@ -58,7 +57,6 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   private _subscription = new Subscription();
   private _isOnFieldMode: boolean;
 
-  protected debug = false;
   protected loading = false;
   protected $title = new BehaviorSubject<string>(undefined);
 
@@ -67,6 +65,7 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   @Input() disabled: boolean;
   @Input() usageMode: UsageMode;
   @Input() mobile: boolean;
+  @Input() debug = false;
   @Input() playSound: boolean;
 
   @Input() qvPmfm: IPmfm;
@@ -137,14 +136,15 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
     protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
-    // Default value
+    // Fixed values
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
-    // TODO: for DEV only
-    this.debug = !environment.production;
+    // -- for DEV only
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
+    // Default values
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;

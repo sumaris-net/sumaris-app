@@ -303,11 +303,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    const loadedTest = () => !this.loading;
     this.registerSubscription(
       this.form
         .get('age')
-        .valueChanges.pipe(filter(loadedTest))
+        .valueChanges.pipe(filter(() => this.loaded))
         .subscribe((hasAge) => {
           if (hasAge) {
             this.loadFraction();
@@ -790,7 +789,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
    */
   protected async suggestLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     filter = {
-      levelIds: this.locationLevelIds || [LocationLevelIds.ICES_DIVISION],
+      levelIds: this.locationLevelIds || [LocationLevelIds.DIVISION_ICES],
       ...filter,
     };
     // DEBUG

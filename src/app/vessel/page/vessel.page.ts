@@ -11,6 +11,7 @@ import {
   EntityUtils,
   HistoryPageReference,
   isNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   NetworkService,
   PlatformService,
@@ -31,6 +32,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from '@app/vessel/modal/select-vessel.modal';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-vessel-page',
@@ -46,6 +48,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   mobile = false;
   replacementEnabled = false;
   temporaryStatusId = StatusIds.TEMPORARY;
+  registrationLocationLevelIds: number[];
 
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
@@ -96,6 +99,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
         this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID);
+
+        this.markForCheck();
       })
     );
 
@@ -159,10 +165,17 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
   protected async computeTitle(data: Vessel): Promise<string> {
     if (this.isNewData) {
-      return await this.translate.get('VESSEL.NEW.TITLE').toPromise();
+      return firstValueFrom(this.translate.get('VESSEL.NEW.TITLE'));
     }
 
-    return await this.translate.get('VESSEL.EDIT.TITLE', data.vesselFeatures).toPromise();
+    const exteriorMarking =
+      [
+        data.vesselFeatures?.exteriorMarking,
+        data.vesselRegistrationPeriod?.intRegistrationCode,
+        data.vesselRegistrationPeriod?.registrationCode,
+        data.vesselFeatures?.name,
+      ].find(isNotNilOrBlank) || '';
+    return firstValueFrom(this.translate.get('VESSEL.EDIT.TITLE', { exteriorMarking }));
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

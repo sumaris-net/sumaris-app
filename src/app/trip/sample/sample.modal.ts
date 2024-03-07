@@ -15,7 +15,6 @@ import {
   TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { environment } from '@environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -31,10 +30,8 @@ import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gall
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
-export type SampleModalRole = 'VALIDATE' | 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
   // UI Fields show/hide
-  mobile: boolean;
   showLabel: boolean;
   requiredLabel?: boolean;
   showSampleDate: boolean;
@@ -68,11 +65,9 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   private readonly _subscription = new Subscription();
   private _isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
-  debug = false;
   loading = false;
   tagIdPmfm: IPmfm;
 
-  @Input() mobile: boolean;
   @Input() isNew: boolean;
   @Input() data: Sample;
   @Input() disabled: boolean;
@@ -80,6 +75,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() programLabel: string;
   @Input() usageMode: UsageMode;
   @Input() pmfms: IPmfm[];
+  @Input() mobile: boolean;
+  @Input() debug = false;
 
   // UI options
   @Input() i18nSuffix: string;
@@ -130,16 +127,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
-    // Default value
-    this.mobile = settings.mobile;
+    // Fixed values
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
     // TODO: for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
     // Default values
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);

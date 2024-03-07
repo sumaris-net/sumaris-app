@@ -40,18 +40,13 @@
   </button>
 
   <!-- DEV only -->
-  <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0" (click)="copyLocally()">
-    <ion-label>Save locally (#developer)</ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug && network.online" (click)="devToggleOfflineMode()">
-    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-  </button>
+  <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -59,7 +54,12 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.TAB_GENERAL' | translate }}">
+    <mat-tab
+      [label]="'TRIP.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [parentPath]="defaultBackHref"
+    >
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
@@ -135,7 +135,7 @@
     </mat-tab>
 
     <!-- TAB: operations (effort) -->
-    <mat-tab label="{{ 'TRIP.TAB_OPERATION_GROUPS' | translate }}" [disabled]="!showOperationGroupTab">
+    <mat-tab [label]="'TRIP.TAB_OPERATION_GROUPS' | translate" [disabled]="!showOperationGroupTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="locate"></ion-icon>
@@ -147,14 +147,17 @@
       <app-operation-group-table
         #operationGroupTable
         [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
         acquisitionLevel="OPERATION"
-        [metiers]="$metiers.asObservable()"
+        [metiers]="metiers$"
         [showToolbar]="!mobile"
+        [debug]="debug"
       ></app-operation-group-table>
     </mat-tab>
 
     <!-- TAB: catches -->
-    <mat-tab label="{{ 'TRIP.TAB_CATCHES' | translate }}" [disabled]="!showCatchTab">
+    <mat-tab [label]="'TRIP.TAB_CATCHES' | translate" [disabled]="!showCatchTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="scan"></ion-icon>
         <ion-label translate>TRIP.TAB_CATCHES</ion-label>
@@ -185,7 +188,7 @@
 
         <mat-tab-group #catchTabGroup animationDuration="0s" (selectedTabChange)="onSubTabChange($event)">
           <!-- SUB-TAB: products -->
-          <mat-tab label="{{ 'TRIP.LANDED_CATCH.TAB_PRODUCT' | translate }}">
+          <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_PRODUCT' | translate">
             <ng-template mat-tab-label>
               <ion-label
                 [matBadge]="productsTable.visibleRowCount"
@@ -205,17 +208,20 @@
               #productsTable
               [debug]="debug"
               [programLabel]="programLabel$ | async"
+              [requiredStrategy]="requiredStrategy$ | async"
+              [strategyId]="strategy$ | async | mapGet: 'id'"
               acquisitionLevel="PRODUCT"
-              [$parents]="$operationGroups"
-              [parentFilter]="$productFilter | async"
+              [parents]="operationGroups$ | async"
+              [parentFilter]="productFilter$ | async"
               [parentAttributes]="operationGroupAttributes"
               [showSaleType]="false"
               [showToolbar]="!mobile"
-              [useSticky]="true"
+              [sticky]="true"
+              [stickyEnd]="true"
             ></app-products-table>
           </mat-tab>
 
-          <mat-tab label="{{ 'TRIP.LANDED_CATCH.TAB_BATCH' | translate }}">
+          <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_BATCH' | translate">
             <ng-template mat-tab-label>
               <ion-label
                 [matBadge]="packetsTable.visibleRowCount"
@@ -233,13 +239,15 @@
 
             <app-packets-table
               #packetsTable
-              [debug]="debug"
-              [program]="programLabel$ | async"
-              [$parents]="$operationGroups"
-              [parentFilter]="$packetFilter | async"
+              [programLabel]="programLabel$ | async"
+              [parents]="operationGroups$ | async"
+              [parentFilter]="packetFilter$ | async"
               [parentAttributes]="operationGroupAttributes"
               [showToolbar]="!mobile"
-              [useSticky]="true"
+              (askSaveConfirmation)="askSaveConfirmation($event)"
+              [sticky]="true"
+              [stickyEnd]="true"
+              [debug]="debug"
             ></app-packets-table>
           </mat-tab>
         </mat-tab-group>
@@ -247,18 +255,26 @@
     </mat-tab>
 
     <!-- TAB: expected sale -->
-    <mat-tab label="{{ 'TRIP.TAB_SALES' | translate }}" [disabled]="!showSaleTab">
+    <mat-tab [label]="'TRIP.TAB_SALES' | translate" [disabled]="!showSaleTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon slot="start">local_offer</mat-icon>
         <ion-label translate>TRIP.TAB_SALES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expectedSaleForm.invalid"></ion-icon>
       </ng-template>
 
-      <app-expected-sale-form #expectedSaleForm [programLabel]="programLabel$ | async" [showError]="true" [mobile]="mobile"></app-expected-sale-form>
+      <app-expected-sale-form
+        #expectedSaleForm
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [showError]="true"
+        [mobile]="mobile"
+        [debug]="debug"
+      ></app-expected-sale-form>
     </mat-tab>
 
     <!-- TAB: expenses -->
-    <mat-tab label="{{ 'TRIP.TAB_EXPENSES' | translate }}" [disabled]="!showExpenseTab">
+    <mat-tab [label]="'TRIP.TAB_EXPENSES' | translate" [disabled]="!showExpenseTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="card"></ion-icon>
         <ion-label translate>TRIP.TAB_EXPENSES</ion-label>
@@ -268,8 +284,10 @@
       <app-expense-form
         #expenseForm
         entityName="VesselUseMeasurement"
-        [programLabel]="programLabel$ | async"
         acquisitionLevel="EXPENSE"
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
         [forceOptional]="usageMode | isOnField"
         [showError]="true"
         [debug]="debug"
@@ -316,11 +334,20 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          editor.loading: {{ loading }}
-          <br />
           editor.ready: {{ readySubject | async }}
           <br />
+          editor.loading: {{ loading }}
+          <br />
           editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{ (program$ | async)?.label }}
+          <br />
+          editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
         </ion-col>
         <ion-col>

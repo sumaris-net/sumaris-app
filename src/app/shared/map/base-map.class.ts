@@ -169,9 +169,9 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected abstract onFeatureClick(feature: Feature);
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
-    layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
-    layer.on('mouseout', (_) => this.zone.run(() => this.$onOutFeature.next(feature)));
-    layer.on('click', (_) => this.zone.run(() => this.onFeatureClick(feature)));
+    layer.on('mouseover', () => this.zone.run(() => this.$onOverFeature.next(feature)));
+    layer.on('mouseout', () => this.zone.run(() => this.$onOutFeature.next(feature)));
+    layer.on('click', () => this.zone.run(() => this.onFeatureClick(feature)));
   }
 
   protected cleanMapLayers() {
@@ -181,8 +181,8 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   async flyToBounds(opts = { skipDebounce: false }): Promise<void> {
     if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
-      if (!this.$fitToBounds.observers.length) {
-        this.subscription.add(this.$fitToBounds.pipe(debounceTime(this.flyToBoundsDelay)).subscribe((b) => this.flyToBounds({ skipDebounce: true })));
+      if (!this.$fitToBounds.observed) {
+        this.subscription.add(this.$fitToBounds.pipe(debounceTime(this.flyToBoundsDelay)).subscribe(() => this.flyToBounds({ skipDebounce: true })));
       }
 
       this.$fitToBounds.next();

@@ -15,9 +15,15 @@
     --table-paginator-height: var(--app-paginator-height);
   }
 }
-.mat-table {
-  .mat-column-person {
-    min-width: 50px;
+.mat-mdc-table {
+  .mat-column-person,
+  .mat-column-referencePerson {
+    min-width: 90px;
+  }
+
+  .mat-column-department {
+    min-width: 150px;
+    max-width: 200px;
   }
 
   .mat-column-location,

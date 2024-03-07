@@ -31,8 +31,11 @@ export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = V
       creationDate: [data?.creationDate || null],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null],
-      name: [data?.name || null, opts.withNameRequired ? Validators.required : null],
-      exteriorMarking: [data?.exteriorMarking || null, Validators.required],
+      name: [
+        data?.name || null,
+        opts.withNameRequired ? Validators.compose([Validators.required, Validators.maxLength(100)]) : Validators.maxLength(100),
+      ],
+      exteriorMarking: [data?.exteriorMarking || null, Validators.compose([Validators.required, Validators.maxLength(100)])],
       administrativePower: [toNumber(data?.administrativePower, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       lengthOverAll: [toNumber(data?.lengthOverAll, null), Validators.compose([Validators.min(0), SharedValidators.decimal({ maxDecimals: 2 })])],
       grossTonnageGrt: [toNumber(data?.grossTonnageGrt, null), Validators.compose([Validators.min(0), SharedValidators.decimal({ maxDecimals: 2 })])],

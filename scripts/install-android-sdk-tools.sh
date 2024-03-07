@@ -58,17 +58,17 @@ echo y | sdkmanager "build-tools;${ANDROID_SDK_VERSION}" --sdk_root=${ANDROID_SD
 TARGET_VERSIONS="22 23 24 25 26 27 28 29 30 31 32 33"
 for TARGET_VERSION in $TARGET_VERSIONS
 do
-  echo "-------------------------------------------"
-  echo "--- Installing Android target ${TARGET_VERSION}..."
-  echo y | sdkmanager "platforms;android-${TARGET_VERSION}" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
+  #echo "-------------------------------------------"
+  #echo "--- Installing Android target ${TARGET_VERSION}..."
+  #echo y | sdkmanager "platforms;android-${TARGET_VERSION}" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 [[ $? -ne 0 ]] && exit 1
 done
 
 # Install NDK
 echo "-------------------------------------------"
 echo "--- Installing Android NDK..."
-sdkmanager "ndk;22.0.7026061" --sdk_root=${ANDROID_SDK_ROOT}
-sdkmanager "ndk;25.2.9519653" --sdk_root=${ANDROID_SDK_ROOT}
-sdkmanager "ndk;${ANDROID_NDK_VERSION}" --sdk_root=${ANDROID_SDK_ROOT}
+#sdkmanager "ndk;22.0.7026061" --sdk_root=${ANDROID_SDK_ROOT}
+#sdkmanager "ndk;25.2.9519653" --sdk_root=${ANDROID_SDK_ROOT}
+#sdkmanager "ndk;${ANDROID_NDK_VERSION}" --sdk_root=${ANDROID_SDK_ROOT}
 
 echo "--- Installing Android [OK]"

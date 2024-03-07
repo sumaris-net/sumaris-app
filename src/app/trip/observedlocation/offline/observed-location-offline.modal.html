@@ -8,6 +8,12 @@
 ></app-modal-toolbar>
 
 <ion-content class="ion-padding">
+  <!-- error -->
+  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
   <form class="form-container" [formGroup]="form">
     <ion-grid class="ion-no-padding">
       <ion-row>
@@ -31,7 +37,6 @@
           <!-- Strategy -->
           <mat-chips-field
             formControlName="strategy"
-            #strategyChipsField
             [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY' | translate"
             [config]="autocompleteFields.strategy"
             [clearable]="true"
@@ -39,6 +44,23 @@
             [tabindex]="2"
           >
             <mat-icon matPrefix>date_range</mat-icon>
+          </mat-chips-field>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-padding-start">
+        <ion-col>
+          <!-- Vessel -->
+          <mat-chips-field
+            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            formControlName="vesselSnapshot"
+            [placeholder]="'LANDING.TABLE.VESSEL' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [clearable]="true"
+            chipColor="accent"
+            [tabindex]="3"
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
           </mat-chips-field>
         </ion-col>
       </ion-row>
@@ -53,7 +75,7 @@
             <ion-label>&nbsp;</ion-label>
 
             <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="2">
+            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">
               <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
             </mat-checkbox>
 
@@ -72,7 +94,7 @@
             [config]="autocompleteFields.location"
             [clearable]="true"
             [chipColor]="(form | formGetControl: 'location').enabled ? 'accent' : 'medium'"
-            [tabindex]="3"
+            [tabindex]="5"
           >
             <mat-icon matPrefix>room</mat-icon>
           </mat-chips-field>
@@ -87,7 +109,7 @@
             <mat-select
               formControlName="periodDuration"
               [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
-              [tabindex]="4"
+              [tabindex]="6"
               required
             >
               <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
@@ -120,7 +142,7 @@
           [disabled]="disabled"
           (click)="validate($event)"
           (keyup.enter)="validate($event)"
-          [tabindex]="5"
+          [tabindex]="7"
           color="tertiary"
         >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
@@ -129,3 +151,10 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden />
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

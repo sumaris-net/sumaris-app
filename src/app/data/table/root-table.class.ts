@@ -30,7 +30,7 @@ import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
@@ -61,9 +61,10 @@ export abstract class AppRootDataTable<
     S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>,
+    ST extends BaseTableState = BaseTableState,
+    O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
-  extends AppBaseTable<T, F, S, V, ID, O>
+  extends AppBaseTable<T, F, S, V, ID, ST, O>
   implements OnInit, OnDestroy
 {
   protected readonly network: NetworkService;
@@ -617,7 +618,7 @@ export abstract class AppRootDataTable<
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    console.log(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
 
     const json =
       this.restoreFilterSources !== false &&
@@ -688,9 +689,7 @@ export abstract class AppRootDataTable<
         }
 
         console.info(
-          `[root-table] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(
-            remoteUpdateDate
-          )}'} - Need upgrade: ${needUpdate}`
+          `[root-table] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`
         );
       }
     }

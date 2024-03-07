@@ -73,7 +73,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   }
 
   set knownDevices(value: IchthyometerDevice[]) {
-    this._state.set('knownDevices', (_) => value);
+    this._state.set('knownDevices', () => value);
   }
 
   constructor(
@@ -107,7 +107,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
         // DEBUG
         //console.debug('[ichthyometer] Updated ichthyometers: ' + ichthyometers.map(d => d?.address).join(','));
 
-        this._state.set('ichthyometers', (_) => ichthyometers);
+        this._state.set('ichthyometers', () => ichthyometers);
         if (isNotEmptyArray(ichthyometers)) {
           canAutoStop = true;
         } else if (canAutoStop) {
@@ -120,7 +120,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
     this.registerSubscription(
       this.ichthyometers$
         .pipe(
-          filter((_) => !this._restoring),
+          filter(() => !this._restoring),
           debounceTime(1000),
           filter(isNotEmptyArray) // Skip if no more devices (.g. auto disconnected)
         )
@@ -342,7 +342,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
       } else {
         const now = Date.now();
         console.info(`[ichthyometer] Restoring ${devices.length} ichthyometers...`);
-        const count = (await chainPromises(devices.map((d) => () => this.bluetoothService.connect(d).catch((_) => false /*continue*/)))).filter(
+        const count = (await chainPromises(devices.map((d) => () => this.bluetoothService.connect(d).catch(() => false /*continue*/)))).filter(
           (connected) => connected
         ).length;
         console.info(`[ichthyometer] Restored ${count} ichthyometers in ${Date.now() - now}ms`);

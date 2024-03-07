@@ -11,7 +11,7 @@ import {
   Optional,
 } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
-import { MeasurementValuesForm, MeasurementValuesState } from '@app/data/measurement/measurement-values.form.class';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -32,7 +32,7 @@ import {
   waitFor,
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
+import { debounceTime, delay, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -46,14 +46,26 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
-export interface BatchFormState extends MeasurementValuesState {
+export interface TaxonNameBatchFilter {
+  programLabel?: string;
+  taxonGroupId?: number;
+}
+export interface BatchFormState extends MeasurementsFormState {
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
-  pmfmFilter: Partial<DenormalizedPmfmFilter> | null;
+  pmfmFilter: Partial<DenormalizedPmfmFilter>;
+  taxonNameFilter: TaxonNameBatchFilter;
   samplingRatioFormat: SamplingRatioFormat;
+  filter: BatchFilter;
 
+  showTaxonGroup: boolean;
+  showTaxonName: boolean;
   showExhaustiveInventory: boolean;
 
   showWeight: boolean;
@@ -81,10 +93,7 @@ export const BATCH_VALIDATOR_OPTIONS_TOKEN = new InjectionToken<BatchValidatorOp
   selector: 'app-batch-form',
   templateUrl: './batch.form.html',
   styleUrls: ['batch.form.scss'],
-  providers: [
-    { provide: BATCH_VALIDATOR, useExisting: BatchValidatorService },
-    { provide: BATCH_VALIDATOR_OPTIONS_TOKEN, useValue: {} },
-  ],
+  providers: [{ provide: BATCH_VALIDATOR, useExisting: BatchValidatorService }, { provide: BATCH_VALIDATOR_OPTIONS_TOKEN, useValue: {} }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchForm<
@@ -98,21 +107,18 @@ export class BatchForm<
 {
   private _formValidatorSubscription: Subscription;
   private _formValidatorOpts: any;
-  private _filter: BatchFilter;
 
-  protected readonly _afterViewInitialized$ = this._state.select('afterViewInitialized');
+  @RxStateSelect() protected afterViewInitialized$: Observable<boolean>;
+  @RxStateSelect() taxonNameFilter$: Observable<TaxonNameBatchFilter>;
+  @RxStateSelect() hasContent$: Observable<boolean>;
+
   protected _initialPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
-
-  readonly hasContent$ = this._state.select('hasContent');
-
-  taxonNameFilter: any;
+  @RxStateProperty() protected afterViewInitialized: boolean;
 
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
-  @Input() showTaxonGroup = true;
-  @Input() showTaxonName = true;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() showTaxonGroupSearchBar = true;
@@ -122,158 +128,29 @@ export class BatchForm<
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 
-  @Input() set samplingRatioFormat(value: SamplingRatioFormat) {
-    this._state.set('samplingRatioFormat', (_) => value);
-  }
-  get samplingRatioFormat(): SamplingRatioFormat {
-    return this._state.get('samplingRatioFormat');
-  }
+  @Input() @RxStateProperty() showTaxonGroup = true;
+  @Input() @RxStateProperty() showTaxonName = true;
+  @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
+  @Input() @RxStateProperty() pmfmFilter: Partial<DenormalizedPmfmFilter>;
+  @Input() @RxStateProperty() showWeight: boolean;
+  @Input() @RxStateProperty() showEstimatedWeight: boolean;
+  @Input() @RxStateProperty() showExhaustiveInventory: boolean;
+  @Input() @RxStateProperty() requiredWeight: boolean;
+  @Input() @RxStateProperty() showIndividualCount: boolean;
+  @Input() @RxStateProperty() requiredIndividualCount: boolean;
+  @Input() @RxStateProperty() showChildrenWeight: boolean;
+  @Input() @RxStateProperty() showSamplingBatch: boolean;
+  @Input() @RxStateProperty() showSampleWeight: boolean;
+  @Input() @RxStateProperty() requiredSampleWeight: boolean;
+  @Input() @RxStateProperty() showSampleIndividualCount: boolean;
+  @Input() @RxStateProperty() requiredSampleIndividualCount: boolean;
+  @Input() @RxStateProperty() samplingBatchEnabled: boolean;
+  @Input() @RxStateProperty() filter: BatchFilter;
 
-  @Input() set pmfmFilter(value: Partial<DenormalizedPmfmFilter>) {
-    this._state.set('pmfmFilter', (_) => value);
-  }
-  get pmfmFilter(): Partial<DenormalizedPmfmFilter> {
-    return this._state.get('pmfmFilter');
-  }
-
-  @Input() set showWeight(value: boolean) {
-    this._state.set('showWeight', (_) => value);
-  }
-
-  get showWeight(): boolean {
-    return this._state.get('showWeight');
-  }
-
-  @Input() set showEstimatedWeight(value: boolean) {
-    this._state.set('showEstimatedWeight', (_) => value);
-  }
-
-  get showEstimatedWeight(): boolean {
-    return this._state.get('showEstimatedWeight');
-  }
-
-  @Input() set showExhaustiveInventory(value: boolean) {
-    this._state.set('showExhaustiveInventory', (_) => value);
-  }
-
-  get showExhaustiveInventory(): boolean {
-    return this._state.get('showExhaustiveInventory');
-  }
-
-  @Input()
-  set requiredWeight(value: boolean) {
-    this._state.set('requiredWeight', (_) => value);
-  }
-
-  get requiredWeight(): boolean {
-    return this._state.get('requiredWeight');
-  }
-
-  @Input()
-  set showIndividualCount(value: boolean) {
-    this._state.set('showIndividualCount', (_) => value);
-  }
-
-  get showIndividualCount(): boolean {
-    return this._state.get('showIndividualCount');
-  }
-
-  @Input()
-  set requiredIndividualCount(value: boolean) {
-    this._state.set('requiredIndividualCount', (_) => value);
-  }
-
-  get requiredIndividualCount(): boolean {
-    return this._state.get('requiredIndividualCount');
-  }
-
-  @Input() set showChildrenWeight(value: boolean) {
-    this._state.set('showChildrenWeight', (_) => value);
-  }
-  get showChildrenWeight(): boolean {
-    return this._state.get('showChildrenWeight');
-  }
-
-  @Input() set showSamplingBatch(value: boolean) {
-    this._state.set('showSamplingBatch', (_) => value);
-  }
-  get showSamplingBatch(): boolean {
-    return this._state.get('showSamplingBatch');
-  }
-
-  @Input()
-  set showSampleWeight(value: boolean) {
-    this._state.set('showSampleWeight', (_) => value);
-  }
-
-  get showSampleWeight(): boolean {
-    return this._state.get('showSampleWeight');
-  }
-
-  @Input()
-  set requiredSampleWeight(value: boolean) {
-    this._state.set('requiredSampleWeight', (_) => value);
-  }
-
-  get requiredSampleWeight(): boolean {
-    return this._state.get('requiredSampleWeight');
-  }
-
-  @Input()
-  set showSampleIndividualCount(value: boolean) {
-    this._state.set('showSampleIndividualCount', (_) => value);
-  }
-
-  get showSampleIndividualCount(): boolean {
-    return this._state.get('showSampleIndividualCount');
-  }
-
-  @Input()
-  set requiredSampleIndividualCount(value: boolean) {
-    this._state.set('requiredSampleIndividualCount', (_) => value);
-  }
-
-  get requiredSampleIndividualCount(): boolean {
-    return this._state.get('requiredSampleIndividualCount');
-  }
-
-  @Input()
-  set samplingBatchEnabled(value: boolean) {
-    this._state.set('samplingBatchEnabled', (_) => value);
-  }
-
-  get samplingBatchEnabled(): boolean {
-    return this._state.get('samplingBatchEnabled');
-  }
-
-  @Input() set filter(value: BatchFilter) {
-    this._filter = value;
-  }
-
-  get filter() {
-    return this._filter;
-  }
-
-  get defaultWeightPmfm(): IPmfm {
-    return this._state.get('defaultWeightPmfm');
-  }
-  set defaultWeightPmfm(value: IPmfm) {
-    this._state.set('defaultWeightPmfm', (_) => value);
-  }
-
-  get weightPmfms(): IPmfm[] {
-    return this._state.get('weightPmfms');
-  }
-  set weightPmfms(value: IPmfm[]) {
-    this._state.set('weightPmfms', (_) => value);
-  }
-
-  get weightPmfmsByMethod(): { [key: string]: IPmfm } {
-    return this._state.get('weightPmfmsByMethod');
-  }
-  set weightPmfmsByMethod(value: { [key: string]: IPmfm }) {
-    this._state.set('weightPmfmsByMethod', (_) => value);
-  }
+  @RxStateProperty() defaultWeightPmfm: IPmfm;
+  @RxStateProperty() weightPmfms: IPmfm[];
+  @RxStateProperty() weightPmfmsByMethod: { [key: string]: IPmfm };
+  @RxStateProperty() taxonNameFilter: TaxonNameBatchFilter;
 
   get childrenFormArray(): AppFormArray<Batch, UntypedFormGroup> {
     return this.form.controls.children as AppFormArray<Batch, UntypedFormGroup>;
@@ -293,10 +170,6 @@ export class BatchForm<
 
   get touched(): boolean {
     return this.form?.touched;
-  }
-
-  get afterViewInitialized(): boolean {
-    return this._state.get('afterViewInitialized');
   }
 
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -401,17 +274,6 @@ export class BatchForm<
     // Inherited. WARN will enable the form
     super.ngOnInit();
 
-    // When pmfm filter change, re-apply initial pmfms
-    this._state.hold(
-      this._state.select('pmfmFilter').pipe(
-        // DEBUG
-        //tap(pmfmFilter => console.debug(this._logPrefix + 'pmfmFilter changes', pmfmFilter)),
-
-        filter((_) => this.enabled && !this.loading)
-      ),
-      (_) => this.setPmfms(this._initialPmfms)
-    );
-
     // Update form if need
     this._state.hold(
       this._state
@@ -463,22 +325,22 @@ export class BatchForm<
     }
 
     // Taxon name combo
-    this.updateTaxonNameFilter();
-    this.registerAutocompleteField('taxonName', {
+    const taxonNameFilter = this.computeTaxonNameFilter();
+    this.registerAutocompleteField<TaxonNameRef>('taxonName', {
       suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
-      filter: this.taxonNameFilter,
+      filter: taxonNameFilter,
       mobile: this.mobile,
       showAllOnFocus: this.showTaxonName,
     });
 
-    this.registerSubscription(
-      this.form
-        .get('taxonGroup')
-        .valueChanges.pipe(
-          debounceTime(250),
-          filter((_) => this.showTaxonGroup && this.showTaxonName)
-        )
-        .subscribe((taxonGroup) => this.updateTaxonNameFilter({ taxonGroup }))
+    this._state.connect(
+      'taxonNameFilter',
+      this.form.get('taxonGroup').valueChanges.pipe(
+        debounceTime(250),
+        filter(() => this.showTaxonGroup && this.showTaxonName),
+        map((taxonGroup) => this.computeTaxonNameFilter({ taxonGroup })),
+        startWith(taxonNameFilter)
+      )
     );
 
     this.ngInitExtension();
@@ -505,14 +367,7 @@ export class BatchForm<
     this._state.set((oldState) => ({
       ...oldState,
       ...state,
-      // Keep some protected inputs
-      pmfms: oldState.pmfms,
     }));
-
-    // Apply pmfms
-    if (state?.pmfms) {
-      this.setPmfms(state?.pmfms);
-    }
   }
 
   onApplyingEntity(data: T, opts?: any) {
@@ -761,10 +616,10 @@ export class BatchForm<
    */
   protected listenHasContent(): Observable<boolean> {
     return this._state.select(
-      ['showWeight', 'weightPmfms', 'pmfms', 'showIndividualCount', 'showSampleIndividualCount', 'showSamplingBatch'],
+      ['showWeight', 'weightPmfms', 'filteredPmfms', 'showIndividualCount', 'showSampleIndividualCount', 'showSamplingBatch'],
       (state) =>
         (state.showWeight && isNotEmptyArray(state.weightPmfms)) ||
-        (state.pmfms && state.pmfms.some(this.isVisibleNotWeightPmfm)) ||
+        (state.filteredPmfms && state.filteredPmfms.some(this.isVisibleNotWeightPmfm)) ||
         state.showIndividualCount ||
         state.showSampleIndividualCount ||
         state.showSamplingBatch ||
@@ -833,41 +688,44 @@ export class BatchForm<
    */
   protected waitViewInit(): Promise<void> {
     if (this.afterViewInitialized) return;
-    return firstTruePromise(this._afterViewInitialized$, { stop: this.destroySubject });
+    return firstTruePromise(this.afterViewInitialized$, { stop: this.destroySubject });
   }
 
-  protected updateTaxonNameFilter(opts?: { taxonGroup?: any }) {
+  protected computeTaxonNameFilter(opts?: { taxonGroup?: any }): TaxonNameBatchFilter {
     // If taxonGroup exists: taxon group must be filled first
     if (this.showTaxonGroup && ReferentialUtils.isEmpty(opts && opts.taxonGroup)) {
-      this.taxonNameFilter = {
+      return <TaxonNameBatchFilter>{
         programLabel: 'NONE' /*fake program, will cause empty array*/,
       };
     } else {
-      this.taxonNameFilter = {
+      return <TaxonNameBatchFilter>{
         programLabel: this.programLabel,
         taxonGroupId: opts && opts.taxonGroup && opts.taxonGroup.id,
       };
     }
-    this.markForCheck();
   }
 
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (!pmfms) return; // Skip if empty
 
-    this._initialPmfms = pmfms; // Copy original pmfms list
+    if (!equals(this._initialPmfms, pmfms)) {
+      this._initialPmfms = pmfms; // Copy original pmfms list
 
-    // Filter pmfms
-    const filterFn = DenormalizedPmfmFilter.fromObject(this.pmfmFilter)?.asFilterFn();
-    if (filterFn) {
-      pmfms = pmfms.filter(filterFn);
+      // Filter pmfms
+      const filterFn = DenormalizedPmfmFilter.fromObject(this.pmfmFilter)?.asFilterFn();
+      if (filterFn) {
+        pmfms = pmfms.filter(filterFn);
+      }
+
+      // dispatch pmfms, and return partial state
+      const state = await this.dispatchPmfms(pmfms);
+
+      this._state.set(state);
+
+      return state.filteredPmfms;
+    } else {
+      return this.filteredPmfms;
     }
-
-    // dispatch pmfms, and return partial state
-    const state = await this.dispatchPmfms(pmfms);
-
-    this._state.set(state);
-
-    return state.pmfms;
   }
 
   protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
@@ -898,7 +756,7 @@ export class BatchForm<
     const weightPmfmsByMethod = splitByProperty(weightPmfms, 'methodId');
 
     // All pmfms to keep (visible or not)
-    pmfms = notWeightPmfms.concat(weightPmfms);
+    const filteredPmfms = notWeightPmfms.concat(weightPmfms);
 
     // Hide sampling batch, if no weight pmfm
     const showSamplingBatch = toBoolean(this.showSamplingBatch, isNotNil(defaultWeightPmfm));
@@ -910,7 +768,7 @@ export class BatchForm<
       showWeight: !!defaultWeightPmfm,
       showEstimatedWeight: !!weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER],
       weightPmfmsByMethod,
-      pmfms,
+      filteredPmfms,
     };
   }
 

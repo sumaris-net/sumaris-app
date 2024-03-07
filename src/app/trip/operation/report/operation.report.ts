@@ -44,7 +44,7 @@ export class OperationStats extends BaseTripReportStats {
 @Component({
   selector: 'app-operation-report',
   templateUrl: './operation.report.html',
-  styleUrls: ['@app/data/report/base-report.scss'],
+  styleUrls: ['../../../data/report/base-report.scss'],
 })
 export class OperationReport extends AppDataEntityReport<Operation, number, OperationStats> {
   protected logPrefix = 'operation-report';

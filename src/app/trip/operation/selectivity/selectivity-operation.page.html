@@ -10,7 +10,7 @@
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
-  <ion-title [innerHTML]="$title | async"></ion-title>
+  <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
   <ion-buttons slot="end">
     <!-- New operation -->
@@ -58,8 +58,8 @@
 
     <!-- option menu -->
     <ion-button
-      *ngIf="!isNewData || debug"
-      [disabled]="disabled || vars.loading || vars.saving"
+      *ngIf="!isNewData || canDebug"
+      [disabled]="vars.loading || vars.saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
     >
@@ -69,7 +69,7 @@
 </app-toolbar>
 
 <!-- Last operations menu -->
-<mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
+<mat-menu #lastOperationsMenu="matMenu" xPosition="before" class="mat-menu-size-75vw ion-no-padding">
   <ng-template matMenuContent>
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
@@ -158,7 +158,7 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
     <!-- duplicate (if mobile) -->
-    <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate" (click)="duplicate($event)">
+    <button mat-menu-item class="ion-color-danger" *ngIf="mobile && canDuplicate" [disabled]="disabled" (click)="duplicate($event)">
       <ion-label>
         <mat-icon>content_copy</mat-icon>
         <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
@@ -166,7 +166,7 @@
     </button>
 
     <!-- Control -->
-    <button mat-menu-item *ngIf="enabled" (click)="saveAndControl($event)">
+    <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
       <ion-label>
         <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
         <span translate>QUALITY.BTN_CONTROL</span>
@@ -178,6 +178,7 @@
       *ngIf="canDownload"
       [style]="'mat-menu-item'"
       [programLabel]="programLabel$ | push"
+      [disabledDownloadAsType]="!data.controlDate || !trip.controlDate"
       (downloadAsJson)="downloadAsJson($event)"
       (downloadAsType)="openDownloadPage($event)"
     ></app-extraction-button>
@@ -190,10 +191,10 @@
       </ion-label>
     </button>
 
-    <mat-divider *ngIf="mobile && enabled"></mat-divider>
+    <mat-divider *ngIf="mobile"></mat-divider>
 
     <!-- reset -->
-    <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
+    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
       <ion-label>
         <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
         <span translate>COMMON.BTN_RESET</span>
@@ -205,13 +206,16 @@
       <mat-icon>delete</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
+
+    <!-- DEV only -->
+    <app-data-editor-debug-button></app-data-editor-debug-button>
   </ng-template>
 </mat-menu>
 
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -219,7 +223,12 @@
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate }}">
+    <mat-tab
+      [label]="'TRIP.OPERATION.EDIT.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [parentPath]="defaultBackHref"
+    >
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
@@ -257,7 +266,10 @@
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top" [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray">
+                <ion-grid
+                  class="ion-no-padding ion-padding-top form-container"
+                  [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
+                >
                   <ion-row>
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
@@ -266,8 +278,11 @@
                       <app-form-measurements
                         #measurementsForm
                         entityName="VesselUseMeasurement"
-                        [acquisitionLevel]="acquisitionLevel$ | push: 'immediate'"
-                        [gearId]="gearId$ | push: 'immediate'"
+                        [acquisitionLevel]="acquisitionLevel$ | async"
+                        [requiredStrategy]="requiredStrategy$ | async"
+                        [strategyId]="strategy$ | async | mapGet: 'id'"
+                        [requiredGear]="true"
+                        [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
                         [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                         (mapPmfms)="mapPmfms($event)"
@@ -275,6 +290,7 @@
                         [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
                         [mobile]="mobile"
+                        [debug]="debug"
                       ></app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -294,7 +310,12 @@
     </mat-tab>
 
     <!-- TAB: Catch -->
-    <mat-tab #catchTab [label]="'TRIP.OPERATION.EDIT.TAB_CATCH' | translateContext: i18nContext.suffix" [disabled]="!(physicalGear$ | push)">
+    <mat-tab
+      #catchTab
+      [label]="'TRIP.OPERATION.EDIT.TAB_CATCH' | translateContext: i18nContext.suffix"
+      [disabled]="!showCatchTab || !(physicalGear$ | push)"
+      appSubMenuTab
+    >
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label>{{ catchTab.textLabel }}</ion-label>
@@ -317,6 +338,7 @@
         [physicalGear]="physicalGear$ | async"
         [showAutoFillButton]="false"
         [useSticky]="mobile"
+        [useModal]="xsMobile"
         [mobile]="mobile"
         [debug]="debug"
       ></app-batch-tree-container>
@@ -392,7 +414,7 @@
           <br />
           measurementsForm.valid: {{ measurementsForm.valid }}
           <br />
-          measurementsForm.gearId: {{ measurementsForm.gearId }}
+          measurementsForm.gearId{{ measurementsForm.requiredGear ? ' (required)' : '' }}: {{ measurementsForm.gearId }}
           <br />
           measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
           <br />

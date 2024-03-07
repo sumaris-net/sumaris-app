@@ -26,6 +26,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { RxState } from '@rx-angular/state';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -35,6 +36,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
   touchedSubject = new BehaviorSubject<boolean>(false);
@@ -44,16 +46,11 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
-  @Input() showToolbar = true;
-  @Input() useSticky = false;
   @Input() title: string = null;
   @Input() defaultGear: ReferentialRef = null;
   @Input() canEditGear = true;
-  @Input() showError = true;
   @Input() showFilter = false;
   @Input() showPmfmDetails = false;
-  @Input() compactFields = true;
-  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() minRowCount = 0;
 
@@ -137,6 +134,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        initialState: {
+          requiredStrategy: true,
+        },
       }
     );
 
@@ -275,7 +275,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onNewRow.observers.length) {
+    if (this.onNewRow.observed) {
       this.onNewRow.emit();
       return true;
     }
@@ -291,7 +291,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   protected async openRow(id: number, row: TableElement<PhysicalGear>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -320,14 +320,16 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     dataToOpen.tripId = this.tripId;
 
     const subscription = new Subscription();
-    const showSearchButton = isNew && this.openSelectPreviousGearModal.observers.length > 0;
+    const showSearchButton = isNew && this.openSelectPreviousGearModal.observed;
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
       componentProps: <IPhysicalGearModalOptions>{
-        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
+        programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategyId,
         disabled: this.disabled,
         data: dataToOpen.clone(), // Do a copy, because edition can be cancelled
         isNew,
@@ -343,6 +345,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
         usageMode: this.usageMode,
+        debug: this.debug,
         // Override using given options
         ...this.modalOptions,
       },

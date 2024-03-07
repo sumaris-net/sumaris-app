@@ -2,7 +2,6 @@ import { AfterViewInit, Directive, Injector, Input, OnInit, ViewChild } from '@a
 import {
   AppFormUtils,
   changeCaseToUnderscore,
-  CryptoService,
   CsvUtils,
   EntitiesServiceWatchOptions,
   Entity,
@@ -27,7 +26,7 @@ import {
   StatusList,
   suggestFromArray,
 } from '@sumaris-net/ngx-components';
-import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
+import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { UntypedFormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
@@ -37,11 +36,14 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { BehaviorSubject, isObservable, Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 
+export interface BaseReferentialTableState extends BaseTableState {}
+
 export interface BaseReferentialTableOptions<
   T extends Entity<T, ID>,
   ID = number,
+  ST extends BaseReferentialTableState = BaseReferentialTableState,
   O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-> extends BaseTableConfig<T, ID, O> {
+> extends BaseTableConfig<T, ID, ST, O> {
   propertyNames?: string[];
   canUpload?: boolean;
 }
@@ -55,9 +57,10 @@ export abstract class BaseReferentialTable<
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    O extends BaseReferentialTableOptions<T, ID> = BaseReferentialTableOptions<T, ID>,
+    ST extends BaseReferentialTableState = BaseReferentialTableState,
+    O extends BaseReferentialTableOptions<T, ID, ST> = BaseReferentialTableOptions<T, ID, ST>,
   >
-  extends AppBaseTable<T, F, S, V, ID, O>
+  extends AppBaseTable<T, F, S, V, ID, ST, O>
   implements OnInit, AfterViewInit
 {
   /**
@@ -65,6 +68,7 @@ export abstract class BaseReferentialTable<
    *
    * @param dataType
    * @param validatorService
+   * @param excludedProperties
    */
   static getEntityDisplayProperties<T>(dataType: new () => T, validatorService?: ValidatorService, excludedProperties?: string[]): string[] {
     excludedProperties = excludedProperties || IGNORED_ENTITY_COLUMNS;

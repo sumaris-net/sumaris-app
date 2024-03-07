@@ -13,23 +13,8 @@ export const StrategyFragments = {
       creationDate
       statusId
       programId
-      gears {
-        ...LightReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      pmfms {
-        ...LightPmfmStrategyFragment
-      }
       appliedStrategies {
         ...AppliedStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
       }
     }
   `,
@@ -202,6 +187,21 @@ export const StrategyFragments = {
     }
   `,
 
+  lightStrategyRef: gql`
+    fragment LightStrategyRefFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      analyticReference
+      updateDate
+      creationDate
+      statusId
+      programId
+    }
+  `,
+
   strategyRef: gql`
     fragment StrategyRefFragment on StrategyVO {
       id
@@ -221,12 +221,6 @@ export const StrategyFragments = {
       }
       taxonNames {
         ...TaxonNameStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
-      appliedStrategies {
-        ...AppliedStrategyFragment
       }
       denormalizedPmfms {
         ...DenormalizedPmfmStrategyFragment

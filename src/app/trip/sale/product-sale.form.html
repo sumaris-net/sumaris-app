@@ -5,77 +5,77 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <table class="mat-table" [class.mobile]="mobile">
+  <table class="mat-mdc-table" [class.mobile]="mobile">
     <thead>
       <!-- header row -->
-      <tr class="mat-header-row">
-        <th class="mat-header-cell mat-column-saleType ion-text-center">
+      <tr class="mat-mdc-header-row">
+        <th class="mat-mdc-header-cell mat-column-saleType ion-text-center">
           <ion-label translate>TRIP.PRODUCT.SALE.SALE_TYPE</ion-label>
         </th>
-        <th class="mat-header-cell mat-column-ratio ion-text-center">
+        <th class="mat-mdc-header-cell mat-column-ratio ion-text-center">
           <ion-label translate>TRIP.PRODUCT.SALE.RATIO</ion-label>
         </th>
-        <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-weight ion-text-center">
+        <th *ngIf="isProductWithWeight()" class="mat-mdc-header-cell mat-column-weight ion-text-center">
           <ion-label translate>TRIP.PRODUCT.LIST.WEIGHT</ion-label>
         </th>
-        <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-averageWeightPrice ion-text-center">
+        <th *ngIf="isProductWithWeight()" class="mat-mdc-header-cell mat-column-averageWeightPrice ion-text-center">
           <ion-label translate>TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE</ion-label>
         </th>
-        <th *ngIf="hasIndividualCount" class="mat-header-cell mat-column-individualCount ion-text-center">
+        <th *ngIf="hasIndividualCount" class="mat-mdc-header-cell mat-column-individualCount ion-text-center">
           <ion-label translate>TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT</ion-label>
         </th>
-        <th *ngIf="hasIndividualCount" class="mat-header-cell mat-column-averagePackagingPrice ion-text-center">
+        <th *ngIf="hasIndividualCount" class="mat-mdc-header-cell mat-column-averagePackagingPrice ion-text-center">
           <ion-label translate>TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE</ion-label>
         </th>
-        <th class="mat-header-cell mat-column-totalPrice ion-text-center">
+        <th class="mat-mdc-header-cell mat-column-totalPrice ion-text-center">
           <ion-label translate>TRIP.PRODUCT.SALE.TOTAL_PRICE</ion-label>
         </th>
-        <th class="mat-header-cell mat-column-actions"></th>
+        <th class="mat-mdc-header-cell mat-column-actions"></th>
       </tr>
     </thead>
 
     <tbody>
       <!-- product summary -->
-      <tr class="mat-footer-row mat-row-disabled">
+      <tr class="mat-mdc-footer-row mat-mdc-row-disabled">
         <!-- total  -->
-        <td class="mat-footer-cell mat-column-saleType ion-text-end">
+        <td class="mat-mdc-footer-cell mat-column-saleType ion-text-end">
           <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
         </td>
 
-        <td class="mat-footer-cell mat-column-ratio"></td>
+        <td class="mat-mdc-footer-cell mat-column-ratio"></td>
 
-        <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-weight">
+        <td *ngIf="isProductWithWeight()" class="mat-mdc-footer-cell mat-column-weight">
           <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
             <input matInput formControlName="weight" [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT' | translate" readonly />
           </mat-form-field>
         </td>
 
-        <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-averageWeightPrice"></td>
+        <td *ngIf="isProductWithWeight()" class="mat-mdc-footer-cell mat-column-averageWeightPrice"></td>
 
-        <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-individualCount">
+        <td *ngIf="hasIndividualCount" class="mat-mdc-footer-cell mat-column-individualCount">
           <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
             <input matInput formControlName="individualCount" [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate" readonly />
           </mat-form-field>
         </td>
 
-        <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-averagePackagingPrice"></td>
+        <td *ngIf="hasIndividualCount" class="mat-mdc-footer-cell mat-column-averagePackagingPrice"></td>
 
-        <td class="mat-footer-cell mat-column-totalPrice"></td>
-        <td class="mat-footer-cell mat-column-actions"></td>
+        <td class="mat-mdc-footer-cell mat-column-totalPrice"></td>
+        <td class="mat-mdc-footer-cell mat-column-actions"></td>
       </tr>
 
       <!-- sale row -->
       <tr
-        class="mat-row"
+        class="mat-mdc-row"
         *ngFor="let saleForm of saleFormArray?.controls; index as i; last as last; even as even"
         [formGroup]="saleForm | formGetGroup"
-        [class.mat-row-disabled]="salesEditedIndex !== i"
-        [class.mat-row-selected]="salesEditedIndex === i"
-        [class.mat-row-error]="saleForm.invalid"
+        [class.mat-mdc-row-disabled]="salesEditedIndex !== i"
+        [class.mat-mdc-row-selected]="salesEditedIndex === i"
+        [class.mat-mdc-row-error]="saleForm.invalid"
         (focusin)="salesEditedIndex = i"
       >
         <!-- Sale type -->
-        <td class="mat-cell mat-column-saleType">
+        <td class="mat-mdc-cell mat-column-saleType">
           <mat-autocomplete-field
             formControlName="saleType"
             floatLabel="never"
@@ -90,7 +90,7 @@
         </td>
 
         <!-- ratio -->
-        <td class="mat-cell mat-column-ratio" [class.even]="hasIndividualCount">
+        <td class="mat-mdc-cell mat-column-ratio" [class.even]="hasIndividualCount">
           <mat-form-field
             floatLabel="never"
             [class.computed]="hasIndividualCount || (saleForm | formGetValue: 'ratioCalculated')"
@@ -113,7 +113,7 @@
         </td>
 
         <!-- weight -->
-        <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-weight even" [class.even]="hasIndividualCount">
+        <td *ngIf="isProductWithWeight()" class="mat-mdc-cell mat-column-weight even" [class.even]="hasIndividualCount">
           <mat-form-field
             floatLabel="never"
             [class.computed]="hasIndividualCount || (saleForm | formGetValue: 'weightCalculated')"
@@ -133,7 +133,7 @@
         </td>
 
         <!-- avg weight price -->
-        <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-averageWeightPrice">
+        <td *ngIf="isProductWithWeight()" class="mat-mdc-cell mat-column-averageWeightPrice">
           <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averageWeightPriceCalculated'">
             <input
               matInput
@@ -148,7 +148,7 @@
         </td>
 
         <!-- individualCount -->
-        <td *ngIf="hasIndividualCount" class="mat-cell mat-column-individualCount">
+        <td *ngIf="hasIndividualCount" class="mat-mdc-cell mat-column-individualCount">
           <mat-form-field floatLabel="never">
             <input
               matInput
@@ -164,7 +164,7 @@
         </td>
 
         <!-- avg packaging price -->
-        <td *ngIf="hasIndividualCount" class="mat-cell mat-column-averagePackagingPrice">
+        <td *ngIf="hasIndividualCount" class="mat-mdc-cell mat-column-averagePackagingPrice">
           <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averagePackagingPriceCalculated'">
             <input
               matInput
@@ -179,7 +179,7 @@
         </td>
 
         <!-- total price -->
-        <td class="mat-cell mat-column-totalPrice">
+        <td class="mat-mdc-cell mat-column-totalPrice">
           <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'totalPriceCalculated'">
             <input
               matInput
@@ -193,7 +193,7 @@
           </mat-form-field>
         </td>
 
-        <td class="mat-cell mat-column-actions">
+        <td class="mat-mdc-cell mat-column-actions">
           <ion-buttons>
             <button
               type="button"
@@ -210,7 +210,7 @@
             <button
               type="button"
               mat-icon-button
-              *ngIf="!mobile || (salesEditedIndex === i && !disabled)"
+              *ngIf="salesEditedIndex === i && !disabled && saleFormArray?.controls && saleFormArray?.controls.length > 1"
               [class.visible-hover-row]="!mobile"
               [tabindex]="-1"
               [title]="'COMMON.BTN_DELETE' | translate"

@@ -3,17 +3,19 @@ import {
   DateUtils,
   Department,
   Entity,
-  removeEnd,
   EntityAsObjectOptions,
   fromDateISOString,
   IEntity,
   isNil,
   isNotNil,
   ReferentialAsObjectOptions,
+  removeEnd,
   toDateISOString,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { StoreObject } from '@apollo/client/core';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -85,14 +87,14 @@ export abstract class DataEntity<
   }
 
   asObject(opts?: AO): any {
-    const target = super.asObject(opts);
-    if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
-    if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;
+    const target: StoreObject = super.asObject(opts);
+    if (opts && opts.keepRemoteId === false && (target.id as number) >= 0) delete target.id;
+    if (opts && opts.keepUpdateDate === false && (target.id as number) >= 0) delete target.updateDate;
     target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(opts)) || undefined;
     target.controlDate = toDateISOString(this.controlDate);
     target.qualificationDate = toDateISOString(this.qualificationDate);
     target.qualificationComments = this.qualificationComments || undefined;
-    target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
+    target.qualityFlagId = toNumber(this.qualityFlagId, undefined);
     return target;
   }
 
@@ -102,7 +104,11 @@ export abstract class DataEntity<
     this.controlDate = fromDateISOString(source.controlDate);
     this.qualificationDate = fromDateISOString(source.qualificationDate);
     this.qualificationComments = source.qualificationComments;
-    this.qualityFlagId = source.qualityFlagId;
+    this.qualityFlagId = toNumber(source.qualityFlagId, QualityFlagIds.NOT_QUALIFIED);
+  }
+
+  getStrategyDateTime(): Moment | undefined {
+    return undefined;
   }
 }
 
@@ -138,7 +144,15 @@ export abstract class DataEntityUtils {
   }
 
   /**
-   * Set controlDat, and reset quality fLag and comment
+   * Check if an entity has been controlled
+   *
+   * @param entity
+   */
+  static isControlled(entity: DataEntity<any, any> | undefined): boolean {
+    return !!entity?.controlDate;
+  }
+  /**
+   * Set controlDate, and reset quality fLag and comment
    *
    * @param entity
    * @param opts

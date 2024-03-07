@@ -162,14 +162,19 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventFilter> implem
     return source.icon || DEFAULT_ICONS_BY_TYPE[source.type];
   }
 
-  async doAction(action: IUserEventAction, row: TableElement<UserEvent>): Promise<any> {
-    const event = row.currentData;
-
-    this.markAsLoading();
-
+  async doAction(event: UIEvent, action: IUserEventAction, row: TableElement<UserEvent>): Promise<any> {
     if (action && typeof action.executeAction === 'function') {
+      if (event) {
+        event.preventDefault(); // Avoid click row
+        event.stopPropagation();
+      }
+
+      const userEvent = row.currentData;
+
+      this.markAsLoading();
+
       try {
-        let res = action.executeAction(event);
+        let res = action.executeAction(userEvent);
         res = res instanceof Promise ? await res : res;
         return res;
       } catch (err) {

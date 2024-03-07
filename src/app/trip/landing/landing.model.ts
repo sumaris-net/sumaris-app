@@ -5,6 +5,7 @@ import { Sample } from '../sample/sample.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 import { fillRankOrder, IWithObserversEntity } from '@app/data/services/model/model.utils';
 import {
+  DateUtils,
   EntityClass,
   EntityClasses,
   fromDateISOString,
@@ -135,9 +136,13 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
         other.rankOrderOnVessel &&
         this.rankOrderOnVessel === other.rankOrderOnVessel &&
         // Same date
-        this.dateTime === other.dateTime &&
+        DateUtils.equals(this.dateTime, other.dateTime) &&
         // Same location
         ReferentialUtils.equals(this.location, other.location))
     );
+  }
+
+  getStrategyDateTime(): Moment | undefined {
+    return this.dateTime;
   }
 }

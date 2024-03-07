@@ -31,12 +31,17 @@ import { MatTabGroup } from '@angular/material/tabs';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { ActivatedRoute } from '@angular/router';
 import { TripService } from '@app/trip/trip/trip.service';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
 
 @Component({
   selector: 'app-batch-tree-container-test',
   templateUrl: './batch-tree-container.test.html',
   styleUrls: ['./batch-tree-container.test.scss'],
-  providers: [{ provide: ContextService, useClass: TripContextService }],
+  providers: [
+    { provide: ContextService, useClass: TripContextService },
+    { provide: BatchModelValidatorService, useExisting: AdvancedBatchModelValidatorService },
+  ],
 })
 export class BatchTreeContainerTestPage implements OnInit {
   $programLabel = new BehaviorSubject<string>(undefined);
@@ -73,6 +78,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
       autofill: [false, Validators.required],
+      debug: [true, Validators.required],
     });
     this.selectedTabIndex = toNumber(activeRoute.snapshot.queryParamMap['tab'], this.selectedTabIndex || 0);
   }
@@ -165,6 +171,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       gear: { id: 7, label: 'OTT' },
       fishingArea: { id: 110, label: '65F1' },
       example: { id: 1, label: 'selectivity' },
+      debug: true,
     });
 
     this.applyExample();
@@ -355,3 +362,4 @@ export class BatchTreeContainerTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
+

@@ -48,8 +48,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
   @Input() programLabel: string;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
   @Input() showQuality = true;

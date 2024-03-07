@@ -3,7 +3,6 @@ import { MarkdownAnchorService } from '@app/shared/markdown/markdown-anchor.serv
 import { Subscription } from 'rxjs';
 
 @Directive({
-  // tslint:disable-next-line: directive-selector
   selector: 'markdown,[markdown]',
 })
 export class MarkdownAnchorDirective implements OnDestroy {

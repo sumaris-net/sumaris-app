@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -95,6 +95,8 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       )
       .reduce((count, length) => count + length, 0);
   }
+
+  @ViewChild('tabPanel') tabPanel: HTMLFormElement;
 
   constructor(
     injector: Injector,

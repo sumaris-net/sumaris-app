@@ -7,11 +7,11 @@ import { Vessel } from '../services/model/vessel.model';
 import {
   AccountService,
   isNil,
-  isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
+  ReferentialUtils,
   SharedValidators,
   StatusById,
   StatusIds,
@@ -19,7 +19,7 @@ import {
   trimEmptyToNull,
 } from '@sumaris-net/ngx-components';
 import { Observable, tap } from 'rxjs';
-import { FormControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -53,13 +53,11 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   @Input() canDelete: boolean;
   @Input() showFabButton = false;
-  @Input() showError = true;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
-  @Input() useSticky = true;
   @Input() disableStatusFilter = false;
+  @Input() showVesselTypeFilter = true;
   @Input() showSearchbar = false;
   @Input() showToolbarFilterButton = true;
+  @Input() vesselTypeId: number;
 
   @Input()
   set showIdColumn(value: boolean) {
@@ -193,7 +191,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     });
 
     // Restore filter from settings, or load all
-    this.restoreFilterOrLoad();
+    this.ready().then(() => this.restoreFilterOrLoad());
   }
 
   protected ionSearchBarChanged(event: CustomEvent<ISearchbarSearchbarChangeEventDetail>) {
@@ -242,6 +240,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   resetFilter(event?: Event) {
     const defaultFilter = <Partial<VesselFilter>>{
       statusId: this.disableStatusFilter ? this.filter.statusId : undefined,
+      vesselType: !this.showVesselTypeFilter ? this.filter.vesselType : undefined,
       synchronizationStatus: this.synchronizationStatus,
     };
     // Keep searchbar text
@@ -260,6 +259,28 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   }
 
   /* -- protected methods -- */
+
+  setFilter(
+    filter: Partial<VesselFilter>,
+    opts?: {
+      emitEvent: boolean;
+    }
+  ) {
+    if (isNotNil(this.vesselTypeId)) {
+      super.setFilter({ ...filter, vesselType: <ReferentialRef>{ id: this.vesselTypeId } }, opts);
+    } else {
+      super.setFilter(filter, opts);
+    }
+  }
+
+  protected countNotEmptyCriteria(filter: VesselFilter): number {
+    return (
+      super.countNotEmptyCriteria(filter) -
+      // Remove fixed value
+      (this.disableStatusFilter && (isNotNil(filter.statusId) || isNotEmptyArray(filter.statusIds)) ? 1 : 0) -
+      (!this.showVesselTypeFilter && ReferentialUtils.isNotEmpty(filter.vesselType) ? 1 : 0)
+    );
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

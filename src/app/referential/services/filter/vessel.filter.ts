@@ -7,10 +7,13 @@ import {
   EntityUtils,
   FilterFn,
   fromDateISOString,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
   toDateISOString,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
@@ -28,6 +31,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   program: ReferentialRef;
   date: Moment;
   vesselId: number;
+  includedIds: number[];
+  excludedIds: number[];
   searchText: string;
   searchAttributes: string[];
   statusId: number;
@@ -38,6 +43,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   registrationLocation: ReferentialRef;
   basePortLocation: ReferentialRef;
   vesselType: ReferentialRef;
+  vesselTypeId: number;
+  onlyWithRegistration: boolean;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -47,11 +54,14 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       undefined;
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
+    this.includedIds = source.includedIds;
+    this.excludedIds = source.excludedIds;
     this.searchText = source.searchText;
     this.searchAttributes = source.searchAttributes;
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
     this.synchronizationStatus = source.synchronizationStatus;
+    this.onlyWithRegistration = source.onlyWithRegistration;
     this.registrationLocation =
       ReferentialRef.fromObject(source.registrationLocation) ||
       (isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({ id: source.registrationLocationId })) ||
@@ -60,6 +70,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       ReferentialRef.fromObject(source.basePortLocation) ||
       (isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({ id: source.basePortLocationId })) ||
       undefined;
+    this.vesselTypeId = source.vesselTypeId;
     this.vesselType =
       ReferentialRef.fromObject(source.vesselType) ||
       (isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({ id: source.vesselTypeId })) ||
@@ -68,6 +79,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.date = toDateISOString(this.date);
     if (opts?.minify) {
       target.programLabel = this.program && this.program.label;
       delete target.program;
@@ -81,18 +93,17 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       target.basePortLocationId = this.basePortLocation?.id;
       delete target.basePortLocation;
 
-      target.vesselTypeId = this.vesselType?.id;
+      target.vesselTypeId = toNumber(this.vesselTypeId, this.vesselType?.id);
       delete target.vesselType;
+
+      target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
+      delete target.statusId;
     } else {
       target.program = this.program?.asObject(opts);
       target.registrationLocation = this.registrationLocation?.asObject(opts);
       target.basePortLocation = this.basePortLocation?.asObject(opts);
       target.vesselType = this.vesselType?.asObject(opts);
     }
-
-    target.date = toDateISOString(this.date);
-    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
-    delete target.statusId;
 
     return target;
   }
@@ -115,6 +126,13 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
       filterFns.push((t) => t.id === vesselId);
+    }
+    // Filter included/excluded ids
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push((t) => isNotNil(t.id) && this.includedIds.includes(t.id));
+    }
+    if (isNotEmptyArray(this.excludedIds)) {
+      filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
     }
 
     // Status

@@ -7,8 +7,8 @@
   }
 }
 
-.mat-header-row,
-.mat-row {
+.mat-mdc-header-row,
+.mat-mdc-row {
   max-height: 140px;
   padding: 0 0;
   z-index: 999;
@@ -26,7 +26,7 @@
     }
   }
 
-  .mat-cell app-pmfm-field {
+  .mat-mdc-cell app-pmfm-field{
     padding-left: 7px;
   }
 }

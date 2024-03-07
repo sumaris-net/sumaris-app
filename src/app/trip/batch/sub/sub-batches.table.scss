@@ -3,8 +3,8 @@
   --toolbar-min-height: 140px;
 }
 
-.mat-header-row,
-.mat-row {
+.mat-mdc-header-row,
+.mat-mdc-row {
   .mat-column-id {
     min-width: 30px;
     max-width: 30px;
@@ -54,7 +54,7 @@
     visibility: hidden;
   }
 
-  .mat-row:hover {
+  .mat-mdc-row:hover {
     .visible-hover {
       visibility: unset;
     }

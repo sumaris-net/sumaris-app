@@ -14,27 +14,17 @@
 // --------------------------------------------------
 // SUMARiS theme
 // --------------------------------------------------
-@import "mixins";
+@import "theme.tabs";
+@import "theme.table";
+@import "theme.forms";
 
-/* -- mat-tab -- */
-
-.mat-tab-fixed-content {
-  .mat-tab-body-content {
-    height: var(--mat-tab-body-content-height, 100%) !important;
-    overflow: auto;
-    & > .ng-star-inserted {
-      height: var(--mat-tab-body-content-height, 100%);
-    }
-  }
+// --------------------------------------------------
+// Override material style
+// --------------------------------------------------
+.mat-form-field-appearance-fill .mat-mdc-select-arrow-wrapper {
+  transform: translateY(0px) !important;
 }
 
-mat-tab-group.mat-tab-disabled-visible .mat-tab-disabled {
-  display: inherit;
-}
-
-/*ion-content.ion-flex-direction-column::part(scroll) {
-  height: calc(100% - 2px);
-}*/
 ion-content.ion-flex-direction-column::part(scroll),
 .ion-flex-direction-column {
   display: flex;
@@ -45,7 +35,6 @@ ion-content.ion-flex-direction-column::part(scroll) {
   height: calc(100% - 2px);
 }
 
-
 .mat-expansion-panel.filter-panel {
   &.filter-panel-pinned {
     overflow-y: scroll;
@@ -53,16 +42,6 @@ ion-content.ion-flex-direction-column::part(scroll) {
 
   margin-bottom: 5px;
   --expansion-panel-padding: 0 !important;
-
-  .form-container {
-    mat-form-field {
-      width: 100%;
-
-      .datetime-md {
-        padding: 0 !important;
-      }
-    }
-  }
 
   mat-action-row {
     height: 46px;
@@ -73,109 +52,6 @@ ion-content.ion-flex-direction-column::part(scroll) {
   }
 }
 
-.ion-flex-fill,
-.table-container {
-  flex: 1 1 auto;
-  overflow-y: auto;
-}
-
-.mat-table {
-  .mat-row {
-    overflow: hidden;
-    /*FIXME not need anymore ?
-    height: calc(min(var(--mat-row-max-height), 48px));
-    */
-  }
-
-  .mat-row.mat-row-selected {
-    .mat-cell .visible-selected-row {
-      visibility: visible !important;
-    }
-  }
-
-  .mat-header-row,
-  .mat-row,
-  .mat-footer-row {
-
-    .mat-column-select {
-      width: 50px; // Force to 50px, because sticky column must have fixed width
-    }
-
-    .mat-header-cell,
-    .mat-cell,
-    .mat-footer-cell {
-
-      // Remove right border, of sticky columns
-      &.mat-table-sticky-border-elem-left {
-        border-right: 0 !important; // 1px solid #{$app-table-border-color};
-      }
-    }
-  }
-
-  .mat-header-row  .mat-header-cell {
-    --mat-cell-overflow: hidden;
-
-    &.mat-column-pmfm .mat-sort-header-content {
-      max-width: 90%;
-    }
-
-    .pmfm-details {
-      margin-top: 4px;
-      font-size: 90% !important;
-      max-width: 100%;
-      overflow: var(--mat-cell-overflow);
-    }
-
-    /* Pour les navigateurs supportant la propriété line-clamp (WebKit, Blink et Firefox récent) */
-    @supports (-webkit-line-clamp: 5) {
-      .pmfm-details {
-        display: -webkit-box;
-        -webkit-line-clamp: 5; /* Affiche 3 lignes puis coupe si besoin avec '...' */
-        -webkit-box-orient: vertical;
-
-        &:hover {
-          -webkit-line-clamp: 10;
-        }
-      }
-    }
-  }
-
-}
-
-mat-form-field {
-  .mat-form-field-buttons {
-    width: 100%;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: flex-start;
-    align-items: center;
-
-    .mat-form-field-button {
-      --button-padding-end: 2px;
-      --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
-      flex: 0 1 var(--flex-basis);
-      max-width: calc(min(var(--flex-basis), 150px));
-      text-transform: capitalize; // Avoid uppercase text
-      box-sizing: content-box; // Avoid long text to be cropped
-      margin: 0 !important;
-      padding-inline-end: var(--button-padding-end) !important;
-      padding-bottom: var(--button-padding-end) !important;
-      height: 40px;
-    }
-  }
-
-  .fab-button-small {
-    margin: 0 5px;
-  }
-
-  .mat-form-field-suffix:has(.mat-form-field-suffix-container) {
-    display: inline;
-  }
-  .mat-form-field-suffix-container {
-    @extend .mat-form-field-suffix;
-    display: inline;
-  }
-}
 
 .mat-toolbar, .mat-toolbar-single-row {
   background-color: #{$mat-toolbar-background-color};
@@ -199,12 +75,6 @@ mat-form-field {
   }
 }
 
-// Mobile: change form labels style
-@media screen and (max-width: $screen-sm-max) {
-  form ion-col > ion-label.ion-float-center, form ion-col > ion-label.ion-float-end {
-    font-weight: bold;
-  }
-}
 
 ion-toast {
   &.secondary {
@@ -228,32 +98,6 @@ app-form-buttons-bar {
   }
 }
 
-.form-container,
-form.form-container {
-  mat-form-field {
-    ion-icon[matPrefix],
-    mat-icon[matPrefix],
-    .mat-form-field-prefix ion-icon,
-    .mat-form-field-prefix .mat-icon {
-      color: rgba(0, 0, 0, 0.57);
-      fill: rgba(0, 0, 0, 0.57);
-    }
-
-    &.mat-focused {
-      ion-icon[matPrefix],
-      mat-icon[matPrefix],
-      .mat-form-field-prefix ion-icon,
-      .mat-form-field-prefix .mat-icon {
-        color: var(--ion-color-dark);
-        fill: var(--ion-color-dark);
-      }
-    }
-  }
-}
-
-.form-container ion-grid ion-col:has(ion-label) {
-  align-content: end;
-}
 
 /* -- FAB buttons -- */
 ion-fab {
@@ -284,20 +128,6 @@ ion-fab {
   }
 }
 
-/* special case for sampling ratio: override the 'left' style, of placeholder field */
-mat-sampling-ratio-field {
-  .mat-form-field.with-prefix {
-
-    &.mat-form-field-should-float {
-      .mat-form-field-label-wrapper {
-        left: 0;
-      }
-    }
-    .mat-form-field-label-wrapper {
-      left: 19px;
-    }
-  }
-}
 
 .popover-notifications {
   ion-avatar img,
@@ -308,10 +138,17 @@ mat-sampling-ratio-field {
 
 /* -- Mat menu -- */
 
-.mat-menu-panel {
-  .mat-menu-item.activated {
+.mat-mdc-menu-panel {
+  .mat-mdc-menu-item.activated {
     background-color: var(--ion-color-secondary100);
     color: var(--ion-color-secondary100-contrast);
+  }
+}
+
+.mat-mdc-menu-content {
+  .mat-mdc-menu-item-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -384,3 +221,7 @@ app-toolbar ion-segment-button {
   }
 }
 
+.hidden {
+  visibility: hidden;
+  display: none;
+}

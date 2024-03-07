@@ -9,13 +9,24 @@ import { LocationUtils } from '@app/referential/location/location.utils';
 export class FishingArea extends DataEntity<FishingArea> {
   static fromObject: (source: any, opts?: any) => FishingArea;
 
+  static equals(o1: FishingArea | any, o2: FishingArea | any): boolean {
+    return (
+      (isNotNil(o1?.id) && o1.id === o2?.id) ||
+      (!!o1 &&
+        o2 &&
+        ReferentialUtils.equals(o1?.distanceToCoastGradient, o2.distanceToCoastGradient) &&
+        ReferentialUtils.equals(o1?.depthGradient, o2.depthGradient) &&
+        ReferentialUtils.equals(o1?.nearbySpecificArea, o2.nearbySpecificArea))
+    );
+  }
+
   static isEmpty(value: Partial<FishingArea>): boolean {
     return (
       !value ||
-      ((!value.location || !value.location.id) &&
-        (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id) &&
-        (!value.depthGradient || !value.depthGradient.id) &&
-        (!value.nearbySpecificArea || !value.nearbySpecificArea.id))
+      (ReferentialUtils.isEmpty(value.location) &&
+        ReferentialUtils.isEmpty(value.distanceToCoastGradient) &&
+        ReferentialUtils.isEmpty(value.depthGradient) &&
+        ReferentialUtils.isEmpty(value.nearbySpecificArea))
     );
   }
 
@@ -25,7 +36,9 @@ export class FishingArea extends DataEntity<FishingArea> {
   depthGradient: ReferentialRef;
   nearbySpecificArea: ReferentialRef;
 
+  // Parent: not need, because always FishingArea holds by a parent entity
   // operationId: number;
+  // gearUseFeaturesId: number;
 
   constructor() {
     super(FishingArea.TYPENAME);

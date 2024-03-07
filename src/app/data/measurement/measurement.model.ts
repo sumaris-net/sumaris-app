@@ -252,9 +252,9 @@ export class MeasurementUtils {
 
 export class MeasurementValuesUtils {
   /**
-   * Extract pmfm id, used in a measurementValues object
-   *
-   * @param m
+   * Extract pmfm id, used in a measurementValues object.
+   * Will exclude technical properties (e.g. __typename)
+   * @param source
    */
   static getPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
     return Object.getOwnPropertyNames(source || {})
@@ -302,11 +302,11 @@ export class MeasurementValuesUtils {
   }
 
   static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues | any): value is MeasurementFormValues {
-    return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
+    return value?.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 
   static isMeasurementModelValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementModelValues {
-    return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
+    return value && value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
   }
 
   static resetTypename(value: MeasurementFormValues | MeasurementModelValues) {
@@ -513,15 +513,14 @@ export class MeasurementValuesUtils {
 
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return (
-      isNil(measurementValues) ||
-      isEmptyArray(Object.getOwnPropertyNames(measurementValues).filter((pmfmId) => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])))
+      isNil(measurementValues) || Object.getOwnPropertyNames(measurementValues).every((pmfmId) => PmfmValueUtils.isEmpty(measurementValues[pmfmId]))
     );
   }
 
   static isNotEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return (
       isNotNil(measurementValues) &&
-      Object.getOwnPropertyNames(measurementValues).some((pmfmId) => !PmfmValueUtils.isEmpty(measurementValues[pmfmId]))
+      Object.getOwnPropertyNames(measurementValues).some((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]))
     );
   }
 }

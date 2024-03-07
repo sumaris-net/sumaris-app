@@ -24,15 +24,13 @@
       },
       "extends": [
         "eslint:recommended",
+        "plugin:prettier/recommended",
+        "plugin:@rx-angular/recommended",
+        "plugin:@rx-angular/zoneless",
         "plugin:@typescript-eslint/recommended",
-        "plugin:@angular-eslint/ng-cli-compat",
-        "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
-        "plugin:@angular-eslint/template/process-inline-templates",
-        "plugin:prettier/recommended"
-        // FIXME enable this
-        //"plugin:@angular-eslint/recommended",
-        //"plugin:@rx-angular/recommended",
-        //"plugin:@rx-angular/zoneless"
+        "plugin:@angular-eslint/recommended",
+        // This is required if you use inline templates in Components
+        "plugin:@angular-eslint/template/process-inline-templates"
       ],
       "rules": {
         "prettier/prettier": "error",
@@ -46,9 +44,6 @@
         "prefer-arrow/prefer-arrow-functions": "off",
         "@typescript-eslint/ban-types": "off",
         "@angular-eslint/no-output-on-prefix": "warn",
-        "@typescript-eslint/no-explicit-any": "warn",
-        "@rx-angular/no-zone-critical-rxjs-operators": "off",
-        "@rx-angular/no-explicit-change-detection-apis": "off",
         "@typescript-eslint/explicit-member-accessibility": [
           "off",
           {
