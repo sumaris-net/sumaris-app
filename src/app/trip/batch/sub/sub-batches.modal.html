@@ -315,9 +315,9 @@
           <br />
           _dataService.program: {{ _dataService.programLabel }}
           <br />
-          _dataService.strategy{{ _dataService.requiredStrategy ? '(required) ' : '' }}: {{ _dataService.strategyId }}
+          _dataService.strategy{{ _dataService.requiredStrategy ? ' (required) ' : '' }}: {{ _dataService.strategyId }}
           <br />
-          _dataService.gear{{ _dataService.requiredGear ? '(required) ' : '' }}: {{ _dataService.gearId }}
+          _dataService.gear{{ _dataService.requiredGear ? ' (required) ' : '' }}: {{ _dataService.gearId }}
           <br />
           <br />
           _dataService.acquisitionLevel: {{ _dataService.acquisitionLevel }}
@@ -336,9 +336,9 @@
           <br/>
           form.program: {{ form.programLabel }}
           <br />
-          form.strategy{{ form.requiredStrategy ? '(required) ' : '' }}: {{ form.strategyId || form.strategyLabel }}
+          form.strategy{{ form.requiredStrategy ? ' (required) ' : '' }}: {{ form.strategyId || form.strategyLabel }}
           <br />
-          form.gear{{ form.requiredGear ? '(required) ' : '' }}: {{ form.gearId }}
+          form.gear{{ form.requiredGear ? ' (required) ' : '' }}: {{ form.gearId }}
           <br />
           <br />
           form.acquisitionLevel: {{ form.acquisitionLevel$ | async }}

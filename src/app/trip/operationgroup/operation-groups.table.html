@@ -253,9 +253,9 @@
           <br />
           service.program: {{ _dataService.programLabel }}
           <br />
-          service.strategy {{ _dataService.requiredStrategy ? '(required)' : '' }}: {{ _dataService.strategyId || _dataService.strategyLabel }}
+          service.strategy{{ _dataService.requiredStrategy ? ' (required)' : '' }}: {{ _dataService.strategyId || _dataService.strategyLabel }}
           <br />
-          service.gear {{ _dataService.requiredGear ? '(required)' : '' }}: {{ _dataService.gearId }}
+          service.gear{{ _dataService.requiredGear ? ' (required)' : '' }}: {{ _dataService.gearId }}
           <br />
           service.visibleCount: {{ memoryDataService.count }}
           <br />
