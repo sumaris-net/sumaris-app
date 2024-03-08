@@ -6,15 +6,19 @@ import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
+  chainPromises,
   ConfigService,
   Configuration,
   CORE_CONFIG_OPTIONS,
   DateUtils,
+  EntitiesServiceLoadOptions,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
   firstNotNilPromise,
+  fromDateISOString,
   IReferentialRef,
   isEmptyArray,
   isNil,
@@ -37,7 +41,7 @@ import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonName
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialRefService } from './referential-ref.service';
 import { StrategyFragments } from './strategy.fragments';
-import { BaseReferentialService } from './base-referential-service.class';
+import { BaseReferentialService, IReferentialEntityService } from './base-referential-service.class';
 import { Pmfm } from './model/pmfm.model';
 import { ProgramRefService } from './program-ref.service';
 import { StrategyRefService } from './strategy-ref.service';
@@ -106,7 +110,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.lightReferential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
+const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
   load: gql`
     query Strategy($id: Int!) {
       data: strategy(id: $id) {
@@ -136,13 +140,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
     ${StrategyFragments.lightStrategy}
     ${StrategyFragments.appliedStrategy}
     ${StrategyFragments.appliedPeriod}
-    ${StrategyFragments.lightPmfmStrategy}
-    ${StrategyFragments.strategyDepartment}
-    ${StrategyFragments.taxonGroupStrategy}
-    ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
-    ${ReferentialFragments.lightPmfm}
-    ${ReferentialFragments.taxonName}
   `,
 
   loadAllWithTotal: gql`
@@ -155,16 +153,30 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any } = {
     ${StrategyFragments.lightStrategy}
     ${StrategyFragments.appliedStrategy}
     ${StrategyFragments.appliedPeriod}
-    ${StrategyFragments.lightPmfmStrategy}
+    ${ReferentialFragments.lightReferential}
+  `,
+
+  loadAllFull: gql`
+    query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...StrategyFragment
+      }
+    }
+    ${StrategyFragments.strategy}
+    ${StrategyFragments.appliedStrategy}
+    ${StrategyFragments.appliedPeriod}
     ${StrategyFragments.strategyDepartment}
+    ${StrategyFragments.pmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
-    ${ReferentialFragments.lightPmfm}
+    ${ReferentialFragments.pmfm}
+    ${ReferentialFragments.parameter}
+    ${ReferentialFragments.referential}
     ${ReferentialFragments.taxonName}
   `,
 
-  count: gql`
+  countAll: gql`
     query StrategyCount($filter: StrategyFilterVOInput!) {
       total: strategiesCount(filter: $filter)
     }
@@ -210,8 +222,14 @@ const StrategySubscriptions: BaseEntityGraphqlSubscriptions = {
   `,
 };
 
+export interface StrategyServiceWatchOptions extends EntitiesServiceWatchOptions {}
+export interface StrategyServiceLoadOptions extends EntitiesServiceLoadOptions {}
+
 @Injectable({ providedIn: 'root' })
-export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
+export class StrategyService
+  extends BaseReferentialService<Strategy, StrategyFilter, number, StrategyServiceWatchOptions, StrategyServiceLoadOptions>
+  implements IReferentialEntityService<Strategy, StrategyFilter, number, StrategyServiceLoadOptions>
+{
   $dbTimeZone = new BehaviorSubject<string>(null);
 
   get dbTimeZone(): string {
@@ -274,7 +292,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     };
     const { total } = await this.graphql.query<{ total: number }>({
-      query: StrategyQueries.count,
+      query: this.queries.countAll,
       variables: { filter },
       error: { code: ErrorCodes.LOAD_STRATEGY_ERROR, message: 'ERROR.LOAD_ERROR' },
       fetchPolicy: (opts && opts.fetchPolicy) || undefined,
@@ -473,7 +491,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       await this.clearCache();
     }
 
-    return await Promise.all(data.map((entity) => this.save(entity, { ...opts, clearCache: true })));
+    return chainPromises(data.map((entity) => () => this.save(entity, { ...opts, clearCache: false })));
   }
 
   async save(
@@ -494,27 +512,6 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       ),
       awaitRefetchQueries: true,
     });
-  }
-
-  async duplicateAllToYear(sources: Strategy[], year: number): Promise<Strategy[]> {
-    if (isEmptyArray(sources)) return [];
-    if (isNilOrNaN(year) || typeof year !== 'number' || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
-
-    // CLear cache (only once)
-    await this.clearCache();
-
-    const savedEntities: Strategy[] = [];
-
-    // WARN: do not use a Promise.all, because parallel execution not working (label computation need series execution)
-    for (const source of sources) {
-      const duplicatedSource = await this.cloneToYear(source, year);
-
-      const savedEntity = await this.save(duplicatedSource, { clearCache: false /*already done*/ });
-
-      savedEntities.push(savedEntity);
-    }
-
-    return savedEntities;
   }
 
   async cloneToYear(source: Strategy, year: number, newLabel?: string): Promise<Strategy> {
@@ -606,19 +603,78 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     await Promise.all([this.programRefService.clearCache(), this.strategyRefService.clearCache()]);
   }
 
+  async duplicateByIds(ids: number[], opts?: { year?: number; program?: Program }) {
+    if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
+
+    const dbTimeZone = await firstNotNilPromise(this.$dbTimeZone, { stop: this.stopSubject, timeout: 2000 });
+
+    // Load entities
+    const { data: sources } = await this.loadAll(
+      0,
+      ids.length,
+      'creationDate',
+      'asc',
+      <Partial<StrategyFilter>>{
+        includedIds: ids,
+      },
+      {
+        withTotal: false,
+        query: StrategyQueries.loadAllFull,
+      }
+    );
+
+    if (!sources.length) throw Error('COMMON.NO_RESULT');
+    const year = opts?.year;
+
+    // Duplicate json
+    const targets = sources
+      .map((source) => {
+        const target = source.asObject({ ...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false });
+        // Keep program Id
+        target.programId = source.programId;
+
+        // Change year
+        if (year > 0) {
+          target.appliedStrategies
+            ?.flatMap((as) => as.appliedPeriods || [])
+            .forEach((ap) => {
+              ap.startDate = fromDateISOString(ap.startDate)
+                ?.clone()
+                // Keep DB local time, because the DB can use a local time - fix ObsBio-79
+                .tz(dbTimeZone, true)
+                .year(year)
+                .toISOString();
+              ap.endDate = fromDateISOString(ap.endDate)
+                ?.clone()
+                // Keep the local time, because the DB can use a local time - fix ObsBio-79
+                .tz(dbTimeZone, true)
+                .year(year)
+                .toISOString();
+            });
+        }
+        return target;
+      })
+      .map(Strategy.fromObject);
+
+    return await this.saveAll(targets);
+  }
+
   async downloadAsJsonByIds(ids: number[], opts?: { keepRemoteId: boolean; program?: Program }) {
     if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
 
     // Load entities
     const { data } = await this.loadAll(
       0,
-      999,
+      ids.length,
       'creationDate',
       'asc',
       <Partial<StrategyFilter>>{
         includedIds: ids,
       },
-      { withTotal: false }
+      {
+        withTotal: false,
+        query: StrategyQueries.loadAllFull,
+      }
     );
 
     if (!data.length) throw Error('COMMON.NO_RESULT');

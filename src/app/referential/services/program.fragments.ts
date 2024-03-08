@@ -67,6 +67,9 @@ export const ProgramFragments = {
         person {
           ...LightPersonFragment
         }
+        referencePerson {
+          ...LightPersonFragment
+        }
       }
     }
   `,

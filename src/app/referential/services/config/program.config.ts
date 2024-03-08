@@ -4,12 +4,14 @@ import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.m
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
-export type TripReportType = 'legacy' | 'selectivity';
-export type OperationEditor = 'legacy' | 'selectivity';
+export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
+
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -29,12 +31,41 @@ export const OperationPasteFlags = Object.freeze({
 });
 
 export const ProgramProperties = Object.freeze({
-  // Right
+  // Access right
   DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
     key: 'sumaris.data.observers.canWrite',
     label: 'PROGRAM.OPTIONS.DATA_OBSERVERS_CAN_WRITE',
     type: 'boolean',
     defaultValue: false,
+  },
+
+  // Strategies resolution
+  DATA_STRATEGY_RESOLUTION: <FormFieldDefinition>{
+    key: 'sumaris.data.strategy.resolution',
+    label: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION',
+    type: 'enum',
+    values: [
+      {
+        key: DataStrategyResolutions.LAST,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.LAST',
+      },
+      {
+        key: DataStrategyResolutions.USER_SELECT,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.USER_SELECT',
+      },
+      {
+        key: DataStrategyResolutions.SPATIO_TEMPORAL,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.SPATIO_TEMPORAL',
+      },
+      {
+        key: DataStrategyResolutions.NONE,
+        value: 'PROGRAM.OPTIONS.DATA_STRATEGY_RESOLUTION_ENUM.NONE',
+      },
+    ],
+
+    defaultValue: DataStrategyResolutions.LAST, // Need for backward compatibility
+    // DEV only ---
+    // defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
 
   // Trip
@@ -226,6 +257,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_POSITION_BOUNDING_BOX',
     type: 'string', // expected BBox
   },
+  TRIP_OPERATION_METIER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.metier.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
     label: 'PROGRAM.OPTIONS.TRIP_POSITION_ENABLE',
@@ -283,6 +320,12 @@ export const ProgramProperties = Object.freeze({
         value: 'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT',
       },
     ],
+  },
+  TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.exhaustiveInventory.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
   },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.individualCount.compute',
@@ -498,7 +541,11 @@ export const ProgramProperties = Object.freeze({
       },
       {
         key: <TripReportType>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY',
+      },
+      {
+        key: <TripReportType>'onboard',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
       },
     ],
     defaultValue: <TripReportType>'legacy',
@@ -516,7 +563,11 @@ export const ProgramProperties = Object.freeze({
       },
       {
         key: <OperationEditor>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_SELECTIVITY',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY',
+      },
+      {
+        key: <OperationEditor>'advanced',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_ADVANCED',
       },
     ],
     defaultValue: <OperationEditor>'legacy',
@@ -538,7 +589,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name'],
     },
-    defaultValue: LocationLevelIds.ICES_RECTANGLE.toString(),
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
   },
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
@@ -621,6 +672,19 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Observed location
+  OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.offline.import.location.level.ids',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: undefined, // = Import all locations define in LocationLevelIds
+  },
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE',
@@ -776,6 +840,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  LANDING_BATCH_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.batch.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_BATCH_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+  LANDING_SAMPLE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.sample.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLE_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
   LANDING_SAMPLES_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.samplesCount.enable',
     label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE',
@@ -855,7 +931,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name'],
     },
-    defaultValue: LocationLevelIds.ICES_RECTANGLE.toString(),
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
   },
 
   /* -- Extraction options -- */
@@ -925,7 +1001,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name'],
     },
-    defaultValue: LocationLevelIds.ICES_DIVISION.toString(),
+    defaultValue: LocationLevelIds.DIVISION_ICES.toString(),
   },
   STRATEGY_DEPARTMENT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.department.enable',
@@ -963,6 +1039,10 @@ export const ProgramProperties = Object.freeze({
         key: 'TRAWL_SELECTIVITY.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_TRAWL_SELECTIVITY',
       },
+      {
+        key: 'ONBOARD_OBSERVATION.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
+      },
     ],
     defaultValue: 'legacy',
   },
@@ -990,12 +1070,12 @@ export class ProgramPropertiesUtils {
   static refreshDefaultValues() {
     console.info('[program-properties] Refreshing ProgramProperties default values...');
 
-    ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_DIVISION.toString();
+    ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.DIVISION_ICES.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
-    ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
-    ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
   }

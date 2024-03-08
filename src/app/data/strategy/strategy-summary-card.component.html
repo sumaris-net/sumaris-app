@@ -1,53 +1,99 @@
-<ion-card @fadeInAnimation *ngIf="!loading">
-  <ion-card-header color="light" *ngIf="title">
-    <ion-card-title (click)="open($event)" [title]="i18nPrefix + 'BTN_SHOW' | translate">
-      <ion-label color="primary">
-        <span>{{ title | translate }}</span>
-        <small class="mouseover">
-          &nbsp;
-          <ion-icon name="eye"></ion-icon>
-        </small>
-      </ion-label>
-    </ion-card-title>
-  </ion-card-header>
+@if (!loading) {
+  <!-- compact mode -->
+  @if (compact) {
+    <ion-card @fadeInAnimation>
+      <ion-card-content class="form-container compact ion-no-padding" [class.tappable]="canOpenLink">
+        <!-- Strategy name -->
+        <mat-form-field *ngIf="showName" [floatLabel]="'always'" [title]="data.name" [subscriptSizing]="'dynamic'">
+          <mat-label>{{ title | translate }}</mat-label>
+          <mat-icon matPrefix>date_range</mat-icon>
+          <input matInput [value]="data.name" readonly disabled (click)="open($event)" />
 
-  <ion-card-content class="">
-    <!-- locations -->
-    <ng-container *ngIf="data.appliedStrategies | isNotEmptyArray">
-      <ion-label color="primary">{{ i18nPrefix + 'LOCATIONS' | translate }}</ion-label>
-      <ion-label class="status">
-        <ul>
-          <li *ngFor="let location of data.appliedStrategies | arrayPluck: { property: 'location' }">
-            <span>{{ location | referentialToString: displayAttributes.location }}</span>
-          </li>
-        </ul>
-      </ion-label>
-    </ng-container>
+          <!-- open button -->
+          <button
+            matSuffix
+            mat-icon-button
+            class="visible-hover"
+            *ngIf="canOpenLink"
+            [title]="'PROGRAM.STRATEGY.BTN_OPEN_STRATEGY' | translate"
+            (click)="open($event)"
+          >
+            <mat-icon><ion-icon name="eye" color="tertiary"></ion-icon></mat-icon>
+          </button>
+        </mat-form-field>
+      </ion-card-content>
+    </ion-card>
+  } @else {
+    <!-- Expanded mode -->
+    <ion-card @fadeInAnimation>
+      @if (title && !showName) {
+        <ion-card-header color="light">
+          <ion-card-title (click)="open($event)" [class.tappable]="canOpenLink" [title]="i18nPrefix + 'BTN_SHOW' | translate">
+            <ion-label color="primary">
+              <span>{{ title | translate }}</span>
+              <small class="visible-hover" *ngIf="canOpenLink">
+                &nbsp;
+                <ion-icon name="eye"></ion-icon>
+              </small>
+            </ion-label>
+          </ion-card-title>
+        </ion-card-header>
+      }
 
-    <!-- taxon groups -->
-    <ng-container *ngIf="data.taxonGroups | isNotEmptyArray">
-      <ion-label color="primary">{{ i18nPrefix + 'TAXON_GROUPS' | translate }}</ion-label>
-      <ion-label class="status">
-        <ul>
-          <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck: { property: 'taxonGroup' }">
-            <span>{{ taxonGroup | referentialToString: displayAttributes.taxonGroup }}</span>
-          </li>
-        </ul>
-      </ion-label>
-    </ng-container>
+      <ion-card-content class="compact">
+        <!-- name -->
+        @if (showName) {
+          <ion-label class="name" [title]="text.innerText" [class.tappable]="canOpenLink" (click)="open($event)">
+            <span #text>{{ data | referentialToString: displayAttributes.strategy }}</span>
 
-    <!-- taxon names -->
-    <ng-container *ngIf="data.taxonNames | isNotEmptyArray">
-      <ion-label color="primary">{{ i18nPrefix + 'TAXON_NAMES' | translate }}</ion-label>
-      <ion-label class="status">
-        <ul>
-          <li *ngFor="let taxonName of data.taxonNames | arrayPluck: { property: 'taxonName' }">
-            <span>{{ taxonName | referentialToString: displayAttributes.taxonName }}</span>
-          </li>
-        </ul>
-      </ion-label>
-    </ng-container>
+            <!-- open button -->
+            @if (canOpenLink) {
+              <small class="visible-hover">
+                &nbsp;
+                <ion-icon name="eye"></ion-icon>
+              </small>
+            }
+          </ion-label>
+        }
 
-    <ng-content></ng-content>
-  </ion-card-content>
-</ion-card>
+        <!-- locations -->
+        @if (showLocations && (data.appliedStrategies | isNotEmptyArray)) {
+          <ion-label color="primary">{{ i18nPrefix + 'LOCATIONS' | translate }}</ion-label>
+          <ion-label class="status">
+            <ul>
+              <li *ngFor="let location of data.appliedStrategies | arrayPluck: { property: 'location' }">
+                <span>{{ location | referentialToString: displayAttributes.location }}</span>
+              </li>
+            </ul>
+          </ion-label>
+        }
+
+        <!-- taxon groups -->
+        @if (showTaxonGroups && (data.taxonGroups | isNotEmptyArray)) {
+          <ion-label color="primary">{{ i18nPrefix + 'TAXON_GROUPS' | translate }}</ion-label>
+          <ion-label class="status">
+            <ul>
+              <li *ngFor="let taxonGroup of data.taxonGroups | arrayPluck: { property: 'taxonGroup' }">
+                <span>{{ taxonGroup | referentialToString: displayAttributes.taxonGroup }}</span>
+              </li>
+            </ul>
+          </ion-label>
+        }
+
+        <!-- taxon names -->
+        @if (showTaxonNames && (data.taxonNames | isNotEmptyArray)) {
+          <ion-label color="primary">{{ i18nPrefix + 'TAXON_NAMES' | translate }}</ion-label>
+          <ion-label class="status">
+            <ul>
+              <li *ngFor="let taxonName of data.taxonNames | arrayPluck: { property: 'taxonName' }">
+                <span>{{ taxonName | referentialToString: displayAttributes.taxonName }}</span>
+              </li>
+            </ul>
+          </ion-label>
+        }
+
+        <ng-content></ng-content>
+      </ion-card-content>
+    </ion-card>
+  }
+}

@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
-import { AppForm } from '@sumaris-net/ngx-components';
-import moment, { Moment } from 'moment';
+import { AppForm, DateUtils, fromDateISOString, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
 
 @Component({
   selector: 'app-strategy-modal',
@@ -10,6 +10,9 @@ import moment, { Moment } from 'moment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
+  @Input() mobile: boolean;
+  @Input() year: number;
+
   constructor(
     injector: Injector,
     protected formBuilder: UntypedFormBuilder,
@@ -22,11 +25,16 @@ export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
         year: [null, Validators.required],
       })
     );
+    this.mobile = this.settings.mobile;
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.form.get('year').setValue(moment());
+    if (isNotNilOrBlank(this.year)) {
+      this.form.get('year').setValue(DateUtils.moment().year(this.year));
+    } else {
+      this.form.get('year').setValue(DateUtils.moment());
+    }
     this.form.enable();
   }
 
@@ -38,8 +46,18 @@ export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  async validDate() {
-    await this.viewCtrl.dismiss(this.form.get('year').value);
+  async doSubmit() {
+    const date = this.form.get('year').value;
+
+    if (!date) return; // Invalid
+
+    const year = fromDateISOString(date)
+      // We need the local year, not the UTC year
+      .local(true)
+      .format('YYYY')
+      .toString();
+
+    await this.viewCtrl.dismiss(+year);
   }
 
   protected markForCheck() {

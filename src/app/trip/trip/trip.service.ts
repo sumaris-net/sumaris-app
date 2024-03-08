@@ -31,20 +31,13 @@ import {
   LocalSettingsService,
   NetworkService,
   PersonService,
+  removeDuplicatesFromArray,
   ShowToastOptions,
   splitById,
   splitByProperty,
   Toasts,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import {
-  DataCommonFragments,
-  DataFragments,
-  ExpectedSaleFragments,
-  OperationGroupFragment,
-  PhysicalGearFragments,
-  SaleFragments,
-} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -66,17 +59,12 @@ import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import {
-  DataSynchroImportFilter,
-  IDataSynchroService,
-  RootDataEntitySaveOptions,
-  RootDataSynchroService,
-} from '@app/data/services/root-data-synchro-service.class';
+import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter } from './trip.filter';
+import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { Packet } from '@app/trip/packet/packet.model';
@@ -94,6 +82,14 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 
 import moment from 'moment';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import {
+  DataCommonFragments,
+  DataFragments,
+  ExpectedSaleFragments,
+  OperationGroupFragment,
+  PhysicalGearFragments,
+  SaleFragments,
+} from '@app/trip/common/data.fragments';
 
 export const TripFragments = {
   lightTrip: gql`
@@ -382,8 +378,8 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 // Save a trip
 const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any }>{
   save: gql`
-    mutation saveTrip($trip: TripVOInput!, $options: TripSaveOptionsInput!) {
-      data: saveTrip(trip: $trip, options: $options) {
+    mutation saveTrip($data: TripVOInput!, $options: TripSaveOptionsInput!) {
+      data: saveTrip(trip: $data, options: $options) {
         ...TripFragment
       }
     }
@@ -392,8 +388,8 @@ const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any }>
 
   // Save a landed trip
   saveLandedTrip: gql`
-    mutation saveTrip($trip: TripVOInput!, $options: TripSaveOptionsInput!) {
-      data: saveTrip(trip: $trip, options: $options) {
+    mutation saveTrip($data: TripVOInput!, $options: TripSaveOptionsInput!) {
+      data: saveTrip(trip: $data, options: $options) {
         ...LandedTripFragment
       }
     }
@@ -495,6 +491,8 @@ export class TripService
       queries: TripQueries,
       mutations: TripMutations,
       subscriptions: TripSubscriptions,
+      defaultSortBy: 'departureDateTime',
+      defaultSortDirection: 'asc',
     });
 
     this._featureName = TRIP_FEATURE_NAME;
@@ -636,17 +634,17 @@ export class TripService
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
-      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'departureDateTime'),
-      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: (opts && opts.trash) || false,
-      filter: dataFilter && dataFilter.asPodObject(),
+      sortBy: sortBy || (opts && opts.trash ? 'updateDate' : this.defaultSortBy),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : this.defaultSortDirection),
+      trash: opts?.trash || false,
+      filter: dataFilter?.asPodObject(),
     };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[trip-service] Watching trips... using options:', variables);
 
     const withTotal = !opts || opts.withTotal !== false;
-    const query = opts?.query || (withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll);
+    const query = opts?.query || (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
 
     return this.mutableWatchQuery<LoadResult<Trip>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
@@ -870,7 +868,7 @@ export class TripService
     if (this._debug) console.debug('[trip-service] Using minify object, to send:', json);
 
     const variables = {
-      trip: json,
+      data: json,
       options: {
         withLanding: opts.withLanding,
         withOperation: opts.withOperation,
@@ -1200,21 +1198,21 @@ export class TripService
 
     // Importing historical data (need to get parent operation in the local storage)
     try {
-      const filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+      const offlineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
+      const filter = TripSynchroImportFilter.toTripFilter(offlineFilter || {});
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
-      filter.programLabel = entity.program.label;
       filter.program = entity.program;
 
       // Force the vessel
       filter.vesselId = toNumber(entity.vesselSnapshot?.id, filter.vesselId);
 
       // Prepare the start/end date
-      if (filter.periodDuration && filter.periodDurationUnit) {
+      if (offlineFilter?.periodDuration > 0 && offlineFilter.periodDurationUnit) {
         filter.startDate = DateUtils.moment()
           .utc(false)
-          .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
-          .startOf('day'); // Reset time
+          .startOf('day') // Reset time
+          .add(-1 * offlineFilter.periodDuration, offlineFilter.periodDurationUnit); // Subtract the period, from now
       } else {
         filter.startDate = null;
       }
@@ -1312,7 +1310,7 @@ export class TripService
       }
 
       // Control operations
-      {
+      if (!opts || !opts.withOperationGroup) {
         const errors = await this.operationService.controlAllByTrip(entity, {
           program,
           progression: opts?.progression,
@@ -1417,7 +1415,7 @@ export class TripService
       trash?: boolean; // True by default
     }
   ): Promise<any> {
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts?.trash !== false;
     const trashUpdateDate = trash && moment();
     if (this._debug) console.debug(`[trip-service] Deleting trip #${entity.id}... {trash: ${trash}`);
 
@@ -1818,13 +1816,18 @@ export class TripService
       countryIds?: number[];
       referentialEntityNames?: string[];
       acquisitionLevels?: string[];
+      vesselIds?: number[];
       [key: string]: any;
     }
   ): Observable<number>[] {
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const synchroFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
+    filter = filter || TripSynchroImportFilter.toTripFilter(synchroFilter);
     filter = this.asFilter(filter);
 
     let programLabel = filter?.program?.label;
+    const vesselIds = filter?.vesselIds || opts?.vesselIds;
+    const operationFilter = TripFilter.toOperationFilter({ ...filter, vesselIds });
+    const gearFilter = TripFilter.toPhysicalGearFilter({ ...filter, vesselIds });
 
     return [
       // Store program to opts, for other services (e.g. used by OperationService)
@@ -1877,31 +1880,38 @@ export class TripService
 
           // Limit locations (e.g. rectangle)
           opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+          // Compute location levels ids, bases on known program's properties
+          if (isEmptyArray(opts.locationLevelIds)) {
+            opts.locationLevelIds = removeDuplicatesFromArray([
+              ...program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS),
+              ...program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS),
+            ]);
+          }
           if (isNotEmptyArray(opts.locationLevelIds))
-            console.debug('[trip-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
+            console.debug('[trip-service] [import] Locations, having level ids: ' + opts.locationLevelIds.join(','));
 
+          // Bounding box
           opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
           if (Geometries.isNotNilBBox(opts.boundingBox)) console.debug('[trip-service] [import] Bounding box: ' + opts.boundingBox.join(','));
-
-          // TODO limit vessels (e.g. for OBSBIO, OBSMER)
         }
+
+        // Vessels
+        opts.vesselIds = vesselIds;
       }),
 
       ...super.getImportJobs(filter, opts),
 
-      // Import pending operations
-      JobUtils.defer((o) => {
-        const operationFilter = TripFilter.toOperationFilter(filter);
-        if (isNil(operationFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
-        return this.operationService.executeImport(operationFilter, o);
-      }, opts),
+      // Historical data (if enable)
+      ...((operationFilter.startDate &&
+        gearFilter.startDate &&
+        isNotEmptyArray(vesselIds) && [
+          // Import pending operations
+          JobUtils.defer((o) => this.operationService.executeImport(operationFilter, o), opts),
 
-      // Import physical gears
-      JobUtils.defer((o) => {
-        const gearFilter = TripFilter.toPhysicalGearFilter(filter);
-        if (isNil(gearFilter?.vesselId)) return Promise.resolve(); // Skip if no vessel
-        return this.physicalGearService.executeImport(gearFilter, o);
-      }, opts),
+          // Import physical gears
+          JobUtils.defer((o) => this.physicalGearService.executeImport(gearFilter, o), opts),
+        ]) ||
+        []),
     ];
   }
 
@@ -1926,7 +1936,8 @@ export class TripService
     };
     opts.progression = opts.progression || new BehaviorSubject<number>(0);
 
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const offlineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
+    filter = filter || TripSynchroImportFilter.toTripFilter(offlineFilter);
     filter = this.asFilter(filter);
 
     const programLabel = filter?.program?.label;

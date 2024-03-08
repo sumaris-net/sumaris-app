@@ -24,6 +24,8 @@ import {
   ViewEncapsulation,
   ViewRef,
 } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 import { MarkdownComponent } from 'ngx-markdown';
@@ -42,31 +44,22 @@ export interface IRevealExtendedOptions extends IRevealOptions {
 export const REVEAL_COMPONENT = new InjectionToken<any>('REVEAL_COMPONENT');
 
 @Directive({ selector: '[sectionOutlet]' })
-export class RevealSectionOutlet {
-  constructor(
-    public viewContainer: ViewContainerRef,
-    public elementRef: ElementRef
-  ) {}
+export class RevealSectionOutletDirective {
+  constructor(public viewContainer: ViewContainerRef) {}
 }
 
 @Directive({
   selector: '[sectionDef]',
 })
-export class RevealSectionDef {
-  constructor(
-    public template: TemplateRef<any>
-    //@Inject(REVEAL_COMPONENT) @Optional() public _reveal?: RevealComponent
-  ) {}
+export class RevealSectionDefDirective {
+  constructor(public template: TemplateRef<any>) {}
 }
 
 @Component({
   selector: 'app-reveal',
   templateUrl: './reveal.component.html',
   styleUrls: ['./reveal.component.scss'],
-  providers: [
-    //{provide: RevealComponent, useExisting: RevealComponent},
-    { provide: REVEAL_COMPONENT, useExisting: RevealComponent },
-  ],
+  providers: [{ provide: REVEAL_COMPONENT, useExisting: RevealComponent }],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.Default,
 })
@@ -78,7 +71,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   private _subscription = new Subscription();
   private _printing = false;
   private _printIframe: HTMLIFrameElement;
-  private _registeredSections: RevealSectionDef[] = [];
+  private _registeredSections: RevealSectionDefDirective[] = [];
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -108,8 +101,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('main') _revealDiv!: ElementRef;
 
-  @ViewChild(RevealSectionOutlet, { static: true }) _sectionOutlet: RevealSectionOutlet;
-  @ContentChildren(RevealSectionDef, { descendants: true }) _sectionDefs: QueryList<RevealSectionDef>;
+  @ViewChild(RevealSectionOutletDirective, { static: true }) _sectionOutlet: RevealSectionOutletDirective;
+  @ContentChildren(RevealSectionDefDirective, { descendants: true }) _sectionDefs: QueryList<RevealSectionDefDirective>;
   @ContentChildren('[markdown]') markdownList: QueryList<MarkdownComponent>;
 
   constructor(
@@ -130,7 +123,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event) {
+  onResize(event: UIEvent) {
     this._reveal?.layout();
   }
 
@@ -175,7 +168,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     this._subscription.unsubscribe();
   }
 
-  registerSection(section: RevealSectionDef) {
+  registerSection(section: RevealSectionDefDirective) {
     if (!this._embedded) {
       const exists = this._sectionDefs.some((s) => s === section) || this._registeredSections.includes(section);
 

@@ -15,11 +15,12 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ITreeItemEntity,
+  TreeItemEntityUtils,
   waitWhilePending,
 } from '@sumaris-net/ngx-components';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { FormArray, UntypedFormGroup } from '@angular/forms';
 import {
@@ -30,9 +31,9 @@ import {
   MeasurementValuesUtils,
 } from '@app/data/measurement/measurement.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
+import { BatchGroupsTableState } from '@app/trip/batch/group/batch-groups.table';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -52,7 +53,7 @@ export class BatchModel
     pmfms: IPmfm[],
     rules: Rule<{ model: BatchModel; pmfm: IPmfm }>[],
     // Internal arguments (used by recursive call)
-    maxTreeDepth = 4,
+    maxTreeDepth = 5,
     treeDepth = 0,
     parent: BatchModel = null,
     path = ''
@@ -75,6 +76,7 @@ export class BatchModel
       // Build rules
       RuleUtils.build(rules, false /*keep previous compilation*/);
 
+      // Filter pmfms, by applying all rules
       pmfms = pmfms.filter((pmfm) => RuleUtils.valid({ model, pmfm }, rules));
     }
 
@@ -84,12 +86,12 @@ export class BatchModel
       minQvCount: 2,
       maxQvCount: 3,
       excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
-      //filterFn: pmfm => RuleUtils.valid({model, pmfm: pmfm}, rules)
+      includePmfmIds: [PmfmIds.LANDING_CATEGORY, PmfmIds.IS_SAMPLING, PmfmIds.DISCARD_TYPE],
     });
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
       if (qvPmfmIndex > 0) {
-        model.state.pmfms = pmfms.slice(0, qvPmfmIndex);
+        model.state.initialPmfms = pmfms.slice(0, qvPmfmIndex);
       }
 
       // Prepare next iteration
@@ -146,7 +148,9 @@ export class BatchModel
     model.isLeaf = isEmptyArray(model.children) || isNotEmptyArray(model.childrenPmfms);
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
-    model.state.showExhaustiveInventory = false;
+    if (!model.isLeaf) {
+      model.state.showExhaustiveInventory = false;
+    }
 
     return model;
   }
@@ -180,7 +184,7 @@ export class BatchModel
   hidden?: boolean;
 
   state?: Partial<BatchFormState>;
-  childrenState?: Partial<BatchFormState>;
+  childrenState?: Partial<BatchGroupsTableState>;
 
   path: string;
   parentId: number = null;
@@ -201,19 +205,19 @@ export class BatchModel
     this.icon = source.icon;
     this.originalData = source.originalData;
     this.state =
-      (source.rootState && {
-        pmfms: source.state.pmfms || [],
+      (source.state && {
+        initialPmfms: source.state.initialPmfms || [],
       }) ||
       {};
     this.childrenState =
       (source.childrenState && {
-        pmfms: source.childrenState.pmfms || [],
+        initialPmfms: source.childrenState.initialPmfms || [],
       }) ||
       {};
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
-    this.isLeaf = source.isLeaf || this.childrenState?.pmfms?.length > 0;
+    this.isLeaf = source.isLeaf || this.childrenState?.initialPmfms?.length > 0;
 
     this.path = source.path || null;
     this.parent = source.parent || null;
@@ -228,6 +232,9 @@ export class BatchModel
 
   get invalid(): boolean {
     return !this.valid;
+  }
+  set invalid(value: boolean) {
+    this._valid = !value;
   }
 
   get valid(): boolean {
@@ -344,43 +351,56 @@ export class BatchModel
   }
 
   get pmfms(): IPmfm[] {
-    return this.state?.pmfms;
+    return this.state?.initialPmfms;
   }
   set pmfms(pmfms: IPmfm[]) {
     this.state = {
       ...this.state,
-      pmfms,
+      initialPmfms: pmfms,
     };
     this._weightPmfms = null; // Reset cache
   }
   get childrenPmfms(): IPmfm[] {
-    return this.childrenState?.pmfms;
+    return this.childrenState?.initialPmfms;
   }
   set childrenPmfms(pmfms: IPmfm[]) {
     this.childrenState = {
       ...this.childrenState,
-      pmfms,
+      initialPmfms: pmfms,
     };
   }
 
   get weightPmfms(): IPmfm[] {
-    if (isNil(this._weightPmfms)) {
+    if (!this._weightPmfms) {
       this._weightPmfms = this.pmfms?.filter(PmfmUtils.isWeight) || [];
     }
     return this._weightPmfms;
+  }
+
+  remove() {
+    if (isNotNil(this.parent)) {
+      const index = this.parent.children.indexOf(this);
+      if (index !== -1) {
+        this.parent.children.splice(index, 1);
+      }
+    }
   }
 }
 
 @EntityClass({ typename: 'BatchModelFilterVO' })
 export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
+  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+  static composeOr(...sources: any): BatchModelFilter {
+    return BatchModelFilter.fromObject({ or: sources });
+  }
+
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   pmfmIds: number[] = null;
   isLeaf: boolean = null;
   hidden: boolean = null;
-
   parentFilter: BatchModelFilter = null;
-
-  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+  or: BatchModelFilter[] = null;
+  and: BatchModelFilter[] = null;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -389,7 +409,9 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     this.pmfmIds = source.pmfmIds;
     this.isLeaf = source.isLeaf;
     this.hidden = source.hidden;
-    this.parentFilter = source.parentFilter && BatchModelFilter.fromObject(source.parentFilter);
+    this.parentFilter = BatchModelFilter.fromObject(source.parentFilter);
+    this.or = source.or?.map(BatchModelFilter.fromObject);
+    this.and = source.and?.map(BatchModelFilter.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -399,11 +421,25 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     target.isLeaf = this.isLeaf;
     target.hidden = this.hidden;
     target.parentFilter = this.parentFilter && this.parentFilter.asObject(opts);
+    target.or = isNotEmptyArray(this.or) ? this.or.map((f) => f.asObject(opts)) : undefined;
+    target.and = isNotEmptyArray(this.and) ? this.and.map((f) => f.asObject(opts)) : undefined;
     return target;
   }
 
   protected buildFilter(): FilterFn<BatchModel>[] {
     const filterFns = super.buildFilter();
+
+    // Hidden
+    if (isNotNil(this.hidden)) {
+      const hidden = this.hidden;
+      filterFns.push((b) => b.hidden === hidden);
+    }
+
+    // is leaf
+    if (isNotNil(this.isLeaf)) {
+      const isLeaf = this.isLeaf;
+      filterFns.push((b) => b.isLeaf === isLeaf);
+    }
 
     if (isNotNil(this.measurementValues)) {
       Object.keys(this.measurementValues).forEach((pmfmId) => {
@@ -426,18 +462,6 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
       });
     }
 
-    // Hidden
-    if (isNotNil(this.hidden)) {
-      const hidden = this.hidden;
-      filterFns.push((b) => b.hidden === hidden);
-    }
-
-    // is leaf
-    if (isNotNil(this.isLeaf)) {
-      const isLeaf = this.isLeaf;
-      filterFns.push((b) => b.isLeaf === isLeaf);
-    }
-
     // Parent filter
     const parentFilter = BatchModelFilter.fromObject(this.parentFilter);
     if (parentFilter && !parentFilter.isEmpty()) {
@@ -445,7 +469,33 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
       filterFns.push((b) => b.parent && parentFilterFn(b.parent));
     }
 
+    // Or
+    if (isNotEmptyArray(this.or)) {
+      const orFilterFns = this.or
+        .map(BatchModelFilter.fromObject)
+        .map((of) => of.asFilterFn())
+        .filter(isNotNil);
+      if (isNotEmptyArray(orFilterFns)) {
+        filterFns.push((b) => orFilterFns.some((orFilterFn) => orFilterFn(b)));
+      }
+    }
+
+    // AND
+    if (isNotEmptyArray(this.and)) {
+      const andFilterFns = this.and
+        .map(BatchModelFilter.fromObject)
+        .map((of) => of.asFilterFn())
+        .filter(isNotNil);
+      if (isNotEmptyArray(andFilterFns)) {
+        filterFns.push((b) => andFilterFns.every((orFilterFn) => orFilterFn(b)));
+      }
+    }
+
     return filterFns;
+  }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    return super.isCriteriaNotEmpty(key, value) || (key === 'measurementValues' && MeasurementValuesUtils.isNotEmpty(value));
   }
 }
 
@@ -459,14 +509,15 @@ export class BatchModelUtils {
       rules?: Rule[];
     }
   ): BatchModel {
-    if (isEmptyArray(opts?.sortingPmfms)) throw new Error("Missing required argument 'opts.sortingPmfms'");
+    if (!opts?.sortingPmfms) throw new Error("Missing required argument 'opts.sortingPmfms'");
 
     // Create a batch model
     const model = BatchModel.fromBatch(data, opts.sortingPmfms, opts.rules);
     if (!model) return;
 
     // Add catch batches pmfms
-    model.state.pmfms = arrayDistinct([...(opts.catchPmfms || []), ...(model.state.pmfms || [])], 'id');
+    model.state.initialPmfms = arrayDistinct([...(opts.catchPmfms || []), ...(model.state.initialPmfms || [])], 'id');
+
     // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
     model.disabled = !(model.pmfms || []).some((p) => !p.hidden) && !model.isLeaf && !model.parent;
 
@@ -481,7 +532,7 @@ export class BatchModelUtils {
   /**
    * Find matches batches (recursively)
    *
-   * @param batch
+   * @param model
    * @param filter
    */
   static findByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
@@ -491,7 +542,7 @@ export class BatchModelUtils {
   /**
    * Delete matches batches (recursively)
    *
-   * @param batch
+   * @param model
    * @param filter
    */
   static deleteByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
@@ -507,7 +558,7 @@ export class BatchModelUtils {
     if (model.hidden) name += ' (hidden)';
     result.push(`${treeIndent} - ${name}`);
 
-    // Recursive call, for each children
+    // Recursive call, for each child
     if (isNotEmptyArray(model.children)) {
       treeDepth++;
       treeIndent = `${treeIndent}\t`;
@@ -516,7 +567,7 @@ export class BatchModelUtils {
 
     // Display result, if root
     if (isCatchBatch && isNotEmptyArray(result)) {
-      console.debug(`[batch-tree-container] Batch model:\n${result.join('\n')}`);
+      console.debug(`[batch-model-utils] Batch model:\n${result.join('\n')}`);
     }
   }
 }

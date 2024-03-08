@@ -58,6 +58,11 @@ export class ExpectedSale extends DataEntity<ExpectedSale> implements IWithProdu
       });
     }
 
+    // Remove properties that not exists in POD
+    if (options?.minify) {
+      delete target.qualityFlagId;
+    }
+
     return target;
   }
 }

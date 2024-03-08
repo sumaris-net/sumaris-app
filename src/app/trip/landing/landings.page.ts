@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   Alerts,
   ConfigService,
@@ -25,7 +27,7 @@ import {
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
@@ -51,9 +53,10 @@ import { BaseTableConfig } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { StrategyRefFilter, StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
@@ -275,10 +278,7 @@ export class LandingsPage
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
     });
 
@@ -286,7 +286,7 @@ export class LandingsPage
     this.registerAutocompleteField('strategy', {
       suggestFn: (value, filter) => {
         const program = this.filterForm.get('program').value;
-        return this.strategyRefService.suggest(value, <StrategyRefFilter>{
+        return this.strategyRefService.suggest(value, <StrategyFilter>{
           ...filter,
           levelId: program?.id,
         });
@@ -585,7 +585,7 @@ export class LandingsPage
   protected async openRow(id: number, row: TableElement<Landing>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -600,7 +600,13 @@ export class LandingsPage
     const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     console.debug('[landings] Opening a landing, using editor: ' + editor);
 
-    return await this.navController.navigateForward([editor, id], {
+    if (editor === 'trip') {
+      return this.navController.navigateForward([editor, data.tripId], {
+        relativeTo: this.route,
+      });
+    }
+
+    return this.navController.navigateForward([editor, id], {
       relativeTo: this.route,
       queryParams: {
         parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
@@ -624,7 +630,12 @@ export class LandingsPage
     const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     console.debug('[landings] Opening new landing, using editor: ' + editor);
 
-    return await this.navController.navigateForward([editor, 'new'], {
+    if (editor === 'trip') {
+      console.error(this.logPrefix + 'Cannot create a landed trip, without an existing landing');
+      return false;
+    }
+
+    return this.navController.navigateForward([editor, 'new'], {
       relativeTo: this.route,
       queryParams: {
         program: program?.label,
@@ -634,7 +645,7 @@ export class LandingsPage
     });
   }
 
-  async openTrashModal(event?: Event) {
+  protected async openTrashModal(event?: Event) {
     console.debug('[landings] Opening trash modal...');
     // TODO BLA
     /*const modal = await this.modalCtrl.create({

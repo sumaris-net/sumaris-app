@@ -8,7 +8,7 @@
   <ion-grid class="ion-no-padding">
     <ion-row [class.has-buttons]="mobile && canEditType" *ngIf="allowParentOperation">
       <ion-col size="0" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" hidden-xs hidden-sm translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
+        <ion-label class="ion-float-end hidden-xs hidden-sm" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
       <ng-container *ngIf="readySubject | async; else colsSkeleton">
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
@@ -31,7 +31,8 @@
             [class.mat-form-field-invalid]="control.invalid"
             *ngVar="parentControl as control"
           >
-            <input matInput type="text" hidden [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION' | translate" formControlName="parentOperation" />
+            <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
+            <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
             <input
               matInput
               type="text"
@@ -123,7 +124,9 @@
 
     <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
+        <ion-label class="ion-float-end">
+          {{ (this.showMetier ? 'TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES' : 'TRIP.OPERATION.EDIT.GEAR') | translate }}
+        </ion-label>
       </ion-col>
 
       <!-- Physical gear -->
@@ -143,7 +146,7 @@
       </ion-col>
 
       <!-- Target species (using metier) -->
-      <ion-col size="12" size-sm="6" size-md="">
+      <ion-col size="12" size-sm="6" size-md="" *ngIf="showMetier">
         <mat-autocomplete-field
           #metierField
           formControlName="metier"
@@ -185,9 +188,9 @@
         </ng-template>
       </ion-col>
       <ion-col>
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12">
+            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
               <mat-date-time-field
                 [placeholder]="'COMMON.DATE' | translate"
                 formControlName="startDateTime"
@@ -200,7 +203,7 @@
             </ion-col>
 
             <!-- lat -->
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.startPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.startPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="latitude"
                 type="latitude"
@@ -215,7 +218,7 @@
             </ion-col>
 
             <!-- long -->
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.startPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.startPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="longitude"
                 type="longitude"
@@ -259,9 +262,9 @@
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_PARENT_OPERATION</ion-label>
       </ion-col>
       <ion-col>
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12" *ngIf="form.controls.fishingStartDateTime as control">
+            <ion-col *ngIf="form.controls.fishingStartDateTime | formGetControl as control" size="10" [sizeLg]="showPosition ? 4 : 10">
               <mat-date-time-field
                 [placeholder]="'COMMON.DATE' | translate"
                 [formControl]="control"
@@ -284,7 +287,7 @@
             </ion-col>
 
             <!-- latitude / longitude -->
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="latitude"
                 type="latitude"
@@ -297,7 +300,7 @@
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="longitude"
                 type="longitude"
@@ -340,9 +343,9 @@
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_CHILD_OPERATION</ion-label>
       </ion-col>
       <ion-col>
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12">
+            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
               <mat-date-time-field
                 formControlName="fishingEndDateTime"
                 [placeholder]="'COMMON.DATE' | translate"
@@ -354,7 +357,7 @@
                 <mat-icon matPrefix class="visible-xs visible-sm visible-mobile">today</mat-icon>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="latitude"
                 type="latitude"
@@ -367,7 +370,7 @@
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="longitude"
                 type="longitude"
@@ -413,9 +416,9 @@
         </ng-template>
       </ion-col>
       <ion-col>
-        <ion-grid class="ion-no-padding">
+        <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12" *ngVar="form.controls.endDateTime as control">
+            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10" *ngIf="form.controls.endDateTime | formGetControl as control">
               <mat-date-time-field
                 [formControl]="control"
                 [placeholder]="'COMMON.DATE' | translate"
@@ -436,7 +439,7 @@
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.endPosition | formGetGroup as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="latitude"
                 type="latitude"
@@ -449,7 +452,7 @@
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position" [formGroup]="position">
+            <ion-col size="5" size-lg="3" *ngIf="form.controls.endPosition | formGetGroup as position" [formGroup]="position">
               <mat-latlong-field
                 formControlName="longitude"
                 type="longitude"
@@ -489,10 +492,10 @@
     <!-- Fishing areas -->
     <ng-container *ngIf="showFishingArea">
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
-        <ion-col size="0" size-md="3" size-lg="3">
-          <ion-label class="ion-float-end" hidden-xs hidden-sm *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
         </ion-col>
-        <ion-col [formGroup]="fishingAreaForm">
+        <ion-col [formGroup]="fishingAreaForm | formGetGroup">
           <mat-autocomplete-field
             #fishingAreaField
             formControlName="location"
@@ -540,7 +543,7 @@
             [tabindex]="tabindex + 30 + i * 3 + 2"
             [disabled]="disabled"
             [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="fishingAreasHelper.removeAt(i)"
+            (click)="fishingAreasForm.removeAt(i)"
           >
             <mat-icon>close</mat-icon>
           </button>

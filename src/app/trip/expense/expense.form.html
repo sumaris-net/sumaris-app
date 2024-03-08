@@ -37,7 +37,7 @@
 
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden"
+    class="mat-mdc-tab-disabled-hidden"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="selectedTabChange.emit($event)"
     [dynamicHeight]="false"
@@ -47,7 +47,7 @@
       <div class="ion-padding">
         <ion-grid class="form-container">
           <!-- fuel -->
-          <ion-row [hidden]="!($fuelTypePmfm | async) && ($fuelPmfms | async | isEmptyArray)">
+          <ion-row [class.cdk-visually-hidden]="($fuelTypePmfm | async | isNil) && ($fuelPmfms | async | isEmptyArray)">
             <ion-col size="12" size-md="3" size-lg="3">
               <app-pmfm-field
                 *ngIf="$fuelTypePmfm | async; let pmfm; index as i"
@@ -135,7 +135,7 @@
         <ion-row
           *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
           class="typed-expense-row ion-padding-bottom"
-          [class.mat-row-selected]="baitEditedIndex === i"
+          [class.mat-mdc-row-selected]="baitEditedIndex === i"
           [class.odd]="odd"
           (focusin)="baitEditedIndex = i"
         >

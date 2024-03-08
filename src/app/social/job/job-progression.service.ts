@@ -4,6 +4,7 @@ import {
   GraphqlService,
   IJobProgressionService,
   isNil,
+  isNotNil,
   JobProgression,
   removeDuplicatesFromArray,
   SocialErrorCodes,
@@ -68,7 +69,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
     protected accountService: AccountService
   ) {
     super(graphql, environment);
-    this._logPrefix = '[job-progression-service]';
+    this._logPrefix = '[job-progression-service] ';
 
     // Clean data on logout
     this.accountService.onLogout.subscribe(() => this.dataSubject.next([]));
@@ -77,6 +78,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   addJob(id: number, job?: JobProgression) {
+    if (isNil(id)) throw new Error("Missing required argument 'id'");
     const exists = this.dataSubject.value.some((j) => j.id === id);
     if (!exists) {
       job = job || new JobProgression();
@@ -86,7 +88,8 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   removeJob(id: number) {
-    const jobs = this.dataSubject.value;
+    if (isNil(id)) throw new Error("Missing required argument 'id'");
+    const jobs = this.dataSubject.value || [];
     const index = jobs.findIndex((j) => j.id === id);
     if (index !== -1) {
       jobs.splice(index, 1);
@@ -95,7 +98,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
   }
 
   watchAll(): Observable<JobProgression[]> {
-    return combineLatest(
+    return combineLatest([
       this.dataSubject.asObservable(),
       this.accountService.onLogin.pipe(
         mergeMap((account) =>
@@ -109,10 +112,10 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
           )
         ),
         takeUntil(this.accountService.onLogout)
-      )
-    ).pipe(
-      map(([d1, d2]) => removeDuplicatesFromArray([...d1, ...d2], 'id')),
-      map((data) => data.map(JobProgression.fromObject))
+      ),
+    ]).pipe(
+      map(([jobs1, jobs2]) => removeDuplicatesFromArray([...jobs1, ...jobs2], 'id')),
+      map((data) => data.map(JobProgression.fromObject).filter((job) => isNotNil(job.id)))
     );
   }
 

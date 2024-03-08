@@ -35,11 +35,11 @@ export abstract class PmfmValueUtils {
   }
 
   static isEmpty(value: PmfmValue | any) {
-    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
+    return isNilOrBlank(value) || (typeof value === 'object' && ReferentialUtils.isEmpty(value));
   }
 
   static isNotEmpty(value: PmfmValue | any) {
-    return isNotNilOrBlank(value) || ReferentialUtils.isNotEmpty(value);
+    return isNotNilOrBlank(value) && (typeof value !== 'object' || ReferentialUtils.isNotEmpty(value));
   }
 
   static equals(pv1: PmfmValue, pv2: PmfmValue): boolean {
@@ -104,8 +104,7 @@ export abstract class PmfmValueUtils {
       case 'qualitative_value':
         return +PmfmValueUtils.toModelValue(value, pmfm);
       case 'boolean':
-        const trueFalse = PmfmValueUtils.toModelValue(value, pmfm);
-        return trueFalse === 'true' ? 1 : 0;
+        return PmfmValueUtils.toModelValue(value, pmfm) === 'true' ? 1 : 0;
       default:
         return undefined; // Cannot convert to a number (alphanumerical,date,etc.)
     }
@@ -201,7 +200,7 @@ export abstract class PmfmValueUtils {
   ): string | undefined {
     if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
-      case 'qualitative_value':
+      case 'qualitative_value': {
         if (value && typeof value !== 'object') {
           const qvId = parseInt(value);
           value =
@@ -222,6 +221,7 @@ export abstract class PmfmValueUtils {
           result = referentialToString(opts.pmfm, ['name']) + ': ' + result;
         }
         return result;
+      }
       case 'integer':
       case 'double':
         return isNotNil(value) ? value : null;
@@ -275,8 +275,6 @@ export abstract class PmfmValueUtils {
     const precisionCoefficient = 1 / targetPrecision;
 
     // Convert to the expected unit, and round to expected precision
-    const result = Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
-
-    return result;
+    return Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
   }
 }

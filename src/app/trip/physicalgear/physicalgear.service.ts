@@ -5,6 +5,7 @@ import {
   arrayDistinct,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityUtils,
@@ -29,11 +30,9 @@ import { environment } from '@environments/environment';
 import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, throttleTime } from 'rxjs/operators';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { PhysicalGearFragments } from '../trip/trip.queries';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import moment from 'moment';
 import { TripFilter } from '@app/trip/trip/trip.filter';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { mergeLoadResult } from '@app/shared/functions';
@@ -50,6 +49,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { PhysicalGearFragments } from '@app/trip/common/data.fragments';
 
 const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
   loadAll: gql`
@@ -91,6 +91,7 @@ const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
       }
     }
     ${PhysicalGearFragments.physicalGear}
+    ${ReferentialFragments.location}
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightDepartment}
@@ -226,7 +227,7 @@ export class PhysicalGearService
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
 
-    const withTrip = dataFilter && dataFilter.vesselId && isNil(dataFilter.tripId);
+    const withTrip = (isNotNil(dataFilter?.vesselId) || isNotEmptyArray(dataFilter.vesselIds)) && isNil(dataFilter.tripId);
     const query = opts?.query || (withTrip ? Queries.loadAllWithTrip : Queries.loadAll);
     return this.graphql
       .watchQuery<LoadResult<any>>({
@@ -270,7 +271,7 @@ export class PhysicalGearService
     dataFilter?: Partial<PhysicalGearFilter>,
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
-    if (!dataFilter || (isNil(dataFilter.parentGearId) && isNil(dataFilter.vesselId))) {
+    if (!dataFilter || (isNil(dataFilter.parentGearId) && isNil(dataFilter.vesselId) && isEmptyArray(dataFilter.vesselIds))) {
       console.warn("[physical-gear-service] Missing physical gears filter. Expected at least 'vesselId' or 'parentGearId'. Skipping.");
       return EMPTY;
     }
@@ -319,6 +320,7 @@ export class PhysicalGearService
         <Partial<TripFilter>>{
           id: dataFilter.tripId,
           vesselId: dataFilter.vesselId,
+          vesselIds: dataFilter.vesselIds,
           startDate: dataFilter.startDate,
           endDate: dataFilter.endDate,
           program: dataFilter.program,
@@ -597,7 +599,7 @@ export class PhysicalGearService
   ): Promise<void> {
     const maxProgression = (opts && opts.maxProgression) || 100;
     filter = {
-      startDate: moment().add(-1, 'month'), // Can be overwritten by given filter
+      startDate: DateUtils.moment().add(-1, 'month'), // Can be overwritten by given filter
       ...filter,
     };
 

@@ -244,7 +244,9 @@ export class MapGraticule extends L.GeoJSON {
       }
       try {
         return parseInt(txt, 10);
-      } catch (e) {}
+      } catch (e) {
+        /* eslint-disable no-empty */
+      }
       return 0;
     };
 

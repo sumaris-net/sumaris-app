@@ -33,16 +33,18 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { TaxonGroupLabels, TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sample } from '@app/trip/sample/sample.model';
 import { AppColors } from '@app/shared/colors.utils';
+
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlPage extends LandingPage implements OnInit, AfterViewInit {
@@ -52,11 +54,9 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
   controlledSpeciesPmfmId: number;
   errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  pmfms$: Observable<IPmfm[]>;
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
-  showSamplesTable = false;
   helpContent: string;
 
   constructor(
@@ -69,10 +69,14 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
       pathIdAttribute: 'controlId',
       tabGroupAnimationDuration: '0s', // Disable tab animation
       i18nPrefix: 'AUCTION_CONTROL.EDIT.',
+      settingsId: 'auctionControl',
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
     this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+
+    // FOR DEV ONLY ----
+    this.logPrefix = '[auction-control-page] ';
   }
 
   ngOnInit() {
@@ -108,50 +112,53 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         })
     );
 
-    this.pmfms$ = filterNotNil(this.$taxonGroups).pipe(
-      switchMap(() => this.landingForm.pmfms$),
-      filter(isNotNil),
-      map((pmfms) =>
-        pmfms.map((pmfm) => {
-          // Controlled species PMFM
-          if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
-            console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
+    this._state.connect(
+      'pmfms',
+      filterNotNil(this.$taxonGroups).pipe(
+        switchMap(() => this.landingForm.pmfms$),
+        filter(isNotNil),
+        map((pmfms) =>
+          pmfms.map((pmfm) => {
+            // Controlled species PMFM
+            if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
+              console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
 
-            this.controlledSpeciesPmfmId = pmfm.id;
+              this.controlledSpeciesPmfmId = pmfm.id;
 
-            const taxonGroups = this.$taxonGroups.getValue();
-            if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
-              pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
+              const taxonGroups = this.$taxonGroups.getValue();
+              if (isNotEmptyArray(taxonGroups) && isNotEmptyArray(pmfm.qualitativeValues)) {
+                pmfm = pmfm.clone(); // Clone (to keep unchanged the original pmfm)
 
-              // Replace QV.name
-              pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
-                const taxonGroup = taxonGroups.find((tg) => tg.label === qv.label);
-                // If not found in strategy's taxonGroups: ignore
-                if (!taxonGroup) {
-                  console.warn(
-                    `Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`
-                  );
-                  return res;
-                }
-                // Replace the QV name, using the taxon group name
-                qv.name = taxonGroup.name;
-                qv.entityName = taxonGroup.entityName || 'QualitativeValue';
-                return res.concat(qv);
-              }, []);
-            } else {
-              console.debug(`[control] No qualitative values to replace, or no taxon groups in the strategy`);
+                // Replace QV.name
+                pmfm.qualitativeValues = pmfm.qualitativeValues.reduce((res, qv) => {
+                  const taxonGroup = taxonGroups.find((tg) => tg.label === qv.label);
+                  // If not found in strategy's taxonGroups: ignore
+                  if (!taxonGroup) {
+                    console.warn(
+                      `Ignore invalid QualitativeValue {label: ${qv.label}} (not found in taxon groups of the program ${this.landingForm.programLabel})`
+                    );
+                    return res;
+                  }
+                  // Replace the QV name, using the taxon group name
+                  qv.name = taxonGroup.name;
+                  qv.entityName = taxonGroup.entityName || 'QualitativeValue';
+                  return res.concat(qv);
+                }, []);
+              } else {
+                console.debug(`[control] No qualitative values to replace, or no taxon groups in the strategy`);
+              }
+
+              this.$taxonGroupPmfm.next(pmfm);
             }
 
-            this.$taxonGroupPmfm.next(pmfm);
-          }
-
-          // Force other Pmfm to optional (if in on field)
-          else if (this.isOnFieldMode) {
-            pmfm = pmfm.clone(); // Skip original pmfm safe
-            pmfm.required = false;
-          }
-          return pmfm;
-        })
+            // Force other Pmfm to optional (if in on field)
+            else if (this.isOnFieldMode && pmfm.required) {
+              pmfm = pmfm.clone(); // Skip original pmfm safe
+              pmfm.required = false;
+            }
+            return pmfm;
+          })
+        )
       )
     );
 
@@ -326,7 +333,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
           return 'success';
         }
 
-      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG:
+      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG: {
         const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;
 
         if (isNotNil(pmfmValue) && auctionDensityCategory) {
@@ -341,6 +348,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
           }
         }
         break;
+      }
     }
 
     return null;

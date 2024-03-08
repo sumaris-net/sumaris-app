@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AppFormArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
@@ -33,28 +33,27 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
   getFormGroupConfig(data?: any, opts?: O): { [p: string]: any } {
     const config = {
       __typename: [Sample.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [(data && data.updateDate) || null],
-      creationDate: [(data && data.creationDate) || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [(data && data.label) || null, !opts || opts.requiredLabel !== false ? Validators.required : null],
-      individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      sampleDate: [(data && data.sampleDate) || null, Validators.required],
-      taxonGroup: [(data && data.taxonGroup) || null, SharedValidators.entity],
-      taxonName: [(data && data.taxonName) || null, SharedValidators.entity],
-      matrixId: [toNumber(data && data.matrixId, null)],
-      batchId: [toNumber(data && data.batchId, null)],
-      size: [toNumber(data && data.size, null)],
-      sizeUnit: [(data && data.sizeUnit) || null],
-      comments: [(data && data.comments) || null],
-      children: this.formBuilder.array([]),
-      parent: [(data && data.parent) || null, SharedValidators.entity],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      creationDate: [data?.creationDate || null],
+      rankOrder: [toNumber(data?.rankOrder, null), Validators.required],
+      label: [data?.label || null, !opts || opts.requiredLabel !== false ? Validators.required : null],
+      individualCount: [toNumber(data?.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
+      sampleDate: [data?.sampleDate || null, Validators.required],
+      taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
+      taxonName: [data?.taxonName || null, SharedValidators.entity],
+      matrixId: [toNumber(data?.matrixId, null)],
+      batchId: [toNumber(data?.batchId, null)],
+      size: [toNumber(data?.size, null)],
+      sizeUnit: [data?.sizeUnit || null],
+      comments: [data?.comments || null],
+      parent: [data?.parent || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [(data && data.controlDate) || null],
-      validationDate: [(data && data.validationDate) || null],
-      qualificationDate: [(data && data.qualificationDate) || null],
-      qualificationComments: [(data && data.qualificationComments) || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
+      controlDate: [data?.controlDate || null],
+      validationDate: [data?.validationDate || null],
+      qualificationDate: [data?.qualificationDate || null],
+      qualificationComments: [data?.qualificationComments || null],
+      qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
     };
 
     // Add children form array
@@ -118,10 +117,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
   protected getImagesFormArray(data?: ImageAttachment[], opts?: O) {
     const formArray = new AppFormArray((image) => this.imageAttachmentValidator.getFormGroup(image), ImageAttachment.equals, ImageAttachment.isEmpty);
-    if (isNotEmptyArray(data)) {
-      formArray.patchValue(data);
-    }
-
+    if (data) formArray.patchValue(data);
     return formArray;
   }
 }

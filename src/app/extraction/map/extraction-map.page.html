@@ -63,7 +63,7 @@
 
 <!-- Layer options menu -->
 <mat-menu #layerOptionsMenu="matMenu" yPosition="above">
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
   <!-- Show countries layer -->
   <button mat-menu-item (click)="toggleShowCountriesLayer()">
@@ -74,7 +74,7 @@
 
 <!-- tech columns menu -->
 <mat-menu #techColumnMenu="matMenu" yPosition="above">
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.TECH_VALUE</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>EXTRACTION.MAP.TECH_VALUE</mat-label>
 
   <button mat-menu-item *ngFor="let item of $techColumns | async" (click)="setTechColumn(item.columnName)">
     <ion-icon *ngIf="techColumnName === item.columnName" name="checkmark"></ion-icon>
@@ -84,7 +84,7 @@
 
 <!-- Chart options menu -->
 <mat-menu #chartOptionsMenu="matMenu">
-  <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
   <!-- Type sub menu -->
   <button mat-menu-item [matMenuTriggerFor]="chartTypeMenu" translate>EXTRACTION.MAP.CHART_TYPE.TITLE</button>

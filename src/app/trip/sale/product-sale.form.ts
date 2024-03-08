@@ -1,23 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Product } from '../product/product.model';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import {
-  AppForm,
-  AppFormUtils,
-  FormArrayHelper,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  UsageMode,
-} from '@sumaris-net/ngx-components';
-import { Injector } from '@angular/core';
-import { Moment } from 'moment';
+import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, UsageMode } from '@sumaris-net/ngx-components';
 import { ProductValidatorService } from '../product/product.validator';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Subscription } from 'rxjs';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-product-sale-form',

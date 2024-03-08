@@ -1,13 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
+import { BehaviorSubject, firstValueFrom, Subscription } from 'rxjs';
+import { Alerts, AppFormUtils, isEmptyArray, isNil, referentialToString } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { AggregatedLandingForm, AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLanding, VesselActivity } from './aggregated-landing.model';
-import { Alerts } from '@sumaris-net/ngx-components';
-import { referentialToString } from '@sumaris-net/ngx-components';
-import { isNil } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-aggregated-landing-modal',
@@ -71,13 +68,13 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   protected async updateTitle() {
-    const title = await this.translate
-      .get('AGGREGATED_LANDING.TITLE', { vessel: referentialToString(this.data?.vesselSnapshot, ['exteriorMarking', 'name']) })
-      .toPromise();
+    const title = await firstValueFrom(
+      this.translate.get('AGGREGATED_LANDING.TITLE', { vessel: referentialToString(this.data?.vesselSnapshot, ['exteriorMarking', 'name']) })
+    );
     this.$title.next(title);
   }
 
-  async onSave(event: any): Promise<any> {
+  async onSave(event?: UIEvent): Promise<any> {
     // Avoid multiple call
     if (this.disabled) return;
 
@@ -117,8 +114,22 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
     this._disabled = false;
   }
 
-  cancel() {
-    this.viewCtrl.dismiss({
+  async cancel(event?: UIEvent) {
+    if (this.dirty) {
+      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+
+      // User cancelled
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
+        return;
+      }
+
+      // Is user confirm: close normally
+      if (saveBeforeLeave === true) {
+        return this.onSave(event);
+      }
+    }
+
+    return this.viewCtrl.dismiss({
       aggregatedLanding: undefined,
       saveOnDismiss: false,
       tripToOpen: undefined,

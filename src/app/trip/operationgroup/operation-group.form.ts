@@ -12,12 +12,14 @@ import { OperationGroupValidatorService } from '@app/trip/operationgroup/operati
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { Metier } from '@app/referential/metier/metier.model';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-operation-group-form',
   templateUrl: './operation-group.form.html',
   styleUrls: ['./operation-group.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
   displayAttributes: {

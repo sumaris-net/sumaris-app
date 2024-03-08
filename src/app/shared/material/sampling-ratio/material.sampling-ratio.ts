@@ -1,8 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional, Provider } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Provider,
+  ViewEncapsulation,
+} from '@angular/core';
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
-import { AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
+import { AppFloatLabelType, AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
 import { filter } from 'rxjs/operators';
 import { isNilOrNaN, roundHalfUp } from '@app/shared/functions';
 
@@ -22,6 +33,7 @@ export const DEFAULT_MAX_DECIMALS = 6;
   selector: 'mat-sampling-ratio-field',
   templateUrl: './material.sampling-ratio.html',
   styleUrls: ['./material.sampling-ratio.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [DEFAULT_VALUE_ACCESSOR],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,11 +59,12 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() required = false;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() tabindex: number;
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
   @Input() autofocus: boolean;
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('class') classList: string;
 
   @Input() set readonly(value: boolean) {
@@ -117,9 +130,9 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     this._subscription.add(
       this.formControl.statusChanges
         .pipe(
-          filter((_) => !this._readonly && !this._writing && !this._disabling) // Skip
+          filter(() => !this._readonly && !this._writing && !this._disabling) // Skip
         )
-        .subscribe((_) => this.markForCheck())
+        .subscribe(() => this.markForCheck())
     );
 
     this._writing = false;
@@ -199,8 +212,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     switch (this._format) {
       case '1/w':
         this._inputMaxDecimals = Math.max(0, this.maxDecimals - 2);
-        const ngDigits = Math.max(3, this.maxDecimals);
-        this._pattern = `[0-9]{1,${ngDigits}}([.][0-9]{0,${this._inputMaxDecimals}})?`;
+        this._pattern = `[0-9]{1,${Math.max(3, this.maxDecimals)}}([.][0-9]{0,${this._inputMaxDecimals}})?`;
         this._defaultPlaceholder = 'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT';
         break;
       case '%':

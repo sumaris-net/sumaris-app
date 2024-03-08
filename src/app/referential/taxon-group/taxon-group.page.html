@@ -14,7 +14,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden mat-tab-group-root"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -113,22 +113,20 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && rwcTable?.invalid"></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
-        <!-- error -->
-        <ion-item *ngIf="mobile && rwcTable?.error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="rwcTable.error | translate"></ion-label>
-        </ion-item>
+      <!-- error -->
+      <ion-item *ngIf="mobile && rwcTable?.error" lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="rwcTable.error | translate"></ion-label>
+      </ion-item>
 
-        <app-round-weight-conversion-table
-          #rwcTable
-          [taxonGroupId]="this.form.controls.id.valueChanges | async"
-          [showTaxonGroupIdColumn]="false"
-          [canDownload]="true"
-          [canUpload]="true"
-          [showPaginator]="true"
-        ></app-round-weight-conversion-table>
-      </div>
+      <app-round-weight-conversion-table
+        #rwcTable
+        [taxonGroupId]="this.form.controls.id.valueChanges | async"
+        [showTaxonGroupIdColumn]="false"
+        [canDownload]="true"
+        [canUpload]="true"
+        [showPaginator]="true"
+      ></app-round-weight-conversion-table>
     </mat-tab>
   </mat-tab-group>
 </ion-content>

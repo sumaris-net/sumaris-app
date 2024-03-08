@@ -1,16 +1,14 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
-import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
-import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/data/measurement/measurements.form.component';
 import { ContextService } from '@app/shared/context.service';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/selectivity/selectivity-batch-model.validator';
 
 @Component({
   selector: 'app-selectivity-operation-page',
@@ -20,6 +18,7 @@ import { ContextService } from '@app/shared/context.service';
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: SelectivityOperationPage },
     { provide: ContextService, useExisting: TripContextService },
+    { provide: BatchModelValidatorService, useExisting: SelectivityBatchModelValidatorService },
     RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,37 +33,13 @@ export class SelectivityOperationPage extends OperationPage {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
       tabCount: 2,
+      settingsId: 'selectivity-operation',
     });
-
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
   }
 
   protected registerForms() {
     // Register sub forms & table
     this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree]);
-  }
-
-  protected async mapPmfms(event: MapPmfmEvent) {
-    if (!event || !event.detail.success) return; // Skip (missing callback)
-    let pmfms: IPmfm[] = event.detail.pmfms;
-
-    // If PMFM date/time, set default date, in on field mode
-    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
-      pmfms = pmfms.map((p) => {
-        if (PmfmUtils.isDate(p)) {
-          p = p.clone();
-          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
-        }
-        return p;
-      });
-    }
-
-    event.detail.success(pmfms);
-  }
-
-  protected updateFormGroup(event: UpdateFormGroupEvent) {
-    event.detail.success();
   }
 
   onNewFabButtonClick(event: Event) {

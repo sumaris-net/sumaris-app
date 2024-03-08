@@ -7,8 +7,14 @@
   [showSpinner]="!disabled && loading"
 ></app-modal-toolbar>
 
-<ion-content>
-  <app-transcribing-item-table #table [disabled]="disabled" [canUpload]="false" [canDownload]="false"></app-transcribing-item-table>
+<ion-content class="ion-no-padding" [scrollY]="false">
+  <app-transcribing-item-table
+    #table
+    [disabled]="disabled"
+    [filterTypes]="filterTypes"
+    [canUpload]="false"
+    [canDownload]="false"
+  ></app-transcribing-item-table>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

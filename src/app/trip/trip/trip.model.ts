@@ -442,6 +442,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   get abnormal() {
     return this.measurements?.some((m) => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
+
+  getStrategyDateTime() {
+    return this.endDateTime || this.fishingEndDateTime || this.fishingEndDateTime || this.startDateTime;
+  }
 }
 
 export class OperationUtils {
@@ -634,6 +638,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   fishingAreas?: FishingArea[] = null;
   landing?: Landing = null;
   observedLocationId?: number = null;
+  scientificCruiseId?: number = null;
 
   constructor() {
     super(Trip.TYPENAME);
@@ -676,6 +681,10 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Landing
     target.landing = (this.landing && this.landing.asObject(opts)) || undefined;
+
+    if (opts?.minify) {
+      //delete target.scientificCruise;
+    }
 
     return target;
   }
@@ -737,6 +746,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     this.landing = (source.landing && Landing.fromObject(source.landing)) || undefined;
     this.observedLocationId = source.observedLocationId;
+    this.scientificCruiseId = source.scientificCruiseId;
 
     this.vesselSnapshot = (source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot)) || undefined;
 
@@ -751,9 +761,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
         other.vesselSnapshot &&
         this.vesselSnapshot.id === other.vesselSnapshot.id &&
         // Same departure date (or, if not set, same return date)
-        (this.departureDateTime === other.departureDateTime ||
-          (!this.departureDateTime && !other.departureDateTime && this.returnDateTime === other.returnDateTime)))
+        (DateUtils.equals(this.departureDateTime, other.departureDateTime) ||
+          (!this.departureDateTime && !other.departureDateTime && DateUtils.equals(this.returnDateTime, other.returnDateTime))))
     );
+  }
+
+  getStrategyDateTime() {
+    return this.departureDateTime;
   }
 }
 

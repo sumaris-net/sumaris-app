@@ -183,7 +183,13 @@
       <ng-container matColumnDef="comments">
         <mat-header-cell *matHeaderCellDef></mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+          <ion-icon
+            *ngIf="row.currentData.comments | isNotNilOrBlank"
+            [title]="row.currentData.comments"
+            color="secondary"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
         </mat-cell>
       </ng-container>
 
@@ -203,8 +209,8 @@
       <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-selected]="selection.isSelected(row)"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-selected]="selection.isSelected(row)"
         (click)="toggleRow($event, row)"
       ></mat-row>
     </mat-table>

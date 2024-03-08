@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
-import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from './operation.service';
+import { OperationService, OperationServiceWatchOptions } from './operation.service';
 import {
   AccountService,
   AppTable,
@@ -56,10 +56,10 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   @Input() showToolbar = true;
   @Input() showPaginator = false;
   @Input() showFilter = true;
-  @Input() useSticky = true;
+  @Input() sticky = true;
   @Input() enableGeolocation = false;
   @Input() gearIds: number[];
-  @Input() parent: Operation;
+  @Input() selectedOperation: Operation;
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -144,7 +144,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-    this.autoLoad = false; // waiting parent to be loaded
+    this.autoLoad = false; // waiting selectedOperation to be loaded
 
     this.defaultPageSize = -1; // Do not use paginator
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
@@ -202,11 +202,11 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     return super.clickRow(event, row);
   }
 
-  isDivider(index, item: TableElement<Operation>): boolean {
+  isDivider(index: number, item: TableElement<Operation>): boolean {
     return item.currentData instanceof OperationDivider;
   }
 
-  isOperation(index, item: TableElement<Operation>): boolean {
+  isOperation(index: number, item: TableElement<Operation>): boolean {
     return !(item.currentData instanceof OperationDivider);
   }
 
@@ -214,10 +214,6 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;
-  }
-
-  isCurrentData(row: any) {
-    return this.parent && row.currentData.id === this.parent.id;
   }
 
   /* -- protected methods -- */
@@ -284,14 +280,14 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   protected async mapOperations(data: Operation[]): Promise<Operation[]> {
     data = removeDuplicatesFromArray(data, 'id');
 
-    // Add existing parent operation
-    if (this.parent && data.findIndex((o) => o.id === this.parent.id) === -1) {
-      data.push(this.parent);
+    // Add given selected operation, if not include
+    if (this.selectedOperation && data.every((o) => o.id !== this.selectedOperation.id)) {
+      data.push(this.selectedOperation);
     }
 
     if (isEmptyArray(data)) return data;
 
-    // Not done on watch all to apply filter on parent operation
+    // Not done on watch all to apply filter included the selected operation
     if (this.sortByDistance) {
       data = await this.dataService.sortByDistance(data, this.sortDirection, this.sortActive);
     }
@@ -314,9 +310,6 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     } else {
       trips = (await this.tripService.loadAll(0, remoteTripIds.length, null, null, { includedIds: remoteTripIds }, { mutable: false }))?.data;
     }
-
-    // Remove duplicated trips
-    //trips = removeDuplicatesFromArray(trips, 'id');
 
     // Insert a divider (between operations) for each trip
     data = tripIds.reduce((res, tripId) => {

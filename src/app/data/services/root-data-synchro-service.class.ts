@@ -1,6 +1,6 @@
 import { concat, defer, Observable, of, Subject } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { RootDataEntity, RootDataEntityUtils } from './model/root-data-entity.model';
 import {
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
@@ -26,7 +26,7 @@ import { BaseRootDataService, BaseRootEntityGraphqlMutations } from './root-data
 
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Injector } from '@angular/core';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from './model/data-entity.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DataErrorCodes } from './errors';
@@ -36,8 +36,6 @@ import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import moment from 'moment';
-import { SymbolBuilder } from '@angular/compiler-cli/src/ngtsc/typecheck/src/template_symbol_builder';
 
 export class DataSynchroImportFilter {
   static fromObject(source: Partial<DataSynchroImportFilter>): DataSynchroImportFilter {
@@ -49,15 +47,17 @@ export class DataSynchroImportFilter {
   programLabel?: string;
   strategyIds?: number[];
   vesselId?: number;
+  vesselIds?: number[];
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
 
-  fromObject(source: any, opts?: { minify?: boolean }) {
+  fromObject(source: any, opts?: any) {
     this.programLabel = source.programLabel;
     this.strategyIds = source.strategyIds;
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.periodDuration = source.periodDuration;

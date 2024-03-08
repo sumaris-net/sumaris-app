@@ -11,6 +11,7 @@ import { environment } from '@environments/environment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IOperationGroupModalOptions, OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
 import { OperationGroupFilter } from '@app/trip/operationgroup/operation-group.filter';
+import { RxState } from '@rx-angular/state';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
 export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
@@ -29,6 +30,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
           sortByReplacement: { id: 'rankOrder' },
         }),
     },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,7 +59,6 @@ export class OperationGroupTable
     return this.memoryDataService.value;
   }
 
-  @Input() showToolbar = true;
   @Input() useSticky = false;
 
   constructor(

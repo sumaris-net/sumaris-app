@@ -24,6 +24,10 @@ export class TripRef extends DataRootVesselEntity<TripRef> {
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
-    this.departureDateTime = fromDateISOString(source.departureDateTime);
+    this.returnDateTime = fromDateISOString(source.returnDateTime);
+  }
+
+  getStrategyDateTime(): Moment | undefined {
+    return this.departureDateTime || this.returnDateTime;
   }
 }

@@ -1,6 +1,4 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { TripValidatorService } from './trip.validator';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -27,9 +25,9 @@ import {
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
-import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '../trip.config';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
@@ -56,7 +54,6 @@ export const TripsPageSettingsEnum = {
   selector: 'app-trips-table',
   templateUrl: 'trips.table.html',
   styleUrls: ['./trips.table.scss'],
-  providers: [{ provide: ValidatorService, useExisting: TripValidatorService }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
 })
@@ -115,6 +112,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
+      hasScientificCruise: [null],
+      hasObservedLocation: [null],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

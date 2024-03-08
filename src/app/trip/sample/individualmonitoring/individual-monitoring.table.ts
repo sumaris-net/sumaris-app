@@ -5,12 +5,13 @@ import { UntypedFormGroup, Validators } from '@angular/forms';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { SubSamplesTable } from '../sub-samples.table';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-individual-monitoring-table',
   templateUrl: '../sub-samples.table.html',
   styleUrls: ['../sub-samples.table.scss', 'individual-monitoring.table.scss'],
-  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }],
+  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {

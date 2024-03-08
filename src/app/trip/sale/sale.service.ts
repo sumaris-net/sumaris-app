@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -25,6 +24,7 @@ import { environment } from '@environments/environment';
 import { SaleFilter } from '@app/trip/sale/sale.filter';
 import { DocumentNode } from 'graphql';
 import { DataErrorCodes } from '@app/data/services/errors';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 
 export const SaleFragments = {
   lightSale: gql`

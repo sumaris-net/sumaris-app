@@ -30,12 +30,14 @@ export class SamplingRatioFormatPipe implements PipeTransform {
     if (isNil(value) || !format) return '';
     maxDecimals = toNumber(maxDecimals, 2);
     switch (format) {
-      case '%':
+      case '%': {
         const percent = roundHalfUp(value * 100, maxDecimals);
         return '' + percent + '%̀';
-      case '1/w':
+      }
+      case '1/w': {
         const ratio = roundHalfUp(1 / value, 2);
         return '1/' + ratio;
+      }
     }
   }
 }

@@ -61,7 +61,7 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
-    if (opts && opts.minify) {
+    if (opts?.minify) {
       target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
       delete target.statusId;
 

@@ -1,3 +1,8 @@
+<!-- DEBUG -->
+<ng-container *ngIf="debug">
+  <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+</ng-container>
+
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
@@ -6,7 +11,7 @@
     </button>
 
     <!-- Refresh -->
-    <button mat-icon-button color="light" *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+    <button *ngIf="!mobile" mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
   </ng-container>
@@ -34,12 +39,6 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- display columns -->
-  <button mat-menu-item (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-
   <!--<mat-divider></mat-divider>-->
 
   <!-- trash
@@ -70,7 +69,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -79,21 +78,17 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit || mobile">
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit || mobile">
-        {{ row.currentData?.rankOrder || row.currentData.id | mathAbs }}
+        {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
       </td>
     </ng-container>
 
@@ -154,10 +149,10 @@
 
     <!-- date time  -->
     <ng-container matColumnDef="dateTime">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         <ion-text *ngIf="getLandingDate(row.currentData); let landingDateTime">
           {{ landingDateTime | dateFormat: { time: true } }}
           <ion-text *ngIf="mobile" class="computed">
@@ -180,10 +175,10 @@
 
     <!-- creation date -->
     <ng-container matColumnDef="creationDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <span translate>LANDING.TABLE.CREATION_DATE</span>
       </th>
-      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         {{ row.currentData.creationDate | dateFormat: { time: false } }}
       </td>
     </ng-container>
@@ -199,13 +194,19 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
+    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-column-pmfm" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label>
           {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
         </ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm" [class.mat-cell-computed]="pmfm | isComputedPmfm">
+      <td
+        mat-cell
+        *matCellDef="let row"
+        class="mat-column-pmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+      >
         <app-pmfm-field
           *ngIf="row.editing; else readOnly"
           [pmfm]="pmfm"
@@ -242,12 +243,28 @@
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+        <ng-container *ngIf="inlineEdition; else readonlyCell">
+          <button
+            *ngVar="row.validator | formGetValue: 'comments'; let comments"
+            mat-icon-button
+            [class.visible-hover]="!row.editing && !comments"
+            (click)="openCommentPopover($event, row)"
+            [disabled]="disabled"
+            [title]="comments || ''"
+          >
+            <ion-icon [color]="comments ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only"></ion-icon>
+          </button>
+        </ng-container>
+        <ng-template #readonlyCell>
+          <div *ngIf="row.currentData.comments; let comments" [title]="comments">
+            <ion-icon *ngIf="comments | isNotNilOrBlank" color="secondary" name="chatbox" slot="icon-only"></ion-icon>
+          </div>
+        </ng-template>
       </td>
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
+    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
       <th mat-header-cell *matHeaderCellDef>
         <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
           <mat-icon>more_vert</mat-icon>
@@ -296,7 +313,7 @@
             <button
               mat-icon-button
               *ngIf="row.id !== -1 && isTripDetailEditor"
-              [color]="row.currentData.tripId && 'primary'"
+              [color]="row.currentData.tripId ? 'primary' : 'medium'"
               [title]="'COMMON.BTN_EDIT' | translate"
               (click)="confirmAndEditTrip($event, row)"
             >
@@ -311,10 +328,11 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.validator?.invalid"
-      [class.mat-row-dirty]="row.validator?.dirty"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.mat-mdc-row-error]="row.validator?.invalid"
+      [class.mat-mdc-row-dirty]="row.validator?.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
@@ -360,4 +378,65 @@
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>
   </span>
+</ng-template>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug title="Landings table">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loadingSubject | async }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirtySubject | async }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          program: {{ programLabel }}
+          <br />
+          strategy {{ requiredStrategy ? '(required)' : '' }}: {{ strategyId || strategyLabel }}
+          <br />
+          <br />
+          acquisitionLevel: {{ acquisitionLevel }}
+          <br />
+        </ion-col>
+        <ion-col>
+          pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          visibleRowCount: {{ visibleRowCount }}
+          <br />
+          totalRowCount: {{ totalRowCount }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="memoryDataService">
+          service.starting: {{ memoryDataService.starting }}
+          <br />
+          service.started: {{ memoryDataService.started }}
+          <br />
+          service.dirty: {{ memoryDataService.dirtySubject | async }}
+          <br />
+          service.value: {{ !!memoryDataService.value }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="memoryDataService">
+          service.acquisitionLevel: {{ _dataService.acquisitionLevel }}
+          <br />
+          service.program: {{ _dataService.programLabel }}
+          <br />
+          service.strategy{{ _dataService.requiredStrategy ? ' (required)' : '' }}: {{ _dataService.strategyId || _dataService.strategyLabel }}
+          <br />
+          service.gear{{ _dataService.requiredGear ? ' (required)' : '' }}: {{ _dataService.gearId }}
+          <br />
+          service.visibleCount: {{ memoryDataService.count }}
+          <br />
+          service.hiddenCount: {{ memoryDataService.hiddenCount }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

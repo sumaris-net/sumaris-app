@@ -59,9 +59,8 @@ const CacheKeys = {
 };
 
 @Injectable({ providedIn: 'root' })
-// @ts-ignore
 export class WeightLengthConversionRefService
-  extends BaseEntityService<WeightLengthConversionRef, WeightLengthConversionRefFilter, number>
+  extends BaseEntityService<WeightLengthConversionRef, WeightLengthConversionRefFilter>
   implements IEntityService<WeightLengthConversionRef>
 {
   constructor(

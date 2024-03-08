@@ -29,7 +29,7 @@ REPO_API_URL="https://api.github.com/repos/${REPO}"
 REPO_PUBLIC_URL="https://github.com/${REPO}"
 
 
-NODE_VERSION=16
+NODE_VERSION=18
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
@@ -44,7 +44,7 @@ ANDROID_OUTPUT_APK=${PROJECT_DIR}/android/${ANDROID_OUTPUT_APK_PREFIX}/build/out
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
 ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
 ANDROID_OUTPUT_MIN_SDK_VERSION=22
-ANDROID_OUTPUT_MAX_SDK_VERSION=33
+ANDROID_OUTPUT_MAX_SDK_VERSION=34
 
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=

@@ -1,20 +1,20 @@
 import { AppEnvironment } from '@environments/environment.class';
 import { StorageDrivers } from '@sumaris-net/ngx-components';
 
+/* eslint-disable */
 const pkg = require('../../package.json');
-
-/* tslint:disable */
 export const environment = Object.freeze(<AppEnvironment>{
   name: pkg.name as string,
   version: pkg.version as string,
   production: true,
   baseUrl: '/',
+  useHash: false,
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.6.0',
+  peerMinVersion: '2.9.0',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
@@ -60,6 +60,10 @@ export const environment = Object.freeze(<AppEnvironment>{
       host: 'test.sumaris.net',
       port: 443,
     },
+    {
+      host: 'obsmer.sumaris.net',
+      port: 443,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -91,7 +95,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   menu: {
     subMenu: {
-      enable: false,
+      enable: true,
     },
   },
 });

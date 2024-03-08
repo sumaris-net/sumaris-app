@@ -8,12 +8,17 @@ import {
   MeasurementValuesUtils,
 } from '@app/data/measurement/measurement.model';
 import { Landing } from '../landing/landing.model';
-import { isNotNil, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
+import {
+  EntityClass,
+  fromDateISOString,
+  isNotNil,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { IWithObserversEntity } from '@app/data/services/model/model.utils';
-import { fromDateISOString, toDateISOString } from '@sumaris-net/ngx-components';
-import { Person } from '@sumaris-net/ngx-components';
-import { EntityClass } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({ typename: 'ObservedLocationVO' })
@@ -21,7 +26,7 @@ export class ObservedLocation
   extends RootDataEntity<ObservedLocation>
   implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation>
 {
-  static fromObject: (source, opts?: any) => ObservedLocation;
+  static fromObject: (source: any, opts?: any) => ObservedLocation;
 
   static ENTITY_NAME = 'ObservedLocation';
   startDateTime: Moment;
@@ -87,5 +92,9 @@ export class ObservedLocation
         other.recorderPerson &&
         this.recorderPerson.id === other.recorderPerson.id)
     );
+  }
+
+  getStrategyDateTime(): Moment | undefined {
+    return this.startDateTime;
   }
 }

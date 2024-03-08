@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Moment } from 'moment';
-import { Injector } from '@angular/core';
-import { IReferentialRef, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { IReferentialRef, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -10,11 +8,13 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { environment } from '@environments/environment';
 import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
 import { ProductValidatorService } from '@app/trip/product/product.validator';
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-product-form',
   templateUrl: './product.form.html',
   styleUrls: ['./product.form.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductForm extends MeasurementValuesForm<Product> implements OnInit {

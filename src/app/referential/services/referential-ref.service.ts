@@ -18,6 +18,7 @@ import {
   IEntitiesService,
   isEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   JobUtils,
   LoadResult,
   LoadResultByPageFn,
@@ -28,9 +29,11 @@ import {
   ReferentialUtils,
   StatusIds,
   SuggestService,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import {
+  AcquisitionLevelCodes,
   FractionIdGroups,
   LocationLevelGroups,
   LocationLevelIds,
@@ -46,6 +49,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselTypeIds,
 } from './model/model.enum';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
@@ -107,6 +111,12 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
     }
     ${ReferentialFragments.lightReferential}
   `,
+
+  countAll: gql`
+    query ReferentialRefCount($entityName: String, $filter: ReferentialFilterVOInput) {
+      total: referentialsCount(entityName: $entityName, filter: $filter)
+    }
+  `,
 };
 
 export const IMPORT_REFERENTIAL_ENTITIES = [
@@ -129,6 +139,8 @@ export class ReferentialRefService
   extends BaseGraphqlService<ReferentialRef, ReferentialRefFilter>
   implements SuggestService<ReferentialRef, ReferentialRefFilter>, IEntitiesService<ReferentialRef, ReferentialRefFilter>
 {
+  private readonly queries = ReferentialRefQueries;
+
   constructor(
     protected graphql: GraphqlService,
     protected referentialService: ReferentialService,
@@ -202,7 +214,7 @@ export class ReferentialRefService
       });
     } else {
       const withTotal = !opts || opts.withTotal !== false;
-      const query = withTotal ? ReferentialRefQueries.loadAllWithTotal : ReferentialRefQueries.loadAll;
+      const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
       res = this.graphql.watchQuery<LoadResult<any>>({
         query,
         variables: {
@@ -272,7 +284,7 @@ export class ReferentialRefService
 
     // Online mode: use graphQL
     const withTotal = !opts || opts.withTotal !== false; // default to true
-    const query = withTotal ? ReferentialRefQueries.loadAllWithTotal : ReferentialRefQueries.loadAll;
+    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
     const { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
@@ -354,15 +366,75 @@ export class ReferentialRefService
   }
 
   async countAll(
-    filter?: Partial<ReferentialRefFilter>,
+    filter: Partial<ReferentialRefFilter>,
     opts?: {
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
     }
   ): Promise<number> {
-    // TODO use specific query
-    const { total } = await this.loadAll(0, 0, null, null, filter, { ...opts, withTotal: true });
+    if (!filter?.entityName) {
+      console.error("[referential-ref-service] Missing 'filter.entityName'");
+      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
+    }
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      return this.countLocally(filter, opts);
+    }
+
+    filter = this.asFilter(filter);
+
+    const { total } = await this.graphql.query<{ total: number }>({
+      query: this.queries.countAll,
+      variables: {
+        entityName: filter.entityName,
+        filter: filter.asPodObject(),
+      },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
+      fetchPolicy: (opts && opts.fetchPolicy) || 'network-only',
+    });
+
     return total;
+  }
+
+  async countLocally(
+    filter: Partial<ReferentialRefFilter>,
+    opts?: {
+      [key: string]: any;
+    }
+  ): Promise<number> {
+    if (!filter?.entityName) {
+      console.error("[referential-ref-service] Missing 'filter.entityName'");
+      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
+    }
+    const uniqueEntityName = filter.entityName + (filter.searchJoin || '');
+    filter = this.asFilter(filter);
+
+    const variables = {
+      entityName: filter.entityName,
+      offset: 0,
+      size: 0,
+      filter: filter.asFilterFn(),
+    };
+
+    const { total } = await this.entities.loadAll(uniqueEntityName + 'VO', variables, { fullLoad: false });
+    return total;
+  }
+
+  async existsByLabel(
+    label: string,
+    filter?: Partial<ReferentialRefFilter>,
+    opts?: {
+      [key: string]: any;
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<boolean> {
+    if (!label) {
+      console.error("[referential-service] Missing 'label'");
+      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
+    }
+    const total = await this.countAll({ ...filter, label }, opts);
+    return total > 0;
   }
 
   async loadById(
@@ -417,6 +489,44 @@ export class ReferentialRefService
     return items.filter(isNotNil);
   }
 
+  async loadAllByIds(
+    ids: number[],
+    entityName: string,
+    sortBy?: keyof Referential | 'rankOrder',
+    sortDirection?: SortDirection,
+    filter?: Partial<ReferentialRefFilter>,
+    opts?: {
+      [key: string]: any;
+      fetchPolicy?: FetchPolicy;
+      debug?: boolean;
+      toEntity?: boolean;
+    }
+  ): Promise<ReferentialRef[]> {
+    if (isEmptyArray(ids)) return [];
+    const { data } = await this.loadAll(
+      0,
+      ids.length,
+      sortBy,
+      sortDirection,
+      { ...filter, entityName, includedIds: ids },
+      { ...opts, withTotal: false }
+    );
+    return data;
+  }
+
+  async loadAllIds(
+    filter?: Partial<ReferentialRefFilter>,
+    opts?: {
+      [key: string]: any;
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<number[]> {
+    const { data } = await JobUtils.fetchAllPages((offset, size) =>
+      this.loadAll(offset, size, 'id', 'asc', filter, { ...opts, toEntity: false, withTotal: offset === 0 })
+    );
+    return (data || []).map((e) => e.id);
+  }
+
   async suggest(
     value: any,
     filter?: Partial<ReferentialRefFilter>,
@@ -458,7 +568,7 @@ export class ReferentialRefService
     if (this._debug) console.debug(`[referential-ref-service] Loading levels for ${entityName}...`);
 
     const { data } = await this.graphql.query<LoadResult<any[]>>({
-      query: ReferentialRefQueries.loadLevels,
+      query: this.queries.loadLevels,
       variables: {
         entityName,
       },
@@ -484,7 +594,7 @@ export class ReferentialRefService
   async lastUpdateDate(opts?: { fetchPolicy?: FetchPolicy }): Promise<Moment> {
     try {
       const { lastUpdateDate } = await this.graphql.query<{ lastUpdateDate: string }>({
-        query: ReferentialRefQueries.lastUpdateDate,
+        query: this.queries.lastUpdateDate,
         variables: {},
         fetchPolicy: (opts && opts.fetchPolicy) || 'network-only',
       });
@@ -625,7 +735,7 @@ export class ReferentialRefService
     const statusIds = filter?.statusIds || [StatusIds.ENABLE, StatusIds.TEMPORARY];
 
     try {
-      const getLoadOptions = (offset) =>
+      const getLoadOptions = (offset: number) =>
         <EntityServiceLoadOptions>{
           fetchPolicy: 'no-cache',
           toEntity: false,
@@ -682,7 +792,11 @@ export class ReferentialRefService
             ...filter,
             statusIds,
             //boundingBox: opts?.boundingBox,
-            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => res.concat(LocationLevelIds[item]), []),
+            levelIds:
+              opts?.locationLevelIds ||
+              Object.keys(LocationLevelIds)
+                .map((key) => toNumber(LocationLevelIds[key]))
+                .filter(isNotNilOrNaN),
           };
           break;
 
@@ -718,7 +832,7 @@ export class ReferentialRefService
 
       // Fallback load function
       if (!loadPageFn) {
-        loadPageFn = (offset, size) => this.referentialService.loadAll(offset, size, 'id', null, filter, getLoadOptions(offset));
+        loadPageFn = (offset, size) => this.referentialService.loadAll(offset, size, 'id', 'asc', filter, getLoadOptions(offset));
       }
 
       // Fetch all pages
@@ -777,14 +891,27 @@ export class ReferentialRefService
     ProgramPrivilegeIds.OBSERVER = ...
     */
 
+    // Acquisition levels
+    AcquisitionLevelCodes.TRIP = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_TRIP_LABEL);
+    AcquisitionLevelCodes.PHYSICAL_GEAR = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL);
+    AcquisitionLevelCodes.OPERATION = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.ACQUISITION_LEVEL_OPERATION_LABEL);
+    // TODO: override need for Adagio BDD
+
     // Location Levels
-    LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
-    LocationLevelIds.PORT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
-    LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
-    LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
-    LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
-    LocationLevelIds.ICES_SUB_AREA = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_SUB_AREA_ID);
-    LocationLevelIds.GFCM_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_GFCM_RECTANGLE_ID);
+    LocationLevelIds.COUNTRY = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);
+    LocationLevelIds.PORT = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_PORT_ID);
+    LocationLevelIds.AUCTION = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
+    LocationLevelIds.MARITIME_DISTRICT = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_MARITIME_DISTRICT_ID);
+    // Location Levels > ICES
+    LocationLevelIds.SUB_AREA_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_AREA_ICES_ID);
+    LocationLevelIds.DIVISION_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_DIVISION_ICES_ID);
+    LocationLevelIds.SUB_DIVISION_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_DIVISION_ICES_ID);
+    LocationLevelIds.RECTANGLE_ICES = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_RECTANGLE_ICES_ID);
+    // Location Levels > GFCM
+    LocationLevelIds.SUB_AREA_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_AREA_GFCM_ID);
+    LocationLevelIds.DIVISION_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_DIVISION_GFCM_ID);
+    LocationLevelIds.SUB_DIVISION_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_SUB_DIVISION_GFCM_ID);
+    LocationLevelIds.RECTANGLE_GFCM = config.getPropertyAsInt(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_RECTANGLE_GFCM_ID);
 
     // Taxonomic Levels
     TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
@@ -805,12 +932,16 @@ export class ReferentialRefService
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration
+    PmfmIds.NB_FISHERMEN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_NB_FISHERMEN_ID);
+    PmfmIds.GPS_USED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GPS_USED_ID);
     PmfmIds.TRIP_PROGRESS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRIP_PROGRESS);
+    PmfmIds.SEA_STATE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEA_STATE_ID);
+    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
     PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
     PmfmIds.PRESERVATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PRESERVATION);
     PmfmIds.TRAWL_SIZE_CAT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRAWL_SIZE_CAT_ID);
-    PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
+    PmfmIds.DIURNAL_OPERATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DIURNAL_OPERATION_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
     PmfmIds.PACKAGING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PACKAGING_ID);
@@ -823,14 +954,21 @@ export class ReferentialRefService
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
     PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL_ID);
     PmfmIds.HAS_ACCIDENTAL_CATCHES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HAS_ACCIDENTAL_CATCHES_ID);
-    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
-    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
+    PmfmIds.CATCH_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CATCH_WEIGHT_ID);
     PmfmIds.BATCH_SORTING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_SORTING_ID);
     PmfmIds.DISCARD_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DISCARD_WEIGHT_ID);
-    PmfmIds.CATCH_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CATCH_WEIGHT_ID);
+    PmfmIds.DISCARD_REASON = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DISCARD_REASON_ID);
+    PmfmIds.DISCARD_TYPE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DISCARD_TYPE_ID);
+    PmfmIds.BATCH_MEASURED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_MEASURED_WEIGHT_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_ID);
+    PmfmIds.BATCH_ESTIMATED_WEIGHT = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_ESTIMATED_WEIGHT_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
     PmfmIds.CHILD_GEAR = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_CHILD_GEAR_ID);
     PmfmIds.HULL_MATERIAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HULL_MATERIAL_ID);
     PmfmIds.SELECTIVITY_DEVICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SELECTIVITY_DEVICE_ID);
+    PmfmIds.LANDING_CATEGORY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_LANDING_CATEGORY_ID);
+    PmfmIds.IS_SAMPLING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_IS_SAMPLING_ID);
 
     // Methods
     MethodIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_UNKNOWN_ID);
@@ -869,7 +1007,11 @@ export class ReferentialRefService
     TaxonGroupTypeIds.NATIONAL_METIER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_NATIONAL_METIER_ID);
     TaxonGroupTypeIds.DCF_METIER_LVL_5 = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID);
 
-    // TODO: add all enumerations
+    // Vessel types
+    VesselTypeIds.FISHING_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_FISHING_VESSEL);
+    VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL);
+
+    // TODO: add other enumerations
 
     // Force an update default values (e.g. when using LocationLevelId)
     ModelEnumUtils.refreshDefaultValues();

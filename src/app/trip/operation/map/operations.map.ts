@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { L } from '@app/shared/map/leaflet';
 import { MapOptions, PathOptions } from 'leaflet';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   ConfigService,
   DateDiffDurationPipe,
@@ -325,6 +327,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
+    /* eslint-disable @rx-angular/no-zone-run-apis */
     layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
     layer.on('mouseout', (_) => this.zone.run(() => this.$onOutFeature.next(feature)));
     layer.on('click', (_) => this.zone.run(() => this.onFeatureClick(feature)));
@@ -444,7 +447,7 @@ export class OperationsMap implements OnInit, OnDestroy {
 
   async flyToBounds(opts = { skipDebounce: false }): Promise<void> {
     if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
-      if (!this.$fitToBounds.observers.length) {
+      if (!this.$fitToBounds.observed) {
         this.subscription.add(this.$fitToBounds.pipe(debounceTime(this.flyToBoundsDelay)).subscribe((b) => this.flyToBounds({ skipDebounce: true })));
       }
 

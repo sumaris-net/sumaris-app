@@ -21,7 +21,6 @@ import {
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ExtractionType, ExtractionTypeUtils } from './extraction-type.model';
-import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -29,6 +28,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program } from '@app/referential/services/model/program.model';
 import { TranslateService } from '@ngx-translate/core';
 import { intersectArrays } from '@app/shared/functions';
+import { DataCommonFragments } from '@app/trip/common/data.fragments';
 
 export const ExtractionTypeFragments = {
   lightType: gql`
@@ -208,7 +208,6 @@ export class ExtractionTypeService
     typeFilter?: Partial<ExtractionTypeFilter>,
     opts?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<ExtractionType[]> {
-    // @ts-ignore
     return of(programs).pipe(
       filter(isNotEmptyArray),
       // Get extraction formats of selected programs (apply an intersection)

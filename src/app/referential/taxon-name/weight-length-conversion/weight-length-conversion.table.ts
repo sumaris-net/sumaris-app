@@ -17,7 +17,6 @@ import { BehaviorSubject } from 'rxjs';
   templateUrl: '../../table/base-referential.table.html',
   styleUrls: ['../../table/base-referential.table.scss'],
 })
-// @ts-ignore
 export class WeightLengthConversionTable extends BaseReferentialTable<WeightLengthConversion, WeightLengthConversionFilter> implements OnInit {
   get referenceTaxonIdControl() {
     return this.filterForm.get('referenceTaxonId');

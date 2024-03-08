@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   Alerts,
   CompletableEvent,
@@ -656,6 +658,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   /* -- protected method -- */
 
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
+  }
+
   async updateQueryParams(type?: ExtractionType, opts = { skipLocationChange: false, skipSettingsChange: false }): Promise<void> {
     if (this.embedded) return; // Skip route update route, if embedded
 
@@ -682,7 +689,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (!this.type?.label) return; // skip
 
     // To many call
-    if (this.stopSubject.observers.length >= 1) throw new Error('Too many call of loadData()');
+    if (this.stopSubject.observed) throw new Error('Too many call of loadData()');
 
     const typeLabel = this.type.label;
     this.markAsLoading();

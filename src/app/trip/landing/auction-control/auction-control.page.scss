@@ -1,3 +1,4 @@
+
 :host {
   ion-col.pmfm-145 ion-button {
     color: #8a4182;
@@ -8,10 +9,8 @@
   --table-container-offset: 82px;
 }
 
-.mat-tab-group {
-  --mat-tab-body-content-height: calc(
-    100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px
-  );
+.mat-mdc-tab-group {
+  --mat-tab-body-content-height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
 }
 
 .ion-no-padding-bottom {

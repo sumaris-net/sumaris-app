@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { ObservedLocationValidatorService } from '../observed-location.validator';
+import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AppFormArray,
   DateUtils,
-  FormArrayHelper,
+  equals,
   fromDateISOString,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   LoadResult,
   Person,
@@ -26,17 +28,34 @@ import { ObservedLocation } from '../observed-location.model';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { environment } from '@environments/environment';
 import { DateFilterFn } from '@angular/material/datepicker';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxState } from '@rx-angular/state';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
+
+export interface ObservedLocationFormState extends MeasurementsFormState {
+  showObservers: boolean;
+}
 
 @Component({
   selector: 'app-form-observed-location',
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
-export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
+export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
+  private _locationSuggestLengthThreshold: number;
+  private _lastValidatorOpts: any;
+
+  @RxStateSelect() protected showObservers$: Observable<boolean>;
+  protected observerFocusIndex = -1;
+  protected startDatePickerFilter: DateFilterFn<Moment>;
+  protected isStartDateInTheFuture: boolean;
+
+  @Input() locationLevelIds: number[];
   @Input() required = true;
   @Input() showError = true;
   @Input() showEndDateTime = true;
@@ -48,28 +67,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() startDateDay: number = null;
   @Input() forceDurationDays: number;
   @Input() timezone: string = null;
+  @Input() mobile = false;
 
-  _showObservers: boolean;
-  observersHelper: FormArrayHelper<Person>;
-  observerFocusIndex = -1;
-  startDatePickerFilter: DateFilterFn<Moment>;
-  mobile: boolean;
-  isStartDateInTheFuture: boolean;
-
-  @Input() locationLevelIds: number[];
-
-  @Input()
-  set showObservers(value: boolean) {
-    if (this._showObservers !== value) {
-      this._showObservers = value;
-      this.initObserversHelper();
-      this.markForCheck();
-    }
-  }
-
-  get showObservers(): boolean {
-    return this._showObservers;
-  }
+  @RxStateProperty() @Input() showObservers: boolean;
 
   get empty(): any {
     const value = this.value;
@@ -80,16 +80,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
   }
 
-  get observersForm(): UntypedFormArray {
-    return this.form.controls.observers as UntypedFormArray;
-  }
-
-  get measurementValuesForm(): UntypedFormGroup {
-    return this.form.controls.measurementValues as UntypedFormGroup;
-  }
-
-  get programControl(): UntypedFormControl {
-    return this.form.get('program') as UntypedFormControl;
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
   constructor(
@@ -101,32 +93,32 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+      onUpdateFormGroup: (form) => this.updateFormGroup(),
+    });
     this._enable = false;
-    this.mobile = this.settings.mobile;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
+    this.showObservers = toBoolean(this.showObservers, false);
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
     });
 
     // Combo location
@@ -140,6 +132,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
       mobile: this.mobile,
     });
 
@@ -199,6 +192,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           this.markForCheck();
         })
     );
+
+    this._state.hold(this.showObservers$.pipe(filter(() => this.loaded)), () => this.updateFormGroup());
   }
 
   protected onApplyingEntity(data: ObservedLocation, opts?: { [p: string]: any }) {
@@ -207,14 +202,11 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.onApplyingEntity(data, opts);
 
     // Make sure to have (at least) one observer
-    // TODO BLA enable this
-    //data.observers = data.observers && data.observers.length ? data.observers : [null];
-
     // Resize observers array
-    if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, data.observers.length));
+    if (this.showObservers) {
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      this.observersHelper.removeAllEmpty();
+      data.observers = [null];
     }
 
     // Force to show end date
@@ -237,9 +229,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   addObserver() {
-    this.observersHelper.add();
+    this.observersForm.add();
     if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
+      this.observerFocusIndex = this.observersForm.length - 1;
     }
   }
 
@@ -255,29 +247,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   /* -- protected method -- */
 
-  protected initObserversHelper() {
-    if (isNil(this._showObservers)) return; // skip if not loading yet
-
-    this.observersHelper = new FormArrayHelper<Person>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-      (person) => this.validatorService.getObserverControl(person),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showObservers,
-      }
-    );
-
-    if (this._showObservers) {
-      // Create at least one observer
-      if (this.observersHelper.size() === 0) {
-        this.observersHelper.resize(1);
-      }
-    } else if (this.observersHelper.size() > 0) {
-      this.observersHelper.resize(0);
-    }
-  }
-
   protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
@@ -292,6 +261,32 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       ...filter,
       excludedIds,
     });
+  }
+
+  updateFormGroup(form?: FormGroup) {
+    form = form || this.form;
+    const validatorOpts: ObservedLocationValidatorOptions = {
+      withObservers: this.showObservers,
+    };
+
+    if (!equals(validatorOpts, this._lastValidatorOpts)) {
+      console.info('[trip-form] Updating form group, using opts', validatorOpts);
+
+      this.validatorService.updateFormGroup(form, validatorOpts);
+
+      // Need to refresh the form state  (otherwise the returnLocation is still invalid)
+      if (!this.loading) {
+        this.updateValueAndValidity();
+        // Not need to markForCheck (should be done inside updateValueAndValidity())
+        //this.markForCheck();
+      } else {
+        // Need to toggle date or observers
+        this.markForCheck();
+      }
+
+      // Remember used opts, for next call
+      this._lastValidatorOpts = validatorOpts;
+    }
   }
 
   protected markForCheck() {

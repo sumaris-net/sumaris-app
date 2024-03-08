@@ -1,11 +1,10 @@
 import {
-  Department,
-  Entity,
   EntityAsObjectOptions,
   EntityClass,
   EntityFilter,
   fromDateISOString,
   Image,
+  isNil,
   isNotNil,
   Person,
   toDateISOString,
@@ -39,8 +38,11 @@ export class ImageAttachment extends DataEntity<ImageAttachment> implements Imag
     return (
       (isNotNil(s1.id) && s1.id === s2.id) ||
       // Or functional equals
-      // Same xxx attribute
-      (s1.rankOrder === s2.rankOrder && s1.comments === s2.comments)
+      // Same object
+      (((isNil(s1.objectId) && isNil(s1.objectTypeId)) || (s1.objectId === s2.objectId && s1.objectTypeId === s2.objectTypeId)) &&
+        // Same rankOrder and comment
+        s1.rankOrder === s2.rankOrder &&
+        s1.comments === s2.comments)
     );
   }
 
@@ -52,6 +54,8 @@ export class ImageAttachment extends DataEntity<ImageAttachment> implements Imag
     super(ImageAttachment.TYPENAME);
   }
 
+  objectId: number = null;
+  objectTypeId: number = null;
   url: string = null;
   dataUrl: string = null;
   comments: string = null;
@@ -59,16 +63,20 @@ export class ImageAttachment extends DataEntity<ImageAttachment> implements Imag
   rankOrder: number = null;
 
   creationDate: Moment = null;
+  validationDate: Moment = null;
   recorderPerson: Person;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
+    this.objectId = source.objectId;
+    this.objectTypeId = source.objectTypeId;
     this.url = source.url;
     this.dataUrl = source.dataUrl;
     this.comments = source.comments;
     this.dateTime = fromDateISOString(source.dateTime);
     this.creationDate = fromDateISOString(source.creationDate);
-    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
+    this.validationDate = fromDateISOString(source.validationDate);
+    this.recorderPerson = Person.fromObject(source.recorderPerson);
     this.rankOrder = source.rankOrder;
   }
 
@@ -76,7 +84,8 @@ export class ImageAttachment extends DataEntity<ImageAttachment> implements Imag
     const target = super.asObject(opts);
     target.dateTime = toDateISOString(this.dateTime);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(opts)) || undefined;
+    target.validationDate = toDateISOString(this.validationDate);
+    target.recorderPerson = this.recorderPerson?.asObject(opts) || undefined;
 
     // For pod
     if (opts && opts.keepLocalId === false) {
@@ -84,6 +93,18 @@ export class ImageAttachment extends DataEntity<ImageAttachment> implements Imag
       delete target.rankOrder;
     }
     return target;
+  }
+
+  equals(other: ImageAttachment): boolean {
+    return (
+      (other && this.id === other.id) ||
+      // Or functional equals
+      // Same object
+      (((isNil(this.objectId) && isNil(this.objectTypeId)) || (this.objectId === other.objectId && this.objectTypeId === other.objectTypeId)) &&
+        // same rankOrder + comments
+        this.rankOrder === other.rankOrder &&
+        this.comments === other.comments)
+    );
   }
 
   get title(): string {

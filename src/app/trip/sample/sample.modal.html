@@ -37,6 +37,20 @@
           showComment: {{ showComment }}
           <br />
         </ion-col>
+        <ion-col>
+          form.ready: {{ form.readySubject | async }}
+          <br />
+          form.loading: {{ form.loading }} (subject: {{ form.loadingSubject | async }})
+          <br />
+          form.enabled: {{ form.enabled }}
+          <br />
+          form.dirty: {{ form.dirty }}
+          <br />
+          form.valid: {{ form.valid }}
+          <br />
+          <br />
+          form.pmfms: {{ (form.pmfms$ | async)?.length }}
+        </ion-col>
       </ion-row>
     </ion-grid>
   </app-debug>

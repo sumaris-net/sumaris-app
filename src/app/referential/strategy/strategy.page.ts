@@ -24,6 +24,8 @@ import { debounceTime, filter, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '../services/program-ref.service';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
+import { PROGRAM_TABS } from '@app/referential/program/program.page';
+import { PROGRAMS_PAGE_PATH } from '@app/referential/program/programs.page';
 
 @Component({
   selector: 'app-strategy',
@@ -60,7 +62,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     });
 
     // default values
-    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 
@@ -69,17 +70,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Update back href, when program changed
-    this.registerSubscription(
-      this.$program.subscribe((program) => {
-        if (program && isNotNil(program.id)) {
-          this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
-        }
-        this.markAsReady();
-        this.markForCheck();
-      })
-    );
 
     this.registerSubscription(
       this.referentialForm.form.valueChanges
@@ -91,6 +81,9 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
         )
         .subscribe((value) => this.strategyForm.form.patchValue({ ...value, entityName: undefined }))
     );
+
+    // Update back href, when program changed
+    this.registerSubscription(this.$program.subscribe((program) => this.setProgram(program)));
   }
 
   setError(err: any) {
@@ -142,6 +135,16 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     await super.onEntityLoaded(data, options);
     const program = await this.programRefService.load(data.programId);
     this.$program.next(program);
+  }
+
+  protected setProgram(program: Program) {
+    this.markForCheck();
+    if (program && isNotNil(program.id)) {
+      const programPath = [PROGRAMS_PAGE_PATH, program.id].join('/');
+      this.defaultBackHref = `${programPath}?tab=${PROGRAM_TABS.STRATEGIES}`;
+      this.markAsReady();
+      this.markForCheck();
+    }
   }
 
   protected async setValue(data: Strategy) {
@@ -219,12 +222,10 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     // Existing data
     const program = await firstNotNilPromise(this.$program);
-    return this.translate
-      .get('PROGRAM.STRATEGY.EDIT.TITLE', {
-        program: program.label,
-        label: data.label,
-      })
-      .toPromise();
+    return this.translate.instant('PROGRAM.STRATEGY.EDIT.TITLE', {
+      program: program.label,
+      label: data.label || '#' + data.id,
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

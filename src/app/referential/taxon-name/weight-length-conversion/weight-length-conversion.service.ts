@@ -59,7 +59,6 @@ const Mutations: BaseEntityGraphqlMutations = {
 };
 
 @Injectable({ providedIn: 'root' })
-// @ts-ignore
 export class WeightLengthConversionService
   extends BaseEntityService<WeightLengthConversion, WeightLengthConversionFilter>
   implements IEntityService<WeightLengthConversion>

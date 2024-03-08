@@ -58,11 +58,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -127,12 +123,15 @@
               *ngIf="action.iconRef; else buttonLabel"
               [title]="action.title || action.name | translate"
               [color]="action.color | matColor"
-              (click)="doAction(action, row)"
+              (click)="doAction($event, action, row)"
             >
-              <app-icon slot="start" [ref]="action.iconRef"></app-icon>
+              <mat-icon>
+                {{ action.iconRef.matIcon }}
+                <ion-icon *ngIf="action.iconRef.icon; let name" [name]="name"></ion-icon>
+              </mat-icon>
             </button>
             <ng-template #buttonLabel>
-              <button mat-button [color]="action.color | matColor" (click)="doAction(action, row)">
+              <button mat-button [color]="action.color | matColor" (click)="doAction($event, action, row)">
                 <mat-label>{{ action.title || action.name | translate }}</mat-label>
               </button>
             </ng-template>
@@ -142,7 +141,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled" (click)="clickRow($event, row)"></tr>
   </table>
 
   <ng-container *ngIf="loadingSubject | async; else noResult">

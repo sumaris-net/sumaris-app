@@ -1,41 +1,61 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import {
   AppForm,
   AppFormUtils,
+  DateUtils,
   isEmptyArray,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
+  LoadResult,
+  NetworkService,
+  ReferentialRef,
   referentialsToString,
   referentialToString,
+  ReferentialUtils,
   SharedValidators,
-  StatusIds,
 } from '@sumaris-net/ngx-components';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
 import { map, mergeMap, tap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+
+export interface IObservedLocationOfflineModalState {
+  program: Program;
+  locations: ReferentialRef[];
+}
 
 @Component({
   selector: 'app-observed-location-offline-modal',
   styleUrls: ['./observed-location-offline.modal.scss'],
   templateUrl: './observed-location-offline.modal.html',
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> implements OnInit {
-  mobile: boolean;
-  periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+  @RxStateRegister() protected readonly _state: RxState<IObservedLocationOfflineModalState> = inject(RxState<IObservedLocationOfflineModalState>);
+  protected readonly networkService = inject(NetworkService);
+  protected mobile: boolean;
+  protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+
+  @RxStateSelect() protected program$: Observable<Program>;
+  @RxStateSelect() protected locations$: Observable<ReferentialRef[]>;
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
 
@@ -55,6 +75,12 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return this.constructor.name;
   }
 
+  get enableHistory(): boolean {
+    return this.form.get('enableHistory').value;
+  }
+
+  @RxStateProperty() program: Program;
+
   constructor(
     injector: Injector,
     protected viewCtrl: ModalController,
@@ -63,6 +89,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -70,6 +97,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         strategy: [null, Validators.required],
+        vesselSnapshot: [null],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
         periodDuration: ['15 day', Validators.required],
@@ -81,9 +109,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
-      const date = moment()
+      const date = DateUtils.moment()
         .utc(false)
-        .add(-1 * v.value, v.unit); // Substract the period, from now
+        .add(-1 * v.value, v.unit); // Subtract the period, from now
       return {
         key: `${v.value} ${v.unit}`,
         label: `${date.fromNow(true /*no suffix*/)} (${date.format(datePattern)})`,
@@ -98,53 +126,50 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     // Program
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-      },
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
     });
 
     // Listen program (with properties)
-    const programSubject = new BehaviorSubject<Program>(null);
-    this.registerSubscription(
-      this.form
-        .get('program')
-        .valueChanges.pipe(
-          // Load the program
-          mergeMap((program) =>
-            isNilOrBlank(program?.label)
-              ? Promise.resolve()
-              : this.programRefService.loadByLabel(program.label, {
-                  query: ProgramRefQueries.loadLight,
-                  fetchPolicy: 'cache-first',
-                })
-          )
+    this._state.connect(
+      'program',
+      this.form.get('program').valueChanges.pipe(
+        map((program) => program?.label),
+        // Load the program
+        mergeMap((programLabel) =>
+          isNilOrBlank(programLabel)
+            ? Promise.resolve(null)
+            : this.programRefService.loadByLabel(programLabel, {
+                query: ProgramRefQueries.loadLight,
+                fetchPolicy: 'cache-first',
+              })
         )
-        .subscribe((program) => programSubject.next(program || null))
+      )
     );
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');
-    const locations$ = programSubject.pipe(
-      mergeMap((program) => {
-        if (!program) return Promise.resolve();
-        const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-        return this.referentialRefService.loadAll(0, 100, displayAttributes[0], 'asc', {
-          entityName: 'Location',
-          levelIds: locationLevelIds,
-        });
-      }),
-      map((res) => res && res.data),
-      tap((items) => {
-        if (isEmptyArray(items)) {
-          this.form.get('location').disable();
-        } else {
-          this.form.get('location').enable();
-        }
-      })
+    this._state.connect(
+      'locations',
+      this.program$.pipe(
+        mergeMap((program) => {
+          if (!program) return Promise.resolve(null);
+          const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+          return this.referentialRefService.countAll({
+            entityName: 'Location',
+            levelIds: locationLevelIds,
+          });
+        }),
+        tap((locationCount) => {
+          if (locationCount > 0 && this.enableHistory) {
+            this.form.get('location').enable();
+          } else {
+            this.form.get('location').disable();
+          }
+        })
+      )
     );
     this.registerAutocompleteField('location', {
-      items: locations$,
+      suggestFn: (value, filter) => this.suggestLocation(value, filter),
       displayWith: (arg) => {
         if (Array.isArray(arg)) {
           return referentialsToString(arg, displayAttributes);
@@ -156,53 +181,49 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Strategies
     this.registerAutocompleteField('strategy', {
-      suggestFn: (value, filter) =>
-        this.strategyRefService.suggest(
-          value,
-          {
-            ...filter,
-            level: programSubject.value,
-          },
-          'label',
-          'desc',
-          { fetchPolicy: 'cache-first' }
-        ),
+      suggestFn: (value, filter) => this.suggestStrategy(value, filter),
       displayWith: (item) => item?.label || '',
       mobile: this.mobile,
+      showAllOnFocus: true,
     });
-    this.registerSubscription(
-      programSubject
-        .pipe(
-          mergeMap((program) => {
-            if (!program) return Promise.resolve();
-            return this.strategyRefService.loadAll(0, 0, null, null, { levelId: program.id });
-          }),
-          map((res) => (res && res.total) || 0)
-        )
-        .subscribe((strategiesCount) => {
-          if (strategiesCount > 1) {
-            this.form.get('strategy').enable();
-          } else {
-            this.form.get('strategy').disable();
-          }
-        })
+    this._state.hold(
+      this.program$.pipe(
+        mergeMap((program) => {
+          if (!program) return Promise.resolve(null);
+          return this.strategyRefService.loadAll(0, 0, null, null, { levelId: program.id });
+        }),
+        map((res) => (res && res.total) || 0)
+      ),
+      (strategiesCount) => {
+        if (strategiesCount > 1) {
+          this.form.get('strategy').enable();
+        } else {
+          this.form.get('strategy').disable();
+        }
+      }
     );
 
     // Enable/disable sub controls, from the 'enable history' checkbox
     const subControls = [this.form.get('location'), this.form.get('periodDuration')];
-    this.form.get('enableHistory').valueChanges.subscribe((enable) => {
-      if (enable) {
-        subControls.forEach((control) => {
-          control.enable();
-          control.setValidators(Validators.required);
-        });
-      } else {
-        subControls.forEach((control) => {
-          control.disable();
-          control.setValidators(null);
-        });
-      }
-    });
+    this.form
+      .get('enableHistory')
+      .valueChanges.pipe(mergeMap((enable) => this.waitIdle({ stop: this.destroySubject }).then(() => enable)))
+      .subscribe((enable) => {
+        if (enable) {
+          subControls.forEach((control) => {
+            control.enable();
+            control.setValidators(Validators.required);
+          });
+        } else {
+          subControls.forEach((control) => {
+            control.disable();
+            control.setValidators(null);
+          });
+        }
+      });
+
+    // Combo: vessels
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
   }
 
   async setValue(value: ObservedLocationOfflineFilter | any) {
@@ -211,13 +232,23 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const json = {
       program: null,
       strategy: null,
+      vesselSnapshot: null,
+      enableHistory: true,
       location: null,
       periodDuration: null,
     };
 
     // Program
     if (value.programLabel) {
-      json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
+      try {
+        json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
+      } catch (err) {
+        console.error(err);
+        json.program = null;
+        if (err && err.message) {
+          this.setError(err.message);
+        }
+      }
     }
 
     // Strategy
@@ -228,7 +259,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
           includedIds: value.strategyIds,
         })
       )?.data;
-    } else {
     }
 
     // Location
@@ -237,8 +267,29 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // Duration period
-    if (value.periodDuration && value.periodDurationUnit) {
+    if (value.periodDuration > 0 && value.periodDurationUnit) {
+      json.enableHistory = true;
       json.periodDuration = `${value.periodDuration} ${value.periodDurationUnit}`;
+    } else {
+      json.enableHistory = false;
+    }
+
+    // Vessels
+    const vesselIds = isNotNilOrNaN(value.vesselId) ? [value.vesselId] : value.vesselIds;
+    if (isNotEmptyArray(vesselIds)) {
+      try {
+        json.vesselSnapshot = (
+          await this.vesselSnapshotService.loadAll(0, vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
+            includedIds: vesselIds,
+          })
+        )?.data;
+      } catch (err) {
+        console.error(err);
+        json.vesselSnapshot = null;
+        if (err && err.message) {
+          this.errorSubject.next(err.message);
+        }
+      }
     }
 
     this.enable();
@@ -255,14 +306,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const json = this.form.value;
 
     // DEBUG
-    console.debug('[observed-location-offline] Modal form.value:', json);
+    //console.debug('[observed-location-offline] Modal form.value:', json);
 
     const value = new ObservedLocationOfflineFilter();
 
     // Set program
     value.programLabel = (json.program && json.program.label) || json.program;
 
-    // Location
+    // Strategy
     if (json.strategy) {
       if (Array.isArray(json.strategy)) {
         value.strategyIds = json.strategy.map((entity) => entity.id);
@@ -289,10 +340,15 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       const parts = json.periodDuration.split(' ');
       value.periodDuration = +parts[0];
       value.periodDurationUnit = parts[1] as DurationConstructor;
+    } else {
+      value.periodDuration = -1; // None
     }
 
+    // Vessels
+    value.vesselIds = isNotEmptyArray(json.vesselSnapshot) ? json.vesselSnapshot.map((v) => v.id) : undefined;
+
     // DEBUG
-    //console.debug("[observed-location-offline] Modal result value:", value);
+    console.debug('[observed-location-offline] Modal result value:', value);
 
     return value;
   }
@@ -302,7 +358,9 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   }
 
   async validate(event?: Event) {
-    this.form.markAllAsTouched();
+    this.errorSubject.next(null);
+
+    this.markAllAsTouched();
 
     if (!this.form.valid) {
       await AppFormUtils.waitWhilePending(this.form);
@@ -313,6 +371,41 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');
+  }
+
+  protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    if (isNilOrBlank(this.program?.label)) return undefined; // Program no loaded yet
+    filter = {
+      ...filter,
+      levelLabel: this.program.label,
+    };
+
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
+
+    return this.strategyRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
+  }
+
+  protected async suggestLocation(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    if (!this.program) return; // Program no loaded yet
+
+    const locationLevelIds = this.program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+
+    filter = {
+      ...filter,
+      entityName: 'Location',
+      levelIds: locationLevelIds,
+    };
+
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
+
+    return this.referentialRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
   }
 
   protected markForCheck() {

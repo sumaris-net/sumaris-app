@@ -7,6 +7,7 @@ import {
   EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
+  isNilOrNaN,
   isNotEmptyArray,
   isNotNil,
   ObjectMap,
@@ -495,25 +496,23 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
   // We keep initial strategy and remove year related data like efforts.
   // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
-  async openStrategyDuplicateYearSelectionModal(event: Event, rows: TableElement<SamplingStrategy>[]) {
+  async duplicate(event: Event, rows?: TableElement<SamplingStrategy>[]) {
+    rows = rows || this.selection?.selected;
+    if (!rows.length) return; // No row: skip
+
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
 
     // Open the modal
     await modal.present();
-    const { data } = await modal.onDidDismiss();
+    const { data: year } = await modal.onDidDismiss();
 
-    if (!data) return;
+    if (isNilOrNaN(year) || year < 1970) return;
 
     const strategies = rows.map((row) => row.currentData).map(SamplingStrategy.fromObject);
-    const year = fromDateISOString(data)
-      // We need the local year, not the UTC year
-      .local(true)
-      .format('YYYY')
-      .toString();
 
-    await this.duplicateStrategies(strategies, +year);
+    await this.duplicateStrategies(strategies, year);
     this.selection.clear();
   }
 

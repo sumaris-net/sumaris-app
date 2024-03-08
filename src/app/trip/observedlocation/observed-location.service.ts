@@ -20,6 +20,7 @@ import {
   IEntityService,
   isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -27,6 +28,7 @@ import {
   LoadResult,
   NetworkService,
   ProgressBarService,
+  removeDuplicatesFromArray,
   ShowToastOptions,
   Toasts,
   toNumber,
@@ -34,7 +36,6 @@ import {
 import { Observable } from 'rxjs';
 
 import { gql } from '@apollo/client/core';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
@@ -56,11 +57,11 @@ import { Landing } from '../landing/landing.model';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from './observed-location.validator';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { LandingFilter } from '../landing/landing.filter';
-import { ObservedLocationFilter } from './observed-location.filter';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from './observed-location.filter';
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { TripFragments } from '@app/trip/trip/trip.service';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -71,7 +72,6 @@ import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landi
 import { AggregatedLandingService } from '@app/trip/aggregated-landing/aggregated-landing.service';
 import moment from 'moment';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
-import { Trip } from '@app/trip/trip/trip.model';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { OverlayEventDetail } from '@ionic/core';
@@ -80,6 +80,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -338,6 +341,7 @@ export class ObservedLocationService
     protected trashRemoteService: TrashRemoteService,
     protected progressBarService: ProgressBarService,
     protected formErrorTranslator: FormErrorTranslator,
+    protected strategyRefService: StrategyRefService,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
@@ -706,9 +710,9 @@ export class ObservedLocationService
     // Remove from the local trash
     if (opts.deletedFromTrash) {
       if (isLocal) {
-        await this.entities.deleteFromTrash(source, { entityName: Trip.TYPENAME });
+        await this.entities.deleteFromTrash(source, { entityName: ObservedLocation.TYPENAME });
       } else {
-        await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
+        await this.trashRemoteService.delete(ObservedLocation.ENTITY_NAME, source.id);
       }
     }
 
@@ -792,7 +796,7 @@ export class ObservedLocationService
       trash?: boolean; // True by default
     }
   ): Promise<any> {
-    const trash = !opts || opts !== false;
+    const trash = !opts || opts?.trash !== false;
     const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);
@@ -1157,6 +1161,7 @@ export class ObservedLocationService
    * List of importation jobs.
    *
    * @protected
+   * @param filter
    * @param opts
    */
   protected getImportJobs(
@@ -1165,33 +1170,76 @@ export class ObservedLocationService
       maxProgression: undefined;
       program?: Program;
       acquisitionLevels?: string[];
+      locationLevelIds?: number[];
+      vesselIds?: number[];
     }
   ): Observable<number>[] {
-    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    const synchroFilter = this.settings.getOfflineFeature<ObservedLocationOfflineFilter>(this.featureName)?.filter;
+    filter = filter || ObservedLocationOfflineFilter.toObservedLocationFilter(synchroFilter);
     filter = this.asFilter(filter);
 
-    const programLabel = filter && filter.program?.label;
-    const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
+    let programLabel = filter && filter.program?.label;
+    const vesselIds = filter?.vesselIds || opts?.vesselIds;
+    const landingFilter = ObservedLocationFilter.toLandingFilter({ ...filter, vesselIds });
 
     if (programLabel) {
       return [
         // Store program to opts, for other services (e.g. used by OperationService)
-        JobUtils.defer((o) =>
-          this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' }).then((program) => {
+        JobUtils.defer(async (o) => {
+          // No program: Try to find one (and only one) for this user
+          if (isNilOrBlank(programLabel)) {
+            console.warn(`${this._logPrefix}[import] Trying to find a unique program to configure the import...`);
+            const { data: programs, total: programCount } = await this.programRefService.loadAll(
+              0,
+              1,
+              null,
+              null,
+              OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+              { fetchPolicy: 'no-cache', withTotal: true }
+            );
+            if (programCount === 1) {
+              programLabel = programs[0]?.label;
+            } else {
+              console.warn(`${this._logPrefix}[import] No unique program found, but found ${programCount} program(s)`);
+            }
+          }
+          // Fill options using program
+          if (programLabel) {
+            console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
+            const program = await this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' });
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
-            // TODO filter on location level
-            //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+            // Filter on location level used by the observed location feature
+            opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
 
-            // TODO filter on vessel (e.g. OBSBIO)
-          })
-        ),
+            // Compute location levels ids, bases on known program's properties
+            if (isEmptyArray(opts.locationLevelIds)) {
+              const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+              opts.locationLevelIds = removeDuplicatesFromArray([
+                ...program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS),
+                ...(landingEditor === 'trip'
+                  ? program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS)
+                  : program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS)),
+              ]);
+            }
+            if (isNotEmptyArray(opts.locationLevelIds))
+              console.debug(this._logPrefix + '[import] Locations, having level ids: ' + opts.locationLevelIds.join(','));
+          }
+
+          // Vessels
+          opts.vesselIds = vesselIds;
+        }),
 
         ...super.getImportJobs(filter, opts),
 
-        // Landing (historical data)
-        JobUtils.defer((o) => this.landingService.executeImport(landingFilter, o), opts),
+        // Historical data (if enable)
+        ...((landingFilter.startDate &&
+          isNotEmptyArray(vesselIds) && [
+            // Landings
+            JobUtils.defer((o) => this.landingService.executeImport(landingFilter, o), opts),
+          ]) ||
+          []),
       ];
     } else {
       return super.getImportJobs(null, opts);
@@ -1268,6 +1316,16 @@ export class ObservedLocationService
       enable: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       withMeasurements: true, // Need by full validation
     };
+
+    // Load the strategy from measurementValues (if exists)
+    if (!opts.strategy) {
+      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+      opts.strategy =
+        (isNotNilOrBlank(strategyLabel) && (await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id }))) || null;
+      if (!opts.strategy) {
+        console.debug(this._logPrefix + 'No strategy loaded from ObservedLocation#' + entity.id);
+      }
+    }
 
     if (!opts.translatorOptions) {
       opts.translatorOptions = {

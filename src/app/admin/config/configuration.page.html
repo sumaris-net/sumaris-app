@@ -5,7 +5,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="tabGroupAnimationDuration"
@@ -156,6 +156,26 @@
       <app-user-events-table #userEventsTable [recipient]="'SYSTEM'" [withContent]="true" [debug]="debug"></app-user-events-table>
     </mat-tab>
 
+    <!-- TAB: jobs -->
+    <mat-tab label="{{ 'CONFIGURATION.TAB_JOBS' | translate }}">
+      <ng-template mat-tab-label>
+        <mat-icon>schedule</mat-icon>
+        <ion-label
+          *rxLet="jobList.jobsCount$ as count"
+          [matBadge]="count"
+          [matBadgeHidden]="!count"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_JOBS
+        </ion-label>
+      </ng-template>
+
+      <app-job-list #jobList issuer="SYSTEM"></app-job-list>
+    </mat-tab>
+
     <!-- TAB: cache -->
     <mat-tab label="{{ 'CONFIGURATION.TAB_CACHE' | translate }}">
       <ng-template mat-tab-label>
@@ -201,27 +221,27 @@
         <div class="">
           <ion-grid class="ion-no-padding cache">
             <!-- header -->
-            <ion-row class="mat-header-row">
-              <ion-col size="12" size-lg="6" class="mat-header-cell">
+            <ion-row class="mat-mdc-header-row">
+              <ion-col size="12" size-lg="6" class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
               </ion-col>
               <ion-col size="1"></ion-col>
             </ion-row>
 
             <!-- total -->
-            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-row odd">
+            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-mdc-row odd">
               <ion-col size="12" size-lg="6">
                 <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
               </ion-col>
@@ -241,7 +261,7 @@
             </ion-row>
 
             <!-- details -->
-            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-row" [class.odd]="odd">
+            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-mdc-row" [class.odd]="odd">
               <ion-col size="12" size-lg="6">
                 <ion-label class="ion-text-wrap">{{ stat.name }}</ion-label>
               </ion-col>
@@ -266,26 +286,6 @@
           </ion-grid>
         </div>
       </div>
-    </mat-tab>
-
-    <!-- TAB: jobs -->
-    <mat-tab label="{{ 'CONFIGURATION.TAB_JOBS' | translate }}">
-      <ng-template mat-tab-label>
-        <mat-icon>schedule</mat-icon>
-        <ion-label
-          *rxLet="jobList.jobsCount$ as count"
-          [matBadge]="count"
-          [matBadgeHidden]="!count"
-          matBadgeColor="primary"
-          matBadgeOverlap="false"
-          matBadgeSize="small"
-          translate
-        >
-          CONFIGURATION.TAB_JOBS
-        </ion-label>
-      </ng-template>
-
-      <app-job-list #jobList></app-job-list>
     </mat-tab>
   </mat-tab-group>
 </ion-content>
