@@ -7,7 +7,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Subscription } from 'rxjs';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-product-sale-form',

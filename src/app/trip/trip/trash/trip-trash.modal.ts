@@ -11,7 +11,7 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import { Trip } from '../trip.model';
 import { TripService } from '../trip.service';

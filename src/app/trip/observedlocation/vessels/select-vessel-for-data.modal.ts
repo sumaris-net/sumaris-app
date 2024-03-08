@@ -10,7 +10,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ModalController } from '@ionic/angular';

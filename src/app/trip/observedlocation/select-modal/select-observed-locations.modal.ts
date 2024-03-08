@@ -10,7 +10,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { ObservedLocationForm } from '@app/trip/observedlocation/form/observed-location.form';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface ISelectObservedLocationsModalOptions {
   programLabel: string;

@@ -6,7 +6,7 @@ import { ProgramService } from '../services/program.service';
 import { ReferentialForm } from '../form/referential.form';
 import { ProgramValidatorService } from '../services/validator/program.validator';
 import { StrategiesTable } from '../strategy/strategies.table';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AccountService,

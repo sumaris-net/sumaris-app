@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from './referential.fragments';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AccountService,

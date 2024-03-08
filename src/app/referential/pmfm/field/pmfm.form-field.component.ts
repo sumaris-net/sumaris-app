@@ -12,7 +12,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AbstractControl,

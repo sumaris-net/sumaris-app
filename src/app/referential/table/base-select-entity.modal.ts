@@ -1,6 +1,6 @@
 import { Directive, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AppTable,

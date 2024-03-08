@@ -7,7 +7,7 @@ import { Landing } from './landing.model';
 import { Observable } from 'rxjs';
 import { isNotNil } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface SelectLandingsModalOptions {
   filter: LandingFilter | null;

@@ -17,7 +17,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface SelectVesselsModalOptions {
   titleI18n: string;
