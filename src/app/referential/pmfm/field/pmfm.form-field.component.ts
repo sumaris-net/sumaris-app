@@ -12,6 +12,8 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -21,8 +23,8 @@ import {
   UntypedFormBuilder,
   UntypedFormControl,
 } from '@angular/forms';
-import { FloatLabelType } from '@angular/material/form-field';
 import {
+  AppFloatLabelType,
   AppFormArray,
   filterNumberInput,
   focusInput,
@@ -133,7 +135,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() hidden = false;
   @Input() placeholder: string;
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;
@@ -157,8 +159,11 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('focus') focused = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('click') clicked = new EventEmitter<MouseEvent>();
 
   get value(): any {

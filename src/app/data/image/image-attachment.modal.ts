@@ -56,7 +56,7 @@ export class AppImageAttachmentsModal implements OnInit, OnDestroy, IImageModalO
 
     // Set value
     this.gallery.markAsReady();
-    this.gallery.value = this.data;
+    this.gallery.value = this.data || [];
   }
 
   ngOnDestroy() {

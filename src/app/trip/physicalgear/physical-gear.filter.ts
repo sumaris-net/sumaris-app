@@ -1,5 +1,16 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNil, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  FilterFn,
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
+} from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 @EntityClass({ typename: 'PhysicalGearFilterVO' })
@@ -7,6 +18,7 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   static fromObject: (source: any, opts?: any) => PhysicalGearFilter;
 
   vesselId: number = null;
+  vesselIds: number[] = null;
 
   tripId: number = null;
   excludeTripId: number = null;
@@ -19,6 +31,7 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.tripId = source.tripId;
     this.excludeTripId = source.excludeTripId;
     this.parentGearId = source.parentGearId;
@@ -30,8 +43,11 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    if (opts && opts.minify) {
-      // NOT exists on pod:
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
+      target.vesselId = isNotNilOrNaN(this.vesselId) ? this.vesselId : this.vesselIds?.length === 1 ? this.vesselIds[0] : undefined;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
     }
 
     return target;
@@ -51,10 +67,10 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
       }
     }
 
-    // Vessel
-    if (isNotNil(this.vesselId)) {
-      const vesselId = this.vesselId;
-      filterFns.push((pg) => pg.trip?.vesselSnapshot?.id === vesselId);
+    // Vessels
+    const vesselIds = isNotNilOrNaN(this.vesselId) ? [this.vesselId] : this.vesselIds;
+    if (isNotEmptyArray(vesselIds)) {
+      filterFns.push((pg) => vesselIds.includes(pg.trip?.vesselSnapshot?.id));
     }
 
     // Trip

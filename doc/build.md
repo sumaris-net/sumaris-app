@@ -15,7 +15,7 @@ nvm install 18.19.0
 
 3. Install global dependency: 
 ```bash
-npm install -g @ionic/cli@7.1.1 @angular/cli@14.2.13
+npm install -g @ionic/cli@7 @angular/cli@17
 ```
 
 4. Get sources (clone the repo) : `git clone ...`
@@ -32,7 +32,7 @@ sudo apt-get install chromium-browser docker.io
 1. Install project's dependencies:
 ```bash
 cd sumaris-app
-npm install
+npm install --force
 ```
 
 2. Check environment configuration:

@@ -100,7 +100,7 @@
     <ng-template #taxonNameMobile>
       <mat-form-field
         floatLabel="always"
-        *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"
+        *ngIf="taxonNames$ | async as taxonNames; else loadingTaxonNames"
         [class.computed]="taxonNames.length === 1"
       >
         <input

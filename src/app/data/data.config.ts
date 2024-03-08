@@ -15,6 +15,8 @@ export const DATA_IMPORT_PERIODS: readonly { value: number; unit: DurationConstr
   { value: 1, unit: 'month' },
   { value: 3, unit: 'month' },
   { value: 6, unit: 'month' },
+  { value: 1, unit: 'year' },
+  { value: 2, unit: 'year' },
 ]);
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({

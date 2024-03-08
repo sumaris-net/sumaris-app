@@ -2,9 +2,11 @@ import { LandingFilter } from '../landing/landing.filter';
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { ObservedLocation } from './observed-location.model';
 import {
+  DateUtils,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   Person,
@@ -24,6 +26,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       endDate: source.endDate,
       location: source.location,
       locations: source.locations,
+      vesselIds: source.vesselIds,
     });
   }
   static fromLandingFilter(source: Partial<LandingFilter>): ObservedLocationFilter {
@@ -34,17 +37,22 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       endDate: source.endDate,
       location: source.location,
       locations: source.locations,
+      vesselIds: isNil(source.vesselId) ? [source.vesselId] : source.vesselIds,
     });
   }
 
   location?: ReferentialRef;
   locations?: ReferentialRef[];
+  locationIds?: number[];
   observers?: Person[];
+  vesselIds?: number[];
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.location = ReferentialRef.fromObject(source.location);
+    this.locationIds = source.locationIds;
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.vesselIds = source.vesselIds || null;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -68,10 +76,10 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
   buildFilter(): FilterFn<ObservedLocation>[] {
     const filterFns = super.buildFilter();
 
-    // Location
-    if (ReferentialUtils.isNotEmpty(this.location)) {
-      const locationId = this.location.id;
-      filterFns.push((t) => t.location && t.location.id === locationId);
+    // Locations
+    const locationIds = this.locationIds || (ReferentialUtils.isNotEmpty(this.location) ? [this.location.id] : this.locations?.map((l) => l.id));
+    if (isNotEmptyArray(locationIds)) {
+      filterFns.push((t) => t.location && locationIds.includes(t.location.id));
     }
 
     // Start/end period
@@ -97,5 +105,30 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
 }
 
 export class ObservedLocationOfflineFilter extends DataSynchroImportFilter {
+  static toObservedLocationFilter(source: any): ObservedLocationFilter {
+    if (!source) return source;
+    const target = ObservedLocationFilter.fromObject({
+      program: { label: source.programLabel },
+      locationIds: source.locationIds,
+      vesselId: source.vesselId,
+      vesselIds: source.vesselIds,
+      startDate: source.startDate,
+      endDate: source.endDate,
+    });
+    // Transform duration into start/end period
+    if (!target.startDate && !target.endDate && source.periodDuration > 0 && source.periodDurationUnit) {
+      target.startDate = DateUtils.moment()
+        .utc(false)
+        .startOf('day')
+        .add(-1 * source.periodDuration, source.periodDurationUnit);
+    }
+    return target;
+  }
+
   locationIds?: number[];
+
+  fromObject(source: any, opts?: { minify?: boolean }) {
+    super.fromObject(source, opts);
+    this.locationIds = source.locationIds;
+  }
 }

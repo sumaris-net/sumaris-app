@@ -5,6 +5,7 @@ import { DateUtils, fromDateISOString } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 export interface Clipboard<T = any> {
   data?: T;
@@ -17,20 +18,24 @@ export interface Context<T = any> {
   strategy?: Strategy;
 }
 
+export const APP_MAIN_CONTEXT_SERVICE = new InjectionToken<ContextService>('ContextService');
+
 export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('ContextDefaultState');
 
 @Injectable()
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
-  constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
+  constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
     super();
-    this.reset();
+
+    // Apply default, if any
+    this.set(this.defaultState);
   }
 
   setValue<K extends keyof S>(key: K, value: S[K]) {
     // DEBUG
     //console.debug(`[context-service] Set '${String(key)}'`, value);
 
-    this.set(key, (_) => value);
+    this.set(key, () => value);
   }
 
   getObservable<K extends keyof S>(key: K): Observable<S[K]> {
@@ -53,27 +58,8 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
     return fromDateISOString(this.getValue(key));
   }
 
-  get clipboard(): Clipboard<T> | undefined {
-    return this.get('clipboard') as Clipboard<T>;
-  }
+  @RxStateProperty() program: Program;
+  @RxStateProperty() strategy: Strategy;
 
-  set clipboard(value: Clipboard<T> | undefined) {
-    this.set('clipboard', (_) => ({ ...value, updateDate: DateUtils.moment() }));
-  }
-
-  get program(): Program | undefined {
-    return this.get('program');
-  }
-
-  set program(value: Program | undefined) {
-    this.set('clipboard', (_) => value);
-  }
-
-  get strategy(): Strategy | undefined {
-    return this.get('strategy');
-  }
-
-  set strategy(value: Strategy | undefined) {
-    this.set('strategy', (_) => value);
-  }
+  @RxStateProperty('clipboard', (_, value) => <T>{ ...value, updateDate: DateUtils.moment() }) clipboard: Clipboard<T>;
 }

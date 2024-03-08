@@ -58,9 +58,8 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
   `,
 };
 @Injectable({ providedIn: 'root' })
-// @ts-ignore
 export class RoundWeightConversionService
-  extends BaseEntityService<RoundWeightConversion, RoundWeightConversionFilter, number>
+  extends BaseEntityService<RoundWeightConversion, RoundWeightConversionFilter>
   implements IEntityService<RoundWeightConversion>
 {
   constructor(

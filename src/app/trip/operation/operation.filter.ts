@@ -2,6 +2,7 @@ import {
   EntityClass,
   FilterFn,
   fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -10,12 +11,10 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
-import { Operation, VesselPositionUtils } from '@app/trip/trip/trip.model';
+import { Operation } from '@app/trip/trip/trip.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Moment } from 'moment';
 import { DataQualityStatusIdType, SynchronizationStatus } from '@app/data/services/model/model.utils';
-import { Util } from 'leaflet';
-import isArray = Util.isArray;
 import { BBox } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PositionUtils } from '@app/data/position/position.utils';
@@ -25,6 +24,7 @@ import { FishingAreaUtils } from '@app/data/fishing-area/fishing-area.model';
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
   tripId?: number;
   vesselId?: number;
+  vesselIds?: number[];
   excludeId?: number;
   includedIds?: number[];
   excludedIds?: number[];
@@ -47,6 +47,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     super.fromObject(source, opts);
     this.tripId = source.tripId;
     this.vesselId = source.vesselId;
+    this.vesselIds = source.vesselIds;
     this.excludeId = source.excludeId;
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
@@ -68,7 +69,12 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
-    if (opts && opts.minify) {
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
+      target.vesselId = isNotNilOrNaN(this.vesselId) ? this.vesselId : this.vesselIds?.length === 1 ? this.vesselIds[0] : undefined;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
+
       delete target.program;
       delete target.excludeId; // Not include in Pod
       delete target.synchronizationStatus;
@@ -174,6 +180,9 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       if (isNotNil(this.vesselId)) {
         const vesselId = this.vesselId;
         filterFns.push((o) => isNil(o.vesselId) || o.vesselId === vesselId);
+      } else if (isNotEmptyArray(this.vesselIds)) {
+        const vesselIds = this.vesselIds;
+        filterFns.push((o) => isNil(o.vesselId) || vesselIds.includes(o.vesselId));
       }
 
       // Program label

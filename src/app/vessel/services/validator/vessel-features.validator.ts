@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { VesselFeatures } from '../model/vessel.model';
-import { fromDateISOString, isNotNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { fromDateISOString, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { VesselValidatorOptions } from '@app/vessel/services/validator/vessel.validator';
-import { Moment, unitOfTime } from 'moment';
+import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -31,8 +31,11 @@ export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = V
       creationDate: [data?.creationDate || null],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null],
-      name: [data?.name || null, opts.withNameRequired ? Validators.required : null],
-      exteriorMarking: [data?.exteriorMarking || null, Validators.required],
+      name: [
+        data?.name || null,
+        opts.withNameRequired ? Validators.compose([Validators.required, Validators.maxLength(100)]) : Validators.maxLength(100),
+      ],
+      exteriorMarking: [data?.exteriorMarking || null, Validators.compose([Validators.required, Validators.maxLength(100)])],
       administrativePower: [toNumber(data?.administrativePower, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       lengthOverAll: [toNumber(data?.lengthOverAll, null), Validators.compose([Validators.min(0), SharedValidators.decimal({ maxDecimals: 2 })])],
       grossTonnageGrt: [toNumber(data?.grossTonnageGrt, null), Validators.compose([Validators.min(0), SharedValidators.decimal({ maxDecimals: 2 })])],

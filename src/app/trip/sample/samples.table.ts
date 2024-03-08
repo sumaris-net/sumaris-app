@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -29,19 +29,18 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from './sample.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
 import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from './sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { arrayPluck } from '@app/shared/functions';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -56,6 +55,8 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -71,11 +72,17 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 export declare type TagIdGenerationMode = 'none' | 'previousRow' | 'remote';
 
+export interface SamplesTableState extends BaseMeasurementsTableState {
+  pmfmGroups: ObjectMap<number[]>;
+  pmfmGroupColumns: GroupColumnDefinition[];
+  tagCount: number;
+}
+
 @Component({
   selector: 'app-samples-table',
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
-  providers: [{ provide: AppValidatorService, useExisting: SampleValidatorService }],
+  providers: [{ provide: AppValidatorService, useExisting: SampleValidatorService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesTable
@@ -84,38 +91,37 @@ export class SamplesTable
     SampleFilter,
     InMemoryEntitiesService<Sample, SampleFilter>,
     SampleValidatorService,
-    BaseMeasurementsTableConfig<Sample>,
+    SamplesTableState,
+    BaseMeasurementsTableConfig<Sample, SamplesTableState>,
     SampleValidatorOptions
   >
   implements OnInit, AfterViewInit, OnDestroy
 {
   private _footerRowsSubscription: Subscription;
 
-  protected referentialRefService: ReferentialRefService;
-  protected pmfmService: PmfmService;
-  protected networkService: NetworkService;
+  protected referentialRefService = inject(ReferentialRefService);
+  protected pmfmService = inject(PmfmService);
+  protected network = inject(NetworkService);
   protected forcedTagIdGenerationMode: TagIdGenerationMode | undefined;
 
   // Top group header
-  groupHeaderStartColSpan: number;
-  groupHeaderEndColSpan: number;
-  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
-  pmfmGroupColumns$ = new BehaviorSubject<GroupColumnDefinition[]>([]);
-  groupHeaderColumnNames: string[] = [];
-  footerColumns: string[] = ['footer-start'];
-  showFooter: boolean;
-  showTagCount: boolean;
-  tagCount$ = new BehaviorSubject<number>(0);
-  existingPmfmIdsToCopy: number[];
+  @RxStateSelect() protected readonly pmfmGroups$: Observable<ObjectMap<number[]>>;
+  @RxStateSelect() protected readonly pmfmGroupColumns$: Observable<GroupColumnDefinition[]>;
+  @RxStateSelect() protected readonly tagCount$: Observable<number>;
+  protected groupHeaderStartColSpan: number;
+  protected groupHeaderEndColSpan: number;
+  protected groupHeaderColumnNames: string[] = [];
+  protected footerColumns: string[] = ['footer-start'];
+  protected showTagCount: boolean;
+  protected existingPmfmIdsToCopy: number[];
+
+  @RxStateProperty() protected pmfmGroupColumns: GroupColumnDefinition[];
+  @RxStateProperty() protected tagCount: number;
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
-  @Input() useSticky = false;
   @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
-  @Input() showError = true;
-  @Input() showToolbar: boolean;
-  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showIdColumn = true;
   @Input() showLabelColumn = false;
@@ -128,12 +134,10 @@ export class SamplesTable
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
   @Input() modalOptions: Partial<ISampleModalOptions>;
-  @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() enableTagIdGeneration = false;
   @Input() defaultTagIdGenerationMode: TagIdGenerationMode;
-
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
   @Input() defaultLatitudeSign: '+' | '-';
@@ -144,21 +148,9 @@ export class SamplesTable
   @Input() showReadonlyPmfms = true;
   @Input() pmfmIdsToCopy: number[];
   @Input() pmfmValueColor: PmfmValueColorFn = null;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
-  @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    if (this.$pmfmGroups.value !== value) {
-      if (value && Object.keys(value).length) {
-        this.showGroupHeader = true;
-      } else {
-        this.showGroupHeader = false;
-      }
-      this.$pmfmGroups.next(value);
-    }
-  }
-
-  get pmfmGroups(): ObjectMap<number[]> {
-    return this.$pmfmGroups.getValue();
-  }
+  @Input() @RxStateProperty() pmfmGroups: ObjectMap<number[]>;
 
   @Input()
   set value(data: Sample[]) {
@@ -205,8 +197,6 @@ export class SamplesTable
     return this.getShowColumn('images');
   }
 
-  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
-
   getRowError(row, opts): string {
     return super.getRowError(row, opts);
   }
@@ -244,18 +234,20 @@ export class SamplesTable
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
-        requiredStrategy: false,
         i18nColumnPrefix: 'TRIP.SAMPLE.TABLE.',
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        initialState: <SamplesTableState>{
+          requiredStrategy: false,
+          tagCount: 0,
+          pmfmGroupColumns: [],
+          pmfmGroups: null,
+          acquisitionLevel: null, // Avoid load to early. Need sub classes to set it
+        },
       }
     );
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.pmfmService = injector.get(PmfmService);
-    this.networkService = injector.get(NetworkService);
-
     this.confirmBeforeDelete = false;
     this.confirmBeforeCancel = false;
     this.undoableDeletion = false;
@@ -266,11 +258,15 @@ export class SamplesTable
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
 
     // Set default value
-    this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
+    this.showFooter = false;
     this.excludesColumns = ['images']; // Hide images by default
 
-    //this.debug = false;
-    this.debug = !environment.production;
+    this._state.hold(this.pmfmGroups$, (pmfmGroups) => {
+      this.showGroupHeader = (pmfmGroups && Object.keys(pmfmGroups).length > 0) || false;
+    });
+
+    // DEBUG
+    //this.debug = !environment.production;
     this.logPrefix = '[samples-table] ';
   }
 
@@ -287,7 +283,7 @@ export class SamplesTable
     super.ngOnInit();
 
     // Add footer listener
-    this.registerSubscription(this.$pmfms.subscribe((pmfms) => this.addFooterListener(pmfms)));
+    this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
 
   ngAfterViewInit() {
@@ -313,14 +309,11 @@ export class SamplesTable
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.memoryDataService?.stop();
+    this.memoryDataService.stop();
     this.prepareRowForm.complete();
     this.prepareRowForm.unsubscribe();
-    this.$pmfmGroups.complete();
-    this.$pmfmGroups.unsubscribe();
-    this.pmfmGroupColumns$.complete();
-    this.pmfmGroupColumns$.unsubscribe();
-    this.memoryDataService.stop();
+    this.weightUnitChanges.complete();
+    this.weightUnitChanges.unsubscribe();
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -407,7 +400,7 @@ export class SamplesTable
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject });
+    const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject });
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -426,6 +419,7 @@ export class SamplesTable
       i18nSuffix: this.i18nColumnSuffix,
       usageMode: this.usageMode,
       mobile: this.mobile,
+      debug: this.debug,
       availableTaxonGroups: this.availableTaxonGroups,
       defaultSampleDate: this.defaultSampleDate,
       requiredLabel: this.requiredLabel,
@@ -685,7 +679,8 @@ export class SamplesTable
     // Skip if no images to display
     if (this.disabled && isEmptyArray(images)) return;
 
-    event.stopPropagation();
+    event?.stopPropagation();
+    console.debug(this.logPrefix + 'Opening images modal...');
 
     const modal = await this.modalCtrl.create({
       component: AppImageAttachmentsModal,
@@ -779,7 +774,7 @@ export class SamplesTable
     let tagIdGenerationMode = this.tagIdGenerationMode;
     if (this.tagIdPmfm && tagIdGenerationMode !== 'none') {
       // Force previous row, if offline
-      if (this.networkService.offline || !this._strategyLabel || this.tagIdMinLength <= 0) {
+      if (this.network.offline || !this.strategyLabel || this.tagIdMinLength <= 0) {
         tagIdGenerationMode = 'previousRow';
       }
 
@@ -796,14 +791,15 @@ export class SamplesTable
           break;
 
         // Remote generation
-        case 'remote':
-          const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength);
+        case 'remote': {
+          const nextTagIdComplete = await this.samplingStrategyService.computeNextSampleTagId(this.strategyLabel, '-', this.tagIdMinLength);
           const nextTagIdSuffix = parseInt(nextTagIdComplete.slice(-1 * this.tagIdMinLength));
           newTagId = String(isNotNilOrNaN(previousTagId) ? Math.max(nextTagIdSuffix, previousTagId + 1) : nextTagIdSuffix).padStart(
             this.tagIdMinLength,
             '0'
           );
           break;
+        }
       }
 
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
@@ -859,7 +855,7 @@ export class SamplesTable
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -956,7 +952,7 @@ export class SamplesTable
       console.debug('[samples-table] Computing Pmfm group header...');
 
       // Wait until map is loaded
-      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups, { stop: this.destroySubject });
+      const groupedPmfmIdsMap = await firstNotNilPromise(this.pmfmGroups$, { stop: this.destroySubject });
 
       // Create a list of known pmfm ids
       const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap((pmfmIds) => pmfmIds);
@@ -990,7 +986,6 @@ export class SamplesTable
             if (!this.showReadonlyPmfms && this._enabled) {
               pmfm.hidden = true;
               groupPmfmCount--;
-              console.log('TODO HIDE pmfm ', pmfm);
             }
           }
 
@@ -1031,7 +1026,7 @@ export class SamplesTable
           }, [])
         );
       }, []);
-      this.pmfmGroupColumns$.next(pmfmGroupColumns);
+      this.pmfmGroupColumns = pmfmGroupColumns;
       this.groupHeaderColumnNames = ['top-start'].concat(arrayPluck(pmfmGroupColumns, 'key') as string[]).concat(['top-end']);
       this.groupHeaderStartColSpan =
         RESERVED_START_COLUMNS.length +
@@ -1087,7 +1082,7 @@ export class SamplesTable
       this.footerColumns = this.footerColumns.filter((column) => column !== 'footer-tagCount');
 
       // Reset counter
-      this.tagCount$.next(0);
+      this.tagCount = 0;
     }
 
     this.showFooter = this.footerColumns.length > 1;
@@ -1110,8 +1105,7 @@ export class SamplesTable
 
   protected updateFooter(rows: TableElement<Sample>[] | readonly TableElement<Sample>[]) {
     // Update tag count
-    const tagCount = (rows || []).map((row) => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string).filter(isNotNilOrBlank).length;
-    this.tagCount$.next(tagCount);
+    this.tagCount = (rows || []).map((row) => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string).filter(isNotNilOrBlank).length;
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

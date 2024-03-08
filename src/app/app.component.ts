@@ -4,12 +4,14 @@ import {
   ConfigService,
   Configuration,
   CORE_CONFIG_OPTIONS,
+  equals,
   FormFieldDefinition,
   getColorContrast,
   getColorShade,
   getColorTint,
   hexToRgbArray,
   isNotNil,
+  isNotNilOrBlank,
   joinPropertiesPath,
   LocalSettingsService,
   mixHex,
@@ -17,7 +19,7 @@ import {
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { DOCUMENT } from '@angular/common';
-import { throttleTime } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from './referential/services/referential-ref.service';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -57,6 +59,15 @@ export class AppComponent implements OnInit {
     // Listen for config changed
     this.configService.config.subscribe((config) => this.onConfigChanged(config));
 
+    // Listen settings dark mode
+    this.settings.onChange
+      .pipe(
+        map((settings) => settings.darkMode),
+        filter(isNotNil),
+        distinctUntilChanged()
+      )
+      .subscribe((darkMode) => this.updateTheme({ darkMode }));
+
     // Add additional account fields
     this.addAccountFields();
 
@@ -69,6 +80,7 @@ export class AppComponent implements OnInit {
   }
 
   onActivate(event) {
+    /* eslint-disable @rx-angular/no-zone-critical-browser-apis */
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {
@@ -101,6 +113,7 @@ export class AppComponent implements OnInit {
 
       // Set theme colors
       this.updateTheme({
+        darkMode: this.settings.isDarkMode,
         colors: {
           primary: config.properties['sumaris.color.primary'],
           secondary: config.properties['sumaris.color.secondary'],
@@ -116,14 +129,29 @@ export class AppComponent implements OnInit {
     }
   }
 
-  protected updateTheme(options: { colors?: { [color: string]: string } }) {
+  protected updateTheme(options: { darkMode?: boolean; colors?: { [color: string]: string }; vars?: { [color: string]: string } }) {
     if (!options) return;
+    const classList = document.documentElement.classList;
+    const style = document.documentElement.style;
 
-    // Setting colors
+    // options.colors = {
+    //   ...options.colors,
+    //   primary: '#124541',
+    // };
+
+    // Set dark mode
+    if (isNotNil(options.darkMode)) {
+      console.info('[app] Theme dark mode? ' + options.darkMode);
+      if (options.darkMode) {
+        classList.add('dark');
+      } else {
+        classList.remove('dark');
+      }
+    }
+
+    // Set colors
     if (options.colors) {
-      console.info('[app] Changing theme colors ', options);
-
-      const style = document.documentElement.style;
+      console.info('[app] Changing theme colors ', options.colors);
 
       // Add 100 & 900 color for primary and secondary color
       ['primary', 'secondary'].forEach((colorName) => {
@@ -143,7 +171,7 @@ export class AppComponent implements OnInit {
 
         // Set new value, if any
         const color = options.colors[colorName];
-        if (isNotNil(color)) {
+        if (isNotNilOrBlank(color)) {
           // Base color
           style.setProperty(`--ion-color-${colorName}`, color);
           style.setProperty(`--ion-color-${colorName}-rgb`, hexToRgbArray(color).join(', '));
@@ -158,6 +186,18 @@ export class AppComponent implements OnInit {
 
           // Tint color
           style.setProperty(`--ion-color-${colorName}-tint`, getColorTint(color));
+        }
+      });
+    }
+
+    // Set CSS vars
+    if (options.vars) {
+      Object.getOwnPropertyNames(options.vars).forEach((varName) => {
+        // Set new value, if any
+        const value = options.vars[varName];
+        if (isNotNilOrBlank(value)) {
+          // Base color
+          style.setProperty(varName, value);
         }
       });
     }
@@ -195,12 +235,13 @@ export class AppComponent implements OnInit {
     // Add account field: department
     this.accountService.registerAdditionalField(departmentDefinition);
 
-    // When settings changed
+    // Update departmentDefinition the display fn, when settings changed
     this.settings.onChange.pipe(throttleTime(400)).subscribe(() => {
-      // Update the display fn
       const attributes = this.settings.getFieldDisplayAttributes('department');
-      departmentDefinition.autocomplete.attributes = attributes;
-      departmentDefinition.autocomplete.displayWith = (value) => (value && joinPropertiesPath(value, attributes)) || undefined;
+      if (!equals(departmentDefinition.autocomplete.attributes, attributes)) {
+        departmentDefinition.autocomplete.attributes = attributes;
+        departmentDefinition.autocomplete.displayWith = (value) => (value && joinPropertiesPath(value, attributes)) || undefined;
+      }
     });
   }
 

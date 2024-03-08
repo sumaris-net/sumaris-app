@@ -36,7 +36,6 @@ import {
 import { BehaviorSubject, EMPTY, firstValueFrom, Observable } from 'rxjs';
 import { Landing } from './landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { DataCommonFragments, DataFragments } from '../trip/trip.queries';
 import { filter, map } from 'rxjs/operators';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { Sample } from '../sample/sample.model';
@@ -67,13 +66,13 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -94,7 +93,6 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
   translatorOptions?: FormErrorTranslatorOptions;
-  initialPmfms?: DenormalizedPmfmStrategy[];
 }
 
 export const LandingFragments = {
@@ -317,7 +315,7 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => (n1.rankOrder === n2.r
 
 @Injectable({ providedIn: 'root' })
 export class LandingService
-  extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceLoadOptions>
+  extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceWatchOptions, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>, IEntityService<Landing>
 {
   protected loading = false;
@@ -1341,14 +1339,11 @@ export class LandingService
     // Load the strategy from measurementValues (if exists)
     if (!opts.strategy) {
       const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
-      opts.strategy =
-        (isNotNilOrBlank(strategyLabel) && (await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id }))) || null;
-      if (opts.strategy) {
-        // TODO check this
-        //opts.withStrategy = true;
-      } else {
-        opts.withStrategy = false;
-        console.debug(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
+      if (isNotNilOrBlank(strategyLabel)) {
+        opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id });
+      }
+      if (!opts.strategy) {
+        console.warn(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
       }
     }
 
@@ -1395,7 +1390,7 @@ export class LandingService
 
         // Update images
         if (target.images && source.images) {
-          this.copyIdAndUpdateDateOnImages(source, source.images, target.images); // recursive call
+          this.copyIdAndUpdateDateOnImages(source.images, target.images); // recursive call
         }
       });
     }
@@ -1407,7 +1402,7 @@ export class LandingService
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnImages(savedSample: Sample, sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
+  protected copyIdAndUpdateDateOnImages(sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
     if (sources && targets && sources.length === targets.length && sources.length > 0) {
       sources.forEach((source, index) => {
         // Find by index, as order should not be changed during saving
@@ -1427,7 +1422,7 @@ export class LandingService
 
   protected computeRankOrderAndSort(data: Landing[], offset: number, total: number, sortBy: string, sortDirection: string, filter?: LandingFilter) {
     // DEBUG
-    console.debug('[landing-service] DEV - filtering landings - sortBy=' + sortBy);
+    console.debug('[landing-service] Computing rankOrder, then sort by ' + sortBy);
 
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {

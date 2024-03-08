@@ -7,6 +7,7 @@ import {
   ConfigService,
   FilesUtils,
   HammerSwipeEvent,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -45,6 +46,7 @@ export class VesselsPage implements OnInit, OnDestroy {
   mobile: boolean;
   enableReplacement = false;
   enableFileImport = false;
+  vesselTypeId: number;
 
   private _subscription = new Subscription();
 
@@ -87,7 +89,11 @@ export class VesselsPage implements OnInit, OnDestroy {
       this.configService.config.subscribe((config) => {
         this.enableReplacement = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
         this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.REFERENTIAL_VESSEL_IMPORT_ENABLE);
-        this.markForCheck();
+        this.vesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
+        this.table.vesselTypeId = this.vesselTypeId;
+        this.table.showVesselTypeFilter = isNil(this.vesselTypeId);
+        this.table.showVesselTypeColumn = isNil(this.vesselTypeId);
+        this.table.markAsReady();
       })
     );
   }
@@ -125,7 +131,7 @@ export class VesselsPage implements OnInit, OnDestroy {
           onlyWithRegistration: true,
         },
         disableStatusFilter: true,
-        showVesselTypeColumn: true,
+        showVesselTypeColumn: isNil(this.vesselTypeId),
         showBasePortLocationColumn: true,
       },
       keyboardClose: true,

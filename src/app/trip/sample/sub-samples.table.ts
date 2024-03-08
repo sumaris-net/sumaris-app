@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { SubSampleValidatorService } from './sub-sample.validator';
@@ -26,6 +26,8 @@ import { SampleFilter } from './sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
+import { RxState } from '@rx-angular/state';
+import { SamplesTableState } from '@app/trip/sample/samples.table';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -34,7 +36,7 @@ export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   selector: 'app-sub-samples-table',
   templateUrl: 'sub-samples.table.html',
   styleUrls: ['sub-samples.table.scss'],
-  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }],
+  providers: [{ provide: ValidatorService, useExisting: SubSampleValidatorService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> implements OnInit, OnDestroy {
@@ -44,9 +46,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   onParentChanges = new Subject<void>();
   displayParentPmfm: IPmfm;
 
-  @Input() showError = true;
   @Input() showPmfmDetails = false;
-  @Input() compactFields = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
 
   @Input()
@@ -62,19 +62,16 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
   set value(data: Sample[]) {
-    this.setValue(data);
+    this.memoryDataService.value = data;
   }
 
   get value(): Sample[] {
-    return this.getValue();
+    return this.memoryDataService.value;
   }
 
   @Input() showLabelColumn = false;
-  @Input() showToolbar = true;
   @Input() modalOptions: Partial<ISubSampleModalOptions>;
-  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() useSticky = false;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 
@@ -96,20 +93,25 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        initialState: <SamplesTableState>{
+          requiredStrategy: false,
+          acquisitionLevel: null, // Avoid load to early. Need sub classes to set it
+        },
       }
     );
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
-    this.errorTranslatorOptions = { controlPathTranslator: this, separator: '\n' };
+    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
 
     // Default value
     this.showCommentsColumn = !this.mobile;
 
     // DEBUG
+    //this.debug = !environment.production;
     this.logPrefix = '[sub-samples-table] ';
-    this.debug = !environment.production;
+    this.acquisitionLevel;
   }
 
   ngOnInit() {
@@ -128,8 +130,8 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // Compute parent, when parents or pmfms changed
     this.registerSubscription(
       merge(
-        this.onParentChanges.pipe(mergeMap(() => this.$pmfms)),
-        this.$pmfms.pipe(
+        this.onParentChanges.pipe(mergeMap(() => this.pmfms$)),
+        this.pmfms$.pipe(
           filter(isNotEmptyArray),
           distinctUntilChanged(),
           tap((pmfms) => this.onPmfmsLoaded(pmfms))
@@ -186,15 +188,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     }
   }
 
-  /**
-   * Allow to set value
-   *
-   * @param data
-   */
-  setValue(data: Sample[]) {
-    this.memoryDataService.value = data;
-  }
-
   async addOrUpdateEntityToTable(subSample: Sample) {
     if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)) {
       await this.addEntityToTable(subSample);
@@ -206,7 +199,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[sub-samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject });
+    const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject });
 
     const isNew = !dataToOpen && true;
     if (isNew) {
@@ -355,7 +348,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -372,10 +365,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
       this.editedRow = null;
     }
     return true;
-  }
-
-  protected getValue(): Sample[] {
-    return this.memoryDataService.value;
   }
 
   protected prepareEntityToSave(sample: Sample) {

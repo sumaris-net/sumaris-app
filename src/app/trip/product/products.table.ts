@@ -8,11 +8,11 @@ import {
   LocalSettingsService,
   referentialToString,
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { ProductValidatorService } from './product.validator';
 import { IWithProductsEntity, Product, ProductFilter } from './product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BehaviorSubject } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { IProductSaleModalOptions, ProductSaleModal } from '../sale/product-sale.modal';
 import { SaleProductUtils } from '../sale/sale-product.model';
@@ -22,9 +22,15 @@ import { ISamplesModalOptions, SamplesModal } from '../sample/samples.modal';
 import { IProductModalOptions, ProductModal } from '@app/trip/product/product.modal';
 import { mergeMap } from 'rxjs/operators';
 import moment from 'moment';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
+
+export interface ProductsTableState extends BaseMeasurementsTableState {
+  parents: IWithProductsEntity<any>[];
+}
 
 @Component({
   selector: 'app-products-table',
@@ -38,20 +44,22 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
           equals: Product.equals,
         }),
     },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsTable
-  extends BaseMeasurementsTable<Product, ProductFilter, InMemoryEntitiesService<Product, ProductFilter>, ProductValidatorService>
+  extends BaseMeasurementsTable<Product, ProductFilter, InMemoryEntitiesService<Product, ProductFilter>, ProductValidatorService, ProductsTableState>
   implements OnInit, OnDestroy
 {
-  @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
-  @Input() parentAttributes: string[];
+  private productSalePmfms: DenormalizedPmfmStrategy[];
 
-  @Input() showToolbar = true;
+  @RxStateSelect() protected parents$: Observable<IWithProductsEntity<any>[]>;
+
+  @Input() @RxStateProperty() parents: IWithProductsEntity<any>[];
+  @Input() parentAttributes: string[];
   @Input() showIdColumn = true;
   @Input() showActionButtons = true;
-  @Input() useSticky = false;
 
   @Input()
   set showParent(value: boolean) {
@@ -84,8 +92,6 @@ export class ProductsTable
     return this.memoryDataService.value;
   }
 
-  private productSalePmfms: DenormalizedPmfmStrategy[];
-
   constructor(
     injector: Injector,
     settings: LocalSettingsService,
@@ -103,10 +109,11 @@ export class ProductsTable
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
-    // Set default acquisition level
+    // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
+    this.compactFields = false;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -117,7 +124,7 @@ export class ProductsTable
 
     if (this.showParent && this.parentAttributes) {
       this.registerAutocompleteField('parent', {
-        items: this.$parents,
+        items: this.parents$,
         attributes: this.parentAttributes,
         columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
         columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
@@ -133,7 +140,7 @@ export class ProductsTable
     });
 
     this.registerSubscription(
-      filterNotNil(this.$pmfms)
+      filterNotNil(this.pmfms$)
         // if main pmfms are loaded, then other pmfm can be loaded
         .pipe(mergeMap(() => this.programRefService.loadProgramPmfms(this.programLabel, { acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE })))
         .subscribe((productSalePmfms) => {
@@ -195,7 +202,7 @@ export class ProductsTable
 
     const samples = row.currentData.samples || [];
     const taxonGroup = row.currentData.taxonGroup;
-    const title = await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', { label: referentialToString(taxonGroup) }).toPromise();
+    const title = await firstValueFrom(this.translate.get('TRIP.SAMPLE.EDIT.TITLE', { label: referentialToString(taxonGroup) }));
 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
@@ -279,8 +286,8 @@ export class ProductsTable
 
       if (this.filter?.parent) {
         dataToOpen.parent = this.filter.parent;
-      } else if (this.$parents.value?.length === 1) {
-        dataToOpen.parent = this.$parents.value[0];
+      } else if (this.parents?.length === 1) {
+        dataToOpen.parent = this.parents[0];
       }
     }
 
@@ -292,7 +299,7 @@ export class ProductsTable
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         data: dataToOpen,
-        parents: this.$parents.value || null,
+        parents: this.parents || null,
         parentAttributes: this.parentAttributes,
         disabled: this.disabled,
         mobile: this.mobile,
@@ -331,8 +338,8 @@ export class ProductsTable
     if (row.currentData && !row.currentData.parent) {
       if (this.filter?.parent) {
         row.validator.patchValue({ parent: this.filter.parent });
-      } else if (this.$parents.value?.length === 1) {
-        row.validator.patchValue({ parent: this.$parents.value[0] });
+      } else if (this.parents?.length === 1) {
+        row.validator.patchValue({ parent: this.parents[0] });
       }
     }
   }

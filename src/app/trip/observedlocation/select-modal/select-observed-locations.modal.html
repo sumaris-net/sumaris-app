@@ -1,29 +1,27 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()" visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{ 'OBSERVED_LOCATION.SELECT_MODAL.TITLE' | translate }}
-    </ion-title>
-
-    <ion-buttons slot="end" [class.cdk-visually-hidden]="!tabSearch.isActive">
-      <!-- Refresh -->
-      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="table?.onRefresh.emit()">
-        <mat-icon>refresh</mat-icon>
-      </button>
-
-      <ion-button *ngIf="(loadingSubject | async) === false && hasSelection()" (click)="close($event)" visible-xs visible-sm visible-mobile>
-        <ion-icon name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-modal-toolbar
+  color="secondary"
+  [title]="'OBSERVED_LOCATION.SELECT_MODAL.TITLE' | translate"
+  (cancel)="cancel()"
+  (validate)="close($event)"
+  [showSpinner]="loading"
+  [canValidate]="allowMultipleSelection && !loading && hasSelection()"
+>
+  <ion-buttons slot="end" [class.cdk-visually-hidden]="!tabSearch.isActive">
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="table?.onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </ion-buttons>
+</app-modal-toolbar>
 
 <ion-content class="ion-no-padding" scroll-y="false">
+  <app-debug *ngIf="debug">
+    table.ready: {{ table.readySubject | async }}
+    <br />
+    table.loading: {{ table.loadingSubject | async }}
+    <br />
+  </app-debug>
+
   <!-- error -->
   <ion-item *ngIf="table.error" visible-xs visible-sm visible-mobile>
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>

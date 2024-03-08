@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
-import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
+import {
+  AbstractBatchesTableConfig,
+  AbstractBatchesTableState,
+  BATCH_RESERVED_END_COLUMNS,
+  BATCH_RESERVED_START_COLUMNS,
+} from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -40,15 +45,15 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
-import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxState } from '@rx-angular/state';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -118,25 +123,27 @@ declare interface GroupColumnDefinition {
   qvIndex: number;
   colSpan?: number;
 }
-interface BatchGroupsTableState {
+export interface BatchGroupsTableState extends AbstractBatchesTableState {
   showAutoFillButton: boolean;
   showSamplingBatchColumns: boolean;
-  individualCountColumns: boolean;
+  showIndividualCountColumns: boolean;
+  allowSubBatches: boolean;
 }
 
 @Component({
   selector: 'app-batch-groups-table',
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
-  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class BatchGroupsTable extends AbstractBatchesTable<
   BatchGroup,
   BatchFilter,
   InMemoryEntitiesService<BatchGroup, BatchFilter>,
   BatchGroupValidatorService,
-  AbstractBatchesTableConfig<BatchGroup>,
+  BatchGroupsTableState,
+  AbstractBatchesTableConfig<BatchGroup, BatchGroupsTableState>,
   BatchGroupValidatorOptions
 > {
   static BASE_DYNAMIC_COLUMNS: Partial<BatchGroupColumnDefinition>[] = [
@@ -216,13 +223,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
   private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
 
+  @RxStateSelect() protected showSamplingBatchColumns$: Observable<boolean>;
+  @RxStateSelect() showAutoFillButton$: Observable<boolean>;
+
   weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
-  showSamplingBatchColumns$ = this._state.select('showSamplingBatchColumns');
-  showAutoFillButton$ = this._state.select('showAutoFillButton');
-
-  showToolbar = true; // False only if no group columns AND mobile
   groupColumns: GroupColumnDefinition[];
   groupColumnNames: string[];
   groupColumnStartColSpan: number;
@@ -267,19 +273,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
-  @Input() set showAutoFillButton(value: boolean) {
-    this._state.set('showAutoFillButton', (_) => value);
-  }
-  get showAutoFillButton(): boolean {
-    return this._state.get('showAutoFillButton');
-  }
-
-  @Input() set showSamplingBatchColumns(value: boolean) {
-    this._state.set('showSamplingBatchColumns', (_) => value);
-  }
-  get showSamplingBatchColumns(): boolean {
-    return this._state.get('showSamplingBatchColumns');
-  }
 
   @Input() set showWeightColumns(value: boolean) {
     if (this._showWeightColumns !== value) {
@@ -305,27 +298,23 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.setShowColumn(pmfmId.toString(), show);
   }
 
-  @Input() showError = true;
-  @Input() allowSubBatches = true;
+  @Input() allowQvPmfmGroup = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
   @Input() taxonGroupsNoLanding: string[] = [];
 
-  @Input() set showIndividualCountColumns(value: boolean) {
-    this._state.set('individualCountColumns', (_) => value);
-  }
-  get showIndividualCountColumns(): boolean {
-    return this._state.get('individualCountColumns');
-  }
+  @Input() @RxStateProperty() autoFill = false;
+  @Input() @RxStateProperty() allowSubBatches = true;
+  @Input() @RxStateProperty() showAutoFillButton: boolean;
+  @Input() @RxStateProperty() showSamplingBatchColumns: boolean;
+  @Input() @RxStateProperty() showIndividualCountColumns: boolean;
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
   constructor(
     injector: Injector,
     validatorService: BatchGroupValidatorService,
-    protected context: TripContextService,
-    protected pmfmNamePipe: PmfmNamePipe,
-    protected _state: RxState<BatchGroupsTableState>
+    protected context: TripContextService
   ) {
     super(
       injector,
@@ -682,6 +671,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (isNotNilOrNaN(batch.weight?.value)) {
       batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
+      if (!weightPmfm) {
+        throw new Error('No Weight PMFM found in the strategy. Cannot save batch');
+      }
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value?.toString();
     }
 
@@ -730,6 +722,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   async onSubBatchesClick(event: Event, row: TableElement<BatchGroup>, opts?: { showParent?: boolean; emitLoaded?: boolean }) {
+    if (this.loading) return; // Avoid to be called twice
+
     event?.preventDefault();
     event?.stopPropagation(); // Avoid to send event to clicRow()
 
@@ -759,10 +753,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     if (!pmfms) return pmfms; // Skip (no pmfms)
 
-    super.mapPmfms(pmfms); // Should find the qvPmfm
+    super.mapPmfms(pmfms); // Need to find weight pmfms
 
-    // Find the first qualitative PMFM
-    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
+    // Find the first qualitative PMFM (if QV pmfm group has been enabled)
+    this.qvPmfm = this.allowQvPmfmGroup ? BatchGroupUtils.getQvPmfm(pmfms) : undefined;
 
     // Compute species pmfms (at species batch level)
     if (this.qvPmfm) {
@@ -777,7 +771,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Init dynamic columns
     this.computeDynamicColumns(this.qvPmfm, { cache: false });
 
-    //Additional pmfms managed by validator on children batch
+    // Additional pmfms managed by validator on children batch
     return this._speciesPmfms;
   }
 
@@ -831,6 +825,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       } else {
         // TODO create weightMethodForm when no QV Pmfm
         console.warn('[batch-groups-table] TODO: create weightMethodForm, when no QV Pmfm');
+        this.weightMethodForm = this.formBuilder.group({ [-1]: [false, Validators.required] });
       }
     }
 
@@ -1113,19 +1108,28 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       showParent?: boolean;
     }
   ): Promise<SubBatch[] | undefined> {
+    const stopSubject = new Subject<void>();
+    const hasTopModal = !!(await this.modalCtrl.getTop());
+
+    if (!hasTopModal) {
+      this.markAsLoading();
+      stopSubject.subscribe(() => this.markAsLoaded());
+    }
+
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
-    // FIXME: opts.showParent=true not working
+    // FIXME: opts.showParentGroup=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    const stopSubject = new Subject<void>();
-
-    const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
       componentProps: <ISubBatchesModalOptions>{
         programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategyId,
+        requiredGear: this.requiredGear,
+        gearId: this.gearId,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
         showParentGroup,
@@ -1240,6 +1244,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
+        debug: this.debug,
         usageMode: this.usageMode,
         // Override using given options
         ...this.modalOptions,
@@ -1634,10 +1639,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   getDebugData(type: 'rowValidator'): any {
     switch (type) {
-      case 'rowValidator':
+      case 'rowValidator': {
         const form = this.validatorService.getRowValidator();
         form.disable();
         return form;
+      }
     }
   }
 }

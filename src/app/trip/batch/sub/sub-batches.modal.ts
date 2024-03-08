@@ -8,7 +8,6 @@ import {
   firstNotNilPromise,
   isEmptyArray,
   isNil,
-  isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   PlatformService,
@@ -30,6 +29,7 @@ import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
+import { RxState } from '@rx-angular/state';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -49,11 +49,18 @@ export interface ISubBatchesModalOptions {
   showBluetoothIcon: boolean;
 
   programLabel: string;
+  requiredStrategy: boolean;
+  strategyId: number;
+  requiredGear: boolean;
+  gearId: number;
+
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
   data: SubBatch[] | Observable<SubBatch[]>;
   onNewParentClick: () => Promise<BatchGroup | undefined>;
+
+  canDebug: boolean;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -75,6 +82,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
         reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
       }),
     },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -83,7 +91,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
   private _isOnFieldMode: boolean;
-  protected $title = new Subject<string>();
+  protected titleSubject = new Subject<string>();
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
 
@@ -117,6 +125,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() mobile: boolean;
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
+  @Input() canDebug: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -149,12 +158,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // default values
     this.showCommentsColumn = false;
     this.showParentColumn = false;
-
-    // TODO: for DEV only ---
-    this.debug = !environment.production;
+    this.settingsId = 'sub-batches-modal';
   }
 
   ngOnInit() {
+    this.canDebug = toBoolean(this.canDebug, !environment.production);
+    this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
+
     if (this.disabled) {
       this.showForm = false;
       this.disable();
@@ -179,7 +189,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async load() {
     try {
       // Wait for table pmfms
-      const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject, stopError: false });
+      const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject, stopError: false });
 
       await this.initForm(pmfms);
 
@@ -201,7 +211,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Configure form's properties
     this.form.qvPmfm = this.qvPmfm;
-    await this.form.setPmfms(pmfms);
 
     // Mark form as ready
     this.form.markAsReady();
@@ -294,11 +303,29 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
-    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
-    if (this.debug && this.form && this.form.dirty && this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
+    // Form is dirty
+    if (this.form.dirty) {
+      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+
+      // User cancelled
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
+        return;
+      }
+
+      // Is user confirm: save before closing
+      if (saveBeforeLeave === true) {
+        const done = await this.doSubmitForm(event);
+        if (!done) {
+          if (this.debug && this.form.invalid) {
+            AppFormUtils.logFormErrors(this.form.form, '[sub-batch-modal] ');
+          }
+          return;
+        }
+      }
       // Continue
     }
+
+    if (this.debug) console.debug('[sub-batch-modal] Closing modal...');
 
     this.markAsLoading();
     this.resetError();
@@ -358,7 +385,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     } else {
       titlePrefix = '';
     }
-    this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+    this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
   }
 
   protected async onParentChanges(parent?: BatchGroup) {
@@ -523,4 +550,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
   }
+
+  protected async devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
+    await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
+  }
+
+  getFormErrors = AppFormUtils.getFormErrors;
 }

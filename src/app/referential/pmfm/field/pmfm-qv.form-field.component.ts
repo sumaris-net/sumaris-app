@@ -17,28 +17,29 @@ import {
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
+import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormControl, Validators } from '@angular/forms';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 import {
+  AppFloatLabelType,
   AppFormUtils,
   focusInput,
   InputElement,
   IReferentialRef,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  selectInputRange,
   SharedValidators,
   sort,
   StatusIds,
   suggestFromArray,
   toBoolean,
   toNumber,
-  selectInputRange,
-  isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
@@ -91,7 +92,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() placeholder: string;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() required: boolean;
   @Input() readonly = false;
@@ -119,8 +120,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('focus') focused = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('click') clicked = new EventEmitter<Event>();
 
   @ViewChild('matInput') matInput: ElementRef;

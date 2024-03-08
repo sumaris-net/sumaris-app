@@ -1,0 +1,72 @@
+// --------------------------------------------------
+// Material Table
+// --------------------------------------------------
+.table-container {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.mat-mdc-table {
+  --mat-table-background-color: var(--ion-background-color);
+  --mat-table-row-item-label-text-color: var(--ion-text-color);
+  --mat-table-row-item-outline-color: var(--ion-border-color);
+
+  .mat-mdc-row {
+    overflow: hidden;
+  }
+
+  .mat-mdc-row.mat-row-selected {
+    .mat-mdc-cell .visible-selected-row {
+      visibility: visible !important;
+    }
+  }
+
+  .mat-mdc-header-row,
+  .mat-mdc-row,
+  .mat-mdc-footer-row {
+
+    .mat-column-select {
+      width: 50px; // Force to 50px, because sticky column must have fixed width
+    }
+
+    .mat-mdc-header-cell,
+    .mat-mdc-cell,
+    .mat-mdc-footer-cell {
+
+      // Remove right border, of sticky columns
+      &.mat-mdc-table-sticky-border-elem-left {
+        border-right: 0 !important; // 1px solid #{$app-table-border-color};
+      }
+    }
+  }
+
+  .mat-mdc-header-row  .mat-mdc-header-cell {
+    --mat-cell-overflow: hidden;
+
+    &.mat-column-pmfm .mat-sort-header-content {
+      max-width: 90%;
+    }
+
+    .pmfm-details {
+      margin-top: 4px;
+      font-size: 90% !important;
+      max-width: 100%;
+      overflow: var(--mat-cell-overflow);
+    }
+
+    /* Pour les navigateurs supportant la propriété line-clamp (WebKit, Blink et Firefox récent) */
+    @supports (-webkit-line-clamp: 5) {
+      .pmfm-details {
+        display: -webkit-box;
+        -webkit-line-clamp: 5; /* Affiche 3 lignes puis coupe si besoin avec '...' */
+        -webkit-box-orient: vertical;
+
+        &:hover {
+          -webkit-line-clamp: 10;
+        }
+      }
+    }
+  }
+
+}
+

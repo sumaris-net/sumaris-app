@@ -4,6 +4,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Property } from '@sumaris-net/ngx-components';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { FloatLabelType } from '@angular/material/form-field';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-sampling-ratio-test',

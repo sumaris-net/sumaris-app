@@ -57,7 +57,6 @@ const CacheKeys = {
 };
 
 @Injectable({ providedIn: 'root' })
-// @ts-ignore
 export class RoundWeightConversionRefService
   extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionRefFilter>
   implements IEntityService<RoundWeightConversionRef>

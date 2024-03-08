@@ -4,6 +4,8 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AccountService,
   AppErrorWithDetails,
@@ -628,9 +630,10 @@ export abstract class AppBaseReport<
       throw new Error('Failed to upload report data!');
     }
 
-    await this.fileTransferService.shareAsPublic(fileName).then();
+    await this.fileTransferService.shareAsPublic(fileName);
 
-    return `${fileName.replace(/\.json$/, '')}`;
+    // return the UUID
+    return fileName.replace(/\.json$/, '');
   }
 
   protected getExportEncoding(format = 'json'): string {

@@ -10,6 +10,7 @@ import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface ISelectPhysicalGearModalOptions {
+  strategyId?: number;
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
@@ -33,10 +34,11 @@ export interface ISelectPhysicalGearModalOptions {
 export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModalOptions {
   readonly mobile: boolean;
 
-  @Input() allowMultiple: boolean;
-  @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
+  @Input() strategyId: number;
+  @Input() filter: PhysicalGearFilter | null = null;
+  @Input() allowMultiple: boolean;
   @Input() distinctBy: string[];
   @Input() withOffline: boolean;
   @Input() showGearColumn: boolean;

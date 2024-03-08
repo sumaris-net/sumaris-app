@@ -241,13 +241,13 @@ export class ProgramService
 
   async existsByLabel(
     label: string,
+    filter?: { excludedIds: number[] },
     opts?: {
-      excludedIds?: number[];
       fetchPolicy?: FetchPolicy;
     }
   ): Promise<boolean> {
     if (isNil(label)) return false;
-    return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
+    return await this.referentialRefService.existsByLabel(label, { ...filter, entityName: 'Program' }, opts);
   }
 
   async save(entity: Program, opts?: ProgramSaveOptions): Promise<Program> {

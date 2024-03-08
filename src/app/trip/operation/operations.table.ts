@@ -48,8 +48,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
   @Input() programLabel: string;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
@@ -80,8 +78,10 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       switch (sortActive) {
         case 'physicalGear':
         //return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+        // eslint-disable-next-line no-fallthrough
         case 'targetSpecies':
         //return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        // eslint-disable-next-line no-fallthrough
         case 'fishingArea':
           //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
           // Fix issue on rankOrder computation
@@ -95,8 +95,10 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       switch (sortActive) {
         case 'targetSpecies':
         //return 'metier';
+        // eslint-disable-next-line no-fallthrough
         case 'fishingArea':
         //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        // eslint-disable-next-line no-fallthrough
         case 'physicalGear':
           // Fix issue on rankOrder computation
           return 'id';

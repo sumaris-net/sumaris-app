@@ -1,22 +1,24 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
+import { ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import {
   AccountService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
+  isEmptyArray,
   isNil,
   isNotNil,
   isNotNilOrBlank,
+  Referential,
+  ReferentialRef,
   SharedValidators,
 } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from './biological-sampling.validators';
-import { LandingPage } from '../landing.page';
+import { LandingPage, LandingPageState } from '../landing.page';
 import { Landing } from '../landing.model';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -24,26 +26,38 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Trip } from '@app/trip/trip/trip.model';
+import { debounceTime, map } from 'rxjs/operators';
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { Parameter } from '@app/referential/services/model/parameter.model';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
-import { debounceTime } from 'rxjs/operators';
+
+export interface SamplingLandingPageState extends LandingPageState {
+  ageParameterIds: number[];
+  ageFractions: ReferentialRef[];
+}
 
 @Component({
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
   styleUrls: ['./sampling-landing.page.scss'],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: SamplingLandingPage }, RxState],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SamplingLandingPage extends LandingPage implements OnInit, AfterViewInit {
+export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> implements OnInit, AfterViewInit {
   onRefreshEffort = new EventEmitter<any>();
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
+  fractionDisplayAttributes: string[];
+
+  readonly ageFractions$ = this._state.select('ageFractions');
 
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
-    protected pmfmService: PmfmService,
     protected accountService: AccountService,
     protected landingService: LandingService
   ) {
@@ -52,6 +66,11 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
       enableListenChanges: false,
     });
     this.i18nContext.suffix = 'SAMPLING.';
+    this.fractionDisplayAttributes = this.settings.getFieldDisplayAttributes('fraction', ['name']);
+    this.strategyResolution = 'user-select';
+
+    // FOR DEV ONLY ----
+    this.logPrefix = '[sampling-landing-page] ';
   }
 
   ngOnInit() {
@@ -61,14 +80,45 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
 
-    this.registerSubscription(this.onRefreshEffort.pipe(debounceTime(250)).subscribe((strategy) => this.checkStrategyEffort(strategy)));
+    this._state.hold(
+      this.onRefreshEffort.pipe(
+        debounceTime(250),
+        map(() => this.strategy)
+      ),
+      (strategy) => this.checkStrategyEffort(strategy)
+    );
+
+    // Load age parameter ids
+    this._state.connect(
+      'ageParameterIds',
+      of<string[]>(ParameterLabelGroups.AGE).pipe(
+        mergeMap((parameterLabels) => this.referentialRefService.loadAllByLabels(parameterLabels, Parameter.ENTITY_NAME)),
+        map((parameters) => parameters.map((p) => p.id))
+      )
+    );
+
+    // Load strategy's age fractions
+    this._state.connect(
+      'ageFractions',
+      this._state
+        .select(['strategy', 'ageParameterIds'], (s) => s)
+        .pipe(
+          mergeMap(async ({ strategy, ageParameterIds }) => {
+            const ageFractionIds = (strategy?.denormalizedPmfms || [])
+              .filter((pmfm) => isNotNil(pmfm.parameterId) && ageParameterIds.includes(pmfm.parameterId))
+              .map((pmfm) => pmfm.fractionId);
+
+            if (isEmptyArray(ageFractionIds)) return [];
+
+            const sortBy = this.fractionDisplayAttributes?.[0] || 'name';
+            return this.referentialRefService.loadAllByIds(ageFractionIds, 'Fraction', sortBy as keyof Referential<any>, 'asc');
+          })
+        )
+    );
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
-
-    // Set sample table acquisition level
-    this.samplesTable.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
     // Wait referential ready (before reading enumerations)
     this.referentialRefService
@@ -92,8 +142,17 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
 
   /* -- protected functions -- */
 
-  protected async setProgram(program: Program): Promise<void> {
-    return super.setProgram(program);
+  // protected registerForms() {
+  //   this.addChildForms([this.landingForm, this.samplesTable]);
+  // }
+
+  protected loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
+    if (this.debug) console.debug(this.logPrefix + 'Loading strategy, using filter:', strategyFilter);
+    return this.strategyRefService.loadByFilter(strategyFilter, {
+      failIfMissing: true,
+      fullLoad: true, // Need taxon names
+      debug: this.debug,
+    });
   }
 
   updateViewState(data: Landing, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -120,6 +179,10 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
     }
   }
 
+  protected async setProgram(program: Program): Promise<void> {
+    await super.setProgram(program);
+  }
+
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
 
@@ -127,7 +190,8 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
   }
 
   protected async checkStrategyEffort(strategy?: Strategy) {
-    strategy = strategy || this.landingForm.strategyControl?.value;
+    strategy = strategy || this.landingForm?.strategyControl?.value;
+    console.debug(this.logPrefix + 'Loading strategy effort...');
 
     try {
       const [program] = await Promise.all([
@@ -144,10 +208,11 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
         // If no date (e.g. no parent selected yet) : skip
         if (!dateTime) {
           // DEBUG
-          console.debug('[sampling-landing-page] Skip strategy effort loaded: no date (no parent entity)');
+          console.debug(this.logPrefix + 'Skip strategy effort loaded: no date found (in form and parent entity)');
           return;
         }
 
+        const startTime = Date.now();
         // Add validator errors on expected effort for this sampleRow (issue #175)
         const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, dateTime, {
           // Not need realized effort (issue #492)
@@ -155,7 +220,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
         });
 
         // DEBUG
-        console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
+        console.debug(this.logPrefix + `Strategy effort loaded in ${Date.now() - startTime}ms `, strategyEffort);
 
         // No effort defined
         if (!strategyEffort) {
@@ -193,7 +258,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
       }
     } catch (err) {
       const error = err?.message || err;
-      console.error('[sampling-landing-page] Error while checking strategy effort', err);
+      console.error(this.logPrefix + 'Error while checking strategy effort', err);
       this.setError(error);
     } finally {
       this.markForCheck();
@@ -268,7 +333,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
       {
         const samplePrefix = strategyLabel + '-';
         let prefixCount = 0;
-        console.info(`[sampling-landing-page] Removing prefix '${samplePrefix}' in samples TAG_ID...`);
+        console.info(`${this.logPrefix}Removing prefix '${samplePrefix}' in samples TAG_ID...`);
         (data.samples || []).map((sample) => {
           const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
           if (tagId?.startsWith(samplePrefix)) {
@@ -282,7 +347,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
           const invalidTagIds = data.samples
             .map((sample) => sample.measurementValues?.[PmfmIds.TAG_ID])
             .filter((tagId) => !tagId || tagId.length > 4 || tagId.indexOf('-') !== -1);
-          console.warn(`[sampling-landing-page] ${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
+          console.warn(`${this.logPrefix}${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
         }
       }
     }
@@ -304,7 +369,7 @@ export class SamplingLandingPage extends LandingPage implements OnInit, AfterVie
   }
 
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
-    console.debug('[sampling-landing-page] Adding row validator');
+    console.debug(this.logPrefix + 'Adding row validator');
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {
       markForCheck: () => this.markForCheck(),

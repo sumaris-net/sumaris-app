@@ -65,6 +65,7 @@ const AggregatedLandingFragment = gql`
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.lightReferential}
+  ${ReferentialFragments.location}
   ${VesselActivityFragment}
 `;
 
@@ -294,7 +295,7 @@ export class AggregatedLandingService
                 vesselActivity.observedLocationId = savedVesselActivity.observedLocationId;
                 vesselActivity.landingId = savedVesselActivity.landingId;
                 if (isNotNil(vesselActivity.tripId) && vesselActivity.tripId !== savedVesselActivity.tripId) {
-                  console.warn(`/!\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`);
+                  console.warn(`/!\\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`);
                 }
                 vesselActivity.tripId = savedVesselActivity.tripId;
               }

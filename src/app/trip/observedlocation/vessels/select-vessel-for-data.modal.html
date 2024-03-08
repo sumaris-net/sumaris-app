@@ -1,29 +1,5 @@
 <app-modal-toolbar color="secondary" (cancel)="cancel()" [canValidate]="canValidate" (validate)="close($event)">
   <ion-title translate>OBSERVED_LOCATION.SELECT_VESSEL_MODAL.TITLE</ion-title>
-
-  <ion-buttons slot="end">
-    <!-- vessel table options -->
-    <ng-container *ngIf="selectedTabIndex === 1">
-      <!--&lt;!&ndash; reset filter &ndash;&gt;
-      <button mat-icon-button (click)="vesselsTable.resetFilter()"
-              *ngIf="vesselsTable.filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
-      </button>
-
-      &lt;!&ndash; show filter &ndash;&gt;
-      <button mat-icon-button (click)="vesselsTable.filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="vesselsTable.filterCriteriaCount; else emptyFilter"
-                  [matBadge]="vesselsTable.filterCriteriaCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">filter_list_alt</mat-icon>
-        <ng-template #emptyFilter>
-          <mat-icon>filter_list_alt</mat-icon>
-        </ng-template>
-      </button>-->
-    </ng-container>
-  </ion-buttons>
 </app-modal-toolbar>
 
 <ion-content class="ion-no-padding" scroll-y="false">
@@ -38,6 +14,9 @@
 
       <app-landings-table
         #landingsTable
+        [programLabel]="programLabel"
+        [requiredStrategy]="requiredStrategy"
+        [strategyId]="strategyId"
         [showDateTimeColumn]="true"
         [showVesselTypeColumn]="showVesselTypeColumn"
         [showBasePortLocationColumn]="showBasePortLocationColumn"
@@ -52,6 +31,7 @@
         [canDelete]="false"
         (onOpenRow)="selectRow($event)"
         (onNewRow)="close($event)"
+        [debug]="debug"
       ></app-landings-table>
     </mat-tab>
 
@@ -73,6 +53,8 @@
         [showToolbar]="true"
         [showSearchbar]="true"
         [showVesselTypeColumn]="showVesselTypeColumn"
+        [showVesselTypeFilter]="showVesselTypeFilter"
+        [vesselTypeId]="vesselTypeId"
         [restoreFilterSources]="false"
         [showOfflineMode]="showOfflineVessels"
         [showBasePortLocationColumn]="showBasePortLocationColumn"

@@ -68,12 +68,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-          [tabIndex]="-1"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -139,8 +134,8 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
+    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label
           [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }"
         ></ion-label>
@@ -148,8 +143,8 @@
       <td
         mat-cell
         *matCellDef="let row"
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-cell-computed]="pmfm | isComputedPmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
         (click)="focusColumn = pmfm.id.toString()"
       >
         <app-pmfm-field
@@ -241,10 +236,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-selected]="row.editing"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"

@@ -27,13 +27,7 @@
     </button>
 
     <!-- Refresh (debug only) -->
-    <button
-      mat-icon-button
-      color="light"
-      *ngIf="debug && !selection.hasValue()"
-      [title]="'COMMON.BTN_REFRESH' | translate"
-      (click)="onRefresh.emit()"
-    >
+    <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
   </ng-container>
@@ -116,7 +110,7 @@
 <mat-menu #tagIdMenu="matMenu">
   <ng-template matMenuContent>
     <ng-container *rxLet="tagIdGenerationMode; let mode">
-      <button mat-menu-item (click)="setTagIdGenerationMode('remote')" [disabled]="networkService.offline">
+      <button mat-menu-item (click)="setTagIdGenerationMode('remote')" [disabled]="network.offline">
         <ion-icon [name]="mode === 'remote' ? 'checkmark' : ''"></ion-icon>
         {{ 'TRIP.SAMPLE.TABLE.TAG_ID_GENERATION_MODE.REMOTE' | translate }}
       </button>
@@ -141,7 +135,7 @@
 <div
   #tableContainer
   class="table-container"
-  *rxIf="$pmfms; let pmfms; strategy: 'native'"
+  *rxIf="pmfms$; let pmfms; strategy: 'native'"
   (ngInit)="initTableContainer(tableContainer)"
   [class.mobile]="mobile"
   [class.has-toolbar]="showToolbar && !showGroupHeader"
@@ -165,7 +159,7 @@
     [trackBy]="trackByFn"
   >
     <!-- Group header: start -->
-    <ng-container matColumnDef="top-start" [sticky]="useSticky">
+    <ng-container matColumnDef="top-start" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
         <ng-container *ngIf="showToolbar">
           <ng-container *ngTemplateOutlet="toolbarButtons"></ng-container>
@@ -179,7 +173,7 @@
         <th
           mat-header-cell
           *matHeaderCellDef
-          class="mat-column-pmfm-group mat-cell-content-start-padding"
+          class="mat-column-pmfm-group mat-mdc-cell-content-start-padding"
           [class]="item.cssClass"
           [attr.colspan]="item.colSpan"
         >
@@ -194,25 +188,22 @@
     </ng-container>
 
     <!-- Select checkbox -->
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky && canEdit">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [tabindex]="-1"
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabindex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="showIdColumn">
+    <ng-container matColumnDef="id" [sticky]="sticky" *ngIf="showIdColumn">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -231,7 +222,7 @@
         </span>
       </td>
     </ng-container>
-    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="!showIdColumn">
+    <ng-container matColumnDef="id" [sticky]="sticky" *ngIf="!showIdColumn">
       <th mat-header-cell *matHeaderCellDef></th>
       <ng-container *matCellDef="let row">
         <td
@@ -321,13 +312,12 @@
 
     <!-- Date -->
     <ng-container matColumnDef="sampleDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label>{{ 'TRIP.SAMPLE.TABLE.SAMPLE_DATE' | translateContext: i18nColumnSuffix }}</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
+      <td mat-cell *matCellDef="let row" class="mat-mdc-cell-date-time">
         <mat-date-time-field
           floatLabel="never"
-          [readonly]="!row.editing"
           [formControl]="row.validator.controls.sampleDate"
           [autofocus]="row.editing && focusColumn === 'sampleDate'"
           [placeholder]="'TRIP.SAMPLE.TABLE.SAMPLE_DATE_PLACEHOLDER' | translateContext: i18nColumnSuffix"
@@ -347,9 +337,9 @@
         class="mat-column-pmfm mat-column-{{ pmfm.label }}"
         [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
         [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-        [class.mat-cell-content-start-padding]="showGroupHeader"
+        [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
       >
         <ion-label
           [innerHTML]="
@@ -373,10 +363,10 @@
         [style.background-color]="
           row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
         "
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-cell-computed]="pmfm | isComputedPmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
         [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-        [class.mat-cell-content-start-padding]="showGroupHeader"
+        [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
         (click)="focusColumn = (pmfm.id || index).toString()"
       >
         <app-pmfm-field
@@ -392,13 +382,13 @@
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
-          <span
+          <ion-text
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
                 | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
-          ></span>
+          ></ion-text>
         </ng-template>
       </td>
     </ng-container>
@@ -440,9 +430,9 @@
       </td>
     </ng-container>
 
-    <!-- Row actions buttons -->
+    <!-- Actions -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -458,7 +448,7 @@
     <!-- *** FOOTER *** -->
 
     <!-- footer start -->
-    <ng-container matColumnDef="footer-start" [sticky]="useSticky">
+    <ng-container matColumnDef="footer-start" [sticky]="sticky">
       <td mat-footer-cell *matFooterCellDef [attr.colspan]="2" class="ion-text-end">
         <ion-text color="primary">
           <b translate>TRIP.SAMPLE.TABLE.TOTAL_DOTS</b>
@@ -469,7 +459,7 @@
 
     <!-- Tag count footer -->
     <ng-container matColumnDef="footer-tagCount">
-      <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2" class="mat-cell-content-start-padding">
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2" class="mat-mdc-cell-content-start-padding">
         <ion-text
           color="primary"
           class="text-italic"
@@ -488,10 +478,10 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
-      [class.mat-row-selected]="row.editing"
+      [class.mat-mdc-row-error]="row.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"
       (click)="clickRow($event, row)"
@@ -512,14 +502,14 @@
       matSort
       matSortDisableClear
       [class.compact]="compact"
-      [class.mat-table-hide-sort-arrow]="mobile"
+      [class.mat-mdc-table-hide-sort-arrow]="mobile"
       [dataSource]="dataSource"
       [matSortActive]="defaultSortBy"
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
     >
       <!-- Group header: buttons -->
-      <ng-container matColumnDef="top-start" [sticky]="useSticky">
+      <ng-container matColumnDef="top-start" [sticky]="sticky">
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan"></th>
       </ng-container>
 
@@ -527,7 +517,7 @@
       <ng-container *ngFor="let item of pmfmGroupColumns$ | async">
         <ng-container [matColumnDef]="item.key">
           <th mat-header-cell *matHeaderCellDef class="mat-column-pmfm-group" [class]="item.cssClass" [attr.colspan]="item.colSpan">
-            <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
+            <ion-label class="ion-text-wrap mat-mdc-cell-content-start-padding ion-text-center">
               {{ item.name | translate }}
             </ion-label>
           </th>
@@ -555,12 +545,12 @@
       </ng-container>
 
       <!-- rankOrder Column = id -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+      <ng-container matColumnDef="id" [sticky]="sticky">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="ion-padding-start">
           <ion-label>#</ion-label>
         </th>
         <ng-container *matCellDef="let row">
-          <td [class.ion-padding-start]="mobile" mat-cell>
+          <td mat-cell class="ion-padding-start">
             <ion-text
               matBadge="!"
               [matBadgeHidden]="row.currentData.qualityFlagId | qualityFlagValid"
@@ -575,7 +565,7 @@
       </ng-container>
 
       <!-- label Column -->
-      <ng-container matColumnDef="label">
+      <ng-container matColumnDef="label" [sticky]="sticky && showLabelColumn">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix }}</ion-label>
         </th>
@@ -610,10 +600,10 @@
 
       <!-- Date -->
       <ng-container matColumnDef="sampleDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label>{{ 'TRIP.SAMPLE.TABLE.SAMPLE_DATE' | translateContext: i18nColumnSuffix }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
+        <td mat-cell *matCellDef="let row" class="mat-mdc-cell-date-time">
           <ion-text>{{ row.currentData.sampleDate | dateFormat: { time: true } }}</ion-text>
         </td>
       </ng-container>
@@ -624,8 +614,8 @@
           mat-header-cell
           *matHeaderCellDef
           mat-sort-header
-          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-cell-content-start-padding"
-          [class.mat-cell-date-time]="pmfm | isDatePmfm"
+          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
         >
           <ion-label
@@ -644,9 +634,9 @@
         <td
           mat-cell
           *matCellDef="let row"
-          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-cell-content-start-padding"
-          [class.mat-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-cell-computed]="pmfm | isComputedPmfm"
+          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [style.background-color]="
             row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
@@ -689,10 +679,10 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
+      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
         <th mat-header-cell *matHeaderCellDef>
           <!-- Options menu -->
-          <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+          <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
@@ -739,10 +729,10 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-dirty]="!row.currentData.id"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
-        [class.mat-row-error]="row.currentData.qualityFlagId | qualityFlagInvalid"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-dirty]="!row.currentData.id"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-error]="row.currentData.qualityFlagId | qualityFlagInvalid"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

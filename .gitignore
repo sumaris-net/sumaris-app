@@ -26,6 +26,7 @@ npm-debug.log*
 coverage/
 dist/
 node_modules/
+**/node_modules/
 tmp/
 temp/
 hooks/
@@ -47,3 +48,4 @@ resources/android/splash/
 resources/ios/
 
 target/
+/webext/

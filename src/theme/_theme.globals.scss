@@ -28,6 +28,7 @@ $transparent: transparent;
 
 // Main background color
 $background-color: #fff;
+
 // Text color
 $dark-primary-text: rgba(black, 0.87);
 $dark-secondary-text: rgba(black, 0.54);
@@ -37,19 +38,32 @@ $light-secondary-text: rgba(white, 0.7);
 $light-disabled-text: rgba(white, 0.5);
 $text-color: $dark-primary-text;
 
+// Colors
+$ion-toolbar-background: whitesmoke;
+
 // From material
 $mat-tab-link-height: 49px;
 $mat-tab-bar-height: 49px;
-$app-paginator-height: 34px;
 $mat-tab-animation-duration: 200ms;
-$mat-toolbar-background-color: whitesmoke;
 
 // App
+$app-paginator-height: 34px;
 $app-select-option-border-color: rgba(0, 0, 0, 0.12);
 $app-table-border-color: rgba(0, 0, 0, 0.08);
 $app-card-status-font-size: 0.9em;
 $app-card-status-font-color: var(--ion-color-step-850);
-$app-text-color-disable: rgba(0, 0, 0, 0.57);
+$app-form-color: rgba(0, 0, 0, 0.87);
+$app-form-color-disabled: rgba(0, 0, 0, 0.57);
+$app-form-color-computed: var(--ion-color-tertiary, #{$tertiary});
+
+// Form's field background
+$app-form-field-background-color: rgb(245,245,245) !default;
+$app-form-field-disabled-background-color: #fafafa !default;
+
+// Form fields background : transparent
+//$app-form-field-background-color: transparent !default;
+//$app-form-field-disabled-background-color: transparent !default;
+
 
 // Load defaults
-@import "../../node_modules/@sumaris-net/ngx-components/src/theme/globals";
+@import "@sumaris-net/ngx-components/src/theme/globals";

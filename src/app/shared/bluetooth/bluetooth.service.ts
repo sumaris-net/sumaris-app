@@ -1,5 +1,7 @@
 import { Inject, Injectable, OnDestroy, Optional } from '@angular/core';
 import { Platform } from '@ionic/angular';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   APP_LOGGING_SERVICE,
   chainPromises,
@@ -192,7 +194,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
       if (!opts || opts.autoEnabled !== false) {
         console.debug(`[bluetooth] Trying to enable, before scanning...`);
         // Enable, then loop
-        return this.enable().then((_) => this.scan({ autoEnabled: false }));
+        return this.enable().then(() => this.scan({ autoEnabled: false }));
       }
 
       throw { code: BluetoothErrorCodes.BLUETOOTH_DISABLED, message: 'SHARED.BLUETOOTH.ERROR.DISABLED' };
@@ -336,12 +338,12 @@ export class BluetoothService extends StartableService implements OnDestroy {
       // Filter if connection succeed
       filter((connected) => connected === true),
       // Start to listen notification
-      mergeMap((_) => from(BluetoothSerial.startNotifications({ address: device.address, delimiter: options.delimiter }))),
+      mergeMap(() => from(BluetoothSerial.startNotifications({ address: device.address, delimiter: options.delimiter }))),
       catchError((err) => {
         console.error(`[bluetooth] Error while connecting a bluetooth device: ${err?.message || ''}, before watching it`, err);
         return EMPTY;
       }),
-      switchMap((_) =>
+      switchMap(() =>
         fromEventPattern<BluetoothReadResult>(async (handler) => {
           listenerHandle = await BluetoothSerial.addListener('onRead', handler);
         })
@@ -391,7 +393,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
       // Reconnect one by one
       await chainPromises(
         devices.map((d) => async () => {
-          const connected = await this.connect(d, { markAsConnecting: false }).catch((_) => false);
+          const connected = await this.connect(d, { markAsConnecting: false }).catch(() => false);
           // Forget the device, if reconnection failed
           if (!connected) this.unregisterDevice(d);
         })

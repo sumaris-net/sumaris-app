@@ -27,7 +27,6 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   maxVisibleButtons: number;
   maxItemCountForButtons: number;
   samplingRatioFormat: SamplingRatioFormat;
-  mobile: boolean;
 }
 
 @Component({
@@ -36,7 +35,6 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchModal implements OnInit, IBatchModalOptions {
-  debug = false;
   loading = false;
   $title = new BehaviorSubject<string>(undefined);
 
@@ -58,6 +56,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() samplingRatioFormat: SamplingRatioFormat;
   @Input() i18nSuffix: string;
   @Input() mobile: boolean;
+  @Input() debug = false;
 
   @Input() onDelete: (event: Event, data: Batch) => Promise<boolean>;
 

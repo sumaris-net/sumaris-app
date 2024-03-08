@@ -76,6 +76,19 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'boolean',
     defaultValue: false,
   },
+  VESSEL_REGISTRATION_LOCATION_LEVEL_ID: <FormFieldDefinition>{
+    key: 'sumaris.referential.vessel.registration.location.level.ids',
+    label: 'REFERENTIAL.OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.COUNTRY.toString(),
+  },
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
@@ -113,5 +126,6 @@ export class VesselConfigUtils {
   static refreshDefaultValues() {
     // 'entity' options: update autocomplete filter
     VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
+    VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID.defaultValue = [LocationLevelIds.COUNTRY];
   }
 }

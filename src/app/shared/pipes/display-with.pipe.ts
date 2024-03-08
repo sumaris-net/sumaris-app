@@ -1,5 +1,5 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { isNil, Referential, ReferentialRef, referentialsToString, referentialToString } from '@sumaris-net/ngx-components';
+import { isNil } from '@sumaris-net/ngx-components';
 
 @Pipe({
   name: 'displayWith',

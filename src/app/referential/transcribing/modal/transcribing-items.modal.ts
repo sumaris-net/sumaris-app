@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { TranscribingItem } from '@app/referential/transcribing/transcribing.model';
+import { TranscribingItem, TranscribingItemType } from '@app/referential/transcribing/transcribing.model';
 import { ModalController } from '@ionic/angular';
 import { LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
@@ -8,6 +8,7 @@ export interface TranscribingItemsModalOptions {
   title?: string;
   disabled?: boolean;
   mobile?: boolean;
+  filterTypes?: TranscribingItemType[];
   data?: TranscribingItem[];
 }
 @Component({
@@ -17,6 +18,7 @@ export interface TranscribingItemsModalOptions {
 })
 export class TranscribingItemsModal implements OnInit, TranscribingItemsModalOptions {
   @Input() title: string;
+  @Input() filterTypes: TranscribingItemType[];
   @Input() data: TranscribingItem[];
   @Input() disabled: boolean;
   @Input() mobile: boolean;
@@ -34,7 +36,7 @@ export class TranscribingItemsModal implements OnInit, TranscribingItemsModalOpt
 
   ngOnInit() {
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
-
+    this.table.markAsReady();
     this.table.value = this.data;
   }
 

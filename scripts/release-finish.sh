@@ -11,27 +11,25 @@ PROJECT_DIR=`pwd`
 
 # Read arguments
 version=$1
-release_description=$2
-
 # Get the version, if missing
 if [[ "_${version}" == "_" ]]; then
-  version=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
+  version=$(grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?")
 fi
 
-# Compute description, if missing
-description=`echo $release_description` # force quote interpretation
-if [[ "_${description}" == "_" ]]; then
-    description="Release $version"
+if [[ -n $2 ]]; then
+    release_branch=$2
+else
+    release_branch="develop"
 fi
 
 # Check version format
-if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
+if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-finish.sh <version> <release_description>"
+  echo " > ./release-finish.sh <version> <release_branch>"
   echo "with:"
   echo " - version: x.y.z"
-  echo " - release_description: a comment on release"
+  echo " - release_branch: source branch"
   exit 1
 fi
 
@@ -39,19 +37,32 @@ fi
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "release/$version" ]]
 then
-  echo ">> This script must be run under \`develop\` or \`release/$version\` branch"
+  echo ">> This script must be run under \`release/$version\` branch"
   exit 1
 fi
 
-
 cd $PROJECT_DIR
-rm src/assets/i18n/*-${version}.json
-git add package.json src/assets/manifest.json android/app/build.gradle android/app/src/main/AndroidManifest.xml install.sh
-git commit -m ''"$description"''
-# finishing release with:
-# -F: fetch master & develop before
-# -m: use default message
-# -p: push all tags after finish
-export GIT_MERGE_AUTOEDIT=no
-git flow release finish -F -p "$version" -m ''"$description"''
-unset GIT_MERGE_AUTOEDIT
+
+# Add updated files
+git add .
+git commit -m "Prepare release ${version}"
+
+# Finish using git flow
+if [[ "$release_branch" = "develop" ]]; then
+  # finishing release with:
+  # -F: fetch master & develop before
+  # -m: use default message
+  # -p: push all tags after finish
+  export GIT_MERGE_AUTOEDIT=no
+  git flow release finish -F -p "${version}" -m "Release ${version}"
+  unset GIT_MERGE_AUTOEDIT
+  # Finish from a feature branch (do NOT use git flow)
+else
+  git checkout "$release_branch"
+  git merge --no-ff --no-edit -m "Release ${version}" "release/${version}"
+  git tag -a "${version}" -m "${version}"
+  git push origin "$release_branch"
+  git push --tags
+  git branch -D "release/${version}"
+fi
+

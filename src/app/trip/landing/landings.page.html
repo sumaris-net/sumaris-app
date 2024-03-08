@@ -369,7 +369,7 @@
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus">
+    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus" [tabPanel]="tableContainer">
       <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
@@ -394,15 +394,15 @@
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
     >
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+      <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || mobile">
           <mat-checkbox
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
             [indeterminate]="selection.hasValue() && !isAllSelected()"
           ></mat-checkbox>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || mobile">
           <mat-checkbox
             (click)="$event.stopPropagation()"
             (change)="$event ? selection.toggle(row) : null"
@@ -412,11 +412,11 @@
       </ng-container>
 
       <!-- Id Column -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <ng-container matColumnDef="id" [sticky]="sticky">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="!canEdit || mobile">
           <ion-label>#</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="!canEdit || mobile">
           {{ row.currentData.id | mathAbs }}
         </td>
       </ng-container>
@@ -488,10 +488,10 @@
 
       <!-- date time  -->
       <ng-container matColumnDef="dateTime">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text *ngIf="row.currentData.dateTime; let landingDateTime">
             {{ landingDateTime | dateFormat: { time: true } }}
             <ion-text *ngIf="mobile" class="computed">
@@ -519,10 +519,10 @@
 
       <!-- creation date -->
       <ng-container matColumnDef="creationDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
           <span translate>LANDING.TABLE.CREATION_DATE</span>
         </th>
-        <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           {{ row.currentData.creationDate | dateFormat: { time: false } }}
         </td>
       </ng-container>
@@ -546,12 +546,18 @@
 
       <!-- Pmfm columns -->
       <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-        <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+        <th mat-header-cell *matHeaderCellDef class="mat-column-pmfm" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label>
             {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
           </ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm" [class.mat-cell-computed]="pmfm | isComputedPmfm">
+        <td
+          mat-cell
+          *matCellDef="let row"
+          class="mat-column-pmfm"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+        >
           <app-pmfm-field
             *ngIf="row.editing; else readOnly"
             [pmfm]="pmfm"
@@ -579,28 +585,38 @@
       <!-- Comments column -->
       <ng-container matColumnDef="comments">
         <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let row">
-          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+        <td mat-cell *matCellDef="let row" [title]="row.currentData.comments || ''">
+          <ion-icon *ngIf="row.currentData.comments | isNotNilOrBlank" color="secondary" name="chatbox" slot="icon-only"></ion-icon>
         </td>
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions">
+      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
         <th mat-header-cell *matHeaderCellDef>
           <!-- display columns -->
           <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
-        <td mat-cell *matCellDef="let row"></td>
+        <td mat-cell *matCellDef="let row">
+          <!-- Delete row button -->
+          <button
+            mat-icon-button
+            *ngIf="enabled && singleSelectedRow === row && canDelete"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="cancelOrDelete($event, row)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        class="mat-mdc-row-disabled"
+        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

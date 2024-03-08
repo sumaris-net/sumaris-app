@@ -8,6 +8,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
+  ReferentialUtils,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import {
@@ -31,7 +32,8 @@ export declare type ExtendedPmfmType = PmfmType | 'latitude' | 'longitude' | 'du
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
+// eslint-disable-next-line no-useless-escape
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
 
 export interface IPmfm<T extends IPmfm<T, ID> = IPmfm<any, any>, ID = number> extends IEntity<T, ID> {
   id: ID;
@@ -87,6 +89,17 @@ export interface IFullPmfm<T extends IFullPmfm<T, ID> = IFullPmfm<any, any>, ID 
 @EntityClass({ typename: 'UnitConversionVO' })
 export class UnitConversion {
   static fromObject: (source: any, opts?: any) => UnitConversion;
+
+  static equals(uc1: UnitConversion, uc2: UnitConversion) {
+    return (
+      uc1 === uc2 ||
+      (isNil(uc1)
+        ? isNil(uc2)
+        : ReferentialUtils.equals(uc1.fromUnit, uc2?.fromUnit) &&
+          ReferentialUtils.equals(uc1.toUnit, uc2?.toUnit) &&
+          uc1.conversionCoefficient === uc2?.conversionCoefficient)
+    );
+  }
 
   fromUnit: ReferentialRef;
   toUnit: ReferentialRef;
@@ -301,22 +314,23 @@ export abstract class PmfmUtils {
     opts: {
       excludeHidden?: boolean;
       excludePmfmIds?: number[];
+      includePmfmIds?: number[];
       minQvCount?: number;
       maxQvCount?: number;
       filterFn?: (IPmfm, index) => boolean;
-    } = {
-      minQvCount: 1, // Should have at least 2 values (by default)
     }
   ): P {
+    opts = { minQvCount: 1, ...opts };
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts).find(
       (p, index) =>
         p.type === 'qualitative_value' &&
         p.qualitativeValues &&
-        // Exclude if no enough qualitative values
-        p.qualitativeValues.length >= opts.minQvCount &&
-        // Exclude if too many qualitative values
-        (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount) &&
+        (opts.includePmfmIds?.includes(p.id) ||
+          // Exclude if no enough qualitative values
+          (p.qualitativeValues.length >= opts.minQvCount &&
+            // Exclude if too many qualitative values
+            (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount))) &&
         // Apply the first function, if any
         (!opts.filterFn || opts.filterFn(p, index))
     );
@@ -490,7 +504,7 @@ export abstract class PmfmUtils {
       // - 'Longueur totale (LT)' should becomes 'Longueur totale'
       // - 'D1 / Open wounds' should becomes 'D1'
       const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(name || '');
-      name = matches?.[1] || name;
+      name = matches?.[1]?.trim() || name;
     }
 
     // Append unit
@@ -638,5 +652,26 @@ export abstract class PmfmUtils {
     if (pmfm.precision > 0) return pmfm.precision;
     if (isNil(pmfm.maximumNumberDecimals)) return defaultPrecision;
     return Math.pow(10, -1 * pmfm.maximumNumberDecimals);
+  }
+
+  static equals(pmfm1: IPmfm, pmfm2: IPmfm): boolean {
+    return (
+      pmfm1 === pmfm2 ||
+      (isNil(pmfm1)
+        ? isNil(pmfm2)
+        : pmfm1.id === pmfm2?.id &&
+          pmfm1.hidden === pmfm2?.hidden &&
+          PmfmValueUtils.equals(pmfm1.defaultValue, pmfm2?.defaultValue) &&
+          UnitConversion.equals(pmfm1.displayConversion, pmfm2?.displayConversion))
+    );
+  }
+
+  static arrayEquals(pmfms1: IPmfm[], pmfms2: IPmfm[]) {
+    return (
+      Array.isArray(pmfms1) &&
+      Array.isArray(pmfms2) &&
+      pmfms1.length === pmfms2.length &&
+      pmfms1.every((pmfm, index) => PmfmUtils.equals(pmfm, pmfms2[index]))
+    );
   }
 }

@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   AppEditorOptions,
@@ -17,8 +18,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotNilOrNaN,
-  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -28,11 +27,11 @@ import {
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { LandingService } from './landing.service';
-import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor, RootDataEditorOptions, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
-import { debounceTime, filter, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, map, tap, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from './landing.model';
@@ -40,14 +39,12 @@ import { Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
-import { merge, Subscription } from 'rxjs';
+import { merge, Observable, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ContextService } from '@app/shared/context.service';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 import moment from 'moment';
@@ -57,8 +54,18 @@ import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
-export class LandingEditorOptions extends AppEditorOptions {}
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
+
+export class LandingEditorOptions extends RootDataEditorOptions {}
+
+export interface LandingPageState extends RootDataEntityEditorState {
+  strategyLabel: string;
+}
 
 @Component({
   selector: 'app-landing-page',
@@ -67,31 +74,45 @@ export class LandingEditorOptions extends AppEditorOptions {}
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: LandingPage },
     {
       provide: AppEditorOptions,
       useValue: {
         pathIdAttribute: 'landingId',
       },
     },
+    RxState,
   ],
 })
-export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService> implements OnInit, AfterViewInit {
+export class LandingPage<ST extends LandingPageState = LandingPageState>
+  extends AppRootDataEntityEditor<Landing, LandingService, number, ST>
+  implements OnInit, AfterViewInit
+{
+  static TABS = {
+    GENERAL: 0,
+    SAMPLES: 1,
+    BATCHES: 2,
+  };
+
   protected parent: Trip | ObservedLocation;
-  protected observedLocationService: ObservedLocationService;
-  protected tripService: TripService;
-  protected pmfmService: PmfmService;
-  protected referentialRefService: ReferentialRefService;
-  protected vesselService: VesselSnapshotService;
-  protected network: NetworkService;
+  protected observedLocationService = inject(ObservedLocationService);
+  protected tripService = inject(TripService);
+  protected pmfmService = inject(PmfmService);
+  protected referentialRefService = inject(ReferentialRefService);
+  protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
+  protected selectedSubTabIndex = 0;
 
   showParent = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
   showEntityMetadata = false;
   showQualityForm = false;
-  context: ContextService;
-  showSamplesTable = false;
   enableReport = false;
+  parentAcquisitionLevel: AcquisitionLevelType;
+
+  showSampleTablesByProgram = false;
+  showSamplesTable = false;
+
+  @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.landingForm.form;
@@ -107,27 +128,22 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
+      acquisitionLevel: AcquisitionLevelCodes.LANDING,
+      settingsId: AcquisitionLevelCodes.LANDING.toLowerCase(),
       ...options,
     });
-    this.observedLocationService = injector.get(ObservedLocationService);
-    this.tripService = injector.get(TripService);
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.vesselService = injector.get(VesselSnapshotService);
-    this.context = injector.get(ContextService);
-    this.network = injector.get(NetworkService);
-
     this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
     this.showParent = !!this.parentAcquisitionLevel;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[landing-page] ';
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
     // Enable samples tab, when has pmfms
-    firstTruePromise(this.samplesTable.hasPmfms$).then(() => {
+    firstTruePromise(this.samplesTable.hasPmfms$, { stop: this.destroySubject }).then(() => {
       this.showSamplesTable = true;
       this.markForCheck();
     });
@@ -144,26 +160,22 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
         .subscribe()
     );
 
-    this.registerSubscription(
-      this.landingForm.strategyLabel$
-        .pipe(
-          filter((value) => this.strategyLabel !== value),
-          tap((strategyLabel) => console.debug('[landing-page] Received strategy label: ', strategyLabel)),
-          tap((strategyLabel) => (this.strategyLabel = strategyLabel))
-        )
-        .subscribe()
-    );
+    // Fill strategy label from form
+    this._state.connect('strategyLabel', this.landingForm.strategyLabel$);
 
-    this.registerSubscription(
-      this.landingForm.observedLocationChanges.pipe(filter((_) => this.showParent)).subscribe((parent) => this.onParentChanged(parent))
-    );
+    this._state.hold(this.landingForm.observedLocationChanges.pipe(filter((_) => this.showParent)), (parent) => this.onParentChanged(parent));
 
     // Watch table events, to avoid strategy edition, when has sample rows
-    this.registerSubscription(
-      merge(this.samplesTable.onConfirmEditCreateRow, this.samplesTable.onCancelOrDeleteRow, this.samplesTable.onAfterDeletedRows)
-        .pipe(debounceTime(500))
-        .subscribe(() => (this.landingForm.canEditStrategy = this.samplesTable.empty))
+    this._state.hold(
+      merge(this.samplesTable.onConfirmEditCreateRow, this.samplesTable.onCancelOrDeleteRow, this.samplesTable.onAfterDeletedRows).pipe(
+        debounceTime(500)
+      ),
+      () => (this.landingForm.canEditStrategy = this.samplesTable.empty)
     );
+
+    // Manage sub tab group
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
   }
 
   canUserWrite(data: Landing, opts?: any): boolean {
@@ -174,6 +186,27 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.markAsLoading();
     const route = this.route.snapshot;
     await this.load(this.data && this.data.id, route.params);
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
+    if (this.strategyResolution === 'user-select') {
+      return this._state
+        .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
+        .pipe(
+          // DEBUG
+          tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
+          map(({ acquisitionLevel, strategyLabel }) => {
+            return <Partial<StrategyFilter>>{
+              acquisitionLevel,
+              programId: program.id,
+              label: strategyLabel,
+            };
+          })
+        );
+    }
+
+    return super.watchStrategyFilter(program);
   }
 
   onPrepareSampleForm({ form, pmfms }) {
@@ -193,7 +226,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       err?.code === ServerErrorCodes.DATA_NOT_UNIQUE &&
       err?.details &&
       typeof err.details === 'object' &&
-      err.details.hasOwnProperty('duplicatedValues')
+      isNotNil(err.details['duplicatedValues'])
     ) {
       const details = err.details as any;
       this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', { duplicatedValues: details.duplicatedValues });
@@ -253,7 +286,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       }
     }
 
-    if (!this.isNewData && this.landingForm.requiredStrategy) {
+    if (!this.isNewData && this.requiredStrategy) {
       this.landingForm.canEditStrategy = false;
     }
     this.defaultBackHref = this.computeDefaultBackHref();
@@ -432,7 +465,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
         if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
-          data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
+          data.vesselSnapshot = await this.vesselSnapshotService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
       } else if (parent instanceof Trip) {
         data.trip = this.showParent ? parent : undefined;
@@ -488,18 +521,22 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
+    const showStrategy =
+      program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) ||
+      program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) === 'user-select';
     const isNewData = this.isNewData;
+    const requiredStrategy = showStrategy && !isNewData;
+
+    this.requiredStrategy = requiredStrategy;
+    this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     // Customize the UI, using program options
-    const enableStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.showStrategy = enableStrategy;
-    this.landingForm.requiredStrategy = !isNewData && enableStrategy;
-    this.landingForm.canEditStrategy = isNewData && enableStrategy;
+    this.landingForm.showStrategy = showStrategy;
+    this.landingForm.requiredStrategy = requiredStrategy;
+    this.landingForm.canEditStrategy = showStrategy && isNewData;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
@@ -512,6 +549,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.landingForm.i18nSuffix = i18nSuffix;
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
+    this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_ENABLE);
 
     if (this.samplesTable) {
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
@@ -526,7 +564,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()
-      if (!enableStrategy) {
+      if (!requiredStrategy) {
         await this.setTablePmfms(this.samplesTable, program.label);
       }
     }
@@ -537,7 +575,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (!enableStrategy || isNewData) {
+    if (!requiredStrategy || (isNewData && this.strategyResolution === 'user-select')) {
       this.markAsReady();
     }
 
@@ -549,6 +587,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   }
 
   protected async setStrategy(strategy: Strategy, opts?: { emitReadyEvent?: boolean }) {
+    console.log(this.logPrefix + 'Setting strategy', strategy);
     await super.setStrategy(strategy);
 
     const program = this.program;
@@ -581,41 +620,47 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   }
 
   protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
-    if (!strategyLabel) {
+    if (!this.landingForm.showStrategy) {
+      console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
       // Set the table program, to delegate pmfms load
+      table.requiredStrategy = this.requiredStrategy;
       table.programLabel = programLabel;
-    } else {
+    } else if (table.acquisitionLevel && strategyLabel) {
+      console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {
-        strategyLabel,
         acquisitionLevel: table.acquisitionLevel,
+        strategyLabel,
       });
       const strategyPmfmIds = samplesPmfms.map((pmfm) => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
-      const additionalPmfmIds = ((!this.isNewData && this.data?.samples) || []).reduce((res, sample) => {
-        const pmfmIds = Object.keys(sample.measurementValues || {})
-          .map((id) => +id)
-          .filter(isNotNilOrNaN); // Exclude technical properties (e.g. __typename)
-        const newPmfmIds = pmfmIds.filter((id) => !res.includes(id) && !strategyPmfmIds.includes(id));
-        return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
-      }, []);
+      const additionalPmfmIds = ((!this.isNewData && this.data?.samples) || []).reduce(
+        (res, sample) =>
+          MeasurementValuesUtils.getPmfmIds(sample.measurementValues || {}).reduce(
+            (res, pmfmId) => (!strategyPmfmIds.includes(pmfmId) ? res.concat(pmfmId) : res),
+            res
+          ),
+        []
+      );
 
       // Override samples table pmfm, if need
       if (isNotEmptyArray(additionalPmfmIds)) {
         // Load additional pmfms, from ids
-        const additionalPmfms = await Promise.all(additionalPmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)));
-        const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+        const additionalPmfms = (await Promise.all(additionalPmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)))).map(
+          DenormalizedPmfmStrategy.fromFullPmfm
+        );
 
         // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
         // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-        samplesPmfms = samplesPmfms.concat(additionalFullPmfms);
+        samplesPmfms = samplesPmfms.concat(additionalPmfms);
       }
 
-      // Give it to samples table (but exclude STRATEGY_LABEL)
+      // Give it to samples table (without the STRATEGY_LABEL pmfm)
       table.pmfms = samplesPmfms.filter((p) => p.id !== PmfmIds.STRATEGY_LABEL);
       // Avoid to load by program, because PMFM are already known
       //table.programLabel = programLabel;
+      table.markAsReady();
     }
   }
 
@@ -709,9 +754,13 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
-    const strategyLabel = this.strategyLabel;
-    if (isNotNilOrBlank(strategyLabel)) {
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+
+    // Store strategy label to measurement
+    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
+      const strategyLabel = this.strategy?.label;
+      if (isNotNilOrBlank(strategyLabel)) {
+        data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+      }
     }
 
     // Save samples table

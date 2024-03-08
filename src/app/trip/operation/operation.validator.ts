@@ -13,6 +13,7 @@ import {
 } from '@angular/forms';
 import { PositionValidatorService } from '@app/data/position/position.validator';
 import {
+  AppFormArray,
   AppFormUtils,
   equals,
   FormErrors,
@@ -20,6 +21,7 @@ import {
   isNil,
   isNotNil,
   LocalSettingsService,
+  SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
@@ -43,8 +45,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { PhysicalGearValidatorOptions } from '@app/trip/physicalgear/physicalgear.validator';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export interface IPmfmForm {
   form: UntypedFormGroup;
@@ -58,6 +59,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   allowParentOperation?: boolean;
   isChild?: boolean;
   isParent?: boolean;
+  withMetier?: boolean;
   withPosition?: boolean;
   withFishingAreas?: boolean;
   withChildOperation?: boolean;
@@ -161,7 +163,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data, { required: true }));
+      form.addControl('fishingAreas', this.getFishingAreasArray(data?.fishingAreas, { required: true }));
     }
 
     // Add child operation
@@ -185,15 +187,19 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       tripId: [toNumber(data?.tripId, null)],
       rankOrder: [toNumber(data?.rankOrder, null)],
       rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
-      metier: [(data && data.metier) || null, Validators.compose([Validators.required, SharedValidators.entity])],
       // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
       physicalGear: [(data && data.physicalGear) || null, Validators.compose([Validators.required, SharedValidators.object])],
       comments: [(data && data.comments) || null, Validators.maxLength(2000)],
-
+      // Parent / child
       parentOperation: [(data && data.parentOperation) || null], // Validators define later, in updateFormGroup
       parentOperationId: [toNumber(data && data.parentOperationId, null)],
       childOperationId: [toNumber(data && data.childOperationId, null)],
     });
+
+    // Add metier
+    if (opts.withMetier) {
+      formConfig['metier'] = [(data && data.metier) || null, Validators.compose([Validators.required, SharedValidators.entity])];
+    }
 
     return formConfig;
   }
@@ -268,16 +274,25 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     const previousOptions = getFormOptions(form);
 
-    // Skip if same
+    // Skip if same options
     if (equals(previousOptions, opts)) {
       console.debug('[operation-validator] Skipping form update (same options)');
       return;
     }
 
-    setFormOptions(form, opts);
-
     // DEBUG
     console.debug(`[operation-validator] Updating form group validators`);
+
+    // Remember options, for next call
+    setFormOptions(form, opts);
+    const enabled = form.enabled;
+
+    // Metier control
+    if (opts.withMetier) {
+      if (!form.controls.metier) form.addControl('metier', this.formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+    } else {
+      if (form.controls.metier) form.removeControl('metier');
+    }
 
     const positionOpts = {
       __typename: VesselPosition.TYPENAME,
@@ -487,10 +502,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             : // If no endDateTime, add trip dates validator
               [...tripDatesValidators, ...fishingEndDateTimeValidators]
         );
-        fishingEndDateTimeControl.enable();
+        if (enabled) {
+          fishingEndDateTimeControl.enable();
 
-        // Enable position
-        fishingEndPositionControl?.enable();
+          // Enable position
+          fishingEndPositionControl?.enable();
+        }
       } else {
         fishingEndDateTimeControl.clearValidators();
         fishingEndDateTimeControl.disable();
@@ -504,10 +521,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         // endDateTime = END
         const endDateTimeValidators = [...tripDatesValidators, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])];
         endDateTimeControl.setValidators(opts.isOnFieldMode ? endDateTimeValidators : [Validators.required, ...endDateTimeValidators]);
-        endDateTimeControl.enable();
 
-        // Enable position
-        endPositionControl?.enable();
+        if (enabled) {
+          endDateTimeControl.enable();
+
+          // Enable position
+          endPositionControl?.enable();
+        }
       } else {
         endDateTimeControl.clearValidators();
         endDateTimeControl.disable();
@@ -548,10 +568,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         endDateTimeControl.setValidators(
           opts?.isOnFieldMode ? Validators.compose(endDateTimeValidators) : Validators.compose([Validators.required, ...endDateTimeValidators])
         );
-        endDateTimeControl.enable();
+        if (enabled) {
+          endDateTimeControl.enable();
 
-        // Enable position
-        endPositionControl?.enable();
+          // Enable position
+          endPositionControl?.enable();
+        }
       } else {
         endDateTimeControl.clearValidators();
         endDateTimeControl.disable();
@@ -594,6 +616,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = super.fillDefaultOptions(opts);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
+    opts.withMetier = toBoolean(opts.withMetier, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE), true));
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, !opts.withPosition);
     opts.withChildOperation = toBoolean(
@@ -658,12 +681,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected getFishingAreasArray(data?: Operation, opts?: { required?: boolean }) {
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
     const required = !opts || opts.required !== false;
-    return this.formBuilder.array(
-      ((data && data.fishingAreas) || [null]).map((fa) => this.fishingAreaValidator.getFormGroup(fa, { required })),
-      required ? OperationValidators.requiredArrayMinLength(1) : undefined
-    );
+    const formArray = new AppFormArray((fa) => this.fishingAreaValidator.getFormGroup(fa, { required }), FishingArea.equals, FishingArea.isEmpty, {
+      allowEmptyArray: false,
+      validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
+    });
+    if (data) formArray.patchValue(data);
+    return formArray;
   }
 
   protected createChildOperationControl(data?: Operation): AbstractControl {

@@ -15,7 +15,7 @@ import {
   splitByProperty,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../landing/landing.model';
@@ -31,11 +31,18 @@ import { Sale } from '@app/trip/sale/sale.model';
 import { OverlayEventDetail } from '@ionic/core';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { IEntityWithMeasurement } from '@app/data/measurement/measurement.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export interface AbstractBatchesTableConfig<T extends IEntityWithMeasurement<T>> extends BaseMeasurementsTableConfig<T> {
+export interface AbstractBatchesTableState extends BaseMeasurementsTableState {
+  showTaxonGroupColumn: boolean;
+  showTaxonNameColumn: boolean;
+}
+
+export interface AbstractBatchesTableConfig<T extends IEntityWithMeasurement<T>, ST extends AbstractBatchesTableState = AbstractBatchesTableState>
+  extends BaseMeasurementsTableConfig<T, ST> {
   mapPmfms?: undefined; // Avoid to override mapPmfms
 }
 
@@ -46,10 +53,11 @@ export abstract class AbstractBatchesTable<
     F extends BatchFilter = BatchFilter,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
     V extends BatchValidatorService<T, VO> = BatchValidatorService<T, any>,
-    O extends AbstractBatchesTableConfig<T> = AbstractBatchesTableConfig<T>,
+    ST extends AbstractBatchesTableState = AbstractBatchesTableState,
+    O extends AbstractBatchesTableConfig<T, ST> = AbstractBatchesTableConfig<T, ST>,
     VO extends BatchValidatorOptions = BatchValidatorOptions,
   >
-  extends BaseMeasurementsTable<T, F, S, V, O, VO>
+  extends BaseMeasurementsTable<T, F, S, V, ST, O, VO>
   implements OnInit, OnDestroy
 {
   protected _initialPmfms: IPmfm[];
@@ -89,14 +97,13 @@ export abstract class AbstractBatchesTable<
     return this.getShowColumn('taxonName');
   }
 
-  @Input() useSticky = false;
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
 
   protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, dataService: S, validatorService: V, options?: O) {
-    super(injector, dataType, filterType, dataService, validatorService, {
+    super(injector, dataType, filterType, dataService, validatorService, <O>{
       reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
       reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
       i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
@@ -162,7 +169,7 @@ export abstract class AbstractBatchesTable<
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -203,12 +210,6 @@ export abstract class AbstractBatchesTable<
         return;
       }
 
-      // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
-      if (isEmptyArray(this.availableTaxonGroups)) {
-        console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
-        return;
-      }
-
       // Skip when editing a row
       if (!this.confirmEditCreate()) {
         console.warn('[batches-table] Skipping autofill, as table still editing a row');
@@ -219,29 +220,59 @@ export abstract class AbstractBatchesTable<
 
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
-      // Read existing taxonGroups
-      const data = this.dataSource.getData();
-      const existingTaxonGroups = removeDuplicatesFromArray(data.map((batch) => batch.taxonGroup).filter(isNotNil), 'id');
-
-      const taxonGroupsToAdd = this.availableTaxonGroups
-        // Exclude if already exists
-        .filter((taxonGroup) => !existingTaxonGroups.some((tg) => ReferentialUtils.equals(tg, taxonGroup)));
-
-      if (isNotEmptyArray(taxonGroupsToAdd)) {
-        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
-
-        const entities = [];
-        for (const taxonGroup of taxonGroupsToAdd) {
-          const entity = new this.dataType();
-          entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
-          entity.rankOrder = rankOrder++;
-          entities.push(entity);
+      // Generate species rows
+      if (this.showTaxonGroupColumn) {
+        // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
+        if (isEmptyArray(this.availableTaxonGroups)) {
+          console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
+          return;
         }
 
-        await this.addEntitiesToTable(entities, { emitEvent: false });
+        // Read existing taxonGroups
+        const data = this.dataSource.getData();
+        const existingTaxonGroups = removeDuplicatesFromArray(data.map((batch) => batch.taxonGroup).filter(isNotNil), 'id');
 
-        // Mark as dirty
-        this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+        const taxonGroupsToAdd = this.availableTaxonGroups
+          // Exclude if already exists
+          .filter((taxonGroup) => !existingTaxonGroups.some((tg) => ReferentialUtils.equals(tg, taxonGroup)));
+
+        if (isNotEmptyArray(taxonGroupsToAdd)) {
+          let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
+
+          const entities = [];
+          for (const taxonGroup of taxonGroupsToAdd) {
+            const entity = new this.dataType();
+            entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
+            entity.rankOrder = rankOrder++;
+            entities.push(entity);
+          }
+
+          await this.addEntitiesToTable(entities, { emitEvent: false });
+
+          // Mark as dirty
+          this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+        }
+      } else if (this.filteredPmfms?.length) {
+        const data = this.dataSource.getData();
+        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
+
+        const pmfm = PmfmUtils.getFirstQualitativePmfm(this.filteredPmfms, { excludeHidden: true, minQvCount: 2 });
+        if (isNotEmptyArray(pmfm?.qualitativeValues)) {
+          const entities = pmfm.qualitativeValues
+            .filter((qv) => data.every((entity) => !PmfmValueUtils.equals(entity.measurementValues[pmfm.id], qv)))
+            .map((qv) => {
+              const entity = new this.dataType();
+              entity.measurementValues = { [pmfm.id]: qv.id };
+              entity.rankOrder = rankOrder++;
+              return entity;
+            });
+          await this.addEntitiesToTable(entities, { emitEvent: false });
+
+          // Mark as dirty
+          this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+        }
+      } else {
+        console.warn('Unable to fill rows: taxon groups not found, and no qualitative pmfms ');
       }
 
       this.markForCheck();

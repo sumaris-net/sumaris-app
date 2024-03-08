@@ -11,6 +11,7 @@ import {
   firstNotNilPromise,
   GraphqlService,
   isEmptyArray,
+  isNotEmptyArray,
   isNotNil,
   JobUtils,
   LoadResult,
@@ -42,8 +43,12 @@ export const VesselSnapshotFragments = {
       exteriorMarking
       registrationCode
       intRegistrationCode
+      updateDate
       vesselType {
         ...LightReferentialFragment
+      }
+      registrationLocation {
+        ...LocationFragment
       }
       vesselStatusId
     }
@@ -57,11 +62,15 @@ export const VesselSnapshotFragments = {
       intRegistrationCode
       startDate
       endDate
-      basePortLocation {
-        ...LocationFragment
-      }
+      updateDate
       vesselType {
         ...LightReferentialFragment
+      }
+      registrationLocation {
+        ...LocationFragment
+      }
+      basePortLocation {
+        ...LocationFragment
       }
       vesselStatusId
     }
@@ -73,6 +82,9 @@ export const VesselSnapshotFragments = {
       exteriorMarking
       registrationCode
       intRegistrationCode
+      startDate
+      endDate
+      updateDate
       basePortLocation {
         ...LocationFragment
       }
@@ -84,7 +96,7 @@ export const VesselSnapshotFragments = {
   `,
 };
 
-const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
+const VesselSnapshotQueries: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
   // Load all
   loadAll: gql`
     query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput) {
@@ -93,6 +105,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
       }
     }
     ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${ReferentialFragments.location}
     ${ReferentialFragments.lightReferential}
   `,
 
@@ -105,6 +118,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
       total: vesselSnapshotsCount(filter: $filter)
     }
     ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${ReferentialFragments.location}
     ${ReferentialFragments.lightReferential}
   `,
 
@@ -116,6 +130,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
       }
     }
     ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${ReferentialFragments.location}
     ${ReferentialFragments.lightReferential}
   `,
 
@@ -250,11 +265,11 @@ export class VesselSnapshotService
       // Online: use GraphQL
       const query = withTotal
         ? opts?.withBasePortLocation
-          ? QUERIES.loadAllWithPortAndTotal
-          : QUERIES.loadAllWithTotal
+          ? VesselSnapshotQueries.loadAllWithPortAndTotal
+          : VesselSnapshotQueries.loadAllWithTotal
         : opts?.withBasePortLocation
-          ? QUERIES.loadAllWithPort
-          : QUERIES.loadAll;
+          ? VesselSnapshotQueries.loadAllWithPort
+          : VesselSnapshotQueries.loadAll;
       res = await this.graphql.query<LoadResult<any>>({
         query,
         variables: {
@@ -353,7 +368,7 @@ export class VesselSnapshotService
     }
 
     const { data } = await this.graphql.query<{ data: any[] }>({
-      query: QUERIES.load,
+      query: VesselSnapshotQueries.load,
       variables: {
         vesselId: id,
         vesselFeaturesId: null,
@@ -436,17 +451,23 @@ export class VesselSnapshotService
     opts?: {
       progression?: BehaviorSubject<number>;
       maxProgression?: number;
+      vesselIds?: number[];
     }
   ): Promise<void> {
     const maxProgression = (opts && opts.maxProgression) || 100;
     filter = {
       ...filter,
+      includedIds: opts?.vesselIds,
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       // Force the use of the specific program, used for vessels
       program: ReferentialRef.fromObject({ label: ProgramLabel.SIH }),
     };
 
-    console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
+    if (isNotEmptyArray(filter.includedIds)) {
+      console.info(`[vessel-snapshot-service] Importing ${filter.includedIds.length} vessels (snapshot)...`);
+    } else {
+      console.warn('[vessel-snapshot-service] Importing all vessels (snapshot)...');
+    }
 
     const res = await JobUtils.fetchAllPages(
       (offset, size) =>
@@ -524,8 +545,9 @@ export class VesselSnapshotService
 
     const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE);
 
-    // Set filter, with registration location
+    // Set default filter (registration location, vessel type)
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
+    const defaultVesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
 
     const settingsAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
 
@@ -534,6 +556,7 @@ export class VesselSnapshotService
       ...this.defaultFilter,
       searchAttributes: settingsAttributes,
       registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{ id: defaultRegistrationLocationId } : undefined,
+      vesselTypeId: isNotNil(defaultVesselTypeId) ? defaultVesselTypeId : undefined,
     };
 
     // Update default options

@@ -18,7 +18,7 @@
           <br />
           strategyLabel: {{ strategyLabel }}
           <br />
-          pmfms count: {{ (pmfms$ | push)?.length || 0 }}
+          pmfms count: {{ (pmfms$ | push)?.length }}
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -53,7 +53,7 @@
     </ion-row>
 
     <ion-row *ngIf="$totalPmfm | async; let totalPmfm">
-      <ion-col size="12" size-md="4" size-lg="3" [class.cdk-visually-hidden]="!($typePmfm | async)"></ion-col>
+      <ion-col size="12" size-md="4" size-lg="3" [class.cdk-visually-hidden]="$typePmfm | async | isNil"></ion-col>
       <ion-col>
         <app-pmfm-field
           [pmfm]="totalPmfm"

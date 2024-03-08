@@ -15,7 +15,13 @@
         <br />
       </ion-col>
       <ion-col>
-        gearId: {{ gearId }}
+        acquisitionLevel: {{ acquisitionLevel }}
+        <br />
+        programLabel: {{ programLabel }}
+        <br />
+        strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId || strategyLabel }}
+        <br />
+        gearId{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
         <br />
         visibleRowCount: {{ visibleRowCount }}
         <br />
@@ -33,6 +39,14 @@
         <br />
       </ion-col>
       <ion-col *ngIf="memoryDataService">
+        service.acquisitionLevel: {{ _dataService.acquisitionLevel }}
+        <br />
+        service.programLabel: {{ _dataService.programLabel }}
+        <br />
+        service.strategy {{ _dataService.requiredStrategy && '(required)' }}: id={{ _dataService.strategyId }}, label={{ _dataService.strategyLabel }}
+        <br />
+        service.gear ({{ _dataService.requiredGear ? 'required' : 'optional' }}): id={{ _dataService.gearId }}
+        <br />
         service.count: {{ memoryDataService.count }}
         <br />
         service.hiddenCount: {{ memoryDataService.hiddenCount }}
@@ -50,7 +64,7 @@
     </button>
 
     <!-- Refresh -->
-    <button mat-icon-button color="light" *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+    <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
   </ng-container>
@@ -126,7 +140,7 @@
     [matSortActive]="defaultSortBy"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -135,16 +149,12 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- id (=rankOrder) Column -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
       </th>
@@ -178,8 +188,8 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
+    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label
           [innerHTML]="
             pmfm
@@ -193,7 +203,7 @@
           "
         ></ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm | isDatePmfm">
+      <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-text
           [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
         ></ion-text>
@@ -224,7 +234,13 @@
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
+        <ion-icon
+          *ngIf="row.currentData.comments | isNotNilOrBlank"
+          [title]="row.currentData.comments"
+          color="secondary"
+          name="chatbox"
+          slot="icon-only"
+        ></ion-icon>
       </td>
     </ng-container>
 
@@ -247,8 +263,8 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      class="mat-row-disabled"
-      [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      class="mat-mdc-row-disabled"
+      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>

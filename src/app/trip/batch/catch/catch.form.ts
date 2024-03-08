@@ -13,6 +13,8 @@ import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { RxState } from '@rx-angular/state';
+import { RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -30,16 +32,17 @@ export interface CatchBatchFormState extends BatchFormState {
   providers: [
     { provide: BatchValidatorService, useClass: BatchValidatorService },
     { provide: BatchForm, useExisting: forwardRef(() => CatchBatchForm) },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implements OnInit {
-  readonly gearPmfms$ = this._state.select('gearPmfms');
-  readonly onDeckPmfms$ = this._state.select('onDeckPmfms');
-  readonly sortingPmfms$ = this._state.select('sortingPmfms');
-  readonly catchPmfms$ = this._state.select('catchPmfms');
-  readonly otherPmfms$ = this._state.select('otherPmfms');
-  readonly gridColCount$ = this._state.select('gridColCount');
+  @RxStateSelect() readonly gearPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly onDeckPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly sortingPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly catchPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly otherPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly gridColCount$: Observable<IPmfm[]>;
 
   @Input() labelColSize = 1;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
@@ -74,13 +77,15 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
 
   /* -- protected functions -- */
 
-  // @ts-ignore
-  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
+  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<CatchBatchFormState>> {
     if (!pmfms) return; // Skip
+
+    // DEBUG
+    console.debug(this._logPrefix + ' Dispatching pmfms...', pmfms);
 
     // If a catch batch (root)
     if (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
-      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod, pmfms: updatedPmfms } = await super.dispatchPmfms(pmfms);
+      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod, filteredPmfms: updatedPmfms } = await super.dispatchPmfms(pmfms);
 
       const onDeckPmfms = pmfms.filter((p) => p.label?.indexOf('ON_DECK_') === 0);
       const sortingPmfms = pmfms.filter((p) => p.label?.indexOf('SORTING_') === 0);
@@ -107,7 +112,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
         catchPmfms,
         gearPmfms,
         otherPmfms,
-        pmfms: updatedPmfms,
+        filteredPmfms: updatedPmfms,
         hasContent: pmfms.length > 0,
         gridColCount,
         showWeight: false,

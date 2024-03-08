@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
@@ -14,7 +13,6 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
 @NgModule({
   imports: [
     CommonModule,
-    TextMaskModule,
     TranslateModule.forChild(),
 
     AppCoreModule,

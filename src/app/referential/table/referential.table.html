@@ -290,11 +290,7 @@
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox
-            (click)="$event.stopPropagation()"
-            (change)="$event ? selection.toggle(row) : null"
-            [checked]="selection.isSelected(row)"
-          ></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
         </td>
       </ng-container>
 
@@ -312,7 +308,7 @@
           <ion-label translate>REFERENTIAL.LABEL</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'label'; let control; else readonlyCell">
+          <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'label'; let control; else: readonlyCell">
             <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.LABEL' | translate" [appAutofocus]="row.id === -1 && row.editing" />
             <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
@@ -329,7 +325,7 @@
           <ion-label translate>REFERENTIAL.NAME</ion-label>
         </th>
         <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-          <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'name'; let control; else readonlyCell">
+          <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'name'; let control; else: readonlyCell">
             <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.NAME' | translate" />
             <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
@@ -388,8 +384,8 @@
             [class.ion-padding-start]="first"
             [class.cdk-visually-hidden]="loadingSubject | async"
             [class.mat-form-field-disabled]="!row.editing"
-            [class.mat-cell-date]="definition.type === 'date'"
-            [class.mat-cell-date-time]="definition.type === 'dateTime'"
+            [class.mat-mdc-cell-date]="definition.type === 'date'"
+            [class.mat-mdc-cell-date-time]="definition.type === 'dateTime'"
           >
             <app-form-field
               *ngIf="row.editing && row.validator | formGetControl: definition.key; let control; else: readonly"
@@ -500,10 +496,10 @@
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
-        [class.mat-row-error]="row.validator.invalid"
-        [class.mat-row-dirty]="row.validator.dirty"
-        [class.mat-row-disabled]="!row.editing"
-        [class.mat-row-selected]="row.editing"
+        [class.mat-mdc-row-error]="row.validator.invalid"
+        [class.mat-mdc-row-dirty]="row.validator.dirty"
+        [class.mat-mdc-row-disabled]="!row.editing"
+        [class.mat-mdc-row-selected]="row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.validator?.valid"

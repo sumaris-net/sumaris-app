@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { AppFormUtils, LocalSettingsService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -77,7 +77,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.table.$pmfms;
+    return this.table.pmfms$;
   }
 
   constructor(

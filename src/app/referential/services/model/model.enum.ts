@@ -1,4 +1,4 @@
-import { changeCaseToUnderscore } from '@sumaris-net/ngx-components';
+import { changeCaseToUnderscore, underscoreToChangeCase } from '@sumaris-net/ngx-components';
 
 export const ProgramLabel = {
   SIH: 'SIH', // Used for vessel's filter
@@ -9,23 +9,28 @@ export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3,
+  MARITIME_DISTRICT: 8,
 
   // At sea
-  ICES_RECTANGLE: 4,
-  GFCM_RECTANGLE: 5,
-  ICES_SUB_AREA: 110,
-  ICES_DIVISION: 111,
+  SUB_AREA_ICES: 110,
+  RECTANGLE_ICES: 4,
+  RECTANGLE_GFCM: 5,
+  DIVISION_ICES: 111,
+  SUB_DIVISION_ICES: 112,
+  SUB_AREA_GFCM: 140,
+  DIVISION_GFCM: 141,
+  SUB_DIVISION_GFCM: 142,
 };
 
 export abstract class LocationLevels {
   static getFishingAreaLevelIds() {
-    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE, LocationLevelIds.ICES_DIVISION];
+    return [LocationLevelIds.RECTANGLE_ICES, LocationLevelIds.RECTANGLE_GFCM, LocationLevelIds.DIVISION_ICES];
   }
   static getWeightLengthConversionAreaLevelIds() {
-    return [LocationLevelIds.ICES_SUB_AREA, LocationLevelIds.ICES_DIVISION];
+    return [LocationLevelIds.SUB_AREA_ICES, LocationLevelIds.DIVISION_ICES];
   }
   static getStatisticalRectangleLevelIds() {
-    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE];
+    return [LocationLevelIds.RECTANGLE_ICES, LocationLevelIds.RECTANGLE_GFCM];
   }
 }
 export const LocationLevelGroups = {
@@ -36,6 +41,11 @@ export const LocationLevelGroups = {
 
 export const GearLevelIds = {
   FAO: 1,
+};
+
+export const VesselTypeIds = {
+  FISHING_VESSEL: 1,
+  SCIENTIFIC_RESEARCH_VESSEL: 2,
 };
 
 export const TaxonGroupTypeIds = {
@@ -55,6 +65,7 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   GEAR_SPEED: 9,
+  NB_FISHERMEN: 21,
   SEA_STATE: 33,
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
@@ -126,11 +137,18 @@ export const PmfmIds = {
   /* APASE */
   CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
+  DIURNAL_OPERATION: 417,
   TRAWL_SIZE_CAT: 418,
   BATCH_SORTING: 176, // Vrac/Hors Vrac
   DISCARD_WEIGHT: 56,
   CATCH_WEIGHT: 57,
   HULL_MATERIAL: 433,
+
+  /* OBSMER */
+  DISCARD_TYPE: 408,
+  IS_SAMPLING: 409,
+  LANDING_CATEGORY: 436,
+  EMV_CATEGORY: 437, // TODO override by config
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -171,6 +189,15 @@ export const QualitativeValueIds = {
   },
   SEX: {
     UNSEXED: 188, // Non sexe
+  },
+  IS_SAMPLING: {
+    YES: 596, // Détaillé
+    NO: 597, // Non détaillé
+  },
+  DISCARD_TYPE: {
+    ANI: 577, // Animaux - TODO override by config
+    INV: 578, // Inerte et végétaux - TODO override by config
+    EMV: 582, // TODO override by config
   },
 };
 
@@ -430,7 +457,9 @@ export declare type AcquisitionLevelType =
   | 'EXPENSE'
   | 'BAIT_EXPENSE'
   | 'ICE_EXPENSE'
-  | 'CHILD_OPERATION';
+  | 'CHILD_OPERATION'
+  | 'ACTIVITY_CALENDAR'
+  | 'MONTHLY_ACTIVITY';
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
@@ -455,6 +484,8 @@ export const AcquisitionLevelCodes = {
   BAIT_EXPENSE: <AcquisitionLevelType>'BAIT_EXPENSE',
   ICE_EXPENSE: <AcquisitionLevelType>'ICE_EXPENSE',
   CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION',
+  ACTIVITY_CALENDAR: <AcquisitionLevelType>'ACTIVITY_CALENDAR',
+  MONTHLY_ACTIVITY: <AcquisitionLevelType>'MONTHLY_ACTIVITY',
 };
 
 export const SaleTypeIds = {
@@ -491,6 +522,13 @@ export const ProgramPrivilegeHierarchy = Object.freeze({
 export const ObjectTypeLabels = {
   TRIP: 'FISHING_TRIP',
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
+
+  // Referential
+  LOCATION: 'LOCATION',
+  TAXON_GROUP: 'TAXON_GROUP',
+  TAXON_NAME: 'TAXON_NAME',
+  GEAR: 'GEAR',
+  PMFM: 'PMFM',
 };
 
 export class ModelEnumUtils {
@@ -507,5 +545,11 @@ export class ModelEnumUtils {
     const value = ObjectTypeLabels[label];
     if (value) return value;
     throw new Error('Missing an ObjectType for entityName: ' + entityName);
+  }
+
+  static getEntityNameByObjectTypeLabel(objectTypeLabel: string): string {
+    if (!objectTypeLabel) throw new Error("Missing argument 'objectTypeLabel'");
+    const enumKey = Object.entries(ObjectTypeLabels).find(([key, value]) => objectTypeLabel === value)?.[0] || objectTypeLabel;
+    return underscoreToChangeCase(enumKey);
   }
 }

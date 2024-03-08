@@ -4,14 +4,13 @@ import {
   Component,
   EventEmitter,
   Inject,
-  InjectionToken,
   Input,
   OnDestroy,
   OnInit,
   Optional,
   Output,
 } from '@angular/core';
-import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
+import { DataEntity, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
@@ -52,8 +51,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
-
-export const APP_DATA_ENTITY_EDITOR = new InjectionToken<AppDataEntityEditor<any, any, any>>('AppEntityEditor');
+import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -64,7 +62,7 @@ export const APP_DATA_ENTITY_EDITOR = new InjectionToken<AppDataEntityEditor<any
 })
 export class EntityQualityFormComponent<
     T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
-    S extends IEntityService<T, ID> = IEntityService<any, any>,
+    S extends IEntityService<T, ID> = IEntityService<any>,
     ID = number,
   >
   implements OnInit, OnDestroy
@@ -138,7 +136,12 @@ export class EntityQualityFormComponent<
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to update events
-    let updateViewEvents = merge(this.editor.onUpdateView, this.accountService.onLogin, this.network.onNetworkStatusChanges);
+    let updateViewEvents = merge(
+      this.editor.onUpdateView,
+      this.editor.dirtySubject,
+      this.accountService.onLogin,
+      this.network.onNetworkStatusChanges
+    );
 
     // Add a debounce time
     if (this._mobile) updateViewEvents = updateViewEvents.pipe(debounceTime(500));
@@ -181,11 +184,11 @@ export class EntityQualityFormComponent<
         // Construct error with details
         if (isNil(errors.details)) {
           errors = <AppErrorWithDetails>{
-            message: errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR',
+            message: errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR',
             details: { errors: errors as FormErrors },
           };
         } else {
-          errors.message = errors.message || data.qualificationComments || 'COMMON.ERROR.HAS_ERROR';
+          errors.message = errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR';
         }
 
         this.editor.setError(errors as AppErrorWithDetails);
@@ -359,6 +362,11 @@ export class EntityQualityFormComponent<
     try {
       this.busy = true;
 
+      if (!DataEntityUtils.isControlled(this.data)) {
+        console.debug('[entity-quality] Terminate entity input...');
+        this.data = await this.serviceForRootEntity.terminate(this.data);
+      }
+
       console.debug('[entity-quality] Mark entity as validated...');
       const data = await this.serviceForRootEntity.validate(this.data);
 
@@ -410,13 +418,12 @@ export class EntityQualityFormComponent<
       this.canUnqualify = false;
     } else if (data instanceof DataEntity) {
       console.debug('[entity-quality] Updating view...');
-
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
       const canWrite = isLocalData || this.editor.canUserWrite(data);
 
       // Terminate and control
-      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate));
+      this.canControl = canWrite && ((isLocalData && data.synchronizationStatus === 'DIRTY') || isNil(data.controlDate) || this.editor.dirty);
       this.canTerminate = this.canControl && this._isRootDataQualityService && (!isLocalData || data.synchronizationStatus === 'DIRTY');
 
       // Validation and qualification

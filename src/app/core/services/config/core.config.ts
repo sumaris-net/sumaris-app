@@ -13,6 +13,8 @@ export const APP_CORE_CONFIG_OPTIONS = Object.freeze({
     type: 'integer',
     defaultValue: 0,
   },
+
+  // Enumerations
   PROFILE_ADMIN_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.UserProfile.ADMIN.label',
     label: 'CONFIGURATION.OPTIONS.PROFILE.ADMIN',

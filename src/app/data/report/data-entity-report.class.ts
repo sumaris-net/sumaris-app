@@ -79,7 +79,7 @@ export abstract class AppDataEntityReport<
   }
 
   protected async load(id: ID, opts?: any): Promise<T> {
-    if (this.debug) console.debug(`[${this.logPrefix}.load]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.load]`, id, opts);
     return this.loadData(id, opts);
   }
 

@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-packet-sale-form',
@@ -35,7 +36,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     fillRankOrder(json.saleProducts);
 
     // Convert aggregated products sales to products
-    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._data, json.saleProducts, this.packetSalePmfms);
+    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._data, json.saleProducts, this.pmfms);
 
     return json;
   }
@@ -43,7 +44,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   @Input() mobile: boolean;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
-  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
+  @Input() pmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -85,7 +86,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
     // Initialize product sales by converting products to aggregated sale products
     const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts)
-      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms).map((p) => p.asObject())
+      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.pmfms).map((p) => p.asObject())
       : [{}];
     this.salesHelper.resize(Math.max(1, aggregatedSaleProducts.length));
 

@@ -169,6 +169,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
 
+    // Load acquisition levels
+    this.state.connect('acquisitionLevels', this.watchAcquisitionLevels());
+
+    // Load default qualitative value
+    this.state.connect('qualitativeValues', this.watchQualitativeValues());
+
     this.debug = !environment.production;
   }
 
@@ -188,8 +194,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         class: 'mat-autocomplete-panel-large-size',
       }),
     });
-    // Load acquisition levels
-    this.state.connect('acquisitionLevels', this.watchAcquisitionLevels());
 
     // Rank order
     this.registerColumnDefinition({
@@ -299,9 +303,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       },
       required: false,
     });
-
-    // Load default qualitative value
-    this.state.connect('qualitativeValues', this.watchQualitativeValues());
   }
 
   protected getDisplayColumns(): string[] {

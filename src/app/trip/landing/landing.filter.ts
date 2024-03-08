@@ -4,7 +4,8 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
-  isNilOrBlank,
+  isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -19,6 +20,7 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   static fromObject: (source: any, opts?: any) => LandingFilter;
 
   vesselId?: number;
+  vesselIds?: number[];
   vesselSnapshot: VesselSnapshot = null;
   excludeVesselIds?: number[];
   groupByVessel?: boolean;
@@ -40,6 +42,7 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = toNumber(source.vesselId);
+    this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.excludeVesselIds = source.excludeVesselIds;
     this.groupByVessel = source.groupByVessel;
@@ -59,13 +62,18 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    if (opts && opts.minify) {
-      // Vessel
+
+    if (opts?.minify) {
+      // Vessel (prefer single vessel, for compatibility with pod < 2.9)
       target.vesselId = isNotNil(this.vesselId)
         ? this.vesselId
-        : this.vesselSnapshot && isNotNil(this.vesselSnapshot.id)
+        : isNotNil(this.vesselSnapshot?.id)
           ? this.vesselSnapshot.id
-          : undefined;
+          : this.vesselIds?.length === 1
+            ? this.vesselIds[0]
+            : undefined;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+      if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
       delete target.vesselSnapshot;
 
       // Location
@@ -106,8 +114,12 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
     }
 
     // Vessel
-    if (isNotNil(this.vesselId)) {
-      filterFns.push((entity) => entity.vesselSnapshot && entity.vesselSnapshot.id === this.vesselId);
+    const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
+    if (isNotNil(vesselId)) {
+      filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    } else if (isNotEmptyArray(this.vesselIds)) {
+      const vesselIds = this.vesselIds;
+      filterFns.push((t) => t.vesselSnapshot && vesselIds.includes(t.vesselSnapshot.id));
     }
 
     // Vessel exclude

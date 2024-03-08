@@ -272,7 +272,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
         .filter(isNotNil)
         .find(
           (location) =>
-            isNil(location.levelId) || location.levelId === LocationLevelIds.ICES_RECTANGLE || location.levelId === LocationLevelIds.GFCM_RECTANGLE
+            isNil(location.levelId) || location.levelId === LocationLevelIds.RECTANGLE_ICES || location.levelId === LocationLevelIds.RECTANGLE_GFCM
         );
       if (isNotNilOrBlank(rectangle?.label)) {
         console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangle.label);
@@ -486,11 +486,6 @@ export class SubBatchValidators {
           if (rwConversion) {
             value = rwService.inverseAliveWeight(rwConversion, value);
             console.debug(`[sub-batch-validator] Dressing/preservation weight = ${value}kg`);
-          }
-          // TODO : Peut on continuer, sans coef poids vif, même pour Entier/Frais (ex: Langoustine)
-          else {
-            console.warn(`[sub-batch-validator] Missing round weight conversion for dressingId=${dressingId}. Cannot apply conversion`);
-            //return undefined;
           }
         }
       }

@@ -5,8 +5,7 @@
  */
 
 import * as L from 'leaflet';
-import { GeoJSONOptions } from 'leaflet';
-import { Configuration, formatLatitude, formatLongitude, LatLongFormatOptions, LatLongPattern } from '@sumaris-net/ngx-components';
+import { Configuration } from '@sumaris-net/ngx-components';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 
 export interface MapCenter {
