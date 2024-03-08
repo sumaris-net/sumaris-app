@@ -362,7 +362,7 @@ release:tags:
     - npm version
     # Build
     - export NODE_OPTIONS=--max-old-space-size=4096
-    - npm run build:prod
+    - npm run build.prod
   artifacts:
     paths:
       - www
