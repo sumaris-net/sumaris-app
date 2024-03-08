@@ -1388,7 +1388,8 @@
       "MANAGER": "Responsable"
     },
     "OPTIONS": {
-      "ENABLE": "Campagnes à la mer > Activer ?"
+      "ENABLE": "Campagnes à la mer > Activer ?",
+      "NAME": "Campagnes à la mer > Titre (menu, etc.)"
     }
   },
   "OBSERVED_LOCATION": {
@@ -3142,6 +3143,9 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne"
+    },
+    "OPTIONS": {
+      "ENABLE": "Calendrier d'activité > Activer ?"
     }
   },
   "ERROR": {
