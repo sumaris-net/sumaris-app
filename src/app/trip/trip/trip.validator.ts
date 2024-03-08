@@ -23,6 +23,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
+  withSamplingStrata?: boolean;
   withSale?: boolean;
   withMeasurements?: boolean;
   withMetiers?: boolean;
@@ -91,6 +92,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       returnLocation: [(data && data.returnLocation) || null, this.getReturnLocationValidator(opts)],
     });
 
+    // Add sampling strata
+    if (opts.withSamplingStrata) {
+      formConfig.samplingStrata = [data?.samplingStrata || null, Validators.compose([Validators.required, SharedValidators.entity])];
+    }
+
     // Add observers
     if (opts.withObservers) {
       formConfig.observers = this.getObserversFormArray(data?.observers);
@@ -135,6 +141,17 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     const enabled = form.enabled;
     form.get('returnDateTime')?.setValidators(this.getReturnDateTimeValidator(opts));
     form.get('returnLocation')?.setValidators(this.getReturnLocationValidator(opts));
+
+    // Sampling strata
+    if (opts.withSamplingStrata) {
+      if (!form.controls.samplingStrata) {
+        form.addControl('samplingStrata', this.formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+      }
+      if (enabled) form.controls.samplingStrata.enable();
+      else form.controls.samplingStrata.disable();
+    } else {
+      if (form.controls.samplingStrata) form.removeControl('samplingStrata');
+    }
 
     // Metier array
     if (opts?.withMetiers) {

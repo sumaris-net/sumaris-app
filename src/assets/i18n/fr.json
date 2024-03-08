@@ -612,6 +612,8 @@
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
+    "SAMPLING_SCHEME": "Plan d'échantillonnage :",
+    "SAMPLING_STRATA": "Référence de la ligne de plan",
     "VESSEL_SNAPSHOT": "Navire",
     "BTN_ADD_VESSEL": "Ajouter un navire",
     "DEPARTURE": "Départ :",
