@@ -197,7 +197,7 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER',
       },
       {
-        // eslint-disable-next-line no-bitwise
+        /* eslint-disable no-bitwise */
         key:
           '' +
           (OperationPasteFlags.DATE |
@@ -874,6 +874,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{ key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME' },
       <Property>{ key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME' },
       <Property>{ key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME' },
+      <Property>{ key: 'ACOST', value: 'EXTRACTION.FORMAT.ACOST.NAME' },
       <Property>{ key: 'VESSEL', value: 'EXTRACTION.FORMAT.VESSEL.NAME' },
     ],
     autocomplete: {

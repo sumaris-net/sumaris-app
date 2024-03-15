@@ -2608,6 +2608,12 @@
       }
     },
     "FORMAT": {
+      "ACOST": {
+        "TITLE": "Marées brutes (ACOST v{{version}})",
+        "NAME": "ACOST",
+        "DISCARD_REASON": "Raison du rejet",
+        "DRESSING_POL": "Présentation"
+      },
       "APASE": {
         "TITLE": "Marées brutes (APASE v{{version}})",
         "NAME": "Sélectivité châlut",
