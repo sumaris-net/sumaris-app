@@ -159,6 +159,17 @@
     },
     "HELP": {
       "TITLE": "Aide en ligne"
+    },
+    "NAMED_FILTER": {
+      "TITLE": "Filtres enregistrés",
+      "SAVE": "Sauvegarder le filtre",
+      "DELETE": "Supprimer le filtre",
+      "DELETED": "Filtre supprimé",
+      "EXPORT": "Exporter le filtre",
+      "IMPORT": "Importer un filtre",
+      "LOAD_FAILED": "Échec du chargement du filtre",
+      "IMPORT_FAILED": "Échec de l'import du filtre",
+      "NOT_FOUND": "Filtre non trouvé"
     }
   },
   "CONFIGURATION": {

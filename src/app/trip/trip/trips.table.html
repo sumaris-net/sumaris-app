@@ -124,6 +124,16 @@
     [class.filter-panel-floating]="filterPanelFloating"
     [class.filter-panel-pinned]="!filterPanelFloating"
   >
+    <app-named-filter-selector
+      #namedFilterSelector
+      [entityName]="'Trip'"
+      [filterContentProvider]="namedFilterContentProvider"
+      [filterFormDirty]="dirty"
+      [autocompleteConfig]="namedFilterAutocompleteConfig"
+      [filterImportCallback]="filterImportCallback"
+      (filterSelected)="setFilter($event)"
+    ></app-named-filter-selector>
+
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
