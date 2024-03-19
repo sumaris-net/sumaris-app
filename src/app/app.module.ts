@@ -23,6 +23,7 @@ import {
   APP_LOGGING_SERVICE,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
+  APP_NAMED_FILTER_SERVICE,
   APP_PROGRESS_BAR_SERVICE,
   APP_SETTINGS_MENU_ITEMS,
   APP_STORAGE,
@@ -106,6 +107,7 @@ import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 import { ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES, ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES } from '@app/activity-calendar/activity-calendar.config';
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
+import {NamedFilterService} from './named-filter/named-filter.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -557,6 +559,10 @@ import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar
     {
       provide: DEVICE_POSITION_ENTITY_SERVICES,
       useValue: [TripService, ObservedLocationService],
+    },
+    {
+      provide: APP_NAMED_FILTER_SERVICE,
+      useClass: NamedFilterService,
     },
   ],
   bootstrap: [AppComponent],

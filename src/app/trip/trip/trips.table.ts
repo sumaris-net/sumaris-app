@@ -13,7 +13,9 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  NamedFilter,
   PersonService,
   PersonUtils,
   ReferentialRef,
@@ -78,6 +80,15 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   get filterDataQualityControl(): UntypedFormControl {
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
+
+  namedFilterContentProvider = (): object => this.filterForm.value;
+
+  filterImportCallback = async (namedFilter: NamedFilter):Promise<NamedFilter> => namedFilter;
+
+  namedFilterAutocompleteConfig: MatAutocompleteFieldConfig = {
+    showAllOnFocus: true,
+  };
+    
 
   constructor(
     injector: Injector,
