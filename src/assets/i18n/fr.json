@@ -1370,7 +1370,9 @@
       "TITLE": "Nouvelle vente"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Vente du {{dateTime}}"
+      "TITLE": "{{location}} - Vente du {{dateTime}}",
+      "TAB_GENERAL": "Détails",
+      "TAB_BATCHES": "Lots"
     },
     "TABLE": {
       "VESSEL": "Navire",
@@ -2236,6 +2238,7 @@
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
+      "LANDING_EDITOR_SALE": "Vente",
       "LANDING_EDITOR_SAMPLING": "Échantillonnage biologique",
       "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",

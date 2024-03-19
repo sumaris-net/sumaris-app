@@ -801,6 +801,10 @@ export const ProgramProperties = Object.freeze({
         key: <LandingEditor>'sampling',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SAMPLING',
       },
+      {
+        key: <LandingEditor>'sale',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SALE',
+      },
     ],
     defaultValue: <LandingEditor>'landing',
   },

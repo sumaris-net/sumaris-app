@@ -9,7 +9,8 @@
   <ion-grid class="ion-no-padding">
     <!-- VESSEL -->
     <ion-row *ngIf="showVessel">
-      <ion-col size="12">
+      <!--      todo mf to be check with benoit-->
+      <ion-col offset="0" offset-md="2" offset-lg="3">
         <mat-autocomplete-field
           *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
           [placeholder]="'SALE.VESSEL' | translate"
