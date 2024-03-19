@@ -1,30 +1,37 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AppEditorOptions,
   AppErrorWithDetails,
-  DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
   equals,
   fadeInOutAnimation,
+  firstArrayValue,
   firstNotNilPromise,
+  firstTruePromise,
+  fromDateISOString,
   HistoryPageReference,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
   ServerErrorCodes,
-  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SaleForm } from './sale.form';
+import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { SaleService } from './sale.service';
-import { RootDataEditorOptions, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor, RootDataEditorOptions, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
+import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
-import { map, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, tap, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './sale.model';
@@ -33,23 +40,28 @@ import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
-import { Observable, Subscription } from 'rxjs';
+import { merge, Observable, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { SaleFilter } from './sale.filter';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
-import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import moment from 'moment';
+import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
+import { SampleFilter } from '@app/trip/sample/sample.filter';
+import { Sample } from '@app/trip/sample/sample.model';
+import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
+import { SaleFilter } from './sale.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { LandingService } from '@app/trip/landing/landing.service';
-import { Landing } from '@app/trip/landing/landing.model';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -60,7 +72,7 @@ export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
-};
+}; //todo mf to be check
 @Component({
   selector: 'app-sale-page',
   templateUrl: './sale.page.html',
@@ -87,23 +99,22 @@ export class SalePage<ST extends SalePageState = SalePageState>
     SAMPLES: 1,
     BATCHES: 2,
   };
-  protected parent: Trip | Landing;
+  protected parent: Trip | ObservedLocation;
+  protected observedLocationService = inject(ObservedLocationService);
   protected tripService = inject(TripService);
-  protected landingService = inject(LandingService);
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
   protected selectedSubTabIndex = 0;
   showParent = false;
-  showEntityMetadata = false;
-  showQualityForm = false;
+  showEntityMetadata = true; //todo mf natif false
+  showQualityForm = true; //todo mf natif false
   enableReport = false;
   parentAcquisitionLevel: AcquisitionLevelType;
-  showBatchTreeByProgram = false;
-  showBatchTree = false;
+  showSampleTablesByProgram = false;
+  showSamplesTable = false;
   @RxStateProperty() strategyLabel: string;
-
   get form(): UntypedFormGroup {
     return this.saleForm.form;
   }
@@ -111,10 +122,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
   @ViewChild('fishingAreaForm', { static: true }) fishingAreaForm: FishingAreaForm;
   @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
+
   constructor(injector: Injector, @Optional() options: SaleEditorOptions) {
     super(injector, Sale, injector.get(SaleService), {
-      pathIdAttribute: 'saleId',
-      tabCount: 3,
+      pathIdAttribute: 'SaleId',
+      tabCount: 2,
       i18nPrefix: 'SALE.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.SALE,
@@ -130,6 +142,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+
     // // Enable samples tab, when has pmfms
     // firstTruePromise(this.samplesTable.hasPmfms$, { stop: this.destroySubject }).then(() => {
     //   this.showSamplesTable = true;
@@ -236,20 +249,20 @@ export class SalePage<ST extends SalePageState = SalePageState>
   ) {
     await super.updateView(data, opts);
 
-    //this.saleForm.showParent = this.showParent;
-    //this.saleForm.parentAcquisitionLevel = this.parentAcquisitionLevel;
+    // this.saleForm.showParent = this.showParent;
+    // this.saleForm.parentAcquisitionLevel = this.parentAcquisitionLevel;
 
     if (this.parent) {
-      // Parent is a trip
-      if (this.parent instanceof Trip) {
-        this.saleForm.showProgram = false;
-        this.saleForm.showVessel = false;
+      // Parent is an Observed location
+      if (this.parent instanceof ObservedLocation) {
+        // this.saleForm.showProgram = false;
+        this.saleForm.showVessel = true;
       }
 
-      // Parent is a landing
-      else if (this.parent instanceof Landing) {
-        this.saleForm.showProgram = false;
-        this.saleForm.showVessel = true;
+      // Parent is an Trip
+      else if (this.parent instanceof Trip) {
+        // this.saleForm.showProgram = false;
+        this.saleForm.showVessel = false;
       }
     }
     // No parent defined
@@ -284,22 +297,23 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
   }
 
-  // async openReport(event: Event) {
-  //   if (this.dirty) {
-  //     const data = await this.saveAndGetDataIfValid();
-  //     if (!data) return; // Cancel
-  //   }
-  //   return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
-  // }
+  async openReport(event: Event) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
 
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.saleForm, this.fishingAreaForm]);
+    this.addChildForms([this.saleForm]);
   }
 
   protected async onNewEntity(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
     const queryParams = this.route.snapshot.queryParams;
+
     // DEBUG
     //console.debug('DEV - Creating new sale entity');
 
@@ -308,12 +322,12 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.showQualityForm = false;
 
     if (this.isOnFieldMode) {
-      data.startDateTime = DateUtils.moment();
+      // data.dateTime = moment();
     }
 
     // Fill parent ids
-    data.tripId = toNumber(options?.tripId, undefined);
-    data.landingId = toNumber(options?.landingId, undefined);
+    data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
+    data.tripId = options && options.tripId && parseInt(options.tripId);
 
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
@@ -371,6 +385,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async onEntityLoaded(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
     this.parent = await this.loadParent(data);
+    const programLabel = this.parent.program?.label;
 
     // Copy not fetched data
     if (this.parent) {
@@ -378,18 +393,21 @@ export class SalePage<ST extends SalePageState = SalePageState>
       data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
       data.observers = (isNotEmptyArray(data.observers) && data.observers) || this.parent.observers;
 
-      if (this.parent instanceof Trip) {
-        data.saleLocation = data.saleLocation || this.parent.returnLocation || this.parent.departureLocation;
+      if (this.parent instanceof ObservedLocation) {
+        // data.location = data.location || this.parent.location;
         // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
-        data.trip = this.showParent ? this.parent : undefined;
-        data.tripId = this.showParent ? null : this.parent.id;
-        data.landingId = undefined;
-      } else if (this.parent instanceof Landing) {
-        data.saleLocation = data.saleLocation || this.parent.location;
-        // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
-        data.landing = this.showParent ? this.parent : undefined;
-        data.landingId = this.showParent ? null : this.parent.id;
+        // data.observedLocation = this.showParent ? this.parent : undefined;
+        data.observedLocationId = this.showParent ? null : this.parent.id;
         data.tripId = undefined;
+        //data.trip = undefined; // Keep it
+      } else if (this.parent instanceof Trip) {
+        data.vesselSnapshot = this.parent.vesselSnapshot;
+        // data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
+        // data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
+        // data.trip = this.showParent ? this.parent : undefined;
+        data.tripId = this.showParent ? undefined : this.parent.id;
+        // data.observedLocation = undefined;
+        data.observedLocationId = undefined;
       }
 
       this.showEntityMetadata = EntityUtils.isRemote(data);
@@ -405,12 +423,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // this.saleForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
-    const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     // if (strategyLabel) this.strategyLabel = strategyLabel;
   }
 
-  protected async onParentChanged(parent: Trip | Landing) {
+  protected async onParentChanged(parent: Trip | ObservedLocation) {
     if (!equals(parent, this.parent)) {
       console.debug('[sale] Parent changed to: ', parent);
       this.parent = parent;
@@ -425,7 +442,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
   }
 
-  protected async fillPropertiesFromParent(data: Sale, parent: Trip | Landing) {
+  protected async fillPropertiesFromParent(data: Sale, parent: Trip | ObservedLocation) {
     // DEBUG
     console.debug('[sale-page] Fill some properties from parent', parent);
 
@@ -436,29 +453,37 @@ export class SalePage<ST extends SalePageState = SalePageState>
       data.program = parent.program;
       data.observers = parent.observers;
 
-      if (parent instanceof Trip) {
-        // data.trip = this.showParent ? parent : undefined;
-        data.vesselSnapshot = parent.vesselSnapshot;
-        data.saleLocation = parent.returnLocation || parent.departureLocation;
-        // data.dateTime = parent.returnDateTime || parent.departureDateTime;
-        data.landing = undefined;
-        data.landingId = undefined;
-      } else if (parent instanceof Landing) {
+      if (parent instanceof ObservedLocation) {
         // data.observedLocation = this.showParent ? parent : undefined;
-        data.landingId = this.showParent ? null : this.parent.id;
-        // TODO enable this ?
-        //data.saleLocation = (this.saleForm.showLocation && data.location) || parent.location;
-        //data.startDateTime = (this.saleForm.showDateTime && data.dateTime) || parent.startDateTime || parent.endDateTime;
-        data.landing = undefined;
+        data.observedLocationId = this.showParent ? null : this.parent.id;
+        // data.location = (this.saleForm.showLocation && data.location) || parent.location;
+        // data.dateTime = (this.saleForm.showDateTime && data.dateTime) || parent.startDateTime || parent.endDateTime;
+        // Keep trip, because some data are stored into the trip (e.g. fishingAreas, metier, ...)
+        //data.trip = undefined;
         data.tripId = undefined;
 
         // Load the vessel, if any
-        if (isNotNil(queryParams['vessel']) && !data.vesselSnapshot) {
+        if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[sale-page] Loading vessel {${vesselId}}...`);
           data.vesselSnapshot = await this.vesselSnapshotService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
+      } else if (parent instanceof Trip) {
+        // data.trip = this.showParent ? parent : undefined;
+        data.vesselSnapshot = parent.vesselSnapshot;
+        // data.location = parent.returnLocation || parent.departureLocation;
+        // data.dateTime = parent.returnDateTime || parent.departureDateTime;
+        // data.observedLocation = undefined;
+        data.observedLocationId = undefined;
       }
+
+      // Copy date to samples, if not set by user
+      // if (!this.samplesTable.showSampleDateColumn) {
+      //   console.debug(`[sale-page] Updating samples...`);
+      //   (data.samples || []).forEach((sample) => {
+      //     sample.sampleDate = data.dateTime;
+      //   });
+      // }
     }
 
     // No parent
@@ -477,12 +502,18 @@ export class SalePage<ST extends SalePageState = SalePageState>
       if (this.parent instanceof ObservedLocation) {
         return `/observations/${this.parent.id}?tab=1`;
       }
+
+      // Back to parent trip
+      else if (this.parent instanceof Trip) {
+        return `/trips/${this.parent.id}?tab=2`;
+      }
     }
     if (this.parentAcquisitionLevel) {
       // Back to entity table
       switch (this.parentAcquisitionLevel) {
         case 'OBSERVED_LOCATION':
           return `/observations/landings`;
+          break;
         default:
           throw new Error('Cannot compute the back href, for parent ' + this.parentAcquisitionLevel);
       }
@@ -516,10 +547,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix && i18nSuffix !== 'legacy' ? i18nSuffix : this.i18nContext?.suffix || '';
     this.i18nContext.suffix = i18nSuffix;
-    this.saleForm.i18nSuffix = i18nSuffix;
+    // this.saleForm.i18nSuffix = i18nSuffix;
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
-    this.showBatchTreeByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
+    this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_ENABLE);
 
     // if (this.samplesTable) {
     //   this.samplesTable.i18nColumnSuffix = i18nSuffix;
@@ -563,6 +594,17 @@ export class SalePage<ST extends SalePageState = SalePageState>
     const program = this.program;
     if (!strategy || !program) return; // Skip if empty
 
+    // Propagate to form
+    // this.saleForm.strategyLabel = strategy.label;
+
+    // Propagate strategy's fishing area locations to form
+    const fishingAreaLocations = removeDuplicatesFromArray(
+      (strategy.appliedStrategies || []).map((a) => a.location),
+      'id'
+    );
+    // this.saleForm.filteredFishingAreaLocations = fishingAreaLocations;
+    // this.saleForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
+
     // Configure samples table
     // if (this.samplesTable && this.samplesTable.acquisitionLevel) {
     //   this.samplesTable.strategyLabel = strategy.label;
@@ -578,15 +620,66 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.markForCheck();
   }
 
-  protected async loadParent(data: Sale): Promise<Landing | Trip> {
-    let parent: Landing | Trip;
+  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
+    //   if (!this.saleForm.showStrategy) {
+    //     console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
+    //   // Set the table program, to delegate pmfms load
+    //   table.requiredStrategy = this.requiredStrategy;
+    //   table.programLabel = programLabel;
+    // } else  (la base else is)
+    if (table.acquisitionLevel && strategyLabel) {
+      console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
+      // Load strategy's pmfms
+      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {
+        acquisitionLevel: table.acquisitionLevel,
+        strategyLabel,
+      });
+      const strategyPmfmIds = samplesPmfms.map((pmfm) => pmfm.id);
 
-    if (isNotNil(data.tripId)) {
-      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
+      // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
+      const additionalPmfmIds = ((!this.isNewData && this.data?.samples) || []).reduce(
+        (res, sample) =>
+          MeasurementValuesUtils.getPmfmIds(sample.measurementValues || {}).reduce(
+            (res, pmfmId) => (!strategyPmfmIds.includes(pmfmId) ? res.concat(pmfmId) : res),
+            res
+          ),
+        []
+      );
+
+      // Override samples table pmfm, if need
+      if (isNotEmptyArray(additionalPmfmIds)) {
+        // Load additional pmfms, from ids
+        const additionalPmfms = (await Promise.all(additionalPmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)))).map(
+          DenormalizedPmfmStrategy.fromFullPmfm
+        );
+
+        // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
+        // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
+        samplesPmfms = samplesPmfms.concat(additionalPmfms);
+      }
+
+      // Give it to samples table (without the STRATEGY_LABEL pmfm)
+      table.pmfms = samplesPmfms.filter((p) => p.id !== PmfmIds.STRATEGY_LABEL);
+      // Avoid to load by program, because PMFM are already known
+      //table.programLabel = programLabel;
+      table.markAsReady();
+    }
+  }
+
+  protected async loadParent(data: Sale): Promise<Trip | ObservedLocation> {
+    let parent: Trip | ObservedLocation;
+
+    // Load parent observed location
+    if (isNotNil(data.observedLocationId)) {
+      console.debug(`[sale-page] Loading parent observed location #${data.observedLocationId} ...`);
+      parent = await this.observedLocationService.load(data.observedLocationId, { fetchPolicy: 'cache-first' });
+    }
+    // Load parent trip
+    else if (isNotNil(data.tripId)) {
+      console.debug('[sale-page] Loading parent trip...');
       parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
-    } else if (isNotNil(data.landingId)) {
-      console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
-      parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+    } else {
+      console.debug('[sale] No parent (observed location or trip) found in path.');
     }
 
     return parent;
@@ -594,8 +687,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async setValue(data: Sale): Promise<void> {
     if (!data) return; // Skip
+
     await this.saleForm.setValue(data);
-    this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
+
+    // Set samples to table
+    // this.samplesTable.value = data.samples || [];
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -606,24 +702,18 @@ export class SalePage<ST extends SalePageState = SalePageState>
   }
 
   protected async computeTitle(data: Sale): Promise<string> {
-    console.log('TODO title', this.parent);
-
     const program = await firstNotNilPromise(this.program$, { stop: this.destroySubject });
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
-    let titlePrefix = '';
-
-    if (this.parent instanceof Trip) {
-      // TODO
-    } else if (this.parent instanceof Landing) {
-      titlePrefix = this.translate.instant('SALE.TITLE_PREFIX', {
-        location: this.parent.location?.name || this.parent.location?.label || '',
-        date: this.dateFormat.transform(this.parent.dateTime) as string,
-      });
-
-      // TODO Add taxonName, form landing.measurementValues[PmfmIds.TAXON_GROUP] ?
-    }
+    const titlePrefix =
+      (this.parent &&
+        this.parent instanceof ObservedLocation &&
+        this.translate.instant('SALE.TITLE_PREFIX', {
+          location: this.parent.location && (this.parent.location.name || this.parent.location.label),
+          date: (this.parent.startDateTime && (this.dateFormat.transform(this.parent.startDateTime) as string)) || '',
+        })) ||
+      '';
 
     // new data
     if (!data || isNil(data.id)) {
@@ -650,19 +740,30 @@ export class SalePage<ST extends SalePageState = SalePageState>
     return -1;
   }
 
-  protected computeUsageMode(sale: Sale): UsageMode {
-    return this.settings.isUsageMode('FIELD') &&
-      // Force desktop mode if sale date/time is 1 day later than now
-      (isNil(sale && sale.startDateTime) || sale.startDateTime.diff(DateUtils.moment(), 'day') <= 1)
-      ? 'FIELD'
-      : 'DESK';
-  }
+  // protected computeUsageMode(sale: Sale): UsageMode {
+  //   return this.settings.isUsageMode('FIELD') &&
+  //     // Force desktop mode if sale date/time is 1 day later than now
+  //     (isNil(sale && sale.dateTime) || sale.dateTime.diff(moment(), 'day') <= 1)
+  //     ? 'FIELD'
+  //     : 'DESK';
+  // }
 
   protected async getValue(): Promise<Sale> {
     // DEBUG
     //console.debug('[sale-page] getValue()');
 
     const data = await super.getValue();
+
+    // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
+    // data.measurementValues = this.form.controls.measurementValues?.value || {};
+
+    // Store strategy label to measurement
+    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
+      const strategyLabel = this.strategy?.label;
+      if (isNotNilOrBlank(strategyLabel)) {
+        // data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+      }
+    }
 
     // Save samples table
     // if (this.samplesTable.dirty) {
@@ -676,16 +777,27 @@ export class SalePage<ST extends SalePageState = SalePageState>
     return data;
   }
 
-  protected async getJsonValueToSave(): Promise<any> {
-    const json = await super.getJsonValueToSave();
+  async openObservedLocation(parent: ObservedLocation): Promise<boolean> {
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode: try to save silently
+          await this.save(null, { openTabIndex: -1 })
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
 
-    const fishingAreaJson = this.fishingAreaForm.value;
-    json.fishingAreas = fishingAreaJson ? [fishingAreaJson] : [];
+    if (!saved) return; // Skip
 
-    // Add program, because can be disabled
-    json.program = this.data.program?.asObject() || json.program;
+    return this.navController.navigateForward(['observations', parent.id], {
+      replaceUrl: false, // Back should return in the sale
+      queryParams: {
+        tab: 0,
+        embedded: true,
+      },
+    });
+  }
 
-    return json;
+  protected getJsonValueToSave(): Promise<any> {
+    return this.saleForm.value?.asObject();
   }
 
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {
@@ -693,4 +805,28 @@ export class SalePage<ST extends SalePageState = SalePageState>
     console.warn('[sale-page] No row validator override');
     return null;
   }
+
+  // protected async setWeightDisplayUnit(unitLabel: WeightUnitSymbol) {
+  //   if (this.samplesTable.weightDisplayedUnit === unitLabel) return; // Skip if same
+  //
+  //   const saved =
+  //     (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+  //       ? // If on field mode: try to save silently
+  //         await this.save(null, { openTabIndex: -1 })
+  //       : // If desktop mode: ask before save
+  //         await this.saveIfDirtyAndConfirm();
+  //
+  //   if (!saved) return; // Skip
+  //
+  //   console.debug('[sale-page] Change weight unit to ' + unitLabel);
+  //   this.samplesTable.weightDisplayedUnit = unitLabel;
+  //   this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT, unitLabel);
+  //
+  //   // Reload program and strategy
+  //   await this.reloadProgram({ clearCache: false });
+  //   if (this.saleForm.requiredStrategy) await this.reloadStrategy({ clearCache: false });
+  //
+  //   // Reload data
+  //   setTimeout(() => this.reload(), 250);
+  // }
 }

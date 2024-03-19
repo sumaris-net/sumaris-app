@@ -22,6 +22,12 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>SALE.EDIT.BTN_REPORT</ion-label>
+  </button>
+
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
     <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
@@ -78,26 +84,19 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
               <!-- sale form-->
-              <app-form-sale
-                #saleForm
-                [showError]="false"
-                [showEndDateTime]="false"
-                (onSubmit)="save($event)"
-                [debug]="debug">
-
+              <app-form-sale #saleForm [showError]="false" [showEndDateTime]="false" (onSubmit)="save($event)" [debug]="debug">
                 <app-fishing-area-form
                   #fishingAreaForm
-                  [required]="true"
-                  [showError]="false"
+                  [showError]="true"
                   [showDistanceToCoastGradient]="false"
                   [showDepthGradient]="false"
                   [showNearbySpecificArea]="false"
-                  [debug]="debug"
                 ></app-fishing-area-form>
               </app-form-sale>
             </ion-col>
             <!-- Meta  -->
             <ion-col class="ion-no-padding" size="12" size-xl="3">
+              metaData display here
               <app-entity-metadata [value]="data"></app-entity-metadata>
             </ion-col>
           </ion-row>
@@ -186,36 +185,12 @@
           editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
         </ion-col>
         <ion-col>
-          saleForm.ready: {{ saleForm.readySubject | async }}
+          form.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}
           <br />
-          saleForm.loading: {{ saleForm.loading }}
+          form.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
           <br />
-          saleForm.enabled: {{ saleForm.enabled }}
+          form.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
           <br />
-          saleForm.dirty: {{ saleForm.dirty }}
-          <br />
-          form.valid: {{ saleForm.valid }}
-          <br />
-          saleForm.saleId: {{ form | formGetValue: 'saleId' }}
-          <br />
-          saleForm.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}
-          <br />
-          saleForm.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
-          <br />
-          saleForm.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
-          <br />
-          saleForm.showVessel: {{ saleForm.showVessel }}
-        </ion-col>
-        <ion-col>
-          fishingAreaForm.ready: {{ saleForm.readySubject | async }}
-          <br />
-          fishingAreaForm.loading: {{ saleForm.loading }}
-          <br />
-          fishingAreaForm.enabled: {{ saleForm.enabled }}
-          <br />
-          fishingAreaForm.dirty: {{ saleForm.dirty }}
-          <br />
-          fishingAreaForm.valid: {{ saleForm.valid }}
         </ion-col>
       </ion-row>
     </ion-grid>

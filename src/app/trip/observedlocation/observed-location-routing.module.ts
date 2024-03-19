@@ -5,6 +5,7 @@ import { ObservedLocationsPage } from './table/observed-locations.page';
 import { ObservedLocationPage } from './observed-location.page';
 import { LandedTripPage } from '../landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
+import { AppSalePageModule } from '@app/trip/sale/sale-routing.module';
 
 const routes: Routes = [
   // table
@@ -62,7 +63,7 @@ const routes: Routes = [
       },
       {
         path: 'sale',
-        loadChildren: () => import('../sale/sale-routing.module').then((m) => m.AppSaleRoutingModule),
+        loadChildren: () => import('../sale/sale-routing.module').then((m) => m.AppSalePageModule),
       },
       {
         path: 'trip/:tripId',
