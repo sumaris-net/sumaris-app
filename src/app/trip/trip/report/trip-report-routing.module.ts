@@ -13,6 +13,10 @@ const routes: Routes = [
     path: 'selectivity',
     loadChildren: () => import('./selectivity/selectivity-trip-report-routing.module').then((m) => m.SelectivityTripReportRoutingModule),
   },
+  {
+    path: 'onboard',
+    loadChildren: () => import('./onboard/onboard-trip-report-routing.module').then((m) => m.OnboardTripReportRoutingModule),
+  },
 ];
 
 @NgModule({

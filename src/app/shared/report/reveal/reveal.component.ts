@@ -275,6 +275,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
     console.debug('[reveal] Print...');
 
+    console.debug('MYTEST REVEAL PRINT', this.isPrintingPDF());
     if (this.isPrintingPDF()) {
       await this.waitIdle();
       await sleep(1000); // Wait end of render
@@ -282,6 +283,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     } else {
       // Create a iframe with '?print-pdf'
       const printUrl = this.getPrintPdfUrl();
+      console.debug('MYTEST printUrl', printUrl);
 
       this.markAsLoading();
 

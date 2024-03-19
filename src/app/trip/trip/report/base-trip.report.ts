@@ -513,6 +513,14 @@ export abstract class BaseTripReport<
     return chart;
   }
 
+  computePrintHref(data: T, stats: S): URL {
+    const result = super.computePrintHref(data, stats);
+    const lastUrlPathComponent = this.route.snapshot.parent.url[0].path;
+    if (!this.uuid && lastUrlPathComponent !== 'report')
+      return new URL(`${this.baseHref}${result.pathname.slice(1, result.pathname.length)}/${lastUrlPathComponent}`);
+    else return result;
+  }
+
   protected computeSubCategories<D extends { meta?: { [key: string]: any } }>(
     data: D[],
     opts: {
