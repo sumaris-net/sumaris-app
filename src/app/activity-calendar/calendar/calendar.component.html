@@ -42,7 +42,9 @@
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label class="computed">TODO Vessel Owner</ion-label>
+        <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
+          {{ vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes }}
+        </ion-label>
       </mat-cell>
     </ng-container>
 
@@ -62,22 +64,22 @@
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell>
-        <mat-form-field floatLabel="never" *ngIf="row.editing && row.validator | formGetControl: 'isActive'; let control; else: readonlyCell">
-          <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate">
-            <mat-select-trigger>
-              {{ isActiveMap[control.value]?.label | translate }}
-            </mat-select-trigger>
-            <mat-option *ngFor="let item of isActiveList" [value]="item.id">
-              <ion-icon [name]="item.icon"></ion-icon>
-              {{ item.label | translate }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-
-        <ng-template #readonlyCell>
+        @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
+          <mat-form-field>
+            <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate">
+              <mat-select-trigger>
+                {{ isActiveMap[control.value]?.label | translate }}
+              </mat-select-trigger>
+              <mat-option *ngFor="let item of isActiveList" [value]="item.id">
+                <ion-icon [name]="item.icon"></ion-icon>
+                {{ item.label | translate }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
           {{ isActiveMap[row.currentData.isActive]?.label | translate }}
-        </ng-template>
+        }
 
         <!-- resize handlers -->
         <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"></ng-container>
@@ -90,16 +92,15 @@
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell>
-        <mat-autocomplete-field
-          *ngIf="row.editing && row.validator | formGetControl: 'basePortLocation'; let control; else: readonlyCell"
-          floatLabel="never"
-          [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
-          [formControl]="control"
-          [config]="autocompleteFields.basePortLocation"
-        ></mat-autocomplete-field>
-        <ng-template #readonlyCell>
+        @if (row.editing && row.validator | formGetControl: 'basePortLocation'; as control) {
+          <mat-autocomplete-field
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+            [formControl]="control"
+            [config]="autocompleteFields.basePortLocation"
+          ></mat-autocomplete-field>
+        } @else {
           {{ row.currentData.basePortLocation | referentialToString: locationDisplayAttributes }}
-        </ng-template>
+        }
 
         <!-- resize handlers -->
         <ng-container
@@ -159,7 +160,7 @@
 </ng-template>
 
 <ng-template #skeletonText80>
-  <ion-text style="width: 80%">
+  <ion-label style="width: 80%">
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
-  </ion-text>
+  </ion-label>
 </ng-template>

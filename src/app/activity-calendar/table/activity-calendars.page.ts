@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivityCalendarService } from './activity-calendar.service';
-import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from './activity-calendar.filter';
+import { ActivityCalendarService } from '../activity-calendar.service';
+import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
@@ -33,13 +33,13 @@ import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
   ACTIVITY_CALENDAR_FEATURE_NAME,
-} from './activity-calendar.config';
+} from '../activity-calendar.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from './offline/activity-calendar-offline.modal';
+import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from '../offline/activity-calendar-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';

@@ -368,7 +368,7 @@ export class ActivityCalendarService
   isDebugData(event: UserEvent): boolean {
     return (
       event.type === UserEventTypeEnum.DEBUG_DATA &&
-      // If content not fetched, use only the hasContent flag (BUT insecrued, because data can be NOT a ActivityCalendar)
+      // If content not fetched, use only the hasContent flag (BUT insecured, because data can be NOT a ActivityCalendar)
       ((!event.content && event.hasContent) ||
         // If content fetched, make sure data is a ActivityCalendar
         this.getEventContext(event)?.__typename === ActivityCalendar.TYPENAME)

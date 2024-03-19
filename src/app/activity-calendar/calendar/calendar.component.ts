@@ -9,6 +9,7 @@ import {
   sleep,
   splitById,
   StatusIds,
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { AppBaseTable, BaseTableState } from '@app/shared/table/base.table';
@@ -22,6 +23,7 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { Observable } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 
 const BASE_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
 
@@ -40,6 +42,7 @@ export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
 
 export interface ActivityCalendarState extends BaseTableState {
   vesselSnapshots: VesselSnapshot[];
+  VesselOwner: VesselOwner[];
 }
 
 @Component({
@@ -70,6 +73,7 @@ export class CalendarComponent
   implements OnInit
 {
   @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
+  @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
   readonly isActiveList = IsActiveList;
   readonly isActiveMap = Object.freeze(splitById(IsActiveList));
 
@@ -88,6 +92,8 @@ export class CalendarComponent
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() @Input() locationDisplayAttributes: string[];
   @RxStateProperty() @Input() basePortLocationLevelIds: number[];
+
+  @Input() timezone: string = DateUtils.moment().tz();
 
   constructor(
     injector: Injector,
@@ -124,12 +130,12 @@ export class CalendarComponent
   }
 
   async setValue(data: ActivityCalendar) {
-    const year = data?.year || DateUtils.moment().year() - 1;
+    const year = data?.year || DateUtils.moment().tz(this.timezone).year() - 1;
     const vesselId = data.vesselSnapshot?.id;
 
     this.memoryDataService.value = new Array(12).fill(null).map((_, month) => {
-      const startDate = DateUtils.moment().utc(false).year(year).month(month).startOf('month');
-      const endDate = DateUtils.moment().utc(false).year(year).month(month).endOf('month');
+      const startDate = DateUtils.moment().tz(this.timezone).year(year).month(month).startOf('month');
+      const endDate = DateUtils.moment().tz(this.timezone).year(year).month(month).endOf('month');
       const source = data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate)) || { startDate };
       const target = ActivityMonth.fromObject(source);
       target.gearUseFeatures = data.gearUseFeatures?.filter((guf) => guf.startDate?.month() === month);
@@ -145,11 +151,12 @@ export class CalendarComponent
   }
 
   async loadVessels(vesselId: number, year: number) {
+    console.log('TODO TZ=', this.timezone);
+    const now = this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment();
     this.vesselSnapshots = await Promise.all(
       new Array(12).fill(null).map(async (_, month) => {
-        //await sleep(500);
-
-        const date = DateUtils.moment().utc(false).year(year).startOf('year');
+        const date = now.clone().utc(false).year(year).month(month).startOf('month');
+        console.log('TODO:', toDateISOString(date));
         const { data } = await this.vesselSnapshotService.loadAll(
           0,
           1,

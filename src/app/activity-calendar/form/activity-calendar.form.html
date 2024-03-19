@@ -1,0 +1,139 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <ion-grid>
+    <!-- PROGRAM -->
+    @if (showProgram || showYear) {
+      <ion-row>
+        @if (showProgram) {
+          <ion-col offset-md="2" offset-lg="3">
+            <mat-autocomplete-field
+              formControlName="program"
+              [placeholder]="'TRIP.PROGRAM' | translate"
+              [config]="autocompleteFields.program"
+              [tabindex]="tabindex"
+              [required]="true"
+            >
+              <ion-icon matPrefix name="contract"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        }
+        @if (showYear) {
+          <!-- year -->
+          <ion-col size="12" size-sm="2">
+            <mat-date-short-field
+              [placeholder]="'ACTIVITY_CALENDAR.EDIT.YEAR_PLACEHOLDER' | translate"
+              formControlName="startDate"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
+              <mat-hint *ngIf="isYearInTheFuture">
+                <mat-icon color="warn">warning</mat-icon>
+                {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+              </mat-hint>
+            </mat-date-short-field>
+          </ion-col>
+        }
+      </ion-row>
+    }
+
+    <!-- VESSEL -->
+    @if (showVessel) {
+      <ion-row>
+        <ion-col offset-md="2" offset-lg="3">
+          <mat-autocomplete-field
+            *ngIf="autocompleteFields.vesselSnapshot; else skeletonText100"
+            formControlName="vesselSnapshot"
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.VESSEL_SNAPSHOT' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="true"
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
+            <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
+            <button
+              matSuffix
+              type="button"
+              mat-icon-button
+              tabindex="-1"
+              [class.large]="mobile"
+              *ngIf="allowAddNewVessel && network.online"
+              [title]="'TRIP.BTN_ADD_VESSEL' | translate"
+              (click)="addVesselModal($event)"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+    }
+
+    <!-- Measurements -->
+    <ion-row>
+      <ion-col size="12" size-md="2" size-lg="3">
+        <ion-label class="ion-float-end" [class.cdk-visually-hidden]="pmfms$ | async | isEmptyArray" translate>
+          ACTIVITY_CALENDAR.EDIT.OTHER_FEATURES
+        </ion-label>
+      </ion-col>
+      <ion-col>
+        <!-- pmfms -->
+        <form *rxIf="pmfms$; let pmfms; else: measurementsSkeleton" [formGroup]="measurementValuesForm">
+          <app-pmfm-field
+            *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i"
+            [pmfm]="pmfm"
+            [controlName]="pmfm | pmfmIdString"
+            [compact]="compact"
+            [tabindex]="50 + i * 2"
+            [floatLabel]="floatLabel"
+          ></app-pmfm-field>
+        </form>
+
+        <ng-template #measurementsSkeleton>
+          <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+          <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
+        </ng-template>
+
+        <ng-template #propertySkeleton>
+          <mat-form-field class="mat-form-field-disabled">
+            <input matInput hidden />
+            <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
+          </mat-form-field>
+        </ng-template>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <!-- Comments -->
+    <ion-row *ngIf="showComment">
+      <ion-col size="12">
+        <mat-form-field appearance="outline">
+          <mat-label translate>COMMON.COMMENTS</mat-label>
+          <textarea
+            matInput
+            #comments
+            matTextareaAutosize="true"
+            matAutosizeMinRows="4"
+            maxlength="2000"
+            tabindex="100"
+            formControlName="comments"
+          ></textarea>
+          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
+            {{ 'ERROR.FIELD_MAX_LENGTH' | translate: form.controls.comments.errors.maxlength }}
+          </mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</form>
+
+<ng-template #skeletonText100>
+  <ion-label style="width: 100%">
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </ion-label>
+</ng-template>

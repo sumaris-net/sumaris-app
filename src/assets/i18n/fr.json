@@ -3109,11 +3109,21 @@
         "YEAR": "Année"
       }
     },
+    "NEW": {
+      "TITLE": "Nouveau calendrier d'activité"
+    },
     "EDIT": {
+      "TITLE": "<small>{{vessel}}<br></small>Calendrier d'activité {{year}}",
+      "YEAR": "Année :",
+      "VESSEL_SNAPSHOT": "Navire",
+      "YEAR_PLACEHOLDER": "Année",
+      "TAB_GENERAL": "Détails",
+      "TAB_CALENDAR": "Calendrier",
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
       "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+      "OTHER_FEATURES": "Caractéristiques d'enquête :",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif"

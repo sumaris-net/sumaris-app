@@ -99,6 +99,7 @@ const routes: Routes = [
   // Activity Calendar
   {
     path: 'activity-calendar',
+    canActivate: [AuthGuardService],
     data: {
       profile: 'USER',
     },

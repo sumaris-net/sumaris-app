@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   ReferentialUtils,
-  SharedFormGroupValidators,
+  SharedValidators,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -24,12 +24,17 @@ import { GearUseFeaturesValidatorService } from '@app/activity-calendar/model/ge
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
+  timezone?: string;
+
   withMeasurements?: boolean;
   withMeasurementTypename?: boolean;
   withGearUseFeatures?: boolean;
   withVesselUseFeatures?: boolean;
 
   pmfms?: IPmfm[];
+
+  // Unused
+  showObservers?: false;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +74,7 @@ export class ActivityCalendarValidatorService<
   getFormGroupConfig(data?: ActivityCalendar, opts?: O): { [key: string]: any } {
     const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [ActivityCalendar.TYPENAME],
+      startDate: [data?.startDate || null, Validators.compose([Validators.required, SharedValidators.validDate])],
       year: [toNumber(data?.year, null), Validators.required],
       directSurveyInvestigation: [toBoolean(data?.directSurveyInvestigation, null), Validators.required],
       measurementValues: this.formBuilder.group({}),
@@ -94,12 +100,6 @@ export class ActivityCalendarValidatorService<
     // }
 
     return config;
-  }
-
-  getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions {
-    return <AbstractControlOptions>{
-      validator: Validators.compose([SharedFormGroupValidators.dateRange('startDate', 'endDate')]),
-    };
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
