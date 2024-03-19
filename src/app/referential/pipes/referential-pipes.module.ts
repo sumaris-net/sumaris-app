@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { ReferentialToStringPipe } from './referential-to-string.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   IsComputedPmfmPipe,
@@ -17,12 +16,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
+import { CorePipesModule } from '@sumaris-net/ngx-components';
 
 @NgModule({
-  imports: [CommonModule, TranslateModule.forChild(), AppCoreModule],
+  imports: [CommonModule, TranslateModule.forChild(), AppCoreModule, CorePipesModule],
   declarations: [
     // Pipes
-    ReferentialToStringPipe,
     PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,
@@ -38,8 +37,9 @@ import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
   exports: [
     TranslateModule,
 
+    CorePipesModule,
+
     // Pipes
-    ReferentialToStringPipe,
     PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,

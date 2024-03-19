@@ -219,10 +219,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
 
     // Update form group
-    this.validatorService.updateFormGroup(this.form, {
-      startDateDay: this.startDateDay,
-      timezone: this.timezone,
-    });
+    this.updateFormGroup();
 
     // Create a filter for start date picker
     this.startDatePickerFilter = (d) => isNil(this.startDateDay) || DateUtils.isAtDay(d, this.startDateDay, this.timezone);
@@ -266,6 +263,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   updateFormGroup(form?: FormGroup) {
     form = form || this.form;
     const validatorOpts: ObservedLocationValidatorOptions = {
+      timezone: this.timezone,
+      startDateDay: this.startDateDay,
       withObservers: this.showObservers,
     };
 

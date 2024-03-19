@@ -454,7 +454,7 @@ export class ObservedLocationPage
       if (aggregatedLandings) {
         console.debug(this.logPrefix + 'Init aggregated landings table:', table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
-        aggregatedLandingsTable.timeZone = this.dbTimeZone;
+        aggregatedLandingsTable.timezone = this.dbTimeZone;
         aggregatedLandingsTable.nbDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       } else {
