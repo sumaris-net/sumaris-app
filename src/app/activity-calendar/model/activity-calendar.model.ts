@@ -13,6 +13,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   year: number;
   startDate: Moment;
   directSurveyInvestigation: boolean;
+  economicSurvey: boolean;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   vesselUseFeatures: VesselUseFeatures[];
   gearUseFeatures: GearUseFeatures[];
@@ -38,6 +39,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.year = source.year;
     this.startDate = fromDateISOString(source.startDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
+    this.economicSurvey = source.economicSurvey;
     this.vesselUseFeatures = source.vesselUseFeatures?.map(VesselUseFeatures.fromObject) || undefined;
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values

@@ -15,6 +15,7 @@ import {
   HistoryPageReference,
   isNotNil,
   ReferentialRef,
+  referentialToString,
   StatusIds,
   toBoolean,
   TranslateContextService,
@@ -43,6 +44,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -78,12 +80,14 @@ export class ActivityCalendarPage
   static TABS = {
     GENERAL: 0,
     CALENDAR: 1,
+    MAP: 2,
   };
 
   dbTimeZone = DateUtils.moment().tz();
   allowAddNewVessel: boolean;
   showRecorder = true;
   showCalendar = true;
+  showMap = true;
   enableReport: boolean;
   @RxStateProperty() year: number;
 
@@ -97,6 +101,7 @@ export class ActivityCalendarPage
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
+  @ViewChild('map') map: ActivityCalendarMapComponent;
 
   constructor(
     injector: Injector,
@@ -108,9 +113,9 @@ export class ActivityCalendarPage
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
-      tabCount: 2,
+      tabCount: 3,
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
-      enableListenChanges: false, // TODO
+      enableListenChanges: false, // TODO enable
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
@@ -269,6 +274,8 @@ export class ActivityCalendarPage
         this.calendar.i18nColumnSuffix = i18nSuffix;
         this.calendar.timezone = this.dbTimeZone;
         this.calendar.basePortLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS);
+
+        this.addChildForm(this.calendar);
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
@@ -330,7 +337,11 @@ export class ActivityCalendarPage
       if (searchFilter.startDate) {
         this.year = searchFilter.startDate.year();
         data.year = this.year;
-        data.startDate = DateUtils.moment().tz(this.dbTimeZone).utc(false).startOf('year');
+        if (this.dbTimeZone) {
+          data.startDate = DateUtils.moment().tz(this.dbTimeZone).startOf('year');
+        } else {
+          data.startDate = DateUtils.moment().startOf('year');
+        }
       }
     }
 
@@ -357,7 +368,11 @@ export class ActivityCalendarPage
     if (isNotNil(data.year)) {
       this.year = data.year;
 
-      data.startDate = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+      if (this.dbTimeZone) {
+        data.startDate = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+      } else {
+        data.startDate = DateUtils.moment().year(this.year).startOf('year');
+      }
     }
   }
 
@@ -404,8 +419,11 @@ export class ActivityCalendarPage
 
     // Propagate to calendar
     if (!this.isNewData) {
-      this.calendar.setValue(data);
+      await this.calendar.setValue(data);
     }
+
+    // TODO
+    //this.map.containerResize();
   }
 
   protected async getValue(): Promise<ActivityCalendar> {
@@ -419,10 +437,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addChildForms([
-      this.baseForm,
-      //this.calendar
-    ]);
+    this.addChildForms([this.baseForm]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
@@ -437,7 +452,7 @@ export class ActivityCalendarPage
     // Existing data
     return firstValueFrom(
       this.translateContext.get(`ACTIVITY_CALENDAR.EDIT.TITLE`, this.i18nContext.suffix, {
-        vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
+        vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
         year: data.year,
       })
     );

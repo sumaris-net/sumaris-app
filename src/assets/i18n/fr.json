@@ -3113,12 +3113,15 @@
       "TITLE": "Nouveau calendrier d'activité"
     },
     "EDIT": {
-      "TITLE": "<small>{{vessel}}<br></small>Calendrier d'activité {{year}}",
+      "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
+      "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+      "ECONOMIC_SURVEY": "Enquête économique ?",
       "YEAR_PLACEHOLDER": "Année",
-      "TAB_GENERAL": "Détails",
-      "TAB_CALENDAR": "Calendrier",
+      "TAB_GENERAL": "Général",
+      "TAB_CALENDAR": "Mois d'activité",
+      "TAB_MAP": "Zones d'activité",
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",

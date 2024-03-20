@@ -181,11 +181,11 @@ export class BatchValidatorService<
   }
 
   getFormGroupOptions(data?: T, opts?: O): AbstractControlOptions | null {
-    let validators: Validators | Validators[];
+    let validators: ValidatorFn | ValidatorFn[];
 
     // Add a form group control, to make sure weight > 0 if individual
     // (skip if no weight, or on field mode)
-    if (opts?.withWeight && opts?.isOnFieldMode === false) {
+    if (opts?.withWeight && opts.isOnFieldMode === false) {
       validators = BatchValidators.weightForIndividualCount;
     }
 

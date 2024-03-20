@@ -42,8 +42,8 @@
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
-          {{ vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes }}
+        <ion-label *rxIf="vesselOwners$; let vesselOwners; suspense: skeletonText80" class="computed">
+          <!--          {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: locationDisplayAttributes }}-->
         </ion-label>
       </mat-cell>
     </ng-container>

@@ -29,6 +29,7 @@
               [placeholder]="'ACTIVITY_CALENDAR.EDIT.YEAR_PLACEHOLDER' | translate"
               formControlName="startDate"
               [clearable]="true"
+              [tabindex]="tabindex + 1"
             >
               <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
               <mat-hint *ngIf="isYearInTheFuture">
@@ -51,6 +52,7 @@
             [placeholder]="'ACTIVITY_CALENDAR.EDIT.VESSEL_SNAPSHOT' | translate"
             [config]="autocompleteFields.vesselSnapshot"
             [required]="true"
+            [tabindex]="tabindex + 2"
           >
             <ion-icon matPrefix name="boat"></ion-icon>
             <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
@@ -70,6 +72,27 @@
         </ion-col>
       </ion-row>
     }
+
+    <ion-row>
+      <!-- Direct survey investigation-->
+      <ion-col offset-md="2" offset-lg="3" size="12" size-md="">
+        <mat-boolean-field
+          formControlName="directSurveyInvestigation"
+          [placeholder]="'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION' | translate"
+          [tabindex]="-1"
+          required
+        ></mat-boolean-field>
+      </ion-col>
+
+      <!-- Economic survey ? -->
+      <ion-col size="12" size-md="" *ngIf="form | formGetValue: 'economicSurvey' | isNotNil">
+        <mat-boolean-field
+          formControlName="economicSurvey"
+          [placeholder]="'ACTIVITY_CALENDAR.EDIT.ECONOMIC_SURVEY' | translate"
+          [tabindex]="-1"
+        ></mat-boolean-field>
+      </ion-col>
+    </ion-row>
 
     <!-- Measurements -->
     <ion-row>

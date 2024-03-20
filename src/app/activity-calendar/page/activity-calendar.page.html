@@ -163,6 +163,19 @@
         <app-calendar #calendar [timezone]="dbTimeZone" (onNewRow)="addRow($event)" [debug]="debug"></app-calendar>
       </div>
     </mat-tab>
+
+    <!-- TAB: Map -->
+    <mat-tab #mapTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_MAP' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="location"></ion-icon></mat-icon>
+        <ion-label>
+          {{ mapTab.textLabel }}
+        </ion-label>
+      </ng-template>
+
+      <!-- map -->
+      <app-activity-calendar-map #map></app-activity-calendar-map>
+    </mat-tab>
   </mat-tab-group>
 </ion-content>
 

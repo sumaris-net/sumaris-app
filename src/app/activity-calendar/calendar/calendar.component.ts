@@ -275,6 +275,29 @@ export class CalendarComponent
   }
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
+    const columnName = this.resizingCell.columnName;
+    switch (columnName) {
+      case 'basePortLocation':
+      case 'isActive': {
+        if (event.colspan > 0 && event.rowspan === 1) {
+          this.confirmEditCreate();
+          const sourceRow = this.resizingCell.row;
+          const sourceValue = sourceRow.currentData[columnName];
+          const minRowId = sourceRow.id + 1;
+          const maxRowId = sourceRow.id + (event.colspan - 1);
+
+          const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+          console.log('TODO copy isActive ro rows :', targetRows);
+          targetRows.forEach((targetRow) => {
+            if (targetRow.validator) {
+              targetRow.validator.patchValue({ [columnName]: sourceValue });
+              targetRow.validator.markAsDirty();
+            }
+          });
+          this.markForCheck();
+        }
+      }
+    }
     return true;
   }
 

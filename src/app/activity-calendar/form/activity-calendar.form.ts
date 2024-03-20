@@ -3,7 +3,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { FormGroup, UntypedFormBuilder } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormBuilder } from '@angular/forms';
 import {
   DateUtils,
   equals,
@@ -23,12 +23,12 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/activity-calendar/activity-calendar.config';
-import { OnReady } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
+import { merge } from 'chart.js/helpers';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
@@ -41,7 +41,7 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState> implements OnInit, OnReady {
+export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState> implements OnInit {
   private _lastValidatorOpts: any;
   protected isYearInTheFuture = false;
 
@@ -64,6 +64,16 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
   get valid(): any {
     return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
+  }
+
+  get yearControl(): AbstractControl {
+    return this.form.get('year');
+  }
+  get directSurveyInvestigationControl(): AbstractControl {
+    return this.form.get('directSurveyInvestigation');
+  }
+  get economicSurveyControl(): AbstractControl {
+    return this.form.get('economicSurvey');
   }
 
   @Output() yearChanges = new EventEmitter<number>();
@@ -123,23 +133,20 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
     // Listen year
     this.registerSubscription(
-      this.form
-        .get('year')
-        .valueChanges.pipe(debounceTime(150))
+      merge(
+        this.form.get('year').valueChanges,
+        this.form.get('startDate').valueChanges.pipe(
+          debounceTime(150),
+          map((startDate) => fromDateISOString(startDate)?.year())
+        )
+      )
+        .pipe(distinctUntilChanged())
         .subscribe((year) => {
+          this.yearChanges.next(year);
           // Warning if year is in the future
           this.isYearInTheFuture = isNotNil(year) && year > DateUtils.moment().year();
           this.markForCheck();
         })
-    );
-  }
-
-  ngOnReady(): any {
-    this.registerSubscription(
-      this.form
-        .get('startDate')
-        .valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.year()))
-        .subscribe((year) => this.yearChanges.next(year))
     );
   }
 
@@ -158,6 +165,9 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     // Leave program disable once data has been saved
     if (!this.isNewData && !this.programControl.disabled) {
       this.programControl.disable({ emitEvent: false });
+      this.yearControl.disable({ emitEvent: false });
+      this.directSurveyInvestigationControl.disable({ emitEvent: false });
+      this.economicSurveyControl.disable({ emitEvent: false });
       this.markForCheck();
     }
   }
@@ -175,7 +185,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
       this.validatorService.updateFormGroup(form, validatorOpts);
 
-      // Need to refresh the form state  (otherwise the returnLocation is still invalid)
+      // Need to refresh the form state  (otherwise some fields may still be invalid)
       if (!this.loading) {
         this.updateValueAndValidity();
         // Not need to markForCheck (should be done inside updateValueAndValidity())

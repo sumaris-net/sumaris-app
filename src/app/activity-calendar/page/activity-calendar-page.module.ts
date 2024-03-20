@@ -8,6 +8,7 @@ import { AppActivityCalendarFormModule } from '@app/activity-calendar/form/activ
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 import { AppDataModule } from '@app/data/data.module';
 import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.module';
+import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
 
 @NgModule({
   imports: [
@@ -22,6 +23,7 @@ import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.modu
     // Sub modules
     AppActivityCalendarFormModule,
     AppCalendarModule,
+    AppActivityMapModule,
   ],
   declarations: [ActivityCalendarPage],
   exports: [ActivityCalendarPage],

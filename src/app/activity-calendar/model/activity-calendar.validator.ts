@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   ReferentialUtils,
+  SharedFormArrayValidators,
   SharedValidators,
   toBoolean,
   toNumber,
@@ -77,6 +78,7 @@ export class ActivityCalendarValidatorService<
       startDate: [data?.startDate || null, Validators.compose([Validators.required, SharedValidators.validDate])],
       year: [toNumber(data?.year, null), Validators.required],
       directSurveyInvestigation: [toBoolean(data?.directSurveyInvestigation, null), Validators.required],
+      economicSurvey: [toBoolean(data?.economicSurvey, null)],
       measurementValues: this.formBuilder.group({}),
     });
 
@@ -100,6 +102,27 @@ export class ActivityCalendarValidatorService<
     // }
 
     return config;
+  }
+
+  getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions | null {
+    const validators: ValidatorFn | ValidatorFn[] | null = null;
+
+    // Add a form group control, to make there is ont GUF, when isActive=true
+    // if (opts?.isOnFieldMode !== false) {
+    //   validators = (form) => {
+    //     const isActive = form.get('isActive').value;
+    //     console.log('TODO isActive=' + isActive);
+    //     if (isActive) {
+    //       return {required: true};
+    //     }
+    //     return null;
+    //   };
+    // }
+    //
+    return {
+      ...super.getFormGroupOptions(data, opts),
+      validators,
+    };
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
@@ -126,8 +149,7 @@ export class ActivityCalendarValidatorService<
       ReferentialUtils.isEmpty,
       {
         allowEmptyArray: true,
-        // TODO max length validator ? or min length ?
-        //validators: opts?.maxLength ? SharedFormArrayValidators.requiredArrayMaxLength(opts.maxLength) : null,
+        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
       }
     );
     if (data) {
