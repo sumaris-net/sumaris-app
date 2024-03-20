@@ -52,6 +52,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   @Input() showButtons = true;
   @Input() showProgram = true;
   @Input() showVessel = true;
+  @Input() showEconomicSurvey = true;
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() mobile = false;
   @Input() allowAddNewVessel = true;

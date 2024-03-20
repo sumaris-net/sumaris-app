@@ -10,7 +10,7 @@ import { IonicModule } from '@ionic/angular';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppActivityCalendarPageModule } from '@app/activity-calendar/page/activity-calendar-page.module';
-import { AppActivityCalendarsPageModule } from '@app/activity-calendar/table/activity-calendars-page.module';
+import { AppActivityCalendarsTableModule } from '@app/activity-calendar/table/activity-calendars-table.module';
 
 @NgModule({
   imports: [
@@ -28,7 +28,7 @@ import { AppActivityCalendarsPageModule } from '@app/activity-calendar/table/act
     AppExtractionButtonModule,
 
     // Sub modules
-    AppActivityCalendarsPageModule,
+    AppActivityCalendarsTableModule,
     AppActivityCalendarPageModule,
   ],
   exports: [
@@ -36,7 +36,7 @@ import { AppActivityCalendarsPageModule } from '@app/activity-calendar/table/act
     TranslateModule,
 
     // Components
-    AppActivityCalendarsPageModule,
+    AppActivityCalendarsTableModule,
     AppActivityCalendarPageModule,
   ],
 })

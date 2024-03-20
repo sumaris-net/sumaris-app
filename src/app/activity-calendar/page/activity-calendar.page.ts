@@ -12,6 +12,7 @@ import {
   EntityUtils,
   equals,
   fadeInOutAnimation,
+  fromDateISOString,
   HistoryPageReference,
   isNotNil,
   ReferentialRef,
@@ -28,7 +29,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { firstValueFrom, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
-import { ActivityCalendarsPageSettingsEnum } from '../table/activity-calendars.page';
+import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
@@ -321,26 +322,26 @@ export class ActivityCalendarPage
 
     // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648
     const tableId = this.queryParams['tableId'];
-    const searchFilter = tableId && this.settings.getPageSettings<ActivityCalendarFilter>(tableId, ActivityCalendarsPageSettingsEnum.FILTER_KEY);
+    const searchFilter = tableId && this.settings.getPageSettings<ActivityCalendarFilter>(tableId, ActivityCalendarsTableSettingsEnum.FILTER_KEY);
     if (searchFilter) {
       // Synchronization status
       if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
         data.synchronizationStatus = 'DIRTY';
       }
 
-      // program
+      // Program
       if (searchFilter.program && searchFilter.program.label) {
         data.program = ReferentialRef.fromObject(searchFilter.program);
       }
 
-      // Location
+      // Year
       if (searchFilter.startDate) {
-        this.year = searchFilter.startDate.year();
+        this.year = fromDateISOString(searchFilter.startDate).year();
         data.year = this.year;
         if (this.dbTimeZone) {
-          data.startDate = DateUtils.moment().tz(this.dbTimeZone).startOf('year');
+          data.startDate = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
         } else {
-          data.startDate = DateUtils.moment().startOf('year');
+          data.startDate = DateUtils.moment().year(this.year).startOf('year');
         }
       }
     }
@@ -365,6 +366,7 @@ export class ActivityCalendarPage
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
 
+    // Year
     if (isNotNil(data.year)) {
       this.year = data.year;
 
@@ -374,6 +376,9 @@ export class ActivityCalendarPage
         data.startDate = DateUtils.moment().year(this.year).startOf('year');
       }
     }
+
+    // Hide unused field (for historical data)
+    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {

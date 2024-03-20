@@ -85,13 +85,15 @@
       </ion-col>
 
       <!-- Economic survey ? -->
-      <ion-col size="12" size-md="" *ngIf="form | formGetValue: 'economicSurvey' | isNotNil">
-        <mat-boolean-field
-          formControlName="economicSurvey"
-          [placeholder]="'ACTIVITY_CALENDAR.EDIT.ECONOMIC_SURVEY' | translate"
-          [tabindex]="-1"
-        ></mat-boolean-field>
-      </ion-col>
+      @if (isNewData || showEconomicSurvey) {
+        <ion-col size="12" size-md="">
+          <mat-boolean-field
+            formControlName="economicSurvey"
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.ECONOMIC_SURVEY' | translate"
+            [tabindex]="-1"
+          ></mat-boolean-field>
+        </ion-col>
+      }
     </ion-row>
 
     <!-- Measurements -->

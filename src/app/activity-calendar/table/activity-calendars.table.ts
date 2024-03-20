@@ -51,7 +51,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
-export const ActivityCalendarsPageSettingsEnum = {
+export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: ACTIVITY_CALENDAR_FEATURE_NAME,
@@ -62,14 +62,14 @@ export interface ActivityCalendarsPageState extends BaseTableState {
 }
 
 @Component({
-  selector: 'app-activity-calendar-page',
-  templateUrl: 'activity-calendars.page.html',
-  styleUrls: ['./activity-calendars.page.scss'],
+  selector: 'app-activity-calendar-table',
+  templateUrl: 'activity-calendars.table.html',
+  styleUrls: ['./activity-calendars.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
   providers: [RxState],
 })
-export class ActivityCalendarsPage
+export class ActivityCalendarsTable
   extends AppRootDataTable<
     ActivityCalendar,
     ActivityCalendarFilter,
@@ -151,8 +151,8 @@ export class ActivityCalendarsPage
     this.canUpload = showAdvancedFeatures;
     this.canOpenMap = showAdvancedFeatures;
 
-    this.settingsId = ActivityCalendarsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureName = ActivityCalendarsPageSettingsEnum.FEATURE_ID;
+    this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
     // Load years
     {

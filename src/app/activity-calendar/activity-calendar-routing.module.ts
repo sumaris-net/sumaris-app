@@ -1,14 +1,16 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { ActivityCalendarsPage } from './table/activity-calendars.page';
+import { ActivityCalendarsTable } from './table/activity-calendars.table';
 import { AppActivityCalendarModule } from '@app/activity-calendar/activity-calendar.module';
 import { ActivityCalendarPage } from '@app/activity-calendar/page/activity-calendar.page';
+import { AuthGuardService } from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: ActivityCalendarsPage,
+    component: ActivityCalendarsTable,
+    canActivate: [AuthGuardService],
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'USER',
@@ -18,6 +20,7 @@ const routes: Routes = [
     path: ':calendarId',
     component: ActivityCalendarPage,
     runGuardsAndResolvers: 'pathParamsChange',
+    canActivate: [AuthGuardService],
     data: {
       profile: 'USER',
       pathIdParam: 'calendarId',

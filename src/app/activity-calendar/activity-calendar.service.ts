@@ -82,7 +82,7 @@ export const ActivityCalendarFragments = {
       }
       year
       directSurveyInvestigation
-      #economicSurvey
+      economicSurvey
       creationDate
       updateDate
       controlDate
@@ -116,7 +116,7 @@ export const ActivityCalendarFragments = {
     }
     year
     directSurveyInvestigation
-    #economicSurvey
+    economicSurvey
     creationDate
     updateDate
     controlDate

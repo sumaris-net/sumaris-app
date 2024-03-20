@@ -252,6 +252,7 @@
           <!-- Data quality status -->
           <ion-col>
             <mat-form-field>
+              <ion-icon matPrefix name="create"></ion-icon>
               <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate">
                 <mat-select-trigger>
                   <span *ngIf="statusById | mapGet: control.value; let item">
