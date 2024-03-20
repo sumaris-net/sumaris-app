@@ -24,6 +24,7 @@ import {
   equals,
   fadeInOutAnimation,
   FilesUtils,
+  FormFieldDefinition,
   HistoryPageReference,
   InMemoryEntitiesService,
   isNil,
@@ -32,6 +33,7 @@ import {
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PromiseEvent,
+  Property,
   ReferentialRef,
   ReferentialUtils,
   sleep,
@@ -65,6 +67,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -74,6 +77,7 @@ export const TripPageSettingsEnum = {
 export interface TripPageState extends RootDataEntityEditorState {
   departureDateTime: Moment;
   departureLocation: ReferentialRef;
+  reportTypes: Property[];
 }
 
 @Component({
@@ -122,6 +126,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
 
+  @RxStateProperty() reportTypes: Property[];
+
   get dirty(): boolean {
     return (
       this.dirtySubject.value ||
@@ -165,6 +171,17 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Listen some field
     this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter((d) => d?.isValid())));
     this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
+    this._state.connect(
+      'reportTypes',
+      this.program$.pipe(
+        map((program) => {
+          return program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPE).map((key) => {
+            const values = ProgramProperties.TRIP_REPORT_TYPE.values as Property[];
+            return values.find((item) => item.key === key);
+          });
+        })
+      )
+    );
 
     // Update the data context
     this.registerSubscription(
@@ -517,14 +534,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport() {
+  async openReport(reportType?: TripReportType) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    const reportType = this.program?.getProperty(ProgramProperties.TRIP_REPORT_TYPE) || ProgramProperties.TRIP_REPORT_TYPE.defaultValue;
-    const typePath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
-    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
+
+    if (!reportType) reportType = this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy';
+
+    const typepath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typepath].join('/'));
   }
 
   protected async setValue(data: Trip) {

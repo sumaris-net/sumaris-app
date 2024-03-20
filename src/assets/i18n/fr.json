@@ -155,7 +155,8 @@
       "LINK": "Lien de partage"
     },
     "REPORT": {
-      "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :"
+      "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :",
+      "TYPE_DIVIDER": "Types de rapport"
     },
     "HELP": {
       "TITLE": "Aide en ligne"
