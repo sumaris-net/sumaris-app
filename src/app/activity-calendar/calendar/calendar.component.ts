@@ -55,6 +55,7 @@ export interface ActivityCalendarState extends BaseTableState {
       useFactory: () =>
         new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
           equals: EntityUtils.equals,
+          sortByReplacement: { id: 'month' },
         }),
     },
     RxState,
@@ -133,16 +134,22 @@ export class CalendarComponent
     const year = data?.year || DateUtils.moment().tz(this.timezone).year() - 1;
     const vesselId = data.vesselSnapshot?.id;
 
-    this.memoryDataService.value = new Array(12).fill(null).map((_, month) => {
-      const startDate = DateUtils.moment().tz(this.timezone).year(year).month(month).startOf('month');
-      const endDate = DateUtils.moment().tz(this.timezone).year(year).month(month).endOf('month');
+    const baseDate = this.timezone ? DateUtils.moment().tz(this.timezone).year(year).startOf('year') : DateUtils.moment().year(year).startOf('year');
+
+    const months = new Array(12).fill(null).map((_, month) => {
+      const startDate = baseDate.clone().month(month).startOf('month');
+      const endDate = startDate.clone().endOf('month');
+      console.log('TODO month=' + month, startDate);
       const source = data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate)) || { startDate };
       const target = ActivityMonth.fromObject(source);
-      target.gearUseFeatures = data.gearUseFeatures?.filter((guf) => guf.startDate?.month() === month);
+      target.gearUseFeatures = data.gearUseFeatures?.filter((guf) => DateUtils.isSame(startDate, guf.startDate)) || [];
       target.vesselId = vesselId;
       target.endDate = endDate;
+      target.month = month + 1;
       return target;
     });
+
+    this.memoryDataService.value = months;
 
     // Load vessels
     if (isNotNil(vesselId)) {

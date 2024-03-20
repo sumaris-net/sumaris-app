@@ -437,6 +437,11 @@ export class ActivityCalendarPage
     return value;
   }
 
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = this.form.getRawValue();
+    return json;
+  }
+
   protected get form(): UntypedFormGroup {
     return this.baseForm.form;
   }

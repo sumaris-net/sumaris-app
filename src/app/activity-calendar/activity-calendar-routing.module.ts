@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { ActivityCalendarsTable } from './table/activity-calendars.table';
 import { AppActivityCalendarModule } from '@app/activity-calendar/activity-calendar.module';
 import { ActivityCalendarPage } from '@app/activity-calendar/page/activity-calendar.page';
-import { AuthGuardService } from '@sumaris-net/ngx-components';
+import { AuthGuardService, ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
   {
@@ -21,6 +21,7 @@ const routes: Routes = [
     component: ActivityCalendarPage,
     runGuardsAndResolvers: 'pathParamsChange',
     canActivate: [AuthGuardService],
+    canDeactivate: [ComponentDirtyGuard],
     data: {
       profile: 'USER',
       pathIdParam: 'calendarId',

@@ -1125,14 +1125,6 @@ export class ActivityCalendarService
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
 
-    // Fill return date using departure date
-    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
-
-    // Fill return location using departure location
-    if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = { ...copy.departureLocation };
-    }
-
     // Full json optimisation
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving

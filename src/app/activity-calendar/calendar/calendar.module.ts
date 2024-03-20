@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
-import { AppTableModule, RxStateModule, SharedModule } from '@sumaris-net/ngx-components';
+import { AppTableModule, RxStateModule, SharedDebugModule, SharedModule } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
@@ -19,6 +19,7 @@ import { AppVesselModule } from '@app/vessel/vessel.module';
     AppReferentialPipesModule,
     AppVesselModule,
     AppTableModule,
+    SharedDebugModule,
   ],
   declarations: [CalendarComponent],
   exports: [

@@ -42,21 +42,15 @@
     flex-direction: column !important;
     height: unset;
     max-height: unset;
+    min-width: var(--col-header-size) !important;
+    width: var(--col-header-size) !important;
+    max-width: var(--col-header-size) !important;
   }
   .mat-mdc-row {
     display: flex !important;
     flex-direction: column !important;
     height: unset;
     max-height: unset;
-  }
-
-  .mat-mdc-header-row {
-    min-width: var(--col-header-size) !important;
-    width: var(--col-header-size) !important;
-    max-width: var(--col-header-size) !important;
-  }
-
-  .mat-mdc-row {
     min-width: var(--col-size) !important;
     width: var(--col-size) !important;
     max-width: var(--col-size) !important;
@@ -100,6 +94,10 @@
     display: none;
     visibility: hidden;
     width: 0 !important;
+  }
+
+  .mat-column-month {
+    font-weight: var(--mat-table-header-headline-weight, 500);
   }
 
   .mat-mdc-cell-resizable {

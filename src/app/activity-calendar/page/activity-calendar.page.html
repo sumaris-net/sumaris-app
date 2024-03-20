@@ -106,6 +106,9 @@
 
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <!-- strategy summary -->
+              <app-strategy-summary-card></app-strategy-summary-card>
+
               <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
                 <ion-button
@@ -262,21 +265,6 @@
           form.year: {{ form | formGetValue: 'year' }}
           <br />
           form.startDate: {{ form | formGetValue: 'startDate' }}
-        </ion-col>
-        <ion-col>
-          calendar.ready: {{ calendar.ready }}
-          <br />
-          calendar.loading: {{ calendar.loading }}
-          <br />
-          calendar.enabled: {{ calendar.enabled }}
-          <br />
-          calendar.dirty: {{ calendar.dirty }}
-          <br />
-          calendar.valid: {{ calendar.valid }}
-          <br />
-          <br />
-          calendar.timezone: {{ calendar.timezone }}
-          <br />
         </ion-col>
       </ion-row>
     </ion-grid>

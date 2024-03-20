@@ -173,6 +173,16 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     }
   }
 
+  protected getValue(): ActivityCalendar {
+    const data = super.getValue();
+
+    // Restore disabled fields
+    data.directSurveyInvestigation = this.form.get('directSurveyInvestigation').value;
+    data.economicSurvey = this.showEconomicSurvey ? this.form.get('economicSurvey').value : null;
+
+    return data;
+  }
+
   /* -- protected method -- */
 
   updateFormGroup(form?: FormGroup) {

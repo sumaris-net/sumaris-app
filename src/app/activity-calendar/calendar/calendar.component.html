@@ -1,3 +1,8 @@
+<!-- DEBUG -->
+<ng-container *ngIf="debug">
+  <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+</ng-container>
+
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <!-- display columns option -->
@@ -33,6 +38,15 @@
       <mat-header-cell *matCellDef="let row">
         <ion-label class="ion-text-center">
           {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+
+          <!--@if(debug) {
+            <ion-text color="medium">
+              <br/>
+              <small>
+                {{ row.currentData.startDate | dateFormat: { time: true } }}
+              </small>
+            </ion-text>
+          }-->
         </ion-label>
       </mat-header-cell>
     </ng-container>
@@ -63,10 +77,14 @@
       <mat-header-cell *matHeaderCellDef>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell>
+      <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell (click)="focusColumn = 'isActive'">
         @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
           <mat-form-field>
-            <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate">
+            <mat-select
+              [formControl]="control"
+              [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate"
+              [autofocus]="focusColumn === 'isActive'"
+            >
               <mat-select-trigger>
                 {{ isActiveMap[control.value]?.label | translate }}
               </mat-select-trigger>
@@ -91,12 +109,13 @@
       <mat-header-cell *matHeaderCellDef>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell>
+      <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell (click)="focusColumn = 'basePortLocation'">
         @if (row.editing && row.validator | formGetControl: 'basePortLocation'; as control) {
           <mat-autocomplete-field
             [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
             [formControl]="control"
             [config]="autocompleteFields.basePortLocation"
+            [autofocus]="focusColumn === 'basePortLocation'"
           ></mat-autocomplete-field>
         } @else {
           {{ row.currentData.basePortLocation | referentialToString: locationDisplayAttributes }}
@@ -163,4 +182,28 @@
   <ion-label style="width: 80%">
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
   </ion-label>
+</ng-template>
+
+<ng-template #debugPanel>
+  <app-debug title="Calendar">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          calendar.ready: {{ readySubject | async }}
+          <br />
+          calendar.loading: {{ loadingSubject | async }}
+          <br />
+          calendar.enabled: {{ enabled }}
+          <br />
+          calendar.dirty: {{ dirty }}
+          <br />
+          calendar.valid: {{ valid }}
+          <br />
+          <br />
+          calendar.timezone: {{ timezone }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

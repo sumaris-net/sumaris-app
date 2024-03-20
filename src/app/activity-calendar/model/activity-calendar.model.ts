@@ -25,6 +25,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
+    target.year = target.year || this.startDate?.year() || null;
     target.vesselUseFeatures = (this.vesselUseFeatures && this.vesselUseFeatures.map((vuf) => vuf.asObject(opts))) || undefined;
     target.gearUseFeatures = (this.gearUseFeatures && this.gearUseFeatures.map((guf) => guf.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
