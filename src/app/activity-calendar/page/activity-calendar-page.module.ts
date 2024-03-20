@@ -9,6 +9,7 @@ import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module'
 import { AppDataModule } from '@app/data/data.module';
 import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.module';
 import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
+import { AngularSplitModule } from 'angular-split';
 
 @NgModule({
   imports: [
@@ -24,6 +25,7 @@ import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calend
     AppActivityCalendarFormModule,
     AppCalendarModule,
     AppActivityMapModule,
+    AngularSplitModule,
   ],
   declarations: [ActivityCalendarPage],
   exports: [ActivityCalendarPage],

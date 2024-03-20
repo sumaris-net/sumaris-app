@@ -90,6 +90,8 @@ export class ActivityCalendarPage
   showCalendar = true;
   showMap = true;
   enableReport: boolean;
+  rightPanelWidth = 20;
+  rightPanelVisible = true;
   @RxStateProperty() year: number;
 
   @Input() @RxStateProperty() vesselCountryId: number;

@@ -176,8 +176,17 @@
         </ion-label>
       </ng-template>
 
-      <!-- map -->
-      <app-activity-calendar-map #map></app-activity-calendar-map>
+      <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()">
+        <as-split-area [minSize]="20" [size]="100 - rightPanelWidth">
+          <!-- map -->
+          @if (selectedTabIndex === 2) {
+            <app-activity-calendar-map #map></app-activity-calendar-map>
+          }
+        </as-split-area>
+        <as-split-area [minSize]="30" [size]="rightPanelWidth" [visible]="rightPanelVisible">
+          <p>RIGHT</p>
+        </as-split-area>
+      </as-split>
     </mat-tab>
   </mat-tab-group>
 </ion-content>
