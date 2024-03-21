@@ -227,9 +227,9 @@ export class ActivityCalendarPage
     }
   }
 
-  addRow(event: UIEvent) {
+  addMetier(event: UIEvent) {
     if (this.calendar) {
-      this.calendar.addRow(event);
+      this.calendar.addMetierBlock(event);
     }
   }
 
@@ -416,7 +416,8 @@ export class ActivityCalendarPage
   protected async setValue(data: ActivityCalendar) {
     console.info(this.logPrefix + 'Setting data', data);
 
-    if (!this.isNewData) {
+    const isNewData = this.isNewData;
+    if (!isNewData) {
       // Wait ready only on existing data (must not wait table because program is not set yet)
       await this.ready();
     }
@@ -425,17 +426,20 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Propagate to calendar
-    if (!this.isNewData) {
-      await this.calendar.setValue(data);
-    }
-
-    // TODO
-    //this.map.containerResize();
+    await this.calendar.setValue(data);
   }
 
   protected async getValue(): Promise<ActivityCalendar> {
     const value = await super.getValue();
-    console.log('TODO check value=', value);
+
+    const calendarData = await this.calendar.getValue();
+    if (calendarData) {
+      value.vesselUseFeatures = calendarData.vesselUseFeatures;
+      value.gearUseFeatures = calendarData.gearUseFeatures;
+    }
+
+    console.debug('TODO check value=', value);
+
     return value;
   }
 

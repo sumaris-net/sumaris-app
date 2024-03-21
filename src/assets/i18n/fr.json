@@ -3091,11 +3091,12 @@
   },
   "ACTIVITY_CALENDAR": {
     "TABLE": {
-      "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
       "QUALITY": "État",
-      "PROGRAM": "Programme de collecte",
+      "PROGRAM": "Programme",
       "RECORDER_PERSON": "Saisisseur",
       "RECORDER_DEPARTMENT": "Organisme saisisseur",
+      "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+      "ECONOMIC_SURVEY": "Enquête éco ?",
       "VESSEL": "Navire",
       "YEAR": "Année",
       "FILTER": {
@@ -3103,6 +3104,7 @@
         "REGISTRATION_LOCATION": "Quartier maritime",
         "BASE_PORT_LOCATION": "Port d'attache / exploit.",
         "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+        "ECONOMIC_SURVEY": "Enquête économique ?",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
@@ -3119,6 +3121,10 @@
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
       "ECONOMIC_SURVEY": "Enquête économique ?",
       "YEAR_PLACEHOLDER": "Année",
+      "METIER": "Métier",
+      "METIER_RANKED": "Métier #{{rankOrder}}",
+      "FISHING_AREA": "Zone de pêche",
+      "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",
       "TAB_GENERAL": "Général",
       "TAB_CALENDAR": "Mois d'activité",
       "TAB_MAP": "Zones d'activité",
@@ -3127,9 +3133,11 @@
       "IS_ACTIVE": "Actif ?",
       "BASE_PORT_LOCATION": "Port d'attache / exploit.",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
+      "BTN_ADD_METIER_BLOCK": "Ajouter un block métier",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
-        "DISABLE": "Inactif"
+        "DISABLE": "Inactif",
+        "NOT_EXISTS": "Inexistant"
       }
     },
     "OFFLINE_MODAL": {

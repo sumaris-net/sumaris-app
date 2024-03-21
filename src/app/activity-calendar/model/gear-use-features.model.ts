@@ -7,6 +7,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toDateISOString,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { DataOrigin } from '@app/activity-calendar/model/data-origin.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -17,9 +18,31 @@ import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
+export class GearUseFeaturesComparators {
+  static sortRankOrder(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    const d1 = toNumber(n1.rankOrder, 9999);
+    const d2 = toNumber(n2.rankOrder, 9999);
+    return d1 === d2 ? 0 : d1 > d2 ? 1 : -1;
+  }
+}
+
 @EntityClass({ typename: 'GearUseFeaturesVO' })
 export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures> {
   static fromObject: (source: any, options?: any) => GearUseFeatures;
+
+  static equals(o1: GearUseFeatures, o2: GearUseFeatures) {
+    return (!o1 && !o2) || (o1 && o1.equals(o2));
+  }
+
+  static isEmpty(o: GearUseFeatures) {
+    return (
+      !o ||
+      (ReferentialUtils.isEmpty(o.gear) &&
+        ReferentialUtils.isEmpty(o.metier) &&
+        MeasurementValuesUtils.isEmpty(o.measurementValues) &&
+        (!o.fishingAreas || o.fishingAreas.every((fa) => FishingArea.isEmpty(fa))))
+    );
+  }
 
   program: ReferentialRef = null;
   vesselId: number = null;

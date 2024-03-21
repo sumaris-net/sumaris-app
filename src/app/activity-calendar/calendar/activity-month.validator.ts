@@ -2,16 +2,26 @@ import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { isNotEmptyArray, isNotNil, LocalSettingsService, SharedFormGroupValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppFormArray,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  SharedFormArrayValidators,
+  SharedFormGroupValidators,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { GearUseFeaturesValidatorOptions } from '@app/activity-calendar/model/gear-use-features.validator';
+import { GearUseFeaturesValidatorOptions, GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityMonthValidatorService<
@@ -21,6 +31,7 @@ export class ActivityMonthValidatorService<
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
+    protected gearUseFeaturesValidator: GearUseFeaturesValidatorService,
     protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
@@ -42,6 +53,17 @@ export class ActivityMonthValidatorService<
           const value = data && data.measurementValues && data.measurementValues[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
+    }
+
+    if (opts.withMetier) {
+      const gearUseFeaturesArray = this.getGearUseFeaturesArray(data?.gearUseFeatures, {
+        ...opts,
+        required: true,
+        withMetier: true,
+        withGear: false,
+        withFishingAreas: true,
+      });
+      form.addControl('gearUseFeatures', gearUseFeaturesArray);
     }
 
     return form;
@@ -91,6 +113,33 @@ export class ActivityMonthValidatorService<
     return form;
   }
 
+  getI18nError(errorKey: string, errorContent?: any): any {
+    console.log('TODO translate error: ' + errorKey);
+    return super.getI18nError(errorKey, errorContent);
+  }
+
+  getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: GearUseFeaturesValidatorOptions & { required?: boolean }) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray(
+      (fa) => this.gearUseFeaturesValidator.getFormGroup(fa, opts),
+      GearUseFeatures.equals,
+      GearUseFeatures.isEmpty,
+      {
+        allowEmptyArray: !required,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
+      }
+    );
+    if (data || required) {
+      formArray.patchValue(data?.length ? data : required ? [null] : []);
+    }
+    return formArray;
+  }
+
+  createGearUseFeatures(data?: GearUseFeatures, opts?: GearUseFeaturesValidatorOptions) {
+    const form = this.gearUseFeaturesValidator.getRowValidator(data, opts);
+    return form;
+  }
+
   protected getMeasurementValuesForm(
     data: undefined | MeasurementFormValues | MeasurementModelValues,
     opts: {
@@ -111,6 +160,8 @@ export class ActivityMonthValidatorService<
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
+
+    opts.withMetier = true;
 
     return opts;
   }

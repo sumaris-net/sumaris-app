@@ -176,7 +176,7 @@
         </ion-label>
       </ng-template>
 
-      <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()">
+      <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
         <as-split-area [minSize]="20" [size]="100 - rightPanelWidth">
           <!-- map -->
           @if (selectedTabIndex === 2) {
@@ -215,7 +215,7 @@
   [class.cdk-visually-hidden]="calendar?.disabled"
   @fadeInOutAnimation
 >
-  <ion-fab-button color="tertiary" (click)="addRow($event)">
+  <ion-fab-button color="tertiary" (click)="addMetier($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

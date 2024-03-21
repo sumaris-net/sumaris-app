@@ -5,14 +5,6 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- display columns option -->
-  <button *ngIf="showDisplayColumnModal" mat-menu-item (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
-
   <!-- Compact mode -->
   <button mat-menu-item (click)="toggleCompactMode()">
     <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
@@ -34,20 +26,25 @@
     <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <mat-header-cell *matHeaderCellDef>
         <ion-label>&nbsp;</ion-label>
+        <!-- Add metier block -->
+        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+          <mat-icon>add</mat-icon>
+        </button>
       </mat-header-cell>
-      <mat-header-cell *matCellDef="let row">
-        <ion-label class="ion-text-center">
+      <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''">
+        <ion-label
+          class="ion-text-center"
+          matBadge="!"
+          [matBadgeHidden]="!row.editing || row.valid"
+          matBadgeOverlap="true"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+        >
           {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-
-          <!--@if(debug) {
-            <ion-text color="medium">
-              <br/>
-              <small>
-                {{ row.currentData.startDate | dateFormat: { time: true } }}
-              </small>
-            </ion-text>
-          }-->
         </ion-label>
+        <span hidden #errorSpan>
+          {{ row.editing && row.validator | translateFormError: errorTranslatorOptions }}
+        </span>
       </mat-header-cell>
     </ng-container>
 
@@ -118,7 +115,9 @@
             [autofocus]="focusColumn === 'basePortLocation'"
           ></mat-autocomplete-field>
         } @else {
-          {{ row.currentData.basePortLocation | referentialToString: locationDisplayAttributes }}
+          @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
+            <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+          }
         }
 
         <!-- resize handlers -->
@@ -126,6 +125,31 @@
           *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
         ></ng-container>
       </mat-cell>
+    </ng-container>
+
+    <!-- Metiers -->
+    <ng-container *ngFor="let col of dynamicColumns">
+      <ng-container [matColumnDef]="col.key">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{ col.label }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell (click)="focusColumn = col.key">
+          @if (row.editing && row.validator | formGetControl: col.path; as control) {
+            <mat-autocomplete-field
+              [placeholder]="col.placeholder"
+              [formControl]="control"
+              [config]="col.autocomplete"
+              [autofocus]="focusColumn === col.key"
+            ></mat-autocomplete-field>
+          } @else {
+            @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+              <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+            }
+          }
+          <!-- resize handlers -->
+          <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
+        </mat-cell>
+      </ng-container>
     </ng-container>
 
     <!-- Actions -->
@@ -139,9 +163,9 @@
       [canCancel]="true"
       [dirtyIcon]="false"
     >
-      <!-- Options menu -->
-      <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
+      <!-- Add metier block -->
+      <button mat-icon-button matHeader [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+        <mat-icon>add</mat-icon>
       </button>
     </app-actions-column>
 
@@ -202,6 +226,7 @@
           <br />
           calendar.timezone: {{ timezone }}
           <br />
+          calendar.excludesColumns: {{ excludesColumns }}
         </ion-col>
       </ion-row>
     </ion-grid>
