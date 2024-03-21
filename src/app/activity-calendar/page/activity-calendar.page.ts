@@ -277,6 +277,8 @@ export class ActivityCalendarPage
         this.calendar.i18nColumnSuffix = i18nSuffix;
         this.calendar.timezone = this.dbTimeZone;
         this.calendar.basePortLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS);
+        this.calendar.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS);
+        this.calendar.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
 
         this.addChildForm(this.calendar);
       }

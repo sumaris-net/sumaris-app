@@ -1,9 +1,3 @@
-:host {
-  --mat-row-height: 52px !important;
-  --mat-row-max-height: 52px !important;
-  --mat-table-row-item-outline-width: 0px;
-  --mat-column-actions-min-width: 100%;
-}
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
@@ -30,10 +24,12 @@
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / 12));
   --mat-cell-border-color-hover: var(--ion-color-secondary);
-  --mat-row-height: 52px !important;
-  --mat-row-max-height: 52px !important;
+  --mat-row-height: 35px !important;
+  --mat-row-max-height: 35px !important;
   --mat-cell-resizable-handle-size: 5px;
   --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
+  --mat-table-row-item-outline-width: 0px;
+  --mat-column-actions-min-width: 100%;
 
   display: flex !important;
   flex-direction: row !important;
@@ -79,8 +75,8 @@
     min-height: var(--mat-row-height) !important;
     height: var(--mat-row-height) !important;
     max-height: var(--mat-row-height) !important;
-    padding-inline-start: 8px;
-    padding-inline-end: 8px;
+    padding-inline-start: 4px;
+    padding-inline-end: 4px;
     border-left: 1px solid rgba(0, 0, 0, 0.12);
   }
 

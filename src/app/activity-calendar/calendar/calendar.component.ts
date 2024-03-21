@@ -25,7 +25,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { UntypedFormGroup } from '@angular/forms';
@@ -74,6 +74,7 @@ export interface ColumnDefinition {
 }
 
 export interface ActivityCalendarState extends BaseTableState {
+  metierLevelId: number;
   vesselSnapshots: VesselSnapshot[];
   vesselOwners: VesselOwner[];
   dynamicColumns: ColumnDefinition[];
@@ -129,10 +130,11 @@ export class CalendarComponent
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
-  @RxStateProperty() @Input() locationDisplayAttributes: string[];
-  @RxStateProperty() @Input() basePortLocationLevelIds: number[];
-  @RxStateProperty() @Input() fishingAreaLocationLevelIds: number[];
 
+  @Input() locationDisplayAttributes: string[];
+  @Input() basePortLocationLevelIds: number[];
+  @Input() fishingAreaLocationLevelIds: number[];
+  @Input() metierTaxonGroupIds: number[];
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() maxMetierCount = 3;
   @Input() maxFishingAreaCount = 2;
@@ -175,7 +177,8 @@ export class CalendarComponent
     });
 
     this.registerAutocompleteField('metier', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.metierTaxonGroupIds || [TaxonGroupTypeIds.NATIONAL_METIER] }),
       filter: {
         entityName: 'Metier',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
@@ -190,7 +193,8 @@ export class CalendarComponent
         entityName: 'Location',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: this.locationDisplayAttributes,
+      //attributes: this.locationDisplayAttributes,
+      attributes: ['label'],
       mobile: this.mobile,
     });
 
