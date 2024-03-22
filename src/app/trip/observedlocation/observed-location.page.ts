@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ObservedLocationForm } from './form/observed-location.form';
 import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
@@ -28,8 +28,8 @@ import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { firstValueFrom, Observable } from 'rxjs';
-import { filter, first, tap } from 'rxjs/operators';
+import { firstValueFrom, Observable, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
@@ -44,7 +44,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -72,12 +72,15 @@ export interface ObservedLocationPageState extends RootDataEntityEditorState {
 })
 export class ObservedLocationPage
   extends AppRootDataEntityEditor<ObservedLocation, ObservedLocationService, number, ObservedLocationPageState>
-  implements OnInit
+  implements OnInit, OnDestroy
 {
   static TABS = {
     GENERAL: 0,
     LANDINGS: 1,
+    PETS: 2,
   };
+
+  private _measurementSubscription: Subscription;
 
   @RxStateSelect() landingTableType$: Observable<LandingTableType>;
   @RxStateSelect() landingTable$: Observable<ILandingsTable>;
@@ -85,11 +88,13 @@ export class ObservedLocationPage
 
   allowAddNewVessel: boolean;
   showLandingTab = false;
+  showPETSTab = false;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
   showRecorder = true;
   showObservers = true;
+  showStrategyCard = true;
   enableReport: boolean;
   landingEditor: LandingEditor;
 
@@ -155,6 +160,58 @@ export class ObservedLocationPage
         }
       })
     );
+
+    if (this.observedLocationForm) {
+      this.registerSubscription(
+        this.observedLocationForm.pmfms$
+          .pipe(
+            //debounceTime(400),
+            filter(isNotNil),
+            mergeMap(() => this.observedLocationForm.ready())
+          )
+          .subscribe(() => this.onMeasurementsFormReady())
+      );
+    }
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._measurementSubscription?.unsubscribe();
+  }
+
+  /**
+   * Configure specific behavior
+   */
+  protected async onMeasurementsFormReady() {
+    // Wait program to be loaded
+    //await this.ready();
+
+    // DEBUG
+    console.debug('[observed-location-page] Measurement form is ready');
+
+    // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
+    this._measurementSubscription?.unsubscribe();
+    this._measurementSubscription = new Subscription();
+
+    const formGroup = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
+
+    // If PMFM "PETS" exists, then use to enable/disable PETS tab
+    const petsControl = formGroup?.controls[PmfmIds.PETS];
+    if (isNotNil(petsControl)) {
+      this._measurementSubscription.add(
+        petsControl.valueChanges
+          .pipe(debounceTime(400), startWith<any, any>(petsControl.value), filter(isNotNil), distinctUntilChanged())
+          .subscribe((value) => {
+            if (this.debug) console.debug('[observed-location-page] Enable/Disable PETS tab, because PETS=' + value);
+
+            // Enable tab, when has PETS
+            this.showPETSTab = value;
+            this.tabCount = this.showPETSTab ? 3 : 2;
+
+            this.markForCheck();
+          })
+      );
+    }
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {

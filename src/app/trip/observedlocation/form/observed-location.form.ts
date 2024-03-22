@@ -25,7 +25,7 @@ import {
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../observed-location.model';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DateFilterFn } from '@angular/material/datepicker';
@@ -34,6 +34,7 @@ import { RxState } from '@rx-angular/state';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable } from 'rxjs';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;
@@ -95,6 +96,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       onUpdateFormGroup: (form) => this.updateFormGroup(),
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
     this._enable = false;
 
@@ -286,6 +288,20 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Remember used opts, for next call
       this._lastValidatorOpts = validatorOpts;
     }
+  }
+
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+    if (!pmfms) return; // Skip if empty
+
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+
+    if (saleTypePmfm) {
+      console.debug(`[control] Replacing pmfm ${saleTypePmfm.label} qualitative values`);
+      const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+      saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
+    return pmfms;
   }
 
   protected markForCheck() {

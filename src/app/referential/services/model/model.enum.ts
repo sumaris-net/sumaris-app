@@ -149,6 +149,10 @@ export const PmfmIds = {
   IS_SAMPLING: 409,
   LANDING_CATEGORY: 436,
   EMV_CATEGORY: 437, // TODO override by config
+
+  /* OBSMER */
+  PETS: 504,
+  SALE_TYPE: 505,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

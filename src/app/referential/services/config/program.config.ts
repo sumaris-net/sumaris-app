@@ -1123,6 +1123,10 @@ export const ProgramProperties = Object.freeze({
         key: 'ONBOARD_OBSERVATION.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
       },
+      {
+        key: 'SALE_OBSERVATION.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SALE_OBSERVATION',
+      },
     ],
     defaultValue: 'legacy',
   },
