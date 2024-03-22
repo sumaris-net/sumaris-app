@@ -81,10 +81,13 @@
 
     <!-- Basic select -->
     <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel" [appearance]="appearance" [title]="_displayValue">
+      @if (placeholder && floatLabel !== 'never') {
+        <mat-label>{{ placeholder }}</mat-label>
+      }
       <mat-select
         #matInput
         [required]="required"
-        [placeholder]="placeholder"
+        [placeholder]="floatLabel === 'never' && placeholder"
         [formControl]="formControl"
         (focus)="filterMatSelectFocusEvent($event)"
         (blur)="filterMatSelectBlurEvent($event)"

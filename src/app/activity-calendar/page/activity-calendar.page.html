@@ -163,7 +163,15 @@
           <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
         </ion-item>
 
-        <app-calendar #calendar [timezone]="dbTimeZone" (onNewRow)="addRow($event)" [debug]="debug"></app-calendar>
+        <app-calendar
+          #calendar
+          [programLabel]="programLabel$ | async"
+          [requiredStrategy]="requiredStrategy$ | async"
+          [strategyId]="(strategy$ | async)?.id"
+          [timezone]="dbTimeZone"
+          (onNewRow)="addRow($event)"
+          [debug]="debug"
+        ></app-calendar>
       </div>
     </mat-tab>
 

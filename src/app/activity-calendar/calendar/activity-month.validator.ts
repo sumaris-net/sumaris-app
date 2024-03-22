@@ -12,7 +12,7 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
+import { FishingAreaValidatorOptions } from '@app/data/fishing-area/fishing-area.validator';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
@@ -22,17 +22,24 @@ import { GearUseFeaturesValidatorOptions, GearUseFeaturesValidatorService } from
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+
+export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
+  metierCount?: number;
+  maxMetierCount?: number;
+  fishingAreaCount?: number;
+  maxFishingAreaCount?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ActivityMonthValidatorService<
-  O extends GearUseFeaturesValidatorOptions = GearUseFeaturesValidatorOptions,
+  O extends ActivityMonthValidatorOptions = ActivityMonthValidatorOptions,
 > extends DataEntityValidatorService<ActivityMonth, O> {
   constructor(
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
     protected gearUseFeaturesValidator: GearUseFeaturesValidatorService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -56,14 +63,14 @@ export class ActivityMonthValidatorService<
     }
 
     if (opts.withMetier) {
-      const gearUseFeaturesArray = this.getGearUseFeaturesArray(data?.gearUseFeatures, {
+      const gufArray = this.getGearUseFeaturesArray(data?.gearUseFeatures, {
         ...opts,
         required: true,
         withMetier: true,
         withGear: false,
         withFishingAreas: true,
       });
-      form.addControl('gearUseFeatures', gearUseFeaturesArray);
+      form.addControl('gearUseFeatures', gufArray);
     }
 
     return form;
@@ -105,6 +112,50 @@ export class ActivityMonthValidatorService<
     const enabled = form.enabled;
 
     // TODO update metier, gear, fishing areas
+    let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
+    if (opts.withMetier) {
+      if (!gufArray) {
+        gufArray = this.getGearUseFeaturesArray(null, { required: !opts.isOnFieldMode });
+        form.addControl('gearUseFeatures', gufArray);
+      }
+      if (isNotNil(opts?.metierCount)) {
+        gufArray.resize(opts.metierCount);
+      }
+
+      if (enabled && !gufArray.enabled) gufArray.enable();
+      else if (!enabled && gufArray.enabled) gufArray.disable();
+
+      // Set start/end date, and fishing area
+      const startDate = form.get('startDate').value;
+      const endDate = form.get('endDate').value;
+      gufArray.forEach((guf) => {
+        // Init fishing areas
+        if (opts?.withFishingAreas) {
+          let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
+          if (!faArray) {
+            faArray = this.getFishingAreaArray(null, { required: !opts.isOnFieldMode });
+            guf.addControl('fishingAreas', faArray);
+          }
+          if (!faArray.length && isNotNil(opts?.fishingAreaCount)) {
+            faArray.resize(opts.fishingAreaCount);
+          }
+          if (enabled && !faArray.enabled) faArray.enable();
+          else if (!enabled && faArray.enabled) faArray.disable();
+        } else {
+          //if (guf.controls.fishingAreas) guf.removeControl('fishingAreas');
+          if (guf.controls.fishingAreas) guf.controls.fishingAreas.disable();
+        }
+
+        // Init start/end date
+        guf.patchValue({ startDate, endDate }, { emitEvent: false });
+
+        if (enabled && !guf.enabled) guf.enable();
+        else if (!enabled && guf.enabled) guf.disable();
+      });
+    } else {
+      //if (gufArray) form.removeControl('gearUseFeatures');
+      gufArray.disable();
+    }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
@@ -135,9 +186,8 @@ export class ActivityMonthValidatorService<
     return formArray;
   }
 
-  createGearUseFeatures(data?: GearUseFeatures, opts?: GearUseFeaturesValidatorOptions) {
-    const form = this.gearUseFeaturesValidator.getRowValidator(data, opts);
-    return form;
+  getFishingAreaArray(data?: FishingArea[], opts?: FishingAreaValidatorOptions) {
+    return this.gearUseFeaturesValidator.getFishingAreasArray(data, opts);
   }
 
   protected getMeasurementValuesForm(
@@ -161,7 +211,8 @@ export class ActivityMonthValidatorService<
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
 
-    opts.withMetier = true;
+    opts.withMetier = toBoolean(opts.withMetier, true);
+    opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
 
     return opts;
   }

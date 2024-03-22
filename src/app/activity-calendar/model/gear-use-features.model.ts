@@ -88,7 +88,7 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     this.vesselId = source.vesselId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.metier = (source.metier && Metier.fromObject(source.metier, { useChildAttributes: 'TaxonGroup' })) || undefined;
+    this.metier = source.metier && Metier.fromObject(source.metier);
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.rankOrder = source.rankOrder;
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;

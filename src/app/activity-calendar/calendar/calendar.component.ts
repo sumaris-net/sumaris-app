@@ -1,36 +1,46 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, Input, OnInit } from '@angular/core';
 import {
-  AppFormArray,
   DateUtils,
   EntityUtils,
   IEntitiesService,
   InMemoryEntitiesService,
+  isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   IStatus,
+  LoadResult,
+  LocalSettingsService,
   MatAutocompleteFieldConfig,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils,
   sleep,
   splitById,
   StatusIds,
   toDateISOString,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
-import { AppBaseTable, BaseTableState } from '@app/shared/table/base.table';
 import { TableElement } from '@e-is/ngx-material-table';
 import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
-import { ActivityMonthValidatorService } from '@app/activity-calendar/calendar/activity-month.validator';
+import { ActivityMonthValidatorOptions, ActivityMonthValidatorService } from '@app/activity-calendar/calendar/activity-month.validator';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { RxState } from '@rx-angular/state';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 
 const DYNAMIC_COLUMNS = [
   'metier1',
@@ -43,7 +53,8 @@ const DYNAMIC_COLUMNS = [
   'metier3FishingArea1',
   'metier3FishingArea2',
 ];
-const BASE_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation', ...DYNAMIC_COLUMNS];
+const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
+const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
   {
@@ -64,6 +75,7 @@ export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
 ]);
 
 export interface ColumnDefinition {
+  blockIndex: number;
   index: number;
   label: string;
   placeholder: string;
@@ -71,13 +83,20 @@ export interface ColumnDefinition {
   key: string;
   path: string;
   rankOrder: number;
+  class?: string;
+  expanded?: boolean;
+  //matIcon?: string;
+  //click?: (event?: UIEvent) => void,
+  treeIndent?: string;
+  hidden?: boolean;
 }
 
-export interface ActivityCalendarState extends BaseTableState {
+export interface ActivityCalendarState extends BaseMeasurementsTableState {
   metierLevelId: number;
   vesselSnapshots: VesselSnapshot[];
   vesselOwners: VesselOwner[];
   dynamicColumns: ColumnDefinition[];
+  metierCount: number;
 }
 
 @Component({
@@ -98,13 +117,14 @@ export interface ActivityCalendarState extends BaseTableState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent
-  extends AppBaseTable<
+  extends BaseMeasurementsTable<
     ActivityMonth,
     ActivityMonthFilter,
     IEntitiesService<ActivityMonth, ActivityMonthFilter>,
     ActivityMonthValidatorService,
-    number,
-    ActivityCalendarState
+    ActivityCalendarState,
+    BaseMeasurementsTableConfig<ActivityMonth, ActivityCalendarState>,
+    ActivityMonthValidatorOptions
   >
   implements OnInit
 {
@@ -114,9 +134,10 @@ export class CalendarComponent
   readonly isActiveList = IsActiveList;
   readonly isActiveMap = Object.freeze(splitById(IsActiveList));
 
-  data: ActivityCalendar;
-  hiddenColumns = ['select', 'id'];
-  resizingCell: {
+  protected rowSubscription: Subscription;
+  protected data: ActivityCalendar;
+  protected hiddenColumns = ['select', 'id'];
+  protected resizingCell: {
     validating?: boolean;
     axis?: 'x' | 'y';
     row: TableElement<ActivityMonth>;
@@ -124,12 +145,13 @@ export class CalendarComponent
     cellRect: { top: number; left: number; width: number; height: number };
     shadowElement: HTMLDivElement;
   };
-  originalMouseY: number;
-  originalMouseX: number;
+  protected originalMouseY: number;
+  protected originalMouseX: number;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
+  @RxStateProperty() metierCount: number;
 
   @Input() locationDisplayAttributes: string[];
   @Input() basePortLocationLevelIds: number[];
@@ -138,19 +160,44 @@ export class CalendarComponent
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() maxMetierCount = 3;
   @Input() maxFishingAreaCount = 2;
+  @Input() usageMode: UsageMode;
+  @Input() showPmfmDetails = false;
 
-  get metierCount() {
-    return (this.dynamicColumns?.length || 0) / 3;
+  get isOnFieldMode() {
+    return this.usageMode === 'FIELD';
   }
 
   constructor(
     injector: Injector,
-    validatorService: ActivityMonthValidatorService,
     private vesselSnapshotService: VesselSnapshotService,
     private referentialRefService: ReferentialRefService,
     private element: ElementRef
   ) {
-    super(injector, ActivityMonth, ActivityMonthFilter, BASE_COLUMNS, injector.get(InMemoryEntitiesService), validatorService);
+    super(
+      injector,
+      ActivityMonth,
+      ActivityMonthFilter,
+      new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
+        //onSave: (data) => this.onSave(data),
+        equals: ActivityMonth.equals,
+        sortByReplacement: { id: 'rankOrder' },
+      }),
+      injector.get(LocalSettingsService).mobile ? null : injector.get(ActivityMonthValidatorService),
+      {
+        reservedStartColumns: ACTIVITY_MONTH_START_COLUMNS,
+        reservedEndColumns: ACTIVITY_MONTH_END_COLUMNS,
+        i18nColumnPrefix: 'ACTIVITY_CALENDAR.TABLE.',
+        i18nPmfmPrefix: 'ACTIVITY_CALENDAR.PMFM.',
+        // Cannot override mapPmfms (by options)
+        //mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        initialState: <ActivityCalendarState>{
+          requiredStrategy: true,
+          acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
+          metierCount: 0,
+        },
+      }
+    );
     this.inlineEdition = true;
     this.autoLoad = true;
     this.sticky = true;
@@ -177,13 +224,9 @@ export class CalendarComponent
     });
 
     this.registerAutocompleteField('metier', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.metierTaxonGroupIds || [TaxonGroupTypeIds.NATIONAL_METIER] }),
-      filter: {
-        entityName: 'Metier',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       mobile: this.mobile,
+      displayWith: (obj) => obj?.label || '',
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
@@ -198,7 +241,17 @@ export class CalendarComponent
       mobile: this.mobile,
     });
 
-    this.markAsReady();
+    // Listen row edition
+    // if (this.inlineEdition) {
+    //   this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditingMonth(row)));
+    // }
+
+    //this.markAsReady();
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.rowSubscription?.unsubscribe();
   }
 
   async setValue(data: ActivityCalendar) {
@@ -260,10 +313,10 @@ export class CalendarComponent
     const data = this.data?.clone() || ActivityCalendar.fromObject({});
 
     const months = this.memoryDataService.value;
-    data.vesselUseFeatures = months.filter((month) => isNotNil(month.isActive)).map((month) => VesselUseFeatures.fromObject(month));
+    data.vesselUseFeatures = months.filter((month) => isNotNil(month.isActive)).map((month) => VesselUseFeatures.fromObject(month.asObject()));
     data.gearUseFeatures = months
       .filter((month) => month.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && isNotEmptyArray(month.gearUseFeatures))
-      .reduce((res, month) => res.concat(...month.gearUseFeatures.map(VesselUseFeatures.fromObject)), []);
+      .reduce((res, month) => res.concat(...month.gearUseFeatures), []);
 
     return data;
   }
@@ -438,7 +491,7 @@ export class CalendarComponent
     if (!row.editing) this.markForCheck();
   }
 
-  addMetierBlock(event?: UIEvent) {
+  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -446,63 +499,156 @@ export class CalendarComponent
     }
 
     console.debug(this.logPrefix + 'Adding new metier block...');
-    const newBlockCount = this.metierCount + 1;
-    const index = newBlockCount - 1;
-    const rankOrder = newBlockCount;
-    const newColumns: ColumnDefinition[] = [
+    const index = this.metierCount;
+    const newMetierCount = index + 1;
+    const newFishingAreaCount = this.maxFishingAreaCount || 2;
+    const rankOrder = newMetierCount;
+    const pathPrefix = `gearUseFeatures.${index}.`;
+    const blockColumns: ColumnDefinition[] = [
       {
+        blockIndex: index,
         index,
         rankOrder,
         label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.METIER_RANKED', { rankOrder }),
         placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.METIER'),
         autocomplete: this.autocompleteFields.metier,
-        path: `gearUseFeatures.${index}.metier`,
+        path: `${pathPrefix}metier`,
         key: `metier${rankOrder}`,
+        class: 'mat-column-metier',
+        expanded: true,
       },
-      {
-        index: 0,
-        rankOrder: 1,
-        label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: 1 }),
-        placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
-        autocomplete: this.autocompleteFields.fishingAreaLocation,
-        path: `gearUseFeatures.${index}.fishingAreas.0.location`,
-        key: `metier${rankOrder}FishingArea1`,
-      },
-      {
-        index: 1,
-        rankOrder: 2,
-        label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: 2 }),
-        placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
-        autocomplete: this.autocompleteFields.fishingAreaLocation,
-        path: `gearUseFeatures.${index}.fishingAreas.1.location`,
-        key: `metier${rankOrder}FishingArea2`,
-      },
+      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
+        const faRankOrder = faIndex + 1;
+        return {
+          blockIndex: index,
+          index: faIndex,
+          rankOrder: faRankOrder,
+          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
+          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
+          autocomplete: this.autocompleteFields.fishingAreaLocation,
+          path: `${pathPrefix}fishingAreas.${faIndex}.location`,
+          key: `metier${rankOrder}FishingArea${faRankOrder}`,
+          treeIndent: '&nbsp;&nbsp;',
+        };
+      }),
     ];
 
-    const rows = this.dataSource.getRows();
-    rows.forEach((row) => {
-      const startDate = row.validator.get('startDate').value;
-      const endDate = row.validator.get('endDate').value;
-      let gufArray = row.validator.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
-      if (!gufArray) {
-        gufArray = this.validatorService.getGearUseFeaturesArray();
-        row.validator.addControl('gearUseFeatures', gufArray);
-      }
-      gufArray.resize(newBlockCount);
+    this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator));
 
-      gufArray.forEach((guf) => {
-        const faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
-        if (!faArray.length) faArray.resize(1);
-      });
-
-      // Update start/end date
-      gufArray.forEach((gufForm) => gufForm.patchValue({ startDate, endDate }));
-    });
-
-    this.focusColumn = newColumns[0].key;
-    this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...newColumns] : newColumns;
+    this.focusColumn = blockColumns[0].key;
+    this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
     const dynamicColumnKeys = this.dynamicColumns.map((col) => col.key);
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
-    this.updateColumns();
+    this.metierCount = newMetierCount;
+
+    if (opts?.emitEvent !== false) {
+      this.updateColumns();
+    }
+  }
+
+  protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    // eslint-disable-next-line prefer-const
+    let { data, total } = await this.referentialRefService.suggest(value, {
+      ...METIER_DEFAULT_FILTER,
+      ...filter,
+      searchJoin: 'TaxonGroup',
+      searchJoinLevelIds: this.metierTaxonGroupIds || [TaxonGroupTypeIds.NATIONAL_METIER],
+    });
+    if (isNotEmptyArray(data)) {
+      const ids = data.map((item) => item.id);
+      const sortBy = (filter?.searchAttribute || filter?.searchAttributes?.[0] || 'label') as keyof Referential;
+      data = await this.referentialRefService.loadAllByIds(ids, 'Metier', sortBy, 'asc');
+    }
+    return { data, total };
+  }
+
+  protected onPrepareRowForm(
+    form: UntypedFormGroup,
+    opts?: {
+      pmfms?: IPmfm[];
+      markForCheck?: () => void;
+    }
+  ) {
+    if (!form) return;
+
+    this.rowSubscription?.unsubscribe();
+
+    const isActiveControl = form.get('isActive');
+    this.rowSubscription = isActiveControl.valueChanges.subscribe(() => {
+      this.updateRowForm(form, { ...opts, markForCheck: () => this.markForCheck() });
+    });
+
+    this.updateRowForm(form, opts);
+  }
+  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
+    super.configureValidator(opts);
+
+    this.validatorService.delegateOptions = {
+      maxMetierCount: this.maxMetierCount,
+      maxFishingAreaCount: this.maxFishingAreaCount,
+    };
+  }
+
+  protected updateRowForm(
+    form: UntypedFormGroup,
+    opts?: ActivityMonthValidatorOptions & {
+      markForCheck?: () => void;
+    }
+  ) {
+    const isActive = form.get('isActive').value;
+
+    console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
+
+    opts = {
+      withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      metierCount: this.metierCount,
+      fishingAreaCount: 1, //this.maxFishingAreaCount,
+      isOnFieldMode: this.isOnFieldMode,
+      ...opts,
+    };
+    this.validatorService.updateFormGroup(form, opts);
+
+    if (opts?.markForCheck) opts.markForCheck();
+  }
+
+  toggleBlock(event: UIEvent, blockIndex: number) {
+    if (event?.defaultPrevented) return; // Skip^
+    event?.preventDefault();
+
+    const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
+    if (isEmptyArray(blockColumns)) return; // Skip
+
+    const masterColumn = blockColumns[0];
+    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
+
+    console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
+
+    // Toggle expanded
+    masterColumn.expanded = !masterColumn.expanded;
+
+    // Show/Hide sub columns
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+  }
+
+  expandBlock(event: UIEvent, blockIndex: number) {
+    if (event?.defaultPrevented) return; // Skip^
+    event?.preventDefault();
+
+    const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
+    if (isEmptyArray(blockColumns)) return;
+
+    const masterColumn = blockColumns[0];
+    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
+
+    masterColumn.expanded = true;
+
+    // Update sub columns
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+  }
+
+  protected setFocusColumn(key: string) {
+    this.focusColumn = key;
   }
 }

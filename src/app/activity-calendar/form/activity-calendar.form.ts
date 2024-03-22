@@ -93,9 +93,16 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     protected network: NetworkService,
     protected modalCtrl: ModalController
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
-      onUpdateFormGroup: (form) => this.updateFormGroup(),
-    });
+    super(
+      injector,
+      measurementsValidatorService,
+      formBuilder,
+      programRefService,
+      validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }),
+      {
+        onUpdateFormGroup: (form) => this.updateFormGroup(form),
+      }
+    );
     this._enable = false;
 
     // Set default acquisition level

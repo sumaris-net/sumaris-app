@@ -64,6 +64,10 @@
     ion-label {
       width: 100%;
     }
+
+    &.tappable:hover {
+      cursor: pointer;
+    }
   }
 
   .mat-mdc-cell,
@@ -78,6 +82,10 @@
     padding-inline-start: 4px;
     padding-inline-end: 4px;
     border-left: 1px solid rgba(0, 0, 0, 0.12);
+
+    &.odd {
+      background-color: rgba(var(--ion-color-medium-rgb), 0.2);
+    }
   }
 
   .mat-mdc-cell .computed {
@@ -94,6 +102,10 @@
 
   .mat-column-month {
     font-weight: var(--mat-table-header-headline-weight, 500);
+  }
+
+  .mat-column-metier {
+    background-color: rgba(var(--ion-color-medium-rgb), 0.4);
   }
 
   .mat-mdc-cell-resizable {
