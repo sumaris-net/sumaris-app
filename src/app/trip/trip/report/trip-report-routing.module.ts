@@ -17,6 +17,10 @@ const routes: Routes = [
     path: 'onboard',
     loadChildren: () => import('./onboard/onboard-trip-report-routing.module').then((m) => m.OnboardTripReportRoutingModule),
   },
+  {
+    path: 'form',
+    loadChildren: () => import('./form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
+  },
 ];
 
 @NgModule({

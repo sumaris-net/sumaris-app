@@ -132,9 +132,9 @@
       "HAS_ERROR": "Please correct errors in the form"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE":"Items per page",
-      "NEXT_PAGE":"Next page",
-      "PREVIOUS_PAGE":"Previous page",
+      "ITEMS_PER_PAGE": "Items per page",
+      "NEXT_PAGE": "Next page",
+      "PREVIOUS_PAGE": "Previous page",
       "OF": "on"
     },
     "TABLE": {
@@ -524,7 +524,7 @@
     "USAGE_MODE": "Usage mode",
     "USAGE_MODE_FIELD": "Mode on <b>field</b>",
     "USAGE_MODE_DESK": "Mode in <b>office</b>",
-    "USAGE_MODES":  {
+    "USAGE_MODES": {
       "FIELD": "On field",
       "DESK": "In office"
     },
@@ -666,14 +666,14 @@
         "SYNC_HELP": "Online trips"
       },
       "INFO": {
-        "IMPORT_FILE_SUCCEED" : "Import completed:<br><b>{{inserts}} trip(s) imported!",
-        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
+        "IMPORT_FILE_SUCCEED": "Import completed:<br><b>{{inserts}} trip(s) imported!",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS": "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
       },
       "WARNING": {
         "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first."
       },
       "ERROR": {
-        "IMPORT_FILE_FAILED" : "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
+        "IMPORT_FILE_FAILED": "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
       }
     },
     "TRASH": {
@@ -777,10 +777,10 @@
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE": "Duplicate this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
-        "BTN_OPEN_PARENT" : "Open setting",
-        "BTN_SELECT_PARENT" : "Select setting",
-        "BTN_SAVE_AND_NEW" : "Save and new",
-        "BTN_NEW" : "OP",
+        "BTN_OPEN_PARENT": "Open setting",
+        "BTN_SELECT_PARENT": "Select setting",
+        "BTN_SAVE_AND_NEW": "Save and new",
+        "BTN_NEW": "OP",
         "BTN_LOG": "Log",
         "COMMENTS": "Comment",
         "CATCH": "Catch",
@@ -809,19 +809,19 @@
         "END_DATE_TIME": "End of operation",
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
-        "DISTANCE_DOTS" : "Dist.: {{distance}} miles",
-        "START_PARENT_OPERATION" : "Start laying:",
-        "END_PARENT_OPERATION" : "End laying / Start Fishing:",
-        "START_CHILD_OPERATION" : "End fishing / Start hauling:",
-        "END_CHILD_OPERATION" : "End hauling:",
-        "PARENT_OPERATION" : "Associated operation",
+        "DISTANCE_DOTS": "Dist.: {{distance}} miles",
+        "START_PARENT_OPERATION": "Start laying:",
+        "END_PARENT_OPERATION": "End laying / Start Fishing:",
+        "START_CHILD_OPERATION": "End fishing / Start hauling:",
+        "END_CHILD_OPERATION": "End hauling:",
+        "PARENT_OPERATION": "Associated operation",
         "PLEASE_SELECT_HELP": "Select an operation",
         "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Quality flag",
         "TYPE": {
-          "TITLE" : "Operation type:",
-          "PARENT" : "Setting",
-          "CHILD" : "Hauling"
+          "TITLE": "Operation type:",
+          "PARENT": "Setting",
+          "CHILD": "Hauling"
         },
         "START_POSITION": {
           "LATITUDE": "Start latitude",
@@ -839,7 +839,7 @@
           "LATITUDE": "Fishing end latitude",
           "LONGITUDE": "Fishing end longitude"
         },
-        "SURVIVAL_TEST" : {
+        "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Survival tests"
         },
         "ACCIDENTAL_CATCH": {
@@ -847,13 +847,13 @@
         }
       },
       "PARENT": {
-        "TITLE" : "Select setting",
-        "TRIP" : "{{vessel}} - Trip {{departureDateTime}}",
-        "FILTER" : {
-          "SEARCH_TEXT" : "Search : code gear / target species",
-          "START_DATE" : "Start period",
-          "GEAR" : "Gear",
-          "TARGET_SPECIE" : "Target species"
+        "TITLE": "Select setting",
+        "TRIP": "{{vessel}} - Trip {{departureDateTime}}",
+        "FILTER": {
+          "SEARCH_TEXT": "Search : code gear / target species",
+          "START_DATE": "Start period",
+          "GEAR": "Gear",
+          "TARGET_SPECIE": "Target species"
         }
       },
       "PMFM": {
@@ -890,8 +890,8 @@
         "DOWNLOAD_JSON_FILENAME": "Operations.json"
       },
       "FILTER": {
-        "GEAR" : "Gear",
-        "START_DATE" : "Start date",
+        "GEAR": "Gear",
+        "START_DATE": "Start date",
         "QUALITY": "State"
       },
       "SETTINGS": {
@@ -912,7 +912,7 @@
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
         "LOCAL_PARENT_OPERATION": "Operation from an unsynchronized trip",
         "MISSING_PARENT_OPERATION": "Associée operation not found",
-        "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
+        "TOO_LONG_DISTANCE": "Distance too long ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtering not available",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data.",
         "CATCH_ERROR": "Error entering catch"
@@ -1210,7 +1210,7 @@
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
       }
     },
-    "SUB_SAMPLE" : {
+    "SUB_SAMPLE": {
       "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
       "NEW": {
         "TITLE": "New sub-sample",
@@ -1389,8 +1389,7 @@
         "END_DATE": "End period"
       }
     },
-    "PMFM": {
-    },
+    "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
       "HISTORICAL_DATA_DIVIDER": "Data history",
@@ -1488,7 +1487,7 @@
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments",
       "CREATION_DATE": "Creation date",
-      "RECORDER_PERSON" : "Recorder",
+      "RECORDER_PERSON": "Recorder",
       "SAMPLES_COUNT": "Measurement count",
       "QUALITY": "State",
       "SAMPLING": {
@@ -2054,11 +2053,11 @@
     },
     "OPTIONS": {
       "EXTRACTION_FORMATS": "Extraction > Available formats:",
-      "I18N_SUFFIX" : "Thematic dictionary",
-      "I18N_SUFFIX_LEGACY" : "By default",
-      "I18N_SUFFIX_SAMPLING" : "Biological parameter",
-      "I18N_SUFFIX_SURVIVAL_TEST" : "Survival tests",
-      "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Accidental catches",
+      "I18N_SUFFIX": "Thematic dictionary",
+      "I18N_SUFFIX_LEGACY": "By default",
+      "I18N_SUFFIX_SAMPLING": "Biological parameter",
+      "I18N_SUFFIX_SURVIVAL_TEST": "Survival tests",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH": "Accidental catches",
       "I18N_SUFFIX_AUCTION_CONTROL": "Auction control",
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Trawl selectivity",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
@@ -2112,6 +2111,7 @@
       "TRIP_REPORT_ENABLE": "Trip > Enable report edition?",
       "TRIP_REPORT_TYPE": "Trip > Report type",
       "TRIP_REPORT_TYPE_LEGACY": "Default",
+      "TRIP_REPORT_TYPE_FORM": "Form",
       "TRIP_REPORT_TYPE_SELECTIVITY": "Trawl selectivity",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
@@ -2119,8 +2119,8 @@
       "TRIP_OPERATION_METIER_ENABLE": "Trip > Operation: Metier?",
       "TRIP_OPERATION_METIER_FILTER": "Trip > Operation: Filter on already used metiers?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
-      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning (miles):",
-      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error (miles): ",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING": "Trip > Operation: Max travelled distance before warning (miles):",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Trip > Operation: Max travelled distance before error (miles): ",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
@@ -2174,7 +2174,7 @@
       "LANDING_SAMPLE_LABEL_ENABLE": "Occasion > Landing > Individual measures: Enter label?",
       "LANDING_COLUMNS_PMFM_IDS": "Occasion > Landings: Additional column(s) (PMFM)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
-      "STRATEGY_EDITOR" : "Strategy > editor",
+      "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
         "SAMPLING": "Biological parameters"
@@ -2247,10 +2247,10 @@
         "ANALYTIC_REFERENCE": "Analytic reference",
         "RECORDER_DEPARTMENTS": "Recoder department(s)",
         "TAXON_NAMES": "Scientific specie(s)",
-        "EFFORT_Q1": "Quarter Q1" ,
-        "EFFORT_Q2": "Quarter Q2" ,
-        "EFFORT_Q3": "Quarter Q3" ,
-        "EFFORT_Q4": "Quarter Q4" ,
+        "EFFORT_Q1": "Quarter Q1",
+        "EFFORT_Q2": "Quarter Q2",
+        "EFFORT_Q3": "Quarter Q3",
+        "EFFORT_Q4": "Quarter Q4",
         "PARAMETERS": "PMFM",
         "COMMENTS": "Comments",
         "AGE": "Age",
@@ -2271,10 +2271,10 @@
           "START_YEAR": "Start year",
           "END_YEAR": "End year",
           "PARAMETER_GROUPS": "Parameters to be measured",
-          "EFFORT_Q1": "QUarter Q1" ,
-          "EFFORT_Q2": "QUarter Q2" ,
-          "EFFORT_Q3": "QUarter Q3" ,
-          "EFFORT_Q4": "QUarter Q4" ,
+          "EFFORT_Q1": "QUarter Q1",
+          "EFFORT_Q2": "QUarter Q2",
+          "EFFORT_Q3": "QUarter Q3",
+          "EFFORT_Q4": "QUarter Q4",
           "PARAMETERS": "Measured parameters",
           "PARAMETERS_DOTS": "Measured parameters:",
           "COMMENTS": "Comments",
@@ -2289,8 +2289,8 @@
       "SUMMARY": {
         "TITLE": "Strategy",
         "LOCATIONS": "Applied locations:",
-        "TAXON_NAMES":"Sceitnfic species(s):",
-        "TAXON_GROUPS":"Commercial specie(s):",
+        "TAXON_NAMES": "Sceitnfic species(s):",
+        "TAXON_GROUPS": "Commercial specie(s):",
         "BTN_SHOW": "Open the strategy",
         "SAMPLING": {
           "TITLE": "Sampling scheme",
@@ -2470,8 +2470,8 @@
       "TECH_CHART_TITLE": "{{aggColumnName}} by {{techColumnName}}",
       "FREEZE_VALUES": "Freeze values",
       "LEGEND": "Legend",
-      "SCALE_LINEAR" : "Linear",
-      "SCALE_LOGARITHMIC":  "Logarithmic",
+      "SCALE_LINEAR": "Linear",
+      "SCALE_LOGARITHMIC": "Logarithmic",
       "CHART_AXIS_Y": "Y scale (left)",
       "CHART_AXIS_X": "X scale (bottom)",
       "LEGEND_FORM": {
@@ -2482,14 +2482,14 @@
       },
       "CHART_TYPE": {
         "TITLE": "Kind of chart",
-        "PIE" : "Pie",
-        "BAR":  "Histogram",
+        "PIE": "Pie",
+        "BAR": "Histogram",
         "DOUGHNUT": "Doughnut"
       },
       "CHART_SORT_BY": {
         "TITLE": "Sort by",
-        "LABEL" : "Label (asc)",
-        "VALUE":  "Value (desc)"
+        "LABEL": "Label (asc)",
+        "VALUE": "Value (desc)"
       },
       "SELECT_MODAL": {
         "TITLE": "Map list",

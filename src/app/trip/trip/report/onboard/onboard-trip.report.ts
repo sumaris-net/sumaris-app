@@ -32,8 +32,6 @@ export class OnboardTripReport extends BaseTripReport<OnboardExtractionData, Onb
     stats.gearPmfms = await this.programRefService.loadProgramPmfms(programLabel, {
       acquisitionLevels: [AcquisitionLevelCodes.PHYSICAL_GEAR, AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR],
     });
-    console.debug('MYTEST gearPmfms', stats.gearPmfms);
-    console.debug('MYTEST data/stats', data, stats);
     return stats;
   }
 

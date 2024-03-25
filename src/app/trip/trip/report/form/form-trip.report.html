@@ -1,0 +1,285 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    <section *sectionDef class="portrait">
+      <div class="page-wrapper">
+        <div id="document-title">
+          <h1>Dossier d'observation en mer</h1>
+          <div id="document-subtitle">Formulaire ObsMer - Programe 2024 -2027</div>
+        </div>
+
+        <h2 class="page-title">Fiche sortie en mer</h2>
+
+        <div class="page-section">
+          <h3 class="section-title">Liaison avec le plan d’échantillonnage (voir le site web WAO) :</h3>
+          <div class="grid-container">
+            <div class="field full-line long-label">
+              <div class="label">Strate observée justifiant l’embarquement</div>
+              <div class="value height4x"></div>
+            </div>
+            <div class="field full-line long-label">
+              <div class="label">Program de rattachement</div>
+              <div class="value no-border-top">
+                {{ stats.program.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-container">
+          <h3 class="section-title">Observateur(s)</h3>
+          <div class="grid-container">
+            <div class="field full-line">
+              <div class="label">Nom Prénom (Société)</div>
+              <div class="value">
+                {{ data.observers | personToString: ' ' : { withDepartment: true } }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-section">
+          <h3 class="section-title">Navire</h3>
+          <div class="grid-container">
+            <div class="field full-line">
+              <div class="label">Immatriculation</div>
+              <div class="value">
+                {{ data.vesselSnapshot.registrationCode }}
+              </div>
+            </div>
+            <div class="field half-line">
+              <div class="label">Nom</div>
+              <div class="value no-border-top">
+                {{ data.vesselSnapshot.name }}
+              </div>
+            </div>
+            <div class="field half-line verry-long-label">
+              <div class="label">
+                Nombre d'homme a bord
+                <div class="sub-label">sans le(s) observateur(s)</div>
+              </div>
+              <div class="value no-border-top"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-section">
+          <h3 class="section-title">Marée</h3>
+          <div class="grid-container">
+            <div class="field half-line">
+              <div class="label">Lieux de départ</div>
+              <div class="value"></div>
+            </div>
+            <div class="field half-line long-label">
+              <div class="label">Date et heure de départ</div>
+              <div class="value"></div>
+            </div>
+            <div class="field half-line">
+              <div class="label">Lieux d'arrivé</div>
+              <div class="value no-border-top"></div>
+            </div>
+            <div class="field half-line long-label">
+              <div class="label">Date et heure d'arrivé</div>
+              <div class="value no-border-top"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-section">
+          <h3 class="section-title">Vente</h3>
+          <div class="grid-container">
+            <div class="field half-line">
+              <div class="label">Lieux (Type)</div>
+              <div class="value no-border-bottom"></div>
+            </div>
+            <div class="field half-line">
+              <div class="label">Date</div>
+              <div class="value no-border-bottom"></div>
+            </div>
+            <div class="field full-line">
+              <div class="label">Type de vente</div>
+              <div class="value">
+                <div class="inline-checkbox-list">
+                  <div class="field">
+                    <div class="label">Au détail – Particuliers - Hors HAM/Criée</div>
+                    <div class="value">
+                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Enchères –HAM/Criées</div>
+                    <div class="value">
+                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Gré à Gré – Mareyeurs - Hors HAM/Criée</div>
+                    <div class="value">
+                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+                    </div>
+                  </div>
+                  <div class="field complete-me">
+                    <div class="label">Autres</div>
+                    <div class="value">
+                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+                    </div>
+                    <div class="complete-dot"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field half-line checkbox">
+              <div class="label">
+                Récupération de la photocopie du journal de bord
+                <div class="sub-label">(inclure le document dans le dossier)</div>
+              </div>
+              <div class="value">
+                <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+              </div>
+            </div>
+            <div class="field half-line checkbox">
+              <div class="label">
+                Restitution au patron
+                <div class="sub-label">(inclure le document dans le dossier)</div>
+              </div>
+              <div class="value">
+                <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-section" style="flex: auto">
+          <h3 class="section-title">Commentaires</h3>
+          <div class="comments-bloc"></div>
+        </div>
+      </div>
+    </section>
+
+    <section *sectionDef class="portrait">
+      <ion-grid>
+        <ng-container *ngTemplateOutlet="pageHeader"></ng-container>
+
+        <ion-row class="page-title">
+          <ion-col size="6">
+            <h2>Fiche engin physique</h2>
+          </ion-col>
+          <ion-col size="6"></ion-col>
+        </ion-row>
+
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>Engin</h3>
+          </ion-col>
+        </ion-row>
+
+        <ion-row class="form-line">
+          <ion-col class="label" size="6">Engin</ion-col>
+          <ion-col class="value"></ion-col>
+        </ion-row>
+
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>Caractéristiques physiques de l'engin</h3>
+          </ion-col>
+        </ion-row>
+
+        <ion-row *ngFor="let gearPmfm of stats?.gearPmfms" class="form-line">
+          <ion-col class="label" size="6">
+            {{ gearPmfm | pmfmName }}
+          </ion-col>
+          <ion-col class="value"></ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+
+    <section *sectionDef class="landscape">
+      <ion-grid>
+        <ng-container *ngTemplateOutlet="pageHeader"></ng-container>
+
+        <ion-row class="page-title">
+          <ion-col size="6">
+            <h2>Landscape page</h2>
+          </ion-col>
+          <ion-col size="6"></ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="6">This is</ion-col>
+          <ion-col size="6" style="text-align: end">just a test</ion-col>
+        </ion-row>
+      </ion-grid>
+    </section>
+  </app-reveal>
+
+  <ng-template #pageHeader>
+    <ion-row class="page-header ion-align-items-center">
+      <ion-col></ion-col>
+      <ion-col>Formulaire marée observée en mer</ion-col>
+      <ion-col></ion-col>
+    </ion-row>
+  </ng-template>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>

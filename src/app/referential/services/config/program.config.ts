@@ -539,7 +539,7 @@ export const ProgramProperties = Object.freeze({
   TRIP_REPORT_TYPE: <FormFieldDefinition>{
     key: 'sumaris.trip.report.type',
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
-    type: 'enum',
+    type: 'enums',
     values: [
       {
         key: <TripReportType>'legacy',
@@ -553,7 +553,16 @@ export const ProgramProperties = Object.freeze({
         key: <TripReportType>'onboard',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
       },
+      {
+        key: <TripReportType>'form',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
+      },
     ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p?.key,
+    },
     defaultValue: <TripReportType>'legacy',
   },
 

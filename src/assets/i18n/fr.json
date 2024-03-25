@@ -2187,6 +2187,7 @@
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Sélectivité châlut",
       "TRIP_REPORT_TYPE_ONBOARD_OBSERVATION": "Observation en mer",
+      "TRIP_REPORT_TYPE_FORM": "Formulaire",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Sélectivité châlut",
