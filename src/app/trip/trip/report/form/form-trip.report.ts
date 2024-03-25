@@ -21,17 +21,22 @@ export class FormTripReportStats extends BaseReportStats {
 })
 export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripReportStats> {
   protected logPrefix = 'trip-form-report';
+  protected readonly isBlankFormParam = 'blank-form';
+  protected isBlankForm: boolean;
 
   protected readonly tripService: TripService;
 
   constructor(injector: Injector) {
     super(injector, Trip, FormTripReportStats);
     this.tripService = injector.get(TripService);
+
+    this.isBlankForm = new URLSearchParams(window.location.search).has(this.isBlankFormParam);
   }
 
   protected async loadData(id: number, opts?: any): Promise<Trip> {
     console.log(`[${this.logPrefix}] loadData`);
-    const data = await this.tripService.load(id, { ...opts, withOperation: true });
+    let data = new Trip();
+    if (!this.isBlankForm) data = await this.tripService.load(id, { ...opts, withOperation: true });
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
     return data;
   }
@@ -47,6 +52,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   protected async computeStats(data: Trip, opts?: IComputeStatsOpts<FormTripReportStats>): Promise<FormTripReportStats> {
     const stats = new FormTripReportStats();
+    if (this.isBlankForm) return stats;
     stats.program = await this.programRefService.loadByLabel(data.program.label);
     return stats;
   }
@@ -65,7 +71,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     return 'trip/report/form';
   }
 
-  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
+  protected(data: Trip, stats: FormTripReportStats): URL {
     // TODO Solve path in parrent fuction
     if (this.uuid) return new URL(`${this.baseHref}/${this.computeShareBasePath()}?uuid=${this.uuid}`);
     else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats) + '/report/form');

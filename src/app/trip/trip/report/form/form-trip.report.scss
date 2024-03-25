@@ -249,6 +249,7 @@
   }
 
   .pdf-page {
+    // overflow-x: scroll !important;
     .portrait {
       left: calc(50% - (var(--slide-width) / 2)) !important;
     }

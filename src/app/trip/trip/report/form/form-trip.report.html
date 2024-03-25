@@ -77,7 +77,7 @@
             <div class="field full-line long-label">
               <div class="label">Program de rattachement</div>
               <div class="value no-border-top">
-                {{ stats.program.label }}
+                {{ isBlankForm ? '' : stats.program.label }}
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@
             <div class="field full-line">
               <div class="label">Nom Prénom (Société)</div>
               <div class="value">
-                {{ data.observers | personToString: ' ' : { withDepartment: true } }}
+                {{ isBlankForm ? '' : (data.observers | personToString: ' ' : { withDepartment: true }) }}
               </div>
             </div>
           </div>
@@ -101,13 +101,13 @@
             <div class="field full-line">
               <div class="label">Immatriculation</div>
               <div class="value">
-                {{ data.vesselSnapshot.registrationCode }}
+                {{ isBlankForm ? '' : data.vesselSnapshot.registrationCode }}
               </div>
             </div>
             <div class="field half-line">
               <div class="label">Nom</div>
               <div class="value no-border-top">
-                {{ data.vesselSnapshot.name }}
+                {{ isBlankForm ? '' : data.vesselSnapshot.name }}
               </div>
             </div>
             <div class="field half-line verry-long-label">
@@ -175,12 +175,12 @@
                       <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
                     </div>
                   </div>
-                  <div class="field complete-me">
+                  <div class="field" [class.complete-me]="isBlankForm">
                     <div class="label">Autres</div>
                     <div class="value">
                       <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
                     </div>
-                    <div class="complete-dot"></div>
+                    <div *ngIf="isBlankForm" class="complete-dot"></div>
                   </div>
                 </div>
               </div>
@@ -274,7 +274,7 @@
 
         <ion-row class="page-title">
           <ion-col size="6">
-            <h2>Landscape page 2</h2>
+            <h2>Landscape page</h2>
           </ion-col>
           <ion-col size="6"></ion-col>
         </ion-row>
