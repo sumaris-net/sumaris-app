@@ -247,6 +247,18 @@
       }
     }
   }
+
+  .pdf-page {
+    .portrait {
+      left: calc(50% - (var(--slide-width) / 2)) !important;
+    }
+    .landscape {
+      left: calc(50% - (var(--slide-height) / 2)) !important;
+    }
+    &:has(> .landscape) {
+      height: calc(var(--slide-width) + 45px) !important;
+    }
+  }
 }
 
 @media screen {
