@@ -27,10 +27,12 @@ type AccountVO {
 }
 
 type ActivityCalendarVO {
+  basePortLocationIds: [Int]
   comments: String
   controlDate: Date
   creationDate: Date
   directSurveyInvestigation: Boolean
+  economicSurvey: Boolean
   gearUseFeatures: [GearUseFeaturesVO]
   id: Int
   "Get measurement values (as a key/value map, using pmfmId as key)"
@@ -42,6 +44,7 @@ type ActivityCalendarVO {
   qualityFlagId: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  registrationLocationIds: [Int]
   updateDate: Date
   validationDate: Date
   vesselDateTime: Date
@@ -1205,8 +1208,8 @@ type Query {
   account(pubkey: String): AccountVO
   "Get an activity calendar, by id"
   activityCalendar(id: Int!): ActivityCalendarVO
-  "Search in observed locations"
-  activityCalendars(filter: ActivityCalendarFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "year", sortDirection: String = "asc", trash: Boolean = false): [ActivityCalendarVO]
+  "Search in activity calendars"
+  activityCalendars(filter: ActivityCalendarFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "year", sortDirection: String = "desc", trash: Boolean = false): [ActivityCalendarVO]
   "Get total number of observed locations"
   activityCalendarsCount(filter: ActivityCalendarFilterVOInput, trash: Boolean = false): Long!
   "Find aggregated landings by filter"
@@ -2171,22 +2174,25 @@ input AccountVOInput {
 
 input ActivityCalendarFilterVOInput {
   activityCalendarId: Int
+  basePortLocationIds: [Int]
   dataQualityStatus: [DataQualityStatusEnum]
   endDate: Date
   excludedIds: [Int]
   includedIds: [Int]
   locationId: Int
-  locationIds: [Int]
   programIds: [Int]
   programLabel: String
   qualityFlagIds: [Int]
   recorderDepartmentId: Int
   recorderPersonId: Int
+  registrationLocationIds: [Int]
   startDate: Date
   vesselId: Int
+  vesselIds: [Int]
 }
 
 input ActivityCalendarVOInput {
+  basePortLocationIds: [Int]
   comments: String
   controlDate: Date
   creationDate: Date
@@ -2201,6 +2207,7 @@ input ActivityCalendarVOInput {
   qualityFlagId: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  registrationLocationIds: [Int]
   updateDate: Date
   validationDate: Date
   vesselId: Int
@@ -2851,6 +2858,7 @@ input ObservedLocationFilterVOInput {
   programLabel: String
   qualityFlagIds: [Int]
   recorderDepartmentId: Int
+  recorderDepartmentIds: [Int]
   recorderPersonId: Int
   startDate: Date
   vesselIds: [Int]

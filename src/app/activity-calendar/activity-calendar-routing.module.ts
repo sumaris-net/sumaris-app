@@ -1,28 +1,32 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { ActivityCalendarsPage } from './activity-calendars.page';
+import { ActivityCalendarsTable } from './table/activity-calendars.table';
 import { AppActivityCalendarModule } from '@app/activity-calendar/activity-calendar.module';
-import { AuthGuardService } from '@sumaris-net/ngx-components';
+import { ActivityCalendarPage } from '@app/activity-calendar/page/activity-calendar.page';
+import { AuthGuardService, ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    component: ActivityCalendarsTable,
     canActivate: [AuthGuardService],
-    component: ActivityCalendarsPage,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'USER',
     },
   },
-  // {
-  //   path: ':id',
-  //   component: VesselPage,
-  //   runGuardsAndResolvers: 'pathParamsChange',
-  //   data: {
-  //     profile: 'USER'
-  //   }
-  // }
+  {
+    path: ':calendarId',
+    component: ActivityCalendarPage,
+    runGuardsAndResolvers: 'pathParamsChange',
+    canActivate: [AuthGuardService],
+    canDeactivate: [ComponentDirtyGuard],
+    data: {
+      profile: 'USER',
+      pathIdParam: 'calendarId',
+    },
+  },
 ];
 
 @NgModule({

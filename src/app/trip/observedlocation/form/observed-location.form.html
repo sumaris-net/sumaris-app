@@ -242,6 +242,7 @@
     <ion-row *ngIf="showComment">
       <ion-col size="12">
         <mat-form-field appearance="outline">
+          <mat-label translate>COMMON.COMMENTS</mat-label>
           <textarea
             matInput
             #comments
@@ -249,7 +250,6 @@
             matAutosizeMinRows="4"
             maxlength="2000"
             tabindex="100"
-            [placeholder]="'COMMON.COMMENTS' | translate"
             formControlName="comments"
           ></textarea>
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>

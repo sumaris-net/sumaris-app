@@ -14,7 +14,7 @@ import {
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { GearUseFeatures } from './gear-use-features.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
+import { FishingAreaValidatorOptions, FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -135,19 +135,25 @@ export class GearUseFeaturesValidatorService<
     return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 
-  /* -- protected methods -- */
-
-  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
+  getFishingAreasArray(data?: FishingArea[], opts?: FishingAreaValidatorOptions) {
     const required = !opts || opts.required !== false;
-    const formArray = new AppFormArray((fa) => this.fishingAreaValidator.getFormGroup(fa, { required }), FishingArea.equals, FishingArea.isEmpty, {
-      allowEmptyArray: false,
-      validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
-    });
+    const formArray = new AppFormArray<FishingArea, UntypedFormGroup>(
+      (fa) => this.fishingAreaValidator.getFormGroup(fa, { required }),
+      FishingArea.equals,
+      FishingArea.isEmpty,
+      {
+        allowEmptyArray: !required,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
+      }
+    );
     if (data || required) {
-      formArray.patchValue(data || [null]);
+      formArray.patchValue(data?.length ? data : required ? [null] : []);
     }
     return formArray;
   }
+
+  /* -- protected methods -- */
+
   protected getMeasurementValuesForm(
     data: undefined | MeasurementFormValues | MeasurementModelValues,
     opts: {

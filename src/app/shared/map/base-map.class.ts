@@ -8,7 +8,6 @@ import { Feature } from 'geojson';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { environment } from '@environments/environment';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import { v4 as uuidv4 } from 'uuid';
 import { MapCenter, MapUtils } from '@app/shared/map/map.utils';
@@ -161,6 +160,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
       this.load();
     });
+  }
+
+  containerResize() {
+    setTimeout(() => this.map.invalidateSize(), 0);
   }
 
   /* -- protected functions -- */

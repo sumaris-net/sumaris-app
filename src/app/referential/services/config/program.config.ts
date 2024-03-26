@@ -934,6 +934,80 @@ export const ProgramProperties = Object.freeze({
     defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
   },
 
+  /* -- Activity calendar -- */
+
+  ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.vessel.country.id',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY,
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: undefined,
+  },
+  ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.createVessel.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
+  ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.basePortLocation.level.ids',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.PORT.toString(),
+  },
+  ACTIVITY_CALENDAR_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.vesselBasePortLocation.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_VESSEL_BASE_PORT_LOCATION_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+  ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.metier.taxonGroupType.ids',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: TaxonGroupTypeIds.METIER_NATIONAL.toString(),
+  },
+  ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.fishingArea.location.level.ids',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelGroups.FISHING_AREA.join(','),
+  },
+  ACTIVITY_CALENDAR_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
+
   /* -- Extraction options -- */
 
   EXTRACTION_FORMATS: <FormFieldDefinition>{
@@ -1076,8 +1150,12 @@ export class ProgramPropertiesUtils {
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
-    ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
+    ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
+    ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
+    ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
+    ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_NATIONAL.toString();
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {

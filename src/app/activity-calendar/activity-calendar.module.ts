@@ -7,10 +7,10 @@ import { AppReferentialModule } from '../referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
 import { RxStateModule, SharedModule } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
-import { ActivityCalendarsPage } from './activity-calendars.page';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
-import { ActivityCalendarOfflineModal } from '@app/activity-calendar/offline/activity-calendar-offline.modal';
 import { AppVesselModule } from '@app/vessel/vessel.module';
+import { AppActivityCalendarPageModule } from '@app/activity-calendar/page/activity-calendar-page.module';
+import { AppActivityCalendarsTableModule } from '@app/activity-calendar/table/activity-calendars-table.module';
 
 @NgModule({
   imports: [
@@ -26,14 +26,18 @@ import { AppVesselModule } from '@app/vessel/vessel.module';
     AppDataModule,
     AppVesselModule,
     AppExtractionButtonModule,
+
+    // Sub modules
+    AppActivityCalendarsTableModule,
+    AppActivityCalendarPageModule,
   ],
-  declarations: [ActivityCalendarsPage, ActivityCalendarOfflineModal],
   exports: [
     SharedModule,
     TranslateModule,
 
     // Components
-    ActivityCalendarsPage,
+    AppActivityCalendarsTableModule,
+    AppActivityCalendarPageModule,
   ],
 })
 export class AppActivityCalendarModule {}

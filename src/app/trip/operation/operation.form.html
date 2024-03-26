@@ -563,6 +563,7 @@
     <ion-row *ngIf="showComment">
       <ion-col size="12">
         <mat-form-field appearance="outline">
+          <mat-label translate>COMMON.COMMENTS</mat-label>
           <textarea
             matInput
             #comments
@@ -570,7 +571,6 @@
             matTextareaAutosize="true"
             matAutosizeMinRows="4"
             maxlength="2000"
-            [placeholder]="'TRIP.OPERATION.LIST.COMMENTS' | translate"
             [tabindex]="tabindex + 100"
             [required]="requiredComment"
           ></textarea>
