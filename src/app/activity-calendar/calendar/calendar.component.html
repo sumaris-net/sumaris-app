@@ -197,7 +197,7 @@
         <mat-header-cell
           *matHeaderCellDef
           class="{{ col.class }}"
-          [style.--mat-row-height]="col.hidden ? 0 : undefined"
+          [class.collapsed]="col.hidden"
           [class.tappable]="col.expanded !== undefined"
           (click)="(col.expanded !== undefined || col.hidden) && toggleBlock($event, col.blockIndex)"
         >
@@ -218,7 +218,7 @@
           *matCellDef="let row"
           [class.mat-mdc-cell-resizable]="!col.hidden"
           class="{{ col.class }}"
-          [style.--mat-row-height]="col.hidden ? 0 : undefined"
+          [class.collapsed]="col.hidden"
           (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
           (click)="(col.hidden && toggleBlock($event, col.blockIndex)) || setFocusColumn(col.key)"
         >
