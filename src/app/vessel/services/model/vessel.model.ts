@@ -32,7 +32,6 @@ export class Vessel extends RootDataEntity<Vessel> {
     super(Vessel.TYPENAME);
   }
 
-  // TODO : Check if clone is needed
   clone(): Vessel {
     const target = new Vessel();
     this.copy(target);

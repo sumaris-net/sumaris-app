@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivityCalendarService } from './activity-calendar.service';
-import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from './activity-calendar.filter';
+import { ActivityCalendarService } from '../activity-calendar.service';
+import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
@@ -33,13 +33,13 @@ import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
   ACTIVITY_CALENDAR_FEATURE_NAME,
-} from './activity-calendar.config';
+} from '../activity-calendar.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from './offline/activity-calendar-offline.modal';
+import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from '../offline/activity-calendar-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -51,7 +51,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
-export const ActivityCalendarsPageSettingsEnum = {
+export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: ACTIVITY_CALENDAR_FEATURE_NAME,
@@ -62,14 +62,14 @@ export interface ActivityCalendarsPageState extends BaseTableState {
 }
 
 @Component({
-  selector: 'app-activity-calendar-page',
-  templateUrl: 'activity-calendars.page.html',
-  styleUrls: ['./activity-calendars.page.scss'],
+  selector: 'app-activity-calendar-table',
+  templateUrl: 'activity-calendars.table.html',
+  styleUrls: ['./activity-calendars.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
   providers: [RxState],
 })
-export class ActivityCalendarsPage
+export class ActivityCalendarsTable
   extends AppRootDataTable<
     ActivityCalendar,
     ActivityCalendarFilter,
@@ -119,7 +119,7 @@ export class ActivityCalendarsPage
       injector,
       ActivityCalendar,
       ActivityCalendarFilter,
-      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'recorderPerson', 'comments'],
       _dataService,
       null
     );
@@ -151,8 +151,8 @@ export class ActivityCalendarsPage
     this.canUpload = showAdvancedFeatures;
     this.canOpenMap = showAdvancedFeatures;
 
-    this.settingsId = ActivityCalendarsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
-    this.featureName = ActivityCalendarsPageSettingsEnum.FEATURE_ID;
+    this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
+    this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
     // Load years
     {

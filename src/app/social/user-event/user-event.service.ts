@@ -9,6 +9,7 @@ import {
   IDebugDataService,
   IEntityService,
   isEmptyArray,
+  isNil,
   isNotNil,
   IUserEventMutations,
   IUserEventQueries,
@@ -19,6 +20,7 @@ import {
   Page,
   Person,
   PersonService,
+  PersonUtils,
   ShowToastOptions,
   Toasts,
   UserEventWatchOptions,
@@ -487,13 +489,10 @@ export class UserEventService
   }
 
   protected personToString(obj: Person, opts?: { withDepartment: boolean }): string {
-    if (!obj || !obj.id) {
+    if (!obj || isNil(obj.id)) {
       return obj?.pubkey?.substring(0, 8) || '?';
     }
-    if (opts?.withDepartment && obj.department?.label) {
-      return obj.firstName + ' ' + obj.lastName + ' (' + obj.department?.label + ')';
-    }
-    return (obj && obj.id && obj.firstName + ' ' + obj.lastName) || undefined;
+    return PersonUtils.personToString(obj, opts);
   }
 
   protected decorateJobUserEvent(source: UserEvent, job: Job) {

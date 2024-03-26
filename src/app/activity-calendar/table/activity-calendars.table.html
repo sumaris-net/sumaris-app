@@ -252,6 +252,7 @@
           <!-- Data quality status -->
           <ion-col>
             <mat-form-field>
+              <ion-icon matPrefix name="create"></ion-icon>
               <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate">
                 <mat-select-trigger>
                   <span *ngIf="statusById | mapGet: control.value; let item">
@@ -373,7 +374,7 @@
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus">
+    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus" [tabPanel]="tableContainer">
       <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
@@ -475,6 +476,18 @@
         </th>
         <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ (row.currentData.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- economic survey ?-->
+      <ng-container matColumnDef="economicSurvey">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>
+            {{ (row.currentData.economicSurvey === true && 'COMMON.YES') || (row.currentData.economicSurvey === false && 'COMMON.NO') | translate }}
+          </ion-text>
         </td>
       </ng-container>
 

@@ -1,0 +1,11 @@
+mat-form-field {
+  width: 100%;
+  .datetime-md {
+    padding: 0 !important;
+  }
+}
+
+ion-col > ion-label {
+  word-wrap: break-word;
+  white-space: normal;
+}

@@ -62,11 +62,9 @@
       <ion-row>
         <ion-col>
           <!-- enable history ? -->
-          <mat-form-field floatLabel="never">
+          <mat-form-field>
             <!-- fake input -->
             <input matInput hidden />
-
-            <ion-label>&nbsp;</ion-label>
 
             <!-- checkbox, when compact -->
             <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">

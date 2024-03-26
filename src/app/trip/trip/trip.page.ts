@@ -7,7 +7,6 @@ import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';

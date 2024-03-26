@@ -1119,8 +1119,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .filter((period) => isNotNil(period.acquisitionNumber))
         .map((ap) => {
           // Set year (a quarter should be already set)
-          ap.startDate.tz(dbTimeZone).set('year', year);
-          ap.endDate.tz(dbTimeZone).set('year', year);
+          ap.startDate.tz(dbTimeZone).year(year);
+          ap.endDate.tz(dbTimeZone).year(year);
           ap.appliedStrategyId = appliedStrategyWithPeriods.id;
           return ap;
         });
