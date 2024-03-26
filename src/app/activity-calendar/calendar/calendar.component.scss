@@ -86,6 +86,14 @@
     &.odd {
       background-color: rgba(var(--ion-color-medium-rgb), 0.2);
     }
+
+    &.collapsed {
+      --mat-row-height: 3px !important;
+      * {
+        visibility: hidden;
+        display: none;
+      }
+    }
   }
 
   .mat-mdc-cell .computed {
