@@ -565,6 +565,21 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: <TripReportType>'legacy',
   },
+  TRIP_REPORT_FORM_SUBTITLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.subtitle',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_SUBTITLE',
+    type: 'string',
+  },
+  TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.logo.head.left.url',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL',
+    type: 'string',
+  },
+  TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.logo.head.right.url',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL',
+    type: 'string',
+  },
 
   // Operation
   TRIP_OPERATION_EDITOR: <FormFieldDefinition>{
