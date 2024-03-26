@@ -2161,6 +2161,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Occasion > Weekly activity calendar > Number of days in the week",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Occasion > Enable report edition?",
+      "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Occasion > Show strategy card?",
       "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",

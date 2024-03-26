@@ -771,6 +771,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false', // FIXME: should be enable by default, when error translations will be OK
     type: 'boolean',
   },
+  OBSERVED_LOCATION_STRATEGY_CARD_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.strategyCard.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_STRATEGY_CARD_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
