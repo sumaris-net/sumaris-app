@@ -1,0 +1,289 @@
+<app-toolbar
+  *ngIf="showToolbar"
+  [color]="toolbarColor"
+  [hasValidate]="!loading && (dirty || saving)"
+  [hasClose]="!loading && !dirty && !saving"
+  (onValidate)="save($event)"
+  (onValidateAndClose)="saveAndClose($event)"
+  (onClose)="close($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
+  <ion-title [innerHTML]="titleSubject | async"></ion-title>
+
+  <ion-buttons slot="end">
+    <!-- option menu -->
+    <ion-button
+      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canDebug)"
+      [matMenuTriggerFor]="optionsMenu"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+    >
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
+</app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu">
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
+    <mat-icon>
+      <ion-icon slot="icon-only" name="refresh"></ion-icon>
+    </mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <app-data-editor-debug-button></app-data-editor-debug-button>
+</mat-menu>
+
+<ion-content>
+  <mat-tab-group
+    #tabGroup
+    class="mat-mdc-tab-fixed-content"
+    [class.mobile]="mobile"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+    [dynamicHeight]="false"
+  >
+    <!-- TAB: general -->
+    <mat-tab
+      [label]="'ACTIVITY_CALENDAR.EDIT.TAB_GENERAL' | translateContext: i18nContext.suffix"
+      appSubMenuTab
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [parentPath]="defaultBackHref"
+    >
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && baseForm.invalid)"></ion-icon>
+      </ng-template>
+
+      <div>
+        <!-- DEBUG -->
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
+        <!-- error -->
+        <ion-item *ngIf="mobile && (error || baseForm.error); let errorMsg" lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
+        </ion-item>
+
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
+              <!-- base form -->
+              <app-form-activity-calendar
+                #baseForm
+                [acquisitionLevel]="acquisitionLevel"
+                [programLabel]="programLabel$ | async"
+                [requiredStrategy]="requiredStrategy$ | async"
+                [strategyId]="strategy$ | async | mapGet: 'id'"
+                [showError]="false"
+                [mobile]="mobile"
+                [debug]="debug"
+                (onSubmit)="save($event)"
+                [timezone]="dbTimeZone"
+              ></app-form-activity-calendar>
+            </ion-col>
+
+            <!-- quality data -->
+            <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <!-- strategy summary -->
+              <app-strategy-summary-card></app-strategy-summary-card>
+
+              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+                <!-- Compose message -->
+                <ion-button
+                  recorderSuffix
+                  *ngIf="showRecorder && canSendMessage"
+                  slot="end"
+                  size="small"
+                  fill="clear"
+                  color="tertiary"
+                  class="visible-hover ion-no-margin"
+                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                  (click)="openComposeMessageModal(data?.recorderPerson)"
+                >
+                  <ion-icon slot="icon-only" name="mail"></ion-icon>
+                </ion-button>
+
+                <!-- quality process -->
+                <app-entity-quality-form></app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Calendar -->
+    <mat-tab
+      #calendarTab
+      [label]="'ACTIVITY_CALENDAR.EDIT.TAB_CALENDAR' | translateContext: i18nContext.suffix"
+      [disabled]="!showCalendar"
+      appSubMenuTab
+    >
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
+        <ion-label
+          [matBadge]="calendar?.visibleRowCount"
+          [matBadgeHidden]="!calendar || calendar.invalid || !calendar.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
+          {{ calendarTab.textLabel }}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="calendar.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="ion-no-padding">
+        <!-- error -->
+        <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
+        </ion-item>
+
+        <app-calendar
+          #calendar
+          [programLabel]="programLabel$ | async"
+          [requiredStrategy]="requiredStrategy$ | async"
+          [strategyId]="(strategy$ | async)?.id"
+          [timezone]="dbTimeZone"
+          (onNewRow)="addRow($event)"
+          [debug]="debug"
+        ></app-calendar>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Map -->
+    <mat-tab #mapTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_MAP' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="location"></ion-icon></mat-icon>
+        <ion-label>
+          {{ mapTab.textLabel }}
+        </ion-label>
+      </ng-template>
+
+      <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
+        <as-split-area [minSize]="20" [size]="100 - rightPanelWidth">
+          <!-- map -->
+          @if (selectedTabIndex === 2) {
+            <app-activity-calendar-map #map></app-activity-calendar-map>
+          }
+        </as-split-area>
+        <as-split-area [minSize]="30" [size]="rightPanelWidth" [visible]="rightPanelVisible">
+          <p>RIGHT</p>
+        </as-split-area>
+      </as-split>
+    </mat-tab>
+  </mat-tab-group>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+    </ion-item>
+  </app-form-buttons-bar>
+</ion-footer>
+
+<!-- FAB button: add landing -->
+<ion-fab
+  *ngIf="mobile && selectedTabIndex === 1"
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  [class.cdk-visually-hidden]="calendar?.disabled"
+  @fadeInOutAnimation
+>
+  <ion-fab-button color="tertiary" (click)="addMetier($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
+<ng-template #debugPanel>
+  <app-debug title="Editor and Form">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{ (program$ | async)?.label }}
+          <br />
+          editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.year: {{ year }}
+          <br />
+          editor.vesselCountryId: {{ vesselCountryId }}
+          <br />
+          editor.dbTimeZone: {{ dbTimeZone }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.ready: {{ baseForm.readySubject | async }}
+          <br />
+          form.loading: {{ baseForm.loading }}
+          <br />
+          form.enabled: {{ baseForm.enabled }}
+          <br />
+          form.dirty: {{ baseForm.dirty }}
+          <br />
+          form.valid: {{ baseForm.valid }}
+          <br />
+          form.program: {{ baseForm.programLabel }}
+          <br />
+          form.strategy{{ baseForm.requiredStrategy ? ' (required)' : '' }}:
+          {{ baseForm.strategyId || baseForm.strategyLabel }}
+          <br />
+          <br />
+          form.acquisitionLevel: {{ baseForm.acquisitionLevel }}
+          <br />
+          form.pmfms: {{ (baseForm.pmfms$ | push)?.length || 0 }}
+          <br />
+          <br />
+          form.year: {{ form | formGetValue: 'year' }}
+          <br />
+          form.startDate: {{ form | formGetValue: 'startDate' }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

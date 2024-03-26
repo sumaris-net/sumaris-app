@@ -50,7 +50,7 @@ import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/
 import { Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime, filter, map } from 'rxjs/operators';
-import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { VesselModal, VesselModalOptions } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
@@ -356,7 +356,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     const modal = await this.modalCtrl.create({
       component: VesselModal,
-      componentProps: {
+      componentProps: <VesselModalOptions>{
         defaultStatus: this.vesselDefaultStatus,
         maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined,
       },

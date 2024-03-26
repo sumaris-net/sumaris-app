@@ -1,0 +1,4 @@
+<div class="map-container">
+  <!-- Leaflet map -->
+  <div leaflet [attr.id]="mapId" (leafletMapReady)="onMapReady($event)" [leafletOptions]="options" [leafletLayersControl]="layersControl"></div>
+</div>

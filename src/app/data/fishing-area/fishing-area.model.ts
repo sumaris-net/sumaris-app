@@ -87,4 +87,8 @@ export class FishingAreaUtils {
       return rectBbox && Geometries.isBBoxInside(rectBbox, boundingBox);
     };
   }
+
+  static sameArray(a1: FishingArea[], a2: FishingArea[]) {
+    return (!a1 && !a2) || (a1?.length === a2?.length && a1.every((fa1) => a2.some((fa2) => FishingArea.equals(fa1, fa2))));
+  }
 }

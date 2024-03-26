@@ -94,7 +94,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
   get programControl(): AbstractControl {
     return this.form.get('program');
   }
-
   get measurementValuesForm(): UntypedFormGroup {
     return this._measurementValuesForm || (this.form.controls.measurementValues as UntypedFormGroup);
   }

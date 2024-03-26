@@ -99,9 +99,6 @@ const routes: Routes = [
   // Activity Calendar
   {
     path: 'activity-calendar',
-    data: {
-      profile: 'USER',
-    },
     loadChildren: () => import('./activity-calendar/activity-calendar-routing.module').then((m) => m.AppActivityCalendarRoutingModule),
   },
 

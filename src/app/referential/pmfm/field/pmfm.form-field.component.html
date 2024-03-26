@@ -102,7 +102,9 @@
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel | asFloatLabelType">
-    <mat-label>{{ placeholder }}</mat-label>
+    @if (placeholder && floatLabel !== 'never') {
+      <mat-label>{{ placeholder }}</mat-label>
+    }
     <input
       matInput
       #matInput
@@ -115,6 +117,7 @@
       [max]="pmfm.maxValue"
       [appAutofocus]="autofocus"
       [formControl]="vars.control"
+      [placeholder]="floatLabel === 'never' && placeholder"
       (keydown.enter)="onPressEnter.emit($event)"
       (keypress)="filterNumberInput($event, false)"
       (focus)="focused.emit($event)"
@@ -153,7 +156,9 @@
 
   <!-- double -->
   <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
-    <mat-label>{{ placeholder }}</mat-label>
+    @if (placeholder && floatLabel !== 'never') {
+      <mat-label>{{ placeholder }}</mat-label>
+    }
     <input
       matInput
       #matInput
@@ -165,7 +170,7 @@
       [min]="pmfm.minValue"
       [max]="pmfm.maxValue"
       [appAutofocus]="autofocus"
-      [placeholder]="placeholder"
+      [placeholder]="floatLabel === 'never' && placeholder"
       [step]="numberInputStep"
       (keyup.enter)="onPressEnter.emit($event)"
       (keypress)="filterNumberInput($event, true)"

@@ -82,6 +82,7 @@ export const ActivityCalendarFragments = {
       }
       year
       directSurveyInvestigation
+      economicSurvey
       creationDate
       updateDate
       controlDate
@@ -115,6 +116,7 @@ export const ActivityCalendarFragments = {
     }
     year
     directSurveyInvestigation
+    economicSurvey
     creationDate
     updateDate
     controlDate
@@ -368,7 +370,7 @@ export class ActivityCalendarService
   isDebugData(event: UserEvent): boolean {
     return (
       event.type === UserEventTypeEnum.DEBUG_DATA &&
-      // If content not fetched, use only the hasContent flag (BUT insecrued, because data can be NOT a ActivityCalendar)
+      // If content not fetched, use only the hasContent flag (BUT insecured, because data can be NOT a ActivityCalendar)
       ((!event.content && event.hasContent) ||
         // If content fetched, make sure data is a ActivityCalendar
         this.getEventContext(event)?.__typename === ActivityCalendar.TYPENAME)
@@ -1122,14 +1124,6 @@ export class ActivityCalendarService
   protected asObject(entity: ActivityCalendar, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
     const copy: any = entity.asObject(opts);
-
-    // Fill return date using departure date
-    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
-
-    // Fill return location using departure location
-    if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = { ...copy.departureLocation };
-    }
 
     // Full json optimisation
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
