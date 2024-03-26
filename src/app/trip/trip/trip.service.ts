@@ -149,14 +149,18 @@ export const TripFragments = {
     qualificationDate
     qualityFlagId
     comments
+    samplingStrata {
+      ...LightReferentialFragment
+      properties
+    }
+    vesselSnapshot {
+      ...LightVesselSnapshotFragment
+    }
     departureLocation {
       ...LocationFragment
     }
     returnLocation {
       ...LocationFragment
-    }
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
     }
     sale {
       ...LightSaleFragment

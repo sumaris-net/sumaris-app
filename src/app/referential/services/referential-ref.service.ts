@@ -78,9 +78,18 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
   `,
 
   loadAll: gql`
-    query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
+    query ReferentialRefs(
+      $entityName: String!
+      $offset: Int!
+      $size: Int!
+      $sortBy: String
+      $sortDirection: String
+      $filter: ReferentialFilterVOInput
+      $withProperties: Boolean!
+    ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        properties @include(if: $withProperties)
       }
     }
     ${ReferentialFragments.lightReferential}
@@ -88,15 +97,17 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
 
   loadAllWithTotal: gql`
     query ReferentialRefsWithTotal(
-      $entityName: String
-      $offset: Int
-      $size: Int
+      $entityName: String!
+      $offset: Int!
+      $size: Int!
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $withProperties: Boolean!
     ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        properties @include(if: $withProperties)
       }
       total: referentialsCount(entityName: $entityName, filter: $filter)
     }
@@ -184,7 +195,9 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
+      withProperties?: boolean;
       toEntity?: boolean;
+      debug?: boolean;
     }
   ): Observable<LoadResult<ReferentialRef>> {
     if (!filter || !filter.entityName) {
@@ -201,6 +214,7 @@ export class ReferentialRefService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
+      withProperties: opts?.withProperties || false,
     };
 
     let now = this._debug && Date.now();
@@ -250,9 +264,10 @@ export class ReferentialRefService
     opts?: {
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
-      debug?: boolean;
       withTotal?: boolean;
+      withProperties?: boolean;
       toEntity?: boolean;
+      debug?: boolean;
     }
   ): Promise<LoadResult<ReferentialRef>> {
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
@@ -278,6 +293,7 @@ export class ReferentialRefService
       sortBy: sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject(),
+      withProperties: opts?.withProperties || false,
     };
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
@@ -534,6 +550,7 @@ export class ReferentialRefService
     sortDirection?: SortDirection,
     opts?: {
       fetchPolicy?: FetchPolicy;
+      withProperties?: boolean;
     }
   ): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };

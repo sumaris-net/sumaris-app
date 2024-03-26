@@ -623,6 +623,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   static fromObject: (source: any, opts?: any) => Trip;
 
+  samplingStrata: ReferentialRef = null;
   departureDateTime: Moment = null;
   returnDateTime: Moment = null;
   departureLocation: ReferentialRef = null;
@@ -646,6 +647,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; gearAsTree?: boolean }): any {
     const target = super.asObject(opts);
+    target.samplingStrata = (this.samplingStrata && this.samplingStrata.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
     target.departureLocation = (this.departureLocation && this.departureLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
@@ -691,6 +693,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   fromObject(source: any, opts?: any): Trip {
     super.fromObject(source);
+    console.log('TODO samplingStrata=', source.samplingStrata);
+    this.samplingStrata = (source.samplingStrata && ReferentialRef.fromObject(source.samplingStrata)) || undefined;
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
