@@ -68,6 +68,7 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
+  private _showSamplingStrata: boolean;
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
@@ -86,6 +87,18 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
+  @Input() i18nSuffix = null;
+
+  @Input() set showSamplingStrata(value: boolean) {
+    if (this._showSamplingStrata !== value) {
+      this._showSamplingStrata = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showSamplingStrata(): boolean {
+    return this._showSamplingStrata;
+  }
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
@@ -143,6 +156,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.get('vesselSnapshot').value as VesselSnapshot;
   }
 
+  get programLabel(): string {
+    return this.form.get('program').value?.label;
+  }
+
   get value(): any {
     const json = this.form.value as Partial<Trip>;
 
@@ -195,6 +212,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.ngOnInit();
 
     // Default values
+    this.showSamplingStrata = toBoolean(this.showSamplingStrata, false); // Will init the observers helper
     this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
     this.showMetiers = toBoolean(this.showMetiers, false); // Will init the metiers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
@@ -208,6 +226,24 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION],
       },
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
+    });
+
+    // Combo: sampling strata
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) => {
+        return this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        });
+      },
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        searchAttributes: ['label', 'properties.samplingSchemeLabel'],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
@@ -470,6 +506,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours,
+      withSamplingStrata: this.showSamplingStrata,
       withMetiers: this.showMetiers,
       withObservers: this.showObservers,
     };

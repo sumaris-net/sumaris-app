@@ -612,6 +612,9 @@
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
+    "SAMPLING_SCHEME": "Plan d'échantillonnage :",
+    "SAMPLING_STRATA": "Référence de la ligne de plan",
+    "SAMPLING_SCHEME_LABEL": "Programme de rattachement",
     "VESSEL_SNAPSHOT": "Navire",
     "BTN_ADD_VESSEL": "Ajouter un navire",
     "DEPARTURE": "Départ :",
@@ -1388,7 +1391,8 @@
       "MANAGER": "Responsable"
     },
     "OPTIONS": {
-      "ENABLE": "Campagnes à la mer > Activer ?"
+      "ENABLE": "Campagnes à la mer > Activer ?",
+      "NAME": "Campagnes à la mer > Titre (menu, etc.)"
     }
   },
   "OBSERVED_LOCATION": {
@@ -3142,6 +3146,9 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne"
+    },
+    "OPTIONS": {
+      "ENABLE": "Calendrier d'activité > Activer ?"
     }
   },
   "ERROR": {

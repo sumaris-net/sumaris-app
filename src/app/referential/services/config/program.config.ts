@@ -69,6 +69,12 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Trip
+  TRIP_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.samplingStrata.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLING_STRATA_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS',

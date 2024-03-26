@@ -297,6 +297,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
 
     // Trip form
+    this.tripForm.i18nSuffix = i18nSuffix;
+    this.tripForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
@@ -749,6 +751,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    await this.ready();
     return {
       ...(await super.computePageHistory(title)),
       icon: 'boat',
