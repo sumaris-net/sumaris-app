@@ -104,7 +104,11 @@ import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
-import { ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES, ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES } from '@app/activity-calendar/activity-calendar.config';
+import {
+  ACTIVITY_CALENDAR_CONFIG_OPTIONS,
+  ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
+  ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
+} from '@app/activity-calendar/activity-calendar.config';
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 
 @NgModule({
@@ -314,6 +318,7 @@ import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar
         ...EXTRACTION_CONFIG_OPTIONS,
         ...SCIENTIFIC_CRUISE_CONFIG_OPTIONS,
         ...TRIP_CONFIG_OPTIONS,
+        ...ACTIVITY_CALENDAR_CONFIG_OPTIONS,
         ...DEVICE_POSITION_CONFIG_OPTION,
       },
     },
