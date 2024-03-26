@@ -1827,6 +1827,9 @@ type TripVO {
   sale: SaleVO
   "Get trip's sales"
   sales: [SaleVO]
+  "Get trip's sampling strata"
+  samplingStrata: ReferentialVO
+  samplingStrataId: Int
   scientificCruise: ScientificCruiseVO
   scientificCruiseId: Int
   updateDate: Date
@@ -2197,6 +2200,7 @@ input ActivityCalendarVOInput {
   controlDate: Date
   creationDate: Date
   directSurveyInvestigation: Boolean
+  economicSurvey: Boolean
   gearUseFeatures: [GearUseFeaturesVOInput]
   id: Int
   measurementValues: Map_Integer_StringScalar
@@ -3725,6 +3729,8 @@ input TripVOInput {
   returnLocation: LocationVOInput
   sale: SaleVOInput
   sales: [SaleVOInput]
+  samplingStrata: ReferentialVOInput
+  samplingStrataId: Int
   scientificCruise: ScientificCruiseVOInput
   scientificCruiseId: Int
   updateDate: Date

@@ -151,6 +151,7 @@ export const TripFragments = {
     comments
     samplingStrata {
       ...LightReferentialFragment
+      properties
     }
     vesselSnapshot {
       ...LightVesselSnapshotFragment

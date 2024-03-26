@@ -58,7 +58,6 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ReferentialService } from '@app/referential/services/referential.service';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -157,6 +156,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.get('vesselSnapshot').value as VesselSnapshot;
   }
 
+  get programLabel(): string {
+    return this.form.get('program').value?.label;
+  }
+
   get value(): any {
     const json = this.form.value as Partial<Trip>;
 
@@ -195,7 +198,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
-    protected referentialService: ReferentialService,
     protected programRefService: ProgramRefService,
     protected metierService: MetierService,
     protected personService: PersonService,
@@ -231,15 +233,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Combo: sampling strata
     this.registerAutocompleteField('samplingStrata', {
       suggestFn: (value, filter) => {
-        const programLabel = this.form.get('program').value?.label;
-        return this.referentialRefService.suggest(value, { ...filter, levelLabel: programLabel });
+        return this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        });
       },
       filter: <Partial<ReferentialRefFilter>>{
         entityName: 'DenormalizedSamplingStrata',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        searchAttributes: ['label', 'samplingSchemeLabel'],
+        searchAttributes: ['label', 'properties.samplingSchemeLabel'],
       },
-      attributes: ['label', 'samplingSchemeLabel'],
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
