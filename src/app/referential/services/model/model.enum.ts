@@ -157,6 +157,7 @@ export const QualitativeValueIds = {
   },
   PRESERVATION: {
     FRESH: 332,
+    ALIVE: 338,
   },
   SIZE_UNLI_CAT: {
     NONE: 319,
@@ -168,6 +169,7 @@ export const QualitativeValueIds = {
   BATCH_SORTING: {
     BULK: 390, // Vrac
     NON_BULK: 391, // Hors Vrac
+    NONE: 392 // non trié
   },
   SEX: {
     UNSEXED: 188, // Non sexe

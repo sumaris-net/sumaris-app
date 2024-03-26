@@ -468,10 +468,15 @@ export class SubBatchValidators {
         const dressingId =
           parent?.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.DRESSING], { type: 'qualitative_value' });
         if (isNotNil(taxonGroupId) && isNotNil(dressingId)) {
-          const preservingId =
+          let preservingId =
             (parent.measurementValues &&
               PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.PRESERVATION], { type: 'qualitative_value' })) ||
             QualitativeValueIds.PRESERVATION.FRESH;
+
+          // Replace preservation ALIVE by FRESH (ALIVE not used in table ROUND_WEIGHT_CONVERSION )
+          if (preservingId === QualitativeValueIds.PRESERVATION.ALIVE) {
+            preservingId = QualitativeValueIds.PRESERVATION.ALIVE
+          }
 
           // Find a round weight conversion
           const rwConversion = await rwService.loadByFilter({

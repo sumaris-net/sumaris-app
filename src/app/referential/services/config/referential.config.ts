@@ -601,6 +601,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.PRESERVATION.FRESH,
   },
+  QUALITATIVE_VALUE_PRESERVATION_ALIVE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.PRESERVATION_ALIVE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_PRESERVATION_ALIVE_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.PRESERVATION.ALIVE,
+  },
   QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SIZE_UNLI_CAT_NONE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID',
@@ -621,6 +628,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'entity',
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK,
+  },
+  QUALITATIVE_VALUE_SORTING_UNSORTED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SORTING_UNSORTED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_UNSORTED_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.BATCH_SORTING.NONE,
   },
 
   QUALITATIVE_VALUE_SEX_UNSEXED_ID: <FormFieldDefinition>{
