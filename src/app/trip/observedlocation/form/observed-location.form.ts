@@ -296,8 +296,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
 
     if (saleTypePmfm) {
-      console.debug(`[control] Replacing pmfm ${saleTypePmfm.label} qualitative values`);
+      console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
       const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+      saleTypePmfm.type = 'qualitative_value';
       saleTypePmfm.qualitativeValues = saleTypes.data;
     }
 
