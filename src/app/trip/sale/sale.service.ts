@@ -1,25 +1,39 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   AccountService,
+  AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
+  FormErrors,
+  FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
+  IEntityService,
   isNil,
   isNotNil,
   LoadResult,
+  LocalSettingsService,
+  MINIFY_ENTITY_FOR_POD,
+  NetworkService,
+  ProgressBarService,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import {
+  MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  SAVE_AS_OBJECT_OPTIONS,
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
+} from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { Sale } from './sale.model';
 import { Sample } from '../sample/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
@@ -28,11 +42,32 @@ import { DocumentNode } from 'graphql';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { SaleValidatorOptions } from '@app/trip/sale/sale.validator';
-import { OperationQueries, OperationServiceLoadOptions } from '@app/trip/operation/operation.service';
+import { Sale } from '@app/trip/sale/sale.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { ProgramFragments } from '@app/referential/services/program.fragments';
+import { LandingFragments } from '../landing/landing.service';
 
+export declare interface SaleSaveOptions extends EntitySaveOptions {
+  //todo mf to be modify
+  observedLocationId?: number;
+  tripId?: number;
+  enableOptimisticResponse?: boolean;
+}
+
+export declare interface SaleServiceWatchOptions extends EntitiesServiceWatchOptions {
+  computeRankOrder?: boolean;
+  fullLoad?: boolean;
+  toEntity?: boolean;
+  withTotal?: boolean;
+}
+
+export type SaleServiceLoadOptions = EntityServiceLoadOptions;
 export const SaleFragments = {
   lightSale: gql`
-    fragment LightSaleFragment_PENDING on SaleVO {
+    fragment LightSaleFragment on SaleVO {
       id
       startDateTime
       endDateTime
@@ -55,13 +90,28 @@ export const SaleFragments = {
     ${DataCommonFragments.referential}
   `,
   sale: gql`
-    fragment SaleFragment_PENDING on SaleVO {
+    fragment SaleFragment on SaleVO {
       id
       startDateTime
       endDateTime
+      observedLocationId
       tripId
       comments
       updateDate
+      program {
+        id
+        label
+      }
+      saleType {
+        id
+        comments
+        creationDate
+        description
+        label
+        name
+        updateDate
+        entityName
+      }
       saleLocation {
         ...LocationFragment
       }
@@ -83,6 +133,9 @@ export const SaleFragments = {
       observers {
         ...LightPersonFragment
       }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
     }
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.lightDepartment}
@@ -91,12 +144,13 @@ export const SaleFragments = {
     ${DataFragments.sample}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.referential}
+    ${DataFragments.fishingArea},
   `,
 };
 
 const Queries: BaseEntityGraphqlQueries = {
   load: gql`
-    query Sale($id: Int) {
+    query Sale($id: Int!) {
       data: sale(id: $id) {
         ...SaleFragment
       }
@@ -116,8 +170,8 @@ const Queries: BaseEntityGraphqlQueries = {
 
 const Mutations: BaseEntityGraphqlMutations = {
   save: gql`
-    mutation SaveSales($data: [SaleVOInput]) {
-      data: saveSales(data: $data) {
+    mutation SaveSales($data: [SaleVOInput!]!) {
+      data: saveSales(sales: $data) {
         ...SaleFragment
       }
     }
@@ -149,14 +203,32 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable({ providedIn: 'root' })
-export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter> {
+export class SaleService
+  extends RootDataSynchroService<Sale, SaleFilter, number, SaleServiceWatchOptions, SaleServiceLoadOptions>
+  implements IEntitiesService<Sale, SaleFilter, SaleServiceWatchOptions>, IEntityService<Sale>
+{
+  synchronize(data: Sale, opts?: any): Promise<Sale> {
+    throw new Error('Method not implemented.');
+  }
+  control(entity: Sale, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
+    throw new Error('Method not implemented.');
+  }
   protected loading = false;
   constructor(
-    protected graphql: GraphqlService,
+    injector: Injector,
+    protected network: NetworkService,
     protected entities: EntitiesStorage,
-    protected accountService: AccountService
+    protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService,
+    protected progressBarService: ProgressBarService,
+    protected formErrorTranslator: FormErrorTranslator,
+    protected settings: LocalSettingsService
   ) {
-    super(graphql, environment);
+    super(injector, Sale, SaleFilter, {
+      queries: Queries,
+      mutations: Mutations,
+      subscriptions: Subscriptions,
+    });
 
     // -- For DEV only
     //this._debug = !environment.production;
@@ -240,33 +312,35 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     );
   }
 
-  async load(id: number, opts?: OperationServiceLoadOptions): Promise<Sale | null> {
-    if (isNil(id)) throw new Error("Missing argument 'id' ");
-    const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Sale> {
+    if (isNil(id)) throw new Error("Missing argument 'id'");
+
+    const now = Date.now();
+    if (this._debug) console.debug(`[Sale-service] Loading Sale {${id}}...`);
     this.loading = true;
+
     try {
-      let json: any;
-      // Load locally
+      let data: any;
+
+      // If local entity
       if (id < 0) {
-        json = await this.entities.load<Sale>(id, Sale.TYPENAME, opts);
-        if (!json) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
-      }
-      // Load from pod
-      else {
-        const query = opts?.query || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
-        const res = await this.graphql.query<{ data: Sale }>({
-          query,
+        data = await this.entities.load<Sale>(id, Sale.TYPENAME);
+      } else {
+        // Load remotely
+        const res = await this.graphql.query<{ data: any }>({
+          query: this.queries.load,
           variables: { id },
           error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
+          fetchPolicy: (options && options.fetchPolicy) || undefined,
         });
-        json = res && res.data;
+        data = res && res.data;
       }
+
       // Transform to entity
-      const data = !opts || opts.toEntity !== false ? Sale.fromObject(json) : (json as Sale);
-      if (data && this._debug) console.debug(`[sale-service] Sale #${id} loaded in ${Date.now() - now}ms`, data);
-      return data;
+      const entity = data && Sale.fromObject(data);
+      if (entity && this._debug) console.debug(`[Sale-service] Sale #${id} loaded in ${Date.now() - now}ms`, entity);
+
+      return entity;
     } finally {
       this.loading = false;
     }
@@ -312,14 +386,15 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
     if (!options || !options.tripId) {
       console.error('[sale-service] Missing options.tripId');
-      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' };
+      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR [save-many-sales]' };
     }
     const now = Date.now();
     if (this._debug) console.debug('[sale-service] Saving sales...');
 
     // Compute rankOrder
     entities.sort(sortByEndDateOrStartDateFn).forEach((o, i) => (o.rankOrder = i + 1));
-
+    
+  
     // Transform to json
     const json = entities.map((t) => {
       // Fill default properties (as recorder department and person)
@@ -349,46 +424,115 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   }
 
   /**
-   * Save an sale
+   * Save a sale
    *
-   * @param data
+   * @param entity
+   * @param opts
    */
-  async save(entity: Sale): Promise<Sale> {
+  async save(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
+    const isNew = isNil(entity.id);
+
+    // If parent is a local entity: force to save locally
+    // If is a local entity: force a local save
+    const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
+    if (offline) {
+      return await this.saveLocally(entity, opts);
+    }
+
     const now = Date.now();
-    if (this._debug) console.debug('[sale-service] Saving a sale...');
+    if (this._debug) console.debug('[sale-service] Saving a sale...', entity);
 
-    // Fill default properties (as recorder department and person)
-    this.fillDefaultProperties(entity, {});
+    // Prepare to save
+    this.fillRecorderPersonAndDepartment(entity);
 
-    const isNew = !entity.id && entity.id !== 0;
+    // When offline, provide an optimistic response
+    const offlineResponse =
+      !opts || opts.enableOptimisticResponse !== false
+        ? async (context) => {
+            // Make sure to fill id, with local ids
+            await this.fillOfflineDefaultProperties(entity);
+
+            // For the query to be tracked (see tracked query link) with a unique serialization key
+            context.tracked = !entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC';
+            if (isNotNil(entity.id)) context.serializationKey = `${Sale.TYPENAME}:${entity.id}`;
+
+            return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+          }
+        : undefined;
 
     // Transform into json
-    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug('[sale-service] Using minify object, to send:', json);
+    const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
 
-    await this.graphql.mutate<{ data: Sale[] }>({
-      mutation: Mutations.saveAll,
+  
+    //if (this._debug)
+    console.debug('[sale-service] Saving sale (minified):', json);
+    
+    await this.graphql.mutate<{ data: any }>({
+      mutation: this.mutations.save,
       variables: {
-        data: [json],
+        data: json,
       },
+      
+      offlineResponse,
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
-      update: (proxy, { data }) => {
-        const savedEntity = data && data.data && data.data[0];
-        if (savedEntity && savedEntity !== entity) {
-          // Copy id and update Date
-          this.copyIdAndUpdateDate(savedEntity, entity);
-          if (this._debug) console.debug(`[sale-service] Sale saved and updated in ${Date.now() - now}ms`, entity);
+      update: async (proxy, { data }) => {
+    
+        const savedEntity = data && data.data;
+
+        // Local entity: save it
+        if (savedEntity.id < 0) {
+          if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', savedEntity);
+
+          // Save response locally
+          await this.entities.save<Sale>(savedEntity);
         }
 
-        // Update the cache
-        if (isNew) {
-          this.insertIntoMutableCachedQueries(proxy, {
-            queries: this.getLoadQueries(),
-            data: savedEntity,
-          });
+        // Update the entity and update GraphQL cache
+        else {
+          // Remove existing entity from the local storage
+          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+            if (this._debug) console.debug(`[sale-service] Deleting sale {${entity.id}} from local storage`);
+            await this.entities.delete(entity);
+          }
+
+          this.copyIdAndUpdateDate(savedEntity, entity);
+
+          if (this._debug) console.debug(`[sale-service] Sale saved remotely in ${Date.now() - now}ms`, entity);
+
+          // Add to cache
+          if (isNew) {
+            // Cache load by parent
+            this.insertIntoMutableCachedQueries(proxy, {
+              queries: this.getLoadQueries(),
+              data: savedEntity,
+            });
+          }
         }
       },
     });
+
+    return entity;
+  }
+
+  /**
+   * @param entity
+   * @param opts
+   * @protected
+   */
+  protected async saveLocally(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
+    if (EntityUtils.isRemoteId(entity.observedLocationId)) throw new Error('Must be linked to a local observed location');
+
+    // Fill default properties (as recorder department and person)
+    this.fillDefaultProperties(entity, opts);
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
+    if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', json);
+
+    // Save response locally
+    await this.entities.save(json);
 
     return entity;
   }
@@ -450,7 +594,6 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
   fillRecorderPersonAndDepartment(entity: Sale) {
     const person = this.accountService.person;
-
     // Recorder department
     if (person && person.department && !entity.recorderDepartment) {
       entity.recorderDepartment = person.department;

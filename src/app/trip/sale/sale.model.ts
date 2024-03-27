@@ -6,6 +6,7 @@ import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement
 import { IWithProductsEntity, Product } from '../product/product.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 @EntityClass({ typename: 'SaleVO' })
 export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEntity<Sale> {
@@ -22,6 +23,8 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
   rankOrder: number = null;
   observers: Person[] = null;
   products: Product[] = null;
+  fishingAreas: FishingArea[] = null;
+
 
   constructor() {
     super(Sale.TYPENAME);
@@ -39,6 +42,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     this.samples = (source.samples && source.samples.map(Sample.fromObject)) || [];
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
+    this.fishingAreas = (source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject)) || undefined;
 
     // Products (sale)
     this.products = (source.products && source.products.map(Product.fromObject)) || [];
@@ -59,6 +63,7 @@ export class Sale extends DataRootVesselEntity<Sale> implements IWithProductsEnt
     target.samples = (this.samples && this.samples.map((s) => s.asObject(options))) || undefined;
     target.observers = (this.observers && this.observers.map((o) => o.asObject(options))) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(options))) || undefined;
+    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(options))) || undefined;
 
     // Products
     target.products = (this.products && this.products.map((o) => o.asObject(options))) || undefined;

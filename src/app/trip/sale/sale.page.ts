@@ -99,7 +99,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     SAMPLES: 1,
     BATCHES: 2,
   };
-  protected parent: Trip | ObservedLocation;
+  protected parent: ObservedLocation;
   protected observedLocationService = inject(ObservedLocationService);
   protected tripService = inject(TripService);
   protected pmfmService = inject(PmfmService);
@@ -108,8 +108,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
   private _rowValidatorSubscription: Subscription;
   protected selectedSubTabIndex = 0;
   showParent = false;
-  showEntityMetadata = true; //todo mf natif false
-  showQualityForm = true; //todo mf natif false
+  showEntityMetadata = false;
+  showQualityForm = false;
   enableReport = false;
   parentAcquisitionLevel: AcquisitionLevelType;
   showSampleTablesByProgram = false;
@@ -122,11 +122,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
   @ViewChild('fishingAreaForm', { static: true }) fishingAreaForm: FishingAreaForm;
   @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
-
   constructor(injector: Injector, @Optional() options: SaleEditorOptions) {
     super(injector, Sale, injector.get(SaleService), {
-      pathIdAttribute: 'SaleId',
-      tabCount: 2,
+      pathIdAttribute: 'saleId',
+      tabCount: 3,
       i18nPrefix: 'SALE.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.SALE,
@@ -142,7 +141,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
-
     // // Enable samples tab, when has pmfms
     // firstTruePromise(this.samplesTable.hasPmfms$, { stop: this.destroySubject }).then(() => {
     //   this.showSamplesTable = true;
@@ -258,12 +256,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
         // this.saleForm.showProgram = false;
         this.saleForm.showVessel = true;
       }
-
-      // Parent is an Trip
-      else if (this.parent instanceof Trip) {
-        // this.saleForm.showProgram = false;
-        this.saleForm.showVessel = false;
-      }
     }
     // No parent defined
     else {
@@ -297,23 +289,22 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
   }
 
-  async openReport(event: Event) {
-    if (this.dirty) {
-      const data = await this.saveAndGetDataIfValid();
-      if (!data) return; // Cancel
-    }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
-  }
+  // async openReport(event: Event) {
+  //   if (this.dirty) {
+  //     const data = await this.saveAndGetDataIfValid();
+  //     if (!data) return; // Cancel
+  //   }
+  //   return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  // }
 
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.saleForm]);
+    this.addChildForms([this.saleForm, this.fishingAreaForm]);
   }
 
   protected async onNewEntity(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
     const queryParams = this.route.snapshot.queryParams;
-
     // DEBUG
     //console.debug('DEV - Creating new sale entity');
 
@@ -327,7 +318,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // Fill parent ids
     data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
-    data.tripId = options && options.tripId && parseInt(options.tripId);
 
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
@@ -385,7 +375,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async onEntityLoaded(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
     this.parent = await this.loadParent(data);
-    const programLabel = this.parent.program?.label;
+    const programLabel = this.parent.program?.label; 
 
     // Copy not fetched data
     if (this.parent) {
@@ -400,15 +390,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
         data.observedLocationId = this.showParent ? null : this.parent.id;
         data.tripId = undefined;
         //data.trip = undefined; // Keep it
-      } else if (this.parent instanceof Trip) {
-        data.vesselSnapshot = this.parent.vesselSnapshot;
-        // data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
-        // data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
-        // data.trip = this.showParent ? this.parent : undefined;
-        data.tripId = this.showParent ? undefined : this.parent.id;
-        // data.observedLocation = undefined;
-        data.observedLocationId = undefined;
-      }
+      } 
 
       this.showEntityMetadata = EntityUtils.isRemote(data);
       this.showQualityForm = false;
@@ -427,7 +409,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // if (strategyLabel) this.strategyLabel = strategyLabel;
   }
 
-  protected async onParentChanged(parent: Trip | ObservedLocation) {
+  protected async onParentChanged(parent: ObservedLocation) {
     if (!equals(parent, this.parent)) {
       console.debug('[sale] Parent changed to: ', parent);
       this.parent = parent;
@@ -501,11 +483,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // Back to parent observed location
       if (this.parent instanceof ObservedLocation) {
         return `/observations/${this.parent.id}?tab=1`;
-      }
-
-      // Back to parent trip
-      else if (this.parent instanceof Trip) {
-        return `/trips/${this.parent.id}?tab=2`;
       }
     }
     if (this.parentAcquisitionLevel) {
@@ -621,13 +598,13 @@ export class SalePage<ST extends SalePageState = SalePageState>
   }
 
   protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
-    //   if (!this.saleForm.showStrategy) {
-    //     console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
-    //   // Set the table program, to delegate pmfms load
-    //   table.requiredStrategy = this.requiredStrategy;
-    //   table.programLabel = programLabel;
-    // } else  (la base else is)
-    if (table.acquisitionLevel && strategyLabel) {
+    if (!this.saleForm.showEndDateTime) {
+      //todo mf to be check
+      console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
+      // Set the table program, to delegate pmfms load
+      table.requiredStrategy = this.requiredStrategy;
+      table.programLabel = programLabel;
+    } else if (table.acquisitionLevel && strategyLabel) {
       console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {
@@ -666,20 +643,12 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
   }
 
-  protected async loadParent(data: Sale): Promise<Trip | ObservedLocation> {
-    let parent: Trip | ObservedLocation;
+  protected async loadParent(data: Sale): Promise<ObservedLocation> {
+    let parent:  ObservedLocation;
 
-    // Load parent observed location
-    if (isNotNil(data.observedLocationId)) {
+    if (isNotNil(data.observedLocationId)) { 
       console.debug(`[sale-page] Loading parent observed location #${data.observedLocationId} ...`);
       parent = await this.observedLocationService.load(data.observedLocationId, { fetchPolicy: 'cache-first' });
-    }
-    // Load parent trip
-    else if (isNotNil(data.tripId)) {
-      console.debug('[sale-page] Loading parent trip...');
-      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
-    } else {
-      console.debug('[sale] No parent (observed location or trip) found in path.');
     }
 
     return parent;
@@ -689,7 +658,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     if (!data) return; // Skip
 
     await this.saleForm.setValue(data);
-
+    this.fishingAreaForm.value = data.fishingAreas?.[0] || {}; // todo mf inspired by landed-trip.page L 400
+    
     // Set samples to table
     // this.samplesTable.value = data.samples || [];
   }
@@ -705,7 +675,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     const program = await firstNotNilPromise(this.program$, { stop: this.destroySubject });
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
-
+    console.log(data.saleLocation.name);
     const titlePrefix =
       (this.parent &&
         this.parent instanceof ObservedLocation &&
@@ -758,12 +728,12 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // data.measurementValues = this.form.controls.measurementValues?.value || {};
 
     // Store strategy label to measurement
-    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
-      const strategyLabel = this.strategy?.label;
-      if (isNotNilOrBlank(strategyLabel)) {
-        // data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
-      }
-    }
+    // if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
+    //   const strategyLabel = this.strategy?.label;
+    //   if (isNotNilOrBlank(strategyLabel)) {
+    //     data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+    //   }
+    // }
 
     // Save samples table
     // if (this.samplesTable.dirty) {
@@ -796,8 +766,18 @@ export class SalePage<ST extends SalePageState = SalePageState>
     });
   }
 
-  protected getJsonValueToSave(): Promise<any> {
-    return this.saleForm.value?.asObject();
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = await super.getJsonValueToSave();
+    const fishingAreaJson = this.fishingAreaForm.value;
+    json.fishingAreas = fishingAreaJson ? [fishingAreaJson] : [];
+    json.sale = this.saleForm.value;
+
+    //todo mf To discuss with Benoit
+    json.sale.program = this.data.program;
+
+
+
+    return json;
   }
 
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {
