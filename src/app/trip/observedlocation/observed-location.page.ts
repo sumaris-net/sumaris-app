@@ -94,7 +94,7 @@ export class ObservedLocationPage
   addLandingUsingHistoryModal: boolean;
   showRecorder = true;
   showObservers = true;
-  showStrategyCard = true;
+  showStrategyCard = false;
   enableReport: boolean;
   landingEditor: LandingEditor;
 
