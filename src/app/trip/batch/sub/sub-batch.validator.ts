@@ -378,7 +378,7 @@ export class SubBatchValidators {
     const qvPath = (isNotNil(opts.qvPmfm?.id) && `measurementValues.${opts.qvPmfm.id}`) || undefined;
 
     const date = opts.date || DateUtils.moment();
-    const month = date.month() + 1; // month() return 0 for januray
+    const month = date.month() + 1; // month() return 0 for january
     const year = date.year();
 
     // Find the length Pmfm with a value
@@ -447,7 +447,7 @@ export class SubBatchValidators {
         rectangleLabel: opts.rectangleLabel,
       });
 
-      // Compute weight
+      // Compute weight from length (=alive weight)
       let value = wlService.computeWeight(wlConversion, length, {
         individualCount,
         lengthUnit: isLengthUnitSymbol(lengthPmfm.unitLabel) ? lengthPmfm.unitLabel : undefined,
@@ -473,9 +473,9 @@ export class SubBatchValidators {
               PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.PRESERVATION], { type: 'qualitative_value' })) ||
             QualitativeValueIds.PRESERVATION.FRESH;
 
-          // Replace preservation ALIVE by FRESH (ALIVE not used in table ROUND_WEIGHT_CONVERSION )
-          if (preservingId === QualitativeValueIds.PRESERVATION.ALIVE) {
-            preservingId = QualitativeValueIds.PRESERVATION.ALIVE
+          // Replace ALIVE by FRESH (Because ALIVE enever used in table ROUND_WEIGHT_CONVERSION)
+          if (+preservingId === QualitativeValueIds.PRESERVATION.ALIVE) {
+            preservingId = QualitativeValueIds.PRESERVATION.FRESH
           }
 
           // Find a round weight conversion
@@ -492,10 +492,13 @@ export class SubBatchValidators {
             value = rwService.inverseAliveWeight(rwConversion, value);
             console.debug(`[sub-batch-validator] Dressing/preservation weight = ${value}kg`);
           }
-          // TODO : Peut on continuer, sans coef poids vif, même pour Entier/Frais (ex: Langoustine)
+          else if (+dressingId === QualitativeValueIds.DRESSING.WHOLE && +preservingId === QualitativeValueIds.PRESERVATION.FRESH) {
+            console.warn(`[sub-batch-validator] Missing round weight conversion, but will continue because dressing=whole and preservation=fresh`);
+          }
           else {
-            console.warn(`[sub-batch-validator] Missing round weight conversion for dressingId=${dressingId}. Cannot apply conversion`);
-            //return undefined;
+            // We cannot continue, without a round weight coefficient
+            console.warn(`[sub-batch-validator] Missing round weight conversion for {dressingId: ${dressingId}, preservingId: ${preservingId}}. Cannot apply conversion`);
+            return undefined;
           }
         }
       }
