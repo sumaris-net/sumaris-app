@@ -72,7 +72,7 @@ export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
-}; //todo mf to be check
+};
 @Component({
   selector: 'app-sale-page',
   templateUrl: './sale.page.html',
@@ -599,7 +599,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
     if (!this.saleForm.showEndDateTime) {
-      //todo mf to be check
       console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
       // Set the table program, to delegate pmfms load
       table.requiredStrategy = this.requiredStrategy;
@@ -656,12 +655,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async setValue(data: Sale): Promise<void> {
     if (!data) return; // Skip
-
     await this.saleForm.setValue(data);
-    this.fishingAreaForm.value = data.fishingAreas?.[0] || {}; // todo mf inspired by landed-trip.page L 400
-    
-    // Set samples to table
-    // this.samplesTable.value = data.samples || [];
+    this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -774,8 +769,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     //todo mf To discuss with Benoit
     json.sale.program = this.data.program;
-
-
 
     return json;
   }

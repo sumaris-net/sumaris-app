@@ -51,9 +51,7 @@ import { ProgramFragments } from '@app/referential/services/program.fragments';
 import { LandingFragments } from '../landing/landing.service';
 
 export declare interface SaleSaveOptions extends EntitySaveOptions {
-  //todo mf to be modify
   observedLocationId?: number;
-  tripId?: number;
   enableOptimisticResponse?: boolean;
 }
 
@@ -432,33 +430,14 @@ export class SaleService
   async save(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
     const isNew = isNil(entity.id);
 
-    // If parent is a local entity: force to save locally
-    // If is a local entity: force a local save
-    const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
-    if (offline) {
-      return await this.saveLocally(entity, opts);
-    }
-
     const now = Date.now();
     if (this._debug) console.debug('[sale-service] Saving a sale...', entity);
 
     // Prepare to save
     this.fillRecorderPersonAndDepartment(entity);
 
-    // When offline, provide an optimistic response
-    const offlineResponse =
-      !opts || opts.enableOptimisticResponse !== false
-        ? async (context) => {
-            // Make sure to fill id, with local ids
-            await this.fillOfflineDefaultProperties(entity);
-
-            // For the query to be tracked (see tracked query link) with a unique serialization key
-            context.tracked = !entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC';
-            if (isNotNil(entity.id)) context.serializationKey = `${Sale.TYPENAME}:${entity.id}`;
-
-            return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
-          }
-        : undefined;
+    // Reset quality properties
+    this.resetQualityProperties(entity);
 
     // Transform into json
     const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
@@ -472,44 +451,18 @@ export class SaleService
       variables: {
         data: json,
       },
-      
-      offlineResponse,
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
       update: async (proxy, { data }) => {
     
         const savedEntity = data && data.data;
 
-        // Local entity: save it
-        if (savedEntity.id < 0) {
-          if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', savedEntity);
-
-          // Save response locally
-          await this.entities.save<Sale>(savedEntity);
-        }
-
-        // Update the entity and update GraphQL cache
-        else {
-          // Remove existing entity from the local storage
-          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
-            if (this._debug) console.debug(`[sale-service] Deleting sale {${entity.id}} from local storage`);
-            await this.entities.delete(entity);
-          }
-
-          this.copyIdAndUpdateDate(savedEntity, entity);
+        savedEntity.forEach(element => {
+          this.copyIdAndUpdateDate(element, entity);
+        });
 
           if (this._debug) console.debug(`[sale-service] Sale saved remotely in ${Date.now() - now}ms`, entity);
-
-          // Add to cache
-          if (isNew) {
-            // Cache load by parent
-            this.insertIntoMutableCachedQueries(proxy, {
-              queries: this.getLoadQueries(),
-              data: savedEntity,
-            });
-          }
         }
-      },
-    });
+      },);
 
     return entity;
   }
@@ -570,7 +523,7 @@ export class SaleService
   }
 
   canUserWrite(data: Sale, opts?: SaleValidatorOptions): boolean {
-    return true; // todo mf init like the one in batch-service
+    return true; 
   }
 
   asFilter(filter: Partial<SaleFilter>): SaleFilter {
