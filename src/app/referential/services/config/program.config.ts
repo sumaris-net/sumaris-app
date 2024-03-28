@@ -678,6 +678,12 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Observed location
+  OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.samplingStrata.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.offline.import.location.level.ids',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',

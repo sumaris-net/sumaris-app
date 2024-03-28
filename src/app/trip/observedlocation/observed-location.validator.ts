@@ -18,6 +18,7 @@ import moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
+  withSamplingStrata?: boolean;
   withMeasurements?: boolean;
   startDateDay?: number;
   timezone?: string;
@@ -62,6 +63,11 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
       measurementValues: this.formBuilder.group({}),
     });
 
+    // Add sampling strata
+    if (opts.withSamplingStrata) {
+      formConfig.samplingStrata = [data?.samplingStrata || null, Validators.compose([Validators.required, SharedValidators.entity])];
+    }
+
     // Add observers
     if (opts.withObservers) {
       formConfig.observers = this.getObserversFormArray(data?.observers);
@@ -76,6 +82,17 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
 
     // Update the start date validator
     form.get('startDateTime').setValidators(this.createStartDateValidator(opts));
+
+    // Sampling strata
+    if (opts.withSamplingStrata) {
+      if (!form.controls.samplingStrata) {
+        form.addControl('samplingStrata', this.formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+      }
+      if (enabled) form.controls.samplingStrata.enable();
+      else form.controls.samplingStrata.disable();
+    } else {
+      if (form.controls.samplingStrata) form.removeControl('samplingStrata');
+    }
 
     // Observers
     if (opts?.withObservers) {

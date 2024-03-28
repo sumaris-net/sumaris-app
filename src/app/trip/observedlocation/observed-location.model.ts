@@ -35,6 +35,7 @@ export class ObservedLocation
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   observers: Person[];
   landings: Landing[];
+  samplingStrata: ReferentialRef = null;
 
   constructor() {
     super(ObservedLocation.TYPENAME);
@@ -60,6 +61,7 @@ export class ObservedLocation
       (this.observers &&
         this.observers.map((o) => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions))) ||
       undefined;
+    target.samplingStrata = (this.samplingStrata && this.samplingStrata.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
 
     return target;
   }
@@ -74,6 +76,7 @@ export class ObservedLocation
       (source.measurementValues && { ...source.measurementValues }) || MeasurementUtils.toMeasurementValues(source.measurements);
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.landings = (source.landings && source.landings.map(Landing.fromObject)) || [];
+    this.samplingStrata = (source.samplingStrata && ReferentialRef.fromObject(source.samplingStrata)) || undefined;
 
     return this;
   }

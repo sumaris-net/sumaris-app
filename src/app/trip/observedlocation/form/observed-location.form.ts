@@ -35,6 +35,7 @@ import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config'
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;
@@ -48,6 +49,7 @@ export interface ObservedLocationFormState extends MeasurementsFormState {
   providers: [RxState],
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
+  private _showSamplingStrata: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
 
@@ -69,6 +71,17 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() forceDurationDays: number;
   @Input() timezone: string = null;
   @Input() mobile = false;
+
+  @Input() set showSamplingStrata(value: boolean) {
+    if (this._showSamplingStrata !== value) {
+      this._showSamplingStrata = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showSamplingStrata(): boolean {
+    return this._showSamplingStrata;
+  }
 
   @RxStateProperty() @Input() showObservers: boolean;
 
@@ -111,6 +124,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Default values
+    this.showSamplingStrata = toBoolean(this.showSamplingStrata, false); // Will init the observers helper
     this.showObservers = toBoolean(this.showObservers, false);
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
@@ -119,6 +133,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
+    });
+
+    // Combo: sampling strata
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        }),
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'], // TODO JVF: Changer "TRIP"
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
@@ -267,11 +297,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     const validatorOpts: ObservedLocationValidatorOptions = {
       timezone: this.timezone,
       startDateDay: this.startDateDay,
+      withSamplingStrata: this.showSamplingStrata,
       withObservers: this.showObservers,
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
-      console.info('[trip-form] Updating form group, using opts', validatorOpts);
+      console.info('[observed-location-form] Updating form group, using opts', validatorOpts);
 
       this.validatorService.updateFormGroup(form, validatorOpts);
 

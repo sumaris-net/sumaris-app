@@ -160,6 +160,10 @@ export const ObservedLocationFragments = {
       observers {
         ...LightPersonFragment
       }
+      samplingStrata {
+        ...LightReferentialFragment
+        properties
+      }
       measurementValues
     }
   `,
@@ -177,6 +181,7 @@ const ObservedLocationQueries: BaseEntityGraphqlQueries & { countSamples: any } 
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 
   loadAll: gql`
@@ -230,6 +235,7 @@ const ObservedLocationMutations = {
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 
   saveWithLandings: gql`
