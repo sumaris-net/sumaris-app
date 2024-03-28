@@ -148,7 +148,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['label', 'properties.samplingSchemeLabel'],
-      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'], // TODO JVF: Changer "TRIP"
+      columnNames: ['REFERENTIAL.LABEL', 'OBSERVED_LOCATION.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });

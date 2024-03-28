@@ -1397,6 +1397,9 @@
   },
   "OBSERVED_LOCATION": {
     "TITLE": "Sortie",
+    "SAMPLING_SCHEME": "Plan d'échantillonnage :",
+    "SAMPLING_STRATA": "Référence de la ligne de plan",
+    "SAMPLING_SCHEME_LABEL": "Programme de rattachement",
     "NEW": {
       "TITLE": "Nouvelle sortie"
     },
