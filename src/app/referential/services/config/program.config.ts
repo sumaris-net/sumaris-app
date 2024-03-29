@@ -703,6 +703,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  OBSERVED_LOCATION_END_DATE_REQUIRED: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.endDate.required',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_REQUIRED',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   OBSERVED_LOCATION_START_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.startTime.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_START_TIME_ENABLE',

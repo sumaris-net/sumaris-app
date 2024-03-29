@@ -159,6 +159,7 @@
             formControlName="endDateTime"
             [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE' | translate"
             [tabindex]="tabindex + 3"
+            [required]="withEndDateRequired"
           >
             <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
           </mat-date-time-field>
@@ -170,6 +171,7 @@
               [timezone]="timezone"
               [readonly]="!!forceDurationDays"
               [startDate]="form.controls.startDateTime.valueChanges | async"
+              [required]="withEndDateRequired"
             >
               <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
             </mat-date-field>

@@ -2151,6 +2151,7 @@
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Occasion > Start date: Time?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Occasion > End date?",
+      "OBSERVED_LOCATION_END_DATE_REQUIRED": "Occasion > End date required?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Occasion: Fill observers?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",

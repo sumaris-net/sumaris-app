@@ -2230,6 +2230,7 @@
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
+      "OBSERVED_LOCATION_END_DATE_REQUIRED": "Sortie: Date de fin obligatoire ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",

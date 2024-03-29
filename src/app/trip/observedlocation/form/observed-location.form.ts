@@ -52,6 +52,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   private _showSamplingStrata: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
+  private _withEndDateRequired: boolean;
 
   @RxStateSelect() protected showObservers$: Observable<boolean>;
   protected observerFocusIndex = -1;
@@ -81,6 +82,19 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   get showSamplingStrata(): boolean {
     return this._showSamplingStrata;
+  }
+
+  @Input() set withEndDateRequired(value: boolean) {
+    if (this._withEndDateRequired !== value) {
+      this._withEndDateRequired = value;
+      if (this.form) {
+        this.updateFormGroup();
+      }
+    }
+  }
+
+  get withEndDateRequired(): boolean {
+    return this._withEndDateRequired;
   }
 
   @RxStateProperty() @Input() showObservers: boolean;

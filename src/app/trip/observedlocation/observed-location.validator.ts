@@ -21,6 +21,7 @@ export interface ObservedLocationValidatorOptions extends DataRootEntityValidato
   withSamplingStrata?: boolean;
   withMeasurements?: boolean;
   startDateDay?: number;
+  withEndDateRequired?: boolean;
   timezone?: string;
 }
 
@@ -59,7 +60,7 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
       __typename: [ObservedLocation.TYPENAME],
       location: [data?.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [data?.startDateTime || null, this.createStartDateValidator(opts)],
-      endDateTime: [data?.endDateTime || null],
+      endDateTime: [data?.endDateTime || null, opts.withEndDateRequired ? Validators.required : Validators.nullValidator],
       measurementValues: this.formBuilder.group({}),
     });
 

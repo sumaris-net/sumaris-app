@@ -334,6 +334,9 @@
           form.endDateTime:
           {{ observedLocationForm.form | formGetValue: 'endDateTime' | dateFormat: { time: true } }}
           <br />
+          <br />
+          form.withEndDateRequired: {{ observedLocationForm.withEndDateRequired }}
+          <br />
         </ion-col>
       </ion-row>
     </ion-grid>

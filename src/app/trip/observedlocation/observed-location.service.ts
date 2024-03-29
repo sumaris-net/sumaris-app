@@ -273,6 +273,7 @@ const ObservedLocationMutations = {
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 
   validate: gql`
@@ -285,6 +286,7 @@ const ObservedLocationMutations = {
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 
   unvalidate: gql`
@@ -297,6 +299,7 @@ const ObservedLocationMutations = {
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 
   qualify: gql`
@@ -309,6 +312,7 @@ const ObservedLocationMutations = {
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.referential}
   `,
 };
 
