@@ -59,240 +59,411 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section *sectionDef class="portrait">
-      <div class="page-wrapper">
-        <div id="document-title">
-          <h1>Dossier d'observation en mer</h1>
-          <div id="document-subtitle">Formulaire ObsMer - Programe 2024 -2027</div>
-        </div>
-
-        <h2 class="page-title">Fiche sortie en mer</h2>
-
-        <div class="page-section">
-          <h3 class="section-title">Liaison avec le plan d’échantillonnage (voir le site web WAO) :</h3>
-          <div class="grid-container">
-            <div class="field full-line long-label">
-              <div class="label">Strate observée justifiant l’embarquement</div>
-              <div class="value height4x"></div>
-            </div>
-            <div class="field full-line long-label">
-              <div class="label">Program de rattachement</div>
-              <div class="value no-border-top">
-                {{ isBlankForm ? '' : stats.program.label }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="page-container">
-          <h3 class="section-title">Observateur(s)</h3>
-          <div class="grid-container">
-            <div class="field full-line">
-              <div class="label">Nom Prénom (Société)</div>
-              <div class="value">
-                {{ isBlankForm ? '' : (data.observers | personToString: ' ' : { withDepartment: true }) }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="page-section">
-          <h3 class="section-title">Navire</h3>
-          <div class="grid-container">
-            <div class="field full-line">
-              <div class="label">Immatriculation</div>
-              <div class="value">
-                {{ isBlankForm ? '' : data.vesselSnapshot.registrationCode }}
-              </div>
-            </div>
-            <div class="field half-line">
-              <div class="label">Nom</div>
-              <div class="value no-border-top">
-                {{ isBlankForm ? '' : data.vesselSnapshot.name }}
-              </div>
-            </div>
-            <div class="field half-line verry-long-label">
-              <div class="label">
-                Nombre d'homme a bord
-                <div class="sub-label">sans le(s) observateur(s)</div>
-              </div>
-              <div class="value no-border-top"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="page-section">
-          <h3 class="section-title">Marée</h3>
-          <div class="grid-container">
-            <div class="field half-line">
-              <div class="label">Lieux de départ</div>
-              <div class="value"></div>
-            </div>
-            <div class="field half-line long-label">
-              <div class="label">Date et heure de départ</div>
-              <div class="value"></div>
-            </div>
-            <div class="field half-line">
-              <div class="label">Lieux d'arrivé</div>
-              <div class="value no-border-top"></div>
-            </div>
-            <div class="field half-line long-label">
-              <div class="label">Date et heure d'arrivé</div>
-              <div class="value no-border-top"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="page-section">
-          <h3 class="section-title">Vente</h3>
-          <div class="grid-container">
-            <div class="field half-line">
-              <div class="label">Lieux (Type)</div>
-              <div class="value no-border-bottom"></div>
-            </div>
-            <div class="field half-line">
-              <div class="label">Date</div>
-              <div class="value no-border-bottom"></div>
-            </div>
-            <div class="field full-line">
-              <div class="label">Type de vente</div>
-              <div class="value">
-                <div class="inline-checkbox-list">
-                  <div class="field">
-                    <div class="label">Au détail – Particuliers - Hors HAM/Criée</div>
-                    <div class="value">
-                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-                    </div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Enchères –HAM/Criées</div>
-                    <div class="value">
-                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-                    </div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Gré à Gré – Mareyeurs - Hors HAM/Criée</div>
-                    <div class="value">
-                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-                    </div>
-                  </div>
-                  <div class="field" [class.complete-me]="isBlankForm">
-                    <div class="label">Autres</div>
-                    <div class="value">
-                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-                    </div>
-                    <div *ngIf="isBlankForm" class="complete-dot"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="field half-line checkbox">
-              <div class="label">
-                Récupération de la photocopie du journal de bord
-                <div class="sub-label">(inclure le document dans le dossier)</div>
-              </div>
-              <div class="value">
-                <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-              </div>
-            </div>
-            <div class="field half-line checkbox">
-              <div class="label">
-                Restitution au patron
-                <div class="sub-label">(inclure le document dans le dossier)</div>
-              </div>
-              <div class="value">
-                <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="page-section" style="flex: auto">
-          <h3 class="section-title">Commentaires</h3>
-          <div class="comments-bloc"></div>
-        </div>
-      </div>
-    </section>
-
-    <section *sectionDef class="portrait">
-      <ion-grid>
-        <ng-container *ngTemplateOutlet="pageHeader"></ng-container>
-
-        <ion-row class="page-title">
-          <ion-col size="6">
-            <h2>Fiche engin physique</h2>
+      <ion-grid class="report-header ion-no-padding">
+        <ion-row class="document-title">
+          <ion-col class="logo" size="2">
+            @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+              <img [src]="stats.logoHeadLeftUrl" />
+            }
           </ion-col>
-          <ion-col size="6"></ion-col>
+          <ion-col size="8">
+            <h1 class="ion-text-uppercase">{{ 'TRIP.REPORT.FORM.TITLE' | translate }}</h1>
+            <h2>
+              @if (stats?.subtitle | isNotNilOrBlank) {
+                {{ stats.subtitle }}
+              }
+              <!-- TODO -->
+              <!-- else { -->
+              <!-- } -->
+            </h2>
+          </ion-col>
+          <ion-col class="logo" size="2">
+            @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+              <img [src]="stats.logoHeadRightUrl" />
+            }
+          </ion-col>
         </ion-row>
+      </ion-grid>
 
+      <ion-grid class="report-section">
+        <ion-row class="page-title ion-padding">
+          <ion-col>
+            <h2>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.TITLE' | translate }}</h2>
+          </ion-col>
+        </ion-row>
         <ion-row class="section-title">
           <ion-col>
-            <h3>Engin</h3>
+            <h3>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.SECTION_TITLE.LINK_WITH_THE_SAMPLING_PLAN' | translate }}</h3>
           </ion-col>
         </ion-row>
-
-        <ion-row class="form-line">
-          <ion-col class="label" size="6">Engin</ion-col>
-          <ion-col class="value"></ion-col>
+        <ion-row class="form-field" [style.--form-field-height]="'90px'">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.SAMPLING_STATA_LABEL' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8"></ion-col>
         </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.ATTACHMENT_PROGRAM' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8"></ion-col>
+        </ion-row>
+      </ion-grid>
 
+      <ion-grid class="report-section">
         <ion-row class="section-title">
           <ion-col>
-            <h3>Caractéristiques physiques de l'engin</h3>
+            <h3>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.SECTION_TITLE.OBSERVERS' | translate }}</h3>
           </ion-col>
         </ion-row>
-
-        <ion-row *ngFor="let gearPmfm of stats?.gearPmfms" class="form-line">
-          <ion-col class="label" size="6">
-            {{ gearPmfm | pmfmName }}
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.OBSERVERS_NAMES' | translate }}
           </ion-col>
-          <ion-col class="value"></ion-col>
+          <ion-col class="form-value" size="8"></ion-col>
         </ion-row>
       </ion-grid>
-    </section>
 
-    <section *sectionDef class="landscape">
-      <ion-grid>
-        <ng-container *ngTemplateOutlet="pageHeader"></ng-container>
-
-        <ion-row class="page-title">
-          <ion-col size="6">
-            <h2>Landscape page</h2>
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.SECTION_TITLE.TRIP_DEPARTURE' | translate }}</h3>
           </ion-col>
-          <ion-col size="6"></ion-col>
         </ion-row>
-
-        <ion-row>
-          <ion-col size="6">This is</ion-col>
-          <ion-col size="6" style="text-align: end">just a test</ion-col>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.VESSEL_REGISTRATION_CODE' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.VESSEL_NAME' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.DEPARTURE_LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.DEPARTURE_DATE_TIME' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="3"></ion-col>
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.NB_FISHERMEN' | translate }}
+            <br />
+            <span class="tips">{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.NB_FISHERMEN_TIPS' | translate }}</span>
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="1"></ion-col>
         </ion-row>
       </ion-grid>
-    </section>
 
-    <section *sectionDef class="landscape">
-      <ion-grid>
-        <ng-container *ngTemplateOutlet="pageHeader"></ng-container>
-
-        <ion-row class="page-title">
-          <ion-col size="6">
-            <h2>Landscape page</h2>
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.SECTION_TITLE.TRIP_RETURN' | translate }}</h3>
           </ion-col>
-          <ion-col size="6"></ion-col>
         </ion-row>
-
-        <ion-row>
-          <ion-col size="6">This is</ion-col>
-          <ion-col size="6" style="text-align: end">just a test</ion-col>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RETURN_LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RETURN_DATE_TIME' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="3"></ion-col>
         </ion-row>
       </ion-grid>
+
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.SECTION_TITLE.SALES' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.SELL_LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.SELL_DATE' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top no-border-bottom" size="3"></ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="2">
+            {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.SELL_TYPE' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="10">
+            <ion-grid>
+              <ion-row>
+                @for (type of stats.saleTypes; track $index) {
+                  <ion-col class="horiz-checkbox">
+                    {{ type }}&nbsp;
+                    <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+                  </ion-col>
+                }
+              </ion-row>
+            </ion-grid>
+          </ion-col>
+        </ion-row>
+
+        <ion-row class="form-field ion-margin-top">
+          <ion-col class="form-label horiz-checkbox" size="6">
+            <span>
+              {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK' | translate }}
+              <br />
+              <span class="tips">
+                {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_TIPS' | translate }}
+              </span>
+            </span>
+            <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+          </ion-col>
+          <ion-col class="form-label horiz-checkbox" size="6">
+            <span>
+              {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RETURN_TO_BOSS' | translate }}
+              <br />
+              <span class="tips">
+                {{ 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.LABELS.RETURN_TO_BOSS_TIPS' | translate }}
+              </span>
+            </span>
+            <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'TRIP.REPORT.FORM.COMMON.COMMENTS' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field" [style.--form-field-height]="'120px'">
+          <ion-col class="form-value" size="12"></ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ng-content *ngTemplateOutlet="pageFooter; context: { tips: 'TRIP.REPORT.FORM.PAGE_TRIP_SHEET.TIPS' }"></ng-content>
     </section>
+
+    @for (ops of data.operations | splitArrayInChunks: maxLinePeerTable; track $index) {
+      <section *sectionDef class="landscape">
+        <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OP_RECTO.TITLE' }"></ng-content>
+        <ion-grid class="report-section ion-no-padding">
+          <ion-row class="section-title ion-no-margin">
+            <ion-col size="auto">
+              <h3>{{ 'TRIP.REPORT.FORM.OP_RECTO.SECTION_TITLE.TRIP_NB_OP' | translate }}</h3>
+            </ion-col>
+            <ion-col class="title-value" size="auto"></ion-col>
+          </ion-row>
+        </ion-grid>
+        <table>
+          <thead>
+            <tr class="group-head">
+              <th colspan="5"></th>
+              <th colspan="2" class="font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.PARENT' | translate }}</div>
+              </th>
+              <th colspan="2" class="font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.CHILD' | translate }}</div>
+              </th>
+            </tr>
+            <tr>
+              <th class="col-tiny font-medium text-vertical">
+                <div>{{ 'TRIP.REPORT.FORM.COMMON.NUM_OP' | translate }}</div>
+              </th>
+              <th class="col-tiny font-small text-vertical">
+                <div class="text-vertical">{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.ECH_ON' | translate }}</div>
+              </th>
+              <th class="col-tiny font-small text-vertical">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.PROGRESS' | translate }}</div>
+              </th>
+              <th class="col-extra-large font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.GEAR_SPECIES' | translate }}</div>
+              </th>
+              <th class="col-small font-small text-vertical">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.CAPTURE' | translate }}</div>
+              </th>
+              <th class="col-compact font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.COMMON.DATE_TIME' | translate }}</div>
+              </th>
+              <th class="col-medium font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+              </th>
+              <th class="col-compact font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.COMMON.DATE_TIME' | translate }}</div>
+              </th>
+              <th class="col-medium font-medium ion-text-center">
+                <div>{{ 'TRIP.REPORT.FORM.OP_RECTO.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (op of ops; track $index) {
+              <tr>
+                <td class="col-tiny ion-text-center font-medium">
+                  <div>
+                    <b>{{ op.id }}</b>
+                  </div>
+                </td>
+                <td class="col-tiny ion-text-center">
+                  <div></div>
+                </td>
+                <td class="col-tiny ion-text-center">
+                  <div></div>
+                </td>
+                <td class="col-extra-large">
+                  <div></div>
+                </td>
+                <td class="col-tiny ion-text-center">
+                  <div></div>
+                </td>
+                <td class="col-compact">
+                  <div></div>
+                </td>
+                <td class="col-medium">
+                  <div>
+                    @if (isBlankForm) {
+                      <span class="font-large place-holder">
+                        <span [style.letter-spacing]="'3px'">__°__.___</span>
+                        N
+                        <br />
+                        <span [style.letter-spacing]="'3px'">__°__.___</span>
+                        E ou W
+                      </span>
+                    }
+                  </div>
+                </td>
+                <td class="col-compact">
+                  <div></div>
+                </td>
+                <td class="col-medium">
+                  <div>
+                    @if (isBlankForm) {
+                      <span class="font-large place-holder">
+                        <span [style.letter-spacing]="'3px'">__°__.___</span>
+                        N
+                        <br />
+                        <span [style.letter-spacing]="'3px'">__°__.___</span>
+                        E ou W
+                      </span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot></tfoot>
+        </table>
+        <ul class="caption" [style.margin-top]="'10px'">
+          <li>* : {{ 'TRIP.REPORT.FORM.OP_RECTO.CAPTION.ONE_STAR' | translate }}</li>
+          <li>** : {{ 'TRIP.REPORT.FORM.OP_RECTO.CAPTION.TWO_STAR' | translate }}</li>
+          <li>1 : {{ 'TRIP.REPORT.FORM.OP_RECTO.CAPTION.ONE' | translate }}</li>
+          <li>2 : {{ 'TRIP.REPORT.FORM.OP_RECTO.CAPTION.TWO' | translate }}</li>
+          <li>3 : {{ 'TRIP.REPORT.FORM.OP_RECTO.CAPTION.THREE' | translate }}</li>
+        </ul>
+        <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+      </section>
+
+      <section *sectionDef class="landscape">
+        <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OP_VERSO.TITLE' }"></ng-content>
+        <table class="table-full-width" [style.margin-top]="'50px'">
+          <thead>
+            <tr>
+              <th class="col-tiny font-medium text-vertical">
+                <div>{{ 'TRIP.REPORT.FORM.COMMON.NUM_OP' | translate }}</div>
+              </th>
+              <th class="col-maximum font-medium">
+                <div>{{ 'TRIP.REPORT.FORM.OP_VERSO.TABLE.COMMENTS' | translate }}</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (op of ops; track $index) {
+              <tr>
+                <td class="col-tiny ion-text-center">
+                  <div>
+                    <b>{{ op.id }}</b>
+                  </div>
+                </td>
+                <td class="col-maximum ion-text-right">
+                  <div>{{ op.comments }}</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot></tfoot>
+        </table>
+        <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+      </section>
+    }
+
+    <ng-container *ngFor="let ops of data.operations | splitArrayInChunks: maxLinePeerTable; index as mainIndex">
+      <section *sectionDef class="portrait">
+        <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.GEARS_CARD_1.TITLE' }"></ng-content>
+        <ion-grid class="page-body"></ion-grid>
+        <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+      </section>
+    </ng-container>
   </app-reveal>
 
-  <ng-template #pageHeader>
-    <ion-row class="page-header ion-align-items-center">
-      <ion-col></ion-col>
-      <ion-col>Formulaire marée observée en mer</ion-col>
-      <ion-col></ion-col>
-    </ion-row>
+  <ng-template #pageHeader let-title="title">
+    <ion-grid class="report-header ion-no-padding">
+      <ion-row class="page-title">
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadLeftUrl" />
+          }
+        </ion-col>
+        <ion-col>
+          <ion-grid class="ion-no-padding">
+            <ion-row class="title-items">
+              <ion-col size="auto">
+                {{ 'TRIP.REPORT.FORM.COMMON.TRIP_DEPARTURE_DATE_TIME' | translate }} :
+                <span *ngIf="isBlankForm">...../...../......</span>
+              </ion-col>
+              <ion-col size="auto">
+                {{ 'TRIP.REPORT.FORM.COMMON.VESSEL_NAME' | translate }} :
+                <span *ngIf="isBlankForm">.................................</span>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-col>
+        <ion-col>
+          <h2>{{ title | translate }}</h2>
+        </ion-col>
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadRightUrl" />
+          }
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+
+  <ng-template #pageFooter let-tips="tips">
+    <ion-grid class="report-footer ion-no-padding">
+      @if (tips | isNotNilOrBlank) {
+        <ion-row class="footer-tips">
+          <ion-col>
+            {{ tips | translate }}
+          </ion-col>
+        </ion-row>
+      }
+      <ion-row class="footer-text">
+        <ion-col [innerHTML]="stats.footerText"></ion-col>
+      </ion-row>
+    </ion-grid>
   </ng-template>
 
   <ng-template #loadingTemplate>

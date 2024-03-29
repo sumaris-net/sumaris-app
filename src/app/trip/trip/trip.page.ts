@@ -525,9 +525,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     }
     const reportType = this.program?.getProperty(ProgramProperties.TRIP_REPORT_TYPE) || ProgramProperties.TRIP_REPORT_TYPE.defaultValue;
     const typePath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
-    // const extasUrlParam = reportType === 'form' ? '?print-pdf=1' : '';
-    // return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/') + extasUrlParam, {replaceUrl: true});
-    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
+    const extasUrlParam = reportType === 'form' ? '?print-pdf=1' : '';
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/') + extasUrlParam, { replaceUrl: true });
+    // return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
   }
 
   protected async setValue(data: Trip) {

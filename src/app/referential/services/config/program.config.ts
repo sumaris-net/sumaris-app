@@ -570,6 +570,11 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_SUBTITLE',
     type: 'string',
   },
+  TRIP_REPORT_FORM_FOOTER: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.footer',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_FOOTER',
+    type: 'string',
+  },
   TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{
     key: 'sumaris.trip.report.form.logo.head.left.url',
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL',
