@@ -13,29 +13,35 @@ source ${PROJECT_DIR}/scripts/env-global.sh
 
 ### Variables
 task=$1
-release_description=$2
-
-### Control that the script is run on `dev` branch
-branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! "$branch" = "master" ]] && [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
-then
-  echo ">> This script must be run under \`master\` or a \`release\` branch"
-  exit 1
-fi
+version=$2
+release_description=$3
+branch=${4:"master"}
+PROJECT_NAME="sumaris-app"
+OWNER="sumaris-net"
+REPO="${OWNER}/${PROJECT_NAME}"
+REPO_API_URL=https://api.github.com/repos/$REPO
+REPO_PUBLIC_URL=https://github.com/$REPO
 
 ### Get version to release
-version=$(grep -m1 -P "version\": \"\d+.\d+.\d+(-\w+[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-\w+[0-9]+)?")
 if [[ "_$version" == "_" ]]; then
-  echo "ERROR: Unable to read 'version' in the file 'package.json'."
-  echo " - Make sure the file 'package.json' exists and is readable."
-  echo " - Check version format is: x.y.z (x and y should be an integer)"
-  exit 1
+  version=$(grep -m1 -P "version\": \"\d+.\d+.\d+(-\w+[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+(-\w+[0-9]+)?")
+  if [[ "_$version" == "_" ]]; then
+    echo "ERROR: Unable to read 'version' in the file 'package.json'."
+    echo " - Make sure the file 'package.json' exists and is readable."
+    echo " - Check version format is: x.y.z (x and y should be an integer)"
+    exit 1
+  fi
+  echo "Project version (package.json): $version"
 fi
 
-# Compute description, if missing
-description=`echo $release_description` # force quote interpretation
-if [[ "_${description}" == "_" ]]; then
-    description="Release $version"
+if [[ "_$branch" == "_" ]]; then
+  ### Control that the script is run on `develop` branch
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  if [[ ! "$branch" = "master" ]] && [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
+  then
+    echo ">> This script must be run under \`master\` or a \`release\` branch"
+    exit 1
+  fi
 fi
 
 ###  get auth token
@@ -73,6 +79,11 @@ case "$task" in
       prerelease="false"
     fi
 
+    # Compute description, if missing
+    description=$(echo $release_description) # force quote interpretation
+    if [[ "_${description}" == "_" ]]; then
+        description="Release $version"
+    fi
 
     result=$(curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version")
     release_url=$(echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+")
@@ -91,7 +102,7 @@ case "$task" in
     echo "Creating new release..."
     echo " - tag: $version"
     echo " - description: $description"
-    result=`curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "'"$branch"'","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     if [[ "_$upload_url" = "_" ]]; then

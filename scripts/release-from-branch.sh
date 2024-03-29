@@ -12,6 +12,14 @@ fi;
 
 cd ${PROJECT_DIR}
 
+### Control that the script is run on valid branch
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$branch" = "develop" ]] || [[ "$branch" = "master" ]];
+then
+  echo ">> This script must NOT be run under a \`master\` or \`develop\`, but under any other branch"
+  exit 1
+fi
+
 # Read parameters
 task=$1
 version=$2
@@ -32,23 +40,6 @@ if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta
   exit 1
 fi
 
-### Control that the script is run on `dev` branch
-resumeRelease=0
-branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "develop" ]]
-then
-  if [[ "$branch" = "release/$version" ]]
-  then
-    echo "Resuming release ..."
-    resumeRelease=1
-  else
-    echo ">> This script must be run under \`develop\` or \`release/$version\` branch"
-    exit 1
-  fi
-fi
-
-PROJECT_DIR=`pwd`
-
 ### Get current version (package.json)
 current=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
@@ -66,25 +57,18 @@ fi
 echo "Current Android version: $currentAndroid"
 
 echo "**********************************"
-if [[ $resumeRelease = 0 ]]
-then
-  echo "* Starting release..."
-else
-  echo "* Resuming release..."
-fi
+echo "* Starting release..."
 echo "**********************************"
 echo "* new build version: $version"
 echo "* new build android version: $androidVersion"
 echo "**********************************"
 
-if [[ $resumeRelease = 0 ]]
-then
-  read -r -p "Is these new versions correct ? [y/N] " response
-  response=${response,,}    # tolower
-  [[ ! "$response" =~ ^(yes|y)$ ]] && exit 1
-  git flow release start "$version"
-  [[ $? -ne 0 ]] && exit 1
-fi
+read -r -p "Is these new versions correct ? [y/N] " response
+response=${response,,}    # tolower
+[[ ! "$response" =~ ^(yes|y)$ ]] && exit 1
+
+# Removing existing release branche
+git branch -D "release/$version" || true
 
 case "$task" in
 rel|pre)
@@ -113,6 +97,8 @@ rel|pre)
     echo "No task given"
     ;;
 esac
+
+git checkout -B "release/$version" || exit 1
 
 echo "-------------------------------------------"
 echo "- Refresh dependencies..."
@@ -169,17 +155,31 @@ echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"
 
-cd ${PROJECT_DIR}/scripts || exit 1
-./release-finish.sh "$version" ''"$release_description"''
-[[ $? -ne 0 ]] && exit 1
+echo "---- Push changes to branch..."
+cd ${PROJECT_DIR} || exit 1
+git commit -a -m "Release $version\n$release_description" && git status
+git checkout "${branch}" || exit 1
+git merge --no-ff --no-edit -m "[skip ci] Release ${version}" "release/${version}" || exit 1
+git tag -a "${version}" -m "${version}" || exit 1
+git push origin "${branch}" || exit 1
+git push origin "refs/tags/${version}" || exit 1
+
+echo "---- Push changes to branch [OK]"
+echo ""
+
+echo "---- Removing local release branch ..."
+echo ""
+git branch -d "release/$version" || true
+# NOTE: can fail, but continue
+
 # Pause (if propagation is need between hosted git server and github)
-sleep 40s
+echo " Waiting 40s, for propagation to github..." && sleep 40s
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-cd $PROJECT_DIR/scripts || exit 1
-./release-to-github.sh $task $version ''"$description"'' 'master'
+cd $PROJECT_DIR/scripts
+./release-to-github.sh "$task" ''"$description"'' $branch
 [[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
