@@ -29,7 +29,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '2.4.3',
+  peerMinVersion: '2.8.0',
 
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
