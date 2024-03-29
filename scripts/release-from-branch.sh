@@ -127,7 +127,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-echo "- Creating web artifact [OK] at \'${ZIP_FILE}\'"
+echo "- Creating web artifact [OK] at ${ZIP_FILE}"
 echo ""
 
 echo "-------------------------------------------"
@@ -173,13 +173,14 @@ git branch -d "release/$version" || true
 # NOTE: can fail, but continue
 
 # Pause (if propagation is need between hosted git server and github)
-echo " Waiting 40s, for propagation to github..." && sleep 40s
+echo " Waiting 40s, for propagation to github..."
+sleep 40s
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-cd $PROJECT_DIR/scripts
-./release-to-github.sh "$task" ''"$description"'' $branch
+cd ${PROJECT_DIR}/scripts || exit 1
+./release-to-github.sh $task $version ''"$description"'' $branch
 [[ $? -ne 0 ]] && exit 1
 
 echo "**********************************"
