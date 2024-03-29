@@ -13,6 +13,7 @@ import {
   ReferentialRef,
   SharedAsyncValidators,
   SharedValidators,
+  StatusIds,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { Batch, BatchWeight } from '../common/batch.model';
@@ -445,6 +446,7 @@ export class SubBatchValidators {
         referenceTaxonId,
         sexId: toNumber(sex?.id, QualitativeValueIds.SEX.UNSEXED), // Unsexed by default
         rectangleLabel: opts.rectangleLabel,
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       });
 
       // Compute weight from length (=alive weight)
@@ -485,6 +487,7 @@ export class SubBatchValidators {
             dressingId: +dressingId,
             preservingId: +preservingId,
             locationId: opts.countryId,
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
           });
 
           // Apply round weight (inverse) conversion
