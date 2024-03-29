@@ -872,6 +872,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{ key: 'FREE1', value: 'EXTRACTION.FORMAT.FREE1.NAME' },
       <Property>{ key: 'FREE2', value: 'EXTRACTION.FORMAT.FREE2.NAME' },
       <Property>{ key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME' },
+      <Property>{ key: 'RJB_TRIP', value: 'EXTRACTION.FORMAT.RJB_TRIP.NAME' },
       <Property>{ key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME' },
       <Property>{ key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME' },
       <Property>{ key: 'ACOST', value: 'EXTRACTION.FORMAT.ACOST.NAME' },
