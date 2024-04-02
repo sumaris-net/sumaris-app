@@ -54,7 +54,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-mdc-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -208,7 +208,7 @@
     </mat-tab>
 
     <!-- TAB: PETS -->
-    <mat-tab #petsTab [label]="'OBSERVED_LOCATION.EDIT.TAB_PETS' | translateContext: i18nContext.suffix" *ngIf="showPETSTab" appSubMenuTab>
+    <mat-tab #petsTab [label]="'OBSERVED_LOCATION.EDIT.TAB_PETS' | translateContext: i18nContext.suffix" [disabled]="!showPETSTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <!-- TODO JVF: PETS table -->
