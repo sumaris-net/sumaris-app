@@ -74,7 +74,7 @@ build:env:
     - develop
     - /^feature\/.*/
     - /^features\/.*/
-    - /^v2.8.x\/.*/
+    - v2.8.x
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -110,7 +110,7 @@ build:
   image: ${CI_BUILD_IMAGE}
   only:
     - develop
-    - /^v2.8.x\/.*/
+    - v2.8.x
 
 build:feature:
   extends: .build
@@ -133,7 +133,7 @@ failsafe-build:
     - develop
     - /^feature\/.*/
     - /^features\/.*/
-    - /^v2.8.x\/.*/
+    - v2.8.x
 
 # ---------------------------------------------------------------
 # Release jobs
