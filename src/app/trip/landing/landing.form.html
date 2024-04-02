@@ -136,9 +136,9 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+          *ngIf="autocompleteFields.vesselSnapshot && form.controls.vesselSnapshot as control; else fieldSkeleton"
           [placeholder]="'LANDING.EDIT.VESSEL_SNAPSHOT' | translate"
-          formControlName="vesselSnapshot"
+          [formControl]="control|formGetControl"
           [config]="autocompleteFields.vesselSnapshot"
           [tabindex]="tabindex + 3"
           required

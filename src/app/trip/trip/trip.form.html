@@ -31,8 +31,8 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else skeletonText100"
-          formControlName="vesselSnapshot"
+          *ngIf="autocompleteFields.vesselSnapshot && form.controls.vesselSnapshot as control; else skeletonText100"
+          [formControl]="control | formGetControl"
           [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
           [config]="autocompleteFields.vesselSnapshot"
           [required]="true"

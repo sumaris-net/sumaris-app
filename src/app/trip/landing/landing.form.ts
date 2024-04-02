@@ -295,7 +295,12 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.configService.ready()
+      .then((config) => {
+        console.log('TODO ', config);
+        return this.vesselSnapshotService.getAutocompleteFieldOptions()
+      })
+      .then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
 
     // Combo location
     this.registerAutocompleteField('location', {
