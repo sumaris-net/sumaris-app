@@ -185,7 +185,7 @@ const Mutations: BaseEntityGraphqlMutations = {
 
 const Subscriptions: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`
-    subscription UpdateSale($id: Int, $interval: Int) {
+    subscription UpdateSale($id: Int!, $interval: Int) {
       data: updateSale(id: $id, interval: $interval) {
         ...SaleFragment
       }
@@ -430,6 +430,14 @@ export class SaleService
   async save(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
     const isNew = isNil(entity.id);
 
+
+    // If parent is a local entity: force to save locally
+    // If is a local entity: force a local save
+    const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
+    if (offline) {
+      return await this.saveLocally(entity, opts);
+    }
+
     const now = Date.now();
     if (this._debug) console.debug('[sale-service] Saving a sale...', entity);
 
@@ -438,11 +446,24 @@ export class SaleService
 
     // Reset quality properties
     this.resetQualityProperties(entity);
+    
+    // When offline, provide an optimistic response
+    const offlineResponse =
+    !opts || opts.enableOptimisticResponse !== false
+      ? async (context) => {
+          // Make sure to fill id, with local ids
+          await this.fillOfflineDefaultProperties(entity);
+
+          // For the query to be tracked (see tracked query link) with a unique serialization key
+          context.tracked = !entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC';
+          if (isNotNil(entity.id)) context.serializationKey = `${Sale.TYPENAME}:${entity.id}`;
+
+          return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+        }
+      : undefined;
 
     // Transform into json
     const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
-
-  
     //if (this._debug)
     console.debug('[sale-service] Saving sale (minified):', json);
     
@@ -451,14 +472,30 @@ export class SaleService
       variables: {
         data: json,
       },
+      offlineResponse,
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
       update: async (proxy, { data }) => {
-    
         const savedEntity = data && data.data;
 
-        savedEntity.forEach(element => {
-          this.copyIdAndUpdateDate(element, entity);
-        });
+        savedEntity.forEach(async element => {
+
+          if (element.id < 0) {
+            if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', element);
+            // Save response locally
+            await this.entities.save<Sale>(element);
+          }
+          // Update the entity and update GraphQL cache
+          else {
+            // Remove existing entity from the local storage
+            if (entity.id < 0 && (element.id > 0 || element.updateDate)) {
+              if (this._debug) console.debug(`[sale-service] Deleting sale {${entity.id}} from local storage`);
+              await this.entities.delete(entity);
+            }
+        }
+        
+        this.copyIdAndUpdateDate(element, entity);
+      }
+        );
 
           if (this._debug) console.debug(`[sale-service] Sale saved remotely in ${Date.now() - now}ms`, entity);
         }
