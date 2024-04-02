@@ -20,7 +20,7 @@ stages:
 
 variables:
   DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
-  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop-v2.8
   BUILD_CACHE_DIR: /tmp/.build-cache
   BUILD_ENVIRONMENT: prod
   DOCKER_BUILDKIT: 1
@@ -74,6 +74,7 @@ build:env:
     - develop
     - /^feature\/.*/
     - /^features\/.*/
+    - /^v2.8.x\/.*/
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -109,6 +110,7 @@ build:
   image: ${CI_BUILD_IMAGE}
   only:
     - develop
+    - /^v2.8.x\/.*/
 
 build:feature:
   extends: .build
@@ -131,6 +133,7 @@ failsafe-build:
     - develop
     - /^feature\/.*/
     - /^features\/.*/
+    - /^v2.8.x\/.*/
 
 # ---------------------------------------------------------------
 # Release jobs
