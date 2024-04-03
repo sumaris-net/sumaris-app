@@ -6,23 +6,23 @@ import { Sale } from '@app/trip/sale/sale.model';
 export class SaleFilter extends RootDataEntityFilter<SaleFilter, Sale> {
   static fromObject: (source: any, opts?: any) => SaleFilter;
 
-  observedLocationId?: number;
   tripId?: number;
+  landingId?: number;
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.observedLocationId = source.observedLocationId;
+    this.landingId = source.landingId;
     this.tripId = source.tripId;
   }
 
   buildFilter(): FilterFn<Sale>[] {
     const filterFns = super.buildFilter();
 
-    if (isNotNil(this.observedLocationId)) {
-      filterFns.push((t) => t.observedLocationId === this.observedLocationId);
-    }
     if (isNotNil(this.tripId)) {
       filterFns.push((t) => t.tripId === this.tripId);
+    }
+    if (isNotNil(this.landingId)) {
+      filterFns.push((t) => t.landingId === this.landingId);
     }
 
     return filterFns;

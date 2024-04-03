@@ -1,8 +1,14 @@
 import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { fromDateISOString, isNotNil, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
-import { toBoolean } from '@sumaris-net/ngx-components';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
+import {
+  fromDateISOString,
+  isNotNil,
+  LocalSettingsService,
+  SharedFormGroupValidators,
+  SharedValidators,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Sale } from './sale.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { Moment } from 'moment';
@@ -30,14 +36,11 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   }
 
   getFormGroupConfig(data?: Sale, opts?: O): { [key: string]: any } {
-    const formConfig = {
+    const config = Object.assign(super.getFormGroupConfig(data), {
       __typename: [Sale.TYPENAME],
-      id: [(data && data.id) || null],
-      updateDate: [(data && data.updateDate) || null],
-      creationDate: [(data && data.creationDate) || null],
       vesselSnapshot: [
         (data && data.vesselSnapshot) || null,
-        !opts.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]),
+        !opts?.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]),
       ],
       saleType: [
         (data && data.saleType) || null,
@@ -46,10 +49,13 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       startDateTime: [(data && data.startDateTime) || null],
       endDateTime: [(data && data.endDateTime) || null, SharedValidators.dateRangeEnd('startDateTime')],
       saleLocation: [(data && data.saleLocation) || null, SharedValidators.entity],
-      comments: [(data && data.comments) || null, Validators.maxLength(2000)],
-    };
 
-    return formConfig;
+      // Parent id
+      tripId: [toNumber(data?.tripId, null)],
+      landingId: [toNumber(data?.landingId, null)],
+    });
+
+    return config;
   }
 
   getFormGroupOptions(data?: Sale, opts?: SaleValidatorOptions): AbstractControlOptions {
@@ -64,12 +70,14 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
+    const vesselSnapshotControl = form.controls['vesselSnapshot'];
+    const saleTypeControl = form.controls['saleType'];
     if (opts.required === true) {
-      form.controls['vesselSnapshot'].setValidators([Validators.required, SharedValidators.entity]);
-      form.controls['saleType'].setValidators([Validators.required, SharedValidators.entity]);
+      if (!vesselSnapshotControl.hasValidator(Validators.required)) vesselSnapshotControl.addValidators(Validators.required);
+      if (!saleTypeControl.hasValidator(Validators.required)) saleTypeControl.addValidators(Validators.required);
     } else {
-      form.controls['vesselSnapshot'].setValidators(SharedValidators.entity);
-      form.controls['saleType'].setValidators(SharedValidators.entity);
+      if (vesselSnapshotControl.hasValidator(Validators.required)) vesselSnapshotControl.removeValidators(Validators.required);
+      if (saleTypeControl.hasValidator(Validators.required)) saleTypeControl.removeValidators(Validators.required);
     }
 
     if (opts.minDate) {
@@ -77,6 +85,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       const minDateStr = this.dateAdapter.format(minDate, this.translate.instant('COMMON.DATE_TIME_PATTERN'));
       form.controls['startDateTime'].setValidators(SharedValidators.dateIsAfter(minDate, minDateStr));
     }
+
+    // Re add group validators
     const formGroupOptions = this.getFormGroupOptions(null, opts);
     form.setValidators(formGroupOptions?.validators);
 

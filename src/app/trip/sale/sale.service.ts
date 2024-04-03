@@ -8,9 +8,11 @@ import {
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
+  EntitiesStorage,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
+  isNil,
   isNotNil,
   LoadResult,
   toNumber,
@@ -25,6 +27,8 @@ import { SaleFilter } from '@app/trip/sale/sale.filter';
 import { DocumentNode } from 'graphql';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { SaleValidatorOptions } from '@app/trip/sale/sale.validator';
+import { OperationQueries, OperationServiceLoadOptions } from '@app/trip/operation/operation.service';
 
 export const SaleFragments = {
   lightSale: gql`
@@ -146,8 +150,10 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 
 @Injectable({ providedIn: 'root' })
 export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter> {
+  protected loading = false;
   constructor(
     protected graphql: GraphqlService,
+    protected entities: EntitiesStorage,
     protected accountService: AccountService
   ) {
     super(graphql, environment);
@@ -234,22 +240,36 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     );
   }
 
-  load(id: number): Observable<Sale | null> {
-    if (this._debug) console.debug('[sale-service] Loading sale {' + id + '}...');
-
-    return this.graphql
-      .watchQuery<{ data: any }>({
-        query: Queries.load,
-        variables: { id },
-        error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-      })
-      .pipe(
-        map((res) => {
-          const entity = (res?.data && Sale.fromObject(res.data)) || null;
-          if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded`, entity);
-          return entity;
-        })
-      );
+  async load(id: number, opts?: OperationServiceLoadOptions): Promise<Sale | null> {
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
+    this.loading = true;
+    try {
+      let json: any;
+      // Load locally
+      if (id < 0) {
+        json = await this.entities.load<Sale>(id, Sale.TYPENAME, opts);
+        if (!json) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
+      }
+      // Load from pod
+      else {
+        const query = opts?.query || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
+        const res = await this.graphql.query<{ data: Sale }>({
+          query,
+          variables: { id },
+          error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
+        });
+        json = res && res.data;
+      }
+      // Transform to entity
+      const data = !opts || opts.toEntity !== false ? Sale.fromObject(json) : (json as Sale);
+      if (data && this._debug) console.debug(`[sale-service] Sale #${id} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
+    }
   }
 
   public listenChanges(
@@ -399,6 +419,14 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       },
     });
+  }
+
+  async delete(data: Sale): Promise<any> {
+    await this.deleteAll([data]);
+  }
+
+  canUserWrite(data: Sale, opts?: SaleValidatorOptions): boolean {
+    return true; // todo mf init like the one in batch-service
   }
 
   asFilter(filter: Partial<SaleFilter>): SaleFilter {
