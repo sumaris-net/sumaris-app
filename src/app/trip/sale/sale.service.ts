@@ -1,38 +1,74 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-  AccountService,
+  AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
-  BaseGraphqlService,
+  EntitiesServiceWatchOptions,
+  EntitiesStorage,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
-  GraphqlService,
+  FormErrors,
+  FormErrorTranslator,
   IEntitiesService,
+  IEntityService,
+  isNil,
+  isNilOrBlank,
   isNotNil,
   LoadResult,
+  LocalSettingsService,
+  MINIFY_ENTITY_FOR_POD,
+  NetworkService,
+  ProgressBarService,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { Sale } from './sale.model';
-import { Sample } from '../sample/sample.model';
 import { SortDirection } from '@angular/material/sort';
-import { environment } from '@environments/environment';
 import { SaleFilter } from '@app/trip/sale/sale.filter';
 import { DocumentNode } from 'graphql';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { SaleValidatorOptions } from '@app/trip/sale/sale.validator';
+import { MINIFY_SALE_FOR_LOCAL_STORAGE, Sale } from '@app/trip/sale/sale.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
+export declare interface SaleSaveOptions extends EntitySaveOptions {
+  landingId?: number;
+  tripId?: number;
+  computeBatchRankOrder?: boolean;
+  computeBatchIndividualCount?: boolean;
+  computeBatchWeight?: boolean;
+  cleanBatchTree?: boolean;
+  enableOptimisticResponse?: boolean;
+}
+
+export declare interface SaleServiceWatchOptions extends EntitiesServiceWatchOptions {
+  computeRankOrder?: boolean;
+  fullLoad?: boolean;
+  toEntity?: boolean;
+  withTotal?: boolean;
+}
+
+export type SaleServiceLoadOptions = EntityServiceLoadOptions;
 export const SaleFragments = {
   lightSale: gql`
-    fragment LightSaleFragment_PENDING on SaleVO {
+    fragment LightSaleFragment on SaleVO {
       id
       startDateTime
       endDateTime
       tripId
+      landingId
       comments
       updateDate
       saleLocation {
@@ -51,21 +87,26 @@ export const SaleFragments = {
     ${DataCommonFragments.referential}
   `,
   sale: gql`
-    fragment SaleFragment_PENDING on SaleVO {
+    fragment SaleFragment on SaleVO {
       id
       startDateTime
       endDateTime
       tripId
+      landingId
       comments
       updateDate
+      program {
+        id
+        label
+      }
+      saleType {
+        ...LightReferentialFragment
+      }
       saleLocation {
         ...LocationFragment
       }
       measurements {
         ...MeasurementFragment
-      }
-      samples {
-        ...SampleFragment
       }
       vesselSnapshot {
         ...LightVesselSnapshotFragment
@@ -79,20 +120,27 @@ export const SaleFragments = {
       observers {
         ...LightPersonFragment
       }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
+      batches {
+        ...BatchFragment
+      }
     }
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.measurement}
     ${DataCommonFragments.location}
-    ${DataFragments.sample}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.referential}
+    ${DataFragments.fishingArea}
+    ${DataFragments.batch}
   `,
 };
 
 const Queries: BaseEntityGraphqlQueries = {
   load: gql`
-    query Sale($id: Int) {
+    query Sale($id: Int!) {
       data: sale(id: $id) {
         ...SaleFragment
       }
@@ -112,8 +160,8 @@ const Queries: BaseEntityGraphqlQueries = {
 
 const Mutations: BaseEntityGraphqlMutations = {
   save: gql`
-    mutation SaveSales($data: [SaleVOInput]) {
-      data: saveSales(data: $data) {
+    mutation SaveSales($data: [SaleVOInput!]!) {
+      data: saveSales(sales: $data) {
         ...SaleFragment
       }
     }
@@ -129,7 +177,7 @@ const Mutations: BaseEntityGraphqlMutations = {
 
 const Subscriptions: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`
-    subscription UpdateSale($id: Int, $interval: Int) {
+    subscription UpdateSale($id: Int!, $interval: Int) {
       data: updateSale(id: $id, interval: $interval) {
         ...SaleFragment
       }
@@ -138,19 +186,33 @@ const Subscriptions: BaseEntityGraphqlSubscriptions = {
   `,
 };
 
-const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
-  const d1 = n1.endDateTime || n1.startDateTime;
-  const d2 = n2.endDateTime || n2.startDateTime;
-  return d1.isSame(d2) ? 0 : d1.isAfter(d2) ? 1 : -1;
-};
-
 @Injectable({ providedIn: 'root' })
-export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements IEntitiesService<Sale, SaleFilter> {
+export class SaleService
+  extends RootDataSynchroService<Sale, SaleFilter, number, SaleServiceWatchOptions, SaleServiceLoadOptions>
+  implements IEntitiesService<Sale, SaleFilter, SaleServiceWatchOptions>, IEntityService<Sale>
+{
+  synchronize(data: Sale, opts?: any): Promise<Sale> {
+    throw new Error('Method not implemented.');
+  }
+  control(entity: Sale, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
+    throw new Error('Method not implemented.');
+  }
+  protected loading = false;
   constructor(
-    protected graphql: GraphqlService,
-    protected accountService: AccountService
+    injector: Injector,
+    protected network: NetworkService,
+    protected entities: EntitiesStorage,
+    protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService,
+    protected progressBarService: ProgressBarService,
+    protected formErrorTranslator: FormErrorTranslator,
+    protected settings: LocalSettingsService
   ) {
-    super(graphql, environment);
+    super(injector, Sale, SaleFilter, {
+      queries: Queries,
+      mutations: Mutations,
+      subscriptions: Subscriptions,
+    });
 
     // -- For DEV only
     //this._debug = !environment.production;
@@ -163,7 +225,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
    * @param size
    * @param sortBy
    * @param sortDirection
-   * @param filter
+   * @param dataFilter
    * @param options
    */
   watchAll(
@@ -207,23 +269,16 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         if (this._debug) console.debug(`[sale-service] Loaded ${entities.length} sales`);
 
         // Compute rankOrderOnPeriod, when loading by parent entity
-        if (offset === 0 && size === -1 && isNotNil(dataFilter.observedLocationId)) {
-          if (offset === 0 && size === -1) {
-            // apply a sorted copy (do NOT change original order), then compute rankOrder
-            entities
-              .slice()
-              .sort(sortByEndDateOrStartDateFn)
-              .forEach((o, i) => (o.rankOrder = i + 1));
+        if (offset === 0 && size === -1 && (isNotNil(dataFilter.landingId) || isNotNil(dataFilter.tripId))) {
+          // apply a sorted copy (do NOT change original order), then compute rankOrder
+          entities
+            .slice()
+            .sort(Sale.sortByEndDateOrStartDate)
+            .forEach((o, i) => (o.rankOrder = i + 1));
 
-            // sort by rankOrder (aka id)
-            if (!sortBy || sortBy === 'id') {
-              const after = !sortDirection || sortDirection === 'asc' ? 1 : -1;
-              entities.sort((a, b) => {
-                const valueA = a.rankOrder;
-                const valueB = b.rankOrder;
-                return valueA === valueB ? 0 : valueA > valueB ? after : -1 * after;
-              });
-            }
+          // sort by rankOrder (aka id)
+          if (!sortBy || sortBy === 'id') {
+            entities.sort(Sale.rankOrderComparator(sortDirection));
           }
         }
 
@@ -234,22 +289,36 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     );
   }
 
-  load(id: number): Observable<Sale | null> {
-    if (this._debug) console.debug('[sale-service] Loading sale {' + id + '}...');
+  async load(id: number, options?: EntityServiceLoadOptions): Promise<Sale> {
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
 
-    return this.graphql
-      .watchQuery<{ data: any }>({
-        query: Queries.load,
-        variables: { id },
-        error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-      })
-      .pipe(
-        map((res) => {
-          const entity = (res?.data && Sale.fromObject(res.data)) || null;
-          if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded`, entity);
-          return entity;
-        })
-      );
+    const now = Date.now();
+    if (this._debug) console.debug(`[sale-service] Loading Sale {${id}}...`);
+    this.loading = true;
+    try {
+      let data: any;
+
+      // If local entity
+      if (id < 0) {
+        data = await this.entities.load<Sale>(id, Sale.TYPENAME);
+      } else {
+        // Load remotely
+        const res = await this.graphql.query<{ data: any }>({
+          query: this.queries.load,
+          variables: { id },
+          error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+          fetchPolicy: (options && options.fetchPolicy) || undefined,
+        });
+        data = res && res.data;
+      }
+      // Transform to entity
+      const entity = data && Sale.fromObject(data);
+      if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded in ${Date.now() - now}ms`, entity);
+
+      return entity;
+    } finally {
+      this.loading = false;
+    }
   }
 
   public listenChanges(
@@ -292,13 +361,13 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
     if (!options || !options.tripId) {
       console.error('[sale-service] Missing options.tripId');
-      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' };
+      throw { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR [save-many-sales]' };
     }
     const now = Date.now();
     if (this._debug) console.debug('[sale-service] Saving sales...');
 
     // Compute rankOrder
-    entities.sort(sortByEndDateOrStartDateFn).forEach((o, i) => (o.rankOrder = i + 1));
+    entities.sort(Sale.sortByEndDateOrStartDate).forEach((o, i) => (o.rankOrder = i + 1));
 
     // Transform to json
     const json = entities.map((t) => {
@@ -329,46 +398,105 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   }
 
   /**
-   * Save an sale
+   * Save a sale
    *
-   * @param data
+   * @param entity
+   * @param opts
    */
-  async save(entity: Sale): Promise<Sale> {
+  async save(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
+    const isNew = isNil(entity.id);
+
+    // If parent is a local entity: force to save locally
+    // If is a local entity: force a local save
+    const offline = EntityUtils.isLocalId(entity.tripId) || EntityUtils.isLocalId(entity.landingId) || RootDataEntityUtils.isLocal(entity);
+    if (offline) {
+      return await this.saveLocally(entity, opts);
+    }
+
     const now = Date.now();
-    if (this._debug) console.debug('[sale-service] Saving a sale...');
+    if (this._debug) console.debug('[sale-service] Saving a sale...', entity);
 
-    // Fill default properties (as recorder department and person)
-    this.fillDefaultProperties(entity, {});
+    // Prepare to save
+    this.fillDefaultProperties(entity);
 
-    const isNew = !entity.id && entity.id !== 0;
+    // Reset quality properties
+    this.resetQualityProperties(entity);
+
+    // When offline, provide an optimistic response
+    const offlineResponse =
+      !opts || opts.enableOptimisticResponse !== false
+        ? async (context) => {
+            // Make sure to fill id, with local ids
+            await this.fillOfflineDefaultProperties(entity);
+
+            // For the query to be tracked (see tracked query link) with a unique serialization key
+            context.tracked = !entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC';
+            if (isNotNil(entity.id)) context.serializationKey = `${Sale.TYPENAME}:${entity.id}`;
+
+            return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+          }
+        : undefined;
 
     // Transform into json
-    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug('[sale-service] Using minify object, to send:', json);
+    const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
+    //if (this._debug)
+    console.debug('[sale-service] Saving sale (minified):', json);
 
-    await this.graphql.mutate<{ data: Sale[] }>({
-      mutation: Mutations.saveAll,
+    await this.graphql.mutate<{ data: any }>({
+      mutation: this.mutations.save,
       variables: {
-        data: [json],
+        data: json,
       },
+      offlineResponse,
       error: { code: DataErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
-      update: (proxy, { data }) => {
-        const savedEntity = data && data.data && data.data[0];
-        if (savedEntity && savedEntity !== entity) {
-          // Copy id and update Date
-          this.copyIdAndUpdateDate(savedEntity, entity);
-          if (this._debug) console.debug(`[sale-service] Sale saved and updated in ${Date.now() - now}ms`, entity);
-        }
+      update: async (proxy, { data }) => {
+        const savedEntity = data && data.data;
 
-        // Update the cache
-        if (isNew) {
-          this.insertIntoMutableCachedQueries(proxy, {
-            queries: this.getLoadQueries(),
-            data: savedEntity,
-          });
-        }
+        savedEntity.forEach(async (element) => {
+          if (element.id < 0) {
+            if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', element);
+            // Save response locally
+            await this.entities.save<Sale>(element);
+          }
+          // Update the entity and update GraphQL cache
+          else {
+            // Remove existing entity from the local storage
+            if (entity.id < 0 && (element.id > 0 || element.updateDate)) {
+              if (this._debug) console.debug(`[sale-service] Deleting sale {${entity.id}} from local storage`);
+              await this.entities.delete(entity);
+            }
+          }
+
+          this.copyIdAndUpdateDate(element, entity);
+        });
+
+        if (this._debug) console.debug(`[sale-service] Sale saved remotely in ${Date.now() - now}ms`, entity);
       },
     });
+
+    return entity;
+  }
+
+  /**
+   * @param entity
+   * @param opts
+   * @protected
+   */
+  protected async saveLocally(entity: Sale, opts?: SaleSaveOptions): Promise<Sale> {
+    if (EntityUtils.isRemoteId(entity.landingId)) throw new Error('Must be linked to a local landing');
+    if (EntityUtils.isRemoteId(entity.tripId)) throw new Error('Must be linked to a local trip');
+
+    // Fill default properties (as recorder department and person)
+    this.fillDefaultProperties(entity, opts);
+
+    // Make sure to fill id, with local ids
+    await this.fillOfflineDefaultProperties(entity);
+
+    const json = this.asObject(entity, MINIFY_SALE_FOR_LOCAL_STORAGE);
+    if (this._debug) console.debug('[sale-service] [offline] Saving sale locally...', json);
+
+    // Save response locally
+    await this.entities.save(json);
 
     return entity;
   }
@@ -401,22 +529,56 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     });
   }
 
+  async delete(data: Sale): Promise<any> {
+    await this.deleteAll([data]);
+  }
+
+  canUserWrite(data: Sale, opts?: SaleValidatorOptions): boolean {
+    return true;
+  }
+
   asFilter(filter: Partial<SaleFilter>): SaleFilter {
     return SaleFilter.fromObject(filter);
   }
 
   /* -- protected methods -- */
 
-  protected fillDefaultProperties(entity: Sale, options?: any) {
-    // If new trip
-    if (!entity.id || entity.id < 0) {
-      // Fill Recorder department and person
-      this.fillRecorderPersonAndDepartment(entity);
-    }
+  protected fillBatchTreeDefaults(catchBatch: Batch, opts?: Partial<SaleSaveOptions>) {
+    if (!opts) return;
+
+    // Clean empty
+    if (opts.cleanBatchTree) BatchUtils.cleanTree(catchBatch);
+
+    // Compute rankOrder (and label)
+    if (opts.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
+
+    // Compute individual count (e.g. refresh individual count of BatchGroups)
+    if (opts.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
+
+    // Compute weight
+    if (opts.computeBatchWeight) BatchUtils.computeWeight(catchBatch);
+  }
+
+  protected fillDefaultProperties(entity: Sale, opts?: any) {
+    super.fillDefaultProperties(entity);
 
     // Fill parent entity id
-    if (!entity.observedLocationId && options) {
-      entity.observedLocationId = options.observedLocationId;
+    if (opts && isNil(entity.landingId)) {
+      entity.landingId = opts.landingId;
+    }
+    if (opts && isNotNil(entity.tripId)) {
+      entity.tripId = opts.tripId;
+    }
+
+    // Fill catch batch label
+    if (entity.catchBatch) {
+      // Fill catch batch label
+      if (isNilOrBlank(entity.catchBatch.label)) {
+        entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
+      }
+
+      // Fill batch tree default (rank order, sum, etc.)
+      this.fillBatchTreeDefaults(entity.catchBatch, opts);
     }
   }
 
@@ -440,28 +602,60 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     // Update (id and updateDate)
     EntityUtils.copyIdAndUpdateDate(source, target);
 
-    // Update samples (recursively)
-    if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+    // Update fishing area
+    if (target.products && source.products) {
+      target.products.forEach((targetProduct) => {
+        const sourceProduct = source.products.find((json) => targetProduct.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
+      });
+    }
+
+    // Update fishing area
+    if (target.fishingAreas && source.fishingAreas) {
+      target.fishingAreas.forEach((targetFishArea) => {
+        const sourceFishArea = source.fishingAreas.find((json) => targetFishArea.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceFishArea, targetFishArea);
+      });
+    }
+
+    // Update measurements
+    if (target.measurements && source.measurements) {
+      target.measurements.forEach((targetMeas) => {
+        const sourceMeas = source.measurements.find((json) => targetMeas.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceMeas, targetMeas);
+      });
+    }
+
+    // Update batches (recursively)
+    if (target.catchBatch && source.batches) {
+      this.copyIdAndUpdateDateOnBatch(source.batches, [target.catchBatch]);
     }
   }
 
   /**
-   * Copy Id and update, in sample tree (recursively)
+   * Copy Id and update, in batch tree (recursively)
    *
    * @param sources
    * @param targets
    */
-  copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
-    // Update samples
+  protected copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
     if (sources && targets) {
-      targets.forEach((target) => {
-        const source = sources.find((json) => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
+      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      sources = [...sources];
 
-        // Apply to children
-        if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children);
+      targets.forEach((target) => {
+        const index = sources.findIndex((json) => target.equals(json));
+        if (index !== -1) {
+          // Remove from sources list, as it has been found
+          const source = sources.splice(index, 1)[0];
+          EntityUtils.copyIdAndUpdateDate(source, target);
+        } else {
+          console.error('Missing a Batch, equals to this target:', target);
+        }
+
+        // Loop on children
+        if (target.children?.length) {
+          this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }
       });
     }

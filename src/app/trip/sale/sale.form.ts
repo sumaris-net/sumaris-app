@@ -6,6 +6,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { Sale } from './sale.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { UntypedFormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-form-sale',
@@ -18,10 +19,13 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   @Input() required = true;
   @Input() showError = true;
+  @Input() showProgram = true;
   @Input() showVessel = true;
+  @Input() showLocation = true;
   @Input() showEndDateTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
+  @Input() i18nSuffix: string;
 
   @Input() set minDate(value: Moment) {
     if (value && (!this._minDate || !this._minDate.isSame(value))) {
@@ -43,6 +47,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   get valid(): any {
     return this.form && (this.required ? this.form.valid : this.form.valid || this.empty);
+  }
+
+  get startDateTimeControl(): UntypedFormControl {
+    return this._form.get('startDateTime') as UntypedFormControl;
   }
 
   constructor(

@@ -239,7 +239,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     }
 
     // Fishing areas
-    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(opts))) || undefined;
+    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((fa) => fa.asObject(opts))) || undefined;
 
     // Child/Parent operation id
     target.parentOperationId = this.parentOperationId || (this.parentOperation && this.parentOperation.id);

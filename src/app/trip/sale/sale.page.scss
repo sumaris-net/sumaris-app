@@ -1,0 +1,83 @@
+.filter-panel-pinned {
+  overflow-y: scroll;
+}
+
+.mat-expansion-panel {
+  margin-bottom: 5px;
+
+  .form-container {
+    mat-form-field {
+      width: 100%;
+      .datetime-md {
+        padding: 0 !important;
+      }
+    }
+  }
+
+  mat-action-row {
+    ion-label {
+      line-height: 36px;
+    }
+  }
+}
+
+.table-container {
+  --table-offline-nav: 0px;
+  height: calc(100% - var(--table-offline-nav, 0px));
+
+  &.has-offline-nav {
+    --table-offline-nav: var(--mat-tab-link-height, 48px);
+  }
+}
+
+.mat-mdc-table {
+  --mat-cell-horizontal-padding: 4px;
+
+  .mat-column-id {
+    min-width: 50px;
+    max-width: 120px;
+    padding-right: var(--mat-cell-horizontal-padding, 4px);
+  }
+
+  .mat-column-quality {
+    min-width: calc(1.2em + 8px);
+    padding-inline-start: var(--mat-cell-horizontal-padding, 4px);
+    padding-inline-end: var(--mat-cell-horizontal-padding, 4px);
+
+    mat-icon,
+    ion-icon {
+      font-size: 1.2em;
+      height: 1.2em;
+      width: 1.2em;
+    }
+  }
+
+  .mat-column-program {
+    min-width: 90px;
+  }
+
+  .mat-column-vessel {
+    min-width: 200px;
+  }
+
+  .mat-column-location {
+    min-width: 150px;
+  }
+
+  .mat-column-observers,
+  .mat-column-recorderPerson {
+    min-width: 180px;
+  }
+
+  .mat-column-pmfm {
+    min-width: 120px;
+    max-width: 250px;
+  }
+
+  .mat-column-actions {
+    min-width: 40px;
+    max-width: 40px;
+    padding-inline-start: 0;
+    padding-inline-end: 0;
+  }
+}

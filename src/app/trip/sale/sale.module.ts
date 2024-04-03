@@ -9,6 +9,10 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { SaleForm } from '@app/trip/sale/sale.form';
 import { AppProductModule } from '@app/trip/product/product.module';
+import { SalePage } from '@app/trip/sale/sale.page';
+import { AppFishingAreaModule } from '@app/data/fishing-area/fishing-area.module';
+import { AppDataModule } from '@app/data/data.module';
+import { AppBatchModule } from '@app/trip/batch/batch.module';
 
 @NgModule({
   imports: [
@@ -18,8 +22,11 @@ import { AppProductModule } from '@app/trip/product/product.module';
     // Functional modules
     AppMeasurementModule,
     AppProductModule,
+    AppFishingAreaModule,
+    AppDataModule,
+    AppBatchModule,
   ],
-  declarations: [SaleForm, ProductSaleForm, ProductSaleModal, ExpectedSaleForm, PacketSaleForm, PacketSaleModal],
+  declarations: [SaleForm, ProductSaleForm, ProductSaleModal, ExpectedSaleForm, PacketSaleForm, PacketSaleModal, SalePage],
   exports: [
     // Components
     SaleForm,
@@ -28,6 +35,7 @@ import { AppProductModule } from '@app/trip/product/product.module';
     ExpectedSaleForm,
     PacketSaleForm,
     PacketSaleModal,
+    SalePage,
   ],
 })
 export class AppSaleModule {
