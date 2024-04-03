@@ -105,7 +105,7 @@
     </mat-tab>
 
     <!-- TAB: batch -->
-    <mat-tab [label]="'SALE.EDIT.TAB_BATCHES' | translate" [disabled]="!showBatchTables" appSubMenuTab>
+    <mat-tab [label]="'SALE.EDIT.TAB_BATCHES' | translate" [disabled]="!showCatchTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
         <ion-label translate>SALE.EDIT.TAB_BATCHES</ion-label>
@@ -181,6 +181,22 @@
           form.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
           <br />
           form.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
+          <br />
+        </ion-col>
+        <ion-col>
+          batchTree.ready: {{ batchTree.readySubject | async }}
+          <br />
+          batchTree.loading: {{ batchTree.loadingSubject | async }} - saving: {{ batchTree.savingSubject | async }}
+          <br />
+          batchTree.enabled: {{ batchTree.enabled }}
+          <br />
+          batchTree.dirty: {{ batchTree.dirty }}
+          <br />
+          batchTree.valid: {{ batchTree.valid }}
+          <br />
+          batchTree.program: {{ (batchTree.program$ | async)?.label }}
+          <br />
+          batchTree.strategy {{ batchTree.requiredStrategy ? ' (required)' : '' }}: {{ batchTree.strategyId$ | async }}
           <br />
         </ion-col>
       </ion-row>

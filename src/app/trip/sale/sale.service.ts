@@ -42,6 +42,7 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { environment } from '@environments/environment';
 
 export declare interface SaleSaveOptions extends EntitySaveOptions {
   landingId?: number;
@@ -215,7 +216,7 @@ export class SaleService
     });
 
     // -- For DEV only
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   /**
@@ -289,30 +290,30 @@ export class SaleService
     );
   }
 
-  async load(id: number, options?: EntityServiceLoadOptions): Promise<Sale> {
+  async load(id: number, opts?: EntityServiceLoadOptions): Promise<Sale> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     const now = Date.now();
     if (this._debug) console.debug(`[sale-service] Loading Sale {${id}}...`);
     this.loading = true;
     try {
-      let data: any;
+      let json: any;
 
       // If local entity
       if (id < 0) {
-        data = await this.entities.load<Sale>(id, Sale.TYPENAME);
+        json = await this.entities.load<Sale>(id, Sale.TYPENAME);
       } else {
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: { id },
           error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-          fetchPolicy: (options && options.fetchPolicy) || undefined,
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
-        data = res && res.data;
+        json = res && res.data;
       }
       // Transform to entity
-      const entity = data && Sale.fromObject(data);
+      const entity = !opts || opts.toEntity !== false ? Sale.fromObject(json) : (json as Sale);
       if (entity && this._debug) console.debug(`[sale-service] Sale #${id} loaded in ${Date.now() - now}ms`, entity);
 
       return entity;

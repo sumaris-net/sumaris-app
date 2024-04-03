@@ -98,11 +98,15 @@ export class SalePage<ST extends SalePageState = SalePageState>
   enableReport = false;
   parentAcquisitionLevel: AcquisitionLevelType;
   showBatchTablesByProgram = false;
-  showBatchTables = false;
+  showBatchTables = true;
   @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.saleForm.form;
+  }
+
+  get showCatchTab(): boolean {
+    return this.showBatchTablesByProgram && this.showBatchTables;
   }
 
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
@@ -484,27 +488,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
 
-    // if (this.samplesTable) {
-    //   this.samplesTable.i18nColumnSuffix = i18nSuffix;
-    //   this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
-    //   this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
-    //   this.samplesTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
-    //   this.samplesTable.weightDisplayedUnit = this.settings.getProperty(
-    //     TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
-    //     program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT)
-    //   );
-    //   this.samplesTable.showLabelColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
-    //
-    //   // Apply sample table pmfms
-    //   // If strategy is required, pmfms will be set by setStrategy()
-    //   if (!requiredStrategy) {
-    //     await this.setTablePmfms(this.samplesTable, program.label);
-    //   }
-    // }
-
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
+
+    if (this.batchTree) this.batchTree.program = program;
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
@@ -560,10 +548,20 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     await this.saleForm.setValue(data);
 
+    const jobs: Promise<any>[] = [];
+
     this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
 
-    // Set batch tree - TODO
-    // this.samplesTable.value = data.samples || [];
+    // Set batch tree
+    if (this.batchTree) {
+      this.batchTree.requiredStrategy = this.requiredStrategy;
+      this.batchTree.strategyId = this.strategy?.id;
+      jobs.push(this.batchTree.setValue(data?.catchBatch || null));
+    }
+
+    await Promise.all(jobs);
+
+    console.debug('[operation] children setValue() [OK]');
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -630,11 +628,21 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     const data = await super.getValue();
 
-    // Save batch tree - TODO
-    // if (this.samplesTable.dirty) {
-    //   await this.samplesTable.save();
-    // }
-    // data.samples = this.samplesTable.value;
+    // Batches
+    if (this.showBatchTables && this.batchTree) {
+      // Do not need to save here, because editor should do it
+      //await this.batchTree.save();
+
+      // Get batch tree,rom the batch tree component
+      data.catchBatch = this.batchTree.value;
+
+      // Make sure to clean species groups, if not batch enable
+      if (!this.showBatchTables) {
+        data.catchBatch.children = undefined;
+      }
+    } else {
+      data.catchBatch = undefined;
+    }
 
     // DEBUG
     //console.debug('[sale-page] DEV check getValue() result:', data);

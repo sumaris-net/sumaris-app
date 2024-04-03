@@ -25,6 +25,10 @@ export interface SaleAsObjectOptions extends DataEntityAsObjectOptions {
   keepTrip?: boolean; // Allow to keep trip, needed to apply filter on local storage
 }
 
+export interface SaleFromObjectOptions {
+  withBatchTree?: boolean;
+}
+
 export const MINIFY_SALE_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObjectOptions>{
   ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   batchAsTree: false,
@@ -33,8 +37,8 @@ export const MINIFY_SALE_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObjectOpt
 });
 
 @EntityClass({ typename: 'SaleVO' })
-export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions> implements IWithProductsEntity<Sale> {
-  static fromObject: (source, opts?: any) => Sale;
+export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions, SaleFromObjectOptions> implements IWithProductsEntity<Sale> {
+  static fromObject: (source: any, opts?: any) => Sale;
 
   static rankOrderComparator(sortDirection: SortDirection = 'asc'): (n1: Sale, n2: Sale) => number {
     return !sortDirection || sortDirection !== 'desc' ? Sale.sortByAscRankOrder : Sale.sortByDescRankOrder;
@@ -75,7 +79,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
     super(Sale.TYPENAME);
   }
 
-  fromObject(source: any): Sale {
+  fromObject(source: any, opts?: SaleFromObjectOptions) {
     super.fromObject(source);
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
@@ -95,7 +99,15 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
       product.parent = this;
     });
 
-    return this;
+    // Batches
+    if (!opts || opts.withBatchTree !== false) {
+      this.catchBatch =
+        source.catchBatch && !source.batches
+          ? // Reuse existing catch batch (useful for local entity)
+            Batch.fromObject(source.catchBatch, { withChildren: true })
+          : // Convert list to tree (useful when fetching from a pod)
+            Batch.fromObjectArrayAsTree(source.batches);
+    }
   }
 
   asObject(opts?: SaleAsObjectOptions): any {
