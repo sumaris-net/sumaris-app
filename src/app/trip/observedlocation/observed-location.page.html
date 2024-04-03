@@ -54,7 +54,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-mdc-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -107,6 +107,10 @@
 
             <!-- quality data -->
             <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <!-- strategy summary -->
+              <app-strategy-summary-card *ngIf="showStrategyCard"></app-strategy-summary-card>
+
+              <!-- metadata -->
               <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
                 <ion-button
@@ -202,6 +206,31 @@
         </ng-container>
       </div>
     </mat-tab>
+
+    <!-- TAB: PETS -->
+    <mat-tab #petsTab [label]="'OBSERVED_LOCATION.EDIT.TAB_PETS' | translateContext: i18nContext.suffix" [disabled]="!showPETSTab" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
+        <!-- TODO JVF: PETS table -->
+        <ng-container *rxIf="landingTable$; let table; suspense: suspense">
+          <ion-label>
+            {{ petsTab.textLabel }}
+          </ion-label>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table.invalid"></ion-icon>
+        </ng-container>
+        <ng-template #suspense>
+          <ion-label><ion-skeleton-text style="min-width: 110px"></ion-skeleton-text></ion-label>
+        </ng-template>
+      </ng-template>
+
+      <div class="ion-no-padding">
+        <!-- error -->
+        <ion-item *ngIf="(landingTable$ | async)?.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="(landingTable$ | async)?.error | translate"></ion-label>
+        </ion-item>
+      </div>
+    </mat-tab>
   </mat-tab-group>
 </ion-content>
 
@@ -261,6 +290,8 @@
           <br />
           editor.showLandingTab: {{ showLandingTab }}
           <br />
+          editor.showPETSTab: {{ showPETSTab }}
+          <br />
           editor.showObservers: {{ showObservers }}
         </ion-col>
         <ion-col>
@@ -282,10 +313,12 @@
           <br />
           form.acquisitionLevel: {{ observedLocationForm.acquisitionLevel }}
           <br />
-          form.pmfms: {{ (pmfms$ | push)?.length || 0 }}
+          form.pmfms: {{ (observedLocationForm.pmfms$ | push)?.length || 0 }}
           <br />
           <br />
           form.showObservers: {{ observedLocationForm.showObservers }}
+          <br />
+          form.showSamplingStrata: {{ observedLocationForm.showSamplingStrata }}
         </ion-col>
         <ion-col>
           form.startDateTime:
@@ -293,6 +326,9 @@
           <br />
           form.endDateTime:
           {{ observedLocationForm.form | formGetValue: 'endDateTime' | dateFormat: { time: true } }}
+          <br />
+          <br />
+          form.withEndDateRequired: {{ observedLocationForm.withEndDateRequired }}
           <br />
         </ion-col>
       </ion-row>

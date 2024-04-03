@@ -25,7 +25,7 @@ import {
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../observed-location.model';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DateFilterFn } from '@angular/material/datepicker';
@@ -34,6 +34,8 @@ import { RxState } from '@rx-angular/state';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable } from 'rxjs';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;
@@ -47,8 +49,10 @@ export interface ObservedLocationFormState extends MeasurementsFormState {
   providers: [RxState],
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
+  private _showSamplingStrata: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
+  private _withEndDateRequired: boolean;
 
   @RxStateSelect() protected showObservers$: Observable<boolean>;
   protected observerFocusIndex = -1;
@@ -68,6 +72,30 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() forceDurationDays: number;
   @Input() timezone: string = null;
   @Input() mobile = false;
+
+  @Input() set showSamplingStrata(value: boolean) {
+    if (this._showSamplingStrata !== value) {
+      this._showSamplingStrata = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showSamplingStrata(): boolean {
+    return this._showSamplingStrata;
+  }
+
+  @Input() set withEndDateRequired(value: boolean) {
+    if (this._withEndDateRequired !== value) {
+      this._withEndDateRequired = value;
+      if (this.form) {
+        this.updateFormGroup();
+      }
+    }
+  }
+
+  get withEndDateRequired(): boolean {
+    return this._withEndDateRequired;
+  }
 
   @RxStateProperty() @Input() showObservers: boolean;
 
@@ -95,6 +123,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       onUpdateFormGroup: (form) => this.updateFormGroup(),
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
     this._enable = false;
 
@@ -109,6 +138,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Default values
+    this.showSamplingStrata = toBoolean(this.showSamplingStrata, false); // Will init the observers helper
     this.showObservers = toBoolean(this.showObservers, false);
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
@@ -117,6 +147,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
+    });
+
+    // Combo: sampling strata
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        }),
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'OBSERVED_LOCATION.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
@@ -265,11 +311,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     const validatorOpts: ObservedLocationValidatorOptions = {
       timezone: this.timezone,
       startDateDay: this.startDateDay,
+      withSamplingStrata: this.showSamplingStrata,
       withObservers: this.showObservers,
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
-      console.info('[trip-form] Updating form group, using opts', validatorOpts);
+      console.info('[observed-location-form] Updating form group, using opts', validatorOpts);
 
       this.validatorService.updateFormGroup(form, validatorOpts);
 
@@ -286,6 +333,21 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       // Remember used opts, for next call
       this._lastValidatorOpts = validatorOpts;
     }
+  }
+
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+    if (!pmfms) return; // Skip if empty
+
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+
+    if (saleTypePmfm) {
+      console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
+      const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+      saleTypePmfm.type = 'qualitative_value';
+      saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
+    return pmfms;
   }
 
   protected markForCheck() {

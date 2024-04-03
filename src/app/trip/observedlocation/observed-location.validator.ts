@@ -18,8 +18,10 @@ import moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
+  withSamplingStrata?: boolean;
   withMeasurements?: boolean;
   startDateDay?: number;
+  withEndDateRequired?: boolean;
   timezone?: string;
 }
 
@@ -58,9 +60,14 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
       __typename: [ObservedLocation.TYPENAME],
       location: [data?.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [data?.startDateTime || null, this.createStartDateValidator(opts)],
-      endDateTime: [data?.endDateTime || null],
+      endDateTime: [data?.endDateTime || null, opts.withEndDateRequired ? Validators.required : Validators.nullValidator],
       measurementValues: this.formBuilder.group({}),
     });
+
+    // Add sampling strata
+    if (opts.withSamplingStrata) {
+      formConfig.samplingStrata = [data?.samplingStrata || null, Validators.compose([Validators.required, SharedValidators.entity])];
+    }
 
     // Add observers
     if (opts.withObservers) {
@@ -76,6 +83,17 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
 
     // Update the start date validator
     form.get('startDateTime').setValidators(this.createStartDateValidator(opts));
+
+    // Sampling strata
+    if (opts.withSamplingStrata) {
+      if (!form.controls.samplingStrata) {
+        form.addControl('samplingStrata', this.formBuilder.control(null, [Validators.required, SharedValidators.entity]));
+      }
+      if (enabled) form.controls.samplingStrata.enable();
+      else form.controls.samplingStrata.disable();
+    } else {
+      if (form.controls.samplingStrata) form.removeControl('samplingStrata');
+    }
 
     // Observers
     if (opts?.withObservers) {
