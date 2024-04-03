@@ -1353,11 +1353,17 @@
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
       "LANDINGS": "Landing(s)",
+      "TAB_PETS": "Other species (PETS)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Control of {{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"
       },
       "SAMPLING": {
+        "TITLE": "{{location}} - {{dateTime}}",
+        "TAB_LANDINGS": "Sampling",
+        "TAB_GENERAL": "Occasion"
+      },
+      "SALE_OBSERVATION": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Sampling",
         "TAB_GENERAL": "Occasion"
@@ -2145,6 +2151,7 @@
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Occasion > Start date: Time?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Occasion > End date?",
+      "OBSERVED_LOCATION_END_DATE_REQUIRED": "Occasion > End date required?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Occasion: Fill observers?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
@@ -2155,6 +2162,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Occasion > Weekly activity calendar > Number of days in the week",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Occasion > Enable report edition?",
+      "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Occasion > Show strategy card?",
       "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",

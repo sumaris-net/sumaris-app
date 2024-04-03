@@ -1401,6 +1401,9 @@
   },
   "OBSERVED_LOCATION": {
     "TITLE": "Sortie",
+    "SAMPLING_SCHEME": "Plan d'échantillonnage :",
+    "SAMPLING_STRATA": "Référence de la ligne de plan",
+    "SAMPLING_SCHEME_LABEL": "Programme de rattachement",
     "NEW": {
       "TITLE": "Nouvelle sortie"
     },
@@ -1425,11 +1428,17 @@
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
       "LANDINGS": "Débarquement(s)",
+      "TAB_PETS": "Autres espèces (PETS)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Contrôle du {{dateTime}}",
         "TAB_LANDINGS": "Navires contrôlés"
       },
       "SAMPLING": {
+        "TITLE": "{{location}} - {{dateTime}}",
+        "TAB_LANDINGS": "Échantillonnages",
+        "TAB_GENERAL": "Sortie"
+      },
+      "SALE_OBSERVATION": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages",
         "TAB_GENERAL": "Sortie"
@@ -2225,6 +2234,7 @@
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
+      "OBSERVED_LOCATION_END_DATE_REQUIRED": "Sortie: Date de fin obligatoire ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
@@ -2236,6 +2246,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
+      "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",

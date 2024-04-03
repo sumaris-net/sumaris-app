@@ -826,6 +826,9 @@ type ObservedLocationVO {
   startDateTime: Date
   updateDate: Date
   validationDate: Date
+  "Get trip's sampling strata"
+  samplingStrata: ReferentialVO
+  samplingStrataId: Int
 }
 
 type OperationGroupVO {
@@ -2907,6 +2910,8 @@ input ObservedLocationVOInput {
   qualityFlagId: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  samplingStrata: ReferentialVOInput
+  samplingStrataId: Int
   startDateTime: Date
   updateDate: Date
   validationDate: Date

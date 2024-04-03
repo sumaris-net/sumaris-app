@@ -678,6 +678,12 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Observed location
+  OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.samplingStrata.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.offline.import.location.level.ids',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
@@ -694,6 +700,12 @@ export const ProgramProperties = Object.freeze({
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+  OBSERVED_LOCATION_END_DATE_REQUIRED: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.endDate.required',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_REQUIRED',
     defaultValue: 'false',
     type: 'boolean',
   },
@@ -769,6 +781,12 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.observedLocation.control.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CONTROL_ENABLE',
     defaultValue: 'false', // FIXME: should be enable by default, when error translations will be OK
+    type: 'boolean',
+  },
+  OBSERVED_LOCATION_STRATEGY_CARD_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.strategyCard.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_STRATEGY_CARD_ENABLE',
+    defaultValue: 'false',
     type: 'boolean',
   },
 
@@ -1135,6 +1153,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'ONBOARD_OBSERVATION.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
+      },
+      {
+        key: 'SALE_OBSERVATION.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SALE_OBSERVATION',
       },
     ],
     defaultValue: 'legacy',
