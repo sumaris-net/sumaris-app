@@ -819,6 +819,10 @@ export const ProgramProperties = Object.freeze({
         key: <LandingEditor>'sampling',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SAMPLING',
       },
+      {
+        key: <LandingEditor>'sale',
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SALE',
+      },
     ],
     defaultValue: <LandingEditor>'landing',
   },
@@ -940,6 +944,15 @@ export const ProgramProperties = Object.freeze({
       attributes: ['id', 'label', 'name'],
       columnSizes: [2, 4, 6],
     },
+  },
+
+  /* -- Sale -- */
+
+  SALE_BATCH_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.batch.enable',
+    label: 'PROGRAM.OPTIONS.SALE_BATCH_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
   },
 
   /* -- Landed trip options -- */

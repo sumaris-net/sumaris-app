@@ -18,10 +18,12 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   @Input() required = true;
   @Input() showError = true;
+  @Input() showProgram = true;
   @Input() showVessel = true;
   @Input() showEndDateTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
+  @Input() i18nSuffix: string;
 
   @Input() set minDate(value: Moment) {
     if (value && (!this._minDate || !this._minDate.isSame(value))) {

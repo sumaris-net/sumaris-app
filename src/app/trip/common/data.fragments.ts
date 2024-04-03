@@ -217,6 +217,7 @@ export const DataFragments = {
       }
       # -- Parent link (not need)
       #operationId
+      saleId
       #gearUseFeaturesId
       __typename
     }
