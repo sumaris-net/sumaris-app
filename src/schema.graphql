@@ -848,9 +848,6 @@ type ObservedLocationVO {
   startDateTime: Date
   updateDate: Date
   validationDate: Date
-  "Get trip's sampling strata"
-  samplingStrata: ReferentialVO
-  samplingStrataId: Int
 }
 
 type OperationGroupVO {
