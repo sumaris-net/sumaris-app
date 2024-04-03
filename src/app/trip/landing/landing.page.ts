@@ -1,9 +1,9 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AppEditorOptions,
   AppErrorWithDetails,
+  DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
   equals,
@@ -46,8 +46,6 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-
-import moment from 'moment';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
@@ -321,7 +319,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.showQualityForm = false;
 
     if (this.isOnFieldMode) {
-      data.dateTime = moment();
+      data.dateTime = DateUtils.moment();
     }
 
     // Fill parent ids
@@ -384,7 +382,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     this.parent = await this.loadParent(data);
-    const programLabel = this.parent.program?.label;
 
     // Copy not fetched data
     if (this.parent) {
@@ -422,6 +419,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
+    const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
   }
@@ -741,7 +739,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   protected computeUsageMode(landing: Landing): UsageMode {
     return this.settings.isUsageMode('FIELD') &&
       // Force desktop mode if landing date/time is 1 day later than now
-      (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), 'day') <= 1)
+      (isNil(landing && landing.dateTime) || landing.dateTime.diff(DateUtils.moment(), 'day') <= 1)
       ? 'FIELD'
       : 'DESK';
   }

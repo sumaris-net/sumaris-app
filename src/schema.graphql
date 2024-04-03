@@ -373,6 +373,8 @@ type FishingAreaVO {
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  sale: SaleVO
+  saleId: Int
 }
 
 type GearUseFeaturesVO {
@@ -743,6 +745,8 @@ type Mutation {
   saveReferentials(referentials: [ReferentialVOInput]): [ReferentialVO]
   "Save many round weight conversions"
   saveRoundWeightConversions(data: [RoundWeightConversionVOInput]): [RoundWeightConversionVO]
+  "Create or update many sales"
+  saveSales(sales: [SaleVOInput]!): [SaleVO]
   "Save user settings"
   saveSettings(settings: UserSettingsVOInput): UserSettingsVO
   "Save a software configuration"
@@ -1337,6 +1341,8 @@ type Query {
   roundWeightConversions(filter: RoundWeightConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [RoundWeightConversionVO]
   "Search in round weight conversions"
   roundWeightConversionsCount(filter: RoundWeightConversionFilterVOInput): Long
+  "Get sale by id"
+  sale(id: Int!): SaleVO
   "Get total number of samples"
   samplesCount(filter: SampleFilterVOInput): Long!
   "A software config"
@@ -1471,10 +1477,13 @@ type RoundWeightConversionVO {
 }
 
 type SaleVO {
+  batches: [BatchVO]
+  catchBatch: BatchVO
   comments: String
   controlDate: Date
   creationDate: Date
   endDateTime: Date
+  fishingAreas: [FishingAreaVO]
   id: Int
   landing: LandingVO
   landingId: Int
@@ -1687,6 +1696,12 @@ type Subscription {
     "Minimum interval to find changes, in seconds."
     interval: Int = 30
   ): ReferentialVO
+  "Subscribe to changes on an sale"
+  updateSale(
+    id: Int!,
+    "Minimum interval to find changes, in seconds."
+    interval: Int = 30
+  ): SaleVO
   "Subscribe to changes on a trip"
   updateTrip(
     id: Int!,
@@ -2602,6 +2617,8 @@ input FishingAreaVOInput {
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  sale: SaleVOInput
+  saleId: Int
 }
 
 input GearUseFeaturesVOInput {
@@ -3390,10 +3407,13 @@ input RoundWeightConversionVOInput {
 }
 
 input SaleVOInput {
+  batches: [BatchVOInput]
+  catchBatch: BatchVOInput
   comments: String
   controlDate: Date
   creationDate: Date
   endDateTime: Date
+  fishingAreas: [FishingAreaVOInput]
   id: Int
   landing: LandingVOInput
   landingId: Int

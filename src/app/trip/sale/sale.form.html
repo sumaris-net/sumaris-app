@@ -7,7 +7,25 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-    <!-- VESSEL -->
+    <!-- Program -->
+    <ion-row *ngIf="showProgram">
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label>&nbsp;</ion-label>
+      </ion-col>
+      <ion-col>
+        <mat-autocomplete-field
+          formControlName="program"
+          [placeholder]="'SALE.EDIT.PROGRAM' | translateContext: i18nSuffix"
+          [config]="autocompleteFields.program"
+          [tabindex]="tabindex"
+          required
+        >
+          <ion-icon matPrefix name="contract"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- Vessel -->
     <ion-row *ngIf="showVessel">
       <!--      todo mf to be check with benoit-->
       <ion-col offset="0" offset-md="2" offset-lg="3">
@@ -16,7 +34,7 @@
           [placeholder]="'SALE.VESSEL' | translate"
           formControlName="vesselSnapshot"
           [config]="autocompleteFields.vesselSnapshot"
-          [tabindex]="tabindex"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 1"
           required
         >
           <ion-icon matPrefix name="boat"></ion-icon>
@@ -34,7 +52,7 @@
           formControlName="saleType"
           [placeholder]="'SALE.SALE_TYPE' | translate"
           [config]="autocompleteFields.saleType"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 1"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 2"
           [required]="required"
         >
           <ion-icon matPrefix name="card"></ion-icon>
@@ -49,7 +67,7 @@
           formControlName="saleLocation"
           [placeholder]="'SALE.SALE_LOCATION' | translate"
           [config]="autocompleteFields.location"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 2"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 3"
           [required]="form | formGetValue: 'saleType' | isNotEmptyReferential"
         >
           <mat-icon matPrefix>room</mat-icon>
@@ -59,7 +77,7 @@
         <mat-date-time-field
           [placeholder]="'SALE.DATE_TIME' | translate"
           formControlName="startDateTime"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 3"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 4"
           [required]="form | formGetValue: 'saleType' | isNotEmptyReferential"
         >
           <!-- icon need for small screen -->
@@ -75,7 +93,7 @@
           formControlName="saleLocation"
           [placeholder]="'SALE.SALE_LOCATION' | translate"
           [config]="autocompleteFields.location"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 5"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 6"
         >
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
@@ -91,7 +109,7 @@
         <mat-date-time-field
           [placeholder]="'SALE.START_DATE' | translate"
           formControlName="startDateTime"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 6"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 7"
         ></mat-date-time-field>
       </ion-col>
 
@@ -103,7 +121,7 @@
         <mat-date-time-field
           [placeholder]="'SALE.END_DATE' | translate"
           formControlName="endDateTime"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 7"
+          [tabindex]="tabindex === -1 ? -1 : tabindex + 8"
         ></mat-date-time-field>
       </ion-col>
     </ion-row>
@@ -122,7 +140,7 @@
             maxlength="2000"
             formControlName="comments"
             [placeholder]="'SALE.COMMENTS' | translate"
-            [tabindex]="tabindex === -1 ? -1 : tabindex + 9"
+            [tabindex]="tabindex === -1 ? -1 : tabindex + 20"
           ></textarea>
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

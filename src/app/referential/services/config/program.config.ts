@@ -928,6 +928,15 @@ export const ProgramProperties = Object.freeze({
     },
   },
 
+  /* -- Sale -- */
+
+  SALE_BATCH_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.batch.enable',
+    label: 'PROGRAM.OPTIONS.SALE_BATCH_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
+
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{

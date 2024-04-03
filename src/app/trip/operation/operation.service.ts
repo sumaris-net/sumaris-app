@@ -1674,7 +1674,7 @@ export class OperationService
   protected fillBatchTreeDefaults(catchBatch: Batch, opts?: Partial<OperationSaveOptions>) {
     if (!opts) return;
 
-    // CLean empty
+    // Clean empty
     if (opts.cleanBatchTree) BatchUtils.cleanTree(catchBatch);
 
     // Compute rankOrder (and label)

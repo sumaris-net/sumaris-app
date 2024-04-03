@@ -1353,7 +1353,7 @@
     "CALCULATED_TOTAL": "Total calculé :"
   },
   "SALE": {
-    "TITLE_PREFIX":"<small> {{location}} - {{date}}</small>",
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}</small>",
     "TITLE": "Vente",
     "SALE_FIELD": "Vente :",
     "DATE_TIME": "Date/heure",
@@ -1371,7 +1371,8 @@
       "TITLE": "Nouvelle vente"
     },
     "EDIT": {
-      "TITLE": "{{taxonName}} - Navire {{vessel}}",
+      "TITLE": "Navire {{vessel}}",
+      "PROGRAM": "Programme",
       "TAB_GENERAL": "Détails",
       "TAB_BATCHES": "Lots"
     },
