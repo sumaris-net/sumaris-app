@@ -742,17 +742,19 @@ export class TripService
           { tripId: id },
           {
             fetchPolicy: (!isLocalTrip && 'network-only') || undefined,
-            fullLoad: isLocalTrip
+            fullLoad: isLocalTrip,
           }
         );
         source.operations = isLocalTrip
           ? data
           : // Full load entities remotely
-            await Promise.all(data.map(async (lightOperation) => {
-              const fullOperation = await this.operationService.load(lightOperation.id);
-              fullOperation.rankOrder = lightOperation.rankOrder;
-              return fullOperation;
-            }));
+            await Promise.all(
+              data.map(async (lightOperation) => {
+                const fullOperation = await this.operationService.load(lightOperation.id);
+                fullOperation.rankOrder = lightOperation.rankOrder; // Restore the computed rankOrder
+                return fullOperation;
+              })
+            );
       }
 
       // Transform to entity

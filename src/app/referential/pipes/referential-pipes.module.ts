@@ -36,7 +36,6 @@ import { CorePipesModule } from '@sumaris-net/ngx-components';
   ],
   exports: [
     TranslateModule,
-
     CorePipesModule,
 
     // Pipes
