@@ -15,6 +15,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  MatAutocompleteFieldConfig,
+  NamedFilter,
   NetworkService,
   referentialToString,
   toBoolean,
@@ -75,6 +77,16 @@ export abstract class AppRootDataTable<
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected readonly $selectedProgramLabels = new BehaviorSubject<string[]>([]);
+
+  protected namedFilterContentProvider = (): object => this.filterForm.value;
+  protected filterImportCallback = async (namedFilter: NamedFilter): Promise<NamedFilter> => {
+    delete namedFilter.id;
+    delete namedFilter.updateDate;
+    return namedFilter;
+  };
+  protected namedFilterAutocompleteConfig: MatAutocompleteFieldConfig = {
+    showAllOnFocus: true,
+  };
 
   canDelete: boolean;
   isAdmin: boolean;

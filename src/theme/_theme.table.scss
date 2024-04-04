@@ -24,7 +24,6 @@
   .mat-mdc-header-row,
   .mat-mdc-row,
   .mat-mdc-footer-row {
-
     .mat-column-select {
       width: 50px; // Force to 50px, because sticky column must have fixed width
     }
@@ -32,7 +31,6 @@
     .mat-mdc-header-cell,
     .mat-mdc-cell,
     .mat-mdc-footer-cell {
-
       // Remove right border, of sticky columns
       &.mat-mdc-table-sticky-border-elem-left {
         border-right: 0 !important; // 1px solid #{$app-table-border-color};
@@ -40,7 +38,7 @@
     }
   }
 
-  .mat-mdc-header-row  .mat-mdc-header-cell {
+  .mat-mdc-header-row .mat-mdc-header-cell {
     --mat-cell-overflow: hidden;
 
     &.mat-column-pmfm .mat-sort-header-content {
@@ -67,6 +65,25 @@
       }
     }
   }
-
 }
 
+app-toolbar app-named-filter-selector {
+  --app-form-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-label-text-color: rgba(var(--ion-color-contrast-rgb), 0.7);
+  --mdc-outlined-text-field-outline-color: rgba(var(--ion-color-contrast-rgb), 0.8);
+  --mdc-outlined-text-field-hover-label-text-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-hover-outline-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-focus-label-text-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-focus-outline-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-input-text-color: var(--ion-color-contrast);
+  --mdc-outlined-text-field-caret-color: var(--ion-color-contrast);
+  --ion-color: rgba(var(--ion-color-contrast-rgb), 0.8);
+  --mdc-icon-button-icon-color: rgba(var(--ion-color-contrast-rgb), 0.8);
+  --mdc-icon-button-disabled-icon-color: rgba(var(--ion-color-contrast-rgb), 0.8);
+  --ion-color-tertiary: var(--ion-color-accent);
+
+  &:hover {
+    --mdc-icon-button-icon-color: var(--ion-color-contrast);
+    --mdc-icon-button-disabled-icon-color: var(--ion-color-contrast);
+  }
+}
