@@ -68,7 +68,7 @@ f_setup_sumaris() {
   f_msg I "Setup SUMARiS"
   set -e
   if [ ! -d "${PROJECT_DIR}/www/" ] ; then
-    npm run build.prod
+    npm run build:prod
   fi
 
   [ -d "${MK_PACKAGE_DIR}/www" ] && rm -r "${MK_PACKAGE_DIR}/www"
