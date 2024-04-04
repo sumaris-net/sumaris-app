@@ -152,10 +152,22 @@
       "LINK": "Share link"
     },
     "REPORT": {
-      "SHARE_LINK_PLACEHOLDER": "Link of the report:"
+      "SHARE_LINK_PLACEHOLDER": "Link of the report:",
+      "TYPE_DIVIDER": "Report types"
     },
     "HELP": {
       "TITLE": "Online help"
+    },
+    "NAMED_FILTER": {
+      "TITLE": "Named filter",
+      "SAVE": "Save filter",
+      "DELETE": "Delete filter",
+      "DELETED": "Filter deleted",
+      "EXPORT": "Export filter",
+      "IMPORT": "Import filter",
+      "LOAD_FAILED": "Failed to load filter",
+      "IMPORT_FAILED": "Faild to import filter",
+      "NOT_FOUND": "Filter not found"
     }
   },
   "CONFIGURATION": {

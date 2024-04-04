@@ -152,7 +152,8 @@
       "LINK": "Share link"
     },
     "REPORT": {
-      "SHARE_LINK_PLACEHOLDER": "Link of the report:"
+      "SHARE_LINK_PLACEHOLDER": "Link of the report:",
+      "TYPE_DIVIDER": "Report types"
     },
     "HELP": {
       "TITLE": "Online help"
