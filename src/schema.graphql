@@ -645,6 +645,8 @@ type Mutation {
   deleteLanding(id: Int!): Boolean!
   "Delete many observed locations"
   deleteLandings(ids: [Int]!): Boolean!
+  "Delete many named filters by ids"
+  deleteNamedFilter(id: Int, ids: [Int]): Boolean!
   "Delete an observed location"
   deleteObservedLocation(id: Int!): Boolean!
   "Delete many observed locations"
@@ -723,6 +725,10 @@ type Mutation {
   saveLanding(landing: LandingVOInput): LandingVO
   "Create or update many landings"
   saveLandings(landings: [LandingVOInput]!): [LandingVO]
+  "Save a NamedFilter"
+  saveNamedFilter(namedFilter: NamedFilterVOInput, saveOptions: NamedFilterSaveOptionsInput): NamedFilterVO
+  "Save many named filters"
+  saveNamedFilters(namedFilters: [NamedFilterVOInput], saveOptions: NamedFilterSaveOptionsInput): [NamedFilterVO]
   "Create or update an observed location"
   saveObservedLocation(observedLocation: ObservedLocationVOInput, options: ObservedLocationSaveOptionsInput): ObservedLocationVO
   "Create or update many observed locations"
@@ -801,6 +807,19 @@ type Mutation {
   validateObservedLocation(observedLocation: ObservedLocationVOInput, options: DataValidateOptionsInput): ObservedLocationVO
   "Validate a trip"
   validateTrip(trip: TripVOInput!): TripVO
+}
+
+type NamedFilterVO {
+  content: String
+  creationDate: Date
+  entityName: String
+  id: Int
+  name: String
+  recorderDepartment: DepartmentVO
+  recorderDepartmentId: Int
+  recorderPerson: PersonVO
+  recorderPersonId: Int
+  updateDate: Date
 }
 
 type ObservedLocationVO {
@@ -1294,6 +1313,12 @@ type Query {
   metiers(filter: MetierFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [MetierVO]
   "Count metiers"
   metiersCount(filter: MetierFilterVOInput): Long
+  "Find NamedFilter by id"
+  namedFilter(id: Int): NamedFilterVO
+  "Find many named filters"
+  namedFilters(filter: NamedFilterFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [NamedFilterVO]
+  "Get named filters count"
+  namedFiltersCount(filter: NamedFilterFilterVOInput): Long!
   "Get an observed location, by id"
   observedLocation(id: Int!): ObservedLocationVO
   "Search in observed locations"
@@ -2870,6 +2895,32 @@ input MetierVOInput {
   taxonGroup: TaxonGroupVOInput
   updateDate: Date
   validityStatusId: Int
+}
+
+input NamedFilterFilterVOInput {
+  dataQualityStatus: [DataQualityStatusEnum]
+  entityName: String
+  qualityFlagIds: [Int]
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+  searchText: String
+}
+
+input NamedFilterSaveOptionsInput {
+  isDepartmentFilter: Boolean
+}
+
+input NamedFilterVOInput {
+  content: String
+  creationDate: Date
+  entityName: String
+  id: Int
+  name: String
+  recorderDepartment: DepartmentVOInput
+  recorderDepartmentId: Int
+  recorderPerson: PersonVOInput
+  recorderPersonId: Int
+  updateDate: Date
 }
 
 input ObservedLocationFilterVOInput {

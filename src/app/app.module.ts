@@ -11,7 +11,6 @@ import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
   APP_CONFIG_OPTIONS,
-  APP_DEBUG_DATA_SERVICE,
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
@@ -111,7 +110,7 @@ import {
   ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
 } from '@app/activity-calendar/activity-calendar.config';
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
-import { NamedFilterService } from './named-filter/named-filter.service';
+import { NamedFilterService } from '@app/shared/service/named-filter.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -258,7 +257,6 @@ import { NamedFilterService } from './named-filter/named-filter.service';
     // User event
     { provide: UserEventService, useClass: UserEventService },
     { provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService },
-    { provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService },
 
     // Job
     { provide: JobProgressionService, useClass: JobProgressionService },

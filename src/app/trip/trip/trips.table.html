@@ -128,7 +128,7 @@
       #namedFilterSelector
       [entityName]="'Trip'"
       [filterContentProvider]="namedFilterContentProvider"
-      [filterFormDirty]="dirty"
+      [filterFormDirty]="filterForm.dirty"
       [autocompleteConfig]="namedFilterAutocompleteConfig"
       [filterImportCallback]="filterImportCallback"
       (filterSelected)="setFilter($event)"
