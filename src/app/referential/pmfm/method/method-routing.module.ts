@@ -9,16 +9,13 @@ const routes: Routes = [
     pathMatch: 'full',
     component: MethodPage,
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppPmfmMethodModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppPmfmMethodModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppPmfmMethodRoutingModule { }
+export class AppPmfmMethodRoutingModule {}

@@ -39,15 +39,15 @@ export class BatchGroup extends Batch<BatchGroup> {
 }
 
 export class BatchGroupUtils {
-
   static fromBatchTree(catchBatch: Batch): BatchGroup[] {
-
     // Retrieve batch group (make sure label start with acquisition level)
     // Then convert into batch group entities
-    return (catchBatch.children || [])
-      .filter(s => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#'))
-      // Convert to Batch Group
-      .map(BatchGroup.fromBatch);
+    return (
+      (catchBatch.children || [])
+        .filter((s) => s.label && s.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#'))
+        // Convert to Batch Group
+        .map(BatchGroup.fromBatch)
+    );
   }
 
   /**
@@ -56,7 +56,6 @@ export class BatchGroupUtils {
    * @param batch
    */
   static computeObservedIndividualCount(batch: BatchGroup) {
-
     // Compute observed indiv. count
     batch.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
   }
@@ -68,8 +67,7 @@ export class BatchGroupUtils {
    * @param batchGroup2
    */
   static equals(batchGroup1: BatchGroup, batchGroup2: BatchGroup) {
-    return EntityUtils.equals(batchGroup1, batchGroup2, 'rankOrder')
-      && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
+    return EntityUtils.equals(batchGroup1, batchGroup2, 'rankOrder') && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
   }
 
   /**
@@ -79,20 +77,22 @@ export class BatchGroupUtils {
    * @param pmfms
    * @param opts
    */
-  static mapChildrenPmfms(pmfms: IPmfm[], opts: {
-    qvPmfm?: IPmfm;
-    qvId?: number;
-    isDiscard?: boolean;
-  }) {
-    const isDiscard = opts.isDiscard
-      || (opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
+  static mapChildrenPmfms(
+    pmfms: IPmfm[],
+    opts: {
+      qvPmfm?: IPmfm;
+      qvId?: number;
+      isDiscard?: boolean;
+    }
+  ) {
+    const isDiscard = opts.isDiscard || opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
 
     const childrenPmfms = (pmfms || [])
       // Remove qvPmfm (will be add first)
-      .filter(pmfm => pmfm.id !== opts.qvPmfm?.id)
+      .filter((pmfm) => pmfm.id !== opts.qvPmfm?.id)
       // Allow DISCARD_REASON only on DISCARD
-      .filter(pmfm => pmfm.id !== PmfmIds.DISCARD_REASON || isDiscard)
-      .map(pmfm => {
+      .filter((pmfm) => pmfm.id !== PmfmIds.DISCARD_REASON || isDiscard)
+      .map((pmfm) => {
         // If DISCARD
         if (isDiscard) {
           // Hide pmfm DRESSING and PRESERVATION, and force default values
@@ -100,13 +100,11 @@ export class BatchGroupUtils {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.DRESSING.WHOLE, label: 'WHL' });
-          }
-          else if (pmfm.id === PmfmIds.PRESERVATION) {
+          } else if (pmfm.id === PmfmIds.PRESERVATION) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.PRESERVATION.FRESH, label: 'FRE' });
-          }
-          else if (pmfm.id === PmfmIds.TRAWL_SIZE_CAT) {
+          } else if (pmfm.id === PmfmIds.TRAWL_SIZE_CAT) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'NA' });
@@ -123,13 +121,11 @@ export class BatchGroupUtils {
       const qvPmfm = opts.qvPmfm.clone();
       qvPmfm.hidden = true;
       qvPmfm.required = true;
-      qvPmfm.defaultValue = opts.qvPmfm.qualitativeValues.find(qv => qv.id === opts.qvId);
+      qvPmfm.defaultValue = opts.qvPmfm.qualitativeValues.find((qv) => qv.id === opts.qvId);
       return [qvPmfm, ...childrenPmfms];
-    }
-    else {
+    } else {
       return childrenPmfms;
     }
-
   }
 
   /**
@@ -142,39 +138,43 @@ export class BatchGroupUtils {
   static findChildByQvValue(batchGroup: BatchGroup, qvValue: PmfmValue, qvPmfm: IPmfm): Batch {
     const qvPmfmId = qvPmfm.id;
     const value = PmfmValueUtils.toModelValue(qvValue, qvPmfm);
-    return (batchGroup.children || []).find(parent =>
-      // WARN: use '==' and NOT '===', because measurementValues can use string, for values
-      // eslint-disable-next-line eqeqeq
-      value == PmfmValueUtils.toModelValue(parent.measurementValues[qvPmfmId], qvPmfm)
+    return (batchGroup.children || []).find(
+      (parent) =>
+        // WARN: use '==' and NOT '===', because measurementValues can use string, for values
+        // eslint-disable-next-line eqeqeq
+        value == PmfmValueUtils.toModelValue(parent.measurementValues[qvPmfmId], qvPmfm)
     );
   }
 
-  static getQvPmfm(pmfms: IPmfm[], opts?: {
-    preferredPmfmIds?: number[];
-    onlyFirst?: boolean; // If not a preferred pmfm, should be the first PMFM in the list ?
-  }): IPmfm | undefined {
+  static getQvPmfm(
+    pmfms: IPmfm[],
+    opts?: {
+      preferredPmfmIds?: number[];
+      onlyFirst?: boolean; // If not a preferred pmfm, should be the first PMFM in the list ?
+    }
+  ): IPmfm | undefined {
     opts = {
       preferredPmfmIds: [PmfmIds.DISCARD_OR_LANDING],
       onlyFirst: true,
-      ...opts
+      ...opts,
     };
-    let qvPmfm = pmfms && (
+    let qvPmfm =
+      pmfms &&
       // Use the first preferred pmfm if present AND visible (e.g. DISCARD/LANDING)
-      (isNotEmptyArray(opts.preferredPmfmIds) && pmfms.find(p => opts.preferredPmfmIds.includes(p.id) && !p.hidden))
-      // Or get the first QV pmfm
-      || PmfmUtils.getFirstQualitativePmfm(pmfms, {
-        excludeHidden: true,
-        minQvCount: 2, // (e.g. exclude SUB_GEAR)
-        maxQvCount: 3, // (e.g. exclude TRAWL_SIZE_CAT)
-        //excludePmfmIds: [PmfmIds.DRESSING, PmfmIds.TRAWL_SIZE_CAT],
-        filterFn: (p, index) => !opts.onlyFirst || index === 0 // Should be the first visible (e.g. no number before)
-      })
-    );
+      ((isNotEmptyArray(opts.preferredPmfmIds) && pmfms.find((p) => opts.preferredPmfmIds.includes(p.id) && !p.hidden)) ||
+        // Or get the first QV pmfm
+        PmfmUtils.getFirstQualitativePmfm(pmfms, {
+          excludeHidden: true,
+          minQvCount: 2, // (e.g. exclude SUB_GEAR)
+          maxQvCount: 3, // (e.g. exclude TRAWL_SIZE_CAT)
+          //excludePmfmIds: [PmfmIds.DRESSING, PmfmIds.TRAWL_SIZE_CAT],
+          filterFn: (p, index) => !opts.onlyFirst || index === 0, // Should be the first visible (e.g. no number before)
+        }));
 
     // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
     if (qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
       qvPmfm = qvPmfm.clone(); // copy, to keep original array
-      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => (qv1.label === 'LAN' ? -1 : 1));
     }
     return qvPmfm;
   }

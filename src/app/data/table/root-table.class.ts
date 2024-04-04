@@ -30,7 +30,7 @@ import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
@@ -41,30 +41,32 @@ export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
 };
 
-export type AppRootTableFilterRestoreSource = 'settings'|'queryParams';
+export type AppRootTableFilterRestoreSource = 'settings' | 'queryParams';
 
 export interface IRootDataEntitiesService<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
-  ID = number
-  > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID>, IDataEntityQualityService<T, ID> {
-
+  ID = number,
+> extends IEntitiesService<T, F>,
+    IDataSynchroService<T, F, ID>,
+    IDataEntityQualityService<T, ID> {
   featureName: string;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataTable<
-  T extends RootDataEntity<T, ID>,
-  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
-  S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
-  V extends BaseValidatorService<T, ID> = any,
-  ID = number,
-  O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
+    T extends RootDataEntity<T, ID>,
+    F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+    S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
+    V extends BaseValidatorService<T, ID> = any,
+    ID = number,
+    ST extends BaseTableState = BaseTableState,
+    O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
-  extends AppBaseTable<T, F, S, V, ID, O>
-  implements OnInit, OnDestroy {
-
+  extends AppBaseTable<T, F, S, V, ID, ST, O>
+  implements OnInit, OnDestroy
+{
   protected readonly network: NetworkService;
   protected readonly accountService: AccountService;
   protected readonly userEventService: UserEventService;
@@ -85,7 +87,7 @@ export abstract class AppRootDataTable<
   $progression = new BehaviorSubject<number>(0);
   featureName: string;
   @Input() hasOfflineMode = false;
-  @Input() restoreFilterSources: false|AppRootTableFilterRestoreSource[] = ['settings', 'queryParams'];
+  @Input() restoreFilterSources: false | AppRootTableFilterRestoreSource[] = ['settings', 'queryParams'];
   @Input() showOfflineMode = true;
   @Input() showQuality = true;
 
@@ -109,8 +111,7 @@ export abstract class AppRootDataTable<
     }
 
     // Find a row that user CANNOT delete
-    const invalidRow = this.selection.selected
-      .find(row => !this._dataService.canUserWrite(row.currentData));
+    const invalidRow = this.selection.selected.find((row) => !this._dataService.canUserWrite(row.currentData));
 
     return !invalidRow;
   }
@@ -118,7 +119,7 @@ export abstract class AppRootDataTable<
   @Input() showUpdateOfflineFeature = true;
   @Input() showInstallUpgradeCard = true;
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   protected constructor(
     injector: Injector,
@@ -129,12 +130,7 @@ export abstract class AppRootDataTable<
     validatorService: V,
     options?: O
   ) {
-    super(injector,
-      dataType, filterType,
-      columnNames,
-      dataService,
-      validatorService,
-      options);
+    super(injector, dataType, filterType, columnNames, dataService, validatorService, options);
     this.network = injector.get(NetworkService);
     this.accountService = injector.get(AccountService);
     this.userEventService = injector.get(UserEventService);
@@ -150,19 +146,17 @@ export abstract class AppRootDataTable<
 
     this.registerSubscription(
       this.selection.changed
+        .pipe(debounceTime(650))
         .pipe(
-          debounceTime(650)
-        )
-        .pipe(
-          map(_ => this.selection.selected),
-          map(rows => (rows || []).map(row => row.currentData?.program?.label).filter(isNotNilOrBlank)),
+          map((_) => this.selection.selected),
+          map((rows) => (rows || []).map((row) => row.currentData?.program?.label).filter(isNotNilOrBlank)),
           filter(isNotEmptyArray),
-          map(programLabels => arrayDistinct(programLabels)),
+          map((programLabels) => arrayDistinct(programLabels)),
           // DEBUG
-          tap(programLabels => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
+          tap((programLabels) => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
         )
-        .subscribe(programLabels => this.$selectedProgramLabels.next(programLabels))
-      );
+        .subscribe((programLabels) => this.$selectedProgramLabels.next(programLabels))
+    );
   }
 
   ngOnInit() {
@@ -177,22 +171,16 @@ export abstract class AppRootDataTable<
     if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
 
     // Listen synchronizationStatus
-    this.synchronizationStatus$ = this.onRefresh
-      .pipe(
-        startWith(this.synchronizationStatus),
-        map(() => this.synchronizationStatus)
-      );
+    this.synchronizationStatus$ = this.onRefresh.pipe(
+      startWith(this.synchronizationStatus),
+      map(() => this.synchronizationStatus)
+    );
 
     // Listen network
     this.offline = this.network.offline;
     this.registerSubscription(
-      this.network.onNetworkStatusChanges
-        .pipe(
-          filter(isNotNil),
-          distinctUntilChanged()
-        )
-        .subscribe((type) => this.onNetworkStatusChanged(type)));
-
+      this.network.onNetworkStatusChanges.pipe(filter(isNotNil), distinctUntilChanged()).subscribe((type) => this.onNetworkStatusChanged(type))
+    );
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
@@ -203,7 +191,8 @@ export abstract class AppRootDataTable<
         if (this.showUpdateOfflineFeature) {
           this.checkUpdateOfflineNeed();
         }
-      }));
+      })
+    );
 
     // Update filter when changes
     this.registerSubscription(
@@ -216,26 +205,25 @@ export abstract class AppRootDataTable<
             return valid;
           }),
           // Update the filter, without reloading the content
-          tap(json => this.setFilter(json, {emitEvent: false})),
+          tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           filter(() => isNotNilOrBlank(this.settingsId) && this.restoreFilterSources !== false && this.restoreFilterSources.includes('settings')),
-          tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
+          tap((json) => this.settings.savePageSetting(this.settingsId, { ...json }, AppRootTableSettingsEnum.FILTER_KEY))
         )
-        .subscribe());
+        .subscribe()
+    );
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
 
     this.$progression.unsubscribe();
-
   }
 
   onNetworkStatusChanged(type: ConnectionType) {
     const offline = type === 'none';
     if (this.offline !== offline) {
-
       // Update the property used in template
       this.offline = offline;
       this.markForCheck();
@@ -250,20 +238,22 @@ export abstract class AppRootDataTable<
   toggleOfflineMode(event?: Event) {
     if (this.network.offline) {
       this.network.setForceOffline(false);
-    }
-    else {
-      this.network.setForceOffline(true, {showToast: true});
+    } else {
+      this.network.setForceOffline(true, { showToast: true });
       this.hasOfflineMode = true;
-      this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false /*avoid refresh*/});
+      this.filterForm.patchValue({ synchronizationStatus: 'DIRTY' }, { emitEvent: false /*avoid refresh*/ });
     }
     // Refresh table
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: Event, opts?: {
-    toggleToOfflineMode?: boolean; // Switch to offline mode ?
-    showToast?: boolean; // Display success toast ?
-  }): Promise<undefined | boolean> {
+  async prepareOfflineMode(
+    event?: Event,
+    opts?: {
+      toggleToOfflineMode?: boolean; // Switch to offline mode ?
+      showToast?: boolean; // Display success toast ?
+    }
+  ): Promise<undefined | boolean> {
     if (this.importing) return; // skip
 
     // If offline, warn user and ask to reconnect
@@ -272,7 +262,7 @@ export abstract class AppRootDataTable<
         return this.network.showOfflineToast({
           // Allow to retry to connect
           showRetryButton: true,
-          onRetrySuccess: () => this.prepareOfflineMode(null, opts)
+          onRetrySuccess: () => this.prepareOfflineMode(null, opts),
         });
       }
       return false;
@@ -285,12 +275,12 @@ export abstract class AppRootDataTable<
 
     let success = false;
     try {
-
       await new Promise<void>((resolve, reject) => {
         // Run the import
-        this._dataService.runImport(null, {maxProgression})
+        this._dataService
+          .runImport(null, { maxProgression })
           .pipe(
-            filter(value => value > 0),
+            filter((value) => value > 0),
             map((progress) => {
               if (!this.importing) {
                 this.importing = true;
@@ -299,11 +289,11 @@ export abstract class AppRootDataTable<
               return Math.min(Math.trunc(progress), maxProgression);
             }),
             throttleTime(100),
-            tap(progression => this.$progression.next(progression))
+            tap((progression) => this.$progression.next(progression))
           )
           .subscribe({
             error: (err) => reject(err),
-            complete: () => resolve()
+            complete: () => resolve(),
           });
       });
 
@@ -314,20 +304,18 @@ export abstract class AppRootDataTable<
 
       // Display toast
       if (!opts || opts.showToast !== false) {
-        this.showToast({message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info'});
+        this.showToast({ message: 'NETWORK.INFO.IMPORTATION_SUCCEED', showCloseButton: true, type: 'info' });
       }
       success = true;
 
       // Hide the warning message
       this.needUpdateOfflineFeature = false;
       return success;
-    }
-    catch (err) {
+    } catch (err) {
       success = false;
       this.setError(err);
       return success;
-    }
-    finally {
+    } finally {
       this.hasOfflineMode = this.hasOfflineMode || success;
       this.$progression.next(0);
       this.importing = false;
@@ -335,7 +323,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async setSynchronizationStatus(value: SynchronizationStatus, opts = {showToast : true}): Promise<boolean> {
+  async setSynchronizationStatus(value: SynchronizationStatus, opts = { showToast: true }): Promise<boolean> {
     if (!value) return false; // Skip if empty
 
     // Make sure network is UP
@@ -344,7 +332,7 @@ export abstract class AppRootDataTable<
         this.network.showOfflineToast({
           // Allow to retry to connect
           showRetryButton: true,
-          onRetrySuccess: () => this.setSynchronizationStatus(value) // Loop
+          onRetrySuccess: () => this.setSynchronizationStatus(value), // Loop
         });
       }
       return false;
@@ -352,9 +340,9 @@ export abstract class AppRootDataTable<
 
     console.debug('[trips] Applying filter to synchronization status: ' + value);
     this.resetError();
-    this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
-    const json = { ...this.filter, synchronizationStatus: value};
-    this.setFilter(json, {emitEvent: true});
+    this.filterForm.patchValue({ synchronizationStatus: value }, { emitEvent: false });
+    const json = { ...this.filter, synchronizationStatus: value };
+    this.setFilter(json, { emitEvent: true });
 
     // Save filter to settings (need to be done here, because entity creation can need it - e.g. to apply Filter as default values)
     if (isNotNilOrBlank(this.settingsId)) {
@@ -366,8 +354,7 @@ export abstract class AppRootDataTable<
   toggleSynchronizationStatus() {
     if (this.offline || this.synchronizationStatus === 'SYNC') {
       this.setSynchronizationStatus('DIRTY');
-    }
-    else {
+    } else {
       this.setSynchronizationStatus('SYNC');
     }
   }
@@ -382,23 +369,22 @@ export abstract class AppRootDataTable<
 
     // If 'DIRTY' but offline not init : init this mode
     if (value !== 'SYNC' && !this.hasOfflineMode) {
-
       // If offline, warn user and ask to reconnect
       if (this.network.offline) {
         return this.network.showOfflineToast({
           // Allow to retry to connect
           showRetryButton: true,
-          onRetrySuccess: () => this.addRowToSyncStatus(null, value)
+          onRetrySuccess: () => this.addRowToSyncStatus(null, value),
         });
       }
 
-      const done = await this.prepareOfflineMode(null, {toggleToOfflineMode: false, showToast: false});
+      const done = await this.prepareOfflineMode(null, { toggleToOfflineMode: false, showToast: false });
       if (!done || !this.hasOfflineMode) return; // Skip if failed
     }
 
     // Set the synchronization status, if changed
     if (this.synchronizationStatus !== value) {
-      const ok = await this.setSynchronizationStatus(value, {showToast: false});
+      const ok = await this.setSynchronizationStatus(value, { showToast: false });
       if (!ok) return;
 
       // Make sure status changed
@@ -409,7 +395,7 @@ export abstract class AppRootDataTable<
     }
 
     // Force settings the expected usageMode
-    const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+    const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK' : 'FIELD';
     if (this.settings.usageMode !== forceUsageMode) {
       console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
       await this.settings.applyProperty('usageMode', forceUsageMode);
@@ -419,17 +405,15 @@ export abstract class AppRootDataTable<
     this.addRow(event);
   }
 
-
-  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event | undefined, row: TableElement<T>): boolean {
     if (this.importing) return; // Skip
     return super.clickRow(event, row);
   }
 
   protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {
-
     // Force settings the expected usageMode
     if (this.mobile && this.hasOfflineMode) {
-      const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+      const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK' : 'FIELD';
       if (this.settings.usageMode !== forceUsageMode) {
         console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
         await this.settings.applyProperty('usageMode', forceUsageMode);
@@ -449,16 +433,12 @@ export abstract class AppRootDataTable<
 
   get hasReadyToSyncSelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
-    return this.selection.selected
-      .map(row => row.currentData)
-      .findIndex(RootDataEntityUtils.isReadyToSync) !== -1;
+    return this.selection.selected.map((row) => row.currentData).findIndex(RootDataEntityUtils.isReadyToSync) !== -1;
   }
 
   get hasDirtySelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
-    return this.selection.selected
-      .map(row => row.currentData)
-      .findIndex(RootDataEntityUtils.isLocalAndDirty) !== -1;
+    return this.selection.selected.map((row) => row.currentData).findIndex(RootDataEntityUtils.isLocalAndDirty) !== -1;
   }
 
   async terminateAndSynchronizeSelection() {
@@ -470,41 +450,36 @@ export abstract class AppRootDataTable<
       await this.terminateSelection({
         showSuccessToast: false,
         emitEvent: false,
-        rows
+        rows,
       });
 
-      await this.synchronizeSelection( {
+      await this.synchronizeSelection({
         showSuccessToast: true, // display toast when succeed
         emitEvent: false,
-        rows
+        rows,
       });
 
       // Clean selection
       this.selection.clear();
-
     } catch (err) {
       console.error(err);
-    }
-    finally {
+    } finally {
       this.onRefresh.emit();
     }
   }
 
-  async terminateSelection(opts?: {
-    showSuccessToast?: boolean;
-    emitEvent?: boolean;
-    rows?: TableElement<T>[];
-  }) {
+  async terminateSelection(opts?: { showSuccessToast?: boolean; emitEvent?: boolean; rows?: TableElement<T>[] }) {
     if (!this._enabled) return; // Skip
 
-    const rows = opts && opts.rows || (!this.loading && this.selection.selected.slice());
+    const rows = (opts && opts.rows) || (!this.loading && this.selection.selected.slice());
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
+      // eslint-disable-next-line no-async-promise-executor
       await new Promise<void>(async (resolve, reject) => {
         const res = await this.network.showOfflineToast({
           showRetryButton: true,
-          onRetrySuccess: () => resolve()
+          onRetrySuccess: () => resolve(),
         });
         if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
@@ -513,9 +488,9 @@ export abstract class AppRootDataTable<
     if (this.debug) console.debug('[root-table] Starting to terminate data...');
 
     const ids = rows
-      .map(row => row.currentData)
+      .map((row) => row.currentData)
       .filter(RootDataEntityUtils.isLocalAndDirty)
-      .map(entity => entity.id);
+      .map((entity) => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to terminate
 
@@ -523,32 +498,30 @@ export abstract class AppRootDataTable<
     this.error = null;
 
     try {
-      await chainPromises(ids.map(id => () => this._dataService.terminateById(id)));
+      await chainPromises(ids.map((id) => () => this._dataService.terminateById(id)));
 
       // Update rows, when no refresh will be emitted
       if (opts?.emitEvent === false) {
-        rows.map(row => {
-            if (RootDataEntityUtils.isLocalAndDirty(row.currentData)) {
-              row.currentData.synchronizationStatus = 'READY_TO_SYNC';
-            }
-          });
+        rows.map((row) => {
+          if (RootDataEntityUtils.isLocalAndDirty(row.currentData)) {
+            row.currentData.synchronizationStatus = 'READY_TO_SYNC';
+          }
+        });
       }
 
       // Success message
       if (!opts || opts.showSuccessToast !== false) {
         this.showToast({
-          message: 'INFO.SYNCHRONIZATION_SUCCEED'
+          message: 'INFO.SYNCHRONIZATION_SUCCEED',
         });
       }
-
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => chainPromises(ids.map(id => () => this._dataService.load(id, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(ids.map((id) => () => this._dataService.load(id, { withOperation: true, toEntity: false }))),
       });
       throw error;
-    }
-    finally {
+    } finally {
       if (!opts || opts.emitEvent !== false) {
         // Reset selection
         this.selection.clear();
@@ -559,22 +532,18 @@ export abstract class AppRootDataTable<
     }
   }
 
-
-  async synchronizeSelection(opts?: {
-    showSuccessToast?: boolean;
-    emitEvent?: boolean;
-    rows?: TableElement<T>[];
-  }) {
+  async synchronizeSelection(opts?: { showSuccessToast?: boolean; emitEvent?: boolean; rows?: TableElement<T>[] }) {
     if (!this._enabled) return; // Skip
 
-    const rows = opts && opts.rows || (!this.loading && this.selection.selected.slice());
+    const rows = (opts && opts.rows) || (!this.loading && this.selection.selected.slice());
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
+      // eslint-disable-next-line no-async-promise-executor
       await new Promise<void>(async (resolve, reject) => {
         const res = await this.network.showOfflineToast({
           showRetryButton: true,
-          onRetrySuccess: () => resolve()
+          onRetrySuccess: () => resolve(),
         });
         if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
@@ -583,9 +552,9 @@ export abstract class AppRootDataTable<
     if (this.debug) console.debug('[root-table] Starting to synchronize data...');
 
     const ids = rows
-      .map(row => row.currentData)
+      .map((row) => row.currentData)
       .filter(RootDataEntityUtils.isReadyToSync)
-      .map(entity => entity.id);
+      .map((entity) => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to sync
 
@@ -593,24 +562,22 @@ export abstract class AppRootDataTable<
     this.error = null;
 
     try {
-      await chainPromises(ids.map(id => () => this._dataService.synchronizeById(id)));
+      await chainPromises(ids.map((id) => () => this._dataService.synchronizeById(id)));
       this.selection.clear();
 
       // Success message
       if (!opts || opts.showSuccessToast !== false) {
         this.showToast({
-          message: 'INFO.SYNCHRONIZATION_SUCCEED'
+          message: 'INFO.SYNCHRONIZATION_SUCCEED',
         });
       }
-
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => chainPromises(ids.map(id => () => this._dataService.load(id, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(ids.map((id) => () => this._dataService.load(id, { withOperation: true, toEntity: false }))),
       });
       throw error;
-    }
-    finally {
+    } finally {
       if (!opts || opts.emitEvent !== false) {
         // Clear selection
         this.selection.clear();
@@ -626,10 +593,10 @@ export abstract class AppRootDataTable<
       uniqueFile: true,
       fileExtension: '.json',
       instantUpload: true,
-      uploadFn: (file) => this.uploadFile(file)
+      uploadFn: (file) => this.uploadFile(file),
     });
 
-    const entities = (data || []).flatMap(file => file.response?.body || []);
+    const entities = (data || []).flatMap((file) => file.response?.body || []);
     if (isEmptyArray(entities)) return; // No entities: skip
 
     console.info(this.logPrefix + `Loaded ${entities.length} entities from file`);
@@ -653,28 +620,34 @@ export abstract class AppRootDataTable<
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    console.log(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
 
-    const json = this.restoreFilterSources !== false && (opts?.sources || this.restoreFilterSources || []).map(source => {
-      switch (source) {
-        case 'settings':
-          if (isNilOrBlank(this.settingsId)) return;
-          console.debug(this.logPrefix + 'Restoring filter from settings...');
-          return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
-        case 'queryParams':
-          const {q} = this.route.snapshot.queryParams;
-          if (q) {
-            console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
-            try {
-              return JSON.parse(q);
-            } catch (err) {
-              console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+    const json =
+      this.restoreFilterSources !== false &&
+      (opts?.sources || this.restoreFilterSources || [])
+        .map((source) => {
+          switch (source) {
+            case 'settings':
+              if (isNilOrBlank(this.settingsId)) return;
+              console.debug(this.logPrefix + 'Restoring filter from settings...');
+              return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
+            case 'queryParams': {
+              const { q } = this.route.snapshot.queryParams;
+              if (q) {
+                console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+                try {
+                  return JSON.parse(q);
+                } catch (err) {
+                  console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
+                }
+              }
+              break;
             }
           }
-      }
 
-      return null;
-    }).find(isNotNil);
+          return null;
+        })
+        .find(isNotNil);
 
     if (json) {
       // Force offline, if no network AND has offline feature
@@ -683,13 +656,12 @@ export abstract class AppRootDataTable<
         json.synchronizationStatus = 'DIRTY';
       }
 
-      this.setFilter(json, {emitEvent: true, ...opts});
-    }
-    else {
+      this.setFilter(json, { emitEvent: true, ...opts });
+    } else {
       // has offline feature
       this.hasOfflineMode = await this._dataService.hasOfflineData();
 
-      if (!opts || opts.emitEvent !== false){
+      if (!opts || opts.emitEvent !== false) {
         this.onRefresh.emit();
       }
     }
@@ -700,7 +672,7 @@ export abstract class AppRootDataTable<
   }
 
   patchFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
-    super.setFilter(<F>{...this.filter, ...filter}, opts);
+    super.setFilter(<F>{ ...this.filter, ...filter }, opts);
   }
 
   protected async checkUpdateOfflineNeed() {
@@ -708,13 +680,11 @@ export abstract class AppRootDataTable<
 
     // If online
     if (this.network.online) {
-
       // Get last synchro date
       const lastSynchronizationDate = this.settings.getOfflineFeatureLastSyncDate(this.featureName);
 
       // Check only if last synchro older than 10 min
       if (lastSynchronizationDate && lastSynchronizationDate.isBefore(moment().add(-10, 'minute'))) {
-
         // Get peer last update date, then compare
         const remoteUpdateDate = await this._dataService.lastUpdateDate();
         if (isNotNil(remoteUpdateDate)) {
@@ -722,7 +692,9 @@ export abstract class AppRootDataTable<
           needUpdate = lastSynchronizationDate.isBefore(remoteUpdateDate);
         }
 
-        console.info(`[root-table] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`);
+        console.info(
+          `[root-table] Checking referential last update dates: {local: '${toDateISOString(lastSynchronizationDate)}', remote: '${toDateISOString(remoteUpdateDate)}'} - Need upgrade: ${needUpdate}`
+        );
       }
     }
 
@@ -746,35 +718,32 @@ export abstract class AppRootDataTable<
 
     const encoding = this.getJsonEncoding();
 
-    return FilesUtils.readAsText(file, encoding)
-      .pipe(
-        map(event => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const loaded = Math.round(event.loaded * 0.8);
-            return {...event, loaded};
-          }
-          else if (event instanceof FileResponse){
-            console.debug(this.logPrefix + 'File content: \n' + event.body);
-            try {
-              const data = JSON.parse(event.body);
-              if (Array.isArray(data)) {
-                return new FileResponse<T[]>({body: data});
-              }
-              return new FileResponse<T[]>({body: [data]});
-            } catch (err) {
-              console.error(this.logPrefix + 'Error while parsing JSON file', err);
-              throw new Error('Invalid JSON file'); // TODO translate
+    return FilesUtils.readAsText(file, encoding).pipe(
+      map((event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const loaded = Math.round(event.loaded * 0.8);
+          return { ...event, loaded };
+        } else if (event instanceof FileResponse) {
+          console.debug(this.logPrefix + 'File content: \n' + event.body);
+          try {
+            const data = JSON.parse(event.body);
+            if (Array.isArray(data)) {
+              return new FileResponse<T[]>({ body: data });
             }
+            return new FileResponse<T[]>({ body: [data] });
+          } catch (err) {
+            console.error(this.logPrefix + 'Error while parsing JSON file', err);
+            throw new Error('Invalid JSON file'); // TODO translate
           }
-          // Unknown event: skip
-          else {
-            return null;
-          }
-        }),
-        filter(isNotNil)
-      );
+        }
+        // Unknown event: skip
+        else {
+          return null;
+        }
+      }),
+      filter(isNotNil)
+    );
   }
-
 
   protected async openNewRowDetail(event?: any): Promise<boolean> {
     if (!this.allowRowDetail) return false;
@@ -786,8 +755,7 @@ export abstract class AppRootDataTable<
 
     return this.navController.navigateForward(`${this.router.url}/new`, {
       // Pass the tableId, to be able to use search field as defaults
-      queryParams: this.settingsId && {tableId: this.settingsId}
+      queryParams: this.settingsId && { tableId: this.settingsId },
     });
   }
 }
-

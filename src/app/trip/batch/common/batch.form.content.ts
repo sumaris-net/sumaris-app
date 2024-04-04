@@ -12,14 +12,11 @@ import { environment } from '@environments/environment';
   //changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchFormContent implements OnInit {
-
   @Input() delegate: BatchForm<any>;
   @Input() debug: boolean;
   @Input() showError: boolean;
 
-  constructor(
-    @Optional() delegate?: BatchForm<any>
-  ) {
+  constructor(@Optional() delegate?: BatchForm<any>) {
     this.delegate = delegate;
   }
 
@@ -29,5 +26,4 @@ export class BatchFormContent implements OnInit {
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
-
 }

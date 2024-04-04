@@ -11,7 +11,6 @@ import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
   APP_CONFIG_OPTIONS,
-  APP_DEBUG_DATA_SERVICE,
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
@@ -23,6 +22,7 @@ import {
   APP_LOGGING_SERVICE,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
+  APP_NAMED_FILTER_SERVICE,
   APP_PROGRESS_BAR_SERVICE,
   APP_SETTINGS_MENU_ITEMS,
   APP_STORAGE,
@@ -38,6 +38,7 @@ import {
   EnvironmentHttpLoader,
   EnvironmentLoader,
   FormFieldDefinitionMap,
+  IMenuItem,
   isAndroid,
   isCapacitor,
   isIOS,
@@ -46,7 +47,6 @@ import {
   LocalSettings,
   LocalSettingsOptions,
   LoggingService,
-  MenuItem,
   MenuOptions,
   ProgressBarService,
   ProgressInterceptor,
@@ -99,8 +99,18 @@ import { SHARED_LOCAL_SETTINGS_OPTIONS } from '@app/shared/shared.config';
 import { NgChartsModule } from 'ng2-charts';
 import { PMFM_VALIDATOR_I18N_ERROR_KEYS } from '@app/referential/services/validator/pmfm.validators';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions } from '@angular/material/form-field';
+import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
+import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
 import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
+import {
+  ACTIVITY_CALENDAR_CONFIG_OPTIONS,
+  ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
+  ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
+} from '@app/activity-calendar/activity-calendar.config';
+import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
+import { NamedFilterService } from '@app/shared/service/named-filter.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -166,7 +176,21 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     Network,
     AudioManagement,
     Downloader,
-
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: <MatFormFieldDefaultOptions>{
+        appearance: 'fill',
+        //appearance: 'outline',
+        //subscriptSizing: 'dynamic',
+      },
+    },
+    {
+      provide: MAT_TABS_CONFIG,
+      useValue: <MatTabsConfig>{
+        stretchTabs: false,
+        // preserveContent: true
+      },
+    },
     {
       provide: APP_BASE_HREF,
       useFactory: () => {
@@ -233,7 +257,6 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     // User event
     { provide: UserEventService, useClass: UserEventService },
     { provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService },
-    { provide: APP_DEBUG_DATA_SERVICE, useExisting: UserEventService },
 
     // Job
     { provide: JobProgressionService, useClass: JobProgressionService },
@@ -293,7 +316,9 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...VESSEL_CONFIG_OPTIONS,
         ...DATA_CONFIG_OPTIONS,
         ...EXTRACTION_CONFIG_OPTIONS,
+        ...SCIENTIFIC_CRUISE_CONFIG_OPTIONS,
         ...TRIP_CONFIG_OPTIONS,
+        ...ACTIVITY_CALENDAR_CONFIG_OPTIONS,
         ...DEVICE_POSITION_CONFIG_OPTION,
       },
     },
@@ -304,7 +329,9 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
       deps: [ENVIRONMENT],
       useFactory: (environment: AppEnvironment) =>
         <MenuOptions>{
-          showNotification: true,
+          enableSubMenus: true,
+          enableSubMenuIcon: true,
+          ...environment?.menu,
           ...environment?.menu,
         },
     },
@@ -312,11 +339,19 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     // Menu items
     {
       provide: APP_MENU_ITEMS,
-      useValue: <MenuItem[]>[
+      useValue: <IMenuItem[]>[
         { title: 'MENU.HOME', path: '/', icon: 'home' },
 
         // Data entry
         { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER' },
+        {
+          title: 'MENU.SCIENTIFIC_CRUISES',
+          path: '/scientific-cruise',
+          matIcon: 'travel_explore',
+          profile: 'USER',
+          ifProperty: 'sumaris.scientificCruise.enable',
+          titleProperty: 'sumaris.scientificCruise.name',
+        },
         {
           title: 'MENU.TRIPS',
           path: '/trips',
@@ -332,6 +367,14 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
           profile: 'USER',
           ifProperty: 'sumaris.observedLocation.enable',
           titleProperty: 'sumaris.observedLocation.name',
+        },
+        {
+          title: 'MENU.ACTIVITY_CALENDAR',
+          path: '/activity-calendar',
+          icon: 'calendar',
+          profile: 'USER',
+          ifProperty: 'sumaris.activityCalendar.enable',
+          titleProperty: 'sumaris.activityCalendar.name',
         },
 
         // Data extraction
@@ -363,7 +406,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         { title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN' },
 
         // Settings
-        { title: '' /*empty divider*/, cssClass: 'flex-spacer' },
+        { title: ' ' /*empty divider*/, cssClass: 'flex-spacer' },
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
         { title: 'MENU.INBOX', path: '/inbox', icon: 'mail', profile: 'USER', ifProperty: 'sumaris.social.notification.icons.enable' },
         { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },
@@ -404,7 +447,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     // Settings menu options
     {
       provide: APP_SETTINGS_MENU_ITEMS,
-      useValue: <MenuItem[]>[
+      useValue: <IMenuItem[]>[
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
       ],
     },
@@ -472,6 +515,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...DATA_GRAPHQL_TYPE_POLICIES,
         ...VESSEL_GRAPHQL_TYPE_POLICIES,
         ...TRIP_GRAPHQL_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES,
       },
     },
@@ -481,6 +525,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
       provide: APP_LOCAL_STORAGE_TYPE_POLICIES,
       useValue: <EntitiesStorageTypePolicies>{
         ...TRIP_STORAGE_TYPE_POLICIES,
+        ...ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
       },
     },
 
@@ -494,6 +539,7 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
         ...TRIP_TESTING_PAGES,
+        ...ACTIVITY_CALENDAR_TESTING_PAGES,
       ],
     },
 
@@ -516,6 +562,10 @@ import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
     {
       provide: DEVICE_POSITION_ENTITY_SERVICES,
       useValue: [TripService, ObservedLocationService],
+    },
+    {
+      provide: APP_NAMED_FILTER_SERVICE,
+      useClass: NamedFilterService,
     },
   ],
   bootstrap: [AppComponent],

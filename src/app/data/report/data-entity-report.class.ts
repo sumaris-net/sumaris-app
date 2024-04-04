@@ -1,26 +1,22 @@
 import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import {AccountService, DateFormatService, EntityAsObjectOptions, isNil, isNotNil} from '@sumaris-net/ngx-components';
+import { AccountService, DateFormatService, EntityAsObjectOptions, isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { DataEntity } from '../services/model/data-entity.model';
-import {
-  AppBaseReport,
-  BaseReportOptions,
-  BaseReportStats,
-} from '@app/data/report/base-report.class';
+import { AppBaseReport, BaseReportOptions, BaseReportStats } from '@app/data/report/base-report.class';
 
 export type DataEntityReportOptions = BaseReportOptions;
 
-export class DataReportStats extends BaseReportStats {
-}
+export class DataReportStats extends BaseReportStats {}
 
 @Directive()
 export abstract class AppDataEntityReport<
-  T extends DataEntity<T, ID>,
-  ID = number,
-  S extends BaseReportStats = BaseReportStats,
-  O extends DataEntityReportOptions = DataEntityReportOptions>
+    T extends DataEntity<T, ID>,
+    ID = number,
+    S extends BaseReportStats = BaseReportStats,
+    O extends DataEntityReportOptions = DataEntityReportOptions,
+  >
   extends AppBaseReport<T, ID, S>
-  implements OnInit, AfterViewInit, OnDestroy {
-
+  implements OnInit, AfterViewInit, OnDestroy
+{
   protected logPrefix = '[data-entity-report] ';
 
   protected readonly accountService: AccountService;
@@ -32,9 +28,9 @@ export abstract class AppDataEntityReport<
 
   protected constructor(
     protected injector: Injector,
-    protected dataType: new() => T,
-    protected statsType: new() => S,
-    @Optional() options?: O,
+    protected dataType: new () => T,
+    protected statsType: new () => S,
+    @Optional() options?: O
   ) {
     super(injector, dataType, statsType, options);
 
@@ -44,7 +40,7 @@ export abstract class AppDataEntityReport<
     this.revealOptions = {
       autoInitialize: false,
       disableLayout: this.mobile,
-      touch: this.mobile
+      touch: this.mobile,
     };
   }
 
@@ -55,20 +51,19 @@ export abstract class AppDataEntityReport<
 
     if (isNil(this.data))
       if (isNil(this.uuid))
-        if(isNotNil(this.id)) this.data = await this.load(this.id, opts);
+        if (isNotNil(this.id)) this.data = await this.load(this.id, opts);
         else this.data = await this.loadFromRoute(opts);
 
-    if (isNil(this.stats))
-      this.stats = await this.computeStats(this.data, opts);
+    if (isNil(this.stats)) this.stats = await this.computeStats(this.data, opts);
 
     const computedContext = this.computeI18nContext(this.stats);
     this.i18nContext = {
       ...computedContext,
       ...this.i18nContext,
-      pmfmPrefix: computedContext?.pmfmPrefix
+      pmfmPrefix: computedContext?.pmfmPrefix,
     };
-
-  };
+    console.debug('MYTEST I18', this.i18nContext, this.i18nContextSuffix);
+  }
 
   dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
     if (typeof source?.asObject === 'function') return source.asObject(opts);
@@ -76,7 +71,6 @@ export abstract class AppDataEntityReport<
     data.fromObject(source);
     return data.asObject(opts);
   }
-
 
   protected async loadFromRoute(opts?: any): Promise<T> {
     if (this.debug) console.debug(`[${this.logPrefix}] load data from route`);
@@ -86,11 +80,10 @@ export abstract class AppDataEntityReport<
   }
 
   protected async load(id: ID, opts?: any): Promise<T> {
-    if (this.debug) console.debug(`[${this.logPrefix}.load]`, arguments);
+    if (this.debug) console.debug(`[${this.logPrefix}.load]`, id, opts);
     return this.loadData(id, opts);
   }
 
   // TODO This method sill useful ?
   protected abstract loadData(id: ID, opts?: any): Promise<T>;
-
 }

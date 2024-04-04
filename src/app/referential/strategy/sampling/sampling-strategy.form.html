@@ -10,7 +10,7 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <ion-grid>
     <!-- year + label -->
-    <ion-row *ngIf="form | formGetControl : 'label'; let labelControl">
+    <ion-row *ngIf="form | formGetControl: 'label'; let labelControl">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -24,7 +24,7 @@
             [formControl]="labelControl"
             autocomplete="off"
             type="text"
-            [textMask]="{ mask: labelMask, keepCharPositions: true, showMask: true, guide: true }"
+            [maskito]="'__ _______ ___' | maskitoPlaceholder: labelMask"
             (click)="selectMask(matInput)"
             placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}"
           />
@@ -234,12 +234,8 @@
         offset-lg="3"
         class="mat-form-field-errors"
       >
-        <mat-hint *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')" translate>
-          PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE
-        </mat-hint>
-        <mat-hint *ngIf="taxonNameForm.hasError('uniqueTaxonCode')" translate>
-          PROGRAM.STRATEGY.ERROR.NOT_UNIQUE_TAXON_CODE
-        </mat-hint>
+        <mat-hint *ngIf="taxonNameForm.hasError('cannotComputeTaxonCode')" translate>PROGRAM.STRATEGY.ERROR.CANNOT_COMPUTE_TAXON_CODE</mat-hint>
+        <mat-hint *ngIf="taxonNameForm.hasError('uniqueTaxonCode')" translate>PROGRAM.STRATEGY.ERROR.NOT_UNIQUE_TAXON_CODE</mat-hint>
       </ion-col>
     </ion-row>
 
@@ -282,8 +278,8 @@
                 autocomplete="off"
                 (click)="selectInputContent($event)"
               />
-              <mat-hint *ngIf="data.effortByQuarter[i+1]?.realizedEffort; let realizedEffort">
-                {{i18nFieldPrefix + 'REALIZED_EFFORT'|translate: {count: realizedEffort} }}
+              <mat-hint *ngIf="data.effortByQuarter[i + 1]?.realizedEffort; let realizedEffort">
+                {{ i18nFieldPrefix + 'REALIZED_EFFORT' | translate: { count: realizedEffort } }}
               </mat-hint>
             </mat-form-field>
           </form>
@@ -298,12 +294,10 @@
           class="mat-form-field-errors"
         >
           <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
-            {{ 'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate : appliedPeriodsForm.errors.minLength }}
+            {{ 'PROGRAM.STRATEGY.ERROR.EFFORT.MIN_LENGTH' | translate: appliedPeriodsForm.errors.minLength }}
           </mat-error>
           <mat-error *ngIf="appliedPeriodsForm.hasError('hasRealizedEffort')">
-            {{
-              'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate : appliedPeriodsForm.errors.hasRealizedEffort
-            }}
+            {{ 'PROGRAM.STRATEGY.ERROR.EFFORT.REALIZED_EFFORT' | translate: appliedPeriodsForm.errors.hasRealizedEffort }}
           </mat-error>
         </ion-col>
       </ion-row>
@@ -326,7 +320,7 @@
           {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' | translate }}
         </mat-error>
         <mat-error *ngIf="pmfmsForm.hasError('required') || pmfmsForm.hasError('minLength')">
-          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate : { minLength: minPmfmCount } }}
+          {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MIN_LENGTH' | translate: { minLength: minPmfmCount } }}
         </mat-error>
         <mat-error *ngIf="pmfmsForm.hasError('missingFraction')">
           {{ 'PROGRAM.STRATEGY.ERROR.PARAMETERS.MISSING_FRACTION' | translate }}
@@ -340,7 +334,7 @@
       <ion-col>
         <form [formGroup]="lengthPmfmsHelper.at(i)">
           <mat-autocomplete-field
-            class="mat-autocomplete-panel-full-size"
+            class="mat-mdc-autocomplete-panel-full-size"
             formControlName="pmfm"
             [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER' | translate) + (i + 1)"
             [config]="autocompleteFields.lengthPmfm"
@@ -393,7 +387,7 @@
       <ion-col>
         <form [formGroup]="weightPmfmsHelper.at(i)">
           <mat-autocomplete-field
-            class="mat-autocomplete-panel-full-size"
+            class="mat-mdc-autocomplete-panel-full-size"
             formControlName="pmfm"
             [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER' | translate) + (i + 1)"
             [config]="autocompleteFields.weightPmfm"
@@ -460,7 +454,7 @@
         <ion-col>
           <form [formGroup]="maturityPmfmsHelper.at(i)">
             <mat-autocomplete-field
-              class="mat-autocomplete-panel-full-size"
+              class="mat-mdc-autocomplete-panel-full-size"
               formControlName="pmfm"
               [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER' | translate) + (i + 1)"
               [config]="autocompleteFields.maturityPmfm"

@@ -11,11 +11,11 @@ Then, add the public key to GitHub (account settings:  https://github.com/settin
 
 ### Install Node JS
 Windows:
-- <https://nodejs.org/dist/v16.17.0/node-v16.17.0-x64.msi>
-- or <https://nodejs.org/dist/v16.17.0/node-v16.17.0-win-x64.zip>
+- <https://nodejs.org/dist/v18.18.2/node-v18.18.2-x64.msi>
+- or <https://nodejs.org/dist/v18.18.2/node-v18.18.2-win-x64.zip>
 
 Linux:
-- <https://nodejs.org/dist/v16.17.0/node-v16.17.0-linux-x64.tar.xz>
+- <https://nodejs.org/dist/v18.18.2/node-v18.18.2-linux-x64.tar.xz>
 
 ## Compile and launch
 Clone the project from git:

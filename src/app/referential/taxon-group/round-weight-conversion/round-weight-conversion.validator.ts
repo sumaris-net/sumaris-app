@@ -3,12 +3,9 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { AppValidatorService, SharedValidators } from '@sumaris-net/ngx-components';
 import { RoundWeightConversion } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class RoundWeightConversionValidatorService extends AppValidatorService<RoundWeightConversion> {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -18,7 +15,7 @@ export class RoundWeightConversionValidatorService extends AppValidatorService<R
 
   getFormGroupConfig(data?: RoundWeightConversion, opts?: {}): { [p: string]: any } {
     return {
-      id: [data && data.id || null],
+      id: [(data && data.id) || null],
       startDate: [data?.startDate || null, Validators.compose([Validators.required, SharedValidators.validDate])],
       endDate: [data?.endDate || null, SharedValidators.validDate],
       conversionCoefficient: [data?.conversionCoefficient || null, Validators.compose([Validators.required, Validators.min(0)])],
@@ -30,8 +27,7 @@ export class RoundWeightConversionValidatorService extends AppValidatorService<R
       comments: [data?.comments || null],
       updateDate: [data?.updateDate || null],
       creationDate: [data?.creationDate || null],
-      statusId: [data?.statusId || null, Validators.required]
+      statusId: [data?.statusId || null, Validators.required],
     };
   }
-
 }

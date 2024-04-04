@@ -1,0 +1,46 @@
+{
+  "name": "sumaris-app",
+  "version": "2.9.0-alpha14",
+  "description": "SUMARiS app",
+  "author": {
+    "name": "E-IS",
+    "email": "contact@e-is.pro"
+  },
+  "license": "AGPL-3.0",
+  "homepage": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app"
+  },
+  "main": "build/src/index.js",
+  "scripts": {
+    "build": "tsc && electron-rebuild",
+    "electron:start-live": "node ./live-runner.js",
+    "electron:start": "npm run build && electron --inspect=5858 ./",
+    "package:linux": "electron-builder build --dir -c ./electron-builder.config.json --linux AppImage deb",
+    "package:windows": "electron-builder build --dir -c ./electron-builder.config.json --windows nsis"
+  },
+  "dependencies": {
+    "@capacitor-community/electron": "^5.0.1",
+    "chokidar": "3.6.0",
+    "electron-is-dev": "~2.0.0",
+    "electron-serve": "~1.1.0",
+    "electron-unhandled": "~4.0.1",
+    "electron-updater": "^6.1.7",
+    "electron-window-state": "^5.0.3"
+  },
+  "devDependencies": {
+    "electron": "^26.2.2",
+    "electron-builder": "~23.6.0",
+    "electron-rebuild": "^3.2.9",
+    "typescript": "^5.0.4"
+  },
+  "overrides": {
+    "minimatch": "5.1.2",
+    "glob": "8.1.0"
+  },
+  "keywords": [
+    "capacitor",
+    "electron"
+  ]
+}

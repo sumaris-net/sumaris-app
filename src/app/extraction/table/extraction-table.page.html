@@ -76,7 +76,7 @@
     &nbsp;
 
     <ion-button
-      *ngIf="types$ | push | isArrayLength : { greaterThan: 1 }"
+      *ngIf="types$ | push | isArrayLength: { greaterThan: 1 }"
       [matMenuTriggerFor]="selectTypeMenu"
       [matMenuTriggerData]="{ $implicit: ($categories | async) }"
       color="accent"
@@ -88,11 +88,7 @@
     </ion-button>
     &nbsp;
     <!-- options menu -->
-    <ion-button
-      *ngIf="mobile || canEdit || canCreateProduct"
-      [matMenuTriggerFor]="optionsMenu"
-      [matMenuTriggerData]="{ $implicit: type }"
-    >
+    <ion-button *ngIf="mobile || canEdit || canCreateProduct" [matMenuTriggerFor]="optionsMenu" [matMenuTriggerData]="{ $implicit: type }">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -102,7 +98,7 @@
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-categories>
     <!-- only one category (e.g. for all public users) -->
-    <ng-container *ngIf="categories | isArrayLength : { equals: 1 }; else manyCategories">
+    <ng-container *ngIf="categories | isArrayLength: { equals: 1 }; else manyCategories">
       <ng-container *ngFor="let type of categories[0].types">
         <!-- programs -->
         <ng-container *ngIf="type.category === 'LIVE'; else types">
@@ -112,7 +108,7 @@
             [matMenuTriggerFor]="programTypesMenu"
             [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
           >
-            <ion-label class="ion-text-wrap">
+            <ion-label class="ion-text-nowrap">
               <span>{{ program | referentialToString }}</span>
             </ion-label>
           </button>
@@ -120,7 +116,7 @@
 
         <ng-template #types>
           <button mat-menu-item (click)="setType(type)">
-            <ion-label class="ion-text-wrap">
+            <ion-label class="ion-text-nowrap">
               <ion-icon name="eye-off" *ngIf="type.statusId === 2"></ion-icon>
               &nbsp;
               <span>{{ type.name }}</span>
@@ -162,7 +158,7 @@
 
     <ng-container *ngFor="let type of types">
       <button mat-menu-item (click)="setType(type)">
-        <ion-label class="ion-text-wrap">
+        <ion-label class="ion-text-nowrap">
           <ion-icon name="eye-off" *ngIf="type.statusId === 2"></ion-icon>
           &nbsp;
           <span>{{ type.name }}</span>
@@ -189,14 +185,14 @@
       [matMenuTriggerFor]="programTypesMenu"
       [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
     >
-      <ion-label class="ion-text-wrap">
+      <ion-label class="ion-text-nowrap">
         <span>{{ program | referentialToString }}</span>
       </ion-label>
     </button>
   </ng-template>
 </mat-menu>
 
-<mat-menu #programTypesMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
+<mat-menu #programTypesMenu="matMenu" xPosition="before" class="mat-menu-size-400 ion-no-padding">
   <ng-template matMenuContent let-programLabel="programLabel" let-title="title">
     <!-- header-->
     <ion-row class="mat-menu-header ion-no-padding column" *ngIf="title">
@@ -205,11 +201,7 @@
       </ion-col>
     </ion-row>
 
-    <button
-      mat-menu-item
-      *rxFor="let type of watchExtractionTypesByProgram(programLabel)"
-      (click)="setTypeAndProgram(type, programLabel)"
-    >
+    <button mat-menu-item *rxFor="let type of watchExtractionTypesByProgram(programLabel)" (click)="setTypeAndProgram(type, programLabel)">
       <ion-label class="ion-text-wrap">
         <span>{{ type.name }}</span>
       </ion-label>
@@ -235,12 +227,7 @@
     </button>
 
     <!-- open map (if mobile)  -->
-    <button
-      mat-menu-item
-      class="visible-xs visible-sm visible-mobile"
-      *ngIf="type?.isSpatial"
-      (click)="openMap($event)"
-    >
+    <button mat-menu-item class="visible-xs visible-sm visible-mobile" *ngIf="type?.isSpatial" (click)="openMap($event)">
       <mat-icon>
         <ion-icon name="earth"></ion-icon>
       </mat-icon>
@@ -310,10 +297,7 @@
       [disabled]="loading"
     >
       <mat-icon>get_app</mat-icon>
-      <ion-label
-        [innerHTML]="'COMMON.BTN_DOWNLOAD' | translate | uppercase"
-        [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP' | translate"
-      ></ion-label>
+      <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD' | translate | uppercase" [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP' | translate"></ion-label>
     </button>
 
     <ng-container *ngIf="showFilter">
@@ -351,7 +335,7 @@
   </ion-refresher>
 
   <ng-container *ngIf="type?.sheetNames as sheetNames">
-    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength : { greaterThan: 1 }">
+    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength: { greaterThan: 1 }" [tabPanel]="tableContainer">
       <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
         <ion-text>{{ getI18nSheetName(item) }}</ion-text>
         <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
@@ -380,14 +364,25 @@
 
         <!-- Counter  -->
         <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
-          {{
-            (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT')
-              | translate : { count: (data?.total | numberFormat) }
-          }}
+          {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (data?.total | numberFormat) } }}
         </ion-text>
       </ion-label>
 
       <div class="toolbar-spacer"></div>
+
+      <button
+        mat-icon-button
+        color="accent"
+        *ngIf="filterPanelFloating"
+        (click)="toggleFilterPanelFloating()"
+        class="hidden-xs hidden-sm hidden-md"
+        [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') | translate"
+      >
+        <mat-icon>
+          <span style="transform: rotate(90deg)">{{ filterPanelFloating ? '&#xbb;' : '&#xab;' }}</span>
+        </mat-icon>
+      </button>
+
       <!-- Close panel -->
       <ion-button mat-button fill="clear" color="dark" (click)="filterExpansionPanel.close()" [disabled]="loading">
         <ion-text translate>COMMON.BTN_CLOSE</ion-text>
@@ -415,31 +410,22 @@
   <div
     #tableContainer
     class="table-container"
-    [class.has-nav-bar]="type?.sheetNames | isArrayLength : { greaterThan: 1 }"
+    [class.has-nav-bar]="type?.sheetNames | isArrayLength: { greaterThan: 1 }"
     [class.has-toolbar]="embedded && showToolbar"
   >
-    <table
-      mat-table
-      [dataSource]="dataSource"
-      [class.cdk-visually-hidden]="!data?.total || loading"
-      matSort
-      matSortDisableClear
-    >
+    <table mat-table [dataSource]="dataSource" [class.cdk-visually-hidden]="!data?.total || loading" matSort matSortDisableClear>
       <!-- iterate on columns -->
       <ng-container *ngFor="let column of $columns | async" matColumnDef="{{ column.columnName }}">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type === 'date'">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="column.type === 'date'">
           <ion-label>{{ column.name }}</ion-label>
         </th>
         <td
           mat-cell
           *matCellDef="let row"
-          [class.mat-cell-date-time]="column.type === 'date'"
-          [class.mat-cell-numeric]="column.type === 'integer'"
+          [class.mat-mdc-cell-date-time]="column.type === 'date'"
+          [class.mat-mdc-cell-numeric]="column.type === 'integer'"
         >
-          <a
-            [title]="row.currentData[column.index]"
-            (click)="onCellValueClick($event, column, row.currentData[column.index])"
-          >
+          <a [title]="row.currentData[column.index]" (click)="onCellValueClick($event, column, row.currentData[column.index])">
             <ion-text color="dark">{{ row.currentData[column.index] }}</ion-text>
           </a>
         </td>
@@ -447,11 +433,7 @@
 
       <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">
         <th mat-header-cell *matHeaderCellDef>
-          <button
-            mat-icon-button
-            [matTooltip]="'COMMON.DISPLAYED_COLUMNS' | translate"
-            (click)="openSelectColumnsModal($event)"
-          >
+          <button mat-icon-button [matTooltip]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
@@ -459,25 +441,25 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-row-disabled"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></tr>
     </table>
 
     <!-- loading skeleton -->
     <ng-container *ngIf="loading; else loaded">
-      <table class="mat-table">
-        <tr class="mat-header-row">
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
-          <th class="mat-header-cell" colspan="4">&nbsp;</th>
+      <table class="mat-mdc-table">
+        <tr class="mat-mdc-header-row">
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-mdc-header-cell" colspan="4">&nbsp;</th>
         </tr>
-        <tr class="mat-row">
-          <td class="mat-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
+        <tr class="mat-mdc-row">
+          <td class="mat-mdc-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
         </tr>
       </table>
     </ng-container>
@@ -490,15 +472,11 @@
       <ng-container *ngIf="!type">
         <p class="ion-text-center">
           <ion-icon color="primary100" name="information-circle"></ion-icon>
-          <ion-text
-            color="primary100"
-            class="text-italic"
-            [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"
-          ></ion-text>
+          <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"></ion-text>
         </p>
         <p class="ion-text-center">
           <ion-button
-            *ngIf="types$ | async | isArrayLength : { greaterThan: 1 }"
+            *ngIf="types$ | async | isArrayLength: { greaterThan: 1 }"
             [matMenuTriggerFor]="selectTypeMenu"
             [matMenuTriggerData]="{ $implicit: ($categories | async) }"
             color="tertiary"

@@ -5,14 +5,15 @@ import {
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
-  NetworkService, ServerErrorCodes,
+  NetworkService,
+  ServerErrorCodes,
   StartableService,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { switchMap } from 'rxjs/operators';
-import {gql} from '@apollo/client/core';
+import { gql } from '@apollo/client/core';
 
 export interface UploadOptions {
   resourceType?: string;
@@ -31,17 +32,18 @@ export interface UploadResponseBody {
 }
 
 const ShareFileMutation = {
-  shareAsPublic: gql`mutation shareFile($fileName:String) {
-    data: shareFile(fileName: $fileName)
-  }`,
+  shareAsPublic: gql`
+    mutation shareFile($fileName: String) {
+      data: shareFile(fileName: $fileName)
+    }
+  `,
 };
 
 @Injectable({ providedIn: 'root' })
 export class FileTransferService extends StartableService<void> {
-
   private readonly connectionParams = {
     authToken: undefined,
-    authBasic: undefined
+    authBasic: undefined,
   };
 
   private get headers(): HttpHeaders {
@@ -52,26 +54,22 @@ export class FileTransferService extends StartableService<void> {
     if (this.connectionParams.authBasic) {
       authorization.push(`Basic ${this.connectionParams.authBasic}`);
     }
-    return new HttpHeaders()
-      .append('Authorization', authorization);
+    return new HttpHeaders().append('Authorization', authorization);
   }
 
-  constructor(private network: NetworkService,
-              private accountService: AccountService,
-              private http: HttpClient,
-              protected graphql: GraphqlService) {
+  constructor(
+    private network: NetworkService,
+    private accountService: AccountService,
+    private http: HttpClient,
+    protected graphql: GraphqlService
+  ) {
     super(network);
     this.start();
   }
 
   protected async ngOnStart(opts?: any): Promise<void> {
-
-    this.registerSubscription(
-      this.accountService.onAuthTokenChange.subscribe(token => this.connectionParams.authToken = token)
-    );
-    this.registerSubscription(
-      this.accountService.onAuthBasicChange.subscribe(basic => this.connectionParams.authBasic = basic)
-    );
+    this.registerSubscription(this.accountService.onAuthTokenChange.subscribe((token) => (this.connectionParams.authToken = token)));
+    this.registerSubscription(this.accountService.onAuthBasicChange.subscribe((basic) => (this.connectionParams.authBasic = basic)));
   }
 
   downloadFile(file: string): string {
@@ -84,8 +82,7 @@ export class FileTransferService extends StartableService<void> {
 
   uploadResource(file: File, opts?: UploadOptions): Observable<HttpEvent<UploadResponseBody>> {
     if (!this.started) {
-      return of(this.ready())
-        .pipe(switchMap(_ => this.uploadResource(file, opts)));
+      return of(this.ready()).pipe(switchMap((_) => this.uploadResource(file, opts)));
     }
 
     const formData: FormData = new FormData();
@@ -111,7 +108,7 @@ export class FileTransferService extends StartableService<void> {
     console.info(`[file-transfer-service] share file ${fileName} as public`);
     return await this.graphql.mutate<{ data: string }>({
       mutation: ShareFileMutation.shareAsPublic,
-      variables: {fileName},
+      variables: { fileName },
       error: { code: ServerErrorCodes.INTERNAL_SERVER_ERROR, message: 'ERROR.SHARE_AS_PUBLIC_FAIL' },
     });
   }
@@ -141,6 +138,4 @@ export class FileTransferService extends StartableService<void> {
       return false;
     }
   }
-
-
 }

@@ -1,9 +1,8 @@
 .filter-panel {
   margin-bottom: 5px;
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   ion-row.filter-row {
-
     & > ion-col:first-child {
       text-align: end;
       vertical-align: center;
@@ -24,15 +23,15 @@
   }
 }
 
-.mat-table {
+.mat-mdc-table {
   min-width: 100%;
-  --mat-cell-vertical-padding: 4px;
+  --mat-cell-horizontal-padding: 4px;
 
-  .mat-cell {
+  .mat-mdc-cell {
     padding-right: 10px;
   }
 
-  .mat-table-sticky {
+  .mat-mdc-table-sticky {
     &.mat-column-id {
       left: 50px !important;
       min-width: 55px;
@@ -56,7 +55,6 @@
     min-width: 80px;
     max-width: 80px;
     padding-left: 5px;
-
 
     ion-text {
       width: 100%;
@@ -105,8 +103,8 @@
     padding-inline-end: 0;
   }
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  mat-mdc-header-cell.hidden,
+  mat-mdc-cell.hidden {
     visibility: hidden;
     display: none;
   }

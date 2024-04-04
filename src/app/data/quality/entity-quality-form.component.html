@@ -11,7 +11,7 @@
     &nbsp;
     <span translate>QUALITY.CONTROLLED_ON</span>
     <span>
-      <b>{{ data.controlDate | dateFormat : { time: true } }}</b>
+      <b>{{ data.controlDate | dateFormat: { time: true } }}</b>
     </span>
   </ion-text>
   <!-- validation date -->
@@ -20,7 +20,7 @@
     &nbsp;
     <span translate>QUALITY.VALIDATED_ON</span>
     <span>
-      <b>{{ data.validationDate | dateFormat : { time: true } }}</b>
+      <b>{{ data.validationDate | dateFormat: { time: true } }}</b>
     </span>
   </ion-text>
   <!-- usage mode -->
@@ -37,13 +37,7 @@
 
 <p>
   <!-- Control (only if local) -->
-  <ion-button
-    *ngIf="canControl && !canSynchronize && !canTerminate"
-    [disabled]="busy"
-    (click)="control($event)"
-    expand="block"
-    color="tertiary"
-  >
+  <ion-button *ngIf="canControl && !canSynchronize && !canTerminate" [disabled]="busy" (click)="control($event)" expand="block" color="tertiary">
     <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
     <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
   </ion-button>
@@ -93,19 +87,15 @@
         &nbsp;
         <span translate>QUALITY.QUALIFIED_ON</span>
         <span>
-          <b>{{ data.qualificationDate | dateFormat : { time: true } }}</b>
+          <b>{{ data.qualificationDate | dateFormat: { time: true } }}</b>
         </span>
       </ion-text>
       <br />
     </ion-label>
-    <ion-button
-      [matMenuTriggerFor]="qualityFlagMenu"
-      expand="block"
-      [color]="data.qualityFlagId | qualityFlagToColor"
-    >
+    <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block" [color]="data.qualityFlagId | qualityFlagToColor">
       <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
       <ion-text>
-        {{ data.qualityFlagId|qualityFlagToI18n: qualityFlags | translate }}
+        {{ data.qualityFlagId | qualityFlagToI18n: qualityFlags | translate }}
       </ion-text>
       <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
     </ion-button>

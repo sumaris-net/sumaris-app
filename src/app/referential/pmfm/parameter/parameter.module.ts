@@ -16,19 +16,17 @@ import { ParameterPage } from '@app/referential/pmfm/parameter/parameter.page';
     AppCoreModule,
     AppReferentialFormModule,
     AppReferentialPipesModule,
-    AppReferentialTableModule
+    AppReferentialTableModule,
   ],
   declarations: [
-
     // Components
-    ParameterPage
+    ParameterPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    ParameterPage
+    ParameterPage,
   ],
 })
-export class AppPmfmParameterModule {
-}
+export class AppPmfmParameterModule {}

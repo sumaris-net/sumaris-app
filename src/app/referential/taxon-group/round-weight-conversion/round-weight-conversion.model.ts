@@ -10,16 +10,13 @@ import {
   ReferentialUtils,
   toDateISOString,
   toFloat,
-  toInt
+  toInt,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-export abstract class BaseRoundWeightConversion<T extends Entity<T>>
-  extends Entity<T>
-  implements IEntity<T> {
-
+export abstract class BaseRoundWeightConversion<T extends Entity<T>> extends Entity<T> implements IEntity<T> {
   startDate: Moment = null;
   endDate: Moment = null;
   conversionCoefficient: number = null;
@@ -56,17 +53,14 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T>>
 
     if (opts?.minify) {
       // Convert statusId object into integer
-      target.statusId = (typeof this.statusId === 'object') ? (this.statusId as any)['id'] : this.statusId;
+      target.statusId = typeof this.statusId === 'object' ? (this.statusId as any)['id'] : this.statusId;
     }
     return target;
   }
 }
 
-
-@EntityClass({typename: 'RoundWeightConversionVO'})
-export class RoundWeightConversionRef
-  extends BaseRoundWeightConversion<RoundWeightConversionRef> {
-
+@EntityClass({ typename: 'RoundWeightConversionVO' })
+export class RoundWeightConversionRef extends BaseRoundWeightConversion<RoundWeightConversionRef> {
   static fromObject: (source: any, opts?: any) => RoundWeightConversionRef;
   static isNotNilOrBlank(source: RoundWeightConversionRef): boolean {
     return source && isNotNil(source.conversionCoefficient);
@@ -89,10 +83,8 @@ export class RoundWeightConversionRef
   }
 }
 
-@EntityClass({typename: 'RoundWeightConversionVO'})
-export class RoundWeightConversion
-  extends BaseRoundWeightConversion<RoundWeightConversion> {
-
+@EntityClass({ typename: 'RoundWeightConversionVO' })
+export class RoundWeightConversion extends BaseRoundWeightConversion<RoundWeightConversion> {
   static fromObject: (source: any, opts?: any) => RoundWeightConversion;
 
   location: ReferentialRef = null;
@@ -114,9 +106,9 @@ export class RoundWeightConversion
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
 
-    target.location = this.location?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.dressing = this.dressing?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.preserving = this.preserving?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.location = this.location?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.dressing = this.dressing?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.preserving = this.preserving?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
 
     if (opts?.minify) {
       //
@@ -125,7 +117,6 @@ export class RoundWeightConversion
   }
 
   equals(other: RoundWeightConversion): boolean {
-
     // -- DEV only
     /*if (this.conversionCoefficient !== other.conversionCoefficient) console.debug('DIFF conversionCoefficient');
     if (!DateUtils.isSame(this.startDate, other.startDate)) console.debug('DIFF startDate');
@@ -134,13 +125,14 @@ export class RoundWeightConversion
     if (!ReferentialUtils.equals(this.dressing, other.dressing)) console.debug('DIFF dressing');
     if (!ReferentialUtils.equals(this.preserving, other.preserving)) console.debug('DIFF preserving');*/
 
-    return (super.equals(other) && isNotNil(this.id)) ||
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
       // Functional unique key
-      ((this.taxonGroupId === other.taxonGroupId)
-        && DateUtils.isSame(this.startDate, other.startDate)
-        && ReferentialUtils.equals(this.location, other.location)
-        && ReferentialUtils.equals(this.dressing, other.dressing)
-        && ReferentialUtils.equals(this.preserving, other.preserving)
-      );
+      (this.taxonGroupId === other.taxonGroupId &&
+        DateUtils.isSame(this.startDate, other.startDate) &&
+        ReferentialUtils.equals(this.location, other.location) &&
+        ReferentialUtils.equals(this.dressing, other.dressing) &&
+        ReferentialUtils.equals(this.preserving, other.preserving))
+    );
   }
 }

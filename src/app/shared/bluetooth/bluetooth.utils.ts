@@ -1,6 +1,6 @@
 export function bluetoothClassToMatIcon(bluetoothClass: number): string {
   // eslint-disable-next-line no-bitwise
-  const majorDeviceClass = (bluetoothClass & 0x1F00) >> 8;
+  const majorDeviceClass = (bluetoothClass & 0x1f00) >> 8;
 
   switch (majorDeviceClass) {
     case 1: // Computer

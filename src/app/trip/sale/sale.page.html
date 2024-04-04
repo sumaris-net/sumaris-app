@@ -1,0 +1,205 @@
+<app-toolbar
+  [title]="titleSubject | async"
+  color="primary"
+  [hasValidate]="!loading && (dirty || saving)"
+  [hasClose]="!loading && !dirty && !saving"
+  (onValidate)="save($event)"
+  (onValidateAndClose)="saveAndClose($event)"
+  (onClose)="close($event)"
+  [defaultBackHref]="defaultBackHref"
+  [canGoBack]="true"
+>
+  <button
+    slot="end"
+    mat-icon-button
+    *ngIf="(enabled && !isNewData) || canDebug"
+    [matMenuTriggerFor]="optionsMenu"
+    [title]="'COMMON.BTN_OPTIONS' | translate"
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</app-toolbar>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu">
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>SALE.EDIT.BTN_REPORT</ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
+    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.BTN_RESET</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+    <mat-icon>delete</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <app-data-editor-debug-button></app-data-editor-debug-button>
+</mat-menu>
+
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+  <mat-tab-group
+    #tabGroup
+    class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content"
+    [(selectedIndex)]="selectedTabIndex"
+    (selectedTabChange)="onTabChange($event)"
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+    [dynamicHeight]="false"
+  >
+    <!-- TAB: general -->
+    <mat-tab
+      [label]="'sale.EDIT.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [parentPath]="defaultBackHref"
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+    >
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>SALE.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted"></ion-icon>
+      </ng-template>
+
+      <div>
+        <!-- debug -->
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
+        <!-- error -->
+        <ion-item *ngIf="saleForm.error || error as error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+        </ion-item>
+
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
+              <!-- sale form-->
+              <app-form-sale #saleForm [showError]="false" [showEndDateTime]="false" (onSubmit)="save($event)" [debug]="debug">
+                <app-fishing-area-form
+                  #fishingAreaForm
+                  [showError]="true"
+                  [showDistanceToCoastGradient]="false"
+                  [showDepthGradient]="false"
+                  [showNearbySpecificArea]="false"
+                ></app-fishing-area-form>
+              </app-form-sale>
+            </ion-col>
+            <!-- Meta  -->
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
+              metaData display here
+              <app-entity-metadata [value]="data"></app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: batch -->
+    <mat-tab [label]="'SALE.EDIT.TAB_BATCHES' | translate" [disabled]="!showCatchTab" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
+        <ion-label translate>SALE.EDIT.TAB_BATCHES</ion-label>
+        <!--<ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && (batchGroupsTable?.invalid || false)"></ion-icon>-->
+      </ng-template>
+
+      <!-- batch tree -->
+      <app-batch-tree
+        #batchTree
+        queryTabIndexParamName="subtab"
+        [selectedTabIndex]="selectedSubTabIndex"
+        [usageMode]="usageMode"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | propertyGet: 'id'"
+        [requiredGear]="false"
+        [useSticky]="mobile"
+        [i18nPmfmPrefix]="'SALE.BATCH.PMFM.'"
+        [mobile]="mobile"
+        [debug]="debug"
+      ></app-batch-tree>
+    </mat-tab>
+  </mat-tab-group>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+    </ion-item>
+  </app-form-buttons-bar>
+</ion-footer>
+
+<!-- FAB button -->
+<!--<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>-->
+<!--  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }} - saving: {{ savingSubject | async }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{ (program$ | async)?.label }}
+          <br />
+          editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+        </ion-col>
+        <ion-col>
+          form.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}
+          <br />
+          form.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
+          <br />
+          form.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
+          <br />
+        </ion-col>
+        <ion-col>
+          batchTree.ready: {{ batchTree.readySubject | async }}
+          <br />
+          batchTree.loading: {{ batchTree.loadingSubject | async }} - saving: {{ batchTree.savingSubject | async }}
+          <br />
+          batchTree.enabled: {{ batchTree.enabled }}
+          <br />
+          batchTree.dirty: {{ batchTree.dirty }}
+          <br />
+          batchTree.valid: {{ batchTree.valid }}
+          <br />
+          batchTree.program: {{ (batchTree.program$ | async)?.label }}
+          <br />
+          batchTree.strategy {{ batchTree.requiredStrategy ? ' (required)' : '' }}: {{ batchTree.strategyId$ | async }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

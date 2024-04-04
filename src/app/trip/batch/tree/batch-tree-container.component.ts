@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Inject,
+  Injector,
+  Input,
+  OnInit,
+  Optional,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -6,6 +18,7 @@ import {
   AppFormUtils,
   changeCaseToUnderscore,
   equals,
+  fadeInAnimation,
   fadeInOutAnimation,
   filterFalse,
   filterTrue,
@@ -14,7 +27,6 @@ import {
   getPropertyByPath,
   ILogger,
   ILoggingService,
-  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -22,6 +34,7 @@ import {
   LocalSettingsService,
   toBoolean,
   toNumber,
+  TreeItemEntityUtils,
   UsageMode,
   waitFor,
   WaitForOptions,
@@ -36,7 +49,7 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatestWith, Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -51,7 +64,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { RxState } from '@rx-angular/state';
 import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
 import { MatSidenav } from '@angular/material/sidenav';
@@ -60,6 +72,7 @@ import { ContextService } from '@app/shared/context.service';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 interface BadgeState {
   hidden: boolean;
@@ -92,75 +105,51 @@ interface BatchTreeContainerState {
 
 export const BatchTreeContainerSettingsEnum = {
   PAGE_ID: 'batch-tree-container',
-  TREE_PANEL_FLOATING_KEY: 'treePanelFloating'
+  TREE_PANEL_FLOATING_KEY: 'treePanelFloating',
 };
 
 @Component({
   selector: 'app-batch-tree-container',
   templateUrl: './batch-tree-container.component.html',
   styleUrls: ['./batch-tree-container.component.scss'],
-  providers: [
-    { provide: ContextService, useExisting: TripContextService},
-    RxState
-  ],
-  animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ContextService, useExisting: TripContextService }, RxState],
+  animations: [fadeInAnimation, fadeInOutAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BatchTreeContainerComponent
-  extends AppEditor<Batch>
-  implements IBatchTreeComponent, OnInit {
-
+export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBatchTreeComponent, OnInit {
   private _listenProgramChanges = true;
   protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
+  protected _errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  protected readonly allowSamplingBatches$ = this._state.select('allowSpeciesSampling');
-  protected readonly allowSubBatches$ = this._state.select('allowSubBatches');
-  protected readonly programLabel$ = this._state.select('programLabel');
-  protected readonly program$ = this._state.select('program');
-  protected readonly requiredGear$ = this._state.select('requiredGear');
-  protected readonly gearId$ = this._state.select('gearId');
-  protected readonly form$ = this._state.select('form');
-  protected readonly editingBatch$ = this._state.select('editingBatch');
-  protected readonly currentBadge$ = this._state.select('currentBadge');
-  protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
-  protected readonly model$ = this._state.select('model');
-  protected readonly batchTreeStatus$ = this._state.select('batchTreeStatus');
+  @RxStateSelect() protected readonly allowSamplingBatches$: Observable<boolean>;
+  @RxStateSelect() protected readonly allowSubBatches$: Observable<boolean>;
+  @RxStateSelect() protected readonly programLabel$: Observable<string>;
+  @RxStateSelect() protected readonly program$: Observable<Program>;
+  @RxStateSelect() protected readonly requiredStrategy$: Observable<boolean>;
+  @RxStateSelect() protected readonly strategyId$: Observable<number>;
+  @RxStateSelect() protected readonly requiredGear$: Observable<boolean>;
+  @RxStateSelect() protected readonly gearId$: Observable<number>;
+  @RxStateSelect() protected readonly form$: Observable<UntypedFormGroup>;
+  @RxStateSelect() protected readonly editingBatch$: Observable<BatchModel>;
+  @RxStateSelect() protected readonly currentBadge$: Observable<BadgeState>;
+  @RxStateSelect() protected readonly treePanelFloating$: Observable<boolean>;
+  @RxStateSelect() protected readonly model$: Observable<BatchModel>;
+  @RxStateSelect() protected readonly batchTreeStatus$: Observable<IBatchTreeStatus>;
 
-  protected get model(): BatchModel {
-    return this._state.get('model');
-  }
+  @RxStateProperty() protected model: BatchModel;
+  @RxStateProperty() protected programAllowMeasure: boolean;
+  @RxStateProperty() protected editingBatch: BatchModel;
+  @RxStateProperty() protected catchPmfms: IPmfm[];
+  @RxStateProperty() protected sortingPmfms: IPmfm[];
+  @RxStateProperty() protected data: Batch;
+  @RxStateProperty() protected treePanelFloating: boolean;
 
-  protected set editingBatch(value: BatchModel) {
-    this._state.set('editingBatch', _ => value);
-  }
-
-  protected get editingBatch(): BatchModel {
-    return this._state.get('editingBatch');
-  }
-
-  protected get catchPmfms(): IPmfm[]{
-    return this._state.get('catchPmfms');
-  }
-
-  protected get sortingPmfms(): IPmfm[]{
-    return this._state.get('sortingPmfms');
-  }
-
-  protected set data(value: Batch){
-    this._state.set('data', (_) => value);
-  }
-
-  protected get data(): Batch{
-    return this._state.get('data');
-  }
-  errorTranslatorOptions: FormErrorTranslatorOptions;
-
-  @ViewChild('batchTree') batchTree: BatchTreeComponent;
-  @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
   @ViewChild('sidenav') sidenav: MatSidenav;
-  @ViewChild('modal') modal!: IonModal;
+  @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
+  @ViewChild('batchTree', { static: false }) batchTree: BatchTreeComponent;
+  @ViewChild('modal', { static: false }) modal: IonModal;
 
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -175,36 +164,24 @@ export class BatchTreeContainerComponent
   @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
   @Input() useSticky = true;
   @Input() mobile: boolean;
+  @Input() showToolbar = true;
   @Input() debug: boolean;
   @Input() filter: BatchFilter;
-  @Input() style: 'tabs'|'menu' = 'menu';
-  @Input() showToolbar = true;
+  @Input() style: 'tabs' | 'menu' = 'menu';
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
+  @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
 
-  @Input() set allowSpeciesSampling(value: boolean) {
-    this._state.set('allowSpeciesSampling', (_) => value);
-  }
-  get allowSpeciesSampling(): boolean {
-    return this._state.get('allowSpeciesSampling') ;
-  }
-
-  @Input() set allowSubBatches(value: boolean) {
-    this._state.set('allowSubBatches', (_) => value);
-  }
-  get allowSubBatches(): boolean {
-    return this._state.get('allowSubBatches');
-  }
-
-
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
-  }
-
-  get programLabel(): string {
-    return this._state.get('programLabel') || this.program?.label;
-  }
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() gearId: number;
+  @Input() @RxStateProperty() allowSpeciesSampling: boolean;
+  @Input() @RxStateProperty() allowSubBatches: boolean;
+  @Input() @RxStateProperty() allowDiscard: boolean;
+  @Input() @RxStateProperty() showCatchForm: boolean;
+  @Input() @RxStateProperty() showBatchTables: boolean;
 
   @Input()
   set program(value: Program) {
@@ -213,72 +190,23 @@ export class BatchTreeContainerComponent
     this._listenProgramChanges = false;
     this._state.set('program', (_) => value);
   }
-
   get program(): Program {
     return this._state.get('program');
   }
 
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', (_) => value);
-  }
-
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
-  }
-
-  @Input() set gearId(value: number) {
-    this._state.set('gearId', (_) => value);
-  }
-
-  get gearId(): number {
-    return this._state.get('gearId');
-  }
-
   @Input() set physicalGear(value: PhysicalGear) {
-    if (this.physicalGear && value?.id !== this.physicalGear.id) {
+    if (this.physicalGear && !PhysicalGear.equals(value, this.physicalGear)) {
       // Reset pmfms, to force a reload
       this.resetRootForm();
     }
     // Apply change
     this._state.set({
       physicalGear: value,
-      gearId: toNumber(value?.gear?.id, null)
+      gearId: toNumber(value?.gear?.id, null),
     });
   }
-
   get physicalGear(): PhysicalGear {
     return this._state.get('physicalGear');
-  }
-
-  @Input() set showCatchForm(value: boolean) {
-    this._state.set('showCatchForm', (_) => value);
-  }
-  get showCatchForm(): boolean {
-    return this._state.get('showCatchForm') || false;
-  }
-
-  @Input() set showBatchTables(value: boolean) {
-    this._state.set('showBatchTables', (_) => value);
-  }
-
-  get showBatchTables(): boolean {
-    return this._state.get('showBatchTables') || false;
-  }
-
-  @Input() set allowDiscard(value: boolean) {
-    this._state.set('allowDiscard', _ => value);
-  }
-
-  get allowDiscard(): boolean {
-    return this._state.get('allowDiscard');
-  }
-
-  get programAllowMeasure(): boolean {
-    return this._state.get('programAllowMeasure');
-  }
-
-  set programAllowMeasure(value: boolean) {
-    this._state.set('programAllowMeasure', _ => value);
   }
 
   get touched(): boolean {
@@ -315,44 +243,34 @@ export class BatchTreeContainerComponent
   }
 
   get highlightForwardButton(): boolean {
-    return this.editingBatch?.valid && (
-      !this.batchTree?.showBatchTables
-      || this.visibleRowCount > 0
-    );
+    return this.editingBatch?.valid && (!this.batchTree?.showBatchTables || this.visibleRowCount > 0);
   }
 
   get visibleRowCount(): number {
-    return this.batchTree?.showBatchTables
-      ? this.batchTree.batchGroupsTable.visibleRowCount
-      : 0;
+    return this.batchTree?.showBatchTables ? this.batchTree.batchGroupsTable.visibleRowCount : 0;
   }
 
   get isOnFieldMode() {
     return this.usageMode === 'FIELD';
   }
 
-  set treePanelFloating(value: boolean) {
-    this._state.set('treePanelFloating', _ => value);
-  }
+  @Output() control = new EventEmitter<Event>();
 
-  get treePanelFloating(): boolean {
-    return this._state.get('treePanelFloating');
-  }
-
-  constructor(injector: Injector,
-              route: ActivatedRoute,
-              router: Router,
-              alertCtrl: AlertController,
-              translate: TranslateService,
-              protected programRefService: ProgramRefService,
-              protected batchModelValidatorService: BatchModelValidatorService,
-              protected pmfmNamePipe: PmfmNamePipe,
-              protected physicalGearService: PhysicalGearService,
-              protected context: TripContextService,
-              protected _state: RxState<BatchTreeContainerState>,
-              protected cd: ChangeDetectorRef,
-              protected settings: LocalSettingsService,
-              @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
+  constructor(
+    injector: Injector,
+    route: ActivatedRoute,
+    router: Router,
+    alertCtrl: AlertController,
+    translate: TranslateService,
+    protected programRefService: ProgramRefService,
+    protected batchModelValidatorService: BatchModelValidatorService,
+    protected pmfmNamePipe: PmfmNamePipe,
+    protected physicalGearService: PhysicalGearService,
+    protected context: TripContextService,
+    protected _state: RxState<BatchTreeContainerState>,
+    protected cd: ChangeDetectorRef,
+    protected settings: LocalSettingsService,
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(route, router, injector.get(NavController), alertCtrl, translate);
 
@@ -360,82 +278,91 @@ export class BatchTreeContainerComponent
     this.mobile = injector.get(LocalSettingsService).mobile;
     this.i18nContext = {
       prefix: '',
-      suffix: ''
+      suffix: '',
     };
-    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
+    this._errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
     this._state.set({
-      treePanelFloating: this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
+      treePanelFloating:
+        this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
     });
 
     // Watch program, to configure tables from program properties
-    this._state.connect('program', this.programLabel$
-      .pipe(
+    this._state.connect(
+      'program',
+      this.programLabel$.pipe(
         filter(() => this._listenProgramChanges), // Avoid to watch program, if was already set
         filter(isNotNilOrBlank),
         distinctUntilChanged(),
-        switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
-      ));
+        switchMap((programLabel) => this.programRefService.watchByLabel(programLabel))
+      )
+    );
 
-    this._state.hold(filterTrue(this.readySubject)
-        .pipe(
-          switchMap(() => this._state.select(['program', 'gearId'], s => s)),
-          debounceTime(100),
-          distinctUntilChanged(equals)
-        ),
-      async ({program, gearId}) => {
+    this._state.hold(
+      filterTrue(this.readySubject).pipe(
+        switchMap(() => this._state.select(['program', 'gearId'], (s) => s)),
+        //debounceTime(100), // WARN: is enable, physical gear changes will NOT be detected, and pmfms not reload
+        distinctUntilChanged(equals)
+      ),
+      async ({ program, gearId }) => {
         await this.setProgram(program);
         await this.loadPmfms(program, gearId);
-      });
+      }
+    );
 
-    this._state.connect('model',
-      this._state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s, {
-        data: (d1, d2) => d1 === d2,
-        physicalGear: PhysicalGear.equals,
-        allowDiscard: (a1, a2) => a1 === a2,
-        catchPmfms: equals,
-        sortingPmfms: equals
-      })
+    this._state.connect(
+      'model',
+      this._state
+        .select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], (s) => s, {
+          data: (d1, d2) => d1 === d2,
+          physicalGear: PhysicalGear.equals,
+          allowDiscard: (a1, a2) => a1 === a2,
+          catchPmfms: PmfmUtils.arrayEquals,
+          sortingPmfms: PmfmUtils.arrayEquals,
+        })
         .pipe(
-          filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => sortingPmfms && catchPmfms && physicalGear && true),
-          mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
-            // Load physical gear's children (if not already done)
-            if (physicalGear && isEmptyArray(physicalGear.children)) {
-              const tripId = this.context.trip?.id;
-              physicalGear.children = await this.physicalGearService.loadAllByParentId({tripId, parentGearId: physicalGear.id});
-            }
-
+          filter(({ data, physicalGear, allowDiscard, sortingPmfms, catchPmfms }) => sortingPmfms && catchPmfms && physicalGear && true),
+          mergeMap(({ data, physicalGear, allowDiscard, sortingPmfms, catchPmfms }) => {
             // Create the model
-            return this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms, physicalGear});
+            return this.batchModelValidatorService.createModel(data, {
+              catchPmfms,
+              sortingPmfms,
+              physicalGear,
+              allowDiscard,
+              i18nSuffix: this.i18nContext?.suffix,
+            });
           })
         )
     );
 
-    this._state.connect('form', this._state.select(['model', 'allowSpeciesSampling'], s => s)
-      .pipe(
-        filter(({model, allowSpeciesSampling}) => !!model),
-        map(({model, allowSpeciesSampling}) => {
-          const form = this.batchModelValidatorService.createFormGroupByModel(model, {
-            allowSpeciesSampling,
-            isOnFieldMode: this.isOnFieldMode
-          });
-          form.disable();
-          return form;
-        })
-      )
+    this._state.connect(
+      'form',
+      this._state
+        .select(['model', 'allowSpeciesSampling'], (s) => s)
+        .pipe(
+          filter(({ model }) => !!model),
+          map(({ model, allowSpeciesSampling }) => {
+            const form = this.batchModelValidatorService.createFormGroupByModel(model, {
+              allowSpeciesSampling,
+              isOnFieldMode: this.isOnFieldMode,
+            });
+            form.disable();
+            return form;
+          })
+        )
     );
 
     // Reload data, when form (or model) changed
-    this._state.hold(this.form$
-        .pipe(
-          filter(form => !this.loading && !!form)
-        ),
-      (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
+    this._state.hold(this.form$.pipe(filter((form) => !this.loading && !!form)), (_) => {
+      this.updateView(this.data, { markAsPristine: false /*keep dirty state*/ });
+      // When model was reload: force as dirty (e.g. when allowDiscard change: the batch tree will changed)
+      if (!this.dirty) this.markAsDirty();
+    });
 
-    this._state.hold(filterTrue(this.readySubject)
-        .pipe(
-          switchMap(() => this.batchTree.dirtySubject),
-          filter(dirty => dirty === true && this.enabled && this.loaded)
-        ),
+    this._state.hold(
+      filterTrue(this.readySubject).pipe(
+        switchMap(() => this.batchTree.dirtySubject),
+        filter((dirty) => dirty === true && this.enabled && this.loaded)
+      ),
       () => this.markAsDirty()
     );
 
@@ -444,25 +371,24 @@ export class BatchTreeContainerComponent
 
     this._state.connect('batchTreeStatus', this.watchBatchTreeStatus());
 
-    this._state.connect('currentBadge', this.batchTreeStatus$, (state, status) => {
+    this._state.connect('currentBadge', this.batchTreeStatus$, (_, status) => {
       if (!status.valid) {
         return {
           text: '!',
           hidden: false,
-          color: 'accent'
+          color: 'accent',
         };
-      }
-      else if (status.rowCount) {
+      } else if (status.rowCount) {
         return {
           text: status.rowCount.toString(),
           hidden: false,
-          color: 'primary'
+          color: 'primary',
         };
       }
       return {
         text: '',
         hidden: true,
-        color: 'primary'
+        color: 'primary',
       };
     });
 
@@ -470,41 +396,43 @@ export class BatchTreeContainerComponent
     const parentTabGroup = injector.get(MatTabGroup);
     if (parentTabGroup) {
       const parentTab = injector.get(MatTab);
-      this._state.hold(parentTabGroup.animationDone, (event) => {
+      this._state.hold(parentTabGroup.animationDone, () => {
         // Visible
         if (parentTab.isActive) {
           if (!this.treePanelFloating || !this.editingBatch) {
             this.openTreePanel();
           }
-        }
-        else {
+        } else {
           this.closeTreePanel();
         }
       });
     }
 
     // DEBUG
-    this._logger = loggingService.getLogger('batch-tree-container');
+    this._logger = loggingService?.getLogger('batch-tree-container');
     this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.showCatchForm = toBoolean(this._state.get('showCatchForm'), true);
-    this.showBatchTables = toBoolean(this._state.get('showBatchTables'), true);
-    this.programAllowMeasure = toBoolean(this._state.get('programAllowMeasure'), this.showBatchTables);
-    this.allowSubBatches = toBoolean(this._state.get('allowSubBatches'), this.programAllowMeasure);
-    this.allowSpeciesSampling = toBoolean(this._state.get('allowSpeciesSampling'), this.programAllowMeasure);
+    this.showCatchForm = toBoolean(this.showCatchForm, true);
+    this.showBatchTables = toBoolean(this.showBatchTables, true);
+    this.programAllowMeasure = toBoolean(this.programAllowMeasure, this.showBatchTables);
+    this.allowSubBatches = toBoolean(this.allowSubBatches, this.programAllowMeasure);
+    this.allowSpeciesSampling = toBoolean(this.allowSpeciesSampling, this.programAllowMeasure);
     this.allowDiscard = toBoolean(this.allowDiscard, true);
     this.treePanelFloating = toBoolean(this.treePanelFloating, true);
+
+    // Disable all children components
+    // FIXME: try to enable this (like in a data editor)
+    this.disable();
   }
 
   // Change visibility to public
-  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean  }) {
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean }) {
     if (!error || typeof error === 'string') {
       super.setError(error as string, opts);
-    }
-    else {
+    } else {
       console.log('TODO: apply error to rows ?', error);
     }
   }
@@ -517,24 +445,22 @@ export class BatchTreeContainerComponent
   translateControlPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const parts = path.split('.');
-      const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = (this.catchPmfms || []).find(p => p.id === pmfmId)
-        || (this.sortingPmfms || []).find(p => p.id === pmfmId);
-      if (pmfm) return this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nContext?.suffix});
-    }
-    else if (path.includes('.measurementValues.')) {
+      const pmfmId = parseInt(parts[parts.length - 1]);
+      const pmfm = (this.catchPmfms || []).find((p) => p.id === pmfmId) || (this.sortingPmfms || []).find((p) => p.id === pmfmId);
+      if (pmfm) return this.pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nContext?.suffix });
+    } else if (path.includes('.measurementValues.')) {
       const parts = path.split('.');
-      const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = (this.sortingPmfms || []).find(p => p.id === pmfmId);
+      const pmfmId = parseInt(parts[parts.length - 1]);
+      const pmfm = (this.sortingPmfms || []).find((p) => p.id === pmfmId);
       if (pmfm) {
         const nodePath = parts.slice(0, parts.length - 2).join('.');
         const node = this.getBatchModelByPath(nodePath);
-        return `${node?.fullName || path} > ${this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nContext?.suffix})}`;
+        return `${node?.fullName || path} > ${this.pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nContext?.suffix })}`;
       }
     }
-    if (path.startsWith('children.')){
+    if (path.startsWith('children.')) {
       const parts = path.split('.');
-      const fieldName = parts[parts.length-1];
+      const fieldName = parts[parts.length - 1];
       const nodePath = parts.slice(0, parts.length - 1).join('.');
       let nodeName = this.getBatchModelByPath(nodePath)?.fullName;
       if (!nodeName) {
@@ -573,18 +499,18 @@ export class BatchTreeContainerComponent
     console.warn(this._logPrefix + 'autoFill() not implemented yet!');
   }
 
-  toggleFloatingPanel(event?: Event) {
-    if (this.sidenav?.opened) this.sidenav.close();
-  }
-
   toggleTreePanelFloating() {
     const previousFloating = this.treePanelFloating;
     this.treePanelFloating = !previousFloating;
-    this.settings.savePageSetting(BatchTreeContainerSettingsEnum.PAGE_ID, this.treePanelFloating, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY);
+    this.settings.savePageSetting(
+      BatchTreeContainerSettingsEnum.PAGE_ID,
+      this.treePanelFloating,
+      BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY
+    );
     if (!previousFloating) this.sidenav?.close();
   }
 
-  async openTreePanel(event?: Event, opts?: {expandAll?: boolean}) {
+  async openTreePanel(event?: Event, opts?: { expandAll?: boolean }) {
     if (event?.defaultPrevented || this.useModal) return; // Cancelled
 
     // First, expand model tree
@@ -594,7 +520,7 @@ export class BatchTreeContainerComponent
     }
 
     // Wait side nav to be created
-    if (!this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
+    if (!this.sidenav) await waitFor(() => !!this.sidenav, { stop: this.destroySubject });
     // open it, if need
     if (!this.sidenav.opened) await this.sidenav.open();
 
@@ -628,13 +554,15 @@ export class BatchTreeContainerComponent
     return 0;
   }
 
-  async setValue(data: Batch, opts?: {emitEvent?: boolean}) {
-    data = data || Batch.fromObject({
-      rankOrder: 1,
-      label: AcquisitionLevelCodes.CATCH_BATCH
-    });
+  async setValue(data: Batch, opts?: { emitEvent?: boolean }) {
+    data =
+      data ||
+      Batch.fromObject({
+        rankOrder: 1,
+        label: AcquisitionLevelCodes.CATCH_BATCH,
+      });
 
-    const dataChanged = (this.data !== data);
+    const dataChanged = this.data !== data;
     if (dataChanged) {
       this.data = data;
 
@@ -653,16 +581,14 @@ export class BatchTreeContainerComponent
 
       // Update the view
       if (data === this.data) {
-        await this.updateView(data, {dataChanged});
+        await this.updateView(data, { dataChanged });
 
         if (!opts || opts.emitEvent !== false) {
           this.markAsLoaded();
         }
-
       }
-    }
-    catch (err) {
-      console.error(err && err.message || err);
+    } catch (err) {
+      console.error((err && err.message) || err);
       throw err;
     }
   }
@@ -671,34 +597,31 @@ export class BatchTreeContainerComponent
     return this.data;
   }
 
-  async save(event?: Event, opts?: {keepEditingBatch: boolean}): Promise<boolean> {
-
+  async save(event?: Event, opts?: { keepEditingBatch: boolean }): Promise<boolean> {
     try {
       const now = Date.now();
       console.debug(this._logPrefix + `Saving tree...`);
 
       if (this.dirty && this.loaded) {
         // Save editing batch
-        const confirmed = await this.confirmEditingBatch({keepEditingBatch: true, ...opts});
+        const confirmed = await this.confirmEditingBatch({ keepEditingBatch: true, ...opts });
         if (!confirmed) return false; // Not confirmed = cannot save
 
         // Get value (using getRawValue(), because some controls are disabled)
-        const json = this.form.getRawValue();
+        const json = (await firstNotNilPromise(this.form$, { stop: this.destroySubject })).getRawValue();
 
         // Update data
         this.data = this.data || new Batch();
-        this.data.fromObject(json, {withChildren: true});
+        this.data.fromObject(json, { withChildren: true });
 
-        console.debug(this._logPrefix + `Saving tree [OK] in ${Date.now()-now}ms`, this.data);
+        console.debug(this._logPrefix + `Saving tree [OK] in ${Date.now() - now}ms`, this.data);
       }
 
       return true;
-    }
-    catch(err) {
+    } catch (err) {
       this._logger?.error('save', `Error while saving batch tree: ${err?.message || err}`);
       throw err;
-    }
-    finally {
+    } finally {
       this.markAllAsTouched();
       if (!this.submitted) {
         this.submitted = true;
@@ -728,12 +651,13 @@ export class BatchTreeContainerComponent
 
     // Wait form
     if (this.loading && this.gearId) {
-      await waitForTrue(this._state.select(['form', 'model'], _ => true), opts);
-    }
-    else {
+      await waitForTrue(
+        this._state.select(['form', 'model'], (_) => true),
+        opts
+      );
+    } else {
       await firstNotNilPromise(this.program$, opts);
     }
-
   }
 
   // Unused
@@ -748,8 +672,7 @@ export class BatchTreeContainerComponent
 
   /* -- protected function -- */
 
-
-  protected async setProgram(program: Program, opts?: {emitEvent: boolean}) {
+  protected async setProgram(program: Program, opts?: { emitEvent: boolean }) {
     if (this.debug) console.debug(this._logPrefix + `Program ${program.label} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -795,10 +718,9 @@ export class BatchTreeContainerComponent
         console.info('[batch-tree-container] Save batches... (before to reset tabs)');
         try {
           await this.save();
-        }
-        catch (err) {
+        } catch (err) {
           // Log then continue
-          console.error(err && err.message || err);
+          console.error((err && err.message) || err);
         }
       }
 
@@ -806,23 +728,20 @@ export class BatchTreeContainerComponent
       const [catchPmfms, sortingPmfms] = await Promise.all([
         this.programRefService.loadProgramPmfms(program.label, {
           acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
-          gearId
+          gearId,
         }),
         this.programRefService.loadProgramPmfms(program.label, {
           acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
-          gearId
-        })
+          gearId,
+        }),
       ]);
 
       // Update the state
-      this._state.set((state) => ({...state, catchPmfms, sortingPmfms}));
-
-    }
-    catch (err) {
+      this._state.set((state) => ({ ...state, catchPmfms, sortingPmfms }));
+    } catch (err) {
       const error = err?.message || err;
       this.setError(error);
-    }
-    finally {
+    } finally {
       // Restore component state
       if (enabled) this.enable();
       if (dirty) this.markAsDirty();
@@ -830,29 +749,26 @@ export class BatchTreeContainerComponent
     }
   }
 
-  protected async updateView(data: Batch, opts?: {markAsPristine?: boolean; dataChanged?: boolean}) {
+  protected async updateView(data: Batch, opts?: { markAsPristine?: boolean; dataChanged?: boolean }) {
     const model = this.model;
     if (!model) return; // Skip if missing model, or if data changed
 
     // Set the tree value - only once if data changed, to avoid a tree refresh (e.g. after a save())
     if (!opts || opts.dataChanged !== false) {
       this.batchModelTree.data = [model];
-    }
-    else {
+    } else {
       // Update the form (e.g. after a save())
-      model.validator.reset(data.asObject(), {emitEvent: false});
+      model.validator.reset(data.asObject(), { emitEvent: false });
     }
 
     // Keep the editing batch
     const editingBatch = isNotNil(this._lastEditingBatchPath) ? model.get(this._lastEditingBatchPath) : undefined;
-    if (!editingBatch?.hidden) {
-
+    if (editingBatch && !editingBatch.hidden && !this.useModal) {
       // Force a reload to update the batch id (e.g. after a save(), to force batch id to be applied)
       if (this.editingBatch === editingBatch) await this.stopEditBatch();
 
       await this.startEditBatch(null, editingBatch);
-    }
-    else {
+    } else {
       // Stop editing batch (not found)
       await this.stopEditBatch();
     }
@@ -862,14 +778,14 @@ export class BatchTreeContainerComponent
     }
   }
 
-  protected async startEditBatch(event: Event|undefined, model: BatchModel) {
-    if (!model || !(model instanceof BatchModel)) throw new Error('Missing required \'model\' argument');
+  protected async startEditBatch(event: Event | undefined, model: BatchModel) {
+    if (!model || !(model instanceof BatchModel)) throw new Error("Missing required 'model' argument");
 
     event?.stopImmediatePropagation();
 
     if (this.editingBatch === model) {
       if (this.treePanelFloating) this.closeTreePanel();
-      if (this.useModal) this.modal?.present();
+      if (this.useModal) await this.modal?.present();
       return; // Skip
     }
 
@@ -881,7 +797,7 @@ export class BatchTreeContainerComponent
 
     try {
       // Save previous changes
-      const confirmed = await this.confirmEditingBatch({keepEditingBatch: true});
+      const confirmed = await this.confirmEditingBatch({ keepEditingBatch: true });
       if (!confirmed) return; // Not confirmed = Cannot change
 
       console.info(this._logPrefix + `Start editing '${model?.name}'...`);
@@ -894,8 +810,7 @@ export class BatchTreeContainerComponent
         if (!this.batchTree) {
           await this.modal.present();
           this.cd.detectChanges();
-        }
-        else {
+        } else {
           this.modal.present();
         }
       }
@@ -915,14 +830,22 @@ export class BatchTreeContainerComponent
       }
 
       // Configure batch tree
-      this.batchTree.gearId = this.gearId;
       this.batchTree.physicalGear = this.physicalGear;
+      this.batchTree.requiredStrategy = this.requiredStrategy;
+      this.batchTree.strategyId = this.strategyId;
+      this.batchTree.gearId = this.gearId;
       this.batchTree.i18nContext = this.i18nContext;
-      this.batchTree.showBatchTables = this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
+      this.batchTree.showBatchTables =
+        this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSpeciesSampling = this.allowSpeciesSampling;
-      this.batchTree.allowSubBatches = this.allowSubBatches;
-      this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
-      this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
+      const allowSubBatches = toBoolean(model.childrenState?.allowSubBatches, this.allowSubBatches);
+      this.batchTree.allowSubBatches = allowSubBatches;
+      this.batchTree.batchGroupsTable.showTaxonGroupColumn = toBoolean(model.childrenState?.showTaxonGroupColumn, this.showTaxonGroup);
+      this.batchTree.batchGroupsTable.showTaxonNameColumn = toBoolean(model.childrenState?.showTaxonNameColumn, this.showTaxonName);
+      this.batchTree.batchGroupsTable.showSamplingBatchColumns = toBoolean(model.childrenState?.showSamplingBatchColumns, this.allowSubBatches);
+      this.batchTree.batchGroupsTable.showIndividualCountColumns = toBoolean(model.childrenState?.showIndividualCountColumns, !this.mobile);
+      this.batchTree.batchGroupsTable.showAutoFillButton = toBoolean(model.childrenState?.showAutoFillButton, false);
+      this.batchTree.batchGroupsTable.allowSubBatches = allowSubBatches;
       this.batchTree.batchGroupsTable.samplingRatioFormat = this.samplingRatioFormat;
       this.batchTree.rootAcquisitionLevel = rootAcquisitionLevel;
       this.batchTree.setSubBatchesModalOption('programLabel', programLabel);
@@ -935,8 +858,8 @@ export class BatchTreeContainerComponent
         showSamplingBatch: false,
         samplingBatchEnabled: false,
         samplingRatioFormat: this.samplingRatioFormat,
-        // Pass inputs (e.g. pmfms, to avoid a pmfm reloading)
-        ...model.state
+        // Pass inputs (e.g. initialPmfms, to avoid a pmfm reloading)
+        ...model.state,
       });
 
       this.batchTree.markAsReady();
@@ -953,12 +876,11 @@ export class BatchTreeContainerComponent
       let data: Batch;
       if (model.state?.showSamplingBatch) {
         const source = model.currentData;
-        data = Batch.fromObject(source, {withChildren: false});
+        data = Batch.fromObject(source, { withChildren: false });
         const samplingSource = BatchUtils.getOrCreateSamplingChild(source);
-        data.children = [Batch.fromObject(samplingSource, {withChildren: model.isLeaf})];
-      }
-      else {
-        data = Batch.fromObject(model.currentData, {withChildren: model.isLeaf});
+        data.children = [Batch.fromObject(samplingSource, { withChildren: model.isLeaf })];
+      } else {
+        data = Batch.fromObject(model.currentData, { withChildren: model.isLeaf });
       }
 
       // Waiting end of init jobs
@@ -967,18 +889,15 @@ export class BatchTreeContainerComponent
       // Apply data
       await this.batchTree.setValue(data);
       this.editingBatch = model;
-
-    }
-    finally {
+    } finally {
       // Restore previous state
       if (dirty) this.markAsDirty();
-      if (touched) this.markAllAsTouched({withChildren: false});
+      if (touched) this.markAllAsTouched({ withChildren: false });
       if (enabled && !this.batchTree.enabled) this.batchTree.enable();
     }
   }
 
   protected async stopEditBatch(event?: Event, source?: BatchModel) {
-
     source = source || this.editingBatch;
     if (!source) return;
 
@@ -994,8 +913,9 @@ export class BatchTreeContainerComponent
     this._state.set({
       sortingPmfms: null,
       catchPmfms: null,
+      gearId: null,
       form: null,
-      model: null
+      model: null,
     });
     this._lastEditingBatchPath = null;
   }
@@ -1013,16 +933,14 @@ export class BatchTreeContainerComponent
 
     try {
       // Delete sampling batches in data
-      const deletedSamplingBatches = BatchUtils.deleteByFilterInTree(this.data, {isSamplingBatch: true});
+      const deletedSamplingBatches = BatchUtils.deleteByFilterInTree(this.data, { isSamplingBatch: true });
 
       // Some batches have been deleted
       if (isNotEmptyArray(deletedSamplingBatches)) {
-
         // Reapply data
-        await this.setValue(this.data, {emitEvent: false});
+        await this.setValue(this.data, { emitEvent: false });
       }
-    }
-    finally {
+    } finally {
       // Restore dirty state
       if (dirty) this.markAsDirty();
     }
@@ -1031,7 +949,7 @@ export class BatchTreeContainerComponent
   /**
    * Save editing batch
    */
-  protected async confirmEditingBatch(opts?: {keepEditingBatch: boolean}): Promise<boolean> {
+  protected async confirmEditingBatch(opts?: { keepEditingBatch: boolean }): Promise<boolean> {
     const model = this.editingBatch;
     if (!model) return true; // No editing batch: ok (not need to save)
 
@@ -1051,13 +969,15 @@ export class BatchTreeContainerComponent
     // Get saved data
     const batch = this.batchTree.value?.clone();
 
-    if (batch.label !== model.originalData.label)
+    if (batch.label && batch.label !== model.originalData.label) {
+      console.error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${batch.label}`);
       throw new Error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${batch.label}`);
+    }
 
     // Update model value (batch first)
     const json = batch.asObject();
     if (isNotEmptyArray(model.pmfms)) {
-      MeasurementValuesUtils.normalizeEntityToForm(json, model.pmfms, model.validator, {keepOtherExistingPmfms: true});
+      MeasurementValuesUtils.normalizeEntityToForm(json, model.pmfms, model.validator, { keepOtherExistingPmfms: true });
     }
 
     // Update batch weight (need by validator)
@@ -1107,8 +1027,8 @@ export class BatchTreeContainerComponent
     this.cd.markForCheck();
   }
 
-  protected getBatchModelByPath(path: string): BatchModel|undefined {
-    return getPropertyByPath(this.model, path) as BatchModel|undefined;
+  protected getBatchModelByPath(path: string): BatchModel | undefined {
+    return getPropertyByPath(this.model, path) as BatchModel | undefined;
   }
 
   async forward(event?: Event, model?: BatchModel) {
@@ -1118,7 +1038,8 @@ export class BatchTreeContainerComponent
     model = model || this.editingBatch;
     if (!model) return;
 
-    const nextVisible = TreeItemEntityUtils.forward(model, c => !c.hidden);
+    const nextVisible = TreeItemEntityUtils.forward(model, (c) => !c.hidden);
+    if (nextVisible.disabled) return this.forward(null, nextVisible);
     if (nextVisible) {
       await this.startEditBatch(null, nextVisible);
       this.setSelectedTabIndex(0);
@@ -1132,7 +1053,8 @@ export class BatchTreeContainerComponent
     model = model || this.editingBatch;
     if (!model) return;
 
-    const previousVisible = TreeItemEntityUtils.backward(model, c => !c.hidden);
+    const previousVisible = TreeItemEntityUtils.backward(model, (c) => !c.hidden);
+    if (previousVisible.disabled) return this.backward(null, previousVisible);
     if (previousVisible) {
       await this.startEditBatch(null, previousVisible);
       this.setSelectedTabIndex(0);
@@ -1144,24 +1066,21 @@ export class BatchTreeContainerComponent
     return new Observable<IBatchTreeStatus>((subscriber) => {
       const subscription = new Subscription();
       subscription.add(() => stopSubject.next());
-      waitFor(() => !!this.batchTree, {stop: stopSubject})
-        .then(() => {
-          subscription.add(
-            this.batchTree.statusChanges
-              .pipe(
-                combineLatestWith(this.batchTree.batchGroupsTable.dataSource.rowsSubject),
-                map(([status, rows]) => {
-                  return {
-                    valid: status !== 'INVALID',
-                    rowCount: this.batchTree.showBatchTables
-                      ? (rows?.length || 0)
-                      : undefined
-                  };
-                })
-              )
-              .subscribe(state => subscriber.next(state))
-          );
-        });
+      waitFor(() => !!this.batchTree, { stop: stopSubject }).then(() => {
+        subscription.add(
+          this.batchTree.statusChanges
+            .pipe(
+              combineLatestWith(this.batchTree.batchGroupsTable.dataSource.rowsSubject),
+              map(([status, rows]) => {
+                return {
+                  valid: status !== 'INVALID',
+                  rowCount: this.batchTree.showBatchTables ? rows?.length || 0 : undefined,
+                };
+              })
+            )
+            .subscribe((state) => subscriber.next(state))
+        );
+      });
       return subscription;
     });
   }

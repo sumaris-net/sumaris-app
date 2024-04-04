@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { L } from '@app/shared/map/leaflet';
 import { MapOptions, PathOptions } from 'leaflet';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   ConfigService,
   DateDiffDurationPipe,
@@ -45,22 +47,22 @@ const maxZoom = MapUtils.MAX_ZOOM;
   templateUrl: './operations.map.html',
   styleUrls: ['./operations.map.scss'],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationsMap implements OnInit, OnDestroy {
-
   private readonly $programLabel = new BehaviorSubject<string>(undefined);
   private readonly $program = new BehaviorSubject<Program>(undefined);
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom,
-    attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
+    attribution: "<a href='https://www.openstreetmap.org'>Open Street Map</a>",
   });
   sextantBaseLayer = L.tileLayer(
-    'https://sextant.ifremer.fr/geowebcache/service/wmts'
-      + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom, attribution: '<a href=\'https://sextant.ifremer.fr\'>Sextant</a>'});
+    'https://sextant.ifremer.fr/geowebcache/service/wmts' +
+      '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    { maxZoom, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>" }
+  );
 
   options = <MapOptions>{
     layers: [this.sextantBaseLayer],
@@ -69,10 +71,9 @@ export class OperationsMap implements OnInit, OnDestroy {
   layersControl = <LeafletControlLayersConfig>{
     baseLayers: {
       'Sextant (Ifremer)': this.sextantBaseLayer,
-      'Open Street Map': this.osmBaseLayer
+      'Open Street Map': this.osmBaseLayer,
     },
-    overlays: {
-    }
+    overlays: {},
   };
 
   protected readonly subscription = new Subscription();
@@ -80,7 +81,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
   protected layers: L.Layer[];
   protected graticule: MapGraticule;
-  protected $center = new BehaviorSubject<{center: L.LatLng; zoom: number}>(undefined);
+  protected $center = new BehaviorSubject<{ center: L.LatLng; zoom: number }>(undefined);
 
   debug: boolean;
   map: L.Map;
@@ -93,7 +94,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   vesselSnapshotAttributes: string[];
 
   @Input() showTooltip: boolean;
-  @Input() data: (Trip|Operation[])[];
+  @Input() data: (Trip | Operation[])[];
   @Input() latLongPattern: LatLongPattern;
   @Input() flyToBoundsDelay = 450;
   @Input() flyToBoundsDuration = 1; // seconds
@@ -127,49 +128,52 @@ export class OperationsMap implements OnInit, OnDestroy {
     protected cd: ChangeDetectorRef,
     protected programRefService: ProgramRefService
   ) {
-
     this.debug = !environment.production;
   }
-
 
   ngOnInit() {
     // Default values
     this.latLongPattern = this.latLongPattern || this.settings.latLongFormat;
     this.mapId = uuidv4();
 
-
     this.subscription.add(
       this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {fetchPolicy: 'cache-first'})),
-          tap(program => this.$program.next(program))
+          switchMap((programLabel) => this.programRefService.watchByLabel(programLabel, { fetchPolicy: 'cache-first' })),
+          tap((program) => this.$program.next(program))
         )
-        .subscribe());
-
-    this.subscription.add(
-      this.configService.config.subscribe(config => this.$center.next(MapUtils.getMapCenter(config)))
+        .subscribe()
     );
+
+    this.subscription.add(this.configService.config.subscribe((config) => this.$center.next(MapUtils.getMapCenter(config))));
 
     if (this.showTooltip) {
       this.subscription.add(
         this.$onOverFeature
           .pipe(
             throttleTime(200),
-            filter(feature => feature !== this.$selectedFeature.value
-              // Exclude rectangle feature
-              && feature.geometry.type === 'LineString'),
-            tap(feature => this.$selectedFeature.next(feature))
-          ).subscribe());
+            filter(
+              (feature) =>
+                feature !== this.$selectedFeature.value &&
+                // Exclude rectangle feature
+                feature.geometry.type === 'LineString'
+            ),
+            tap((feature) => this.$selectedFeature.next(feature))
+          )
+          .subscribe()
+      );
 
       this.subscription.add(
         this.$onOutFeature
           .pipe(
             throttleTime(5000),
-            filter(feature => feature === this.$selectedFeature.value),
-            tap(_ => this.$selectedFeature.next(undefined))
-          ).subscribe());
+            filter((feature) => feature === this.$selectedFeature.value),
+            tap((_) => this.$selectedFeature.next(undefined))
+          )
+          .subscribe()
+      );
     }
   }
 
@@ -184,7 +188,7 @@ export class OperationsMap implements OnInit, OnDestroy {
 
     // Create graticule
     if (this.showGraticule) {
-      this.graticule = new MapGraticule({latLngPattern: this.latLongPattern});
+      this.graticule = new MapGraticule({ latLngPattern: this.latLongPattern });
       this.graticule.addTo(map);
     }
 
@@ -210,17 +214,16 @@ export class OperationsMap implements OnInit, OnDestroy {
   /* -- protected functions -- */
 
   protected async load() {
-
     if (this.debug) console.debug('[operations-map] Loading...');
     this.loadingSubject.next(true);
     this.error = null;
 
     // Wait program to be loaded
-    const program = await firstNotNilPromise(this.$program, {stop: this.destroySubject});
+    const program = await firstNotNilPromise(this.$program, { stop: this.destroySubject });
 
     // Applying program defaults (center, zoom)
     await this.setProgram(program, {
-      emitEvent: false // Refresh not need here, as not loading yet
+      emitEvent: false, // Refresh not need here, as not loading yet
     });
 
     // Get vessel display mode
@@ -243,15 +246,15 @@ export class OperationsMap implements OnInit, OnDestroy {
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      (this.data || []).forEach(tripContent => {
-
+      (this.data || []).forEach((tripContent) => {
         let tripCoordinates: Position[] = [];
         const trip = !Array.isArray(tripContent) ? tripContent : undefined;
         // Add trip layer to control
-        const tripTitle = trip
-          && this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER_WITH_DETAILS', {
+        const tripTitle =
+          trip &&
+          this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER_WITH_DETAILS', {
             vessel: joinPropertiesPath(trip.vesselSnapshot, this.vesselSnapshotAttributes),
-            departureDateTime: this.dateFormat.transform(trip.departureDateTime, { time: false })
+            departureDateTime: this.dateFormat.transform(trip.departureDateTime, { time: false }),
           });
 
         const operations = Array.isArray(tripContent) ? tripContent : trip.operations;
@@ -259,42 +262,43 @@ export class OperationsMap implements OnInit, OnDestroy {
         // Create a layer for all trip's operations
         const operationLayer = L.geoJSON(null, {
           onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined,
-          style: (feature) => this.getOperationLayerStyle(feature)
+          style: (feature) => this.getOperationLayerStyle(feature),
         });
         this.layers.push(operationLayer);
 
         // Add each operation to layer
-        (operations || [])
-          .sort(EntityUtils.sortComparator('rankOrder', 'asc'))
-          .forEach((ope, index) => {
-            const feature = this.getOperationFeature(ope, index);
-            if (!feature) return; // Skip if empty
+        (operations || []).sort(EntityUtils.sortComparator('rankOrder', 'asc')).forEach((ope, index) => {
+          const feature = this.getOperationFeature(ope, index);
+          if (!feature) return; // Skip if empty
 
-            // Add trip to feature
-            feature.properties.source = ope;
-            if (tripTitle) feature.properties.trip = tripTitle;
+          // Add trip to feature
+          feature.properties.source = ope;
+          if (tripTitle) feature.properties.trip = tripTitle;
 
-            // Add feature to layer
-            operationLayer.addData(feature);
+          // Add feature to layer
+          operationLayer.addData(feature);
 
-            // Add to all position array
-            if (this.showTripLayer && Geometries.isLineString(feature.geometry))  {
-              tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
-            }
-          });
+          // Add to all position array
+          if (this.showTripLayer && Geometries.isLineString(feature.geometry)) {
+            tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
+          }
+        });
 
         // Add trip feature to layer
         if (tripCoordinates.length) {
-          const tripLayer = L.geoJSON(<Feature>{
-            type: 'Feature',
-            id: 'trip',
-            geometry: <LineString>{
-              type: 'LineString',
-              coordinates: tripCoordinates
+          const tripLayer = L.geoJSON(
+            <Feature>{
+              type: 'Feature',
+              id: 'trip',
+              geometry: <LineString>{
+                type: 'LineString',
+                coordinates: tripCoordinates,
+              },
+            },
+            {
+              style: this.getTripLayerStyle(),
             }
-          }, {
-            style: this.getTripLayerStyle()
-          });
+          );
           this.layers.push(tripLayer);
 
           // Add trip layer to control
@@ -304,27 +308,26 @@ export class OperationsMap implements OnInit, OnDestroy {
 
         // Add operations layer to control
         const operationLayerName = tripTitle
-        ? this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER_WITH_DETAILS', {
-            trip: tripTitle
-          })
-        : this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
+          ? this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER_WITH_DETAILS', {
+              trip: tripTitle,
+            })
+          : this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
         this.layersControl.overlays[operationLayerName] = operationLayer;
-
       });
 
-      this.layers.forEach(layer => layer.addTo(this.map));
+      this.layers.forEach((layer) => layer.addTo(this.map));
 
       await this.flyToBounds();
-
     } catch (err) {
       console.error('[operations-map] Error while load layers:', err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
     } finally {
       this.markForCheck();
     }
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
+    /* eslint-disable @rx-angular/no-zone-run-apis */
     layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
     layer.on('mouseout', (_) => this.zone.run(() => this.$onOutFeature.next(feature)));
     layer.on('click', (_) => this.zone.run(() => this.onFeatureClick(feature)));
@@ -335,14 +338,16 @@ export class OperationsMap implements OnInit, OnDestroy {
     this.operationClick.emit(operation);
   }
 
-  protected getOperationFromFeature(feature: Feature): Operation|undefined {
+  protected getOperationFromFeature(feature: Feature): Operation | undefined {
     if (isNil(feature?.id) || !this.data) return undefined;
-    return this.data
-      .map(tripContent => {
-        const operations = Array.isArray(tripContent) ? tripContent : tripContent.operations;
-        return (operations || []).find(ope => ope.id === feature.id);
-      })
-      .find(isNotNil) || undefined;
+    return (
+      this.data
+        .map((tripContent) => {
+          const operations = Array.isArray(tripContent) ? tripContent : tripContent.operations;
+          return (operations || []).find((ope) => ope.id === feature.id);
+        })
+        .find(isNotNil) || undefined
+    );
   }
 
   protected markForCheck() {
@@ -353,7 +358,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     return {
       weight: 2,
       opacity: 0.6,
-      color: 'green'
+      color: 'green',
     };
   }
 
@@ -361,11 +366,11 @@ export class OperationsMap implements OnInit, OnDestroy {
     return {
       weight: 10,
       opacity: 0.8,
-      color: 'blue'
+      color: 'blue',
     };
   }
 
-  protected async setProgram(program: Program, opts?: {emitEvent?: boolean }) {
+  protected async setProgram(program: Program, opts?: { emitEvent?: boolean }) {
     if (!program) return; // Skip
 
     // Map center
@@ -373,8 +378,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     if (isNotEmptyArray(centerCoords) && centerCoords.length === 2) {
       try {
         this.options.center = L.latLng(centerCoords as [number, number]);
-      }
-      catch(err) {
+      } catch (err) {
         console.error(err);
       }
     }
@@ -392,13 +396,11 @@ export class OperationsMap implements OnInit, OnDestroy {
   }
 
   protected cleanMapLayers() {
-
     (this.layers || []).forEach((layer) => this.map.removeLayer(layer));
     this.layers = [];
   }
 
   protected getOperationFeature(ope: Operation, index: number): Feature {
-
     // Create feature
     const features = <Feature>{
       type: 'Feature',
@@ -410,28 +412,32 @@ export class OperationsMap implements OnInit, OnDestroy {
         // Replace date with a formatted date
         startDateTime: this.dateFormat.transform(ope.startDateTime || ope.fishingStartDateTime, { time: true }),
         endDateTime: this.dateFormat.transform(ope.endDateTime || ope.fishingEndDateTime, { time: true }),
-        duration: this.dateDiffDurationPipe.transform({ startValue: ope.startDateTime|| ope.fishingStartDateTime, endValue: ope.endDateTime || ope.fishingEndDateTime}),
+        duration: this.dateDiffDurationPipe.transform({
+          startValue: ope.startDateTime || ope.fishingStartDateTime,
+          endValue: ope.endDateTime || ope.fishingEndDateTime,
+        }),
         // Add index
-        index
-      }
+        index,
+      },
     };
 
     // Use lat/long positions
     const coordinates: [number, number][] = [ope.startPosition, ope.fishingStartPosition, ope.fishingEndPosition, ope.endPosition]
       .filter(VesselPositionUtils.isNoNilOrEmpty)
-      .map(pos => [pos.longitude, pos.latitude]);
-    features.geometry = coordinates.length && <LineString>{ type: 'LineString', coordinates};
+      .map((pos) => [pos.longitude, pos.latitude]);
+    features.geometry = coordinates.length && <LineString>{ type: 'LineString', coordinates };
 
     // Use Fishing Areas
     if (!features.geometry) {
       const rectangleLabels: string[] = (ope.fishingAreas || [])
-        .map(fa => fa && fa.location?.label)
+        .map((fa) => fa && fa.location?.label)
         .filter(LocationUtils.isStatisticalRectangleLabel);
-      features.geometry = rectangleLabels.length && <MultiPolygon>{
-        type: 'MultiPolygon',
-        coordinates: rectangleLabels.map(rect => LocationUtils.getGeometryFromRectangleLabel(rect))
-          .map(geometry => geometry?.coordinates)
-      };
+      features.geometry =
+        rectangleLabels.length &&
+        <MultiPolygon>{
+          type: 'MultiPolygon',
+          coordinates: rectangleLabels.map((rect) => LocationUtils.getGeometryFromRectangleLabel(rect)).map((geometry) => geometry?.coordinates),
+        };
     }
 
     if (!features.geometry) return undefined; // No geometry: skip
@@ -439,17 +445,10 @@ export class OperationsMap implements OnInit, OnDestroy {
     return features;
   }
 
-  async flyToBounds(opts = {skipDebounce : false}): Promise<void> {
-
+  async flyToBounds(opts = { skipDebounce: false }): Promise<void> {
     if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
-      if (!this.$fitToBounds.observers.length) {
-        this.subscription.add(
-          this.$fitToBounds
-            .pipe(
-              debounceTime(this.flyToBoundsDelay)
-            )
-            .subscribe(b => this.flyToBounds({skipDebounce: true}))
-        );
+      if (!this.$fitToBounds.observed) {
+        this.subscription.add(this.$fitToBounds.pipe(debounceTime(this.flyToBoundsDelay)).subscribe((b) => this.flyToBounds({ skipDebounce: true })));
       }
 
       this.$fitToBounds.next();
@@ -481,16 +480,14 @@ export class OperationsMap implements OnInit, OnDestroy {
     console.debug('[operations-map] Go to bounds:', bounds);
     if (bounds && bounds.isValid()) {
       if (this.flyToBoundsDuration <= 0) {
-        this.map.fitBounds(bounds, { maxZoom } );
+        this.map.fitBounds(bounds, { maxZoom });
         return;
-      }
-      else {
+      } else {
         try {
           this.map.flyToBounds(bounds, { maxZoom, duration: this.flyToBoundsDuration });
           return;
-        }
-        catch(err) {
-          console.error('Cannot go to bounds: ' +( err && err.message || err ), bounds);
+        } catch (err) {
+          console.error('Cannot go to bounds: ' + ((err && err.message) || err), bounds);
         }
       }
     }

@@ -27,9 +27,7 @@
           </ion-label>
           <ion-spinner *ngIf="connecting$ | async; else disconnectButton" slot="end" color="secondary"></ion-spinner>
           <ng-template #disconnectButton>
-            <ion-button slot="end" color="secondary" (click)="disconnect(device)" translate>
-              SHARED.BLUETOOTH.BTN_DISCONNECT
-            </ion-button>
+            <ion-button slot="end" color="secondary" (click)="disconnect(device)" translate>SHARED.BLUETOOTH.BTN_DISCONNECT</ion-button>
           </ng-template>
         </ion-item>
       </ng-container>
@@ -38,15 +36,7 @@
         <ion-label translate>SHARED.BLUETOOTH.AVAILABLE_DEVICES</ion-label>
 
         <!-- Scan devices button -->
-        <ion-button
-          slot="end"
-          *ngIf="enabled"
-          color="tertiary"
-          [disabled]="loading$ | async"
-          [fill]="'solid'"
-          (click)="scan()"
-          translate
-        >
+        <ion-button slot="end" *ngIf="enabled" color="tertiary" [disabled]="loading$ | async" [fill]="'solid'" (click)="scan()" translate>
           SHARED.BLUETOOTH.BTN_SCAN
         </ion-button>
       </ion-item-divider>
@@ -88,7 +78,7 @@
               <span *ngIf="loading$ | async; else resultCount" translate>SHARED.BLUETOOTH.SCANNING_DOTS</span>
               <ng-template #resultCount>
                 <span *ngIf="deviceCount$ | async; let count">
-                  {{ 'COMMON.RESULT_COUNT' | translate : { count: count } }}
+                  {{ 'COMMON.RESULT_COUNT' | translate: { count: count } }}
                 </span>
               </ng-template>
             </i>

@@ -6,7 +6,6 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -16,18 +15,14 @@ import { AppReferentialModule } from '@app/referential/referential.module';
     AppReferentialModule,
     AppMeasurementModule,
   ],
-  declarations: [
-    ExpenseForm,
-    TypedExpenseForm
-  ],
+  declarations: [ExpenseForm, TypedExpenseForm],
   exports: [
     // Components
     ExpenseForm,
     TypedExpenseForm,
-  ]
+  ],
 })
 export class AppExpenseModule {
-
   constructor() {
     console.debug('[expense] Creating module...');
   }

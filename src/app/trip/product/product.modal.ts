@@ -19,10 +19,9 @@ export interface IProductModalOptions extends IDataEntityModalOptions<Product> {
 @Component({
   selector: 'app-product-modal',
   templateUrl: 'product.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
-
   private _subscription = new Subscription();
 
   debug = false;
@@ -64,17 +63,11 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     return !this.disabled;
   }
 
-  enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.enable(opts);
   }
 
-  disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }) {
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.form.disable(opts);
   }
 
@@ -84,7 +77,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
@@ -107,16 +100,13 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
   }
 
   async load() {
-
     try {
-
       this.form.markAsReady();
       await this.form.setValue(this.data);
 
       if (this.disabled) {
         this.disable();
-      }
-      else {
+      } else {
         this.enable();
       }
 
@@ -125,16 +115,13 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
 
       if (!this.isNew) {
         // Update title each time value changes
-        this.form.valueChanges.subscribe(product => this.computeTitle(product));
+        this.form.valueChanges.subscribe((product) => this.computeTitle(product));
       }
-
-    }
-    catch (err) {
-      const error = (err?.message || err);
+    } catch (err) {
+      const error = err?.message || err;
       this.form.error = error;
       console.error(error);
-    }
-    finally {
+    } finally {
       // Workaround to force form to be untouched, even if 'requiredIf' validator force controls as touched
       await sleep(500);
       this.form.markAsUntouched();
@@ -167,10 +154,9 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
       const product = this.form.value;
 
       return await this.modalCtrl.dismiss(product, role);
-    }
-    catch (err) {
+    } catch (err) {
       this.loading = false;
-      this.form.error = err && err.message || err;
+      this.form.error = (err && err.message) || err;
       return false;
     }
   }
@@ -192,7 +178,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
     // User cancelled
-    if (isNil(confirmation) || event && event.defaultPrevented) {
+    if (isNil(confirmation) || (event && event.defaultPrevented)) {
       return;
     }
 
@@ -211,9 +197,8 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     data = data || this.data;
     if (this.isNew) {
       this.$title.next(await this.translate.get('TRIP.PRODUCT.NEW.TITLE').toPromise());
-    }
-    else {
-      this.$title.next(await this.translate.get('TRIP.PRODUCT.EDIT.TITLE', {rankOrder: data.rankOrder}).toPromise());
+    } else {
+      this.$title.next(await this.translate.get('TRIP.PRODUCT.EDIT.TITLE', { rankOrder: data.rankOrder }).toPromise());
     }
   }
 

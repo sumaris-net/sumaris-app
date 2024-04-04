@@ -1,5 +1,15 @@
-import { Department, EntityAsObjectOptions, IEntity, isNotNilOrNaN, ITreeItemEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
-import {PredefinedColors} from '@ionic/core';
+import {
+  Department,
+  EntityAsObjectOptions,
+  IEntity,
+  isNotNilOrNaN,
+  ITreeItemEntity,
+  Person,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
+import { PredefinedColors } from '@ionic/core';
 import { QualityFlagIds, QualityFlags } from '@app/referential/services/model/model.enum';
 import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';
 
@@ -12,7 +22,7 @@ export const SynchronizationStatusEnum = Object.freeze({
   READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
   SYNC: <SynchronizationStatus>'SYNC',
   DELETED: <SynchronizationStatus>'DELETED',
-  TEMPORARY: <SynchronizationStatus>'TEMPORARY'
+  TEMPORARY: <SynchronizationStatus>'TEMPORARY',
 });
 
 export type DataQualityStatusIdType = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';
@@ -34,42 +44,37 @@ export const DataQualityStatusEnum = Object.freeze({
   MODIFIED: <IDataQualityStatus>{
     id: DataQualityStatusIds.MODIFIED,
     icon: 'pencil',
-    label: 'QUALITY.MODIFIED'
+    label: 'QUALITY.MODIFIED',
   },
   CONTROLLED: <IDataQualityStatus>{
     id: DataQualityStatusIds.CONTROLLED,
     icon: 'checkmark',
-    label: 'QUALITY.CONTROLLED'
+    label: 'QUALITY.CONTROLLED',
   },
   VALIDATED: <IDataQualityStatus>{
     id: DataQualityStatusIds.VALIDATED,
     icon: 'checkmark-circle',
-    label: 'QUALITY.VALIDATED'
+    label: 'QUALITY.VALIDATED',
   },
   QUALIFIED: <IDataQualityStatus>{
     id: DataQualityStatusIds.QUALIFIED,
     icon: 'flag',
-    label: 'QUALITY.QUALIFIED'
-  }
+    label: 'QUALITY.QUALIFIED',
+  },
 });
 
 export const DataQualityStatusList = Object.freeze([
   DataQualityStatusEnum.MODIFIED,
   DataQualityStatusEnum.CONTROLLED,
   DataQualityStatusEnum.VALIDATED,
-  DataQualityStatusEnum.QUALIFIED
+  DataQualityStatusEnum.QUALIFIED,
 ]);
-
 
 /* -- Interface -- */
 
-export interface IWithRecorderDepartmentEntity<T,
-  ID = number,
-  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
-  FO = any
-  >
+export interface IWithRecorderDepartmentEntity<T, ID = number, AO extends EntityAsObjectOptions = EntityAsObjectOptions, FO = any>
   extends IEntity<T, ID, AO, FO> {
-  recorderDepartment: Department|ReferentialRef|Referential;
+  recorderDepartment: Department | ReferentialRef | Referential;
 }
 export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID, any> {
   recorderPerson: Person;
@@ -87,7 +92,7 @@ export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID, any> 
 
 export function getMaxRankOrder(values: { rankOrder: number }[]): number {
   let maxRankOrder = 0;
-  (values || []).forEach(m => {
+  (values || []).forEach((m) => {
     if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
   });
   return maxRankOrder;
@@ -97,7 +102,7 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
   if (!values) return; // Skip
   // Compute rankOrder
   let maxRankOrder = getMaxRankOrder(values);
-  (values || []).forEach(m => {
+  (values || []).forEach((m) => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
   });
 }
@@ -105,7 +110,7 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
 export function fillTreeRankOrder(values: (ITreeItemEntity<any> & { rankOrder: number })[]) {
   // Compute rankOrder
   let maxRankOrder = getMaxRankOrder(values);
-  (values || []).forEach(m => {
+  (values || []).forEach((m) => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
     if (m.children) fillTreeRankOrder(m.children);
   });
@@ -118,8 +123,7 @@ export function fillTreeRankOrder(values: (ITreeItemEntity<any> & { rankOrder: n
  * @return true if all rankOrder are unique
  */
 export function isRankOrderValid(values: { rankOrder: number }[]): boolean {
-  return (values || []).length ===
-    (values || []).filter((v1, i, array) => array.findIndex(v2 => v2.rankOrder === v1.rankOrder) === i).length;
+  return (values || []).length === (values || []).filter((v1, i, array) => array.findIndex((v2) => v2.rankOrder === v1.rankOrder) === i).length;
 }
 
 export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
@@ -152,7 +156,15 @@ export function qualityFlagInvalid(qualityFlagId: number): boolean {
   }
 }
 
-export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert'|'alert-circle'|'alert-circle-outline'|'warning';
+export declare type QualityIonIcon =
+  | SynchronizationIonIcon
+  | 'checkmark'
+  | 'checkmark-circle'
+  | 'flag'
+  | 'alert'
+  | 'alert-circle'
+  | 'alert-circle-outline'
+  | 'warning';
 
 export function qualityFlagToIcon(qualityFlagId: number): QualityIonIcon {
   switch (qualityFlagId) {
@@ -189,10 +201,10 @@ export function statusToColor(statusId: number): PredefinedColors {
 
 export function translateQualityFlag(qualityFlagId: number, qualityFlags?: ReferentialRef[]): string {
   // Get label from the input list, if any
-  let qualityFlag: any = qualityFlags && qualityFlags.find(qf => qf.id === qualityFlagId);
+  let qualityFlag: any = qualityFlags && qualityFlags.find((qf) => qf.id === qualityFlagId);
   if (qualityFlag && qualityFlag.label) return qualityFlag.label;
 
   // Or try to compute a label from the model enumeration
-  qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
-  return qualityFlag ? ('QUALITY.QUALITY_FLAGS.' + qualityFlag.label) : undefined;
+  qualityFlag = qualityFlag || QualityFlags.find((qf) => qf.id === qualityFlagId);
+  return qualityFlag ? 'QUALITY.QUALITY_FLAGS.' + qualityFlag.label : undefined;
 }

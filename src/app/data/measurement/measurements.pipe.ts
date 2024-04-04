@@ -11,30 +11,31 @@ export class IsMeasurementFormValuesPipe implements PipeTransform {
 }
 
 @Pipe({
-  name: 'isMeasurementModelValues'
+  name: 'isMeasurementModelValues',
 })
 export class IsMeasurementModelValuesPipe implements PipeTransform {
-
   transform = MeasurementValuesUtils.isMeasurementModelValues;
 }
 
 @Pipe({
-  name: 'measurementValueGet'
+  name: 'measurementValueGet',
 })
 export class MeasurementValueGetPipe extends PmfmValuePipe implements PipeTransform {
-
-  transform(entity: IEntityWithMeasurement<any>, opts: {
-    pmfm: IPmfm;
-    propertyNames?: string[];
-    html?: boolean;
-    hideIfDefaultValue?: boolean;
-    showLabelForPmfmIds?: number[];
-    separator?: string;
-  }): any {
+  transform(
+    entity: IEntityWithMeasurement<any>,
+    opts: {
+      pmfm: IPmfm;
+      propertyNames?: string[];
+      html?: boolean;
+      hideIfDefaultValue?: boolean;
+      showNameForPmfmIds?: number[];
+      separator?: string;
+    }
+  ): any {
     if (!entity.measurementValues || !opts?.pmfm) return undefined;
     return this.format(entity.measurementValues[opts.pmfm.id], {
       applyDisplayConversion: opts.pmfm.displayConversion && MeasurementValuesUtils.isMeasurementModelValues(entity.measurementValues),
-      ...opts
+      ...opts,
     });
   }
 }

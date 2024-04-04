@@ -34,7 +34,7 @@ import {
   StatusList,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
@@ -59,44 +59,39 @@ export const BASE_REFERENTIAL_COLUMNS = ['label', 'name', 'parent', 'level', 'st
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
-  COMPACT_ROWS_KEY: 'compactRows'
+  COMPACT_ROWS_KEY: 'compactRows',
 };
 
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
 export const FILTER_TYPE = new InjectionToken<new () => BaseReferentialFilter<any, any>>('filterType');
 export const DATA_SERVICE = new InjectionToken<new () => IEntityService<any>>('dataService');
 
-
 @Component({
   selector: 'app-referential-page',
   templateUrl: 'referential.table.html',
   styleUrls: ['referential.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: ReferentialValidatorService},
-    {provide: DATA_TYPE, useValue: Referential},
-    {provide: FILTER_TYPE, useValue: ReferentialFilter},
-    {provide: DATA_SERVICE, useExisting: ReferentialService},
+    { provide: ValidatorService, useExisting: ReferentialValidatorService },
+    { provide: DATA_TYPE, useValue: Referential },
+    { provide: FILTER_TYPE, useValue: ReferentialFilter },
+    { provide: DATA_SERVICE, useExisting: ReferentialService },
   ],
-  animations: [slideUpDownAnimation]
+  animations: [slideUpDownAnimation],
 })
-export class ReferentialTable<
-  T extends BaseReferential<T> = Referential,
-  F extends BaseReferentialFilter<F, T> = ReferentialFilter
-> extends AppBaseTable<T, F> implements OnInit {
-
+export class ReferentialTable<T extends BaseReferential<T> = Referential, F extends BaseReferentialFilter<F, T> = ReferentialFilter>
+  extends AppBaseTable<T, F>
+  implements OnInit
+{
   static DEFAULT_ENTITY_NAME = 'Pmfm';
 
   private _entityName: string;
 
-  filterForm: UntypedFormGroup;
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
   i18nParentName: string;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
   readonly detailsPath = {
     Program: '/referential/programs/:id',
     Software: '/referential/software/:id?label=:label',
@@ -107,7 +102,7 @@ export class ReferentialTable<
     TaxonGroup: '/referential/taxonGroup/:id?label=:label',
     Metier: '/referential/metier/:id?label=:label',
     // Extraction (special case)
-    ExtractionProduct: '/extraction/product/:id?label=:label'
+    ExtractionProduct: '/extraction/product/:id?label=:label',
   };
   readonly dataTypes: { [key: string]: new () => BaseReferential<any> } = {
     Parameter,
@@ -115,30 +110,27 @@ export class ReferentialTable<
     TaxonName,
     Unit: FullReferential,
     Method,
-    TaxonGroup: FullReferential
+    TaxonGroup: FullReferential,
   };
-  readonly dataServices: { [key: string]: any} = {
+  readonly dataServices: { [key: string]: any } = {
     Parameter: ParameterService,
     Pmfm: PmfmService,
     TaxonName: TaxonNameService,
     Unit: ReferentialService,
-    TaxonGroup: ReferentialService
+    TaxonGroup: ReferentialService,
   };
-  readonly dataValidators: { [key: string]: any} = {
-    Method: MethodValidatorService
+  readonly dataValidators: { [key: string]: any } = {
+    Method: MethodValidatorService,
   };
   readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
 
   // Pu sub entity class (not editable without a root entity)
-  readonly excludedEntityNames: string[] = [
-    'QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'
-  ];
+  readonly excludedEntityNames: string[] = ['QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'];
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
   protected fileService: ReferentialFileService<IReferentialRef<any>>;
   readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
-
 
   @Input() set showLevelColumn(value: boolean) {
     this.setShowColumn('level', value);
@@ -184,11 +176,7 @@ export class ReferentialTable<
     return this.fileService?.importPolicy || 'insert-update';
   }
 
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact = false;
-
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,
@@ -200,21 +188,20 @@ export class ReferentialTable<
     protected translate: TranslateService,
     @Optional() @Inject(DATA_TYPE) dataType?: new () => T,
     @Optional() @Inject(FILTER_TYPE) filterType?: new () => F,
-    @Optional() @Inject(DATA_SERVICE) entityService?: IEntitiesService<T, F>,
+    @Optional() @Inject(DATA_SERVICE) entityService?: IEntitiesService<T, F>
   ) {
-    super(injector,
+    super(
+      injector,
       dataType,
       filterType,
       // columns
-      RESERVED_START_COLUMNS
-        .concat(BASE_REFERENTIAL_COLUMNS)
-        .concat(RESERVED_END_COLUMNS),
-      entityService || injector.get(ReferentialService) as unknown as IEntitiesService<T, F>,
+      RESERVED_START_COLUMNS.concat(BASE_REFERENTIAL_COLUMNS).concat(RESERVED_END_COLUMNS),
+      entityService || (injector.get(ReferentialService) as unknown as IEntitiesService<T, F>),
       injector.get(ValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        saveOnlyDirtyRows: true
+        saveOnlyDirtyRows: true,
       }
     );
 
@@ -244,47 +231,51 @@ export class ReferentialTable<
     // Defaults
     this.persistFilterInSettings = toBoolean(this.persistFilterInSettings, this.canSelectEntity);
 
-
     // Configure autocomplete fields
     this.registerAutocompleteField('level', {
       items: this.$levels,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.registerAutocompleteField('levelId', {
       items: this.$levels,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
     this.registerAutocompleteField('parent', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: this.entityName
-      }),
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: this.entityName,
+        }),
       attributes: ['label', 'name'],
-      displayWith: referentialToString
+      displayWith: referentialToString,
     });
 
     // Load entities
     this.registerSubscription(
-      this.referentialService.watchTypes()
+      this.referentialService
+        .watchTypes()
         .pipe(
-          map(types => types
-            .filter(type => !this.excludedEntityNames.includes(type.id))
-            .map(type => ({
-              id: type.id,
-              label: this.getI18nEntityName(type.id),
-              level: type.level,
-              levelLabel: this.getI18nEntityName(type.level)
-            }))),
-          map(types => EntityUtils.sort(types, 'label'))
+          map((types) =>
+            types
+              .filter((type) => !this.excludedEntityNames.includes(type.id))
+              .map((type) => ({
+                id: type.id,
+                label: this.getI18nEntityName(type.id),
+                level: type.level,
+                levelLabel: this.getI18nEntityName(type.level),
+              }))
+          ),
+          map((types) => EntityUtils.sort(types, 'label'))
         )
-        .subscribe(types => this.$entities.next(types))
+        .subscribe((types) => this.$entities.next(types))
     );
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
         this.filterForm.markAsUntouched();
         this.filterForm.markAsPristine();
-      }));
+      })
+    );
 
     // Update filter when changes
     this.registerSubscription(
@@ -292,27 +283,28 @@ export class ReferentialTable<
         .pipe(
           debounceTime(250),
           filter(() => this.filterForm.valid),
-          tap(value => {
+          tap((value) => {
             const filter = this.asFilter(value);
             this.filterCriteriaCount = filter.countNotEmptyCriteria();
             this.markForCheck();
             // Applying the filter
-            this.setFilter(filter, {emitEvent: false});
+            this.setFilter(filter, { emitEvent: false });
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY))
+          tap(
+            (json) => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY)
+          )
         )
         .subscribe()
-      );
+    );
 
     // Restore compact mode
     this.restoreCompactMode();
 
     if (this.persistFilterInSettings) {
       this.restoreFilterOrLoad();
-    }
-    else if (this._entityName) {
+    } else if (this._entityName) {
       this.applyEntityName(this._entityName);
     }
   }
@@ -325,28 +317,31 @@ export class ReferentialTable<
 
     if (json?.entityName) {
       const filter = this.asFilter(json);
-      this.filterForm.patchValue(json, {emitEvent: false});
+      this.filterForm.patchValue(json, { emitEvent: false });
       this.filterCriteriaCount = filter.countNotEmptyCriteria();
       this.markForCheck();
       return this.applyEntityName(filter.entityName);
     }
 
     // Check route parameters
-    const {entity, q, level, status} = this.route.snapshot.queryParams;
+    const { entity, q, level, status } = this.route.snapshot.queryParams;
     if (entity) {
       let levelRef: ReferentialRef;
       if (level) {
         const levels = await firstNotNilPromise(this.$levels);
-        levelRef = levels.find(l => l.id === level);
+        levelRef = levels.find((l) => l.id === level);
       }
 
-      this.filterForm.patchValue({
-        entityName: entity,
-        searchText: q || null,
-        level: levelRef,
-        statusId: isNotNil(status) ? +status : null
-      }, {emitEvent: false});
-      return this.applyEntityName(entity, {skipLocationChange: true});
+      this.filterForm.patchValue(
+        {
+          entityName: entity,
+          searchText: q || null,
+          level: levelRef,
+          statusId: isNotNil(status) ? +status : null,
+        },
+        { emitEvent: false }
+      );
+      return this.applyEntityName(entity, { skipLocationChange: true });
     }
 
     // Load default entity
@@ -354,7 +349,7 @@ export class ReferentialTable<
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
-    opts = {emitEvent: true, skipLocationChange: false, ...opts};
+    opts = { emitEvent: true, skipLocationChange: false, ...opts };
     this._entityName = entityName;
 
     this.canOpenDetail = false;
@@ -366,7 +361,7 @@ export class ReferentialTable<
     if (this.canSelectEntity) {
       const entities = await firstNotNilPromise(this.$entities);
 
-      const entity = entities.find(e => e.id === entityName);
+      const entity = entities.find((e) => e.id === entityName);
       if (!entity) {
         throw new Error(`[referential] Entity {${entityName}} not found !`);
       }
@@ -375,7 +370,6 @@ export class ReferentialTable<
     }
 
     try {
-
       // Load levels
       await this.loadLevels(entityName);
 
@@ -385,31 +379,25 @@ export class ReferentialTable<
       const validator = this.getValidator(entityName);
       const dataService = this.getEntityService(entityName);
 
-      const columnDefinitions = this.loadColumnDefinitions(dataType, validator,
-        ['statusId', ...(showLevelColumn && ['levelId'] || [])],
-        [
-          ...IGNORED_ENTITY_COLUMNS,
-          'creationDate', 'updateDate',
-          ...(!showParentColumn && ['parent'] || [])
-        ]);
+      const columnDefinitions = this.loadColumnDefinitions(
+        dataType,
+        validator,
+        ['statusId', ...((showLevelColumn && ['levelId']) || [])],
+        [...IGNORED_ENTITY_COLUMNS, 'creationDate', 'updateDate', ...((!showParentColumn && ['parent']) || [])]
+      );
       if (this.fileService) {
         this.fileService.columnDefinitions = columnDefinitions;
         this.fileService.dataType = dataType;
         this.fileService.dataService = dataService;
         this.fileService.entityName = entityName;
-      }
-      else {
-        this.fileService = new ReferentialFileService<IReferentialRef<any>>(this.injector,
-          this.dataSource,
-          columnDefinitions,
-          dataService,
-          dataType);
+      } else {
+        this.fileService = new ReferentialFileService<IReferentialRef<any>>(this.injector, this.dataSource, columnDefinitions, dataService, dataType);
         this.fileService.i18nColumnPrefix = this.i18nColumnPrefix;
         this.fileService.defaultNewRowValue = () => this.defaultNewRowValue();
         this.fileService.isKnownEntityName = (name) => this.isKnownEntityName(name);
         this.fileService.loadByLabel = (label, filter) => this.loadByLabel(label, filter);
         this.fileService.entityName = entityName;
-        this.fileService.loadLevelById = (levelId) => (this.$levels.value || []).find(l => l.id === levelId);
+        this.fileService.loadLevelById = (levelId) => (this.$levels.value || []).find((l) => l.id === levelId);
         this.fileService.loadStatusById = (statusId) => this.statusById[statusId];
       }
 
@@ -429,7 +417,6 @@ export class ReferentialTable<
         this.showParentColumn = this.entityNamesWithParent.includes(entityName);
       }
 
-
       this.canOpenDetail = !!this.detailsPath[entityName];
       this.inlineEdition = !this.canOpenDetail;
       this.canDownload = !!this.getEntityService(entityName);
@@ -440,11 +427,10 @@ export class ReferentialTable<
       const filter = this.asFilter({
         ...this.filterForm.value,
         level: null,
-        entityName
+        entityName,
       });
       this.filterForm.patchValue({ entityName, level: null }, { emitEvent: false });
       this.setFilter(filter, { emitEvent: opts.emitEvent });
-
 
       // Update route location
       if (opts.skipLocationChange !== true && this.canSelectEntity) {
@@ -452,17 +438,17 @@ export class ReferentialTable<
           relativeTo: this.route,
           skipLocationChange: false,
           queryParams: {
-            entity: entityName
-          }
+            entity: entityName,
+          },
         });
       }
-    } catch (err){
+    } catch (err) {
       console.error(err);
       this.setError(err);
     }
   }
   protected defaultNewRowValue(): any {
-    return {entityName: this.entityName, statusId: StatusIds.ENABLE};
+    return { entityName: this.entityName, statusId: StatusIds.ENABLE };
   }
 
   async onEntityNameChange(entityName: string): Promise<any> {
@@ -482,9 +468,8 @@ export class ReferentialTable<
   }
 
   async loadLevels(entityName: string): Promise<ReferentialRef[]> {
-
     const res = await this.referentialRefService.loadLevels(entityName, {
-      fetchPolicy: 'network-only'
+      fetchPolicy: 'network-only',
     });
 
     const levels = (res || []).sort(EntityUtils.sortComparator('label', 'asc'));
@@ -494,9 +479,8 @@ export class ReferentialTable<
       const parentEntityName = levels[0].entityName;
       const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(parentEntityName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
-      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
-    }
-    else {
+      this.i18nLevelName = levelName !== i18nLevelName ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
+    } else {
       this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
 
@@ -506,11 +490,10 @@ export class ReferentialTable<
   computeI18nParentName(entityName): string {
     const i18nKey = 'REFERENTIAL.' + changeCaseToUnderscore(entityName).toUpperCase() + '.PARENT';
     const translation = this.translate.instant(i18nKey);
-    return (translation !== i18nKey) ? translation : ReferentialI18nKeys.DEFAULT_I18N_PARENT_NAME;
+    return translation !== i18nKey ? translation : ReferentialI18nKeys.DEFAULT_I18N_PARENT_NAME;
   }
 
   getI18nEntityName(entityName: string): string {
-
     if (isNil(entityName)) return undefined;
 
     const tableName = entityName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
@@ -567,21 +550,21 @@ export class ReferentialTable<
   }
 
   resetFilter(event?: Event) {
-    this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
+    this.filterForm.reset({ entityName: this._entityName }, { emitEvent: true });
     const filter = this.asFilter({});
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, { emitEvent: true });
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
   patchFilter(partialFilter: Partial<ReferentialFilter>) {
-    this.filterForm.patchValue(partialFilter, {emitEvent: true});
+    this.filterForm.patchValue(partialFilter, { emitEvent: true });
     const filter = this.asFilter(this.filterForm.value);
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, { emitEvent: true });
     this.filterExpansionPanel.close();
   }
 
-  restoreCompactMode(opts?: {emitEvent?: boolean}) {
+  restoreCompactMode(opts?: { emitEvent?: boolean }) {
     if (!this.compact) {
       const compact = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
       if (this.compact !== compact) {
@@ -602,14 +585,14 @@ export class ReferentialTable<
 
   async exportToJson(event: Event) {
     if (!this._entityName) return; // Skip
-    const ids = this.selection.hasValue() && this.selection.selected.map(row => row.currentData.id);
-    await this.fileService.exportToJson(event, {ids, context: this.filter?.asObject()});
+    const ids = this.selection.hasValue() && this.selection.selected.map((row) => row.currentData.id);
+    await this.fileService.exportToJson(event, { ids, context: this.filter?.asObject() });
   }
 
   async exportToCsv(event: Event) {
     if (!this._entityName) return; // Skip
-    const ids = this.selection.hasValue() && this.selection.selected.map(row => row.currentData.id);
-    await this.fileService.exportToCsv(event, {ids, context: this.filter?.asObject()});
+    const ids = this.selection.hasValue() && this.selection.selected.map((row) => row.currentData.id);
+    await this.fileService.exportToCsv(event, { ids, context: this.filter?.asObject() });
   }
 
   async importFromCsv(event?: Event) {
@@ -618,8 +601,7 @@ export class ReferentialTable<
       await this.fileService.importFromCsv(event);
       await sleep(1000);
       this.onRefresh.emit();
-    }
-    catch(err) {
+    } catch (err) {
       console.error(err);
       this.setError(err);
     }
@@ -631,8 +613,7 @@ export class ReferentialTable<
       await this.fileService.importFromJson(event);
       await sleep(1000);
       this.onRefresh.emit();
-    }
-    catch(err) {
+    } catch (err) {
       console.error(err);
       this.setError(err);
     }
@@ -640,10 +621,10 @@ export class ReferentialTable<
 
   /* -- protected functions -- */
 
-  protected async loadByLabel<R extends IReferentialRef<R>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<R> {
-    if (isNilOrBlank(label)) throw new Error('Missing required argument \'label\'');
+  protected async loadByLabel<R extends IReferentialRef<R>>(label: string, filter: Partial<ReferentialFilter> & { entityName: string }): Promise<R> {
+    if (isNilOrBlank(label)) throw new Error("Missing required argument 'label'");
     const entityName = filter?.entityName;
-    if (!entityName) throw new Error('Missing required argument \'source.entityName\', or \'filter.entityName\'');
+    if (!entityName) throw new Error("Missing required argument 'source.entityName', or 'filter.entityName'");
     const service = this.getEntityService(entityName);
     if (!service) throw new Error('No service defined for the entity name: ' + entityName);
 
@@ -654,18 +635,17 @@ export class ReferentialTable<
       const { data, total } = await this.referentialService.loadAll(0, 1, 'label', 'asc', {
         ...filter,
         entityName,
-        label
+        label,
       });
       if (total === 0) return undefined;
-      if (total > 1) throw {code: ErrorCodes.TOO_MANY_REFERENCE_FOUND, message: `To many match of ${entityName} with label ${label}`};
+      if (total > 1) throw { code: ErrorCodes.TOO_MANY_REFERENCE_FOUND, message: `To many match of ${entityName} with label ${label}` };
       const json = data[0];
 
       const target = new dataType();
       target.fromObject(json);
       return target as unknown as R;
-    }
-    catch (err) {
-      const message = err && err.message || err;
+    } catch (err) {
+      const message = (err && err.message) || err;
       console.error(message);
       throw err;
     }
@@ -675,33 +655,34 @@ export class ReferentialTable<
     // Can be overwritten by subclasses
   }
 
-  protected loadColumnDefinitions(dataType: new () => IReferentialRef<any>,
-                                  validatorService?: ValidatorService,
-                                  includedProperties?: string[],
-                                  excludedProperties?: string[]): FormFieldDefinition[] {
-
+  protected loadColumnDefinitions(
+    dataType: new () => IReferentialRef<any>,
+    validatorService?: ValidatorService,
+    includedProperties?: string[],
+    excludedProperties?: string[]
+  ): FormFieldDefinition[] {
     const properties = BaseReferentialTable.getEntityDisplayProperties(dataType, validatorService, excludedProperties || IGNORED_ENTITY_COLUMNS);
 
     // Force include properties (e.g. level)
-    if (includedProperties) includedProperties?.filter(p => !properties.includes(p)).forEach(p => properties.push(p));
+    if (includedProperties) includedProperties?.filter((p) => !properties.includes(p)).forEach((p) => properties.push(p));
 
-    return properties.map(key => this.getColumnDefinition(key));
+    return properties.map((key) => this.getColumnDefinition(key));
   }
 
-  protected getColumnDefinition(key: string): FormFieldDefinition{
+  protected getColumnDefinition(key: string): FormFieldDefinition {
     if (this.autocompleteFields[key]) {
       return <FormFieldDefinition>{
         key,
         type: 'entity',
-        label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase(),
-        autocomplete: this.autocompleteFields[key]
+        label: this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase(),
+        autocomplete: this.autocompleteFields[key],
       };
     }
 
     return <FormFieldDefinition>{
       key,
       type: this.getColumnType(key),
-      label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase()
+      label: this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase(),
     };
   }
 
@@ -711,21 +692,16 @@ export class ReferentialTable<
     if (key.endsWith('date')) return 'date';
     if (key.endsWith('month') || key.endsWith('year')) return 'integer';
     if (key.startsWith('is')) return 'boolean';
-    if (key.endsWith('label') || key.endsWith('name') || key.endsWith('code')
-      || key.endsWith('description') || key.endsWith('comments')) return 'string';
+    if (key.endsWith('label') || key.endsWith('name') || key.endsWith('code') || key.endsWith('description') || key.endsWith('comments'))
+      return 'string';
     return 'string';
   }
 
   protected getDisplayColumns(): string[] {
-    const columns = removeDuplicatesFromArray(super.getDisplayColumns())
-      .filter(key => !RESERVED_END_COLUMNS.includes(key));
-    const additionalColumns = (this.columnDefinitions || []).map(col => col.key)
-      .filter(key => !columns.includes(key));
-    return  columns
-        .concat(additionalColumns)
-        .concat(RESERVED_END_COLUMNS);
+    const columns = removeDuplicatesFromArray(super.getDisplayColumns()).filter((key) => !RESERVED_END_COLUMNS.includes(key));
+    const additionalColumns = (this.columnDefinitions || []).map((col) => col.key).filter((key) => !columns.includes(key));
+    return columns.concat(additionalColumns).concat(RESERVED_END_COLUMNS);
   }
-
 
   protected getFilterFormConfig(): any {
     console.debug('[referential-table] Creating filter form group...');
@@ -736,12 +712,12 @@ export class ReferentialTable<
       searchText: [null],
       level: [null],
       parentId: [null],
-      statusId: [null]
+      statusId: [null],
     };
 
     // Add other properties
     return Object.keys(new this.filterType())
-      .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key) && !config[key])
+      .filter((key) => !IGNORED_ENTITY_COLUMNS.includes(key) && !config[key])
       .reduce((config, key) => {
         console.debug('[referential-table] Adding filter control: ' + key);
         config[key] = [null];
@@ -751,10 +727,12 @@ export class ReferentialTable<
 
   protected getEntityService<R extends IReferentialRef<R>>(entityName?: string): IEntityService<R> {
     entityName = entityName || this._entityName;
-    if (!entityName) throw new Error('Missing required argument \'entityName\'');
+    if (!entityName) throw new Error("Missing required argument 'entityName'");
     const serviceToken = this.dataServices[entityName];
-    const service: IEntitiesService<R, any> & IEntityService<R> = serviceToken && this.injector.get(serviceToken) as IEntitiesService<R, any> & IEntityService<R>;
-    if (service && (typeof service.load !== 'function' || typeof service.save !== 'function')) throw new Error('Not a entities service. Missing load() or save()');
+    const service: IEntitiesService<R, any> & IEntityService<R> =
+      serviceToken && (this.injector.get(serviceToken) as IEntitiesService<R, any> & IEntityService<R>);
+    if (service && (typeof service.load !== 'function' || typeof service.save !== 'function'))
+      throw new Error('Not a entities service. Missing load() or save()');
     if (service) return service;
 
     // Check if can be managed by generic service
@@ -764,7 +742,6 @@ export class ReferentialTable<
   }
 
   protected getDataType(entityName?: string): new () => BaseReferential<any> {
-
     entityName = entityName || this._entityName;
 
     const dataType = this.dataTypes[entityName];
@@ -777,7 +754,6 @@ export class ReferentialTable<
   }
 
   protected getValidator(entityName?: string): ValidatorService {
-
     entityName = entityName || this._entityName;
 
     const validatorToken = this.dataValidators[entityName];
@@ -792,16 +768,14 @@ export class ReferentialTable<
 
   protected isKnownEntityName(entityName: string): boolean {
     if (!entityName) return false;
-    return !!(this.$entities.value || []).find(item => item.id === entityName);
+    return !!(this.$entities.value || []).find((item) => item.id === entityName);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
     const path = this.detailsPath[this._entityName];
 
     if (path) {
-      await this.router.navigateByUrl(path
-        .replace(':id', 'new')
-        .replace(':label', ''));
+      await this.router.navigateByUrl(path.replace(':id', 'new').replace(':label', ''));
       return true;
     }
 
@@ -814,6 +788,4 @@ export class ReferentialTable<
       ...source,
     });
   }
-
 }
-

@@ -15,7 +15,7 @@
         <app-pmfm-field
           *rxFor="let pmfm of pmfms$; trackBy: trackPmfmFn; index as i"
           [pmfm]="pmfm"
-          [style]="pmfm | pmfmFieldStyle : maxVisibleButtons"
+          [style]="pmfm | pmfmFieldStyle: maxVisibleButtons"
           [compact]="compact"
           [tabindex]="i * 2"
           [floatLabel]="floatLabel"
@@ -33,9 +33,7 @@
         <mat-autocomplete-field
           #metierField
           [formControl]="metiersHelper.at(i)"
-          [placeholder]="
-            (first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate : { rank: i }
-          "
+          [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate: { rank: i }"
           [autofocus]="metierFocusIndex === i"
           [config]="autocompleteFields.metier"
           [filter]="metierFilter"
@@ -43,7 +41,7 @@
           [i18nPrefix]="'REFERENTIAL.'"
           [required]="false"
           [noResultMessage]="enableMetierFilter ? 'TRIP.ERROR.NO_PRACTICED_METIER_FOUND' : 'COMMON.NO_RESULT'"
-          class="mat-autocomplete-panel-xlarge-size"
+          class="mat-mdc-autocomplete-panel-xlarge-size"
         >
           <ion-icon matPrefix name="locate"></ion-icon>
           <!--          <button matAfter type="button" mat-icon-button-->
@@ -101,7 +99,7 @@
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
-            {{ 'ERROR.FIELD_REQUIRED' | translate : form.controls.comments.errors.maxlength }}
+            {{ 'ERROR.FIELD_REQUIRED' | translate: form.controls.comments.errors.maxlength }}
           </mat-error>
         </mat-form-field>
       </ion-col>

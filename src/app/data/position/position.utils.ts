@@ -1,11 +1,8 @@
-
 import { GeolocationUtils, IPosition } from '@sumaris-net/ngx-components';
 import { BBox } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 
-
 export abstract class PositionUtils {
-
   static isNotNilAndValid = GeolocationUtils.isNotNilAndValid;
   static isNilOrInvalid = GeolocationUtils.isNilOrInvalid;
   static computeDistanceInMiles = GeolocationUtils.computeDistanceInMiles;

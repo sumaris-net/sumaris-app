@@ -1,10 +1,4 @@
-import {
-  BaseReferential,
-  EntityClass,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  uncapitalizeFirstLetter
-} from '@sumaris-net/ngx-components';
+import { BaseReferential, EntityClass, ReferentialAsObjectOptions, ReferentialRef, uncapitalizeFirstLetter } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export interface MetierFromObjectOptions {
@@ -27,7 +21,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target = super.asObject(opts);
     if (!opts || opts.minify !== true) {
-      target.gear = this.gear && this.gear.asObject(opts) || undefined;
+      target.gear = (this.gear && this.gear.asObject(opts)) || undefined;
 
       if (target.gear && !target.gear.entityName) {
         // Fixme gear entityName here
@@ -35,7 +29,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
         target.gear.entityName = 'Gear';
       }
 
-      target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(opts) || undefined;
+      target.taxonGroup = (this.taxonGroup && this.taxonGroup.asObject(opts)) || undefined;
     }
     return target;
   }

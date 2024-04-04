@@ -63,12 +63,9 @@ export const DEFAULT_PAGE_SIZE = 100;
   templateUrl: './device-position-map-page.component.html',
   styleUrls: ['./device-position-map-page.component.scss'],
   providers: [RxState],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DevicePositionMapPage
-  extends BaseMap<DevicePositionMapState>
-  implements OnInit {
-
+export class DevicePositionMapPage extends BaseMap<DevicePositionMapState> implements OnInit {
   protected readonly features$ = this._state.select('features');
   protected readonly downloadProgression$ = this._state.select('downloadProgression');
 
@@ -81,22 +78,22 @@ export class DevicePositionMapPage
   title = 'TITLE';
   filterCriteriaCount = 0;
   filterPanelFloating = true;
-  defaultPageSize= DEFAULT_PAGE_SIZE;
+  defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = [100, 500, 1000, 2000];
   defaultSortBy = 'dateTime';
   defaultSortDirection: SortDirection = 'desc';
 
-  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
+  autocompleteFields: { [key: string]: MatAutocompleteFieldConfig };
   onRefresh = new EventEmitter<any>();
 
   @Input() persistFilterInSettings = true;
   @Input() showTooltip = true;
 
-  @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel: MatExpansionPanel;
-  @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel: MatExpansionPanel;
-  @ViewChild('table',{static: true, read: ElementRef}) tableElement: ElementRef;
-  @ViewChild('paginator', {static: true}) paginator: MatPaginator;
-  @ViewChildren('tableRows', {read: ElementRef}) tableRows!: QueryList<ElementRef>;
+  @ViewChild('filterExpansionPanel', { static: true }) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild('tableExpansionPanel', { static: true }) tableExpansionPanel: MatExpansionPanel;
+  @ViewChild('table', { static: true, read: ElementRef }) tableElement: ElementRef;
+  @ViewChild('paginator', { static: true }) paginator: MatPaginator;
+  @ViewChildren('tableRows', { read: ElementRef }) tableRows!: QueryList<ElementRef>;
 
   get total() {
     return this._state.get('total');
@@ -106,11 +103,11 @@ export class DevicePositionMapPage
   }
 
   get pageSize(): number {
-    return this.paginator && this.paginator.pageSize || this.defaultPageSize || DEFAULT_PAGE_SIZE;
+    return (this.paginator && this.paginator.pageSize) || this.defaultPageSize || DEFAULT_PAGE_SIZE;
   }
 
   get pageOffset(): number {
-    return this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0;
+    return (this.paginator && this.paginator.pageIndex * this.paginator.pageSize) || 0;
   }
 
   get sortBy(): string {
@@ -131,11 +128,16 @@ export class DevicePositionMapPage
     protected renderer: Renderer2,
     protected navController: NavController
   ) {
-    super(injector, _state, {
-      maxZoom: 14 // Need by SFA
-    }, {
-      loading: true
-    });
+    super(
+      injector,
+      _state,
+      {
+        maxZoom: 14, // Need by SFA
+      },
+      {
+        loading: true,
+      }
+    );
 
     this.settingsId = 'device-position-map';
 
@@ -143,7 +145,7 @@ export class DevicePositionMapPage
     this.filterForm = this.formBuilder.group(filterConfig || {});
 
     this._autocompleteConfigHolder = new MatAutocompleteConfigHolder({
-      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b)
+      getUserAttributes: (a, b) => this.settings.getFieldDisplayAttributes(a, b),
     });
     this.autocompleteFields = this._autocompleteConfigHolder.fields;
   }
@@ -156,11 +158,11 @@ export class DevicePositionMapPage
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: personAttributes,
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerSubscription(
@@ -168,17 +170,17 @@ export class DevicePositionMapPage
         .pipe(
           debounceTime(250),
           filter(() => this.filterForm.valid),
-          tap(value => {
+          tap((value) => {
             const filter = DevicePositionFilter.fromObject(value);
             // Done in setFilter
             // this.filterCriteriaCount = filter.countNotEmptyCriteria();
             this.markForCheck();
-            this.setFilter(filter, {emitEvent: false});
+            this.setFilter(filter, { emitEvent: false });
           }),
           debounceTime(500),
-          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, DEVICE_POSITION_MAP_SETTINGS.FILTER_KEY))
+          tap((json) => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, DEVICE_POSITION_MAP_SETTINGS.FILTER_KEY))
         )
-      .subscribe()
+        .subscribe()
     );
 
     this.registerSubscription(
@@ -192,12 +194,10 @@ export class DevicePositionMapPage
         .pipe(
           tap(() => this.markAsLoading()),
           debounceTime(100),
-          switchMap(() => this.dataService.watchAll(
-              this.pageOffset, this.pageSize, this.sortBy, this.sortDirection, this.filter
-          )),
-          catchError(err => {
+          switchMap(() => this.dataService.watchAll(this.pageOffset, this.pageSize, this.sortBy, this.sortDirection, this.filter)),
+          catchError((err) => {
             if (this._debug) console.error(err);
-            this.setError(err && err.message || err);
+            this.setError((err && err.message) || err);
             return of(undefined); // Continue
           })
         )
@@ -219,7 +219,7 @@ export class DevicePositionMapPage
     this.highlightMarker(feature);
 
     // Scroll to row
-    const index = this._state.get('features')?.findIndex(f => f === feature);
+    const index = this._state.get('features')?.findIndex((f) => f === feature);
     if (index !== -1) {
       this.scrollToRow(index);
     }
@@ -228,7 +228,6 @@ export class DevicePositionMapPage
   }
 
   protected scrollToRow(index: number) {
-
     const rowElement = this.tableRows.get(index);
     if (!rowElement) {
       console.warn(this._logPrefix + 'Cannot found row by index=' + index);
@@ -240,15 +239,15 @@ export class DevicePositionMapPage
     if (rowRect.top < gridRect.top || rowRect.bottom > gridRect.bottom) {
       this.tableElement.nativeElement.scrollTo({
         top: rowElement.nativeElement.offsetTop - (gridRect.height - rowRect.height) / 2,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   }
 
   resetFilter() {
-    this.filterForm.reset({}, {emitEvent: true});
+    this.filterForm.reset({}, { emitEvent: true });
     const filter = this.asFilter({});
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, { emitEvent: true });
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -304,12 +303,11 @@ export class DevicePositionMapPage
     console.debug(`${this._logPrefix} : Creating filter form group...`);
 
     // // Base form config
-    const config = {
-    };
+    const config = {};
 
     // Add other properties
     return Object.keys(new DevicePositionFilter())
-      .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key) && !config[key])
+      .filter((key) => !IGNORED_ENTITY_COLUMNS.includes(key) && !config[key])
       .reduce((config, key) => {
         console.debug(`${this._logPrefix} : Adding filter control: ${key}`);
         config[key] = [null];
@@ -328,14 +326,14 @@ export class DevicePositionMapPage
 
     // Update the form content
     if (this.filterForm && (!opts || opts.emitEvent !== false)) {
-      this.filterForm.patchValue(filterInstance.asObject(), {emitEvent: false});
+      this.filterForm.patchValue(filterInstance.asObject(), { emitEvent: false });
     }
 
     this.applyFilter(filterInstance, opts);
   }
 
-  async updateView(res: LoadResult<DevicePosition> | undefined, opts?: {emitEvent?: boolean}): Promise<void> {
-    let {data, total} = res;
+  async updateView(res: LoadResult<DevicePosition> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
+    let { data, total } = res;
 
     data = data || [];
     total = toNumber(total, data?.length || 0);
@@ -357,18 +355,22 @@ export class DevicePositionMapPage
     const features = await this.loadLayers(data);
 
     // Update state
-    this._state.set(state => <DevicePositionMapState>{
-      ...state, features, total, visibleTotal: Math.min(this.pageSize, features.length)
-    });
-
+    this._state.set(
+      (state) =>
+        <DevicePositionMapState>{
+          ...state,
+          features,
+          total,
+          visibleTotal: Math.min(this.pageSize, features.length),
+        }
+    );
 
     if (!opts || opts.emitEvent !== false) {
-
       // Open table, if has data
       if (total) this.tableExpansionPanel.open();
       else this.tableExpansionPanel.close();
 
-      this.markAsLoaded({emitEvent: false});
+      this.markAsLoaded({ emitEvent: false });
     }
 
     this.markForCheck();
@@ -388,7 +390,10 @@ export class DevicePositionMapPage
     }
   }
 
-  protected registerAutocompleteField<E = any, EF = any>(fieldName: string, options?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
+  protected registerAutocompleteField<E = any, EF = any>(
+    fieldName: string,
+    options?: MatAutocompleteFieldAddOptions<E, EF>
+  ): MatAutocompleteFieldConfig<E, EF> {
     return this._autocompleteConfigHolder.add(fieldName, options);
   }
 
@@ -403,46 +408,48 @@ export class DevicePositionMapPage
       this.cleanMapLayers();
       const dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
-      const persons: Person[] = arrayDistinct((data || []).map(position => position.recorderPerson).filter(p => isNotNil(p?.id)), 'id');
+      const persons: Person[] = arrayDistinct(
+        (data || []).map((position) => position.recorderPerson).filter((p) => isNotNil(p?.id)),
+        'id'
+      );
       const layerByPersonId = persons.reduce((res, p, index) => {
         const layer = L.geoJSON(null, {
-          onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined
+          onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined,
         });
         res[p.id] = layer;
         this.layers.push(layer);
         return res;
       }, {});
 
-
       // Add each position to layer
       const features = (data || [])
         .map((position, index) => {
           const personId = position.recorderPerson?.id;
           if (isNil(personId)) return;
-          const feature = this.dataService.toGeoJsonFeature(position, {dateTimePattern});
+          const feature = this.dataService.toGeoJsonFeature(position, { dateTimePattern });
           if (!feature) return; // Skip if empty
 
           // Add feature to layer
           const layer = layerByPersonId[personId];
           layer.addData(feature);
           return feature;
-        }).filter(isNotNil);
+        })
+        .filter(isNotNil);
 
-      persons.forEach(p => {
+      persons.forEach((p) => {
         const layer = layerByPersonId[p.id];
         const layerName = PersonUtils.personToString(p);
         this.layersControl.overlays[layerName] = layer;
       });
 
-      this.layers.forEach(layer => layer.addTo(this.map));
+      this.layers.forEach((layer) => layer.addTo(this.map));
 
       await this.flyToBounds();
 
       return features;
-
     } catch (err) {
       console.error('[operations-map] Error while load layers:', err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
     } finally {
       this.markForCheck();
     }
@@ -463,38 +470,40 @@ export class DevicePositionMapPage
 
   protected highlightMarker(feature: Feature, sizeFactor = 1.1) {
     // Select the marker
-    this.layers.forEach(layer => {
-      const geoJsonLayer = (layer as L.GeoJSON);
-      geoJsonLayer.eachLayer(m => {
-        const marker = (m as L.Marker);
+    this.layers.forEach((layer) => {
+      const geoJsonLayer = layer as L.GeoJSON;
+      geoJsonLayer.eachLayer((m) => {
+        const marker = m as L.Marker;
         if (marker.feature.id === feature.id) {
           marker['_selected'] = true;
-          marker.setIcon(L.icon({
-            iconUrl: 'assets/icons/marker-selected.svg',
-            shadowUrl: 'marker-shadow.png',
-            iconSize: [25 * sizeFactor, 41 * sizeFactor],
-            iconAnchor: [12 * sizeFactor, 41 * sizeFactor],
-            popupAnchor: [1, -34],
-            shadowSize: [41 * sizeFactor, 41 * sizeFactor],
-          }));
-        }
-        else if (marker['_selected']){
-          marker.setIcon(L.icon({
-            iconUrl: 'marker-icon.png',
-            shadowUrl: 'marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41],
-          }));
+          marker.setIcon(
+            L.icon({
+              iconUrl: 'assets/icons/marker-selected.svg',
+              shadowUrl: 'marker-shadow.png',
+              iconSize: [25 * sizeFactor, 41 * sizeFactor],
+              iconAnchor: [12 * sizeFactor, 41 * sizeFactor],
+              popupAnchor: [1, -34],
+              shadowSize: [41 * sizeFactor, 41 * sizeFactor],
+            })
+          );
+        } else if (marker['_selected']) {
+          marker.setIcon(
+            L.icon({
+              iconUrl: 'marker-icon.png',
+              shadowUrl: 'marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41],
+            })
+          );
           delete marker['_selected'];
         }
       });
-
     });
   }
 
-  protected async onOpenDataClick(event: Event, position: DevicePosition|any) {
+  protected async onOpenDataClick(event: Event, position: DevicePosition | any) {
     if (event?.defaultPrevented) return;
     event?.preventDefault();
 
@@ -520,16 +529,16 @@ export class DevicePositionMapPage
     await this.navController.navigateForward(path);
   }
 
-  protected async download(event: MouseEvent|TouchEvent|PointerEvent, format: 'csv'|'geojson', popover: IonPopover) {
+  protected async download(event: MouseEvent | TouchEvent | PointerEvent, format: 'csv' | 'geojson', popover: IonPopover) {
     const progression = new BehaviorSubject<number>(0);
     const maxProgression = 100;
     const progressionModel = new ProgressionModel({
       message: 'INFO.DOWNLOADING_DOTS',
       current: 0,
       total: maxProgression,
-      cancelled: false
+      cancelled: false,
     });
-    const subscription = progression.subscribe(current => progressionModel.current = current);
+    const subscription = progression.subscribe((current) => (progressionModel.current = current));
     subscription.add(() => this.unregisterSubscription(subscription));
 
     this.registerSubscription(subscription);
@@ -540,10 +549,10 @@ export class DevicePositionMapPage
 
     switch (format) {
       case 'geojson':
-          await this.dataService.downloadAsGeoJson(this.filter, {progression, maxProgression})
-          break;
+        await this.dataService.downloadAsGeoJson(this.filter, { progression, maxProgression });
+        break;
       default:
-        await this.dataService.downloadAsCsv(this.filter, {progression, maxProgression})
+        await this.dataService.downloadAsCsv(this.filter, { progression, maxProgression });
         break;
     }
 

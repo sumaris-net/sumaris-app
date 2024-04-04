@@ -2,7 +2,18 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
-import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  EntityUtils,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  joinPropertiesPath,
+  LocalSettingsService,
+  startsWithUpperCase,
+  toNumber,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
@@ -12,17 +23,16 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
 import { filter, mergeMap } from 'rxjs/operators';
-
+import { RxState } from '@rx-angular/state';
 
 @Component({
   selector: 'app-sub-sample-form',
   templateUrl: 'sub-sample.form.html',
   styleUrls: ['sub-sample.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubSampleForm extends MeasurementValuesForm<Sample>
-  implements OnInit, OnDestroy {
-
+export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy {
   private _availableParents: Sample[] = [];
   private _availableSortedParents: Sample[] = [];
   focusFieldName: string;
@@ -64,14 +74,11 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef,
     protected validatorService: SubSampleValidatorService,
-    protected settings: LocalSettingsService,
+    protected settings: LocalSettingsService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService,
-      validatorService.getFormGroup(),
-      {
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
-      }
-    );
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+    });
 
     this._enable = true;
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
@@ -87,8 +94,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     this.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     this.tabindex = toNumber(this.tabindex, 1);
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
-    this.focusFieldName = !this.mobile && (this.showLabel ? 'label' :
-      (this.showParent ? 'parent' : null));
+    this.focusFieldName = !this.mobile && (this.showLabel ? 'label' : this.showParent ? 'parent' : null);
     this.i18nFieldPrefix = this.i18nFieldPrefix || `TRIP.SUB_SAMPLE.`;
     this.i18nSuffix = this.i18nSuffix || '';
     this.i18nFullSuffix = `${this.acquisitionLevel}.${this.i18nSuffix}`;
@@ -97,17 +103,13 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParent(value),
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerSubscription(
-      merge(
-        this.onParentChanges.pipe(mergeMap(() => this.pmfms$)),
-        this.pmfms$
-      )
-        .pipe(
-          filter(isNotEmptyArray),
-        ).subscribe((pmfms) => this.updateParents(pmfms))
+      merge(this.onParentChanges.pipe(mergeMap(() => this.pmfms$)), this.pmfms$)
+        .pipe(filter(isNotEmptyArray))
+        .subscribe((pmfms) => this.updateParents(pmfms))
     );
 
     if (!this.showParent) {
@@ -126,8 +128,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     // DEBUG
     console.debug('[sub-sample-form] Mapping PMFMs...', pmfms);
 
-    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID);
-    const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
+    const tagIdPmfmIndex = pmfms.findIndex((p) => p.id === PmfmIds.TAG_ID);
+    const tagIdPmfm = tagIdPmfmIndex !== -1 && pmfms[tagIdPmfmIndex];
     this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 
     // Force the parent PMFM to be hidden, and NOT required
@@ -160,35 +162,38 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     console.debug('[sub-sample-form] Update parents...');
 
     const parents = this._availableParents || [];
-    const hasTaxonName = parents.some(s => isNotNil(s.taxonName?.id));
+    const hasTaxonName = parents.some((s) => isNotNil(s.taxonName?.id));
     const attributeName = hasTaxonName ? 'taxonName' : 'taxonGroup';
-    const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName)
-      .map(key => `${attributeName}.${key}`);
+    const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName).map((key) => `${attributeName}.${key}`);
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {
       const parentDisplayPmfmIdStr = this.displayParentPmfm.id.toString();
       const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmIdStr}`;
       // Keep parents without this pmfms
-      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmIdStr]));
+      const filteredParents = parents.filter((s) => isNotNil(s.measurementValues[parentDisplayPmfmIdStr]));
       this._availableSortedParents = EntityUtils.sort(filteredParents, parentDisplayPmfmPath);
 
       this.autocompleteFields.parent.attributes = [parentDisplayPmfmPath].concat(baseDisplayAttributes);
-      this.autocompleteFields.parent.columnSizes = [4].concat(baseDisplayAttributes.map(attr =>
-        // If label then col size = 2
-        attr.endsWith('label') ? 2 : undefined));
+      this.autocompleteFields.parent.columnSizes = [4].concat(
+        baseDisplayAttributes.map((attr) =>
+          // If label then col size = 2
+          attr.endsWith('label') ? 2 : undefined
+        )
+      );
       this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
-      this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-        && PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], {pmfm: this.displayParentPmfm})
-        || undefined;
-    }
-    else {
+      this.autocompleteFields.parent.displayWith = (obj) =>
+        (obj &&
+          obj.measurementValues &&
+          PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], { pmfm: this.displayParentPmfm })) ||
+        undefined;
+    } else {
       const displayAttributes = ['rankOrder'].concat(baseDisplayAttributes);
       this._availableSortedParents = EntityUtils.sort(parents.slice(), 'rankOrder');
       this.autocompleteFields.parent.attributes = displayAttributes;
       this.autocompleteFields.parent.columnSizes = undefined; // use defaults
       this.autocompleteFields.parent.columnNames = undefined; // use defaults
-      this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
+      this.autocompleteFields.parent.displayWith = (obj) => (obj && joinPropertiesPath(obj, displayAttributes)) || undefined;
     }
 
     this.markForCheck();
@@ -198,15 +203,16 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     if (EntityUtils.isNotEmpty(value, 'label')) {
       return [value];
     }
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
+    value = (typeof value === 'string' && value !== '*' && value) || undefined;
     if (isNil(value)) return this._availableSortedParents; // All
 
     if (this.debug) console.debug(`[sub-sample-form] Searching parent {${value || '*'}}...`);
-    if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-      return this._availableSortedParents.filter(p => startsWithUpperCase(p.measurementValues[this.displayParentPmfm.id], value));
+    if (this.displayParentPmfm) {
+      // Search on a specific Pmfm (e.g Tag-ID)
+      return this._availableSortedParents.filter((p) => startsWithUpperCase(p.measurementValues[this.displayParentPmfm.id], value));
     }
     // Search on rankOrder
-    return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
+    return this._availableSortedParents.filter((p) => p.rankOrder.toString().startsWith(value));
   }
 
   protected markForCheck() {
@@ -215,5 +221,4 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
 
   isNotHiddenPmfm = PmfmUtils.isNotHidden;
   selectInputContent = AppFormUtils.selectInputContent;
-
 }

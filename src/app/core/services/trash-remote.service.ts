@@ -1,29 +1,25 @@
-import {Injectable} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {BaseGraphqlService, chainPromises, GraphqlService} from '@sumaris-net/ngx-components';
-import {AppCoreErrorCodes} from '@app/core/services/errors';
-import {environment} from '@environments/environment';
+import { Injectable } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { BaseGraphqlService, chainPromises, GraphqlService } from '@sumaris-net/ngx-components';
+import { AppCoreErrorCodes } from '@app/core/services/errors';
+import { environment } from '@environments/environment';
 
 // Load a trash file
 const LoadQuery: any = gql`
-  query TrashEntity($entityName:String, $id: String){
+  query TrashEntity($entityName: String, $id: String) {
     trashEntity(entityName: $entityName, id: $id)
   }
 `;
 // Delete a trash file
 const DeleteMutation: any = gql`
-  mutation DeleteTrashEntity($entityName:String, $id: String){
+  mutation DeleteTrashEntity($entityName: String, $id: String) {
     deleteTrashEntity(entityName: $entityName, id: $id)
   }
 `;
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TrashRemoteService extends BaseGraphqlService<string, any> {
-
-
-  constructor(
-    protected graphql: GraphqlService,
-  ) {
+  constructor(protected graphql: GraphqlService) {
     super(graphql, environment);
 
     if (this._debug) console.debug('[trash-service] Creating service');
@@ -33,16 +29,16 @@ export class TrashRemoteService extends BaseGraphqlService<string, any> {
     if (this._debug) console.debug(`[trash-service] Load ${entityName}#${id} from the remote trash...`);
 
     // Execute mutation
-    const res = await this.graphql.query<{trashEntity: string}>({
+    const res = await this.graphql.query<{ trashEntity: string }>({
       query: LoadQuery,
       variables: {
         entityName,
-        id
+        id,
       },
       error: {
         code: AppCoreErrorCodes.LOAD_TRASH_ENTITY_ERROR,
-        message: 'ERROR.LOAD_TRASH_ENTITY_ERROR'
-      }
+        message: 'ERROR.LOAD_TRASH_ENTITY_ERROR',
+      },
     });
 
     return res && res.trashEntity && JSON.parse(res.trashEntity);
@@ -56,18 +52,17 @@ export class TrashRemoteService extends BaseGraphqlService<string, any> {
       mutation: DeleteMutation,
       variables: {
         entityName,
-        id
+        id,
       },
       error: {
         code: AppCoreErrorCodes.DELETE_TRASH_ENTITY_ERROR,
-        message: 'ERROR.DELETE_TRASH_ENTITY_ERROR'
-      }
+        message: 'ERROR.DELETE_TRASH_ENTITY_ERROR',
+      },
     });
   }
 
   async deleteAll(entityName: string, ids: number[]) {
     // Delete one by one
-    return chainPromises((ids || [])
-      .map(id => (() => this.delete(entityName, id))));
+    return chainPromises((ids || []).map((id) => () => this.delete(entityName, id)));
   }
 }

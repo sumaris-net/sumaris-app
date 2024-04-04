@@ -16,8 +16,8 @@ const routes: Routes = [
     component: ReferentialTable,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      profile: 'ADMIN'
-    }
+      profile: 'ADMIN',
+    },
   },
   {
     path: 'programs',
@@ -27,15 +27,15 @@ const routes: Routes = [
         component: ProgramsPage,
         pathMatch: 'full',
         data: {
-          profile: 'SUPERVISOR'
+          profile: 'SUPERVISOR',
         },
-        runGuardsAndResolvers: 'pathParamsChange'
+        runGuardsAndResolvers: 'pathParamsChange',
       },
       {
         path: ':programId',
         data: {
           profile: 'SUPERVISOR',
-          pathIdParam: 'programId'
+          pathIdParam: 'programId',
         },
         children: [
           {
@@ -44,16 +44,16 @@ const routes: Routes = [
             component: ProgramPage,
             data: {
               profile: 'SUPERVISOR',
-              pathIdParam: 'programId'
+              pathIdParam: 'programId',
             },
             runGuardsAndResolvers: 'pathParamsChange',
-            canDeactivate: [ComponentDirtyGuard]
+            canDeactivate: [ComponentDirtyGuard],
           },
           {
             path: 'strategies',
             data: {
               profile: 'USER',
-              pathIdParam: 'programId'
+              pathIdParam: 'programId',
             },
             children: [
               {
@@ -62,10 +62,10 @@ const routes: Routes = [
                 component: StrategiesPage,
                 data: {
                   profile: 'USER',
-                  pathIdParam: 'programId'
+                  pathIdParam: 'programId',
                 },
                 runGuardsAndResolvers: 'pathParamsChange',
-                canDeactivate: [ComponentDirtyGuard]
+                canDeactivate: [ComponentDirtyGuard],
               },
               {
                 path: 'legacy/:strategyId',
@@ -73,10 +73,10 @@ const routes: Routes = [
                 component: StrategyPage,
                 data: {
                   profile: 'USER',
-                  pathIdParam: 'strategyId'
+                  pathIdParam: 'strategyId',
                 },
                 runGuardsAndResolvers: 'pathParamsChange',
-                canDeactivate: [ComponentDirtyGuard]
+                canDeactivate: [ComponentDirtyGuard],
               },
               {
                 path: 'sampling/:strategyId',
@@ -84,53 +84,50 @@ const routes: Routes = [
                 component: SamplingStrategyPage,
                 data: {
                   profile: 'USER',
-                  pathIdParam: 'strategyId'
+                  pathIdParam: 'strategyId',
                 },
                 runGuardsAndResolvers: 'pathParamsChange',
-                canDeactivate: [ComponentDirtyGuard]
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                canDeactivate: [ComponentDirtyGuard],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     path: 'software',
-    loadChildren: () => import('./software/software-routing.module').then(m => m.AppSoftwareRoutingModule)
+    loadChildren: () => import('./software/software-routing.module').then((m) => m.AppSoftwareRoutingModule),
   },
   // Pmfm sub modules
   {
     path: 'pmfm',
-    loadChildren: () => import('./pmfm/pmfm-routing.module').then(m => m.AppPmfmRoutingModule)
+    loadChildren: () => import('./pmfm/pmfm-routing.module').then((m) => m.AppPmfmRoutingModule),
   },
   {
     path: 'parameter',
-    loadChildren: () => import('./pmfm/parameter/parameter-routing.module').then(m => m.AppPmfmParameterRoutingModule)
+    loadChildren: () => import('./pmfm/parameter/parameter-routing.module').then((m) => m.AppPmfmParameterRoutingModule),
   },
   {
     path: 'method',
-    loadChildren: () => import('./pmfm/method/method-routing.module').then(m => m.AppPmfmMethodRoutingModule)
+    loadChildren: () => import('./pmfm/method/method-routing.module').then((m) => m.AppPmfmMethodRoutingModule),
   },
   {
     path: 'taxonGroup',
-    loadChildren: () => import('./taxon-group/taxon-group-routing.module').then(m => m.AppTaxonGroupRoutingModule)
+    loadChildren: () => import('./taxon-group/taxon-group-routing.module').then((m) => m.AppTaxonGroupRoutingModule),
   },
   {
     path: 'taxonName',
-    loadChildren: () => import('./taxon-name/taxon-name-routing.module').then(m => m.AppTaxonNameRoutingModule)
+    loadChildren: () => import('./taxon-name/taxon-name-routing.module').then((m) => m.AppTaxonNameRoutingModule),
   },
   {
     path: 'metier',
-    loadChildren: () => import('./metier/metier-routing.module').then(m => m.AppMetierRoutingModule)
+    loadChildren: () => import('./metier/metier-routing.module').then((m) => m.AppMetierRoutingModule),
   },
 ];
 
 @NgModule({
-  imports: [
-    AppReferentialModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppReferentialModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class ReferentialRoutingModule { }
+export class ReferentialRoutingModule {}

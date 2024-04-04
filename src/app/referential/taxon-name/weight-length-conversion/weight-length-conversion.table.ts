@@ -1,5 +1,5 @@
 import { WeightLengthConversion } from './weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '../../services/filter/weight-length-conversion.filter';
+import { WeightLengthConversionFilter } from './weight-length-conversion.filter';
 import { Component, Injector, Input, OnInit } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { WeightLengthConversionService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.service';
@@ -17,7 +17,6 @@ import { BehaviorSubject } from 'rxjs';
   templateUrl: '../../table/base-referential.table.html',
   styleUrls: ['../../table/base-referential.table.scss'],
 })
-// @ts-ignore
 export class WeightLengthConversionTable extends BaseReferentialTable<WeightLengthConversion, WeightLengthConversionFilter> implements OnInit {
   get referenceTaxonIdControl() {
     return this.filterForm.get('referenceTaxonId');

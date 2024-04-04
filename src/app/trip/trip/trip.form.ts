@@ -17,13 +17,12 @@ import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/servic
 
 import {
   AppForm,
+  AppFormArray,
   DateUtils,
   EntityUtils,
   equals,
-  FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -37,7 +36,6 @@ import {
   PersonService,
   PersonUtils,
   ReferentialRef,
-  referentialToString,
   ReferentialUtils,
   StatusIds,
   toBoolean,
@@ -45,14 +43,14 @@ import {
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
 import { Trip } from './trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { debounceTime, filter } from 'rxjs/operators';
-import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { debounceTime, filter, map } from 'rxjs/operators';
+import { VesselModal, VesselModalOptions } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
@@ -70,34 +68,42 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
+  private _showSamplingStrata: boolean;
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
 
-  readonly mobile = this.settings.mobile;
-  //readonly appearance = this.mobile ? 'outline' : 'legacy';
-
-  observersHelper: FormArrayHelper<Person>;
-  observerFocusIndex = -1;
-  enableMetierFilter = false;
-  metierFilter: Partial<MetierFilter>;
-  metiersHelper: FormArrayHelper<ReferentialRef>;
-  metierFocusIndex = -1;
-  canFilterMetier = false;
+  protected observerFocusIndex = -1;
+  protected enableMetierFilter = false;
+  protected metierFilter: Partial<MetierFilter>;
+  protected metierFocusIndex = -1;
+  protected canFilterMetier = false;
+  protected readonly mobile = this.settings.mobile;
 
   @Input() showComment = true;
   @Input() allowAddNewVessel = true;
   @Input() showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
+  @Input() i18nSuffix = null;
+
+  @Input() set showSamplingStrata(value: boolean) {
+    if (this._showSamplingStrata !== value) {
+      this._showSamplingStrata = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showSamplingStrata(): boolean {
+    return this._showSamplingStrata;
+  }
 
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
-      this.initObserversHelper();
-      this.markForCheck();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -108,8 +114,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() set showMetiers(value: boolean) {
     if (this._showMetiers !== value) {
       this._showMetiers = value;
-      this.initMetiersHelper();
-      this.markForCheck();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -151,6 +156,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.get('vesselSnapshot').value as VesselSnapshot;
   }
 
+  get programLabel(): string {
+    return this.form.get('program').value?.label;
+  }
+
   get value(): any {
     const json = this.form.value as Partial<Trip>;
 
@@ -167,15 +176,18 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.setValue(json);
   }
 
-  get observersForm(): UntypedFormArray {
-    return this.form.controls.observers as UntypedFormArray;
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
-  get metiersForm(): UntypedFormArray {
-    return this.form.controls.metiers as UntypedFormArray;
+  get metiersForm() {
+    return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
 
+  @Output() departureDateTimeChanges = new EventEmitter<Moment>();
+  @Output() departureLocationChanges = new EventEmitter<ReferentialRef>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
+  @Output() metiersChanges = new EventEmitter<ReferentialRef[]>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
   @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
@@ -200,6 +212,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.ngOnInit();
 
     // Default values
+    this.showSamplingStrata = toBoolean(this.showSamplingStrata, false); // Will init the observers helper
     this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
     this.showMetiers = toBoolean(this.showMetiers, false); // Will init the metiers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
@@ -213,6 +226,40 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION],
       },
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
+    });
+
+    // Combo: sampling strata
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) => {
+        return this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        });
+      },
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        searchAttributes: ['label', 'properties.samplingSchemeLabel'],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
+      mobile: this.mobile,
+      showAllOnFocus: this.mobile,
+    });
+
+    // Combo: sampling strata
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        }),
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });
@@ -271,7 +318,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.form.valueChanges
         .pipe(
           debounceTime(250),
-          filter((_) => this._showMetiers)
+          filter(() => this._showMetiers)
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );
@@ -280,18 +327,29 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ngOnReady() {
     this.updateFormGroup();
 
+    const departureLocation$ = this.form.get('departureLocation').valueChanges;
+    const departureDateTime$ = this.form.get('departureDateTime').valueChanges;
+    const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
+
     this.registerSubscription(
-      combineLatest([this.form.get('departureDateTime').valueChanges, this.form.get('returnDateTime').valueChanges]).subscribe(([d1, d2]) => {
-        const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
-        this.maxDateChanges.next(max);
-      })
+      departureLocation$.subscribe((departureLocation) => this.departureLocationChanges.next(ReferentialRef.fromObject(departureLocation)))
     );
+    this.registerSubscription(
+      departureDateTime$.subscribe((departureDateTime) => this.departureDateTimeChanges.next(fromDateISOString(departureDateTime)))
+    );
+
+    this.registerSubscription(
+      combineLatest([departureDateTime$, returnDateTime$])
+        .pipe(map(([d1, d2]) => DateUtils.max(d1, d2)))
+        .subscribe((max) => this.maxDateChanges.next(max))
+    );
+
+    if (this.showMetiers) {
+      this.registerSubscription(this.form.get('metiers').valueChanges.subscribe((metiers) => this.metiersChanges.next(metiers)));
+    }
   }
 
-  registerAutocompleteField<E = any, EF = any>(
-    fieldName: string,
-    opts?: MatAutocompleteFieldAddOptions<E, EF>
-  ): MatAutocompleteFieldConfig<E, EF> {
+  registerAutocompleteField<E = any, EF = any>(fieldName: string, opts?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
     return super.registerAutocompleteField(fieldName, opts);
   }
 
@@ -320,21 +378,18 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Make sure to have (at least) one observer
     // Resize observers array
     if (this._showObservers) {
-      data.observers = data.observers && data.observers.length ? data.observers : [null];
-      this.observersHelper.resize(Math.max(1, data.observers.length));
+      // Make sure to have (at least) one observer
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     } else {
-      data.observers = [];
-      this.observersHelper?.resize(0);
+      data.observers = [null];
     }
 
     // Make sure to have (at least) one metier
     this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, data.metiers.length), { emitEvent: false });
     } else {
       data.metiers = [];
-      this.metiersHelper?.resize(0, { emitEvent: false });
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
@@ -353,7 +408,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     const modal = await this.modalCtrl.create({
       component: VesselModal,
-      componentProps: {
+      componentProps: <VesselModalOptions>{
         defaultStatus: this.vesselDefaultStatus,
         maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined,
       },
@@ -377,20 +432,18 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   addObserver() {
-    this.observersHelper.add();
+    this.observersForm.add();
     if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
+      this.observerFocusIndex = this.observersForm.length - 1;
     }
   }
 
   addMetier() {
-    this.metiersHelper.add();
+    this.metiersForm.add();
     if (!this.mobile) {
-      this.metierFocusIndex = this.metiersHelper.size() - 1;
+      this.metierFocusIndex = this.metiersForm.length - 1;
     }
   }
-
-  referentialToString = referentialToString;
 
   /* -- protected methods-- */
 
@@ -464,63 +517,14 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     });
   }
 
-  protected initObserversHelper() {
-    if (isNil(this._showObservers)) return; // skip if not loading yet
-
-    // Create helper, if need
-    if (!this.observersHelper) {
-      this.observersHelper = new FormArrayHelper<Person>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-        (person) => this.validatorService.getObserverControl(person),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        { allowEmptyArray: !this._showObservers }
-      );
-    }
-
-    // Helper exists: update options
-    else {
-      this.observersHelper.allowEmptyArray = !this._showObservers;
-    }
-
-    if (this._showObservers) {
-      // Create at least one observer
-      if (this.observersHelper.size() === 0) {
-        this.observersHelper.resize(1);
-      }
-    } else if (this.observersHelper.size() > 0) {
-      this.observersHelper.resize(0);
-    }
-  }
-
-  protected initMetiersHelper() {
-    if (isNil(this._showMetiers)) return; // skip if not loading yet
-
-    if (!this.metiersHelper) {
-      this.metiersHelper = new FormArrayHelper<ReferentialRef>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
-        (metier) => this.validatorService.getMetierControl(metier),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        { allowEmptyArray: !this._showMetiers }
-      );
-    } else {
-      this.metiersHelper.allowEmptyArray = !this._showMetiers;
-    }
-    if (this._showMetiers) {
-      if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1, { emitEvent: false });
-      }
-    } else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0, { emitEvent: false });
-    }
-  }
-
   updateFormGroup() {
     const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours,
+      withSamplingStrata: this.showSamplingStrata,
+      withMetiers: this.showMetiers,
+      withObservers: this.showObservers,
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {

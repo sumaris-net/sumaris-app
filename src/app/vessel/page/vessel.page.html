@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && dirty"
   (onValidate)="save($event)"
@@ -13,28 +13,20 @@
 <!-- Vessel actions -->
 <mat-menu #actionMenu="matMenu" xPosition="after">
   <!-- vessel registration -->
-  <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">
-    VESSEL.ACTION.NEW_REGISTRATION
-  </button>
+  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
   <mat-divider></mat-divider>
 
   <!-- vessel features -->
-  <mat-label mat-menu-item class="mat-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
+  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
   <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
   <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
   <mat-divider></mat-divider>
 
   <!-- other (change status) -->
   <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
-  <button
-    mat-menu-item
-    translate
-    (click)="replace($event)"
-    *ngIf="replacementEnabled"
-    [disabled]="data?.statusId !== temporaryStatusId"
-  >
+  <button mat-menu-item translate (click)="replace($event)" *ngIf="replacementEnabled" [disabled]="data?.statusId !== temporaryStatusId">
     VESSEL.ACTION.REPLACE
   </button>
 </mat-menu>
@@ -43,7 +35,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden"
+    class="mat-mdc-tab-disabled-hidden"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="tabGroupAnimationDuration"
@@ -66,32 +58,25 @@
         <ion-row class="ion-no-padding">
           <ion-col class="ion-padding">
             <!-- main form -->
-            <app-form-vessel (onSubmit)="save($event)" #vesselForm [showError]="false"></app-form-vessel>
+            <app-form-vessel
+              #vesselForm
+              [registrationLocationLevelIds]="registrationLocationLevelIds"
+              [showError]="false"
+              (onSubmit)="save($event)"
+            ></app-form-vessel>
           </ion-col>
 
           <!-- quality process -->
           <ion-col size="12" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
             <app-entity-metadata [value]="data">
-              <ion-button
-                color="tertiary"
-                expand="block"
-                [matMenuTriggerFor]="actionMenu"
-                [disabled]="!data || !canUserWrite(data)"
-              >
+              <ion-button color="tertiary" expand="block" [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
                 <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>
                 &nbsp;
                 <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
                 <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
               </ion-button>
 
-              <ion-button
-                *ngIf="editing"
-                fill="clear"
-                expand="block"
-                color="dark"
-                class="visible-mobile visible-xs visible-sm"
-                (click)="cancel()"
-              >
+              <ion-button *ngIf="editing" fill="clear" expand="block" color="dark" class="visible-mobile visible-xs visible-sm" (click)="cancel()">
                 <ion-label translate>COMMON.BTN_CANCEL</ion-label>
               </ion-button>
             </app-entity-metadata>

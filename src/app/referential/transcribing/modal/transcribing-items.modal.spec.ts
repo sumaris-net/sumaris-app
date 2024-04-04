@@ -9,8 +9,8 @@ describe('TranscribingItemsModal', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ TranscribingItemsModal ],
-      imports: [IonicModule.forRoot()]
+      declarations: [TranscribingItemsModal],
+      imports: [IonicModule.forRoot()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TranscribingItemsModal);

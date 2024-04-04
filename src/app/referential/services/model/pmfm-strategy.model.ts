@@ -1,51 +1,57 @@
 import {
-  Entity, EntityAsObjectOptions, EntityClass, EntityUtils, IReferentialRef, isNil, isNotEmptyArray,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityUtils,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
-  removeDuplicatesFromArray, toNumber
+  removeDuplicatesFromArray,
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion} from './pmfm.model';
-import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
-import {MethodIds, UnitIds} from './model.enum';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
+import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { MethodIds, UnitIds } from './model.enum';
+import { AppReferentialUtils, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { arrayEquals } from '@app/shared/functions';
 import { StrategyAsObjectOptions } from '@app/referential/services/model/strategy.model';
 
-
-@EntityClass({typename: 'PmfmStrategyVO'})
+@EntityClass({ typename: 'PmfmStrategyVO' })
 export class PmfmStrategy extends Entity<PmfmStrategy> {
-
   static fromObject: (source: any, opts?: any) => PmfmStrategy;
   static asObject: (source: any, opts?: any) => any;
-  static isEmpty = (o) => (!o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method));
+  static isEmpty = (o) => !o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method);
   static isNotEmpty = (o) => !PmfmStrategy.isEmpty(o);
-  static getAcquisitionLevelLabel = (source: PmfmStrategy) => source && ((typeof source.acquisitionLevel === 'object') && source.acquisitionLevel.label || source.acquisitionLevel);
+  static getAcquisitionLevelLabel = (source: PmfmStrategy) =>
+    source && ((typeof source.acquisitionLevel === 'object' && source.acquisitionLevel.label) || source.acquisitionLevel);
   static getPmfmId = (source: PmfmStrategy) => source && toNumber(source.pmfmId, source.pmfm?.id);
-  static equals = (o1: PmfmStrategy, o2: PmfmStrategy) => (isNil(o1) && isNil(o2))
+  static equals = (o1: PmfmStrategy, o2: PmfmStrategy) =>
+    (isNil(o1) && isNil(o2)) ||
     // Same ID
-    || (o1 && o2 && (
+    (o1 &&
+      o2 &&
       // Same ID
-      (isNotNil(o1.id) && o1.id === o2.id)
-      // Or same strategy, rankOrder and acquisitionLevel, etc.
-      || (o1.strategyId === o2.strategyId
-        && o1.rankOrder === o2.rankOrder
-        && (PmfmStrategy.getAcquisitionLevelLabel(o1) === PmfmStrategy.getAcquisitionLevelLabel(o2))
-        // And same Pmfm
-        && (PmfmStrategy.getPmfmId(o1) === PmfmStrategy.getPmfmId(o2)
-          // or same Pmfm parts (parameter/matrix/fraction/method)
-          || (ReferentialUtils.equals(o1.parameter, o2.parameter)
-            && ReferentialUtils.equals(o1.matrix, o2.matrix)
-            && ReferentialUtils.equals(o1.fraction, o2.fraction)
-            && ReferentialUtils.equals(o1.method, o2.method)
-        ))
-        // And same gears
-        && arrayEquals(o1.gearIds, o2.gearIds)
-        // And same taxon groups
-        && arrayEquals(o1.taxonGroupIds, o2.taxonGroupIds)
-        // And same taxon names
-        && arrayEquals(o1.referenceTaxonIds, o2.referenceTaxonIds)
-      )));
+      ((isNotNil(o1.id) && o1.id === o2.id) ||
+        // Or same strategy, rankOrder and acquisitionLevel, etc.
+        (o1.strategyId === o2.strategyId &&
+          o1.rankOrder === o2.rankOrder &&
+          PmfmStrategy.getAcquisitionLevelLabel(o1) === PmfmStrategy.getAcquisitionLevelLabel(o2) &&
+          // And same Pmfm
+          (PmfmStrategy.getPmfmId(o1) === PmfmStrategy.getPmfmId(o2) ||
+            // or same Pmfm parts (parameter/matrix/fraction/method)
+            (ReferentialUtils.equals(o1.parameter, o2.parameter) &&
+              ReferentialUtils.equals(o1.matrix, o2.matrix) &&
+              ReferentialUtils.equals(o1.fraction, o2.fraction) &&
+              ReferentialUtils.equals(o1.method, o2.method))) &&
+          // And same gears
+          arrayEquals(o1.gearIds, o2.gearIds) &&
+          // And same taxon groups
+          arrayEquals(o1.taxonGroupIds, o2.taxonGroupIds) &&
+          // And same taxon names
+          arrayEquals(o1.referenceTaxonIds, o2.referenceTaxonIds))));
 
   pmfmId: number;
   pmfm: IPmfm;
@@ -60,7 +66,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   defaultValue: PmfmValue;
   isMandatory: boolean;
   rankOrder: number;
-  acquisitionLevel: string|IReferentialRef;
+  acquisitionLevel: string | IReferentialRef;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -76,7 +82,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   clone(opts?: any): PmfmStrategy {
     const target = super.clone(opts);
     // Keep acquisitionLevel as object
-    target.acquisitionLevel = EntityUtils.isEntity(this.acquisitionLevel) ? this.acquisitionLevel.clone() as IReferentialRef : this.acquisitionLevel;
+    target.acquisitionLevel = EntityUtils.isEntity(this.acquisitionLevel)
+      ? (this.acquisitionLevel.clone() as IReferentialRef)
+      : this.acquisitionLevel;
     return target;
   }
 
@@ -85,11 +93,11 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     target.acquisitionLevel = PmfmStrategy.getAcquisitionLevelLabel(target);
 
     target.pmfmId = PmfmStrategy.getPmfmId(this);
-    target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...opts});
-    target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...opts});
-    target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...opts});
-    target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...opts});
-    target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...opts});
+    target.pmfm = this.pmfm && this.pmfm.asObject({ ...NOT_MINIFY_OPTIONS, ...opts });
+    target.parameter = this.parameter && this.parameter.asObject({ ...NOT_MINIFY_OPTIONS, ...opts });
+    target.matrix = this.matrix && this.matrix.asObject({ ...NOT_MINIFY_OPTIONS, ...opts });
+    target.fraction = this.fraction && this.fraction.asObject({ ...NOT_MINIFY_OPTIONS, ...opts });
+    target.method = this.method && this.method.asObject({ ...NOT_MINIFY_OPTIONS, ...opts });
 
     // Serialize default value (into a number - because of the DB column's type)
     target.defaultValue = PmfmValueUtils.toModelValueAsNumber(this.defaultValue, this.pmfm);
@@ -104,40 +112,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
     // CLean remote id
     if (opts && opts.keepRemoteId === false) {
-      delete target.id;
-      delete target.updateDate;
+      AppReferentialUtils.cleanIdAndDates(target, true, ['pmfm', 'parameter', 'matrix', 'fraction', 'method', 'defaultValue']);
       delete target.strategyId;
       delete target.pmfmId;
-      if (EntityUtils.isRemote(target.pmfm)) {
-        delete target.pmfm.id;
-        delete target.pmfm.updateDate;
-        delete target.pmfm.creationDate;
-        target.pmfm.qualitativeValues?.filter(EntityUtils.isRemote)
-          .forEach(qv => {
-            delete qv.id;
-            delete qv.updateDate;
-            delete qv.creationDate;
-          });
-        if (EntityUtils.isRemote(target.pmfm.parameter)) {
-          delete target.pmfm.parameter.id;
-          delete target.pmfm.parameter.updateDate;
-          delete target.pmfm.parameter.creationDate;
-          target.pmfm.parameter.qualitativeValues?.filter(EntityUtils.isRemote)
-            .forEach(qv => {
-              delete qv.id;
-              delete qv.updateDate;
-              delete qv.creationDate;
-            });
-        }
-
-      }
-      if (EntityUtils.isRemote(target.parameter)) delete target.parameter.id;
-      if (EntityUtils.isRemote(target.matrix)) delete target.matrix.id;
-      if (EntityUtils.isRemote(target.fraction)) delete target.fraction.id;
-      if (EntityUtils.isRemote(target.method)) delete target.method.id;
-      if (EntityUtils.isRemote(target.defaultValue)) delete target.defaultValue.id;
-      // Warn: do not replace gearIds, taxonGroupIds, referenceTaxonIds
-      // to avoid losing some data. Should be done by caller
     }
 
     return target;
@@ -160,9 +137,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
-    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
-    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.gearIds = (source.gearIds && [...source.gearIds]) || undefined;
+    this.taxonGroupIds = (source.taxonGroupIds && [...source.taxonGroupIds]) || undefined;
+    this.referenceTaxonIds = (source.referenceTaxonIds && [...source.referenceTaxonIds]) || undefined;
     this.strategyId = source.strategyId;
   }
 
@@ -174,7 +151,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.isMandatory = value;
   }
 
-  get type(): string|PmfmType {
+  get type(): string | PmfmType {
     return this.pmfm && this.pmfm.type;
   }
 
@@ -207,12 +184,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   }
 }
 
-@EntityClass({typename: 'DenormalizedPmfmStrategyVO'})
-export class DenormalizedPmfmStrategy
-  extends Entity<DenormalizedPmfmStrategy>
-  implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
-
+@EntityClass({ typename: 'DenormalizedPmfmStrategyVO' })
+export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategy;
+  static fromObjects(sources: any[], opts?: any) {
+    return (sources || []).map(this.fromObject);
+  }
   static fromFullPmfm(source: Pmfm, opts?: any): DenormalizedPmfmStrategy {
     if (!source) return undefined;
     const target = new DenormalizedPmfmStrategy();
@@ -221,7 +198,7 @@ export class DenormalizedPmfmStrategy
       label: source.label,
       name: source.name,
       type: source.type,
-      completeName: PmfmUtils.getPmfmName(source,{withDetails:true, withUnit: source.unit?.id !== UnitIds.NONE}),
+      completeName: PmfmUtils.getPmfmName(source, { withDetails: true, withUnit: source.unit?.id !== UnitIds.NONE }),
       minValue: source.minValue,
       maxValue: source.maxValue,
       defaultValue: source.defaultValue,
@@ -240,10 +217,10 @@ export class DenormalizedPmfmStrategy
         : isNotEmptyArray(source.parameter.qualitativeValues)
           ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject)
           : undefined,
-      displayConversion: source.displayConversion
+      displayConversion: source.displayConversion,
     });
     return target;
-  };
+  }
 
   /**
    * Allow to merge, using the children property
@@ -258,8 +235,7 @@ export class DenormalizedPmfmStrategy
     if (isNil(pmfm.children)) {
       result = this.fromObject(pmfm).asObject(); // Clone
       result.children = [pmfm, other];
-    }
-    else {
+    } else {
       result = pmfm; // Already clone
       result.children.push(other);
     }
@@ -270,40 +246,35 @@ export class DenormalizedPmfmStrategy
     // Min value
     if (isNotNil(result.minValue) && isNotNil(other.minValue)) {
       result.minValue = Math.min(result.minValue, other.minValue);
-    }
-    else {
+    } else {
       result.minValue = null;
     }
 
     // Max value
     if (isNotNil(result.maxValue) && isNotNil(other.maxValue)) {
       result.maxValue = Math.max(result.maxValue, other.maxValue);
-    }
-    else {
+    } else {
       result.maxValue = null;
     }
 
     // Merge gears
     if (isNotEmptyArray(result.gearIds) && isNotEmptyArray(other.gearIds)) {
       result.gearIds = removeDuplicatesFromArray([...result.gearIds, ...other.gearIds]);
-    }
-    else {
+    } else {
       result.gearIds = null;
     }
 
     // Merge taxonGroupIds
     if (isNotEmptyArray(result.taxonGroupIds) && isNotEmptyArray(other.taxonGroupIds)) {
       result.taxonGroupIds = removeDuplicatesFromArray([...result.taxonGroupIds, ...other.taxonGroupIds]);
-    }
-    else {
+    } else {
       result.taxonGroupIds = null;
     }
 
     // Merge referenceTaxonIds
     if (isNotEmptyArray(result.referenceTaxonIds) && isNotEmptyArray(other.referenceTaxonIds)) {
       result.referenceTaxonIds = removeDuplicatesFromArray([...result.referenceTaxonIds, ...other.referenceTaxonIds]);
-    }
-    else {
+    } else {
       result.referenceTaxonIds = null;
     }
 
@@ -357,12 +328,12 @@ export class DenormalizedPmfmStrategy
     const target: any = super.asObject(options);
 
     target.displayConversion = this.displayConversion?.asObject(options);
-    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, {applyConversion: false});
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
+    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, { applyConversion: false });
+    target.qualitativeValues = (this.qualitativeValues && this.qualitativeValues.map((qv) => qv.asObject(options))) || undefined;
+    target.children = (this.children && this.children.map((c) => c.asObject(options))) || undefined;
 
     // Revert conversion (if any)
-    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), {markAsConverted: false});
+    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), { markAsConverted: false });
 
     return target;
   }
@@ -391,12 +362,12 @@ export class DenormalizedPmfmStrategy
     this.isComputed = source.isComputed;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
-    this.gearIds = source.gearIds && [...source.gearIds] || undefined;
-    this.taxonGroupIds = source.taxonGroupIds && [...source.taxonGroupIds] || undefined;
-    this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
+    this.gearIds = (source.gearIds && [...source.gearIds]) || undefined;
+    this.taxonGroupIds = (source.taxonGroupIds && [...source.taxonGroupIds]) || undefined;
+    this.referenceTaxonIds = (source.referenceTaxonIds && [...source.referenceTaxonIds]) || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
-    this.children = source.children && source.children.map(child => new DenormalizedPmfmStrategy(child)) || undefined;
+    this.children = (source.children && source.children.map((child) => new DenormalizedPmfmStrategy(child))) || undefined;
 
     if (this.displayConversion) PmfmUtils.applyConversion(this, this.displayConversion);
   }
@@ -445,10 +416,11 @@ export class DenormalizedPmfmStrategy
   }
 
   equals(other: DenormalizedPmfmStrategy): boolean {
-    return other && (
-      (isNotNil(this.id) && this.id === other.id)
-      // Same strategy, acquisitionLevel, pmfmId
-      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel)
+    return (
+      other &&
+      ((isNotNil(this.id) && this.id === other.id) ||
+        // Same strategy, acquisitionLevel, pmfmId
+        (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel))
     );
   }
 }

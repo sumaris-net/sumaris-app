@@ -31,19 +31,53 @@
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
+
       <ion-row class="ion-padding-start">
         <ion-col>
-          <mat-autocomplete-field
+          <!-- Vessel -->
+          <mat-chips-field
             *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-            [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
             formControlName="vesselSnapshot"
+            [placeholder]="'TRIP.TABLE.VESSEL' | translate"
             [config]="autocompleteFields.vesselSnapshot"
-            [required]="true"
+            [clearable]="true"
+            chipColor="accent"
+            [tabindex]="3"
           >
             <ion-icon matPrefix name="boat"></ion-icon>
-          </mat-autocomplete-field>
+          </mat-chips-field>
+          <!-- Vessel
+          <mat-autocomplete-field
+            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            formControlName="vesselSnapshot"
+            [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="true"
+            [tabindex]="3"
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
+          </mat-autocomplete-field>-->
         </ion-col>
       </ion-row>
+      <ion-row>
+        <ion-col>
+          <!-- enable history ? -->
+          <mat-form-field floatLabel="never">
+            <!-- fake input -->
+            <input matInput hidden />
+
+            <ion-label>&nbsp;</ion-label>
+
+            <!-- checkbox, when compact -->
+            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">
+              <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
+            </mat-checkbox>
+
+            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+
       <ion-row class="ion-padding-start">
         <ion-col>
           <!-- Period duration -->
@@ -52,7 +86,7 @@
             <mat-select
               formControlName="periodDuration"
               [placeholder]="'TRIP.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
-              [tabindex]="3"
+              [tabindex]="6"
               required
             >
               <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
@@ -60,9 +94,7 @@
               </mat-option>
             </mat-select>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>
-              ERROR.FIELD_REQUIRED
-            </mat-error>
+            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
       </ion-row>
@@ -84,8 +116,10 @@
 
         <ion-button
           [fill]="valid ? 'solid' : 'clear'"
+          [disabled]="disabled"
           (click)="validate($event)"
           (keyup.enter)="validate($event)"
+          [tabindex]="7"
           color="tertiary"
         >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>

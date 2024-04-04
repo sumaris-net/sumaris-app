@@ -11,7 +11,8 @@ zoneConfig.global.disable.canvas();
 zoneConfig.global.disable.XHR();
 
 zoneConfig.events.disable.UNPATCHED_EVENTS([
-  'mousemove', 'mouseover',
+  'mousemove',
+  'mouseover',
   // TODO: check if can disabled this events:
   //'scroll'
 ]);
@@ -19,10 +20,8 @@ zoneConfig.events.disable.UNPATCHED_EVENTS([
 // FIXME disable zone in .then() functions
 //zoneConfig.global.disable.ZoneAwarePromise();
 
-// FIXME: need to patch progression toolbar, to call markForCheck()
-// Otherwise, the trip editor still show the loading bar
+// FIXME: need to patch some components, to call markForCheck() or detectedChanges()
+// - loading bar still show (e.g. trip editor)
+// - notification icon (e.g. when start timer)
+// - TODO test all components
 //zoneConfig.global.disable.timers();
-
-
-
-

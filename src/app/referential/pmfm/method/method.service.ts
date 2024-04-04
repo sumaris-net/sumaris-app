@@ -4,18 +4,17 @@ import { AccountService, EntitySaveOptions, GraphqlService, LocalSettingsService
 import { Method } from '@app/referential/pmfm/method/method.model';
 import { FullReferential } from '@app/referential/services/model/referential.model';
 
-
 @Injectable({ providedIn: 'root' })
 export class MethodService extends ReferentialService<Method> {
-
-  constructor(protected graphql: GraphqlService,
-              protected accountService: AccountService,
-              protected settings: LocalSettingsService) {
+  constructor(
+    protected graphql: GraphqlService,
+    protected accountService: AccountService,
+    protected settings: LocalSettingsService
+  ) {
     super(graphql, accountService, settings, Method);
   }
 
   asObject(source: Method, opts?: any): any {
-
     const target = super.asObject(source, opts);
     target.properties = {
       isEstimated: source.isEstimated,
@@ -33,5 +32,4 @@ export class MethodService extends ReferentialService<Method> {
     target.isEstimated = toBoolean(source.isEstimated, source.properties?.isEstimated);
     return target;
   }
-
 }

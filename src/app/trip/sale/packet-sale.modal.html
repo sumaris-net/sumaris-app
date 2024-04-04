@@ -9,7 +9,7 @@
 ></app-modal-toolbar>
 
 <ion-content>
-  <app-packet-sale-form #packetSaleForm [packetSalePmfms]="packetSalePmfms" [mobile]="mobile"></app-packet-sale-form>
+  <app-packet-sale-form #packetSaleForm [pmfms]="pmfms" [mobile]="mobile"></app-packet-sale-form>
 
   <!-- add button (mobile) -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">

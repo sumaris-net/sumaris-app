@@ -13,6 +13,8 @@ import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
+import { RxState } from '@rx-angular/state';
+import { RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -28,20 +30,19 @@ export interface CatchBatchFormState extends BatchFormState {
   templateUrl: './catch.form.html',
   styleUrls: ['./catch.form.scss'],
   providers: [
-    { provide: BatchValidatorService, useClass: BatchValidatorService},
-    { provide: BatchForm, useExisting: forwardRef(() => CatchBatchForm)},
+    { provide: BatchValidatorService, useClass: BatchValidatorService },
+    { provide: BatchForm, useExisting: forwardRef(() => CatchBatchForm) },
+    RxState,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
-  implements OnInit {
-
-  readonly gearPmfms$ = this._state.select('gearPmfms');
-  readonly onDeckPmfms$ = this._state.select('onDeckPmfms');
-  readonly sortingPmfms$ = this._state.select('sortingPmfms');
-  readonly catchPmfms$ = this._state.select('catchPmfms');
-  readonly otherPmfms$ = this._state.select('otherPmfms');
-  readonly gridColCount$ = this._state.select('gridColCount');
+export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implements OnInit {
+  @RxStateSelect() readonly gearPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly onDeckPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly sortingPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly catchPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly otherPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() readonly gridColCount$: Observable<IPmfm[]>;
 
   @Input() labelColSize = 1;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
@@ -62,12 +63,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     referentialRefService: ReferentialRefService,
     validatorService: BatchValidatorService
   ) {
-    super(injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
-      referentialRefService,
-      validatorService);
+    super(injector, measurementsValidatorService, formBuilder, programRefService, referentialRefService, validatorService);
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
@@ -81,36 +77,30 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
 
   /* -- protected functions -- */
 
-  // @ts-ignore
-  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
-
+  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<CatchBatchFormState>> {
     if (!pmfms) return; // Skip
+
+    // DEBUG
+    console.debug(this._logPrefix + ' Dispatching pmfms...', pmfms);
 
     // If a catch batch (root)
     if (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
+      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod, filteredPmfms: updatedPmfms } = await super.dispatchPmfms(pmfms);
 
-      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod, pmfms: updatedPmfms } = await super.dispatchPmfms(pmfms);
-
-      const onDeckPmfms = pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0);
-      const sortingPmfms = pmfms.filter(p => p.label?.indexOf('SORTING_') === 0);
-      const catchPmfms = pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
-        && !onDeckPmfms.includes(p)
-        && !sortingPmfms.includes(p));
-      const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.id === PmfmIds.CHILD_GEAR);
+      const onDeckPmfms = pmfms.filter((p) => p.label?.indexOf('ON_DECK_') === 0);
+      const sortingPmfms = pmfms.filter((p) => p.label?.indexOf('SORTING_') === 0);
+      const catchPmfms = pmfms.filter(
+        (p) => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1) && !onDeckPmfms.includes(p) && !sortingPmfms.includes(p)
+      );
+      const gearPmfms = pmfms.filter((p) => p.matrixId === MatrixIds.GEAR || p.id === PmfmIds.CHILD_GEAR);
 
       // Compute grid column count
-      const gridColCount = this.labelColSize /*label*/
-        + Math.min(3, Math.max(
-          onDeckPmfms.length,
-          sortingPmfms.length,
-          catchPmfms.length,
-          gearPmfms.length
-        ));
+      const gridColCount =
+        this.labelColSize /*label*/ + Math.min(3, Math.max(onDeckPmfms.length, sortingPmfms.length, catchPmfms.length, gearPmfms.length));
 
-      const otherPmfms = pmfms.filter(p => !onDeckPmfms.includes(p)
-        && !sortingPmfms.includes(p)
-        && !catchPmfms.includes(p)
-        && !gearPmfms.includes(p));
+      const otherPmfms = pmfms.filter(
+        (p) => !onDeckPmfms.includes(p) && !sortingPmfms.includes(p) && !catchPmfms.includes(p) && !gearPmfms.includes(p)
+      );
 
       // Update state
       return {
@@ -122,7 +112,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         catchPmfms,
         gearPmfms,
         otherPmfms,
-        pmfms: updatedPmfms,
+        filteredPmfms: updatedPmfms,
         hasContent: pmfms.length > 0,
         gridColCount,
         showWeight: false,
@@ -130,7 +120,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         showSamplingBatch: false,
         samplingBatchEnabled: false,
         showEstimatedWeight: false,
-        showExhaustiveInventory: false
+        showExhaustiveInventory: false,
       };
     }
 
@@ -150,23 +140,21 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         gearPmfms: [],
         otherPmfms: [],
         gridColCount: 12,
-        showWeight: isNotEmptyArray(state.weightPmfms)
+        showWeight: isNotEmptyArray(state.weightPmfms),
       };
     }
-
   }
 
   protected listenHasContent(): Observable<boolean> {
     return combineLatest([
       super.listenHasContent(),
       this._state.select('showExhaustiveInventory'),
-      this._state.select(['onDeckPmfms', 'sortingPmfms', 'catchPmfms', 'gearPmfms', 'otherPmfms'],
-          pmfmsMap => Object.values(pmfmsMap).some(isNotEmptyArray)
-      )
+      this._state.select(['onDeckPmfms', 'sortingPmfms', 'catchPmfms', 'gearPmfms', 'otherPmfms'], (pmfmsMap) =>
+        Object.values(pmfmsMap).some(isNotEmptyArray)
+      ),
       // DEBUG
       //.pipe(tap(hasPmfms => console.debug(this._logPrefix + ' listenHasContent() - hasPmfms=' + hasPmfms)))
-    ])
-    .pipe(map(values => values.some(v => v === true)));
+    ]).pipe(map((values) => values.some((v) => v === true)));
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -181,6 +169,3 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     super.markAsDirty(opts);
   }
 }
-
-
-

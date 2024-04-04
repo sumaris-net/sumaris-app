@@ -10,6 +10,8 @@
 log.txt
 *.sublime-project
 *.sublime-workspace
+.out-tsc/
+out-tsc/
 .vscode/
 npm-debug.log*
 .angular/
@@ -20,9 +22,11 @@ npm-debug.log*
 .versions/
 .local/
 .local/android
+.gitlab-ci-local
 coverage/
 dist/
 node_modules/
+**/node_modules/
 tmp/
 temp/
 hooks/
@@ -42,3 +46,6 @@ resources/android/build/local
 resources/android/icon/
 resources/android/splash/
 resources/ios/
+
+target/
+/webext/

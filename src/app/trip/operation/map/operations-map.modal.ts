@@ -18,7 +18,7 @@ import {
   LocalSettingsService,
   PlatformService,
   sleep,
-  waitFor
+  waitFor,
 } from '@sumaris-net/ngx-components';
 import { Feature, LineString, MultiPolygon, Position } from 'geojson';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -36,7 +36,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 export interface OperationsMapModalOptions {
-  data: (Trip|Operation[])[];
+  data: (Trip | Operation[])[];
   latLongPattern: LatLongPattern;
   programLabel: string;
 
@@ -48,10 +48,9 @@ export interface OperationsMapModalOptions {
   selector: 'app-operations-map-modal',
   templateUrl: './operations-map.modal.html',
   styleUrls: ['./operations-map.modal.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationsMapModal implements OnInit, OperationsMapModalOptions {
-
   debug: boolean;
   modalReady = false; // Need to be false. Will be set to true after a delay
 
@@ -61,7 +60,7 @@ export class OperationsMapModal implements OnInit, OperationsMapModalOptions {
 
   @Input() showToolbar = true;
   @Input() showTooltip = true;
-  @Input() data: (Trip|Operation[])[];
+  @Input() data: (Trip | Operation[])[];
   @Input() latLongPattern: LatLongPattern;
   @Input() programLabel: string;
 
@@ -70,17 +69,15 @@ export class OperationsMapModal implements OnInit, OperationsMapModalOptions {
     protected cd: ChangeDetectorRef,
     protected programRefService: ProgramRefService
   ) {
-
     this.debug = !environment.production;
   }
 
   ngOnInit() {
-    sleep(500)
-      .then(() => {
-        console.debug('[operation-map-modal] Modal is ready: starting map...');
-        this.modalReady = true;
-        this.cd.markForCheck();
-      });
+    sleep(500).then(() => {
+      console.debug('[operation-map-modal] Modal is ready: starting map...');
+      this.modalReady = true;
+      this.cd.markForCheck();
+    });
   }
 
   async cancel(_event?: Event) {

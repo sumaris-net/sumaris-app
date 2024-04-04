@@ -28,7 +28,7 @@ import { ColorPickerModule } from 'ngx-color-picker';
 
     AppCoreModule,
     AppSharedModule,
-    AppReferentialModule
+    AppReferentialModule,
   ],
   declarations: [
     ProductPage,
@@ -37,17 +37,12 @@ import { ColorPickerModule } from 'ngx-color-picker';
     ExtractionTablePage,
     ExtractionMapPage,
     ExtractionCriteriaForm,
-    ExtractionHelpModal
+    ExtractionHelpModal,
   ],
-  providers: [
-    ExtractionCriteriaValidatorService
-  ],
-  exports: [
-    ProductPage
-  ]
+  providers: [ExtractionCriteriaValidatorService],
+  exports: [ProductPage],
 })
 export class AppExtractionModule {
-
   constructor() {
     console.debug('[extraction] Creating module');
   }

@@ -11,10 +11,9 @@ export interface JobReportModalOptions {
 
 @Component({
   selector: 'app-job-report-modal',
-  templateUrl: './job.report.modal.html'
+  templateUrl: './job.report.modal.html',
 })
-export class JobReportModal implements OnInit{
-
+export class JobReportModal implements OnInit {
   @Input() title: string;
   @Input() job: Job;
   @Input() mobile: boolean;
@@ -27,8 +26,7 @@ export class JobReportModal implements OnInit{
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.mobile = toBoolean(this.mobile, this.settings.mobile);

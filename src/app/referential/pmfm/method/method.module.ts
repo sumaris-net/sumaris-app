@@ -17,19 +17,17 @@ import { MethodPage } from '@app/referential/pmfm/method/method.page';
     // Sub modules
     AppReferentialFormModule,
     AppReferentialPipesModule,
-    AppReferentialTableModule
+    AppReferentialTableModule,
   ],
   declarations: [
-
     // Components
-    MethodPage
+    MethodPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    MethodPage
+    MethodPage,
   ],
 })
-export class AppPmfmMethodModule {
-}
+export class AppPmfmMethodModule {}

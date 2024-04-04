@@ -4,19 +4,14 @@ import { AppExtractionButton } from './extraction-button.component';
 import { MatMenuTrigger } from '@angular/material/menu';
 
 @NgModule({
-  imports: [
-    AppSharedModule
-  ],
+  imports: [AppSharedModule],
   declarations: [
     // Components
-    AppExtractionButton
+    AppExtractionButton,
   ],
   exports: [
     // Components
-    AppExtractionButton
-  ]
+    AppExtractionButton,
+  ],
 })
-export class AppExtractionButtonModule {
-
-
-}
+export class AppExtractionButtonModule {}

@@ -20,10 +20,9 @@ declare interface ColumnMap {
   selector: 'app-product-form',
   styleUrls: ['product.form.scss'],
   templateUrl: 'product.form.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, OnDestroy {
-
   data: ExtractionProduct;
   frequencyItems = ProcessingFrequencyItems;
   frequenciesById = splitById(ProcessingFrequencyItems);
@@ -36,12 +35,12 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
   aggFunctions = [
     {
       value: 'SUM',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM'
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.SUM',
     },
     {
       value: 'AVG',
-      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG'
-    }
+      name: 'EXTRACTION.AGGREGATION.EDIT.AGG_FUNCTION.AVG',
+    },
   ];
 
   stratumFormArray: AppFormArray<AggregationStrata, UntypedFormGroup>;
@@ -52,8 +51,8 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
   @Input() showError = true;
   @Input() showFilter = false;
 
-  @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
-  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('criteriaForm', { static: true }) criteriaForm: ExtractionCriteriaForm;
 
   get value(): any {
     const json = this.form.value;
@@ -94,35 +93,33 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
     // this.form.get('isSpatial').disable();
   }
 
-  constructor(injector: Injector,
-              protected formBuilder: UntypedFormBuilder,
-              protected settings: LocalSettingsService,
-              protected validatorService: ExtractionProductValidatorService,
-              protected service: ProductService,
-              protected cd: ChangeDetectorRef) {
-    super(injector,
-      validatorService.getFormGroup());
+  constructor(
+    injector: Injector,
+    protected formBuilder: UntypedFormBuilder,
+    protected settings: LocalSettingsService,
+    protected validatorService: ExtractionProductValidatorService,
+    protected service: ProductService,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(injector, validatorService.getFormGroup());
 
     // Stratum
     this.stratumFormArray = this.form.controls.stratum as AppFormArray<AggregationStrata, UntypedFormGroup>;
 
     this.registerSubscription(
-      this.form.get('documentation').valueChanges
-        .pipe(
-          debounceTime(350)
-        )
-        .subscribe(md => this.$markdownContent.next(md))
-      );
+      this.form
+        .get('documentation')
+        .valueChanges.pipe(debounceTime(350))
+        .subscribe((md) => this.$markdownContent.next(md))
+    );
   }
 
   async updateLists(type?: ExtractionProduct) {
     if (type) {
       this.data = type;
-    }
-    else if (this.data) {
+    } else if (this.data) {
       type = this.data;
-    }
-    else {
+    } else {
       return; // Skip
     }
 
@@ -130,21 +127,23 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
 
     // If spatial, load columns
     if (type.isSpatial || this.isSpatial) {
-
       const sheetNames = type.sheetNames || [];
       this.$sheetNames.next(sheetNames);
 
-      const map: {[key: string]: ColumnMap} = {};
-      await Promise.all(sheetNames.map(sheetName => this.service.loadColumns(type, sheetName)
-          .then(columns => {
+      const map: { [key: string]: ColumnMap } = {};
+      await Promise.all(
+        sheetNames.map((sheetName) =>
+          this.service.loadColumns(type, sheetName).then((columns) => {
             columns = columns || [];
             const columnMap = ExtractionUtils.dispatchColumns(columns);
-            Object.keys(columnMap).forEach(key => {
-              const m: ColumnMap = map[key] ||  <ColumnMap>{};
+            Object.keys(columnMap).forEach((key) => {
+              const m: ColumnMap = map[key] || <ColumnMap>{};
               m[sheetName] = columnMap[key];
               map[key] = m;
             });
-          })));
+          })
+        )
+      );
 
       console.debug('[aggregation-type] Columns map:', map);
       this.$timeColumns.next(map.timeColumns);
@@ -165,38 +164,36 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
       {
         id: StatusIds.ENABLE,
         icon: 'eye',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PUBLIC'
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PUBLIC',
       },
       {
         id: StatusIds.TEMPORARY,
         icon: 'eye-off',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PRIVATE'
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.PRIVATE',
       },
       {
         id: StatusIds.DISABLE,
         icon: 'close',
-        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE'
-      }
+        label: 'EXTRACTION.AGGREGATION.EDIT.STATUS_ENUM.DISABLE',
+      },
     ];
 
     this.registerSubscription(
-      this.form.get('isSpatial').valueChanges
-        .subscribe(isSpatial => {
-           // Not need stratum
-           if (!isSpatial) {
-             this.stratumFormArray.resize(0);
-             this.stratumFormArray.allowEmptyArray = true;
-             this.stratumFormArray.disable();
-           }
-           else {
-             if (this.stratumFormArray.length === 0) {
-               this.stratumFormArray.resize(1);
-             }
-             this.stratumFormArray.allowEmptyArray = false;
-             this.stratumFormArray.enable();
-             this.updateLists();
-           }
-        })
+      this.form.get('isSpatial').valueChanges.subscribe((isSpatial) => {
+        // Not need stratum
+        if (!isSpatial) {
+          this.stratumFormArray.resize(0);
+          this.stratumFormArray.allowEmptyArray = true;
+          this.stratumFormArray.disable();
+        } else {
+          if (this.stratumFormArray.length === 0) {
+            this.stratumFormArray.resize(1);
+          }
+          this.stratumFormArray.allowEmptyArray = false;
+          this.stratumFormArray.enable();
+          this.updateLists();
+        }
+      })
     );
   }
 
@@ -221,18 +218,17 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
   }
 
   async setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     await this.ready();
 
     console.debug('[product-form] Setting value: ', data);
 
     // Set filter to criteria form
     this.criteriaForm.type = data;
-    if (/*!this.criteriaForm.sheetName && */data.sheetNames?.length) {
+    if (/*!this.criteriaForm.sheetName && */ data.sheetNames?.length) {
       this.criteriaForm.sheetName = data.sheetNames[0];
     }
     if (data.filter) {
-      const filter = (typeof data.filter === 'string') ? JSON.parse(data.filter) : data.filter;
+      const filter = typeof data.filter === 'string' ? JSON.parse(data.filter) : data.filter;
       const criteria = (filter?.criteria || []).map(ExtractionFilterCriterion.fromObject);
       // TODO find a way to get columns, from source extraction type
       /*this.criteriaForm.columns = [<ExtractionColumn>{
@@ -243,8 +239,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
         criteria.forEach(c => this.criteriaForm.addFilterCriterion(c));
         this.showFilter = true;
       })*/
-    }
-    else {
+    } else {
       this.showFilter = false;
     }
 
@@ -254,8 +249,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
       this.stratumFormArray.allowEmptyArray = false;
       // If spatial product, make sure there is one stratum
       this.stratumFormArray.resize(Math.max(1, arraySize(data.stratum)));
-    }
-    else {
+    } else {
       this.stratumFormArray.disable();
       this.stratumFormArray.allowEmptyArray = true;
       this.stratumFormArray.resize(0);
@@ -265,7 +259,6 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
     this.showMarkdownPreview = this.showMarkdownPreview && isNotNilOrBlank(data.documentation);
 
     super.setValue(data, opts);
-
   }
 
   removeStrata(index: number) {
@@ -277,5 +270,4 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

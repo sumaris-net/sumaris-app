@@ -1,17 +1,13 @@
-import {AbstractControlOptions, UntypedFormBuilder, Validators} from '@angular/forms';
-import {isNotNil, toNumber} from '@sumaris-net/ngx-components';
-import {SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {Injectable} from '@angular/core';
-import {ReferentialValidatorService} from './referential.validator';
-import {Pmfm} from '../model/pmfm.model';
+import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { Injectable } from '@angular/core';
+import { ReferentialValidatorService } from './referential.validator';
+import { Pmfm } from '../model/pmfm.model';
 
-
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -25,12 +21,12 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
       maximumNumberDecimals: [toNumber(data && data.maximumNumberDecimals, null), SharedValidators.integer],
       signifFiguresNumber: [toNumber(data && data.signifFiguresNumber, null), SharedValidators.integer],
       precision: [toNumber(data && data.precision, null), SharedValidators.decimal()],
-      parameter: [data && data.parameter || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      matrix: [data && data.matrix || null, SharedValidators.entity],
-      fraction: [data && data.fraction || null, SharedValidators.entity],
-      method: [data && data.method || null, SharedValidators.entity],
-      unit: [data && data.unit || null, Validators.compose([Validators.required, SharedValidators.entity])]
-    } ;
+      parameter: [(data && data.parameter) || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      matrix: [(data && data.matrix) || null, SharedValidators.entity],
+      fraction: [(data && data.fraction) || null, SharedValidators.entity],
+      method: [(data && data.method) || null, SharedValidators.entity],
+      unit: [(data && data.unit) || null, Validators.compose([Validators.required, SharedValidators.entity])],
+    };
   }
 
   getFormGroupOptions(data?: Pmfm, opts?: any): AbstractControlOptions {

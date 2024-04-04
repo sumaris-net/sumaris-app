@@ -1,47 +1,54 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { ColorName, DateFormatService, formatLatitude, formatLongitude, IconRef, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
+import {
+  ColorName,
+  DateFormatService,
+  formatLatitude,
+  formatLongitude,
+  IconRef,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  TranslateContextService,
+} from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 @Pipe({
-  name: 'pmfmIdString'
+  name: 'pmfmIdString',
 })
 export class PmfmIdStringPipe implements PipeTransform {
-
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) {
-
-  }
+  ) {}
 
   transform(pmfm: IPmfm): string {
-    return pmfm && pmfm.id?.toString() || null;
+    return (pmfm && pmfm.id?.toString()) || null;
   }
 }
 
 @Pipe({
-    name: 'pmfmName'
+  name: 'pmfmName',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PmfmNamePipe implements PipeTransform {
-
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) {
+  ) {}
 
-  }
-
-  transform(pmfm: IPmfm, opts?: {
-    withUnit?: boolean;
-    html?: boolean;
-    withDetails?: boolean;
-    i18nPrefix?: string;
-    i18nContext?: string;
-  }): string {
+  transform(
+    pmfm: IPmfm,
+    opts?: {
+      withUnit?: boolean;
+      html?: boolean;
+      withDetails?: boolean;
+      i18nPrefix?: string;
+      i18nContext?: string;
+    }
+  ): string {
     if (!pmfm) return '';
     // Try to resolve PMFM using prefix + label
     if (isNotNilOrBlank(opts?.i18nPrefix)) {
@@ -65,7 +72,6 @@ export class PmfmNamePipe implements PipeTransform {
     // Default name, computed from the PMFM object
     return PmfmUtils.getPmfmName(pmfm, opts);
   }
-
 }
 
 interface PmfmValueOptions {
@@ -73,44 +79,42 @@ interface PmfmValueOptions {
   propertyNames?: string[];
   html?: boolean;
   hideIfDefaultValue?: boolean;
-  showLabelForPmfmIds?: number[];
+  showNameForPmfmIds?: number[];
   applyDisplayConversion?: boolean;
 }
 
 @Pipe({
-  name: 'pmfmValue'
+  name: 'pmfmValue',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PmfmValuePipe implements PipeTransform {
-
   constructor(
     private dateFormat: DateFormatService,
     private settings: LocalSettingsService
-  ) {
-  }
+  ) {}
 
-  transform(value: any, opts: PmfmValueOptions & {separator?: string}): any {
+  transform(value: any, opts: PmfmValueOptions & { separator?: string }): any {
     return this.format(value, opts);
   }
 
-  format(value: PmfmValue|any, opts: PmfmValueOptions & {separator?: string}): any {
+  format(value: PmfmValue | any, opts: PmfmValueOptions & { separator?: string }): any {
     // Multiple values
     if (Array.isArray(value)) {
-      return value.map(v => this.format(v, opts)).join(opts?.separator || ', ');
+      return value.map((v) => this.format(v, opts)).join(opts?.separator || ', ');
     }
 
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':
-        return this.dateFormat.transform(value, {time: false});
+        return this.dateFormat.transform(value, { time: false });
       case 'dateTime':
-        return this.dateFormat.transform(value, {time: true});
+        return this.dateFormat.transform(value, { time: true });
       case 'duration':
         return value || null;
       case 'latitude':
-        return formatLatitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+        return formatLatitude(value, { pattern: this.settings.latLongFormat, placeholderChar: '0' });
       case 'longitude':
-        return formatLongitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+        return formatLongitude(value, { pattern: this.settings.latLongFormat, placeholderChar: '0' });
       case 'integer':
       case 'double':
         if (opts.applyDisplayConversion && isNotNil(value) && opts.pmfm.displayConversion) {
@@ -124,57 +128,50 @@ export class PmfmValuePipe implements PipeTransform {
 }
 
 @Pipe({
-  name: 'isDatePmfm'
+  name: 'isDatePmfm',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class IsDatePmfmPipe implements PipeTransform {
-
   transform(pmfm: IPmfm): boolean {
-    return pmfm && PmfmUtils.isDate(pmfm) || false;
+    return (pmfm && PmfmUtils.isDate(pmfm)) || false;
   }
 }
 
 @Pipe({
-  name: 'isComputedPmfm'
+  name: 'isComputedPmfm',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class IsComputedPmfmPipe implements PipeTransform {
-
   transform(pmfm: IPmfm): boolean {
     return pmfm?.isComputed || false;
   }
 }
 
-
 @Pipe({
-  name: 'isMultiplePmfm'
+  name: 'isMultiplePmfm',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class IsMultiplePmfmPipe implements PipeTransform {
-
   transform(pmfm: IPmfm): boolean {
     return pmfm?.isMultiple || false;
   }
 }
 
-
 @Pipe({
-  name: 'isWeightPmfm'
+  name: 'isWeightPmfm',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class IsWeightPmfmPipe implements PipeTransform {
-
   transform(pmfm: IPmfm): boolean {
-    return pmfm && PmfmUtils.isWeight(pmfm) || false;
+    return (pmfm && PmfmUtils.isWeight(pmfm)) || false;
   }
 }
 
 @Pipe({
-  name: 'pmfmFieldStyle'
+  name: 'pmfmFieldStyle',
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PmfmFieldStylePipe implements PipeTransform {
-
   private readonly _mobile: boolean;
 
   constructor(settings: LocalSettingsService) {
@@ -182,13 +179,15 @@ export class PmfmFieldStylePipe implements PipeTransform {
   }
 
   transform(pmfm: IPmfm, maxItemCountForButtons?: number): any {
-    return pmfm && this._mobile && (
-      pmfm.type === 'boolean'
-      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxItemCountForButtons || ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS.defaultValue || 4))
-    ) ? 'button' : undefined /*default*/;
+    return pmfm &&
+      this._mobile &&
+      (pmfm.type === 'boolean' ||
+        (pmfm.isQualitative &&
+          pmfm.qualitativeValues?.length <= (maxItemCountForButtons || ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS.defaultValue || 4)))
+      ? 'button'
+      : undefined /*default*/;
   }
 }
-
 
 export type PmfmValueColorFn = (value: PmfmValue, pmfm: IPmfm) => ColorName;
 export interface PmfmValueColorOptions {
@@ -198,11 +197,10 @@ export interface PmfmValueColorOptions {
 }
 
 @Pipe({
-  name: 'pmfmValueColor'
+  name: 'pmfmValueColor',
 })
 export class PmfmValueColorPipe implements PipeTransform {
-
-  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions, data: any): string | undefined {
+  transform(pmfmValue: any, opts: IPmfm | PmfmValueColorOptions, data: any): string | undefined {
     const pmfm = opts['pmfm'] || <IPmfm>opts;
     const mapWithFn = typeof opts['mapWith'] === 'function' ? opts['mapWith'] : undefined;
     if (!pmfm || !mapWithFn) return undefined;
@@ -220,11 +218,10 @@ export class PmfmValueColorPipe implements PipeTransform {
 }
 
 @Pipe({
-  name: 'pmfmValueIcon'
+  name: 'pmfmValueIcon',
 })
 export class PmfmValueIconPipe implements PipeTransform {
-
-  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions, data: any): IconRef {
+  transform(pmfmValue: any, opts: IPmfm | PmfmValueColorOptions, data: any): IconRef {
     const pmfm = opts['pmfm'] || <IPmfm>opts;
     const mapToColorFn = typeof opts['mapWith'] === 'function' ? opts['mapWith'] : undefined;
     if (!pmfm || !mapToColorFn) return undefined;
@@ -233,7 +230,7 @@ export class PmfmValueIconPipe implements PipeTransform {
     const color = mapToColorFn(pmfmValue, pmfm, data);
     if (!color) return null;
 
-    const result: IconRef = {color};
+    const result: IconRef = { color };
     switch (color) {
       case 'success':
         result.icon = 'checkmark-circle';

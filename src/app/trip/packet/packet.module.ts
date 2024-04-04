@@ -6,7 +6,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -16,17 +15,10 @@ import { AppReferentialModule } from '@app/referential/referential.module';
     AppReferentialModule,
     //AppMeasurementModule,
   ],
-  declarations: [
-    PacketsTable,
-    PacketForm,
-    PacketModal
-  ],
-  exports: [
-    PacketsTable
-  ]
+  declarations: [PacketsTable, PacketForm, PacketModal],
+  exports: [PacketsTable],
 })
 export class AppPacketModule {
-
   constructor() {
     console.debug('[packet] Creating module...');
   }

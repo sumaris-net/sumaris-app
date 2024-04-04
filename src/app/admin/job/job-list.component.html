@@ -1,13 +1,119 @@
-<mat-toolbar>
-  <button mat-icon-button (click)="openAddJobMenu()" [title]="'COMMON.BTN_ADD' | translate">
+<mat-toolbar *ngIf="showToolbar">
+  <button mat-icon-button (click)="openAddJobMenu()" *ngIf="canAdd" [title]="'COMMON.BTN_ADD' | translate">
     <mat-icon>add</mat-icon>
   </button>
   <button mat-icon-button (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
     <mat-icon>refresh</mat-icon>
   </button>
+
+  <span class="toolbar-spacer"></span>
+
+  <!-- Reset filter -->
+  <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
+    <mat-icon color="accent">filter_list_alt</mat-icon>
+    <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+  </button>
+
+  <!-- Show filter -->
+  <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+    <mat-icon
+      *ngIf="filterCriteriaCount; else emptyFilter"
+      [matBadge]="filterCriteriaCount"
+      matBadgeColor="accent"
+      matBadgeSize="small"
+      matBadgePosition="above after"
+    >
+      filter_list_alt
+    </mat-icon>
+    <ng-template #emptyFilter>
+      <mat-icon>filter_list_alt</mat-icon>
+    </ng-template>
+  </button>
 </mat-toolbar>
 
-<ion-content>
+<ion-content [class.has-toolbar]="showToolbar" scroll-x="false">
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.filter-panel-floating]="filterPanelFloating">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event)">
+      <ion-grid>
+        <ion-row>
+          <!-- job status -->
+          <ion-col>
+            <mat-chips-field
+              formControlName="status"
+              [placeholder]="'SOCIAL.JOB.JOB_STATUS' | translate"
+              [config]="autocompleteFields.status"
+              [clearable]="true"
+              chipColor="accent"
+            >
+              <ion-icon matPrefix name="help-outline"></ion-icon>
+            </mat-chips-field>
+          </ion-col>
+
+          <!-- job type -->
+          <ion-col>
+            <mat-chips-field
+              formControlName="types"
+              [placeholder]="'SOCIAL.JOB.JOB_TYPE' | translate"
+              [config]="autocompleteFields.types"
+              [clearable]="true"
+              chipColor="accent"
+            >
+              <ion-icon matPrefix name="settings-outline"></ion-icon>
+            </mat-chips-field>
+          </ion-col>
+
+          <!-- job issuer -->
+          <ion-col>
+            <mat-autocomplete-field
+              formControlName="issuer"
+              [placeholder]="'SOCIAL.JOB.JOB_ISSUER' | translate"
+              [config]="autocompleteFields.issuer"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [class.cdk-visually-hidden]="filterForm.dirty" [color]="total === 0 ? 'danger' : undefined" class="ion-padding">
+        {{ (total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (total | numberFormat) } }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <button
+        mat-icon-button
+        color="accent"
+        (click)="toggleFilterPanelFloating()"
+        class="hidden-xs hidden-sm hidden-md"
+        [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') | translate"
+      >
+        <mat-icon>
+          <span style="transform: rotate(90deg)">{{ filterPanelFloating ? '&#xbb;' : '&#xab;' }}</span>
+        </mat-icon>
+      </button>
+
+      <!-- Close panel -->
+      <ion-button mat-button fill="clear" color="dark" (click)="closeFilterPanel()">
+        <ion-text>{{ 'COMMON.BTN_CLOSE' | translate }}</ion-text>
+      </ion-button>
+
+      <!-- Search button -->
+      <ion-button
+        mat-button
+        [color]="filterForm.dirty ? 'tertiary' : 'dark'"
+        [fill]="filterForm.dirty ? 'solid' : 'clear'"
+        (click)="applyFilterAndClosePanel($event)"
+      >
+        <ion-text>{{ 'COMMON.BTN_APPLY' | translate }}</ion-text>
+      </ion-button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
   <ion-list>
     <ng-container *rxFor="let job of jobs$; trackBy: trackByFn">
       <ion-item
@@ -25,7 +131,7 @@
           </h4>
           <p>
             <ng-container *ngIf="job.startDate && !runningOrPending">
-              {{ job.startDate | dateFormat : { time: true } }}
+              {{ job.startDate | dateFormat: { time: true } }}
               &nbsp;|&nbsp;{{ job.startDate | dateFromNow }}
             </ng-container>
 
@@ -39,5 +145,9 @@
         <ion-badge *ngIf="!runningOrPending" slot="end">{{ job.endDate | dateFormat }}</ion-badge>
       </ion-item>
     </ng-container>
+
+    <ion-item *ngIf="total === 0">
+      <ion-label color="danger" translate>COMMON.NO_RESULT</ion-label>
+    </ion-item>
   </ion-list>
 </ion-content>

@@ -13,36 +13,22 @@
     </button>
 
     <!-- refresh (debug only) -->
-    <button
-      mat-icon-button
-      *ngIf="debug"
-      [title]="'COMMON.BTN_REFRESH' | translate"
-      (click)="onRefresh.emit()"
-    >
+    <button mat-icon-button *ngIf="debug" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
   </ng-container>
 
   <ng-template #hasSelection>
-
     <!-- delete -->
-    <button mat-icon-button *ngIf="canEdit"
-            [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+    <button mat-icon-button *ngIf="canEdit" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
 
     <!-- duplicate (if desktop) -->
-    <button
-      mat-icon-button
-      *ngIf="canEdit"
-      [disabled]="invalid"
-      [title]="'COMMON.BTN_DUPLICATE' | translate"
-      (click)="duplicateSelection($event)"
-    >
+    <button mat-icon-button *ngIf="canEdit" [disabled]="invalid" [title]="'COMMON.BTN_DUPLICATE' | translate" (click)="duplicateSelection($event)">
       <mat-icon slot="icon-only">content_copy</mat-icon>
     </button>
   </ng-template>
-
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -83,11 +69,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -121,11 +103,11 @@
         <ion-label>{{ fieldDefinitions.defaultValue.label | translate }}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'defaultValue'">
-        <ng-container *ngIf="row.editing && row.validator | formGetValue : 'pmfm' as pmfm; else readonlyDefaultValue">
+        <ng-container *ngIf="row.editing && row.validator | formGetValue: 'pmfm' as pmfm; else readonlyDefaultValue">
           <app-form-field
             floatLabel="never"
             *ngIf="pmfm.isQualitative; else simplePmfmType"
-            [formControl]="row.validator | formGetControl : 'defaultValue'"
+            [formControl]="row.validator | formGetControl: 'defaultValue'"
             [definition]="fieldDefinitions.defaultQualitativeValue"
             [autofocus]="row.editing && focusColumn === 'defaultValue'"
             [compact]="true"
@@ -135,16 +117,14 @@
               floatLabel="never"
               *ngIf="pmfm?.id"
               [pmfm]="pmfm"
-              [control]="row.validator | formGetControl : 'defaultValue'"
+              [control]="row.validator | formGetControl: 'defaultValue'"
               [autofocus]="row.editing && focusColumn === 'defaultValue'"
               [compact]="true"
             ></app-pmfm-field>
           </ng-template>
         </ng-container>
         <ng-template #readonlyDefaultValue>
-          <ion-text
-            [innerHTML]="row.currentData.defaultValue | pmfmValue : { pmfm: row.currentData.pmfm, html: true }"
-          ></ion-text>
+          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValue: { pmfm: row.currentData.pmfm, html: true }"></ion-text>
         </ng-template>
       </td>
     </ng-container>
@@ -155,9 +135,9 @@
       <td mat-cell *matCellDef="let row">
         <small
           *ngVar="{
-            taxonGroupIds: row.validator | formGetValue : 'taxonGroupIds',
-            referenceTaxonIds: row.validator | formGetValue : 'referenceTaxonIds',
-            gearIds: row.validator | formGetValue : 'gearIds'
+            taxonGroupIds: row.validator | formGetValue: 'taxonGroupIds',
+            referenceTaxonIds: row.validator | formGetValue: 'referenceTaxonIds',
+            gearIds: row.validator | formGetValue: 'gearIds'
           } as vars"
         >
           <!-- association gears -->
@@ -205,13 +185,7 @@
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let row">
           <!-- add -->
-          <button
-            mat-icon-button
-            color="light"
-            [disabled]="!canEdit"
-            [title]="'COMMON.BTN_ADD' | translate"
-            (click)="confirmAndAdd($event, row)"
-          >
+          <button mat-icon-button color="light" [disabled]="!canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="confirmAndAdd($event, row)">
             <mat-icon>add</mat-icon>
           </button>
 
@@ -248,9 +222,9 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="row.editing && row.validator.invalid"

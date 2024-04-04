@@ -1,3 +1,5 @@
+[![pipeline status](https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/badges/master/pipeline.svg)](https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/commits/master)
+
 # SUMARiS App
 
 SUMARiS App is a data collection tool for fisheries monitoring.

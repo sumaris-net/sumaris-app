@@ -360,14 +360,17 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     this.taxonNameListForm.value = data.taxonNames;
 
     const allAcquisitionLevels = this.$allAcquisitionLevels.getValue();
-    const collectedAcquisitionLevels = (data.pmfms || []).reduce((res, item) => {
-      if (typeof item.acquisitionLevel === 'string' && res[item.acquisitionLevel] === undefined) {
-        res[item.acquisitionLevel] = allAcquisitionLevels.find((al) => al.label === item.acquisitionLevel) || null;
-      } else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined) {
-        res[item.acquisitionLevel.label] = item.acquisitionLevel;
-      }
-      return res;
-    }, <{ [key: string]: ReferentialRef | null }>{});
+    const collectedAcquisitionLevels = (data.pmfms || []).reduce(
+      (res, item) => {
+        if (typeof item.acquisitionLevel === 'string' && res[item.acquisitionLevel] === undefined) {
+          res[item.acquisitionLevel] = allAcquisitionLevels.find((al) => al.label === item.acquisitionLevel) || null;
+        } else if (item.acquisitionLevel instanceof ReferentialRef && res[item.acquisitionLevel.label] === undefined) {
+          res[item.acquisitionLevel.label] = item.acquisitionLevel;
+        }
+        return res;
+      },
+      <{ [key: string]: ReferentialRef | null }>{}
+    );
     this.acquisitionLevelList.value = Object.values(collectedAcquisitionLevels).filter(isNotNil) as ReferentialRef[];
 
     this.pmfmsTable.value = data.pmfms || [];
@@ -518,4 +521,3 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
     this.cd.markForCheck();
   }
 }
-

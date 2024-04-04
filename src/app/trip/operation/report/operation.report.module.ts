@@ -6,19 +6,9 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppDataModule } from '@app/data/data.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 
-
 @NgModule({
-  declarations: [
-    OperationReport,
-  ],
-  imports: [
-    AppCoreModule,
-    AppDataModule,
-    AppSharedReportModule,
-    AppReferentialModule,
-  ],
-  exports: [
-    OperationReport,
-  ],
+  declarations: [OperationReport],
+  imports: [AppCoreModule, AppDataModule, AppSharedReportModule, AppReferentialModule],
+  exports: [OperationReport],
 })
-export class OperationReportModule { }
+export class OperationReportModule {}

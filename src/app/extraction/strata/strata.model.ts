@@ -11,7 +11,6 @@ export declare interface IAggregationStrata {
 
 @EntityClass({ typename: 'AggregationStrataVO' })
 export class AggregationStrata extends Entity<AggregationStrata> implements IAggregationStrata {
-
   static fromObject: (source: any) => AggregationStrata;
 
   isDefault: boolean;

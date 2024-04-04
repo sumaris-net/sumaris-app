@@ -12,16 +12,15 @@ import {
   isNil,
   isNotNil,
   ReferentialRef,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { SortDirection } from '@angular/material/sort';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-@EntityClass({typename: 'VesselActivityVO'})
+@EntityClass({ typename: 'VesselActivityVO' })
 export class VesselActivity extends Entity<VesselActivity> {
-
   static fromObject: (source: any, opts?: any) => VesselActivity;
 
   date: Moment;
@@ -47,18 +46,15 @@ export class VesselActivity extends Entity<VesselActivity> {
   }
 
   static isEmpty(value: VesselActivity) {
-    return !value || (
-      MeasurementValuesUtils.isEmpty(value.measurementValues)
-      && isEmptyArray(value.metiers)
-    );
+    return !value || (MeasurementValuesUtils.isEmpty(value.measurementValues) && isEmptyArray(value.metiers));
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
-    target.metiers = this.metiers && this.metiers.filter(EntityUtils.isRemote)
-      .map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    target.metiers =
+      (this.metiers && this.metiers.filter(EntityUtils.isRemote).map((p) => p && p.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
     if (opts?.minify) {
       delete target.invalid;
     }
@@ -70,23 +66,25 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.date = fromDateISOString(source.date);
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
-    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
-    this.metiers = source.metiers && source.metiers.filter(isNotNil).map(ReferentialRef.fromObject) || [];
+    this.measurementValues =
+      (source.measurementValues && { ...source.measurementValues }) || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.metiers = (source.metiers && source.metiers.filter(isNotNil).map(ReferentialRef.fromObject)) || [];
     this.observedLocationId = source.observedLocationId;
     this.landingId = source.landingId;
     this.tripId = source.tripId;
 
     if (isNotNil(this.tripId) && isEmptyArray(this.metiers)) {
-      this.metiers = [ ReferentialRef.fromObject({label: '??', name: '???'})];
+      this.metiers = [ReferentialRef.fromObject({ label: '??', name: '???' })];
       this.invalid = true;
     }
   }
-
 }
 
-@EntityClass({typename: 'AggregatedLandingVO'})
-export class AggregatedLanding extends Entity<AggregatedLanding, number, DataEntityAsObjectOptions> implements IWithVesselSnapshotEntity<AggregatedLanding> {
-
+@EntityClass({ typename: 'AggregatedLandingVO' })
+export class AggregatedLanding
+  extends Entity<AggregatedLanding, number, DataEntityAsObjectOptions>
+  implements IWithVesselSnapshotEntity<AggregatedLanding>
+{
   static fromObject: (source: any, opts?: any) => AggregatedLanding;
 
   vesselSnapshot: VesselSnapshot;
@@ -105,8 +103,8 @@ export class AggregatedLanding extends Entity<AggregatedLanding, number, DataEnt
 
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.vesselActivities = this.vesselActivities && this.vesselActivities.map(value => value.asObject(opts));
+    target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.vesselActivities = this.vesselActivities && this.vesselActivities.map((value) => value.asObject(opts));
     if (opts?.minify) {
       if (opts.keepSynchronizationStatus !== true) {
         delete target.synchronizationStatus; // Remove by default, when minify, because not exists on pod's model
@@ -120,13 +118,12 @@ export class AggregatedLanding extends Entity<AggregatedLanding, number, DataEnt
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     // this.id = this.vesselSnapshot.id;
     this.observedLocationId = source.observedLocationId;
-    this.vesselActivities = source.vesselActivities && source.vesselActivities.map(VesselActivity.fromObject) || [];
+    this.vesselActivities = (source.vesselActivities && source.vesselActivities.map(VesselActivity.fromObject)) || [];
     this.synchronizationStatus = source.synchronizationStatus;
   }
 }
 
 export class AggregatedLandingUtils {
-
   static sort(data: AggregatedLanding[], sortBy?: string, sortDirection?: SortDirection): AggregatedLanding[] {
     if (data?.length > 0 && sortBy === 'vessel') {
       return data.sort(AggregatedLandingUtils.naturalSortComparator('vesselSnapshot.exteriorMarking', sortDirection));

@@ -1,0 +1,336 @@
+<!-- DEBUG -->
+<ng-container *ngIf="debug">
+  <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+</ng-container>
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- Compact mode -->
+  <button mat-menu-item (click)="toggleCompactMode()">
+    <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
+    <ng-template #disabledIcon>
+      <mat-icon>check_box_outline_blank</mat-icon>
+    </ng-template>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
+</mat-menu>
+
+<div
+  #tableContainer
+  class="table-container"
+  *rxIf="pmfms$; let pmfms; strategy: 'native'"
+  (ngInit)="initTableContainer(tableContainer)"
+  [class.mobile]="mobile"
+>
+  <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+    <!-- hidden columns (required by AppTable) -->
+    <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+      <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
+      <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label>&nbsp;</ion-label>
+        <!-- Add metier block -->
+        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </mat-header-cell>
+      <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''">
+        <ion-label class="ion-text-center">
+          <ion-text matBadge="!" [matBadgeHidden]="!row.editing || row.valid" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
+            {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+          </ion-text>
+        </ion-label>
+        <span hidden #errorSpan>
+          {{ row.editing && row.validator | translateFormError: errorTranslatorOptions }}
+        </span>
+      </mat-header-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="vesselOwner">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-label *rxIf="vesselOwners$; let vesselOwners; suspense: skeletonText80" class="computed">
+          <!--          {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: locationDisplayAttributes }}-->
+        </ion-label>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="registrationLocation">
+      <mat-header-cell *matHeaderCellDef class="odd">
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="odd">
+        <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
+          {{ vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes }}
+        </ion-label>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="isActive">
+      <mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell (click)="focusColumn = 'isActive'">
+        @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
+          <mat-form-field>
+            <mat-select
+              [formControl]="control"
+              [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate"
+              [autofocus]="focusColumn === 'isActive'"
+            >
+              <mat-select-trigger>
+                {{ isActiveMap[control.value]?.label | translate }}
+              </mat-select-trigger>
+              <mat-option *ngFor="let item of isActiveList" [value]="item.id">
+                <ion-icon [name]="item.icon"></ion-icon>
+                {{ item.label | translate }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
+          {{ isActiveMap[row.currentData.isActive]?.label | translate }}
+        }
+
+        <!-- resize handlers -->
+        <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"></ng-container>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Base port location -->
+    <ng-container matColumnDef="basePortLocation">
+      <mat-header-cell *matHeaderCellDef class="odd">
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="odd mat-mdc-cell-resizable" #cell (click)="focusColumn = 'basePortLocation'">
+        @if (row.editing && row.validator | formGetControl: 'basePortLocation'; as control) {
+          <mat-autocomplete-field
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+            [formControl]="control"
+            [config]="autocompleteFields.basePortLocation"
+            [autofocus]="focusColumn === 'basePortLocation'"
+          ></mat-autocomplete-field>
+        } @else {
+          @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
+            <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+          }
+        }
+
+        <!-- resize handlers -->
+        <ng-container
+          *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
+        ></ng-container>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Pmfms columns -->
+    <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index; odd as odd" [matColumnDef]="pmfm.id || index | toString">
+      <mat-header-cell
+        *matHeaderCellDef
+        class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+        [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
+        [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
+        [class.odd]="odd"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+      >
+        <ion-label
+          [innerHTML]="
+            pmfm
+              | pmfmName
+                : {
+                    html: false,
+                    withDetails: showPmfmDetails,
+                    i18nPrefix: i18nPmfmPrefix,
+                    i18nContext: i18nColumnSuffix
+                  }
+          "
+        ></ion-label>
+      </mat-header-cell>
+      <mat-cell
+        #cell
+        *matCellDef="let row"
+        class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
+        [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
+        [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+        [class.odd]="odd"
+        (click)="focusColumn = (pmfm.id || index).toString()"
+      >
+        <app-pmfm-field
+          *ngIf="row.editing; else readonlyPmfmField"
+          floatLabel="never"
+          [pmfm]="pmfm"
+          [i18nPrefix]="i18nPmfmPrefix"
+          [i18nSuffix]="i18nColumnSuffix"
+          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+          [autofocus]="focusColumn == (pmfm.id || index)"
+          [compact]="compactFields"
+        ></app-pmfm-field>
+
+        <!-- readonly value-->
+        <ng-template #readonlyPmfmField>
+          <ion-text
+            [innerHTML]="
+              row.validator
+                | formGetValue: ['measurementValues', pmfm.id]
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+            "
+          ></ion-text>
+        </ng-template>
+
+        <!-- resize handlers -->
+        <ng-container
+          *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+        ></ng-container>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Dynamic columns (metier block) -->
+    <ng-container *ngFor="let col of dynamicColumns">
+      <ng-container [matColumnDef]="col.key">
+        <mat-header-cell
+          *matHeaderCellDef
+          class="{{ col.class }}"
+          [class.collapsed]="col.hidden"
+          [class.tappable]="col.expanded !== undefined"
+          (click)="(col.expanded !== undefined || col.hidden) && toggleBlock($event, col.blockIndex)"
+        >
+          <ion-label>
+            @if (col.treeIndent) {
+              <span [innerHTML]="col.treeIndent"></span>
+            }
+            {{ col.label }}
+          </ion-label>
+          @if (col.expanded | isNotNil) {
+            <ion-button fill="clear" size="small" shape="round" (click)="toggleBlock($event, col.blockIndex)">
+              <mat-icon slot="icon-only" class="mat-icon-rtl-mirror">{{ col.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </ion-button>
+          }
+        </mat-header-cell>
+        <mat-cell
+          #cell
+          *matCellDef="let row"
+          [class.mat-mdc-cell-resizable]="!col.hidden"
+          class="{{ col.class }}"
+          [class.collapsed]="col.hidden"
+          (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
+          (click)="(col.hidden && toggleBlock($event, col.blockIndex)) || setFocusColumn(col.key)"
+        >
+          @if (!col.hidden) {
+            @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {
+              <mat-autocomplete-field
+                [placeholder]="col.placeholder"
+                [formControl]="control"
+                [config]="col.autocomplete"
+                [autofocus]="focusColumn === col.key"
+                [class]="mobile && 'min-width-80vw'"
+                [panelWidth]="!mobile && '500px'"
+              ></mat-autocomplete-field>
+            } @else {
+              @if (!col.hidden && row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+              }
+            }
+            <!-- resize handlers -->
+            <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
+          }
+        </mat-cell>
+      </ng-container>
+    </ng-container>
+
+    <!-- Actions -->
+    <app-actions-column
+      [stickyEnd]="stickyEnd"
+      [style]="'mat-table'"
+      (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+      (backward)="confirmAndBackward($event.event, $event.row)"
+      (forward)="confirmAndForward($event.event, $event.row)"
+      [canCancel]="true"
+      [dirtyIcon]="false"
+    >
+      <!-- Add metier block -->
+      <button mat-icon-button matHeader [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+        <mat-icon>add</mat-icon>
+      </button>
+    </app-actions-column>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      [class.mat-mdc-row-error]="row.invalid"
+      [class.mat-mdc-row-dirty]="row.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing"
+      (keydown.escape)="escapeEditingRow($event)"
+      [cdkTrapFocus]="!row.valid"
+      (click)="clickRow($event, row)"
+      (press)="pressRow($event, row)"
+    ></mat-row>
+  </mat-table>
+</div>
+
+<ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
+  <div class="resize-handle-left" *ngIf="x !== false" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
+  <div class="resize-handle-right" *ngIf="x !== false" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
+  <div class="resize-handle-top" *ngIf="y !== false" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
+  <div
+    class="resize-handle-bottom"
+    *ngIf="y !== false"
+    (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+  <div
+    class="resize-handle-corner"
+    *ngIf="x !== false || y !== false"
+    (mousedown)="onMouseDown($event, cell, row, col.month)"
+    (mouseup)="onMouseUp($event)"
+  ></div>
+</ng-template>
+
+<ng-template #skeletonText80>
+  <ion-label style="width: 80%">
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </ion-label>
+</ng-template>
+
+<ng-template #debugPanel>
+  <app-debug title="Calendar">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          calendar.ready: {{ readySubject | async }}
+          <br />
+          calendar.loading: {{ loadingSubject | async }}
+          <br />
+          calendar.enabled: {{ enabled }}
+          <br />
+          calendar.dirty: {{ dirty }}
+          <br />
+          calendar.valid: {{ valid }}
+          <br />
+          calendar.program: {{ programLabel }}
+          <br />
+          calendar.strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId || strategyLabel }}
+          <br />
+          <br />
+          calendar.acquisitionLevel: {{ acquisitionLevel }}
+          <br />
+          pmfms: {{ (pmfms$ | async)?.length }}
+        </ion-col>
+        <ion-col>
+          calendar.timezone: {{ timezone }}
+          <br />
+          calendar.excludesColumns: {{ excludesColumns }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

@@ -3,17 +3,45 @@
     page-break-after: unset !important;
   }
 }
+
 @media print {
-  /*.reveal {
-    background-color: white;
-    height: 100%;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    margin: 0;
-    padding: 15px;
-    !*font-size: 14px;*!
-    line-height: 18px;
-  }*/
+  html.print-pdf .reveal .slides .pdf-page {
+    margin: auto;
+    page-break-after: always !important;
+    &:has(section.portrait) {
+      page: portrait;
+      height: var(--slide-height) !important;
+      max-height: var(--slide-height) !important;
+      min-height: var(--slide-height) !important;
+      max-width: var(--slide-width) !important;
+      min-width: var(--slide-width) !important;
+    }
+    &:has(section.landscape) {
+      page: landscape;
+      height: var(--slide-width) !important;
+      max-width: var(--slide-height) !important;
+      min-width: var(--slide-height) !important;
+      max-height: var(--slide-width) !important;
+      min-height: var(--slide-width) !important;
+    }
+    section.landscape {
+      min-width: var(--slide-height) !important;
+    }
+  }
+
+  html.print-pdf .reveal {
+    overflow: visible !important;
+    .slides {
+      section {
+        top: 0px !important;
+        left: 0px !important;
+      }
+    }
+    // Remove the last empty page
+    &::after,
+    .pause-overlay,
+    .speaker-notes {
+      display: none;
+    }
+  }
 }

@@ -10,12 +10,7 @@
   >
     <mat-icon>add</mat-icon>
   </button>
-  <button
-    mat-icon-button
-    *ngIf="!selection.hasValue()"
-    [title]="'COMMON.BTN_REFRESH' | translate"
-    (click)="onRefresh.emit()"
-  >
+  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
   <button
@@ -41,19 +36,18 @@
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.mobile]="mobile">
   <table
     mat-table
     [dataSource]="dataSource"
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
     class="table-products"
-    [class.mobile]="mobile"
     matSort
     matSortDisableClear
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || readOnly">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -62,23 +56,13 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky && !showIdColumn">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [class.cdk-visually-hidden]="!showIdColumn"
-        [class.ion-padding-start]="mobile"
-      >
+    <ng-container matColumnDef="id" [sticky]="sticky && showIdColumn">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!showIdColumn" [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn" [class.ion-padding-start]="mobile">
@@ -104,7 +88,7 @@
         ></mat-autocomplete-field>
         <ng-template #readOnly>
           <ion-label>
-            {{ row.currentData.parent | referentialToString : autocompleteFields.parent.attributes }}
+            {{ row.currentData.parent | referentialToString: autocompleteFields.parent.attributes }}
           </ion-label>
         </ng-template>
       </td>
@@ -140,7 +124,7 @@
         ></mat-autocomplete-field>
         <ng-template #readOnly>
           <ion-label>
-            {{ row.currentData.taxonGroup | referentialToString : autocompleteFields.taxonGroup.attributes }}
+            {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
           </ion-label>
         </ng-template>
       </td>
@@ -189,29 +173,43 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm | isDatePmfm">
-        <ion-label [innerHTML]="pmfm | pmfmName : { html: true }"></ion-label>
+    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
+        <ion-label [innerHTML]="pmfm | pmfmName: { html: true }"></ion-label>
       </th>
 
       <td
         mat-cell
         *matCellDef="let row"
-        [class.mat-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-cell-computed]="pmfm | isComputedPmfm"
+        class="mat-column-pmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
       >
         <app-pmfm-field
-          [readonly]="!row.editing"
-          [pmfm]="pmfm"
-          [control]="row.validator | formGetControl : ['measurementValues', pmfm.id]"
+          *ngIf="row.editing; else readonlyPmfmField"
           floatLabel="never"
+          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+          [autofocus]="focusColumn == pmfm.id"
+          [pmfm]="pmfm"
+          [compact]="true"
         ></app-pmfm-field>
+
+        <!-- readonly value-->
+        <ng-template #readonlyPmfmField>
+          <span
+            [innerHTML]="
+              row.validator
+                | formGetValue: ['measurementValues', pmfm.id]
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+            "
+          ></span>
+        </ng-template>
       </td>
     </ng-container>
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky && showActionButtons"
+      [stickyEnd]="stickyEnd && showActionButtons"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -222,122 +220,72 @@
       (optionsClick)="openSelectColumnsModal($event)"
     >
       <ng-template #cellTemplate let-row>
-        <!-- sampling -->
-        <button
-          mat-icon-button
-          *ngIf="showActionButtons && (row.validator | formGetValue : 'individualCount') > 0"
-          [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING' | translate"
-          (click)="openSampling($event, row)"
-          [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"
-          [hidden]="readOnly"
-        >
-          <mat-icon
-            [matBadge]="row.currentData.samples?.length"
-            [matBadgeHidden]="row.currentData.samples | isEmptyArray"
-            matBadgeColor="accent"
-            matBadgeSize="small"
-            matBadgePosition="above after"
+        <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+          <!-- sampling -->
+          <button
+            mat-icon-button
+            *ngIf="showActionButtons && (row.validator | formGetValue: 'individualCount') > 0"
+            [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING' | translate"
+            (click)="openSampling($event, row)"
+            [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"
+            [hidden]="readOnly"
           >
-            assessment
-          </mat-icon>
-        </button>
+            <mat-icon
+              [matBadge]="row.currentData.samples?.length"
+              [matBadgeHidden]="row.currentData.samples | isEmptyArray"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              assessment
+            </mat-icon>
+          </button>
 
-        <!-- product sale -->
-        <button
-          mat-icon-button
-          color="light"
-          *ngIf="showActionButtons"
-          [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE' | translate"
-          (click)="openProductSale($event, row)"
-          [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
-        >
-          <mat-icon
-            [matBadge]="row.currentData.saleProducts?.length"
-            [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
-            matBadgeColor="accent"
-            matBadgeSize="small"
-            matBadgePosition="above after"
+          <!-- product sale -->
+          <button
+            mat-icon-button
+            color="light"
+            *ngIf="showActionButtons"
+            [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE' | translate"
+            (click)="openProductSale($event, row)"
+            [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
           >
-            local_offer
-          </mat-icon>
-        </button>
+            <mat-icon
+              [matBadge]="row.currentData.saleProducts?.length"
+              [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              local_offer
+            </mat-icon>
+          </button>
+        </ng-container>
+
+        <ng-template #hasSelection>
+          <!-- delete  -->
+          <button
+            mat-icon-button
+            *ngIf="mobile && enabled && singleSelectedRow === row"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="cancelOrDelete($event, row)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-template>
       </ng-template>
     </app-actions-column>
-
-    <!-- Actions buttons column -->
-    <!--    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">-->
-    <!--      <th mat-header-cell *matHeaderCellDef>-->
-    <!--        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
-    <!--          <mat-icon>more_vert</mat-icon>-->
-    <!--        </button>-->
-    <!--      </th>-->
-    <!--      <td mat-cell *matCellDef="let row">-->
-
-    <!--        <ng-container *ngIf="showActionButtons">-->
-    <!--          &lt;!&ndash; undo or delete  &ndash;&gt;-->
-    <!--          <button mat-icon-button color="light" *ngIf="row.validator.invalid"-->
-    <!--                  [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"-->
-    <!--                  (click)="cancelOrDelete($event, row)"-->
-    <!--                  [hidden]="!inlineEdition">-->
-    <!--            <mat-icon *ngIf="row.id !== -1">undo</mat-icon>-->
-    <!--            <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>-->
-    <!--          </button>-->
-    <!--          &lt;!&ndash; validate &ndash;&gt;-->
-    <!--          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"-->
-    <!--                  [title]="'COMMON.BTN_VALIDATE'|translate"-->
-    <!--                  (click)="confirmEditCreate($event, row)"-->
-    <!--                  [hidden]="!inlineEdition">-->
-    <!--            <mat-icon>check</mat-icon>-->
-    <!--          </button>-->
-    <!--          &lt;!&ndash; add &ndash;&gt;-->
-    <!--          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"-->
-    <!--                  [title]="'COMMON.BTN_ADD'|translate"-->
-    <!--                  (click)="confirmAndAdd($event, row)"-->
-    <!--                  [hidden]="!inlineEdition">-->
-    <!--            <mat-icon>add</mat-icon>-->
-    <!--          </button>-->
-
-    <!--          &lt;!&ndash; sampling &ndash;&gt;-->
-    <!--          <button mat-icon-button *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"-->
-    <!--                  [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"-->
-    <!--                  (click)="openSampling($event, row)"-->
-    <!--                  [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"-->
-    <!--                  [hidden]="readOnly">-->
-    <!--            <mat-icon-->
-    <!--                      [matBadge]="row.currentData.samples?.length"-->
-    <!--                      [matBadgeHidden]="row.currentData.samples | isEmptyArray"-->
-    <!--                      matBadgeColor="accent"-->
-    <!--                      matBadgeSize="small"-->
-    <!--                      matBadgePosition="above after">assessment-->
-    <!--            </mat-icon>-->
-    <!--          </button>-->
-
-    <!--          &lt;!&ndash; product sale &ndash;&gt;-->
-    <!--          <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"-->
-    <!--                  [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"-->
-    <!--                  (click)="openProductSale($event, row)"-->
-    <!--                  [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">-->
-    <!--            <mat-icon [matBadge]="row.currentData.saleProducts?.length"-->
-    <!--                      [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"-->
-    <!--                      matBadgeColor="accent"-->
-    <!--                      matBadgeSize="small"-->
-    <!--                      matBadgePosition="above after">local_offer-->
-    <!--            </mat-icon>-->
-    <!--          </button>-->
-
-    <!--        </ng-container>-->
-    <!--      </td>-->
-    <!--    </ng-container>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-selected]="row.editing"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
+      (press)="pressRow($event, row)"
     ></tr>
   </table>
 

@@ -24,6 +24,25 @@
       </ion-col>
     </ion-row>
 
+    <!-- Sampling strata -->
+    @if (showSamplingStrata) {
+      <ion-row>
+        <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+          <ion-label class="ion-float-end">{{ 'TRIP.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field
+            formControlName="samplingStrata"
+            [placeholder]="'TRIP.SAMPLING_STRATA' | translateContext: i18nSuffix"
+            [config]="autocompleteFields.samplingStrata"
+            [required]="true"
+          >
+            <ion-icon matPrefix name="calendar"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+    }
+
     <!-- VESSEL -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -38,13 +57,13 @@
           [required]="true"
         >
           <ion-icon matPrefix name="boat"></ion-icon>
-
           <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
           <button
             matSuffix
             type="button"
             mat-icon-button
             tabindex="-1"
+            [class.large]="mobile"
             *ngIf="allowAddNewVessel && network.online"
             [title]="'TRIP.BTN_ADD_VESSEL' | translate"
             (click)="addVesselModal($event)"
@@ -73,12 +92,8 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="4" size-md="3">
-        <mat-date-time-field
-          [placeholder]="'TRIP.DEPARTURE_DATE_TIME' | translate"
-          formControlName="departureDateTime"
-          [required]="true"
-        >
+      <ion-col size="12" size-sm="5" size-md="4">
+        <mat-date-time-field [placeholder]="'TRIP.DEPARTURE_DATE_TIME' | translate" formControlName="departureDateTime" [required]="true">
           <!-- icon (need for small screen) -->
           <mat-icon matPrefix class="visible-xs">today</mat-icon>
         </mat-date-time-field>
@@ -104,11 +119,11 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="4" size-md="3" *ngVar="form | formGetControl : 'returnDateTime'; let control">
+      <ion-col size="12" size-sm="5" size-md="4" *ngVar="form | formGetControl: 'returnDateTime'; let control">
         <mat-date-time-field
           [placeholder]="'TRIP.RETURN_DATE_TIME' | translate"
           [formControl]="control"
-          [startDate]="form | formGetValue : 'departureDateTime'"
+          [startDate]="form | formGetValue: 'departureDateTime'"
           [required]="returnFieldsRequired"
           [clearable]="!returnFieldsRequired"
         >
@@ -128,51 +143,6 @@
       </ion-col>
     </ion-row>
 
-    <!-- Observers -->
-    <ng-container *ngIf="showObservers">
-      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-          <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OBSERVERS</ion-label>
-        </ion-col>
-        <ion-col>
-          <mat-autocomplete-field
-            [formControl]="observersHelper.at(i)"
-            [placeholder]="('TRIP.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
-            [autofocus]="observerFocusIndex === i"
-            [config]="autocompleteFields.person"
-            [tabindex]="tabindex + 10 + i * 3"
-            [i18nPrefix]="'USER.'"
-            [required]="first"
-          >
-            <ion-icon matPrefix name="person"></ion-icon>
-          </mat-autocomplete-field>
-        </ion-col>
-        <ion-col size="auto" class="ion-align-self-center">
-          <button
-            type="button"
-            mat-icon-button
-            *ngIf="last"
-            [tabindex]="tabindex + 10 + i * 3 + 1"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_ADD' | translate"
-            (click)="addObserver()"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-          <button
-            type="button"
-            mat-icon-button
-            [tabindex]="tabindex + 10 + i * 3 + 2"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="observersHelper.removeAt(i)"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
-        </ion-col>
-      </ion-row>
-    </ng-container>
-
     <!-- Metiers -->
     <ng-container *ngIf="showMetiers">
       <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first; last as last">
@@ -182,10 +152,8 @@
         <ion-col>
           <mat-autocomplete-field
             #metierField
-            [formControl]="metiersHelper.at(i)"
-            [placeholder]="
-              (first ? 'TRIP.MAIN_METIER_PLACEHOLDER' : 'TRIP.SECONDARY_METIER_PLACEHOLDER') | translate : { rank: i }
-            "
+            [formControl]="metierForm | formGetControl"
+            [placeholder]="(first ? 'TRIP.MAIN_METIER_PLACEHOLDER' : 'TRIP.SECONDARY_METIER_PLACEHOLDER') | translate: { rank: i }"
             [autofocus]="metierFocusIndex === i"
             [config]="autocompleteFields.metier"
             [tabindex]="tabindex + 10 + i * 3"
@@ -226,7 +194,7 @@
             [tabindex]="tabindex + 10 + i * 3 + 2"
             [disabled]="disabled"
             [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="metiersHelper.removeAt(i)"
+            (click)="metiersForm.removeAt(i)"
           >
             <mat-icon>close</mat-icon>
           </button>
@@ -234,25 +202,66 @@
       </ion-row>
     </ng-container>
 
-    <ng-content></ng-content>
+    <ng-content select="[beforeObservers]"></ng-content>
+
+    <!-- Observers -->
+    <ng-container *ngIf="showObservers">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
+        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OBSERVERS</ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field
+            [formControl]="observerForm | formGetControl"
+            [placeholder]="('TRIP.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
+            [autofocus]="observerFocusIndex === i"
+            [config]="autocompleteFields.person"
+            [tabindex]="tabindex + 10 + i * 3"
+            [i18nPrefix]="'USER.'"
+            [required]="first"
+          >
+            <ion-icon matPrefix name="person"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+        <ion-col size="auto" class="ion-align-self-center">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="last"
+            [tabindex]="tabindex + 10 + i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addObserver()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 10 + i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="observersForm.removeAt(i)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
+    <!-- PMFMS -->
+    <ng-content select="[afterObservers]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
       <ion-col size="12">
         <mat-form-field appearance="outline">
-          <textarea
-            matInput
-            #comments
-            matTextareaAutosize="true"
-            matAutosizeMinRows="4"
-            maxlength="2000"
-            [placeholder]="'COMMON.COMMENTS' | translate"
-            formControlName="comments"
-          ></textarea>
+          <mat-label translate>COMMON.COMMENTS</mat-label>
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" formControlName="comments"></textarea>
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
-            {{ 'ERROR.FIELD_REQUIRED' | translate : form.controls.comments.errors.maxlength }}
+            {{ 'ERROR.FIELD_MAX_LENGTH' | translate: form.controls.comments.errors.maxlength }}
           </mat-error>
         </mat-form-field>
       </ion-col>

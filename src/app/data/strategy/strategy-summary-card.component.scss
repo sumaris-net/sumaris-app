@@ -1,18 +1,24 @@
-ion-card {
 
-  ion-card-title {
-    .mouseover {
-      visibility: hidden;
-    }
-    &:hover {
-      cursor: pointer;
-      .mouseover {
-        visibility: visible;
-      }
+ion-card {
+  .visible-hover {
+    visibility: hidden;
+  }
+  .tappable:hover {
+    .visible-hover {
+      cursor: pointer !important;
+      visibility: visible;
     }
   }
+
   ion-card-content {
     background-color: var(--ion-color-light-tint, whitesmoke);
+    --mdc-filled-text-field-disabled-container-color: transparent;
+    --mdc-icon-button-margin-vertical: 4px;
+    .mat-mdc-form-field {
+      input {
+        text-overflow: ellipsis;
+      }
+    }
 
     ion-label.status {
       font-size: 12px !important;
@@ -21,6 +27,15 @@ ion-card {
       ul {
         padding-inline-start: 16px;
       }
+
+      &.tappable:hover {
+        cursor: pointer;
+        .visible-hover {
+          visibility: visible;
+        }
+      }
     }
+
+
   }
 }

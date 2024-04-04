@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -13,29 +13,25 @@ import {
   referentialToString,
   toBoolean,
   TranslateContextService,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
-import {SampleForm} from './sample.form';
-import {Sample} from './sample.model';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import moment, {Moment} from 'moment';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {AppImageAttachmentGallery} from '@app/data/image/image-attachment-gallery.component';
-import {ImageAttachment} from '@app/data/image/image-attachment.model';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { SampleForm } from './sample.form';
+import { Sample } from './sample.model';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import moment, { Moment } from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
-export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
-
   // UI Fields show/hide
-  mobile: boolean;
   showLabel: boolean;
   requiredLabel?: boolean;
   showSampleDate: boolean;
@@ -63,18 +59,15 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 @Component({
   selector: 'app-sample-modal',
   templateUrl: 'sample.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
-
   private readonly _subscription = new Subscription();
   private _isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
-  debug = false;
   loading = false;
   tagIdPmfm: IPmfm;
 
-  @Input() mobile: boolean;
   @Input() isNew: boolean;
   @Input() data: Sample;
   @Input() disabled: boolean;
@@ -82,6 +75,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() programLabel: string;
   @Input() usageMode: UsageMode;
   @Input() pmfms: IPmfm[];
+  @Input() mobile: boolean;
+  @Input() debug = false;
 
   // UI options
   @Input() i18nSuffix: string;
@@ -105,8 +100,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() onDelete: (event: Event, data: Sample) => Promise<boolean>;
   @Input() openSubSampleModal: (parent: Sample, acquisitionLevel: AcquisitionLevelType) => Promise<Sample>;
 
-  @ViewChild('form', {static: true}) form: SampleForm;
-  @ViewChild('gallery', {static: true}) gallery: AppImageAttachmentGallery;
+  @ViewChild('form', { static: true }) form: SampleForm;
+  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
   @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
@@ -132,16 +127,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
-    // Default value
-    this.mobile = settings.mobile;
+    // Fixed values
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
     // TODO: for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
     // Default values
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
@@ -149,24 +144,22 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.i18nSuffix = this.i18nSuffix || '';
     this.showComment = toBoolean(this.showComment, !this.mobile || isNotNil(this.data.comments));
     this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
-    this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
-    this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+    this.showIndividualMonitoringButton = !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
+    this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
 
     // Show/Hide individual release button
     if (this.showIndividualReleaseButton) {
-      this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
+      this.tagIdPmfm = this.pmfms?.find((p) => p.id === PmfmIds.TAG_ID);
 
       if (this.tagIdPmfm) {
         this.form.ready().then(() => {
           const tagIdControl = this.form.form.get('measurementValues.' + this.tagIdPmfm.id);
 
           this.registerSubscription(
-            tagIdControl
-              .valueChanges
-              .subscribe(tagId => {
-                this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
-                this.markForCheck();
-              })
+            tagIdControl.valueChanges.subscribe((tagId) => {
+              this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
+              this.markForCheck();
+            })
           );
         });
       }
@@ -174,19 +167,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     if (this.disabled) {
       this.form.disable();
-    }
-    else {
+    } else {
       // Change rankOrder validator, to optional
       this.form.form.get('rankOrder').setValidators(null);
     }
 
     // Update title each time value changes
     if (!this.isNew) {
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(debounceTime(250))
-          .subscribe(json => this.computeTitle(json))
-      );
+      this._subscription.add(this.form.valueChanges.pipe(debounceTime(250)).subscribe((json) => this.computeTitle(json)));
     }
 
     this.setValue(this.data);
@@ -201,7 +189,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
         return;
       }
 
@@ -257,8 +245,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   async onSubmitIfDirty(event?: Event) {
     if (!this.dirty) {
       await this.modalCtrl.dismiss();
-    }
-    else {
+    } else {
       return this.onSubmit(event);
     }
   }
@@ -272,9 +259,11 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (this.loading) return undefined; // avoid many call
 
     // No changes: leave
-    if ((!this.dirty && !this.isNew)
+    if (
+      (!this.dirty && !this.isNew) ||
       // If new, not changed but valid (e.g. if all PMFM are optional) : avoid to save an empty entity => skip
-      || (this.isNew && !this.dirty && this.valid)) {
+      (this.isNew && !this.dirty && this.valid)
+    ) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
@@ -297,8 +286,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
       if (deleted) await this.modalCtrl.dismiss();
-    }
-    else {
+    } else {
       // Ask caller the modal owner apply deletion
       await this.modalCtrl.dismiss(this.data, 'delete');
     }
@@ -320,7 +308,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   /* -- protected methods -- */
 
   private async setValue(data: Sample) {
-
     console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
     this.gallery.markAsReady();
@@ -334,8 +321,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       if (isNew && !this.data.sampleDate) {
         if (this.defaultSampleDate) {
           this.data.sampleDate = this.defaultSampleDate.clone();
-        }
-        else if (this._isOnFieldMode) {
+        } else if (this._isOnFieldMode) {
           this.data.sampleDate = moment();
         }
       }
@@ -352,14 +338,13 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       //   ].map(ImageAttachment.fromObject);
 
       this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
-      this.gallery.value = this.showPictures && this.data.images || [];
+      this.gallery.value = (this.showPictures && this.data.images) || [];
 
       // Call ready callback
       if (this.onReady) await this.onReady(this);
 
       await this.computeTitle();
-    }
-    finally {
+    } finally {
       if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
@@ -367,8 +352,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  protected async getDataToSave(opts?: {disable?: boolean}): Promise<Sample> {
-
+  protected async getDataToSave(opts?: { disable?: boolean }): Promise<Sample> {
     if (!this.valid) {
       // Wait validation end
       await AppFormUtils.waitWhilePending(this.form);
@@ -380,15 +364,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         // Otherwise (many fields/pmfms) show a detailed message
         if (!this.pmfms || this.pmfms.length < 5) {
           this.setError('COMMON.FORM.HAS_ERROR');
-        }
-        else {
+        } else {
           const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
             controlPathTranslator: this.form,
-            separator: '<br/>'
+            separator: '<br/>',
           });
-          const errorMessage = isNotNilOrBlank(error)
-            ? `<small class="error-details">${error}</small>`
-            : 'COMMON.FORM.HAS_ERROR';
+          const errorMessage = isNotNilOrBlank(error) ? `<small class="error-details">${error}</small>` : 'COMMON.FORM.HAS_ERROR';
           this.setError(errorMessage);
         }
         this.form.markAllAsTouched();
@@ -413,7 +394,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
           await this.gallery.save();
         }
         const images = this.gallery.value;
-        data.images = images && images.map(ImageAttachment.fromObject) || undefined;
+        data.images = (images && images.map(ImageAttachment.fromObject)) || undefined;
       }
 
       return data;
@@ -429,7 +410,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   protected async computeTitle(data?: Sample) {
-
     data = data || this.data;
 
     // Compute prefix
@@ -442,16 +422,15 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       prefixItems.push(referentialToString(data.taxonName, this.settings.getFieldDisplayAttributes('taxonName')));
     }
     if (isNotEmptyArray(prefixItems)) {
-      prefix = this.translateContext.instant('TRIP.SAMPLE.TITLE_PREFIX', this.i18nSuffix,
-        {prefix: prefixItems.join(' / ')});
+      prefix = this.translateContext.instant('TRIP.SAMPLE.TITLE_PREFIX', this.i18nSuffix, { prefix: prefixItems.join(' / ') });
     }
 
     if (this.isNew || !data) {
       this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.NEW.TITLE', this.i18nSuffix));
     } else {
       // Label can be optional (e.g. in auction control)
-      const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.EDIT.TITLE', this.i18nSuffix, {label}));
+      const label = (this.showLabel && data.label) || '#' + data.rankOrder;
+      this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.EDIT.TITLE', this.i18nSuffix, { label }));
     }
   }
 
@@ -463,7 +442,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (!savedSample) return;
 
     try {
-
       // Execute the callback
       const updatedParent = await this.openSubSampleModal(savedSample, acquisitionLevel);
 
@@ -500,12 +478,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.markForCheck();
   }
 
-  protected enable(opts?: {emitEvent?: boolean}) {
+  protected enable(opts?: { emitEvent?: boolean }) {
     this.form.enable(opts);
     this.gallery.enable(opts);
   }
 
-  protected disable(opts?: {emitEvent?: boolean}) {
+  protected disable(opts?: { emitEvent?: boolean }) {
     this.form.disable(opts);
     this.gallery.disable(opts);
   }
@@ -517,5 +495,4 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   protected resetError() {
     this.form.error = null;
   }
-
 }

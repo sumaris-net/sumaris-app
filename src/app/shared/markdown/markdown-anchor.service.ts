@@ -37,7 +37,7 @@ export class MarkdownAnchorService {
       return;
     }
 
-    let routerLink = element.getAttribute('routerLink');
+    const routerLink = element.getAttribute('routerLink');
     if (routerLink) {
       event.preventDefault();
       this.navController.navigateForward(routerLink);

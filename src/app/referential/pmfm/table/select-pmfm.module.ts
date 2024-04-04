@@ -16,17 +16,15 @@ import { PmfmsTable } from '@app/referential/pmfm/table/pmfms.table';
     AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     PmfmsTable,
-    SelectPmfmModal
+    SelectPmfmModal,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    SelectPmfmModal
+    SelectPmfmModal,
   ],
 })
-export class AppPmfmSelectModalModule {
-}
+export class AppPmfmSelectModalModule {}

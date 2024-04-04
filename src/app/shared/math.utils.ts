@@ -12,7 +12,6 @@ export interface AverageDetails {
 }
 
 export class MathUtils {
-
   /**
    * Calcul la moyenne d'un tableau de nombres
    */
@@ -65,7 +64,7 @@ export class MathUtils {
     const lowerBound = avg - marginOfError;
     const upperBound = avg + marginOfError;
 
-    return {lowerBound, upperBound};
+    return { lowerBound, upperBound };
   }
 
   /**
@@ -76,9 +75,9 @@ export class MathUtils {
     const avg = this.average(numbers);
     const stdDev = this.standardDerivation(numbers, avg);
     const stdDevPct = (stdDev / avg) * 100;
-    const stdError = stdDev /  Math.sqrt(n);
+    const stdError = stdDev / Math.sqrt(n);
     const confidenceInterval95 = this.confidenceInterval95(numbers, avg, stdDev);
-    return { avg, stdDev, stdDevPct, stdError, confidenceInterval95};
+    return { avg, stdDev, stdDevPct, stdError, confidenceInterval95 };
   }
 
   /**

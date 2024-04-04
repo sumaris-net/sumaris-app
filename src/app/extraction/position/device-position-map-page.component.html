@@ -1,12 +1,7 @@
 <app-toolbar [title]="i18nPrefix + title | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
-
     <!-- Download -->
-    <button
-      mat-icon-button
-      [title]="'COMMON.BTN_DOWNLOAD_DOTS'|translate"
-      [matMenuTriggerFor]="downloadMenu"
-    >
+    <button mat-icon-button [title]="'COMMON.BTN_DOWNLOAD_DOTS' | translate" [matMenuTriggerFor]="downloadMenu">
       <mat-icon>download</mat-icon>
     </button>
 
@@ -15,13 +10,11 @@
       <mat-icon>refresh</mat-icon>
     </button>
 
-
     <!-- reset filter -->
     <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
       <mat-icon color="accent">filter_list_alt</mat-icon>
       <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
     </button>
-
 
     <!-- show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
@@ -40,7 +33,6 @@
     </button>
   </ion-buttons>
 </app-toolbar>
-
 
 <!-- Download menu -->
 <mat-menu #downloadMenu="matMenu" xPosition="after">
@@ -77,22 +69,14 @@
 
           <ion-col>
             <!-- Start date -->
-            <mat-date-field
-              [placeholder]="i18nPrefix + 'FILTER.START_DATE' | translate"
-              formControlName="startDate"
-              [clearable]="true"
-            >
+            <mat-date-field [placeholder]="i18nPrefix + 'FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date-field>
           </ion-col>
 
           <ion-col>
             <!-- End date -->
-            <mat-date-field
-              [placeholder]="i18nPrefix + 'FILTER.END_DATE' | translate"
-              formControlName="endDate"
-              [clearable]="true"
-            ></mat-date-field>
+            <mat-date-field [placeholder]="i18nPrefix + 'FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true"></mat-date-field>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -105,7 +89,7 @@
         [color]="total === 0 ? 'danger' : undefined"
         class="ion-padding"
       >
-        {{ (total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate : { count: (total | numberFormat) } }}
+        {{ (total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (total | numberFormat) } }}
       </ion-label>
 
       <div class="toolbar-spacer"></div>
@@ -141,13 +125,7 @@
 
   <div class="map-container">
     <!-- Leaflet map -->
-    <div
-      leaflet
-      [attr.id]="mapId"
-      (leafletMapReady)="onMapReady($event)"
-      [leafletOptions]="options"
-      [leafletLayersControl]="layersControl"
-    ></div>
+    <div leaflet [attr.id]="mapId" (leafletMapReady)="onMapReady($event)" [leafletOptions]="options" [leafletLayersControl]="layersControl"></div>
   </div>
 
   <mat-expansion-panel #tableExpansionPanel class="table-panel" [class.table-panel-floating]="filterPanelFloating">
@@ -159,20 +137,20 @@
           <span *ngIf="total <= visibleTotal; else warning">({{ total }})</span>
           <ng-template #warning>
             <i style="color: var(--ion-color-medium, gray)" *ngIf="!loading">
-              ({{ 'DEVICE_POSITION.MAP.TABLE.LIMIT_TO' | translate : { total: total, visibleTotal: visibleTotal } }})
+              ({{ 'DEVICE_POSITION.MAP.TABLE.LIMIT_TO' | translate: { total: total, visibleTotal: visibleTotal } }})
             </i>
           </ng-template>
         </ion-text>
       </mat-panel-title>
       <mat-panel-description></mat-panel-description>
     </mat-expansion-panel-header>
-    <ion-grid class="mat-table" #table>
-      <ion-row class="mat-header-row">
-        <ion-col class="mat-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
-        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
-        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
-        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
-        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
+    <ion-grid class="mat-mdc-table" #table>
+      <ion-row class="mat-mdc-header-row">
+        <ion-col class="mat-mdc-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
+        <ion-col class="mat-mdc-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
+        <ion-col class="mat-mdc-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
+        <ion-col class="mat-mdc-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
+        <ion-col class="mat-mdc-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
       </ion-row>
 
       <ng-container *rxIf="loading$; else rows">
@@ -187,17 +165,17 @@
         <ion-row
           *rxFor="let feature of features$"
           #tableRows
-          class="mat-row"
-          [class.mat-row-selected]="selection.isSelected(feature)"
+          class="mat-mdc-row"
+          [class.mat-mdc-row-selected]="selection.isSelected(feature)"
           (click)="onRowClick($event, feature)"
         >
-          <ion-col class="mat-cell mat-column-dateTime">
+          <ion-col class="mat-mdc-cell mat-column-dateTime">
             {{ feature.properties.dateTime }}
           </ion-col>
-          <ion-col class="mat-cell" size="2">{{ feature.properties.latitude | numberFormat }}</ion-col>
-          <ion-col class="mat-cell" size="2">{{ feature.properties.longitude | numberFormat }}</ion-col>
-          <ion-col class="mat-cell">{{ feature.properties.recorderPerson }}</ion-col>
-          <ion-col class="mat-cell ion-no-padding ion-padding-horizontal">
+          <ion-col class="mat-mdc-cell" size="2">{{ feature.properties.latitude | numberFormat }}</ion-col>
+          <ion-col class="mat-mdc-cell" size="2">{{ feature.properties.longitude | numberFormat }}</ion-col>
+          <ion-col class="mat-mdc-cell">{{ feature.properties.recorderPerson }}</ion-col>
+          <ion-col class="mat-mdc-cell ion-no-padding ion-padding-horizontal">
             <ion-button
               class="text-button"
               size="small"
@@ -206,22 +184,21 @@
               (click)="onOpenDataClick($event, feature.properties)"
               [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA' | translate"
             >
-              {{ feature.properties.objectTypeName }} #{{ feature.properties.objectId}}
+              {{ feature.properties.objectTypeName }} #{{ feature.properties.objectId }}
             </ion-button>
           </ion-col>
         </ion-row>
       </ng-template>
-
     </ion-grid>
 
-
     <ion-footer>
-      <mat-paginator #paginator
-                     class="mat-paginator-footer"
-                     [length]="total"
-                     [pageSize]="defaultPageSize"
-                     [pageSizeOptions]="defaultPageSizeOptions"
-                     showFirstLastButtons
+      <mat-paginator
+        #paginator
+        class="mat-paginator-footer"
+        [length]="total"
+        [pageSize]="defaultPageSize"
+        [pageSizeOptions]="defaultPageSizeOptions"
+        showFirstLastButtons
       ></mat-paginator>
     </ion-footer>
   </mat-expansion-panel>
@@ -230,7 +207,7 @@
 <ion-popover #downloadPopover>
   <ng-template>
     <ion-content class="ion-padding-horizontal">
-      <app-progress-bar [progression]="downloadProgression$|async"></app-progress-bar>
+      <app-progress-bar [progression]="downloadProgression$ | async"></app-progress-bar>
     </ion-content>
   </ng-template>
 </ion-popover>

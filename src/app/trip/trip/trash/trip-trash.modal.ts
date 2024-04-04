@@ -9,8 +9,10 @@ import {
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { Trip } from '../trip.model';
 import { TripService } from '../trip.service';
 import { TripFilter } from '../trip.filter';
@@ -27,11 +29,9 @@ export interface TripTrashModalOptions {
 @Component({
   selector: 'app-trip-trash-modal',
   templateUrl: './trip-trash.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
-
-
   canDelete: boolean;
   displayedAttributes: {
     [key: string]: string[];
@@ -58,27 +58,26 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-
-    super(injector,
-      RESERVED_START_COLUMNS
-        .concat([
-          'updateDate',
-          'program',
-          'vessel',
-          'departureLocation',
-          'departureDateTime',
-          'returnDateTime',
-          'observers',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+    super(
+      injector,
+      RESERVED_START_COLUMNS.concat([
+        'updateDate',
+        'program',
+        'vessel',
+        'departureLocation',
+        'departureDateTime',
+        'returnDateTime',
+        'observers',
+        'comments',
+      ]).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         saveOnlyDirtyRows: true,
         readOnly: true,
         watchAllOptions: {
-          trash: true
-        }
+          trash: true,
+        },
       }),
       null // Filter
     );
@@ -96,7 +95,6 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-
   }
 
   ngOnInit() {
@@ -106,14 +104,14 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
     this.displayedAttributes = {
       vesselSnapshot: this.settings.getFieldDisplayAttributes('vesselSnapshot'),
-      location: this.settings.getFieldDisplayAttributes('location')
+      location: this.settings.getFieldDisplayAttributes('location'),
     };
 
     const filter = TripFilter.fromObject({
       ...this.filter,
-      synchronizationStatus: this.synchronizationStatus
+      synchronizationStatus: this.synchronizationStatus,
     });
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, { emitEvent: true });
   }
 
   ngOnDestroy() {
@@ -121,14 +119,13 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   async closeAndRestore(event: Event, rows: TableElement<Trip>[]) {
-
     const data = await this.restore(event, rows);
     if (isEmptyArray(data)) return; // User cancelled
 
     return this.close(null, data);
   }
 
-  async restore(event: Event, rows: TableElement<Trip>[]): Promise<Trip[]|undefined> {
+  async restore(event: Event, rows: TableElement<Trip>[]): Promise<Trip[] | undefined> {
     if (this.loading) return; // Skip
 
     const confirm = await this.askRestoreConfirmation();
@@ -142,19 +139,18 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     this.markAsLoading();
 
     try {
-      let entities = (rows || []).map(row => row.currentData).filter(isNotNil);
+      let entities = (rows || []).map((row) => row.currentData).filter(isNotNil);
       if (isEmptyArray(entities)) return; // Skip
 
       // If online: get trash data full content
       if (this.isOnlineMode) {
-        entities = (await chainPromises(entities.map(e => () => this.trashRemoteService.load('Trip', e.id))))
-          .map(Trip.fromObject);
+        entities = (await chainPromises(entities.map((e) => () => this.trashRemoteService.load('Trip', e.id)))).map(Trip.fromObject);
       }
 
       // Copy locally
       entities = await this.service.copyAllLocally(entities, {
         deletedFromTrash: this.isOfflineMode, // Delete from trash, only if local trash
-        displaySuccessToast: false
+        displaySuccessToast: false,
       });
 
       // Deselect rows
@@ -164,37 +160,31 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       setTimeout(() => {
         this.showToast({
           type: 'info',
-          message: rows.length === 1 ?
-            'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' :
-            'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });
+          message: rows.length === 1 ? 'TRIP.TRASH.INFO.ONE_TRIP_RESTORED' : 'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED',
+        });
       }, 200);
 
       return entities;
-    }
-    catch (err) {
-      console.error(err && err.message || err, err);
-      this.error = err && err.message || err;
+    } catch (err) {
+      console.error((err && err.message) || err, err);
+      this.error = (err && err.message) || err;
       return;
-    }
-    finally {
+    } finally {
       this.markAsLoaded();
     }
   }
-
 
   async toggleRow(event: MouseEvent, row: TableElement<Trip>): Promise<boolean> {
     if (event && event.defaultPrevented) return; // Skip
 
     if (this.selection.isEmpty()) {
       this.selection.select(row);
-    }
-    else if (!this.selection.isSelected(row)) {
+    } else if (!this.selection.isSelected(row)) {
       if (!event.ctrlKey) {
         this.selection.clear();
       }
       this.selection.select(row);
-    }
-    else {
+    } else {
       this.selection.toggle(row);
     }
     return true;
@@ -209,7 +199,6 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   async cleanLocalTrash(event?: Event, confirm?: boolean) {
-
     if (!confirm) {
       confirm = await this.askDeleteConfirmation(event);
       if (!confirm) return; // skip
@@ -224,9 +213,9 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     setTimeout(() => {
       this.showToast({
         type: 'info',
-        message: 'TRIP.TRASH.INFO.LOCAL_TRASH_CLEANED' });
+        message: 'TRIP.TRASH.INFO.LOCAL_TRASH_CLEANED',
+      });
     }, 200);
-
   }
 
   async cleanRemoteTrash(event: Event, rows: TableElement<Trip>[]) {
@@ -242,10 +231,10 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     this.markAsLoading();
 
     try {
-
-      const remoteIds = rows.map(row => row.currentData)
-        .map(trip => trip.id)
-        .filter(id => isNotNil(id) && id >= 0);
+      const remoteIds = rows
+        .map((row) => row.currentData)
+        .map((trip) => trip.id)
+        .filter((id) => isNotNil(id) && id >= 0);
 
       if (isEmptyArray(remoteIds)) return; // Skip if no remote ids
 
@@ -255,12 +244,10 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       this.selection.deselect(...rows);
 
       this.onRefresh.emit();
-    }
-    catch (err) {
-      console.error(err && err.message || err, err);
-      this.error = err && err.message || err;
-    }
-    finally {
+    } catch (err) {
+      console.error((err && err.message) || err, err);
+      this.error = (err && err.message) || err;
+    } finally {
       this.markAsLoaded();
     }
   }

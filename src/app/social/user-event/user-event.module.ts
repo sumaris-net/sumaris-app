@@ -5,18 +5,11 @@ import { UserEventsTable } from '@app/social/user-event/user-events.table';
 import { AppJobReportModule } from '@app/social/job/report/job-report.module';
 
 @NgModule({
-  imports: [
-    AppCoreModule,
-    SocialModule,
-    UserEventModule
-  ],
-  declarations: [
-    UserEventsTable
-  ],
+  imports: [AppCoreModule, SocialModule, UserEventModule],
+  declarations: [UserEventsTable],
   exports: [
     // Components
-    UserEventsTable
-  ]
+    UserEventsTable,
+  ],
 })
-export class AppUserEventModule {
-}
+export class AppUserEventModule {}

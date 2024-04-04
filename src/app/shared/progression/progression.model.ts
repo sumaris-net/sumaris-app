@@ -1,5 +1,6 @@
 import { RxState } from '@rx-angular/state';
 import { isNotNil } from '@sumaris-net/ngx-components';
+import { Injectable, Injector, Optional } from '@angular/core';
 
 export interface IProgressionState {
   message: string;
@@ -8,31 +9,41 @@ export interface IProgressionState {
   cancelled: boolean;
 }
 
+@Injectable()
 export class ProgressionModel extends RxState<IProgressionState> {
+  static _injector: Injector;
+  static injector() {
+    this._injector = this._injector || Injector.create({ providers: [{ provide: ProgressionModel, useFactory: () => new ProgressionModel() }] });
+    return this._injector;
+  }
+
+  static create() {
+    return this.injector().get(ProgressionModel);
+  }
 
   readonly message$ = this.select('message');
   readonly total$ = this.select('total');
   readonly current$ = this.select('current');
   readonly cancelled$ = this.select('cancelled');
 
-  constructor(private initState?: Partial<IProgressionState>) {
+  constructor(@Optional() private initState?: Partial<IProgressionState>) {
     super();
     this.set({
       message: '',
       total: 0,
       current: 0,
       cancelled: false,
-      ...initState
+      ...initState,
     });
   }
 
   increment(value?: number, message?: string) {
-    this.set('current', s => {
+    this.set('current', (s) => {
       const next = (s.current || 0) + Math.abs(value || 1);
       return Math.min(s.total, next);
     });
     if (isNotNil(message)) {
-      this.set('message', _ => message);
+      this.set('message', (_) => message);
     }
   }
 
@@ -41,7 +52,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set total(value: number) {
-    this.set('total', _ => value);
+    this.set('total', (_) => value);
   }
 
   get message(): string {
@@ -49,7 +60,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set message(value: string) {
-    this.set('message', _ => value);
+    this.set('message', (_) => value);
   }
 
   get current(): number {
@@ -57,7 +68,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set current(value: number) {
-    this.set('current', _ => value);
+    this.set('current', (_) => value);
   }
 
   get cancelled(): boolean {
@@ -65,15 +76,15 @@ export class ProgressionModel extends RxState<IProgressionState> {
   }
 
   set cancelled(value: boolean) {
-    this.set('cancelled', _ => value);
+    this.set('cancelled', (_) => value);
   }
 
   reset() {
-    this.set({current: 0, message: '', total: 0, cancelled: false, ...this.initState});
+    this.set({ current: 0, message: '', total: 0, cancelled: false, ...this.initState });
   }
 
   cancel() {
-    this.set('cancelled', s_ => true);
+    this.set('cancelled', (s_) => true);
   }
 
   next(current: number) {

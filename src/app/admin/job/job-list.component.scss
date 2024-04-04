@@ -1,5 +1,12 @@
-ion-item {
+ion-content {
+  height: 100%;
 
+  &.has-toolbar {
+    height: calc(100% - var(--mat-toolbar-height, 64px));
+  }
+}
+
+ion-item {
   &.running {
     h4 .name {
       color: var(--ion-color-primary);
@@ -7,4 +14,3 @@ ion-item {
     }
   }
 }
-

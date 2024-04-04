@@ -11,16 +11,13 @@ const routes: Routes = [
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'ADMIN',
-      pathIdParam: 'id'
-    }
-  }
+      pathIdParam: 'id',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppSoftwareModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppSoftwareModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppSoftwareRoutingModule { }
+export class AppSoftwareRoutingModule {}

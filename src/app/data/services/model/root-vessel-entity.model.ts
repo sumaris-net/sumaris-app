@@ -1,17 +1,17 @@
-
-import {RootDataEntity} from './root-data-entity.model';
-import {DataEntityAsObjectOptions} from './data-entity.model';
-import {IWithVesselSnapshotEntity, VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import { RootDataEntity } from './root-data-entity.model';
+import { DataEntityAsObjectOptions } from './data-entity.model';
+import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-
 export abstract class DataRootVesselEntity<
-  T extends DataRootVesselEntity<any, ID>,
-  ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions, F = any>
+    T extends DataRootVesselEntity<any, ID>,
+    ID = number,
+    O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+    F = any,
+  >
   extends RootDataEntity<T, ID, O, F>
-  implements IWithVesselSnapshotEntity<T, ID> {
-
+  implements IWithVesselSnapshotEntity<T, ID>
+{
   vesselSnapshot: VesselSnapshot;
 
   protected constructor(__typename?: string) {
@@ -21,7 +21,7 @@ export abstract class DataRootVesselEntity<
 
   asObject(options?: O): any {
     const target = super.asObject(options);
-    target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({ ...options, ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 

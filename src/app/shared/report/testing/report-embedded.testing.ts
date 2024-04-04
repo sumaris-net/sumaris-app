@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, ViewChild } from '@angular/core';
-import { RevealComponent} from '@app/shared/report/reveal/reveal.component';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 
 @Component({
@@ -21,35 +21,28 @@ import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
   `,
 })
 export class ReportEmbeddedChildTestPage implements AfterViewInit {
-
   revealOptions: Partial<IRevealOptions> = {};
 
   @ViewChild(RevealComponent) reveal: RevealComponent;
 
-  constructor() {
-  }
+  constructor() {}
 
-  ngAfterViewInit() {
-  }
-
+  ngAfterViewInit() {}
 }
 
 @Component({
   selector: 'app-report-embedded-test-page',
-  templateUrl: './report-embedded.testing.html'
+  templateUrl: './report-embedded.testing.html',
 })
 export class ReportEmbeddedTestPage implements AfterViewInit {
-
   revealOptions: Partial<IRevealOptions> = {};
 
   @ViewChild(RevealComponent) reveal: RevealComponent;
   @ViewChild(ReportEmbeddedChildTestPage) embeddedReport: ReportEmbeddedChildTestPage;
 
-  constructor() {
-  }
+  constructor() {}
 
-  ngAfterViewInit() {
-  }
+  ngAfterViewInit() {}
 
   print() {
     return this.reveal.print();

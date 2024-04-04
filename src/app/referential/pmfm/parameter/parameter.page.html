@@ -12,7 +12,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-disabled-hidden"
+    class="mat-mdc-tab-disabled-hidden"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     dynamicHeight
@@ -36,24 +36,13 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form
-                #referentialForm
-                [form]="form"
-                [showError]="false"
-                [debug]="debug"
-                (onSubmit)="save($event)"
-              >
+              <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="save($event)">
                 <!-- Other fields -->
                 <form [formGroup]="form" class="form-container">
                   <ion-row>
                     <ion-col>
                       <!-- Type -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.type"
-                        formControlName="type"
-                        required="true"
-                        tabindex="20"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.type" formControlName="type" required="true" tabindex="20"></app-form-field>
                     </ion-col>
                   </ion-row>
                 </form>

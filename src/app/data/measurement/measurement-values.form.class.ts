@@ -1,155 +1,90 @@
-import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
+import { ChangeDetectorRef, Directive, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { isObservable, merge, Observable } from 'rxjs';
+import { combineLatestWith, merge, mergeMap, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
-import { filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
-import { AppForm, changeCaseToUnderscore, equals, firstNotNilPromise, firstTrue, isNil, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, changeCaseToUnderscore, firstTrue, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 
-export interface IMeasurementValuesFormOptions {
+export interface IMeasurementsFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateFormGroup?: (formGroup: UntypedFormGroup) => void | Promise<void>;
   skipDisabledPmfmControl?: boolean; // True by default
   skipComputedPmfmControl?: boolean; // True by default
 }
 
-export interface MeasurementValuesState {
-  ready: boolean;
-  readyStep: number;
-  programLabel: string;
-  acquisitionLevel: string;
-  strategyLabel: string;
-  requiredStrategy: boolean;
-  gearId: number;
-  requiredGear: boolean;
-  forceOptional: boolean;
-  pmfms: IPmfm[]; // All pmfms used to initialize the formGroup (visible or not)
-}
-
-export const PmfmFormReadySteps = Object.freeze({
-  STARTING: 0, // initial state
-  LOADING_PMFMS: 1,
-  SETTING_PMFMS: 2,
-  UPDATING_FORM_GROUP: 3,
-  FORM_GROUP_READY: 4 // OK, the form is ready
-});
-
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class MeasurementValuesForm<
-  T extends IEntityWithMeasurement<T>,
-  S extends MeasurementValuesState = MeasurementValuesState>
+export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>, S extends MeasurementsFormState = MeasurementsFormState>
   extends AppForm<T>
-  implements OnInit, OnDestroy {
-
-  protected readonly _state: RxState<S> = new RxState<S>();
-  protected readonly _pmfmNamePipe: PmfmNamePipe;
+  implements OnInit, OnDestroy
+{
+  @RxStateRegister() protected readonly _state: RxState<S> = inject(RxState, { self: true });
+  protected readonly _pmfmNamePipe = inject(PmfmNamePipe);
   protected _logPrefix: string;
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: T;
   protected applyingValue = false;
   protected _measurementValuesForm: UntypedFormGroup;
-  protected options: IMeasurementValuesFormOptions;
+  protected options: IMeasurementsFormOptions;
   protected cd: ChangeDetectorRef = null;
 
-  readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
-  readonly programLabel$ = this._state.select('programLabel');
-  readonly strategyLabel$ = this._state.select('strategyLabel');
-  readonly pmfms$ = this._state.select('pmfms');
-  readonly ready$ = this._state.select('ready');
+  @RxStateSelect() acquisitionLevel$: Observable<AcquisitionLevelType>;
+  @RxStateSelect() programLabel$: Observable<string>;
+  @RxStateSelect() strategyId$: Observable<number>;
+  @RxStateSelect() strategyLabel$: Observable<string>;
+  @RxStateSelect() initialPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() filteredPmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() ready$: Observable<boolean>;
+
+  @RxStateProperty() protected readyStep: number;
+  @RxStateProperty() protected initialPmfms: IPmfm[];
+  @RxStateProperty() protected filteredPmfms: IPmfm[];
 
   @Input() compact = false;
   @Input() floatLabel: FloatLabelType = 'auto';
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;
+  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() acquisitionLevel: string;
+  @Input() @RxStateProperty() strategyLabel: string;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() gearId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() forceOptional: boolean;
 
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
+  @Input() set pmfms(pmfms: IPmfm[]) {
+    this.initialPmfms = pmfms;
   }
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
-
-  @Input()
-  set acquisitionLevel(value: string) {
-    this._state.set('acquisitionLevel', (_) => value);
-  }
-  get acquisitionLevel(): string {
-    return this._state.get('acquisitionLevel');
-  }
-
-  @Input()
-  set strategyLabel(value: string) {
-    this._state.set('strategyLabel', (_) => value);
-  }
-  get strategyLabel(): string {
-    return this._state.get('strategyLabel');
+  get pmfms(): IPmfm[] {
+    return this.filteredPmfms;
   }
 
-  @Input() set requiredStrategy(value: boolean) {
-    this._state.set('requiredStrategy', _ => value);
-  }
-  get requiredStrategy(): boolean {
-    return this._state.get('requiredStrategy');
-  }
-
-  @Input()
-  set gearId(value: number) {
-    this._state.set('gearId', _ => value);
-  }
-  get gearId(): number {
-    return this._state.get('gearId');
-  }
-
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', _ => value);
-  };
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
+  get pmfms$(): Observable<IPmfm[]> {
+    return this.filteredPmfms$;
   }
 
   @Input()
   set value(value: T) {
     this.applyValue(value);
   }
-
   get value(): T {
     return this.getValue();
   }
 
-  @Input() set pmfms(pmfms: IPmfm[]) {
-    // /!\ DO NOT emit event if not loaded.
-    // (e.g. Required to avoid form ready to be resetted, when pmfms not changed)
-    this.setPmfms(pmfms, {emitEvent: false});
-  }
-  get pmfms(): IPmfm[] {
-    return this._state.get('pmfms');
-  }
-  @Input()
-  set forceOptional(value: boolean) {
-    this._state.set('forceOptional', (_) => value);
-  }
-  get forceOptional(): boolean {
-    return this._state.get('forceOptional');
-  }
-
-  @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
-
-  @Output() valueChanges = new EventEmitter<any>();
-
-  protected get readyStep(): number {
-    return this._state.get('readyStep');
-  }
-
   get starting(): boolean {
-    return this.readyStep === PmfmFormReadySteps.STARTING;
+    return this.readyStep === MeasurementsFormReadySteps.STARTING;
   }
 
   get isNewData(): boolean {
@@ -159,80 +94,107 @@ export abstract class MeasurementValuesForm<
   get programControl(): AbstractControl {
     return this.form.get('program');
   }
-
   get measurementValuesForm(): UntypedFormGroup {
     return this._measurementValuesForm || (this.form.controls.measurementValues as UntypedFormGroup);
   }
 
-  protected constructor(injector: Injector,
-                        protected measurementsValidatorService: MeasurementsValidatorService,
-                        protected formBuilder: UntypedFormBuilder,
-                        protected programRefService: ProgramRefService,
-                        @Optional() form?: UntypedFormGroup,
-                        @Optional() options?: IMeasurementValuesFormOptions
+  @Output() valueChanges = new EventEmitter<any>();
+
+  protected constructor(
+    injector: Injector,
+    protected measurementsValidatorService: MeasurementsValidatorService,
+    protected formBuilder: UntypedFormBuilder,
+    protected programRefService: ProgramRefService,
+    @Optional() form?: UntypedFormGroup,
+    @Optional() options?: IMeasurementsFormOptions
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
-    this._pmfmNamePipe = injector.get(PmfmNamePipe);
     this.options = {
       skipComputedPmfmControl: true,
       skipDisabledPmfmControl: true,
-      ...options
+      ...options,
     };
+
+    const readySteps$ = this._state.select('readyStep');
+    this._state.connect(
+      'ready',
+      readySteps$.pipe(
+        distinctUntilChanged(),
+        map((step) => step >= MeasurementsFormReadySteps.FORM_GROUP_READY)
+      )
+    );
+
+    // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
+    this._state.connect(
+      'initialPmfms',
+      readySteps$.pipe(
+        filter((step) => step === MeasurementsFormReadySteps.LOADING_PMFMS),
+        combineLatestWith(
+          merge(
+            this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], (res) => res),
+            this._state.select(['requiredStrategy', 'strategyLabel'], (res) => res),
+            this._state.select(['requiredStrategy', 'strategyId'], (res) => res),
+            this._state.select(['requiredGear', 'gearId'], (res) => res)
+          )
+        ),
+        filter(() => !this.starting && this.canLoadPmfms()),
+        tap(() => this.setReadyStep(MeasurementsFormReadySteps.SETTING_PMFMS)),
+        switchMap(() => this.watchProgramPmfms())
+      )
+    );
+
+    // Update form, when pmfms set
+    this._state.connect(
+      'filteredPmfms',
+      this.initialPmfms$.pipe(
+        mergeMap((pmfms) => this.filterPmfms(pmfms)),
+        filter(isNotNil),
+        filter((pmfms) => {
+          if (PmfmUtils.arrayEquals(pmfms, this.pmfms)) {
+            this.setReadyStep(MeasurementsFormReadySteps.FORM_GROUP_READY);
+            return false;
+          }
+          this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
+          // DEBUG
+          //if (this.debug) console.debug(`${this._logPrefix}Filtered pmfms changed`);
+          return true;
+        })
+      )
+    );
+
+    this._state.hold(this.filteredPmfms$, (pmfms) => this._updateFormGroup(pmfms));
 
     // Initial state
     this._state.set(<Partial<S>>{
-      readyStep: PmfmFormReadySteps.STARTING,
+      readyStep: MeasurementsFormReadySteps.STARTING,
       forceOptional: false,
       requiredStrategy: false,
       requiredGear: false,
     });
 
-    if (!this.cd && !environment.production) {
-      console.warn(this._logPrefix + 'No injected ChangeDetectorRef found! Please make sure your component has \'changeDetection: ChangeDetectionStrategy.OnPush\'');
-    }
-
     // DEBUG
-    this._logPrefix = '[measurements-values] ';
+    this._logPrefix = '[measurement-values] ';
+    this._state.hold(this._state.select('acquisitionLevel'), (acquisitionLevel) => {
+      this._logPrefix = `[measurement-values] (${acquisitionLevel}) `;
+    });
     //this.debug = !environment.production;
+
+    // Warn if no change detection
+    if (!this.cd && !environment.production) {
+      console.warn(
+        this._logPrefix + "No injected ChangeDetectorRef found! Please make sure your component has 'changeDetection: ChangeDetectionStrategy.OnPush'"
+      );
+    }
   }
 
   ngOnInit() {
     super.ngOnInit();
 
-    this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
-      this._logPrefix = `[measurements-values] (${acquisitionLevel}) `;
-    });
-
-    // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
-    this._state.hold(merge(
-        this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
-        this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
-        this._state.select(['requiredGear', 'gearId'], res => res),
-      )
-        .pipe(
-          // Only if markAsReady() called
-          filter(_ => !this.starting)
-        ),
-      // /!\ DO NOT emit event if not loaded.
-      // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
-      (_) => this.loadPmfms({emitEvent: false})
-    );
-
-    // Update form, when pmfms set
-    this._state.hold(this.pmfms$, (pmfms) => this.updateFormGroup(pmfms));
-
-    this._state.connect('ready', this._state.select('readyStep')
-      .pipe(
-        map(step => step >= PmfmFormReadySteps.FORM_GROUP_READY)
-      ));
-
     // Listen form changes
     this.registerSubscription(
       this.form.valueChanges
-        .pipe(
-          filter(() => !this.loading && !this.applyingValue && this.valueChanges.observers.length > 0)
-        )
+        .pipe(filter(() => !this.loading && !this.applyingValue && this.valueChanges.observed))
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
   }
@@ -256,30 +218,30 @@ export abstract class MeasurementValuesForm<
     this.resetPmfms();
   }
 
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}): Promise<void> | void {
+  setValue(
+    data: T,
+    opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean }
+  ): Promise<void> | void {
     return this.applyValue(data, opts);
   }
 
-  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean}) {
+  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean }) {
+    // Applying value to form (that should be ready).
     return this.applyValue(data, opts);
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-
     // Start loading pmfms
     if (this.starting) {
-      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
-      this.loadPmfms();
+      this.setReadyStep(MeasurementsFormReadySteps.LOADING_PMFMS);
     }
 
     // Wait form ready, before mark as ready
     this.doWhenReady(() => super.markAsReady(opts));
   }
 
-  markAsLoaded(opts?: {
-    emitEvent?: boolean;
-  }) {
-    // Wait form loaded, before mark as loaded
+  markAsLoaded(opts?: { emitEvent?: boolean }) {
+    // Wait form ready, before mark as loaded
     this.doWhenReady(() => super.markAsLoaded(opts));
   }
 
@@ -290,6 +252,36 @@ export abstract class MeasurementValuesForm<
 
   isVisiblePmfm(pmfm: IPmfm): boolean {
     return !pmfm.hidden;
+  }
+
+  resetPmfms() {
+    if (isNil(this.pmfms)) return; // Already reset
+
+    if (this.debug) console.warn(`${this._logPrefix} Reset pmfms`);
+
+    // Reset step
+    if (!this.starting && this.loaded) this.setReadyStep(MeasurementsFormReadySteps.STARTING);
+
+    // Update state
+    this._state.set('filteredPmfms', () => undefined);
+    this._state.set('initialPmfms', () => undefined);
+  }
+
+  translateControlPath(path: string, pmfms?: IPmfm[]): string {
+    if (path.includes('measurementValues.')) {
+      const parts = path.split('.');
+      const controlName = parts[parts.length - 1];
+      if (PMFM_ID_REGEXP.test(controlName)) {
+        const pmfmId = parseInt(controlName);
+        const pmfm = (pmfms || this.initialPmfms)?.find((p) => p.id === pmfmId);
+        if (pmfm) {
+          return this._pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix });
+        }
+      }
+    }
+    const fieldName = path.substring(path.lastIndexOf('.') + 1);
+    const i18nKey = (this.i18nFieldPrefix || '') + changeCaseToUnderscore(fieldName).toUpperCase();
+    return this.translate?.instant(i18nKey);
   }
 
   /* -- protected methods -- */
@@ -306,37 +298,37 @@ export abstract class MeasurementValuesForm<
    * @param data
    * @param opts
    */
-  protected async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any}) {
+  protected async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     this.applyingValue = true;
 
     try {
       // Will avoid data to be set inside function updateFormGroup()
       this.data = data;
 
-      if (this.debug) console.debug(`${this._logPrefix} Applying value...`, data);
+      if (this.debug) console.debug(`${this._logPrefix}Applying value...`, data);
       this.onApplyingEntity(data, opts);
 
       // Wait form is ready, before applying the data
-      await this.ready({stop: this.destroySubject});
+      await this.ready({ stop: this.destroySubject });
 
       // Data is still the same (not changed : applying)
-      if (data === this.data) {
+      if (data && data === this.data) {
         // Applying value to form (that should be ready).
         await this.updateView(data, opts);
         this.markAsLoaded();
       }
-    }
-    catch(err) {
-      console.error(err);
-      this.error = err && err.message || err;
+    } catch (err) {
+      if (err?.message !== 'stop') {
+        console.error(`${this._logPrefix}Error while applying value: ${(err && err.message) || err}`, err);
+        this.setError((err && err.message) || err);
+      }
       this.markAsLoaded();
-    }
-    finally {
+    } finally {
       this.applyingValue = false;
     }
   }
 
-  protected onApplyingEntity(data: T, opts?: {[key: string]: any}) {
+  protected onApplyingEntity(data: T, opts?: { [key: string]: any }) {
     // Propagate program
     if (data?.program?.label) {
       this.programLabel = data.program.label;
@@ -345,8 +337,8 @@ export abstract class MeasurementValuesForm<
 
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any }) {
     // Warn is form is NOT ready
-    if (this.debug && this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
-      console.warn(`${this._logPrefix} Trying to set value, but form may be not ready!`);
+    if (this.debug && this.readyStep < MeasurementsFormReadySteps.FORM_GROUP_READY) {
+      console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
     // DEBUG
@@ -364,7 +356,6 @@ export abstract class MeasurementValuesForm<
     }
 
     this.data = data;
-
     await super.setValue(data, opts);
 
     if (!opts || opts.emitEvent !== false) {
@@ -374,7 +365,7 @@ export abstract class MeasurementValuesForm<
     }
 
     // Restore form status
-    this.updateViewState({onlySelf: true, ...opts});
+    this.updateViewState({ onlySelf: true, ...opts });
   }
 
   protected getValue(): T {
@@ -386,19 +377,23 @@ export abstract class MeasurementValuesForm<
 
     if (measurementValuesForm) {
       // Filter pmfms, to avoid saving all, when update
-      const filteredPmfms = (this.pmfms || [])
-        .filter(pmfm => {
-          const control = measurementValuesForm.controls[pmfm.id];
-          return control
-            // Disabled (skipped by default)
-            && (!control.disabled || this.options.skipDisabledPmfmControl === false)
-            // Computed (skipped by default)
-            && (!pmfm.isComputed || this.options.skipComputedPmfmControl === false);
-        });
+      const filteredPmfms = (this.pmfms || []).filter((pmfm) => {
+        const control = measurementValuesForm.controls[pmfm.id];
+        return (
+          control &&
+          // Disabled (skipped by default)
+          (!control.disabled || this.options.skipDisabledPmfmControl === false) &&
+          // Computed (skipped by default)
+          (!pmfm.isComputed || this.options.skipComputedPmfmControl === false)
+        );
+      });
 
+      // Update measurement values
       if (filteredPmfms.length) {
-        json.measurementValues = Object.assign(this.data?.measurementValues || {},
-          MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, filteredPmfms, {keepSourceObject: false}));
+        json.measurementValues = Object.assign(
+          this.data?.measurementValues || {},
+          MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, filteredPmfms, { keepSourceObject: false })
+        );
       }
     }
 
@@ -408,10 +403,10 @@ export abstract class MeasurementValuesForm<
       json.program = programControl.value;
     }
 
+    // Update data
     if (this.data?.fromObject) {
       this.data.fromObject(json);
-    }
-    else {
+    } else {
       this.data = json;
     }
 
@@ -420,18 +415,18 @@ export abstract class MeasurementValuesForm<
 
   protected setReadyStep(step: number) {
     // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
-    step = toNumber(step, PmfmFormReadySteps.LOADING_PMFMS);
+    step = toNumber(step, MeasurementsFormReadySteps.LOADING_PMFMS);
 
     // Emit, if changed
     if (this.readyStep !== step) {
       // DEBUG
-      if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
+      //if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
 
-      this._state.set('readyStep', (_) => step);
+      this.readyStep = step;
     }
 
     // Call markAsLoading, if the step is the first step
-    if (this.loaded && step <= PmfmFormReadySteps.LOADING_PMFMS) {
+    if (this.loaded && step <= MeasurementsFormReadySteps.LOADING_PMFMS) {
       if (this.dirty) this.data = this.value;
       this.markAsLoading();
     }
@@ -440,13 +435,14 @@ export abstract class MeasurementValuesForm<
   /**
    * Check if can load (must have: program, acquisition - and gear if required)
    */
-  protected canLoadPmfms(): boolean{
+  protected canLoadPmfms(): boolean {
     // Check if can load (must have: program, acquisition - and gear if required)
-    if (isNil(this.programLabel)
-      || isNil(this.acquisitionLevel)
-      || (this.requiredStrategy && isNil(this.strategyLabel))
-      || (this.requiredGear && isNil(this.gearId))) {
-
+    if (
+      isNil(this.programLabel) ||
+      isNil(this.acquisitionLevel) ||
+      (this.requiredStrategy && isNil(this.strategyLabel) && isNil(this.strategyId)) ||
+      (this.requiredGear && isNil(this.gearId))
+    ) {
       // DEBUG
       //if (this.debug) console.debug(`${this._logPrefix} cannot load pmfms (missing some inputs)`);
 
@@ -455,37 +451,39 @@ export abstract class MeasurementValuesForm<
     return true;
   }
 
-  protected async loadPmfms(opts?: {emitEvent: boolean}) {
-    if (!this.canLoadPmfms()) return;
-
+  protected watchProgramPmfms(): Observable<IPmfm[]> {
     // DEBUG
-    //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
+    //if (this.debug) console.debug(`${this._logPrefix} watchProgramPmfms()`);
 
-    if (!opts || opts.emitEvent !== false) {
-      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
+    let pmfms$ = this.programRefService
+      .watchProgramPmfms(this.programLabel, {
+        acquisitionLevel: this.acquisitionLevel,
+        strategyId: this.strategyId,
+        strategyLabel: this.strategyLabel,
+        gearId: this.gearId,
+      })
+      .pipe(takeUntil(this.destroySubject));
+
+    // DEBUG log
+    if (this.debug) {
+      pmfms$ = pmfms$.pipe(
+        tap((pmfms) => {
+          if (!pmfms.length) {
+            console.debug(
+              `${this._logPrefix}No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this.acquisitionLevel}', strategy: '${this.strategyId || this.strategyLabel}'}. Please fill program's strategies !`
+            );
+          } else {
+            // DEBUG
+            //console.debug(`${this._logPrefix}${pmfms.length} pmfms found for {program: '${this.programLabel}', acquisitionLevel: '${this.acquisitionLevel}', strategy: '${this.strategyId || this.strategyLabel}'}`);
+          }
+        })
+      );
     }
 
-    let pmfms;
-    try {
-      // Load pmfms
-      // DO NOT call loadProgramPmfms(). Next setPmfms() will call a firstNotNilPromise() with options.stop
-      pmfms = this.programRefService.watchProgramPmfms(
-        this.programLabel,
-        {
-          strategyLabel: this.strategyLabel,
-          acquisitionLevel: this.acquisitionLevel,
-          gearId: this.gearId
-        });
-    } catch (err) {
-      console.error(`${this._logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
-      pmfms = undefined;
-    }
-
-    // Apply pmfms
-    await this.setPmfms(pmfms, opts);
+    return pmfms$;
   }
 
-  async setPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>, opts?: {emitEvent?: boolean}): Promise<IPmfm[]> {
+  protected async filterPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     // If undefined: reset pmfms
     if (!pmfms) {
       this.resetPmfms();
@@ -493,26 +491,13 @@ export abstract class MeasurementValuesForm<
     }
 
     // DEBUG
-    //if (this.debug) console.debug(`${this._logPrefix} setPmfms()`);
-
-    // Mark as settings pmfms
-    if (!opts || opts.emitEvent !== false) {
-      this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
-    }
+    //if (this.debug) console.debug(`${this._logPrefix} filterPmfms()`);
 
     try {
-
-      // Wait loaded, if observable
-      if (isObservable(pmfms)) {
-        if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
-        if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
-      }
-
       // If force to optional, create a copy of each pmfms that should be forced
       if (this.forceOptional) {
         const excludedPmfmIds = this.forceOptionalExcludedPmfmIds || [];
-        pmfms = pmfms.map(pmfm => {
+        pmfms = pmfms.map((pmfm) => {
           if (pmfm.required && !excludedPmfmIds.includes(pmfm.id)) {
             // Create a copy of each required pmfms
             // To keep unchanged the original entity
@@ -526,60 +511,21 @@ export abstract class MeasurementValuesForm<
 
       // Call the map function
       if (this.options.mapPmfms) {
-        pmfms = await this.options.mapPmfms(pmfms);
-      }
-
-      // Apply (if changed)
-      if (!equals(pmfms, this.pmfms)) {
-        // DEBUG log
-        if (this.debug) console.debug(`${this._logPrefix} Pmfms changed: `, pmfms);
-
-        // next step
-        this.setReadyStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
-
-        // Apply pmfms to state
-        this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
+        const res = await this.options.mapPmfms(pmfms);
+        pmfms = Array.isArray(res) ? res : pmfms;
       }
 
       return pmfms;
-    }
-    catch(err) {
+    } catch (err) {
       if (err?.message !== 'stop') {
-        console.error(`${this._logPrefix} Error while applying pmfms: ${err && err.message || err}`, err);
+        console.error(`${this._logPrefix} Error while applying pmfms: ${(err && err.message) || err}`, err);
       }
       this.resetPmfms();
       return undefined;
     }
   }
 
-  resetPmfms() {
-    if (isNil(this.pmfms)) return; // Already reset
-
-    if (this.debug) console.warn(`${this._logPrefix} Reset pmfms`);
-
-    // Reset step
-    if (!this.starting && this.loaded) this.setReadyStep(PmfmFormReadySteps.STARTING);
-
-    // Update state
-    this._state.set('pmfms', (_) => undefined);
-  }
-
-  translateControlPath(path: string, pmfms?: IPmfm[]): string {
-    if (path.includes('measurementValues.')) {
-      pmfms = pmfms || this.pmfms;
-      const parts = path.split('.');
-      const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = pmfms?.find(p => p.id === pmfmId);
-      if (pmfm) {
-        return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
-      }
-    }
-    const fieldName = path.substring(path.lastIndexOf('.') + 1);
-    const i18nKey = (this.i18nFieldPrefix || '') + changeCaseToUnderscore(fieldName).toUpperCase();
-    return this.translate.instant(i18nKey);
-  }
-
-  private async updateFormGroup(pmfms?: IPmfm[], opts?: {emitEvent?: boolean}) {
+  private async _updateFormGroup(pmfms?: IPmfm[], opts?: { emitEvent?: boolean }) {
     pmfms = pmfms || this.pmfms;
     if (!pmfms) return; // Skip
 
@@ -588,33 +534,32 @@ export abstract class MeasurementValuesForm<
 
     // Disable the form (if exists)
     if (this._measurementValuesForm?.enabled) {
-      this._measurementValuesForm.disable({onlySelf: true, emitEvent: false});
+      this._measurementValuesForm.disable({ onlySelf: true, emitEvent: false });
     }
 
     // Mark as loading
-    this.setReadyStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
+    this.setReadyStep(MeasurementsFormReadySteps.UPDATING_FORM_GROUP);
     if (this.debug) console.debug(`${this._logPrefix} Updating form controls, force_optional: ${this.forceOptional}}, using pmfms:`, pmfms);
 
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset measurement form (if exists)
       if (this._measurementValuesForm) {
-        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: [], emitEvent: opts?.emitEvent});
-        this._measurementValuesForm.reset({}, {onlySelf: true, emitEvent: false});
+        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, { pmfms: [], emitEvent: opts?.emitEvent });
+        this._measurementValuesForm.reset({}, { onlySelf: true, emitEvent: false });
       }
     } else {
-
       // Create measurementValues form group
       if (!this._measurementValuesForm) {
-        this._measurementValuesForm = this.measurementsValidatorService.getFormGroup(null, {pmfms});
+        this._measurementValuesForm = this.measurementsValidatorService.getFormGroup(null, { pmfms });
 
-        form.addControl('measurementValues', this._measurementValuesForm, {emitEvent: opts?.emitEvent});
-        this._measurementValuesForm.disable({onlySelf: true, emitEvent: opts?.emitEvent});
+        form.addControl('measurementValues', this._measurementValuesForm, { emitEvent: opts?.emitEvent });
+        this._measurementValuesForm.disable({ onlySelf: true, emitEvent: opts?.emitEvent });
       }
 
       // Or update if already exist
       else {
-        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
+        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, { pmfms });
       }
     }
 
@@ -624,13 +569,13 @@ export abstract class MeasurementValuesForm<
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);
-    this.setReadyStep(PmfmFormReadySteps.FORM_GROUP_READY);
+    this.setReadyStep(MeasurementsFormReadySteps.FORM_GROUP_READY);
 
     // Data already set: apply value again to fill the form
     if (!this.applyingValue) {
       // Update data in view
       if (this.data) {
-        await this.updateView(this.data, {onlySelf: true, emitEvent: false});
+        await this.updateView(this.data, { onlySelf: true, emitEvent: false });
         this.markAsLoaded();
       }
       // No data defined yet
@@ -646,8 +591,7 @@ export abstract class MeasurementValuesForm<
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (this._enable) {
       this.enable(opts);
-    }
-    else {
+    } else {
       this.disable(opts);
     }
   }
@@ -658,18 +602,6 @@ export abstract class MeasurementValuesForm<
     // Adapt entity measurement values to reactive form
     const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, this.form);
-  }
-
-  private async waitIdleThenRefreshPmfms(event?: any) {
-    try {
-      // Wait previous loading is finished
-      await this.waitIdle({stop: this.destroySubject, stopError: false});
-      // Then refresh pmfms
-      await this.loadPmfms();
-    }
-    catch(err) {
-      console.error(err);
-    }
   }
 
   protected markForCheck() {

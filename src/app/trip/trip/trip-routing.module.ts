@@ -64,19 +64,17 @@ const routes: Routes = [
         pathMatch: 'full',
         loadChildren: () => import('./report/selectivity/selectivity-trip-report-routing.module').then((m) => m.SelectivityTripReportRoutingModule),
       },
+      {
+        path: 'form',
+        pathMatch: 'full',
+        loadChildren: () => import('./report/form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
+      },
     ],
   },
 ];
 
-
 @NgModule({
-  imports: [
-    AppTripModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppTripModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppTripRoutingModule {
-}
+export class AppTripRoutingModule {}

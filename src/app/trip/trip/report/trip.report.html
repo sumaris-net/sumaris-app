@@ -33,13 +33,7 @@
   </mat-menu>
 
   <ng-template #modalToolbar>
-    <app-modal-toolbar
-      *ngIf="showToolbar"
-      [modalName]="modalName"
-      [color]="'secondary'"
-      (cancel)="cancel()"
-      [canValidate]="false"
-    >
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
       <ion-title [innerHTML]="$title | async"></ion-title>
 
       <!-- Print button -->
@@ -69,46 +63,40 @@
     <section *sectionDef>
       <!-- summary -->
       <section class="summary" *ngIf="stats; let stats">
-        <h2>{{ 'TRIP.REPORT.TITLE_SLIDE' | translateContext : i18nContext.suffix }}</h2>
+        <h2>{{ 'TRIP.REPORT.TITLE_SLIDE' | translateContext: i18nContext.suffix }}</h2>
         <ul
           *ngVar="{
-            startDate: stats.startDate | dateFormat : { time: false },
-            endDate: stats.endDate | dateFormat : { time: false }
+            startDate: stats.startDate | dateFormat: { time: false },
+            endDate: stats.endDate | dateFormat: { time: false }
           } as vars"
         >
           <li>
             <ion-icon name="boat"></ion-icon>
-            {{ 'TRIP.REPORT.VESSEL_NAME' | translateContext : i18nContext.suffix }}
-            <b>{{ stats.vesselSnapshots | referentialToString : ['name'] }}</b>
+            {{ 'TRIP.REPORT.VESSEL_NAME' | translateContext: i18nContext.suffix }}
+            <b>{{ stats.vesselSnapshots | referentialToString: ['name'] }}</b>
           </li>
           <li class="no-icon">
-            {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING' | translateContext : i18nContext.suffix }}
-            {{ stats.vesselSnapshots | referentialToString : ['exteriorMarking'] }}
+            {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING' | translateContext: i18nContext.suffix }}
+            {{ stats.vesselSnapshots | referentialToString: ['exteriorMarking'] }}
           </li>
           <li>
             <ion-icon name="calendar"></ion-icon>
-            {{ 'TRIP.REPORT.DATES' | translateContext : i18nContext.suffix : vars }}
+            {{ 'TRIP.REPORT.DATES' | translateContext: i18nContext.suffix : vars }}
           </li>
           <li>
             <mat-icon>straighten</mat-icon>
-            {{ 'TRIP.REPORT.VESSEL_LENGTH' | translateContext : i18nContext.suffix }}
+            {{ 'TRIP.REPORT.VESSEL_LENGTH' | translateContext: i18nContext.suffix }}
             <span
               *ngIf="stats.vesselLength.min !== stats.vesselLength.max; else avgLengthOnly"
-              [innerHTML]="
-                'TRIP.REPORT.VESSEL_LENGTH_STATS' | translateContext : i18nContext.suffix : stats.vesselLength
-              "
+              [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_STATS' | translateContext: i18nContext.suffix : stats.vesselLength"
             ></span>
             <ng-template #avgLengthOnly>
-              <span
-                [innerHTML]="
-                  'TRIP.REPORT.VESSEL_LENGTH_AVG' | translateContext : i18nContext.suffix : stats.vesselLength
-                "
-              ></span>
+              <span [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_AVG' | translateContext: i18nContext.suffix : stats.vesselLength"></span>
             </ng-template>
           </li>
           <li>
             <ion-icon name="navigate"></ion-icon>
-            {{ 'TRIP.REPORT.OPERATION_COUNT' | translateContext : i18nContext.suffix }}
+            {{ 'TRIP.REPORT.OPERATION_COUNT' | translateContext: i18nContext.suffix }}
             {{ stats.operations?.length || 0 }}
           </li>
         </ul>
@@ -124,7 +112,7 @@
     </section>
 
     <section *sectionDef>
-      <ng-container *ngFor="let s of stats?.species | arrayFilter : isNotEmptySpecies">
+      <ng-container *ngFor="let s of stats?.species | arrayFilter: isNotEmptySpecies">
         <section *ngFor="let chart of s.charts | mapValues">
           <div class="chart-container">
             <canvas baseChart [type]="chart.type" [data]="chart.data" [options]="chart.options"></canvas>

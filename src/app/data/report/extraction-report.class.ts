@@ -1,18 +1,15 @@
 import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import {AppBaseReport, BaseReportStats, IReportData} from '@app/data/report/base-report.class';
-import {isNil, isNotNil} from '@sumaris-net/ngx-components';
+import { AppBaseReport, BaseReportStats, IReportData } from '@app/data/report/base-report.class';
+import { isNil, isNotNil } from '@sumaris-net/ngx-components';
 
-export class ExtractionReportStats extends BaseReportStats {
-}
+export class ExtractionReportStats extends BaseReportStats {}
 
 @Directive()
-export abstract class AppExtractionReport<
-  T extends IReportData,
-  S extends BaseReportStats = BaseReportStats>
+export abstract class AppExtractionReport<T extends IReportData, S extends BaseReportStats = BaseReportStats>
   extends AppBaseReport<T, number, S>
-  implements OnInit, AfterViewInit, OnDestroy {
-
+  implements OnInit, AfterViewInit, OnDestroy
+{
   protected logPrefix = 'extraction-report';
 
   @Input() filter: ExtractionFilter;
@@ -20,8 +17,8 @@ export abstract class AppExtractionReport<
 
   protected constructor(
     injector: Injector,
-    protected dataType: new() => T,
-    protected statsType: new() => S,
+    protected dataType: new () => T,
+    protected statsType: new () => S
   ) {
     super(injector, dataType, statsType);
   }
@@ -33,20 +30,18 @@ export abstract class AppExtractionReport<
 
     if (isNil(this.data))
       if (isNil(this.uuid))
-        if(isNotNil(this.filter)) this.data = await this.load(this.filter, opts);
+        if (isNotNil(this.filter)) this.data = await this.load(this.filter, opts);
         else this.data = await this.loadFromRoute(opts);
 
-    if (isNil(this.stats))
-      this.stats = await this.computeStats(this.data, opts);
+    if (isNil(this.stats)) this.stats = await this.computeStats(this.data, opts);
 
     const computedContext = this.computeI18nContext(this.stats);
     this.i18nContext = {
       ...computedContext,
       ...this.i18nContext,
-      pmfmPrefix: computedContext?.pmfmPrefix
+      pmfmPrefix: computedContext?.pmfmPrefix,
     };
   }
 
   protected abstract load(filter: ExtractionFilter, opts?: any): Promise<T>;
-
 }

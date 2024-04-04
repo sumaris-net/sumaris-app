@@ -9,7 +9,7 @@ const routes: Routes = [
     path: ':controlId',
     data: {
       profile: 'USER',
-      pathIdParam: 'controlId'
+      pathIdParam: 'controlId',
     },
     children: [
       {
@@ -20,26 +20,19 @@ const routes: Routes = [
         canDeactivate: [ComponentDirtyGuard],
         data: {
           profile: 'USER',
-          pathIdParam: 'controlId'
-        }
+          pathIdParam: 'controlId',
+        },
       },
       {
         path: 'report',
-        loadChildren: () => import('./report/auction-control-report-routing.module').then(m => m.AuctionControlReportRoutingModule)
-      }
-    ]
-  }
+        loadChildren: () => import('./report/auction-control-report-routing.module').then((m) => m.AuctionControlReportRoutingModule),
+      },
+    ],
+  },
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AppAuctionControlModule
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes), AppAuctionControlModule],
+  exports: [RouterModule],
 })
-export class AppAuctionControlRoutingModule {
-}
+export class AppAuctionControlRoutingModule {}

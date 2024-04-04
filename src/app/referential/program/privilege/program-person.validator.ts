@@ -2,16 +2,12 @@ import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { SharedValidators } from '@sumaris-net/ngx-components';
+import { SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramPerson } from '@app/referential/services/model/program.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ProgramPersonValidatorService implements ValidatorService {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
-  }
+  constructor(protected formBuilder: UntypedFormBuilder) {}
 
   getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
@@ -19,12 +15,13 @@ export class ProgramPersonValidatorService implements ValidatorService {
 
   getFormGroup(data?: ProgramPerson): UntypedFormGroup {
     return this.formBuilder.group({
-      id: [data && data.id || null],
-      updateDate: [data && data.updateDate || null],
-      programId: [data && data.programId || null],
-      location: [data && data.location || null, SharedValidators.entity],
-      privilege: [data && data.privilege || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      person: [data && data.person || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      programId: [toNumber(data?.programId, null)],
+      person: [data?.person || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      privilege: [data?.privilege || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      location: [data?.location || null, SharedValidators.entity],
+      referencePerson: [data?.referencePerson || null, SharedValidators.entity],
     });
   }
 }

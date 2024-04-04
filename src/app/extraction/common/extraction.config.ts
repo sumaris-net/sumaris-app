@@ -22,46 +22,46 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.extraction.enabled',
     label: 'EXTRACTION.OPTIONS.ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
   EXTRACTION_MAP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.map.enable',
     label: 'EXTRACTION.OPTIONS.MAP_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
   EXTRACTION_PRODUCT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.product.enable',
     label: 'EXTRACTION.OPTIONS.PRODUCT_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
   EXTRACTION_MAP_CENTER_LAT_LNG: <FormFieldDefinition>{
     key: 'sumaris.extraction.map.center.latLng',
     label: 'EXTRACTION.OPTIONS.MAP_CENTER_LAT_LNG',
     type: 'string',
-    defaultValue: '46.879966, -10' // Atlantique France
+    defaultValue: '46.879966, -10', // Atlantique France
   },
   EXTRACTION_MAP_CENTER_ZOOM: <FormFieldDefinition>{
     key: 'sumaris.extraction.map.center.zoom',
     label: 'EXTRACTION.OPTIONS.MAP_CENTER_ZOOM',
     type: 'integer',
-    defaultValue: 5
+    defaultValue: 5,
   },
   EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.accessNotSelfExtraction.role',
     label: 'EXTRACTION.OPTIONS.ACCESS_NOT_SELF_ROLE',
     type: 'enum',
-    values: PRIORITIZED_AUTHORITIES.map(label => ({
+    values: PRIORITIZED_AUTHORITIES.map((label) => ({
       key: 'ROLE_' + label,
-      value: 'USER.PROFILE_ENUM.' + label
-    }))
+      value: 'USER.PROFILE_ENUM.' + label,
+    })),
   },
   EXTRACTION_BATCH_DENORMALIZATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.batch.denormalization.enable',
     label: 'EXTRACTION.OPTIONS.BATCH_DENORMALIZATION_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
 
   EXTRACTION_SPECIES_LENGTH_PMFM_IDS: <FormFieldDefinition>{
@@ -73,17 +73,17 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
       attributes: ['id', 'label', 'name'],
       filter: {
         entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
       },
       columnSizes: [2, 4, 6],
-      displayWith: (p) => p?.label || (p && joinProperties(p, ['id', 'name'])) || null
-    }
+      displayWith: (p) => p?.label || (p && joinProperties(p, ['id', 'name'])) || null,
+    },
   },
 
   EXTRACTION_STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.extraction.strat.monitoring.scientificCruise.enable',
     label: 'EXTRACTION.OPTIONS.STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: 'false',
   },
 });

@@ -2,7 +2,6 @@ import { BBox, GeoJsonObject, LineString, MultiPolygon, Polygon, Position } from
 import { isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 
 export class Geometries {
-
   /**
    * Create a polygon from 2 points : bottom left, and top right
    *
@@ -13,27 +12,29 @@ export class Geometries {
    * @param returnHasMultiPolygon
    * @return
    */
-  static createRectangleGeometry<T extends Polygon | MultiPolygon>(bottomLeftX: number,
-                                 bottomLeftY: number,
-                                 topRightX: number,
-                                 topRightY: number,
-                                 useMultiPolygon: boolean): T {
+  static createRectangleGeometry<T extends Polygon | MultiPolygon>(
+    bottomLeftX: number,
+    bottomLeftY: number,
+    topRightX: number,
+    topRightY: number,
+    useMultiPolygon: boolean
+  ): T {
     const coordinates: Position[] = [
       [bottomLeftX, bottomLeftY],
       [topRightX, bottomLeftY],
       [topRightX, topRightY],
-      [bottomLeftX, topRightY]
+      [bottomLeftX, topRightY],
     ];
     if (useMultiPolygon) {
-      return <MultiPolygon>{
+      return (<MultiPolygon>{
         type: 'MultiPolygon',
-        coordinates: [[coordinates]]
-      } as T;
+        coordinates: [[coordinates]],
+      }) as T;
     }
-    return <Polygon>{
+    return (<Polygon>{
       type: 'Polygon',
-      coordinates: [coordinates]
-    } as T;
+      coordinates: [coordinates],
+    }) as T;
   }
 
   static isLineString(geometry: GeoJsonObject): geometry is LineString {
@@ -55,14 +56,14 @@ export class Geometries {
     let coords: number[];
     try {
       if (value.startsWith('[') && value.endsWith(']')) {
-            coords = JSON.parse(value);
-      }
-      else if (value.indexOf(',') !== -1) {
-        coords = value.split(',')
+        coords = JSON.parse(value);
+      } else if (value.indexOf(',') !== -1) {
+        coords = value
+          .split(',')
           .filter(isNotNilOrBlank)
-          .map(str => parseFloat(str));
+          .map((str) => parseFloat(str));
       }
-    } catch(err) {
+    } catch (err) {
       throw new Error(`Cannot parse BBox value '${value}' : ${err}`);
     }
     if (this.checkBBox(coords)) {
@@ -87,7 +88,7 @@ export class Geometries {
         Math.min(coords[0], coords[lastOffset]),
         Math.min(coords[1], coords[lastOffset + 1]),
         Math.max(coords[0], coords[lastOffset]),
-        Math.max(coords[1], coords[lastOffset + 1])
+        Math.max(coords[1], coords[lastOffset + 1]),
       ];
     }
     // 3 dimensions
@@ -97,11 +98,11 @@ export class Geometries {
       Math.min(coords[2], coords[lastOffset + 2]),
       Math.max(coords[0], coords[lastOffset]),
       Math.max(coords[1], coords[lastOffset + 1]),
-      Math.max(coords[2], coords[lastOffset + 2])
+      Math.max(coords[2], coords[lastOffset + 2]),
     ];
   }
 
-  static checkBBox(coords: BBox|number[]): coords is BBox {
+  static checkBBox(coords: BBox | number[]): coords is BBox {
     if (!coords || !Array.isArray(coords) || (coords.length !== 4 && coords.length !== 6)) {
       return false;
     }
@@ -113,7 +114,7 @@ export class Geometries {
     }
 
     // Check latitude
-    if (coords[1] < -90 || coords[1] > 90 || coords[lastOffset+1] < -90 || coords[lastOffset+1] > 90) {
+    if (coords[1] < -90 || coords[1] > 90 || coords[lastOffset + 1] < -90 || coords[lastOffset + 1] > 90) {
       return false;
     }
     return true;
@@ -126,12 +127,16 @@ export class Geometries {
     if (bbox?.length !== upperBBox?.length) throw Error('Invalid bbox. should have same dimension (2 or 3)');
     const lastOffset = bbox.length / 2;
     // Longitude
-    return bbox[0] >= upperBBox[0] && bbox[lastOffset] <= upperBBox[lastOffset]
+    return (
+      bbox[0] >= upperBBox[0] &&
+      bbox[lastOffset] <= upperBBox[lastOffset] &&
       // Latitude
-      && bbox[1] >= upperBBox[1] && bbox[lastOffset+1] <= upperBBox[lastOffset+1];
+      bbox[1] >= upperBBox[1] &&
+      bbox[lastOffset + 1] <= upperBBox[lastOffset + 1]
+    );
   }
 
-  static isNotNilBBox(coords: BBox|number[]): boolean {
+  static isNotNilBBox(coords: BBox | number[]): boolean {
     return this.checkBBox(coords);
   }
 
@@ -142,11 +147,14 @@ export class Geometries {
     if (position?.length !== bbox?.length / 2) throw Error('Invalid coordinate or bbox. Should have same dimension (2 or 3)');
     const lastOffset = position.length; // 2 or 3 dimensions
     // Longitude
-    return position[0] >= bbox[0] && position[0] <= bbox[lastOffset]
+    return (
+      position[0] >= bbox[0] &&
+      position[0] <= bbox[lastOffset] &&
       // Latitude
-      && position[1] >= bbox[1] && position[1] <= bbox[lastOffset+1]
+      position[1] >= bbox[1] &&
+      position[1] <= bbox[lastOffset + 1] &&
       // Altitude
-      && (lastOffset !== 3 || (position[2] >= bbox[2] && position[2] <= bbox[lastOffset+2]));
+      (lastOffset !== 3 || (position[2] >= bbox[2] && position[2] <= bbox[lastOffset + 2]))
+    );
   }
-
 }

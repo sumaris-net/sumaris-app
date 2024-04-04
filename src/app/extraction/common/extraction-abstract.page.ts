@@ -1,5 +1,7 @@
 import { Directive, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AccountService,
   AppTabEditor,
@@ -47,9 +49,8 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 
 export const EXTRACTION_SETTINGS_ENUM = {
   filterKey: 'filter',
-  compactRowsKey: 'compactRows'
+  compactRowsKey: 'compactRows',
 };
-
 
 export interface ExtractionState<T extends ExtractionType> {
   types: T[];
@@ -59,10 +60,7 @@ export interface ExtractionState<T extends ExtractionType> {
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>>
-  extends AppTabEditor<T>
-  implements OnInit {
-
+export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>> extends AppTabEditor<T> implements OnInit {
   protected readonly type$ = this._state.select('type');
   protected readonly types$ = this._state.select('types');
 
@@ -92,7 +90,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   }
 
   @Input() set types(value: T[]) {
-    this._state.set('types', _ => value);
+    this._state.set('types', (_) => value);
   }
 
   get type(): T {
@@ -111,7 +109,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     this.form.get('sheetName').setValue(value);
   }
 
-  markAsDirty(opts?: {onlySelf?: boolean}) {
+  markAsDirty(opts?: { onlySelf?: boolean }) {
     this.criteriaForm.markAsDirty(opts);
   }
 
@@ -123,13 +121,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return toBoolean(this.form.get('meta').value?.excludeInvalidData, false);
   }
 
-  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
+  @ViewChild('criteriaForm', { static: true }) criteriaForm: ExtractionCriteriaForm;
 
   protected constructor(
     protected injector: Injector,
     protected _state: RxState<S>
   ) {
-    super(injector.get(ActivatedRoute),
+    super(
+      injector.get(ActivatedRoute),
       injector.get(Router),
       injector.get(NavController),
       injector.get(AlertController),
@@ -148,7 +147,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     // Create the filter form
     this.form = this.formBuilder.group({
       sheetName: [null, Validators.required],
-      meta: [null]
+      meta: [null],
     });
     this.settingsId = this.generateTableId();
   }
@@ -160,30 +159,31 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // Load types (if not set by types
     if (!this.types) {
-      this._state.connect('types',
-        this.watchAllTypes()
-          .pipe(
-            map(({ data, total }) =>
-              // Compute i18n name
-               data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-                // Then sort by name
-                .sort(propertyComparator('name'))
-            )));
+      this._state.connect(
+        'types',
+        this.watchAllTypes().pipe(
+          map(({ data, total }) =>
+            // Compute i18n name
+            data
+              .map((t) => ExtractionTypeUtils.computeI18nName(this.translate, t))
+              // Then sort by name
+              .sort(propertyComparator('name'))
+          )
+        )
+      );
     }
 
     this._state.hold(this.types$, (_) => this.markAsReady());
-
   }
 
   protected async loadFromRouteOrSettings(): Promise<boolean> {
-
     let found = false;
     try {
       // Read the route queryParams
       {
         const { category, label, sheet, q, meta } = this.route.snapshot.queryParams;
         if (this.debug) console.debug('[extraction-abstract-page] Reading route queryParams...', this.route.snapshot.queryParams);
-        found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+        found = await this.loadQueryParams({ category, label, sheet, q, meta }, { emitEvent: false });
         if (found) return true; // found! stop here
       }
 
@@ -196,15 +196,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
           if (settingsAgeInHours <= 12 /* Apply filter, if age <= 12h */) {
             if (this.debug) console.debug('[extraction-abstract-page] Restoring from settings...', json);
             const { category, label, sheet, q, meta } = json;
-            found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+            found = await this.loadQueryParams({ category, label, sheet, q, meta }, { emitEvent: false });
             if (found) return true; // found! stop here
           }
         }
       }
 
       return false; // not loaded
-    }
-    finally {
+    } finally {
       if (found) {
         // Mark as started, with a delay, to avoid reload twice, because of listen on page/sort
         setTimeout(() => this.markAsStarted(), 450);
@@ -215,13 +214,15 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   /**
    * Load type from a query params `{category, label, sheet, q}`
    */
-  protected async loadQueryParams(queryParams: {category: string; label: string; sheet: string; q: string; meta: any},
-                                  opts?: {emitEvent?: boolean}): Promise<boolean> {
+  protected async loadQueryParams(
+    queryParams: { category: string; label: string; sheet: string; q: string; meta: any },
+    opts?: { emitEvent?: boolean }
+  ): Promise<boolean> {
     // Convert query params into a valid type
-    const {category, label, sheet, q, meta} = queryParams;
-    const paramType = this.fromObject({category, label});
+    const { category, label, sheet, q, meta } = queryParams;
+    const paramType = this.fromObject({ category, label });
 
-    const types = await firstNotNilPromise(this.types$, {stop: this.destroySubject});
+    const types = await firstNotNilPromise(this.types$, { stop: this.destroySubject });
 
     //DEBUG
     //console.debug('[extraction-abstract-page] Extraction types found:', types);
@@ -238,7 +239,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // Select the exact type object in the filter form
     else {
-      selectedType = types.find(t => this.isEquals(t, paramType)) || paramType;
+      selectedType = types.find((t) => this.isEquals(t, paramType)) || paramType;
     }
 
     const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
@@ -250,7 +251,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     const changed = await this.setType(selectedType, {
       sheetName: selectedSheetName,
       emitEvent: false, // Should not reload data now (will be done just after, after filter update)
-      skipLocationChange: true // Here, we not need an update of the location
+      skipLocationChange: true, // Here, we not need an update of the location
     });
 
     // No type found
@@ -259,13 +260,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     // Update filter form
     if (isNotNilOrBlank(q)) {
       const criteria = this.parseCriteriaFromString(q, sheet);
-      await this.criteriaForm.setValue(criteria, {emitEvent: false});
+      await this.criteriaForm.setValue(criteria, { emitEvent: false });
     }
 
     // Update meta
     if (meta) {
       const metaValue = this.parseMetaFromString(meta);
-      this.form.get('meta').patchValue(metaValue, {emitEvent: false});
+      this.form.get('meta').patchValue(metaValue, { emitEvent: false });
     }
 
     // Execute the first load
@@ -301,13 +302,11 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       this.canEdit = this.canUserWrite(type);
 
       // Select the given sheet (if exists), or select the first one
-      const sheetName = opts.sheetName && (type.sheetNames || []).find(s => s === opts.sheetName)
-        || (type.sheetNames && type.sheetNames[0]);
-      this.setSheetName(sheetName || null,
-        {
-          emitEvent: false,
-          skipLocationChange: true
-        });
+      const sheetName = (opts.sheetName && (type.sheetNames || []).find((s) => s === opts.sheetName)) || (type.sheetNames && type.sheetNames[0]);
+      this.setSheetName(sheetName || null, {
+        emitEvent: false,
+        skipLocationChange: true,
+      });
     }
 
     // Update the window location
@@ -326,7 +325,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
     if (sheetName === this.sheetName) return; //skip
 
-    this.form.patchValue({sheetName}, opts);
+    this.form.patchValue({ sheetName }, opts);
     this.criteriaForm.sheetName = sheetName;
 
     if (opts?.skipLocationChange !== true) {
@@ -341,7 +340,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   /**
    * Update the URL
    */
-  async updateQueryParams(type?: T, opts = {skipLocationChange: false, skipSettingsChange: false}) {
+  async updateQueryParams(type?: T, opts = { skipLocationChange: false, skipSettingsChange: false }) {
     type = type || this.type;
     if (this.type !== type) return; // Skip
 
@@ -352,12 +351,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     await this.router.navigate(['.'], {
       relativeTo: this.route,
       skipLocationChange: opts.skipLocationChange,
-      queryParams
+      queryParams,
     });
 
     // Save router and filter in settings, to be able to restore it
     if (!opts || opts.skipSettingsChange !== false) {
-      const json = {...queryParams, updateDate: toDateISOString(DateUtils.moment())};
+      const json = { ...queryParams, updateDate: toDateISOString(DateUtils.moment()) };
       await this.settings.savePageSetting(this.settingsId, json, EXTRACTION_SETTINGS_ENUM.filterKey);
     }
   }
@@ -384,34 +383,32 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     try {
       // Download file
       const uri = await this.service.downloadFile(this.type, filter);
-      if (isNotNil((uri))) {
-        await this.platform.download({uri});
+      if (isNotNil(uri)) {
+        await this.platform.download({ uri });
       }
-
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
     } finally {
       this.markAsLoaded();
       this.enable();
     }
   }
 
-  async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>; emitEvent?: boolean } ): Promise<any> {
-
+  async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>; emitEvent?: boolean }): Promise<any> {
     const types: T[] = this.types;
     if (isNil(types)) await this.ready();
 
-    let type: T = (types || []).find(t => t.id === id);
+    let type: T = (types || []).find((t) => t.id === id);
     // Not found in type (try without cache)
     if (!type) {
-      type = await this.loadType(id, {fetchPolicy: 'no-cache'});
+      type = await this.loadType(id, { fetchPolicy: 'no-cache' });
     }
 
     // Set type (need by the criteria form)
-    let changed = type && await this.setType(type, {emitEvent: false});
+    let changed = type && (await this.setType(type, { emitEvent: false }));
 
-    if (opts?.filter){
+    if (opts?.filter) {
       await this.setFilterValue(ExtractionFilter.fromObject(opts?.filter), { emitEvent: false });
       changed = true;
     }
@@ -449,10 +446,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     const modal = await this.modalCtrl.create({
       component: ExtractionHelpModal,
       componentProps: <ExtractionHelpModalOptions>{
-        type: this.type
+        type: this.type,
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: 'modal-large',
     });
 
     // Open the modal
@@ -461,7 +458,6 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     // Wait until closed
     await modal.onDidDismiss();
   }
-
 
   /* -- abstract protected methods -- */
 
@@ -475,21 +471,22 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   protected abstract isEquals(t1: T, t2: T): boolean;
 
-
-  async setFilterValue(filter: ExtractionFilter, opts?: {emitEvent?: boolean}) {
-
+  async setFilterValue(filter: ExtractionFilter, opts?: { emitEvent?: boolean }) {
     filter = this.service.asFilter(filter);
 
     // Patch the main form
-    this.form.patchValue(filter?.asObject(), {emitEvent: false});
+    this.form.patchValue(filter?.asObject(), { emitEvent: false });
 
     // Patch criteria form
-    await this.criteriaForm.setValue([
-      // Input criteria
-      ...(filter.criteria || []).map(ExtractionFilterCriterion.fromObject),
-      // Add an empty criteria
-      ExtractionFilterCriterion.fromObject({operator: '='})
-    ], opts);
+    await this.criteriaForm.setValue(
+      [
+        // Input criteria
+        ...(filter.criteria || []).map(ExtractionFilterCriterion.fromObject),
+        // Add an empty criteria
+        ExtractionFilterCriterion.fromObject({ operator: '=' }),
+      ],
+      opts
+    );
 
     // Emit changes
     if (!opts || opts?.emitEvent !== false) {
@@ -501,7 +498,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     const res = {
       sheetName: this.sheetName,
       criteria: this.criteriaForm.getValue(),
-      meta: this.form.get('meta').value
+      meta: this.form.get('meta').value,
     };
 
     return this.service.asFilter(res);
@@ -522,26 +519,27 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   }
 
   private generateTableId() {
-    const id = this.location.path(true)
+    const id =
+      this.location
+        .path(true)
         .replace(/[?].*$/g, '')
-        .replace(/\/[\d]+/g, '_id')
-      + '_'
+        .replace(/\/[\d]+/g, '_id') +
+      '_' +
       // Get a component unique name - See https://stackoverflow.com/questions/60114682/how-to-access-components-unique-encapsulation-id-in-angular-9
-      + (this.constructor['ɵcmp']?.id || this.constructor.name);
+      (this.constructor['ɵcmp']?.id || this.constructor.name);
     //if (this.debug) console.debug("[table] id = " + id);
     return id;
   }
 
-  protected resetError(opts = {emitEvent: true}) {
+  protected resetError(opts = { emitEvent: true }) {
     this.error = null;
-    if (opts.emitEvent !== false){
+    if (opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
 
-
   protected async findTypeByFilter(filter: Partial<ExtractionTypeFilter>) {
-    if (!filter) throw new Error('Missing \'filter\'');
+    if (!filter) throw new Error("Missing 'filter'");
     filter = filter instanceof ExtractionTypeFilter ? filter : ExtractionTypeFilter.fromObject(filter);
     const types = await firstNotNilPromise(this.types$);
     return (types || []).find(filter.asFilterFn());
@@ -549,27 +547,31 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   protected getFilterAsQueryParams(): any {
     const filter = this.getFilterValue();
-    const params = {sheet: undefined, q: undefined};
+    const params = { sheet: undefined, q: undefined };
     if (filter.sheetName) {
       params.sheet = filter.sheetName;
     }
     if (isNotEmptyArray(filter.criteria)) {
-      params.q = filter.criteria.reduce((res, criterion) => {
-        if (criterion.endValue) {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
-        } else {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
-        }
-      }, []).join(';');
+      params.q = filter.criteria
+        .reduce((res, criterion) => {
+          if (criterion.endValue) {
+            return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
+          } else {
+            return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
+          }
+        }, [])
+        .join(';');
     }
     return params;
   }
 
   protected canUserWrite(type: ExtractionType): boolean {
-    return type.category === ExtractionCategories.PRODUCT && (
-      this.accountService.isAdmin()
-      || (this.accountService.isUser() && type.recorderPerson?.id === this.accountService.person.id)
-      || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
+    return (
+      type.category === ExtractionCategories.PRODUCT &&
+      (this.accountService.isAdmin() ||
+        (this.accountService.isUser() && type.recorderPerson?.id === this.accountService.person.id) ||
+        (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)))
+    );
   }
 
   protected getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<T, S>): string {
@@ -579,13 +581,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     if (isNil(sheetName) || isNil(type)) return undefined;
 
     // Try from specific translation
-    let key:string; let message: string;
+    let key: string;
+    let message: string;
     if (type.category === 'LIVE') {
       key = `EXTRACTION.FORMAT.${type.label.toUpperCase()}.SHEET.${sheetName}`;
       message = self.translate.instant(key);
       if (message !== key) return message;
-    }
-    else {
+    } else {
       key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
       message = self.translate.instant(key);
       if (message !== key) return message;
@@ -596,7 +598,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     message = self.translate.instant(key);
     if (message !== key) {
       // Append sheet name
-      return (sheetName.length === 2) ? `${message} (${sheetName})` : message;
+      return sheetName.length === 2 ? `${message} (${sheetName})` : message;
     }
 
     // No translation found: replace underscore with space
@@ -607,28 +609,24 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     if (isEmptyArray(columns)) return; // Skip, to avoid error when calling this.translate.instant([])
 
     const i19nPrefix = `EXTRACTION.FORMAT.${changeCaseToUnderscore(this.type.format)}.`.toUpperCase();
-    const names = columns.map(column => (column.name || column.columnName).toUpperCase());
+    const names = columns.map((column) => (column.name || column.columnName).toUpperCase());
 
-    const i18nKeys = names.map(name => i19nPrefix + name)
-      .concat(names.map(name => `EXTRACTION.COLUMNS.${name}`));
+    const i18nKeys = names.map((name) => i19nPrefix + name).concat(names.map((name) => `EXTRACTION.COLUMNS.${name}`));
 
     const i18nMap = this.translateContext.instant(i18nKeys, context);
 
     columns.forEach((column, i) => {
-
       let key = i18nKeys[i];
       column.name = i18nMap[key];
 
       // No I18n translation
       if (column.name === key) {
-
         // Fallback to the common translation
         key = i18nKeys[names.length + i];
         column.name = i18nMap[key];
 
         // Or split column name
         if (column.name === key) {
-
           // Replace underscore with space
           column.name = column.columnName.replace(/[_-]+/g, ' ').toLowerCase();
 
@@ -636,8 +634,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
           if (column.name.length > 1) column.name = capitalizeFirstLetter(column.name);
         }
       }
-   });
-
+    });
   }
 
   protected getI18nColumnName(columnName?: string) {
@@ -647,14 +644,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // No I18n translation
     if (message === key) {
-
       // Try to get common translation
       key = `EXTRACTION.TABLE.COLUMNS.${columnName.toUpperCase()}`;
       message = this.translate.instant(key);
 
       // Or split column name
       if (message === key) {
-
         // Replace underscore with space
         message = columnName.replace(/[_-]+/g, ' ').toUpperCase();
         if (message.length > 1) {
@@ -670,16 +665,19 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return this.criteriaForm.hasFilterCriteria(sheetName);
   }
 
-  protected markAsStarted(opts = {emitEvent: true}){
+  protected markAsStarted(opts = { emitEvent: true }) {
     this._state.set('started', (_) => true);
     if (!opts || opts.emitEvent !== false) this.markForCheck();
   }
 
-  protected toggleExcludeInvalidData(event?: Event, opts?: {emitEvent?: boolean}) {
+  protected toggleExcludeInvalidData(event?: Event, opts?: { emitEvent?: boolean }) {
     const excludeInvalidData = this.excludeInvalidData;
-    this.form.get('meta').setValue({
-      excludeInvalidData: !excludeInvalidData
-    }, opts);
+    this.form.get('meta').setValue(
+      {
+        excludeInvalidData: !excludeInvalidData,
+      },
+      opts
+    );
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
       this.onRefresh.emit();

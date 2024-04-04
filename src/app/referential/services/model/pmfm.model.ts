@@ -1,9 +1,30 @@
-import {DateUtils, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNil, isNotNil, isNotNilOrBlank, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
-import {Parameter, ParameterType} from './parameter.model';
-import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
-import {Moment} from 'moment';
-import {FullReferential} from '@app/referential/services/model/referential.model';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  IEntity,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialRef,
+  ReferentialUtils,
+  toNumber,
+} from '@sumaris-net/ngx-components';
+import {
+  MethodIdGroups,
+  PmfmIds,
+  PmfmLabelPatterns,
+  UnitLabel,
+  UnitLabelGroups,
+  UnitLabelPatterns,
+  WeightKgConversion,
+  WeightUnitSymbol,
+} from './model.enum';
+import { Parameter, ParameterType } from './parameter.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { Moment } from 'moment';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -11,19 +32,17 @@ export declare type ExtendedPmfmType = PmfmType | 'latitude' | 'longitude' | 'du
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
+// eslint-disable-next-line no-useless-escape
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\(]+)(?:(\s*\/\s+[^/]+)|(\s*\([^\)]+\s*\)))+$/);
 
-export interface IPmfm<
-  T extends IPmfm<T, ID> = IPmfm<any, any>,
-  ID = number
-  > extends IEntity<T, ID> {
+export interface IPmfm<T extends IPmfm<T, ID> = IPmfm<any, any>, ID = number> extends IEntity<T, ID> {
   id: ID;
   label: string;
 
   type: string | PmfmType;
   minValue: number;
   maxValue: number;
-  defaultValue: number|PmfmValue;
+  defaultValue: number | PmfmValue;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
   detectionThreshold: number;
@@ -46,14 +65,9 @@ export interface IPmfm<
   hidden?: boolean;
 
   displayConversion?: UnitConversion;
-
 }
 
-export interface IDenormalizedPmfm<
-  T extends IDenormalizedPmfm<T, ID> = IDenormalizedPmfm<any, any>,
-  ID = number
-  > extends IPmfm<T, ID> {
-
+export interface IDenormalizedPmfm<T extends IDenormalizedPmfm<T, ID> = IDenormalizedPmfm<any, any>, ID = number> extends IPmfm<T, ID> {
   completeName?: string;
   name?: string;
   acquisitionNumber?: number;
@@ -62,15 +76,9 @@ export interface IDenormalizedPmfm<
   gearIds: number[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
-
 }
 
-
-export interface IFullPmfm<
-  T extends IFullPmfm<T, ID> = IFullPmfm<any, any>,
-  ID = number
-  > extends IPmfm<T, ID> {
-
+export interface IFullPmfm<T extends IFullPmfm<T, ID> = IFullPmfm<any, any>, ID = number> extends IPmfm<T, ID> {
   parameter: Parameter;
   matrix: ReferentialRef;
   fraction: ReferentialRef;
@@ -78,19 +86,27 @@ export interface IFullPmfm<
   unit: ReferentialRef;
 }
 
-
-@EntityClass({typename: 'UnitConversionVO'})
+@EntityClass({ typename: 'UnitConversionVO' })
 export class UnitConversion {
-
   static fromObject: (source: any, opts?: any) => UnitConversion;
+
+  static equals(uc1: UnitConversion, uc2: UnitConversion) {
+    return (
+      uc1 === uc2 ||
+      (isNil(uc1)
+        ? isNil(uc2)
+        : ReferentialUtils.equals(uc1.fromUnit, uc2?.fromUnit) &&
+          ReferentialUtils.equals(uc1.toUnit, uc2?.toUnit) &&
+          uc1.conversionCoefficient === uc2?.conversionCoefficient)
+    );
+  }
 
   fromUnit: ReferentialRef;
   toUnit: ReferentialRef;
   conversionCoefficient: number;
   updateDate: Moment;
 
-  constructor() {
-  }
+  constructor() {}
 
   clone(opts?: EntityAsObjectOptions & any): UnitConversion {
     const target = new UnitConversion();
@@ -133,9 +149,8 @@ export class UnitConversion {
   }
 }
 
-@EntityClass({typename: 'PmfmVO'})
+@EntityClass({ typename: 'PmfmVO' })
 export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
-
   static ENTITY_NAME = 'Pmfm';
   static fromObject: (source: any, opts?: any) => Pmfm;
 
@@ -167,7 +182,7 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
       ...opts,
-      minify: false // Do NOT minify itself
+      minify: false, // Do NOT minify itself
     });
 
     if (opts && opts.minify) {
@@ -182,8 +197,7 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
       delete target.method;
       delete target.unit;
       delete target.displayConversion;
-    }
-    else {
+    } else {
       target.parameter = this.parameter && this.parameter.asObject(opts);
       target.matrix = this.matrix && this.matrix.asObject(opts);
       target.fraction = this.fraction && this.fraction.asObject(opts);
@@ -192,11 +206,11 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
       target.displayConversion = this.displayConversion?.asObject(opts);
     }
 
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(opts)) || undefined;
-    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, {applyConversion: false});
+    target.qualitativeValues = (this.qualitativeValues && this.qualitativeValues.map((qv) => qv.asObject(opts))) || undefined;
+    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this, { applyConversion: false });
 
     // Revert conversion (if any)
-    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), {markAsConverted: false});
+    if (this.displayConversion) PmfmUtils.applyConversion(target, this.displayConversion.clone().reverse(), { markAsConverted: false });
 
     return target;
   }
@@ -220,7 +234,7 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
     this.method = source.method && ReferentialRef.fromObject(source.method);
     this.unit = source.unit && ReferentialRef.fromObject(source.unit);
 
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || undefined;
+    this.qualitativeValues = (source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject)) || undefined;
 
     this.completeName = source.completeName;
     return this;
@@ -256,11 +270,10 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
 }
 
 export abstract class PmfmUtils {
-
   static NAME_WITH_WEIGHT_UNIT_REGEXP = /^(.* )\((t|kg|g|mg)\)( - .*)?$/;
 
   static getExtendedType(pmfm: IPmfm): ExtendedPmfmType {
-    if (!pmfm || !pmfm.type) return ; // Unknown
+    if (!pmfm || !pmfm.type) return; // Unknown
     if (pmfm.type === 'double') {
       if (PmfmLabelPatterns.LATITUDE.test(pmfm.label)) {
         return 'latitude';
@@ -271,8 +284,7 @@ export abstract class PmfmUtils {
       if (pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(pmfm.unitLabel)) {
         return 'duration';
       }
-    }
-    else if (pmfm.type === 'date') {
+    } else if (pmfm.type === 'date') {
       if (pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(pmfm.unitLabel)) {
         return 'dateTime';
       }
@@ -280,36 +292,48 @@ export abstract class PmfmUtils {
     return pmfm.type as ExtendedPmfmType;
   }
 
-  static filterPmfms<P extends IPmfm>(pmfms: P[], opts?: {
-    excludeHidden?: boolean; // true by default
-    excludePmfmIds?: number[];
-  }): P[] {
-    return pmfms.filter(p => p
-      // Exclude hidden pmfms
-      && (!opts || !opts.excludeHidden || !p.hidden)
-      // Exclude some pmfm by ids
-      && (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id)));
+  static filterPmfms<P extends IPmfm>(
+    pmfms: P[],
+    opts?: {
+      excludeHidden?: boolean; // true by default
+      excludePmfmIds?: number[];
+    }
+  ): P[] {
+    return pmfms.filter(
+      (p) =>
+        p &&
+        // Exclude hidden pmfms
+        (!opts || !opts.excludeHidden || !p.hidden) &&
+        // Exclude some pmfm by ids
+        (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id))
+    );
   }
 
-  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts: {
-    excludeHidden?: boolean;
-    excludePmfmIds?: number[];
-    minQvCount?: number;
-    maxQvCount?: number;
-    filterFn?: (IPmfm, index) => boolean;
-  } = {
-    minQvCount: 1 // Should have at least 2 values (by default)
-  }): P {
+  static getFirstQualitativePmfm<P extends IPmfm>(
+    pmfms: P[],
+    opts: {
+      excludeHidden?: boolean;
+      excludePmfmIds?: number[];
+      includePmfmIds?: number[];
+      minQvCount?: number;
+      maxQvCount?: number;
+      filterFn?: (IPmfm, index) => boolean;
+    }
+  ): P {
+    opts = { minQvCount: 1, ...opts };
     // exclude hidden pmfm (see batch modal)
-    const qvPmfm = this.filterPmfms(pmfms, opts)
-      .find((p, index) => p.type === 'qualitative_value'
-          && p.qualitativeValues
+    const qvPmfm = this.filterPmfms(pmfms, opts).find(
+      (p, index) =>
+        p.type === 'qualitative_value' &&
+        p.qualitativeValues &&
+        (opts.includePmfmIds?.includes(p.id) ||
           // Exclude if no enough qualitative values
-          && p.qualitativeValues.length >= opts.minQvCount
-          // Exclude if too many qualitative values
-          && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
-          // Apply the first function, if any
-          && (!opts.filterFn || opts.filterFn(p, index)));
+          (p.qualitativeValues.length >= opts.minQvCount &&
+            // Exclude if too many qualitative values
+            (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount))) &&
+        // Apply the first function, if any
+        (!opts.filterFn || opts.filterFn(p, index))
+    );
     return qvPmfm;
   }
 
@@ -335,11 +359,12 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isWeight(pmfm: IPmfm): boolean {
-    return UnitLabelGroups.WEIGHT.includes(pmfm.unitLabel)
-      || PmfmLabelPatterns.WEIGHT.test(pmfm.label)
-      || (pmfm instanceof Pmfm && PmfmLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+    return (
+      UnitLabelGroups.WEIGHT.includes(pmfm.unitLabel) ||
+      PmfmLabelPatterns.WEIGHT.test(pmfm.label) ||
+      (pmfm instanceof Pmfm && PmfmLabelPatterns.WEIGHT.test(pmfm.parameter?.label))
+    );
   }
-
 
   /**
    * Check if dressing pmfms (by id or by  label like 'DRESSING_%')
@@ -347,9 +372,11 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isDressing(pmfm: IPmfm): boolean {
-    return pmfm.id === PmfmIds.DRESSING
-      || PmfmLabelPatterns.DRESSING.test(pmfm.label)
-      || (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label));
+    return (
+      pmfm.id === PmfmIds.DRESSING ||
+      PmfmLabelPatterns.DRESSING.test(pmfm.label) ||
+      (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label))
+    );
   }
 
   /**
@@ -358,11 +385,10 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isLength(pmfm: IPmfm): boolean {
-    return pmfm && (
-      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (PmfmLabelPatterns.LENGTH.test(pmfm.label)))
-      || (pmfm instanceof Pmfm
-        && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label)
-        && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label))
+    return (
+      pmfm &&
+      ((UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && PmfmLabelPatterns.LENGTH.test(pmfm.label)) ||
+        (pmfm instanceof Pmfm && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label) && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label)))
     );
   }
 
@@ -372,9 +398,10 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isSelectivityDevice(pmfm: IPmfm): boolean {
-    return pmfm && (
-      PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.label)
-      || (pmfm instanceof Pmfm && PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.parameter?.label))
+    return (
+      pmfm &&
+      (PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.label) ||
+        (pmfm instanceof Pmfm && PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.parameter?.label)))
     );
   }
 
@@ -384,21 +411,22 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isTagId(pmfm: IPmfm): boolean {
-    return pmfm && (
-      pmfm.id === PmfmIds.TAG_ID
+    return (
+      pmfm && pmfm.id === PmfmIds.TAG_ID
       //|| PmfmLabelPatterns.TAG_ID.test(pmfm.label)
       //|| (pmfm instanceof Pmfm && PmfmLabelPatterns.TAG_ID.test(pmfm.parameter?.label))
     );
   }
-
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
     return pmfm && labels.includes(pmfm.parameter.label);
   }
 
   static isComputed(pmfm: IPmfm) {
-    return (isNotNil(pmfm.methodId) && MethodIdGroups.CALCULATED.includes(pmfm.methodId))
-      || (pmfm instanceof Pmfm && MethodIdGroups.CALCULATED.includes(pmfm.method?.id));
+    return (
+      (isNotNil(pmfm.methodId) && MethodIdGroups.CALCULATED.includes(pmfm.methodId)) ||
+      (pmfm instanceof Pmfm && MethodIdGroups.CALCULATED.includes(pmfm.method?.id))
+    );
   }
 
   static isDenormalizedPmfm(pmfm: IPmfm): pmfm is IDenormalizedPmfm {
@@ -419,15 +447,19 @@ export abstract class PmfmUtils {
    * @param pmfm
    * @param opts
    */
-  static getPmfmName(pmfm: IPmfm, opts?: {
-    withUnit?: boolean; // true by default
-    compact?: boolean; // true by default
-    html?: boolean; // false by default
-    withDetails?: boolean; // false by default
-  }): string {
+  static getPmfmName(
+    pmfm: IPmfm,
+    opts?: {
+      withUnit?: boolean; // true by default
+      compact?: boolean; // true by default
+      html?: boolean; // false by default
+      withDetails?: boolean; // false by default
+    }
+  ): string {
     if (!pmfm) return undefined;
 
-    let name; let details;
+    let name;
+    let details;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
       // If withDetails = true, use complete name if exists
       if (opts?.withDetails && pmfm.completeName) {
@@ -436,23 +468,18 @@ export abstract class PmfmUtils {
         if (index !== -1) {
           name = pmfm.completeName.substring(0, index);
           details = pmfm.completeName.substring(index + 3);
-        }
-        else {
+        } else {
           name = pmfm.completeName;
         }
-      }
-      else {
+      } else {
         name = pmfm.name;
       }
-    }
-    else if (PmfmUtils.isFullPmfm(pmfm)) {
+    } else if (PmfmUtils.isFullPmfm(pmfm)) {
       name = pmfm.parameter?.name;
       if (opts?.withDetails) {
-        details = [
-          pmfm.matrix && pmfm.matrix.name,
-          pmfm.fraction && pmfm.fraction.name,
-          pmfm.method && pmfm.method.name
-        ].filter(isNotNil).join(' - ');
+        details = [pmfm.matrix && pmfm.matrix.name, pmfm.fraction && pmfm.fraction.name, pmfm.method && pmfm.method.name]
+          .filter(isNotNil)
+          .join(' - ');
       }
     }
 
@@ -461,8 +488,7 @@ export abstract class PmfmUtils {
     if (isNotNilOrBlank(details)) {
       if (opts?.html) {
         return `<b>${name}</b><div class="pmfm-details">${details}</div>`;
-      }
-      else {
+      } else {
         return `${name} - ${details}`;
       }
     }
@@ -470,8 +496,7 @@ export abstract class PmfmUtils {
     return name;
   }
 
-  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean}): string {
-
+  static sanitizeName(name: string, pmfm: IPmfm, opts?: { withUnit?: boolean; compact?: boolean; html?: boolean; withDetails?: boolean }): string {
     // Compact mode
     if (!opts || opts.compact !== false) {
       // Remove parenthesis content (=synonym), if any
@@ -479,7 +504,7 @@ export abstract class PmfmUtils {
       // - 'Longueur totale (LT)' should becomes 'Longueur totale'
       // - 'D1 / Open wounds' should becomes 'D1'
       const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(name || '');
-      name = matches?.[1] || name;
+      name = matches?.[1]?.trim() || name;
     }
 
     // Append unit
@@ -487,8 +512,7 @@ export abstract class PmfmUtils {
       if (opts?.html) {
         if (opts?.withDetails) {
           name += ` (${pmfm.unitLabel})`;
-        }
-        else {
+        } else {
           name += `<small><br/>(${pmfm.unitLabel})</small>`;
         }
       } else {
@@ -506,18 +530,14 @@ export abstract class PmfmUtils {
    * @param expectedWeightSymbol
    * @param opts
    */
-  static setWeightUnitConversions<P extends IPmfm>(pmfms: P[],
-                                                   expectedWeightSymbol: WeightUnitSymbol,
-                                                   opts = { clone: true }): P[] {
+  static setWeightUnitConversions<P extends IPmfm>(pmfms: P[], expectedWeightSymbol: WeightUnitSymbol, opts = { clone: true }): P[] {
     (pmfms || []).forEach((pmfm, i) => {
       pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts) || pmfm;
     });
     return pmfms;
   }
 
-  static setWeightUnitConversion<P extends IPmfm>(source: P,
-                                                  expectedWeightSymbol: WeightUnitSymbol,
-                                                  opts = { clone: true }): P {
+  static setWeightUnitConversion<P extends IPmfm>(source: P, expectedWeightSymbol: WeightUnitSymbol, opts = { clone: true }): P {
     if (!this.isWeight(source)) return source; // SKip if not a weight pmfm
 
     const actualWeightUnit = source.unitLabel?.toLowerCase() || UnitLabel.KG;
@@ -527,20 +547,21 @@ export abstract class PmfmUtils {
 
     // actual -> kg (pivot) -> expected
     const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
-    const conversion = UnitConversion.fromObject({conversionCoefficient,
-      fromUnit: {label: source.unitLabel},
-      toUnit: {label: expectedWeightSymbol}
+    const conversion = UnitConversion.fromObject({
+      conversionCoefficient,
+      fromUnit: { label: source.unitLabel },
+      toUnit: { label: expectedWeightSymbol },
     });
 
     // Clone to keep existing pmfm unchanged
-    const target = (!opts || opts.clone !== false) ? source.clone() as P : source;
+    const target = !opts || opts.clone !== false ? (source.clone() as P) : source;
 
     target.displayConversion = conversion;
 
     return this.applyConversion(target, conversion);
   }
 
-  static applyConversion<P extends IPmfm>(target: P, conversion: UnitConversion, opts?: {markAsConverted: boolean}): P {
+  static applyConversion<P extends IPmfm>(target: P, conversion: UnitConversion, opts?: { markAsConverted: boolean }): P {
     const expectedUnitSymbol = conversion.toUnit?.label || '';
     const conversionCoefficient = toNumber(conversion.conversionCoefficient, 1);
     // Must be done before updating maximumNumberDecimals (result depends of its value)
@@ -552,15 +573,14 @@ export abstract class PmfmUtils {
       // Update the complete name (the unit part), if exists
       const matches = target.completeName && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.completeName);
       if (matches) {
-        target.completeName = `${matches[1]}(${expectedUnitSymbol})${matches[3]||''}`;
+        target.completeName = `${matches[1]}(${expectedUnitSymbol})${matches[3] || ''}`;
       }
-    }
-    else if (target instanceof Pmfm) {
+    } else if (target instanceof Pmfm) {
       if (target.unit) {
         // Update the complete name (the unit part), if exists
         const matches = target.name && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.name);
         if (matches) {
-          target.name = `${matches[1]}(${expectedUnitSymbol})${matches[3]||''}`;
+          target.name = `${matches[1]}(${expectedUnitSymbol})${matches[3] || ''}`;
         }
         target.unit.label = expectedUnitSymbol;
         target.unit.name = expectedUnitSymbol;
@@ -604,7 +624,7 @@ export abstract class PmfmUtils {
     }
 
     // Convert default value
-    if (isNotNil(target.defaultValue) && (!isNaN(Number(target.defaultValue)))) {
+    if (isNotNil(target.defaultValue) && !isNaN(Number(target.defaultValue))) {
       target.defaultValue = PmfmValueUtils.applyConversion(target.defaultValue, conversionCoefficient);
       // DEBUG
       console.debug(`[pmfm-utils] PMFM '${target.label}' Changing defaultValue from to ${target.defaultValue}`);
@@ -633,6 +653,25 @@ export abstract class PmfmUtils {
     if (isNil(pmfm.maximumNumberDecimals)) return defaultPrecision;
     return Math.pow(10, -1 * pmfm.maximumNumberDecimals);
   }
+
+  static equals(pmfm1: IPmfm, pmfm2: IPmfm): boolean {
+    return (
+      pmfm1 === pmfm2 ||
+      (isNil(pmfm1)
+        ? isNil(pmfm2)
+        : pmfm1.id === pmfm2?.id &&
+          pmfm1.hidden === pmfm2?.hidden &&
+          PmfmValueUtils.equals(pmfm1.defaultValue, pmfm2?.defaultValue) &&
+          UnitConversion.equals(pmfm1.displayConversion, pmfm2?.displayConversion))
+    );
+  }
+
+  static arrayEquals(pmfms1: IPmfm[], pmfms2: IPmfm[]) {
+    return (
+      Array.isArray(pmfms1) &&
+      Array.isArray(pmfms2) &&
+      pmfms1.length === pmfms2.length &&
+      pmfms1.every((pmfm, index) => PmfmUtils.equals(pmfm, pmfms2[index]))
+    );
+  }
 }
-
-

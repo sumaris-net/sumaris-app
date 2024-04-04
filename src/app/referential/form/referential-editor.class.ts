@@ -35,10 +35,8 @@ export interface AppReferentialEditorOptions extends AppEditorOptions {
 export abstract class AppReferentialEditor<
   T extends BaseReferential<T, ID>,
   S extends IEntityService<T, ID> = IEntityService<T, any>,
-  ID = number
-  >
-  extends AppEntityEditor<T, S, ID> {
-
+  ID = number,
+> extends AppEntityEditor<T, S, ID> {
   readonly mobile: boolean;
   readonly entityName: string;
   readonly uniqueLabel: boolean;
@@ -60,15 +58,10 @@ export abstract class AppReferentialEditor<
     form: UntypedFormGroup,
     opts: AppReferentialEditorOptions
   ) {
-    super(injector,
-      dataType,
-      dataService,
-      {
-        i18nPrefix: opts?.i18nPrefix
-          || `REFERENTIAL.${changeCaseToUnderscore(opts.entityName).toUpperCase()}.`,
-        ...opts
-      }
-    );
+    super(injector, dataType, dataService, {
+      i18nPrefix: opts?.i18nPrefix || `REFERENTIAL.${changeCaseToUnderscore(opts.entityName).toUpperCase()}.`,
+      ...opts,
+    });
     this.accountService = injector.get(AccountService);
     this.referentialService = injector.get(ReferentialService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -80,9 +73,7 @@ export abstract class AppReferentialEditor<
     // default values
     this.uniqueLabel = opts?.uniqueLabel === true;
     this.defaultBackHref = `/referential/list?entity=${this.entityName}`;
-    this._logPrefix = this.entityName
-      ? `[${changeCaseToUnderscore(this.entityName).replace(/_/g, '-')}-page] `
-      : '[referential-page] ';
+    this._logPrefix = this.entityName ? `[${changeCaseToUnderscore(this.entityName).replace(/_/g, '-')}-page] ` : '[referential-page] ';
     this.debug = !environment.production;
     this.withLevels = opts?.withLevels || false;
 
@@ -98,12 +89,15 @@ export abstract class AppReferentialEditor<
     if (this.withLevels) await firstNotNilPromise(this.$levels);
   }
 
-  load(id?: ID, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
-    return super.load(id, {entityName: this.entityName, ...opts});
+  load(
+    id?: ID,
+    opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }
+  ): Promise<void> {
+    return super.load(id, { entityName: this.entityName, ...opts });
   }
 
-  listenChanges(id: ID, opts?: any): Observable<T|undefined> {
-    return super.listenChanges(id, {...opts, entityName: this.entityName});
+  listenChanges(id: ID, opts?: any): Observable<T | undefined> {
+    return super.listenChanges(id, { ...opts, entityName: this.entityName });
   }
 
   enable() {
@@ -127,12 +121,12 @@ export abstract class AppReferentialEditor<
 
     // Load level as an object
     if (this.withLevels && isNotNil(data.levelId) && typeof data.levelId === 'number') {
-      json.levelId = (this.$levels.value || []).find(l => l.id === data.levelId);
+      json.levelId = (this.$levels.value || []).find((l) => l.id === data.levelId);
     }
 
     json.entityName = json.entityName || this.entityName;
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
 
     this.markAsPristine();
   }
@@ -169,7 +163,7 @@ export abstract class AppReferentialEditor<
       ...(await super.computePageHistory(title)),
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: `REFERENTIAL.ENTITY.${changeCaseToUnderscore(this.entityName).toUpperCase()}`,
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -183,14 +177,13 @@ export abstract class AppReferentialEditor<
 
     // Check label is unique
     if (this.uniqueLabel) {
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
+      this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
         const label = control.enabled && control.value;
         const filter = {
           entityName: this.entityName,
-          excludedIds: isNotNil(this.data.id) ? [this.data.id as unknown as number] : undefined
+          excludedIds: isNotNil(this.data.id) ? [this.data.id as unknown as number] : undefined,
         };
-        return label && (await this.referentialService.existsByLabel(label, filter)) ? {unique: true} : null;
+        return label && (await this.referentialService.existsByLabel(label, filter)) ? { unique: true } : null;
       });
     }
 
@@ -217,4 +210,3 @@ export abstract class AppReferentialEditor<
     this.cd.markForCheck();
   }
 }
-

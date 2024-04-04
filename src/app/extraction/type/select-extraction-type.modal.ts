@@ -18,10 +18,9 @@ export interface SelectExtractionTypeModalOptions {
 @Component({
   selector: 'app-select-extraction-type-modal',
   templateUrl: './select-extraction-type.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectExtractionTypeModal implements OnInit, SelectExtractionTypeModalOptions {
-
   loading = true;
   types$: Observable<ExtractionType[]>;
 
@@ -34,34 +33,29 @@ export class SelectExtractionTypeModal implements OnInit, SelectExtractionTypeMo
     protected service: ExtractionTypeService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
-  ) {
-
-  }
+  ) {}
 
   ngOnInit() {
-
     // Load items
-    this.types$ = this.service.watchAll(0, 100, null, null, this.filter, {})
-      .pipe(
-        map(({data}) =>
-          // Compute i18n name
-          data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-            // Then sort by name
-            .sort(propertyComparator('name'))
-        )
-      );
+    this.types$ = this.service.watchAll(0, 100, null, null, this.filter, {}).pipe(
+      map(({ data }) =>
+        // Compute i18n name
+        data
+          .map((t) => ExtractionTypeUtils.computeI18nName(this.translate, t))
+          // Then sort by name
+          .sort(propertyComparator('name'))
+      )
+    );
 
     // Update loading indicator
     this.types$.pipe(first()).subscribe((_) => this.markAsLoaded());
   }
 
   selectType(type: ExtractionProduct) {
-
     this.close(type);
   }
 
   async close(event?: any) {
-
     await this.viewCtrl.dismiss(event);
   }
 

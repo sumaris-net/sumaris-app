@@ -16,5 +16,5 @@ export function hasFlag(value: number, flag: number) {
 }
 
 export function removeFlag(value: number, flag: number): number {
-  return hasFlag(value, flag) ? (value - flag) : value;
+  return hasFlag(value, flag) ? value - flag : value;
 }

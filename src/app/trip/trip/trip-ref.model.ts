@@ -3,9 +3,8 @@ import { EntityClass, fromDateISOString, toDateISOString } from '@sumaris-net/ng
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 
-@EntityClass({typename: 'TripVO'})
-export class TripRef extends DataRootVesselEntity<TripRef>{
-
+@EntityClass({ typename: 'TripVO' })
+export class TripRef extends DataRootVesselEntity<TripRef> {
   static fromObject: (source: any, opts?: any) => TripRef;
 
   departureDateTime: Moment;
@@ -25,6 +24,10 @@ export class TripRef extends DataRootVesselEntity<TripRef>{
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
-    this.departureDateTime = fromDateISOString(source.departureDateTime);
+    this.returnDateTime = fromDateISOString(source.returnDateTime);
+  }
+
+  getStrategyDateTime(): Moment | undefined {
+    return this.departureDateTime || this.returnDateTime;
   }
 }

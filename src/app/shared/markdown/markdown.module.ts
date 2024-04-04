@@ -1,35 +1,18 @@
 // function that returns `MarkedOptions` with renderer override
-import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
+import { MarkdownModule, MARKED_OPTIONS, MarkedOptions } from 'ngx-markdown';
 import { ModuleWithProviders, NgModule, SecurityContext } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MarkdownRenderer } from '@app/shared/markdown/markdown.render';
 import { MarkdownAnchorService } from '@app/shared/markdown/markdown-anchor.service';
 import { MarkdownAnchorDirective } from '@app/shared/markdown/markdown-anchor.directive';
 
-export function markedOptionsFactory(markdownAnchorService: MarkdownAnchorService): MarkedOptions {
-  return {
-    renderer: new MarkdownRenderer(markdownAnchorService),
-    gfm: true,
-    breaks: false,
-    pedantic: false,
-    smartLists: true,
-    smartypants: false,
-  };
-}
-
 @NgModule({
-  imports: [
-    MarkdownModule.forChild()
-  ],
+  imports: [MarkdownModule.forChild()],
   declarations: [
     // Directive
-    MarkdownAnchorDirective
+    MarkdownAnchorDirective,
   ],
-  exports: [
-    MarkdownModule,
-
-    MarkdownAnchorDirective
-  ],
+  exports: [MarkdownModule, MarkdownAnchorDirective],
 })
 export class AppMarkdownModule {
   static forRoot(): ModuleWithProviders<AppMarkdownModule> {
@@ -43,11 +26,20 @@ export class AppMarkdownModule {
           loader: HttpClient, // Allow to load using [src]
           sanitize: SecurityContext.NONE,
           markedOptions: {
-            provide: MarkedOptions,
+            provide: MARKED_OPTIONS,
             deps: [MarkdownAnchorService],
-            useFactory: (s: MarkdownAnchorService) => markedOptionsFactory(s),
-          }
-        }).providers
+            useFactory: (anchorService: MarkdownAnchorService) => {
+              return <MarkedOptions>{
+                renderer: new MarkdownRenderer(anchorService),
+                gfm: true,
+                breaks: false,
+                pedantic: false,
+                smartLists: true,
+                smartypants: false,
+              };
+            },
+          },
+        }).providers,
       ],
     };
   }

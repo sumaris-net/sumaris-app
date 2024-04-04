@@ -4,12 +4,9 @@ import { toBoolean } from '@sumaris-net/ngx-components';
 import { ReferentialValidatorService } from '@app/referential/services/validator/referential.validator';
 import { Method } from '@app/referential/pmfm/method/method.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class MethodValidatorService extends ReferentialValidatorService {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -22,8 +19,7 @@ export class MethodValidatorService extends ReferentialValidatorService {
     return {
       ...config,
       isCalculated: [toBoolean(data?.isCalculated, null), Validators.required],
-      isEstimated: [toBoolean(data?.isEstimated, null), Validators.required]
+      isEstimated: [toBoolean(data?.isEstimated, null), Validators.required],
     };
   }
-
 }

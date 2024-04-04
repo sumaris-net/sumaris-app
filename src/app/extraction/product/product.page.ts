@@ -3,6 +3,8 @@ import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../typ
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AccountService,
   Alerts,
@@ -35,32 +37,31 @@ export const ProductPageTabs = {
   selector: 'app-product-page',
   templateUrl: './product.page.html',
   styleUrls: ['./product.page.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: ExtractionProductValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: ValidatorService, useExisting: ExtractionProductValidatorService }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit{
-
+export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit {
   columns: ExtractionColumn[];
 
-  @ViewChild('productForm', {static: true}) productForm: ProductForm;
-  @ViewChild('datasourceTable', {static: true}) datasourceTable: ExtractionTablePage;
-  @ViewChild('resultTable', {static: true}) resultTable: ExtractionTablePage;
-
+  @ViewChild('productForm', { static: true }) productForm: ProductForm;
+  @ViewChild('datasourceTable', { static: true }) datasourceTable: ExtractionTablePage;
+  @ViewChild('resultTable', { static: true }) resultTable: ExtractionTablePage;
 
   get form(): UntypedFormGroup {
     return this.productForm.form;
   }
 
-  constructor(protected injector: Injector,
-              protected router: Router,
-              protected formBuilder: UntypedFormBuilder,
-              protected productService: ProductService,
-              protected accountService: AccountService,
-              protected validatorService: ExtractionProductValidatorService,
-              protected settings: LocalSettingsService) {
-    super(injector,
+  constructor(
+    protected injector: Injector,
+    protected router: Router,
+    protected formBuilder: UntypedFormBuilder,
+    protected productService: ProductService,
+    protected accountService: AccountService,
+    protected validatorService: ExtractionProductValidatorService,
+    protected settings: LocalSettingsService
+  ) {
+    super(
+      injector,
       ExtractionProduct,
       // Data service
       {
@@ -68,13 +69,14 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         canUserWrite: (data: ExtractionProduct, opts?: any) => productService.canUserWrite(data, opts),
         save: (data, _) => productService.save(data),
         delete: (data, _) => productService.deleteAll([data]),
-        listenChanges: (id, opts) => productService.listenChanges(id, opts)
+        listenChanges: (id, opts) => productService.listenChanges(id, opts),
       },
       // Editor options
       {
         pathIdAttribute: 'productId',
-        tabCount: 3
-      });
+        tabCount: 3,
+      }
+    );
 
     this.debug = !environment.production;
   }
@@ -85,15 +87,15 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     this.registerSubscription(
       this.datasourceTable.filterChanges
         .pipe(
-          filter(_ => !this.loading && !this.saving),
+          filter((_) => !this.loading && !this.saving),
           debounceTime(450)
         )
         .subscribe((filter) => {
-          const json = filter.asObject({minify: true});
+          const json = filter.asObject({ minify: true });
           const filterControl = this.form.get('filter');
-          const previousJson = ExtractionFilter.fromObject(filterControl?.value)?.asObject({minify: true});
+          const previousJson = ExtractionFilter.fromObject(filterControl?.value)?.asObject({ minify: true });
           if (!equals(json, previousJson)) {
-            this.form.patchValue({filter: json});
+            this.form.patchValue({ filter: json });
             this.markAsDirty();
           }
         })
@@ -119,24 +121,25 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
 
-    return setTimeout(() =>
-      // open the map
-       this.router.navigate(['../../map'],
-        {
+    return setTimeout(
+      () =>
+        // open the map
+        this.router.navigate(['../../map'], {
           relativeTo: this.route,
           queryParams: {
             category: this.data.category,
             label: this.data.label,
-            sheet: this.data.stratum[0].sheetName
-          }
-        })
-    , 200); // Add a delay need by matTooltip to be hide
+            sheet: this.data.stratum[0].sheetName,
+          },
+        }),
+      200
+    ); // Add a delay need by matTooltip to be hide
   }
 
   async updateProduct(event?: Event) {
     if (this.dirty) {
       // Ask user confirmation
-      const {confirmed, save} = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate, {valid: this.valid});
+      const { confirmed, save } = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate, { valid: this.valid });
       if (!confirmed) return;
       if (save) await this.save(event);
     }
@@ -150,13 +153,11 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
       Toasts.show(this.toastController, this.translate, {
         type: 'info',
-        message: 'EXTRACTION.PRODUCT.INFO.UPDATED_SUCCEED'
+        message: 'EXTRACTION.PRODUCT.INFO.UPDATED_SUCCEED',
       });
-    }
-    catch (err) {
+    } catch (err) {
       this.setError(err);
-    }
-    finally {
+    } finally {
       this.markAsLoaded();
     }
 
@@ -169,7 +170,6 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
   /* -- protected -- */
 
   protected async setValue(data: ExtractionProduct) {
-
     // Apply data to form
     await this.productForm.setValue(data.asObject());
 
@@ -186,18 +186,17 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       let sourceTypeId: number;
       if (isNotNil(data.parentId)) {
         sourceTypeId = data.parentId;
-      }
-      else {
+      } else {
         await this.datasourceTable.ready();
         const types = this.datasourceTable.types;
 
         // Resolve by format + version
         const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format;
-        sourceTypeId = types.find(t => t.format === format && t.version === data.version)?.id;
+        sourceTypeId = types.find((t) => t.format === format && t.version === data.version)?.id;
 
         // Or resolve by format only, if not found
         if (isNil(sourceTypeId)) {
-          sourceTypeId = types.find(t => t.format === format)?.id;
+          sourceTypeId = types.find((t) => t.format === format)?.id;
         }
 
         // Types not found: stop here
@@ -211,13 +210,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       const filter = data.filter || (data.filterContent && JSON.parse(data.filterContent));
 
       // Load data
-      await this.datasourceTable.load(sourceTypeId, {filter,
+      await this.datasourceTable.load(sourceTypeId, {
+        filter,
         // Should load data, if current tab
-        emitEvent: this.selectedTabIndex === ProductPageTabs.DATASOURCE
+        emitEvent: this.selectedTabIndex === ProductPageTabs.DATASOURCE,
       });
-
-    }
-    catch (err) {
+    } catch (err) {
       console.error(err);
     }
   }
@@ -228,13 +226,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     try {
       await this.resultTable.load(data.id, {
         filter: {
-          sheetName: data.sheetNames?.[0]
+          sheetName: data.sheetNames?.[0],
         },
         // Should load data, if current tab
-        emitEvent: this.selectedTabIndex === ProductPageTabs.RESULT
+        emitEvent: this.selectedTabIndex === ProductPageTabs.RESULT,
       });
-    }
-    catch (err) {
+    } catch (err) {
       console.error(err);
     }
   }
@@ -264,9 +261,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     // Set default strata
     if (data.isSpatial) {
-      (data.stratum || []).forEach((strata, index) => strata.isDefault = index === 0);
-    }
-    else {
+      (data.stratum || []).forEach((strata, index) => (strata.isDefault = index === 0));
+    } else {
       // No strata is not a spatial product
       data.stratum = null;
     }
@@ -293,7 +289,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       title,
       subtitle: this.translate.instant('EXTRACTION.TYPES_MENU.PRODUCT_DIVIDER'),
       icon: 'cloud-download-outline',
-      path: `/extraction/product/${this.data.id}`
+      path: `/extraction/product/${this.data.id}`,
     };
   }
 

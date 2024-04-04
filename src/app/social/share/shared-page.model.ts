@@ -1,4 +1,4 @@
-import {Clipboard} from '@app/shared/context.service';
+import { Clipboard } from '@app/shared/context.service';
 
 export interface SharedElement {
   uuid: string;
@@ -8,5 +8,4 @@ export interface SharedElement {
   creationDate: string;
 
   content: Clipboard;
-
 }

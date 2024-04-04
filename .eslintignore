@@ -1,0 +1,7 @@
+.local
+dist
+doc
+node_modules
+resources
+scripts
+www

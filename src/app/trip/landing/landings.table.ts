@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -13,12 +13,12 @@ import { Landing } from './landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
 import { LandingFilter } from './landing.filter';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
+import { RxState } from '@rx-angular/state';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -41,19 +41,14 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
   selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
   styleUrls: ['landings.table.scss'],
-  providers: [
-    {provide: AppValidatorService, useExisting: LandingValidatorService}
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [{ provide: AppValidatorService, useExisting: LandingValidatorService }, RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
-
-  private _parentDateTime;
-  private _parentObservers;
+  private _parentDateTime: Moment;
+  private _parentObservers: Person[];
   private _detailEditor: LandingEditor;
-  private _strategyPmfmId: number;
 
-  protected cd: ChangeDetectorRef;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
@@ -64,22 +59,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
-  @Input() showError = true;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
-  @Input() useSticky = true;
   @Input() includedPmfmIds: number[] = null;
-
-  @Input() set strategyPmfmId(value: number) {
-    if (this._strategyPmfmId !== value) {
-      this._strategyPmfmId = value;
-      this.setShowColumn('strategy', isNotNil(this._strategyPmfmId));
-    }
-  }
-
-  get strategyPmfmId(): number {
-    return this._strategyPmfmId;
-  }
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -196,19 +176,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     protected accountService: AccountService,
     protected context: ObservedLocationContextService
   ) {
-    super(injector,
-      Landing, LandingFilter,
-      injector.get(LandingService),
-      injector.get(AppValidatorService),
-      {
-        reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
-        reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        requiredStrategy: false,
-        i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
-        i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX
-      });
-    this.cd = injector.get(ChangeDetectorRef);
+    super(injector, Landing, LandingFilter, injector.get(LandingService), injector.get(AppValidatorService), {
+      reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
+      reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
+      mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+      i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
+      i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
+      initialState: {
+        requiredStrategy: true,
+        requiredGear: false,
+        acquisitionLevel: AcquisitionLevelCodes.LANDING,
+      },
+    });
 
     this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
@@ -216,7 +195,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
-
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
@@ -225,17 +203,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.defaultPageSize = -1; // Do not use paginator
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
-
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.showObserversColumn = false;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
+    this.logPrefix = '[landings-table] ';
   }
 
   ngOnInit() {
-
     this._enabled = this.canEdit;
 
     super.ngOnInit();
@@ -250,12 +225,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
+        levelId: LocationLevelIds.PORT,
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
-
-
   }
 
   ngOnDestroy() {
@@ -267,7 +240,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
     // Keep selectivity device, if any
-    return pmfms.filter(p => p.required || (includedPmfmIds?.includes(p.id)));
+    return pmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
   }
 
   setParent(parent: ObservedLocation | Trip | undefined) {
@@ -278,18 +251,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       this._parentDateTime = parent.startDateTime;
       this._parentObservers = parent.observers;
       this.context.observedLocation = parent;
-      this.setFilter(LandingFilter.fromObject({observedLocationId: parent.id}), {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({ observedLocationId: parent.id }), { emitEvent: true /*refresh*/ });
     } else if (parent instanceof Trip) {
       this._parentDateTime = parent.departureDateTime;
       this.context.trip = parent;
-      this.setFilter(LandingFilter.fromObject({tripId: parent.id}), {emitEvent: true/*refresh*/});
+      this.setFilter(LandingFilter.fromObject({ tripId: parent.id }), { emitEvent: true /*refresh*/ });
     }
   }
 
   async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
     const rows = this.dataSource.getRows();
     return rows
-      .filter(row => vessel.equals(row.currentData.vesselSnapshot))
+      .filter((row) => vessel.equals(row.currentData.vesselSnapshot))
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);
   }
 
@@ -311,7 +284,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   async addRow(event?: any): Promise<boolean> {
-
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
       if (this.debug) console.debug('[landings-table] Asking for new landing...');
@@ -340,7 +312,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
-
   get canCancelOrDeleteSelectedRows(): boolean {
     // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
     if (this.accountService.isAdmin()) {
@@ -349,7 +320,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (this.selection.isEmpty()) return false;
 
-    return this.selection.selected.every(row => this.canCancelOrDelete(row));
+    return this.selection.selected.every((row) => this.canCancelOrDelete(row));
   }
 
   /* -- protected methods -- */
@@ -368,11 +339,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
 
     // When connected user is in observed location observers
-    return this._parentObservers?.some(o => o.id === personId) || false;
+    return this._parentObservers?.some((o) => o.id === personId) || false;
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 }
-

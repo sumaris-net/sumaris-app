@@ -3,11 +3,8 @@ import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/
 import { Moment } from 'moment';
 import { IPositionEntity } from '@app/data/position/position.model';
 
-
 @EntityClass({ typename: 'VesselPositionVO' })
-export class VesselPosition extends DataEntity<VesselPosition>
-  implements IPositionEntity<VesselPosition> {
-
+export class VesselPosition extends DataEntity<VesselPosition> implements IPositionEntity<VesselPosition> {
   static fromObject: (source: any, opts?: any) => VesselPosition;
 
   dateTime: Moment;
@@ -36,14 +33,17 @@ export class VesselPosition extends DataEntity<VesselPosition>
   }
 
   equals(other: VesselPosition): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
-        && (!this.operationId && !other.operationId || this.operationId === other.operationId));
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      (this.dateTime &&
+        this.dateTime.isSame(fromDateISOString(other.dateTime)) &&
+        ((!this.operationId && !other.operationId) || this.operationId === other.operationId))
+    );
   }
 
   isSamePoint(other: VesselPosition) {
     if (!other) return false;
-    return (this.latitude === other.latitude) && (this.longitude === other.longitude);
+    return this.latitude === other.latitude && this.longitude === other.longitude;
   }
 
   copyPoint(source: VesselPosition) {

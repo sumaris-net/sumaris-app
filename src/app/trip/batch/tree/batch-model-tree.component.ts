@@ -60,6 +60,8 @@ export class BatchModelTreeComponent {
   }
 
   protected click(event: Event, node: BatchModel) {
+    if (node.disabled) return;
+
     event?.stopImmediatePropagation();
     this.itemClick.emit(node);
   }

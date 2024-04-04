@@ -1,26 +1,18 @@
-<ng-container *ngIf="showSheetsTab && type?.sheetNames as sheetNames">
-  <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength : { greaterThan: 1 }">
-    <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
-      <ion-text>{{ item }}</ion-text>
-      <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
-    </a>
-  </nav>
-</ng-container>
+@if (showSheetsTab && type?.sheetNames; as sheetNames) {
+  @if (sheetNames | isArrayLength: { greaterThan: 1 }) {
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+      <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
+        <ion-text>{{ item }}</ion-text>
+        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
+      </a>
+    </nav>
+  }
+}
 
-<form
-  [formGroup]="form"
-  (ngSubmit)="onSubmit.emit($event)"
-  *ngIf="sheetCriteriaForm; let criteriaForm"
-  class="form-container"
->
+<form #tabPanel [formGroup]="form" (ngSubmit)="onSubmit.emit($event)" *ngIf="sheetCriteriaForm; let criteriaForm" class="form-container">
   <ion-grid [formArrayName]="sheetName">
     <ng-container *ngFor="let criterionForm of criteriaForm.controls; index as i; odd as odd">
-      <ion-row
-        [formGroupName]="i"
-        class="strata-row"
-        [class.odd]="odd"
-        [class.cdk-visually-hidden]="criterionForm | formGetValue : 'hidden'"
-      >
+      <ion-row [formGroupName]="i" class="strata-row" [class.odd]="odd" [class.cdk-visually-hidden]="criterionForm | formGetValue: 'hidden'">
         <!-- column name -->
         <ion-col class="ion-no-padding">
           <mat-form-field class="name">
@@ -49,9 +41,9 @@
         <ion-col
           class="ion-no-padding"
           *ngVar="{
-            operator: (criterionForm | formGetControl : 'operator'),
-            value: (criterionForm | formGetControl : 'value'),
-            endValue: (criterionForm | formGetControl : 'endValue')
+            operator: (criterionForm | formGetControl: 'operator'),
+            value: (criterionForm | formGetControl: 'value'),
+            endValue: (criterionForm | formGetControl: 'endValue')
           } as controls"
           [class.has-two-fields]="controls.operator.value === 'BETWEEN'"
         >
@@ -60,8 +52,8 @@
               class="value"
               #field
               [placeholder]="
-                (controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE') ||
-                  'EXTRACTION.FILTER.CRITERION_VALUE' | translate
+                (controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE') || 'EXTRACTION.FILTER.CRITERION_VALUE'
+                  | translate
               "
               [formControl]="controls.value"
               [definition]="definition"

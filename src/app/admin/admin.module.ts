@@ -9,14 +9,11 @@ import { AppConfigurationModule } from '@app/admin/config/configuration.module';
     AdminModule,
 
     // Sub modules
-    AppConfigurationModule
+    AppConfigurationModule,
   ],
-  exports: [
-    AppConfigurationModule
-  ]
+  exports: [AppConfigurationModule],
 })
 export class AppAdminModule {
-
   constructor() {
     console.debug('[admin] Creating module');
   }

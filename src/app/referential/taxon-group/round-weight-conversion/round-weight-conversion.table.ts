@@ -15,7 +15,6 @@ import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/service
   templateUrl: '../../table/base-referential.table.html',
   styleUrls: ['../../table/base-referential.table.scss'],
 })
-// @ts-ignore
 export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeightConversion, RoundWeightConversionFilter> implements OnInit {
   get taxonGroupIdControl() {
     return this.filterForm.get('taxonGroupId');

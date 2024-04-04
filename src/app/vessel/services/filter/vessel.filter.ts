@@ -9,15 +9,14 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vessel.model';
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Moment } from 'moment';
 
-@EntityClass({typename: 'VesselFilterVO'})
+@EntityClass({ typename: 'VesselFilterVO' })
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
-
   static fromObject: (source: any, opts?: any) => VesselFilter;
 
   static EXCLUDE_CRITERIA_COUNT = ['statusIds', 'onlyWithRegistration'];
@@ -45,18 +44,24 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
     this.onlyWithRegistration = source.onlyWithRegistration;
-    this.registrationLocation = ReferentialRef.fromObject(source.registrationLocation) ||
-      isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({id: source.registrationLocationId}) || undefined;
-    this.basePortLocation = ReferentialRef.fromObject(source.basePortLocation) ||
-      isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({id: source.basePortLocationId}) || undefined;
-    this.vesselType = ReferentialRef.fromObject(source.vesselType) ||
-      isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({id: source.vesselTypeId}) || undefined;
+    this.registrationLocation =
+      ReferentialRef.fromObject(source.registrationLocation) ||
+      (isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({ id: source.registrationLocationId })) ||
+      undefined;
+    this.basePortLocation =
+      ReferentialRef.fromObject(source.basePortLocation) ||
+      (isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({ id: source.basePortLocationId })) ||
+      undefined;
+    this.vesselType =
+      ReferentialRef.fromObject(source.vesselType) ||
+      (isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({ id: source.vesselTypeId })) ||
+      undefined;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
-    if (opts && opts.minify) {
+    if (opts?.minify) {
       target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
       delete target.statusId;
 
@@ -70,8 +75,7 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
       delete target.vesselType;
 
       if (target.onlyWithRegistration !== true) delete target.onlyWithRegistration;
-    }
-    else {
+    } else {
       target.registrationLocation = this.registrationLocation?.asObject(opts);
       target.basePortLocation = this.basePortLocation?.asObject(opts);
       target.vesselType = this.vesselType?.asObject(opts);
@@ -84,54 +88,54 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
 
     // Vessel id
     if (isNotNil(this.vesselId)) {
-      filterFns.push(t => t.id === this.vesselId);
+      filterFns.push((t) => t.id === this.vesselId);
     }
 
     // Status
     const statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
     if (isNotEmptyArray(statusIds)) {
-      filterFns.push(t => statusIds.includes(t.statusId));
+      filterFns.push((t) => statusIds.includes(t.statusId));
     }
 
     // Only with registration
     if (this.onlyWithRegistration) {
-      filterFns.push(t => isNotNil(t.vesselRegistrationPeriod));
+      filterFns.push((t) => isNotNil(t.vesselRegistrationPeriod));
     }
 
     // registration location
     const registrationLocationId = this.registrationLocation?.id;
     if (isNotNil(registrationLocationId)) {
-      filterFns.push(t => (t.vesselRegistrationPeriod?.registrationLocation?.id === registrationLocationId));
+      filterFns.push((t) => t.vesselRegistrationPeriod?.registrationLocation?.id === registrationLocationId);
     }
 
     // base port location
     const basePortLocationId = this.basePortLocation?.id;
     if (isNotNil(basePortLocationId)) {
-      filterFns.push(t => (t.vesselFeatures?.basePortLocation?.id === basePortLocationId));
+      filterFns.push((t) => t.vesselFeatures?.basePortLocation?.id === basePortLocationId);
     }
 
     // Vessel type
     const vesselTypeId = this.vesselType?.id;
     if (isNotNil(vesselTypeId)) {
-      filterFns.push(t => (t.vesselType?.id === vesselTypeId));
+      filterFns.push((t) => t.vesselType?.id === vesselTypeId);
     }
 
-    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || ['vesselFeatures.exteriorMarking', 'vesselRegistrationPeriod.registrationCode', 'vesselFeatures.name'],
-      this.searchText);
+    const searchTextFilter = EntityUtils.searchTextFilter(
+      this.searchAttributes || ['vesselFeatures.exteriorMarking', 'vesselRegistrationPeriod.registrationCode', 'vesselFeatures.name'],
+      this.searchText
+    );
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     return filterFns;
   }
 
   protected isCriteriaNotEmpty(key: string, value: any): boolean {
-    return !VesselFilter.EXCLUDE_CRITERIA_COUNT.includes(key)
-      && super.isCriteriaNotEmpty(key, value);
+    return !VesselFilter.EXCLUDE_CRITERIA_COUNT.includes(key) && super.isCriteriaNotEmpty(key, value);
   }
 }
 
-@EntityClass({typename: 'VesselFeaturesFilterVO'})
+@EntityClass({ typename: 'VesselFeaturesFilterVO' })
 export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, VesselFeatures> {
-
   static fromObject: (source: any, opts?: any) => VesselFeaturesFilter;
 
   vesselId: number;
@@ -149,12 +153,10 @@ export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, Ves
 
     return filterFns;
   }
-
 }
 
-@EntityClass({typename: 'VesselRegistrationFilterVO'})
+@EntityClass({ typename: 'VesselRegistrationFilterVO' })
 export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFilter, VesselRegistrationPeriod> {
-
   static fromObject: (source: any, opts?: any) => VesselRegistrationFilter;
 
   vesselId: number;
@@ -166,7 +168,7 @@ export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFil
 
   asObject(opts?: EntityAsObjectOptions): any {
     return {
-      vesselId: this.vesselId
+      vesselId: this.vesselId,
     };
   }
 

@@ -14,7 +14,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden mat-tab-group-root"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -52,20 +52,13 @@
                   <ion-row>
                     <ion-col>
                       <!-- Taxonomic Level -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.taxonomicLevel"
-                        formControlName="taxonomicLevel"
-                        required
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.taxonomicLevel" formControlName="taxonomicLevel" required></app-form-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
                     <ion-col>
                       <!-- Parent Taxon Name -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.parentTaxonName"
-                        formControlName="parentTaxonName"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.parentTaxonName" formControlName="parentTaxonName"></app-form-field>
                     </ion-col>
                   </ion-row>
                   <!-- Dates-->
@@ -78,10 +71,7 @@
                       ></mat-date-field>
                     </ion-col>
                     <ion-col>
-                      <mat-date-field
-                        [placeholder]="'REFERENTIAL.TAXON_NAME.END_DATE' | translate"
-                        formControlName="endDate"
-                      ></mat-date-field>
+                      <mat-date-field [placeholder]="'REFERENTIAL.TAXON_NAME.END_DATE' | translate" formControlName="endDate"></mat-date-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
@@ -100,34 +90,21 @@
                           formControlName="referenceTaxonId"
                           autocomplete="off"
                         />
-                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('required')" translate>
-                          ERROR.FIELD_REQUIRED
-                        </mat-error>
-                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('not_exist')" translate>
-                          ERROR.FIELD_NOT_EXISTS
-                        </mat-error>
+                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                        <mat-error *ngIf="form.controls.referenceTaxonId.hasError('not_exist')" translate>ERROR.FIELD_NOT_EXISTS</mat-error>
                       </mat-form-field>
                     </ion-col>
                   </ion-row>
                   <ion-row>
                     <ion-col>
                       <!-- Boolean Values -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.isNaming"
-                        formControlName="isNaming"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isNaming" formControlName="isNaming"></app-form-field>
                     </ion-col>
                     <ion-col>
-                      <app-form-field
-                        [definition]="fieldDefinitions.isReferent"
-                        formControlName="isReferent"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isReferent" formControlName="isReferent"></app-form-field>
                     </ion-col>
                     <ion-col>
-                      <app-form-field
-                        [definition]="fieldDefinitions.isVirtual"
-                        formControlName="isVirtual"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.isVirtual" formControlName="isVirtual"></app-form-field>
                     </ion-col>
                   </ion-row>
                 </app-referential-form>
@@ -144,32 +121,27 @@
     </mat-tab>
 
     <!-- TAB: Weight/Length relation -->
-    <mat-tab
-      label="{{ 'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION' | translate }}"
-      [disabled]="(wlcTable.readySubject | async) === false"
-    >
+    <mat-tab label="{{ 'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION' | translate }}" [disabled]="(wlcTable.readySubject | async) === false">
       <ng-template mat-tab-label>
         <mat-icon>list</mat-icon>
         <ion-label translate>REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && wlcTable.invalid"></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
-        <!-- error -->
-        <ion-item *ngIf="mobile && wlcTable.error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="wlcTable.error | translate"></ion-label>
-        </ion-item>
+      <!-- error -->
+      <ion-item *ngIf="mobile && wlcTable.error" lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="wlcTable.error | translate"></ion-label>
+      </ion-item>
 
-        <app-weight-length-conversion-table
-          #wlcTable
-          [referenceTaxonId]="this.form.controls.referenceTaxonId.valueChanges | async"
-          [showReferenceTaxonIdColumn]="false"
-          [canDownload]="true"
-          [canUpload]="true"
-          [showPaginator]="true"
-        ></app-weight-length-conversion-table>
-      </div>
+      <app-weight-length-conversion-table
+        #wlcTable
+        [referenceTaxonId]="this.form.controls.referenceTaxonId.valueChanges | async"
+        [showReferenceTaxonIdColumn]="false"
+        [canDownload]="true"
+        [canUpload]="true"
+        [showPaginator]="true"
+      ></app-weight-length-conversion-table>
     </mat-tab>
   </mat-tab-group>
 </ion-content>

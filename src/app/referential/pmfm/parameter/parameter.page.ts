@@ -23,14 +23,11 @@ import { SimpleReferentialTable } from '../../table/referential-simple.table';
 @Component({
   selector: 'app-parameter',
   templateUrl: 'parameter.page.html',
-  providers: [
-    {provide: ValidatorService, useExisting: ParameterValidatorService}
-  ],
+  providers: [{ provide: ValidatorService, useExisting: ParameterValidatorService }],
   animations: [fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParameterPage extends AppEntityEditor<Parameter> {
-
   canEdit: boolean;
   form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
@@ -53,12 +50,9 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector,
-      Parameter,
-      parameterService,
-      {
-        tabCount: 1
-      });
+    super(injector, Parameter, parameterService, {
+      tabCount: 1,
+    });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -74,9 +68,11 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
         label: `REFERENTIAL.PARAMETER.TYPE`,
         type: 'enum',
         required: true,
-        values: ['double', 'string', 'qualitative_value', 'date', 'boolean']
-          .map(key => ({key, value: ('REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase()) }))
-      }
+        values: ['double', 'string', 'qualitative_value', 'date', 'boolean'].map((key) => ({
+          key,
+          value: 'REFERENTIAL.PARAMETER.TYPE_ENUM.' + key.toUpperCase(),
+        })),
+      },
     };
   }
   ngOnInit() {
@@ -86,12 +82,10 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     this.referentialForm.entityName = Parameter.ENTITY_NAME;
 
     // Check label is unique
-    this.form.get('label')
-      .setAsyncValidators(async (control: AbstractControl) => {
-        const label = control.enabled && control.value;
-        return label && (await this.parameterService.existsByLabel(label, {excludedId: this.data && this.data.id})) ?
-          {unique: true} : null;
-      });
+    this.form.get('label').setAsyncValidators(async (control: AbstractControl) => {
+      const label = control.enabled && control.value;
+      return label && (await this.parameterService.existsByLabel(label, { excludedId: this.data && this.data.id })) ? { unique: true } : null;
+    });
 
     this.markAsReady();
   }
@@ -103,7 +97,6 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
 
     this.tabCount = this.isQualitative ? 2 : 1;
   }
-
 
   enable() {
     super.enable();
@@ -123,10 +116,10 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     const json = data.asObject();
     json.qualitativeValues = json.qualitativeValues || []; // Make sure to it array
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.form.patchValue(json, { emitEvent: false });
 
     // QualitativeValues
-    this.qualitativeValuesTable.value = data.qualitativeValues && data.qualitativeValues.slice() || []; // force update
+    this.qualitativeValuesTable.value = (data.qualitativeValues && data.qualitativeValues.slice()) || []; // force update
 
     this.markAsPristine();
   }
@@ -159,7 +152,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
       ...(await super.computePageHistory(title)),
       title: `${this.data.label} - ${this.data.name}`,
       subtitle: 'REFERENTIAL.ENTITY.PARAMETER',
-      icon: 'list'
+      icon: 'list',
     };
   }
 
@@ -180,6 +173,4 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }
-

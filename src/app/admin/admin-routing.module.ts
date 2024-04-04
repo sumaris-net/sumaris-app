@@ -11,8 +11,8 @@ const routes: Routes = [
     component: UsersPage,
     canActivate: [AuthGuardService],
     data: {
-      profile: 'ADMIN'
-    }
+      profile: 'ADMIN',
+    },
   },
   {
     path: 'config',
@@ -20,16 +20,13 @@ const routes: Routes = [
     component: ConfigurationPage,
     canActivate: [AuthGuardService],
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppAdminModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppAdminModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppAdminRoutingModule { }
+export class AppAdminRoutingModule {}

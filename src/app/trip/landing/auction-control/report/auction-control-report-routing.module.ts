@@ -8,14 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: AuctionControlReport,
-  }
+  },
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AuctionControlReportModule,
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forChild(routes), AuctionControlReportModule],
+  exports: [RouterModule],
 })
 export class AuctionControlReportRoutingModule {}

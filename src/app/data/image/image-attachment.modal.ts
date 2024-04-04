@@ -18,14 +18,14 @@ export interface IImageModalOptions {
   providers: [
     {
       provide: APP_IMAGE_ATTACHMENT_SERVICE,
-      useFactory: () => new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
-        equals: EntityUtils.equals
-      })
-    }
-  ]
+      useFactory: () =>
+        new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
+          equals: EntityUtils.equals,
+        }),
+    },
+  ],
 })
-export class AppImageAttachmentsModal implements OnInit, OnDestroy, IImageModalOptions{
-
+export class AppImageAttachmentsModal implements OnInit, OnDestroy, IImageModalOptions {
   private _subscription = new Subscription();
 
   @Input() title = '';
@@ -43,12 +43,12 @@ export class AppImageAttachmentsModal implements OnInit, OnDestroy, IImageModalO
     return !this.invalid;
   }
 
-  @ViewChild('gallery', {static: true}) gallery: AppImageAttachmentGallery;
+  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
 
   constructor(
     protected modalCtrl: ModalController,
     @Self() @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
-  ) { }
+  ) {}
 
   ngOnInit() {
     // Default values
@@ -56,7 +56,7 @@ export class AppImageAttachmentsModal implements OnInit, OnDestroy, IImageModalO
 
     // Set value
     this.gallery.markAsReady();
-    this.gallery.value = this.data;
+    this.gallery.value = this.data || [];
   }
 
   ngOnDestroy() {

@@ -9,34 +9,19 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { BluetoothTestingPage } from '@app/shared/bluetooth/testing/bluetooth.testing';
 import { AppBluetoothModule } from '@app/shared/bluetooth/bluetooth.module';
 
-export const BLUETOOTH_TESTING_PAGES: TestingPage[] = [
-  {label: 'Bluetooth', page: '/testing/shared/bluetooth'}
-];
+export const BLUETOOTH_TESTING_PAGES: TestingPage[] = [{ label: 'Bluetooth', page: '/testing/shared/bluetooth' }];
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: BluetoothTestingPage
-  }
+    component: BluetoothTestingPage,
+  },
 ];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    AppSharedModule,
-    CoreModule,
-    TranslateModule.forChild(),
-    RouterModule.forChild(routes),
-    AppBluetoothModule
-  ],
-  declarations: [
-    BluetoothTestingPage
-  ],
-  exports: [
-    BluetoothTestingPage
-  ]
+  imports: [CommonModule, AppSharedModule, CoreModule, TranslateModule.forChild(), RouterModule.forChild(routes), AppBluetoothModule],
+  declarations: [BluetoothTestingPage],
+  exports: [BluetoothTestingPage],
 })
-export class AppBluetoothTestingModule {
-
-}
+export class AppBluetoothTestingModule {}

@@ -7,10 +7,11 @@
   [showSpinner]="!disabled && loading"
 ></app-modal-toolbar>
 
-<ion-content>
+<ion-content class="ion-no-padding" [scrollY]="false">
   <app-transcribing-item-table
     #table
     [disabled]="disabled"
+    [filterTypes]="filterTypes"
     [canUpload]="false"
     [canDownload]="false"
   ></app-transcribing-item-table>
@@ -27,12 +28,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button
-          [fill]="table.valid ? 'solid' : 'clear'"
-          [disabled]="disabled || table.invalid"
-          (click)="onSubmit($event)"
-          color="primary"
-        >
+        <ion-button [fill]="table.valid ? 'solid' : 'clear'" [disabled]="disabled || table.invalid" (click)="onSubmit($event)" color="primary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

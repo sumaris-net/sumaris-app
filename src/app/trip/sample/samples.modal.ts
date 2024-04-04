@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { AppFormUtils, LocalSettingsService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -12,7 +12,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModalOptions<Sample[]>{
+export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModalOptions<Sample[]> {
   canEdit: boolean;
 
   defaultSampleDate: Moment;
@@ -30,10 +30,9 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
 @Component({
   selector: 'app-samples-modal',
   templateUrl: 'samples.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesModal implements OnInit, ISamplesModalOptions {
-
   readonly debug = !environment.production;
   loading = false;
   $title = new BehaviorSubject<string>(undefined);
@@ -78,7 +77,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.table.$pmfms;
+    return this.table.pmfms$;
   }
 
   constructor(
@@ -123,8 +122,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
         const promiseOrVoid = this.onReady(this);
         if (promiseOrVoid) await promiseOrVoid;
       }
-    }
-    finally {
+    } finally {
       this.table.markAsUntouched();
       this.table.markAsPristine();
       this.markForCheck();
@@ -135,7 +133,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
     await this.viewCtrl.dismiss();
   }
 
-  async ready(): Promise<void>{
+  async ready(): Promise<void> {
     await this.table.ready();
   }
 
@@ -166,8 +164,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
     this.cd.markForCheck();
   }
 
-  onNewFabButtonClick(event: Event){
+  onNewFabButtonClick(event: Event) {
     this.table.addRow(event);
   }
-
 }

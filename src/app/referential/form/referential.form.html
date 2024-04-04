@@ -10,13 +10,7 @@
       <!-- Label -->
       <ion-col>
         <mat-form-field>
-          <input
-            matInput
-            [placeholder]="'REFERENTIAL.LABEL' | translate"
-            formControlName="label"
-            autocomplete="off"
-            required
-          />
+          <input matInput [placeholder]="'REFERENTIAL.LABEL' | translate" formControlName="label" autocomplete="off" required />
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls.label.hasError('unique')" translate>ERROR.FIELD_NOT_UNIQUE</mat-error>
         </mat-form-field>
@@ -45,13 +39,7 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <input
-            matInput
-            [placeholder]="'REFERENTIAL.NAME' | translate"
-            formControlName="name"
-            autocomplete="off"
-            required
-          />
+          <input matInput [placeholder]="'REFERENTIAL.NAME' | translate" formControlName="name" autocomplete="off" required />
           <mat-error *ngIf="form.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>

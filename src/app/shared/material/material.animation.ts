@@ -6,27 +6,31 @@ import { Animation, createAnimation } from '@ionic/core';
 export const slideDownAnimation =
   // trigger name for attaching this animation to an element using the [@triggerName] syntax
   trigger('slideDownAnimation', [
-
     // end state styles for route container (host)
-    state('*', style({
-      transform: 'translateY(0)',
-      opacity: 1
-    })),
+    state(
+      '*',
+      style({
+        transform: 'translateY(0)',
+        opacity: 1,
+      })
+    ),
 
     // route 'enter' transition
     transition(':enter', [
-
       // styles at start of transition
       style({
         transform: 'translateY(-400%)',
-        opacity: 0
+        opacity: 0,
       }),
 
       // animation and styles at end of transition
-      animate('.3s ease-in-out', style({
-        transform: 'translateY(0)',
-        opacity: 1
-      }))
+      animate(
+        '.3s ease-in-out',
+        style({
+          transform: 'translateY(0)',
+          opacity: 1,
+        })
+      ),
     ]),
 
     // route 'leave' transition
@@ -34,9 +38,9 @@ export const slideDownAnimation =
       // animation and styles at end of transition
       style({
         transform: 'translateY(-400%)',
-        opacity: 0
-      })
-    ])
+        opacity: 0,
+      }),
+    ]),
   ]);
 
 export const ionFadeInTransition = (
@@ -48,16 +52,10 @@ export const ionFadeInTransition = (
 ): Animation => {
   const baseAnimation = createAnimation();
 
-  const enteringAnimation = createAnimation()
-    .addElement(opts.enteringEl)
-    .duration(500)
-    .fromTo('opacity', 0, 1);
+  const enteringAnimation = createAnimation().addElement(opts.enteringEl).duration(500).fromTo('opacity', 0, 1);
 
   if (opts.leavingEl) {
-    const leavingAnimation = createAnimation()
-      .addElement(opts.leavingEl)
-      .duration(500)
-      .fromTo('opacity', 1, 0);
+    const leavingAnimation = createAnimation().addElement(opts.leavingEl).duration(500).fromTo('opacity', 1, 0);
     return baseAnimation.addAnimation([enteringAnimation, leavingAnimation]);
   }
 

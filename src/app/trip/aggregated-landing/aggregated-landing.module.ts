@@ -8,7 +8,6 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -16,22 +15,15 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
 
     // Functional modules
     AppReferentialModule,
-    AppPmfmFormFieldModule
+    AppPmfmFormFieldModule,
   ],
-  declarations: [
-    AggregatedLandingsTable,
-    AggregatedLandingModal,
-    AggregatedLandingForm,
-    VesselActivityForm
-  ],
+  declarations: [AggregatedLandingsTable, AggregatedLandingModal, AggregatedLandingForm, VesselActivityForm],
   exports: [
-
     // Components
-    AggregatedLandingsTable
-  ]
+    AggregatedLandingsTable,
+  ],
 })
 export class AppAggregatedLandingModule {
-
   constructor() {
     console.debug('[aggregated-landing] Creating module...');
   }

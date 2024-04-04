@@ -25,27 +25,26 @@ export declare type PmfmValue = number | string | boolean | Moment | IReferentia
 export const PMFM_VALUE_SEPARATOR = '|';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export declare type ConvertedNumber = Number & {__conversionCoefficient: number};
+export declare type ConvertedNumber = Number & { __conversionCoefficient: number };
 
 export abstract class PmfmValueUtils {
-
   private static readonly CONVERSION_COEFFICIENT_PROPERTY = '__conversionCoefficient';
 
   static isConvertedNumber(value: any): value is ConvertedNumber {
-    return (value instanceof Number) && isNotNilOrNaN(value[PmfmValueUtils.CONVERSION_COEFFICIENT_PROPERTY]);
+    return value instanceof Number && isNotNilOrNaN(value[PmfmValueUtils.CONVERSION_COEFFICIENT_PROPERTY]);
   }
 
   static isEmpty(value: PmfmValue | any) {
-    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
+    return isNilOrBlank(value) || (typeof value === 'object' && ReferentialUtils.isEmpty(value));
   }
 
   static isNotEmpty(value: PmfmValue | any) {
-    return isNotNilOrBlank(value) || ReferentialUtils.isNotEmpty(value);
+    return isNotNilOrBlank(value) && (typeof value !== 'object' || ReferentialUtils.isNotEmpty(value));
   }
 
   static equals(pv1: PmfmValue, pv2: PmfmValue): boolean {
     // Exact match
-    if ((isNil(pv1) && isNil(pv2)) || (pv1 === pv2)) return true;
+    if ((isNil(pv1) && isNil(pv2)) || pv1 === pv2) return true;
 
     // Dates
     if (isMoment(pv1) || isMoment(pv2)) {
@@ -65,33 +64,35 @@ export abstract class PmfmValueUtils {
     return v1 == v2;
   }
 
-  static toModelValue(value: PmfmValue | PmfmValue[] | any,
-                      pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion },
-                      opts = {applyConversion: true}): string {
+  static toModelValue(
+    value: PmfmValue | PmfmValue[] | any,
+    pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion },
+    opts = { applyConversion: true }
+  ): string {
     if (isNil(value) || !pmfm) return undefined;
     if (Array.isArray(value)) {
-      return value.map(v => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);
+      return value.map((v) => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);
     }
     switch (pmfm.type) {
       case 'qualitative_value':
-        return value && isNotNil(value.id) && value.id.toString() || value || undefined;
+        return (value && isNotNil(value.id) && value.id.toString()) || value || undefined;
       case 'integer':
       case 'double':
         if (isNil(value) && !isNaN(+value)) return undefined;
 
         // Apply conversion
         if (pmfm.displayConversion && opts.applyConversion && isNotNilOrNaN(pmfm.displayConversion.conversionCoefficient)) {
-          value = this.applyConversion(value, 1 / pmfm.displayConversion.conversionCoefficient, {markAsConverted: false});
+          value = this.applyConversion(value, 1 / pmfm.displayConversion.conversionCoefficient, { markAsConverted: false });
         }
         return value;
       case 'string':
         return value;
       case 'boolean':
-        return (value === true || value === 'true') ? 'true' : ((value === false || value === 'false') ? 'false' : undefined);
+        return value === true || value === 'true' ? 'true' : value === false || value === 'false' ? 'false' : undefined;
       case 'date':
         return toDateISOString(value);
       default:
-        throw new Error('Unknown pmfm\'s type: ' + pmfm.type);
+        throw new Error("Unknown pmfm's type: " + pmfm.type);
     }
   }
 
@@ -101,20 +102,19 @@ export abstract class PmfmValueUtils {
       case 'double':
       case 'integer':
       case 'qualitative_value':
-        return +(PmfmValueUtils.toModelValue(value, pmfm));
+        return +PmfmValueUtils.toModelValue(value, pmfm);
       case 'boolean':
-        const trueFalse = PmfmValueUtils.toModelValue(value, pmfm);
-        return trueFalse === 'true' ? 1 : 0;
+        return PmfmValueUtils.toModelValue(value, pmfm) === 'true' ? 1 : 0;
       default:
         return undefined; // Cannot convert to a number (alphanumerical,date,etc.)
     }
   }
 
-  static asObject(value: PmfmValue | PmfmValue[] | any): string|any {
+  static asObject(value: PmfmValue | PmfmValue[] | any): string | any {
     if (isNil(value)) return undefined;
     // Multiple values (e.g. selective device, on a physical gear)
     if (Array.isArray(value)) {
-      return value.map(v => this.asObject(v)).join(PMFM_VALUE_SEPARATOR);
+      return value.map((v) => this.asObject(v)).join(PMFM_VALUE_SEPARATOR);
     }
     // If moment object, then convert to ISO string - fix #157
     if (isMoment(value)) {
@@ -122,7 +122,7 @@ export abstract class PmfmValueUtils {
     }
     // If date, convert to ISO string
     if (value instanceof Date) {
-     return toDateISOString(DateUtils.moment(value));
+      return toDateISOString(DateUtils.moment(value));
     }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {
@@ -134,11 +134,11 @@ export abstract class PmfmValueUtils {
     // Qualitative value, String or number
     else {
       value = notNilOrDefault(value.id, value);
-      return ''+ value;
+      return '' + value;
     }
   }
 
-  static fromModelValue(value: any, pmfm: IPmfm, opts?: {doNotSplitValue: boolean}): PmfmValue | PmfmValue[] {
+  static fromModelValue(value: any, pmfm: IPmfm, opts?: { doNotSplitValue: boolean }): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
@@ -148,17 +148,17 @@ export abstract class PmfmValueUtils {
       value = value.split(PMFM_VALUE_SEPARATOR);
     }
     if (Array.isArray(value)) {
-      return value.map(v => this.fromModelValue(v, pmfm, {doNotSplitValue : true}) as PmfmValue);
+      return value.map((v) => this.fromModelValue(v, pmfm, { doNotSplitValue: true }) as PmfmValue);
     }
 
     // Simple value
     switch (pmfm.type) {
       case 'qualitative_value':
         if (isNotNil(value)) {
-          const qvId = (typeof value === 'object') ? value.id : parseInt(value);
-          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter?.qualitativeValues) || [])
-            .find(qv => qv.id === qvId) || null;
-
+          const qvId = typeof value === 'object' ? value.id : parseInt(value);
+          return (
+            (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter?.qualitativeValues) || []).find((qv) => qv.id === qvId) || null
+          );
         }
         return null;
       case 'integer':
@@ -168,8 +168,7 @@ export abstract class PmfmValueUtils {
           // DEBUG
           //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
           value = PmfmValueUtils.applyConversion(value, pmfm.displayConversion.conversionCoefficient);
-        }
-        else {
+        } else {
           value = parseInt(value);
         }
         return value;
@@ -180,15 +179,14 @@ export abstract class PmfmValueUtils {
           // DEBUG
           //console.debug(`[pmfm-value] Pmfm '${pmfm.label}' will apply conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
           value = PmfmValueUtils.applyConversion(value, pmfm.displayConversion.conversionCoefficient);
-        }
-        else {
+        } else {
           value = parseFloat(value);
         }
         return value;
       case 'string':
         return value || null;
       case 'boolean':
-        return (value === 'true' || value === true || value === 1) ? true : ((value === 'false' || value === false || value === 0) ? false : null);
+        return value === 'true' || value === true || value === 1 ? true : value === 'false' || value === false || value === 0 ? false : null;
       case 'date':
         return fromDateISOString(value) || null;
       default:
@@ -196,24 +194,34 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): string | undefined {
+  static valueToString(
+    value: any,
+    opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showNameForPmfmids?: number[] }
+  ): string | undefined {
     if (isNil(value) || !opts?.pmfm) return null;
     switch (opts.pmfm.type) {
-      case 'qualitative_value':
+      case 'qualitative_value': {
         if (value && typeof value !== 'object') {
           const qvId = parseInt(value);
-          value = opts.pmfm && (opts.pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(opts.pmfm) && opts.pmfm.parameter && opts.pmfm.parameter.qualitativeValues) || [])
-            .find(qv => qv.id === qvId) || null;
+          value =
+            (opts.pmfm &&
+              (
+                opts.pmfm.qualitativeValues ||
+                (PmfmUtils.isFullPmfm(opts.pmfm) && opts.pmfm.parameter && opts.pmfm.parameter.qualitativeValues) ||
+                []
+              ).find((qv) => qv.id === qvId)) ||
+            null;
         }
         // eslint-disable-next-line eqeqeq
         if (opts.hideIfDefaultValue && value.id == opts.pmfm.defaultValue) {
           return null;
         }
-        let result = value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label) || null;
-        if (result && opts.showLabelForPmfmIds?.includes(opts.pmfm.id)) {
+        let result = (value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label)) || null;
+        if (result && opts.showNameForPmfmids?.includes(opts.pmfm.id)) {
           result = referentialToString(opts.pmfm, ['name']) + ': ' + result;
         }
         return result;
+      }
       case 'integer':
       case 'double':
         return isNotNil(value) ? value : null;
@@ -222,14 +230,17 @@ export abstract class PmfmValueUtils {
       case 'date':
         return value || null;
       case 'boolean':
-        return (value === 'true' || value === true || value === 1) ? '&#x2714;' /*checkmark*/ :
-          ((value === 'false' || value === false || value === 0) ? '&#x2718;' : null); /*empty*/
+        return value === 'true' || value === true || value === 1
+          ? '&#x2714;' /*checkmark*/
+          : value === 'false' || value === false || value === 0
+            ? '&#x2718;'
+            : null; /*empty*/
       default:
-        throw new Error('Unknown pmfm\'s type: ' + opts.pmfm.type);
+        throw new Error("Unknown pmfm's type: " + opts.pmfm.type);
     }
   }
 
-  static applyConversion(value: any, conversionCoefficient?: number, opts?: {markAsConverted: boolean}): number {
+  static applyConversion(value: any, conversionCoefficient?: number, opts?: { markAsConverted: boolean }): number {
     if (isNil(value) || isNil(conversionCoefficient)) return value;
 
     // SKip (already converted)
@@ -251,19 +262,19 @@ export abstract class PmfmValueUtils {
       target.__conversionCoefficient = conversionCoefficient;
     }
 
-    return  target;
+    return target;
   }
 
   static convertLengthValue(sourceValue: number, sourceUnit: LengthUnitSymbol, targetUnit: LengthUnitSymbol, targetPrecision?: number): number {
-    const unitConversionCoefficient = sourceUnit === targetUnit ? 1
-      // source -> meter (pivot) -> target
-      : LengthMeterConversion[sourceUnit] / LengthMeterConversion[targetUnit];
+    const unitConversionCoefficient =
+      sourceUnit === targetUnit
+        ? 1
+        : // source -> meter (pivot) -> target
+          LengthMeterConversion[sourceUnit] / LengthMeterConversion[targetUnit];
     targetPrecision = toNumber(targetPrecision, 0.000001); // Precision of 6 decimals by default
     const precisionCoefficient = 1 / targetPrecision;
 
     // Convert to the expected unit, and round to expected precision
-    const result = Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
-
-    return result;
+    return Math.round(precisionCoefficient * unitConversionCoefficient * sourceValue) / precisionCoefficient;
   }
 }

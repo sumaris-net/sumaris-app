@@ -1,4 +1,3 @@
-
 // TODO: remove after then updating to last version of ngx-components
 
 import { isEmptyArray, isNil, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
@@ -12,8 +11,8 @@ export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
 
 export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): LoadResult<T> {
   return {
-    data : (res1.data || []).concat(...res2.data),
-    total: ((res1.total || res1.data?.length || 0) + (res2.total || res2.data?.length || 0))
+    data: (res1.data || []).concat(...res2.data),
+    total: (res1.total || res1.data?.length || 0) + (res2.total || res2.data?.length || 0),
   };
 }
 
@@ -28,7 +27,7 @@ export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): Lo
  * @param value
  * @param maxDecimals
  */
-export function roundHalfUp(value: number|string, maxDecimals: number): number {
+export function roundHalfUp(value: number | string, maxDecimals: number): number {
   if (isNil(maxDecimals)) return Math.trunc(+value + 0.5);
   const divider = maxDecimals ? Math.pow(10, maxDecimals) : 1;
   return Math.trunc(+value * divider + 0.5) / divider;
@@ -36,7 +35,6 @@ export function roundHalfUp(value: number|string, maxDecimals: number): number {
 
 // Compare two items
 export function equals(item1, item2) {
-
   // Get the object type
   const itemType = Object.prototype.toString.call(item1);
 
@@ -59,7 +57,6 @@ export function equals(item1, item2) {
 }
 
 export function arrayEquals<T>(value: T[], other: T[]): boolean {
-
   // Get the value type
   const type = Object.prototype.toString.call(value);
 
@@ -90,9 +87,7 @@ export function arrayEquals<T>(value: T[], other: T[]): boolean {
 }
 
 export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[typeof key][] {
-  return (omitNil !== true) ?
-    (array || []).map(value => value && value[key]):
-    (array || []).map(value => value && value[key]).filter(isNotNil);
+  return omitNil !== true ? (array || []).map((value) => value && value[key]) : (array || []).map((value) => value && value[key]).filter(isNotNil);
 }
 
 /**
@@ -102,21 +97,24 @@ export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[ty
  * @param searchString
  */
 export function countSubString(value: string, searchString: string) {
-  return value.split(searchString).length -1;
+  return value.split(searchString).length - 1;
 }
 
 /**
  * Split an array, into a map of array, group by property
  */
-export function collectByFunction<T>(values: T[], getKey: Function<T, string|number>): KeyValueType<T[]> {
-  return (values || []).reduce((res, item) => {
-    const key = getKey(item);
-    if (typeof key === 'number' || typeof key === 'string') {
-      res[key] = res[key] || [];
-      res[key].push(item);
-    }
-    return res;
-  }, <KeyValueType<T[]>>{});
+export function collectByFunction<T>(values: T[], getKey: Function<T, string | number>): KeyValueType<T[]> {
+  return (values || []).reduce(
+    (res, item) => {
+      const key = getKey(item);
+      if (typeof key === 'number' || typeof key === 'string') {
+        res[key] = res[key] || [];
+        res[key].push(item);
+      }
+      return res;
+    },
+    <KeyValueType<T[]>>{}
+  );
 }
 
 export type ArrayElementType<T> = T extends (infer E)[] ? E : never;
@@ -125,7 +123,7 @@ export function intersectArrays<T = any>(values: T[][]): T[] {
   if (isEmptyArray(values)) return [];
 
   // Utilise la méthode reduce pour obtenir l'intersection des tableaux
-  return values.reduce((acc, curr) => acc.filter(x => curr.includes(x)), values[0].slice());
+  return values.reduce((acc, curr) => acc.filter((x) => curr.includes(x)), values[0].slice());
 }
 
 export function noHtml(value: string): string {

@@ -9,16 +9,15 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toDateISOString,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { AppliedPeriod, Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
-@EntityClass({typename: 'StrategyFilterVO'})
+@EntityClass({ typename: 'StrategyFilterVO' })
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
-
   static fromObject: (source: any, opts?: any) => StrategyFilter;
 
   startDate: Moment;
@@ -30,19 +29,22 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
   parameterIds?: number[];
   periods?: any[];
+  acquisitionLevel: string;
   acquisitionLevels: string[];
 
   fromObject(source: any) {
     super.fromObject(source);
+    this.levelId = toNumber(this.levelId, source.programId);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.department = source.department && ReferentialRef.fromObject(source.department) || undefined;
-    this.location = source.location && ReferentialRef.fromObject(source.location) || undefined;
-    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
-    this.analyticReference = source.analyticReference && ReferentialRef.fromObject(source.analyticReference) || undefined;
+    this.department = (source.department && ReferentialRef.fromObject(source.department)) || undefined;
+    this.location = (source.location && ReferentialRef.fromObject(source.location)) || undefined;
+    this.taxonName = (source.taxonName && TaxonNameRef.fromObject(source.taxonName)) || undefined;
+    this.analyticReference = (source.analyticReference && ReferentialRef.fromObject(source.analyticReference)) || undefined;
 
     this.parameterIds = source.parameterIds;
     this.periods = source.periods;
+    this.acquisitionLevel = source.acquisitionLevel;
     this.acquisitionLevels = source.acquisitionLevels;
   }
 
@@ -51,6 +53,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    target.acquisitionLevels = target.acquisitionLevel ? [target.acquisitionLevel] : target.acquisitionLevels;
 
     if (opts && opts.minify) {
       target.departmentIds = ReferentialUtils.isNotEmpty(this.department) ? [this.department.id] : undefined;
@@ -61,8 +64,9 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
       delete target.location;
       delete target.taxonName;
       delete target.analyticReference;
-    }
-    else {
+      delete target.programId;
+      delete target.acquisitionLevel;
+    } else {
       target.department = this.department && this.department.asObject(opts);
       target.location = this.location && this.location.asObject(opts);
       target.taxonName = this.taxonName && this.taxonName.asObject(opts);
@@ -87,53 +91,64 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     // Filter on program (= level)
     if (isNotEmptyArray(programIds)) {
-      filterFns.push(t => programIds.includes(toNumber(t.programId, t.levelId)));
+      filterFns.push((t) => programIds.includes(toNumber(t.programId, t.levelId)));
     }
 
     // Reference taxon
     const referenceTaxonId = this.taxonName?.referenceTaxonId;
     if (isNotNil(referenceTaxonId)) {
-      filterFns.push(t => t.taxonNames && t.taxonNames.some(tns => tns.taxonName?.referenceTaxonId === referenceTaxonId));
+      filterFns.push((t) => t.taxonNames && t.taxonNames.some((tns) => tns.taxonName?.referenceTaxonId === referenceTaxonId));
     }
 
     // Department
     const departmentId = this.department?.id;
     if (isNotNil(departmentId)) {
-      filterFns.push(t => t.departments && t.departments.some(d => d.id === departmentId));
+      filterFns.push((t) => t.departments && t.departments.some((d) => d.id === departmentId));
     }
 
     // Location
     const locationId = this.location?.id;
     if (isNotNil(locationId)) {
-      filterFns.push(t => t.appliedStrategies && t.appliedStrategies.some(as => as.location?.id === locationId));
+      filterFns.push((t) => t.appliedStrategies && t.appliedStrategies.some((as) => as.location?.id === locationId));
     }
 
     // Analytic reference
     const analyticReference = this.analyticReference?.label;
     if (isNotNil(analyticReference)) {
-      filterFns.push(t => t.analyticReference === analyticReference);
+      filterFns.push((t) => t.analyticReference === analyticReference);
     }
 
     // Start/end period
     if (this.startDate || this.endDate) {
       const startDate = this.startDate && this.startDate.clone();
       const endDate = this.endDate && this.endDate.clone().add(1, 'day').startOf('day');
-      const appliedPeriodPredicate = (ap: AppliedPeriod) => (
-        (!startDate || startDate.isSameOrBefore(ap.endDate)) && (!endDate || endDate.isAfter(ap.startDate))
+      const appliedPeriodPredicate = (ap: AppliedPeriod) =>
+        (!startDate || startDate.isSameOrBefore(ap.endDate)) && (!endDate || endDate.isAfter(ap.startDate));
+      filterFns.push(
+        (t) => t.appliedStrategies && t.appliedStrategies.some((as) => as.appliedPeriods && as.appliedPeriods.some(appliedPeriodPredicate))
       );
-      filterFns.push(t => t.appliedStrategies && t.appliedStrategies.some(as => as.appliedPeriods && as.appliedPeriods.some(appliedPeriodPredicate)));
     }
 
     // Acquisition levels
-    if (isNotEmptyArray(this.acquisitionLevels)) {
-      filterFns.push(t => (t.denormalizedPmfms || t.pmfms || []).some(p => {
-        const acquisitionLevel = (typeof p.acquisitionLevel === 'string') ? p.acquisitionLevel : p.acquisitionLevel?.label;
-        return this.acquisitionLevels.includes(acquisitionLevel);
-      }));
+    const acquisitionLevels = this.acquisitionLevel ? [this.acquisitionLevel] : this.acquisitionLevels;
+    if (isNotEmptyArray(acquisitionLevels)) {
+      filterFns.push((t) =>
+        (t.denormalizedPmfms || t.pmfms || []).some((p) => {
+          const acquisitionLevel = typeof p.acquisitionLevel === 'string' ? p.acquisitionLevel : p.acquisitionLevel?.label;
+          return acquisitionLevels.includes(acquisitionLevel);
+        })
+      );
     }
 
     // TODO: filter on parameters
 
     return filterFns;
+  }
+
+  get programId(): number {
+    return this.levelId;
+  }
+  set programId(value: number) {
+    this.levelId = value;
   }
 }

@@ -1,25 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {Property} from '@sumaris-net/ngx-components';
-import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import {FloatLabelType} from '@angular/material/form-field';
-
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Property } from '@sumaris-net/ngx-components';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { FloatLabelType } from '@angular/material/form-field';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-sampling-ratio-test',
   templateUrl: './sampling-ratio.test.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppSamplingRatioTestPage implements OnInit {
-
   form: UntypedFormGroup;
   maxDecimals = 6;
   format: SamplingRatioFormat = '%';
   formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
   floatLabel: FloatLabelType;
   floatLabels = ['never', 'auto', 'always'];
-
 
   constructor(
     protected formBuilder: UntypedFormBuilder,
@@ -28,18 +26,16 @@ export class AppSamplingRatioTestPage implements OnInit {
     this.form = formBuilder.group({
       empty: [null, Validators.required],
       enable: [0.15],
-      disable: [0.15]
+      disable: [0.15],
     });
 
     this.form.get('disable').disable();
 
     // Copy enable value to disable form
-    this.form.get('enable').valueChanges
-      .subscribe(value => this.form.get('disable').setValue(value));
+    this.form.get('enable').valueChanges.subscribe((value) => this.form.get('disable').setValue(value));
   }
 
   ngOnInit() {
-
     setTimeout(() => this.loadData(), 250);
   }
 
@@ -84,6 +80,4 @@ export class AppSamplingRatioTestPage implements OnInit {
   }
 
   /* -- protected methods -- */
-
 }
-

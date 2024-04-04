@@ -52,7 +52,7 @@ const defaultOptions: Graticule2Options = {
     { start: 15, end: 15, interval: 0.01 },
     { start: 16, end: 16, interval: 0.005 },
     { start: 17, end: 17, interval: 0.0025 },
-    { start: 18, end: 18, interval: 0.001 }
+    { start: 18, end: 18, interval: 0.001 },
   ],
 };
 
@@ -65,12 +65,10 @@ export class MapGraticule extends L.GeoJSON {
   private _currZoom: number;
   private _formatOptions: LatLongFormatOptions;
 
-  constructor(
-    options?: Partial<Graticule2Options>
-  ) {
+  constructor(options?: Partial<Graticule2Options>) {
     super(undefined, { ...defaultOptions, ...options });
     this.graticuleOptions = { ...defaultOptions, ...options };
-    this._formatOptions = {pattern: options?.latLngPattern, placeholderChar: ''};
+    this._formatOptions = { pattern: options?.latLngPattern, placeholderChar: '' };
 
     const _ff = this.graticuleOptions.font.split(' ');
     if (_ff.length < 2) {
@@ -246,7 +244,9 @@ export class MapGraticule extends L.GeoJSON {
       }
       try {
         return parseInt(txt, 10);
-      } catch (e) {}
+      } catch (e) {
+        /* eslint-disable no-empty */
+      }
       return 0;
     };
 

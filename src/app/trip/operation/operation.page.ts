@@ -1,10 +1,10 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
-import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
-  AppEditorOptions,
   AppErrorWithDetails,
   AppFormUtils,
   AppHelpModal,
@@ -12,6 +12,7 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
+  equals,
   fadeInOutAnimation,
   FilesUtils,
   firstNotNilPromise,
@@ -19,13 +20,17 @@ import {
   HistoryPageReference,
   Hotkeys,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  PlatformService,
+  ReferentialRef,
   ReferentialUtils,
   sleep,
   toBoolean,
+  toInt,
   toNumber,
   UsageMode,
   WaitForOptions,
@@ -39,14 +44,12 @@ import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
-import { environment } from '@environments/environment';
-import { from, merge, of, Subscription, timer } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { from, merge, Observable, of, Subscription, timer } from 'rxjs';
+import { MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
 import { TripContextService } from '@app/trip/trip-context.service';
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
@@ -54,19 +57,30 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { RxState } from '@rx-angular/state';
-import { TripPageTabs } from '@app/trip/trip/trip.page';
+import { TripPage } from '@app/trip/trip/trip.page';
 import { PredefinedColors } from '@ionic/core';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { AppDataEntityEditor, BaseEditorState } from '@app/data/form/data-editor.class';
+import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import moment from 'moment/moment';
 
-export interface OperationState extends BaseEditorState {
+export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
   physicalGear: PhysicalGear;
   gearId: number;
   tripId: number;
+  trip: Trip;
   lastOperations: Operation[];
   lastEndDate: Moment;
 }
@@ -94,22 +108,23 @@ export class OperationPage<S extends OperationState = OperationState>
   private _sampleRowSubscription: Subscription;
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
-  protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
-  protected readonly physicalGear$ = this._state.select('physicalGear');
-  protected readonly gearId$ = this._state.select('gearId');
+  @RxStateSelect() protected readonly hasIndividualMeasures$: Observable<boolean>;
+  @RxStateSelect() protected readonly physicalGear$: Observable<PhysicalGear>;
+  @RxStateSelect() protected readonly gearId$: Observable<number>;
+  @RxStateSelect() protected readonly lastOperations$: Observable<Operation[]>;
+  @RxStateSelect() protected readonly lastEndDate$: Observable<Moment>;
 
-  protected tripService: TripService;
-  protected context: TripContextService;
-  protected modalCtrl: ModalController;
-  protected hotkeys: Hotkeys;
+  protected readonly tripService = inject(TripService);
+  protected readonly tripContext = inject(TripContextService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
+  protected readonly modalCtrl = inject(ModalController);
+  protected readonly hotkeys = inject(Hotkeys);
+  protected readonly platformService = inject(PlatformService);
 
-  readonly dateTimePattern: string;
-  readonly showLastOperations: boolean;
-  readonly lastOperations$ = this._state.select('lastOperations');
-  readonly lastEndDate$ = this._state.select('lastEndDate');
+  protected readonly dateTimePattern: string;
+  protected readonly showLastOperations: boolean;
+  protected readonly xsMobile: boolean;
 
-  trip: Trip;
-  measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
   allowParentOperation = false;
@@ -134,14 +149,11 @@ export class OperationPage<S extends OperationState = OperationState>
   _defaultIsParentOperation = true;
   readonly forceOptionalExcludedPmfmIds: number[];
 
-  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
-  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-
-  // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
-
-  // Sample tables
-  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
+  @RxStateProperty() tripId: number;
+  @RxStateProperty() trip: Trip;
+  @RxStateProperty() physicalGear: PhysicalGear;
+  @RxStateProperty() lastEndDate: Moment;
+  @RxStateProperty() hasIndividualMeasures: boolean;
 
   get form(): UntypedFormGroup {
     return this.opeForm.form;
@@ -174,43 +186,31 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.operationPasteFlags !== 0;
   }
 
-  get physicalGear(): PhysicalGear {
-    return this._state.get('physicalGear');
-  }
-  set physicalGear(value: PhysicalGear) {
-    this._state.set('physicalGear', () => value);
-  }
+  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  get tripId(): number {
-    return this._state.get('tripId');
-  }
-  set tripId(value: number) {
-    this._state.set('tripId', () => value);
-  }
-  get lastEndDate(): Moment {
-    return this._state.get('lastEndDate');
-  }
-  set lastEndDate(value: Moment) {
-    this._state.set('lastEndDate', () => value);
-  }
+  // Catch batch, sorting batches, individual measure
+  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
 
-  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppEditorOptions) {
+  // Sample tables
+  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
+
+  constructor(injector: Injector, dataService: OperationService, @Optional() options?: AppDataEditorOptions) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
       i18nPrefix: 'TRIP.OPERATION.EDIT.',
+      acquisitionLevel: AcquisitionLevelCodes.OPERATION,
       ...options,
     });
 
-    this.tripService = injector.get(TripService);
-    this.context = injector.get(TripContextService);
-    this.modalCtrl = injector.get(ModalController);
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
-    this.hotkeys = injector.get(Hotkeys);
+    this.xsMobile = this.mobile && !this.platformService.is('tablet');
 
     // Init defaults
     this.showLastOperations = this.settings.isUsageMode('FIELD');
+    this.tripId = toInt(this.route.snapshot.params['tripId']);
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
       PmfmIds.HAS_ACCIDENTAL_CATCHES,
@@ -235,6 +235,12 @@ export class OperationPage<S extends OperationState = OperationState>
           .addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
           .pipe(filter((_) => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event))
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.o', description: 'QUALITY.BTN_CONTROL', preventDefault: true })
+          .pipe(filter(() => !this.disabled))
+          .subscribe(() => this.saveAndControl())
       );
     }
 
@@ -276,22 +282,19 @@ export class OperationPage<S extends OperationState = OperationState>
         tap((tripId) => {
           this._lastOperationsTripId = tripId; // Remember new trip id
           // Update back href
-          const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
+          const tripHref = `/trips/${tripId}?tab=${TripPage.TABS.OPERATIONS}`;
           if (this.defaultBackHref !== tripHref) {
             this.defaultBackHref = tripHref;
             this.markForCheck();
           }
         }),
 
-        // Load last operations (if enabled)
-        //filter(_ => this.showLastOperations),
-
+        // Load last operations
         filter(isNotNil),
-        //debounceTime(500),
         switchMap((tripId) =>
           this.dataService.watchAll(
             0,
-            5,
+            this.showLastOperations ? 5 : 1, // Load one if only need to fill defaults
             'startDateTime',
             'desc',
             { tripId },
@@ -309,7 +312,7 @@ export class OperationPage<S extends OperationState = OperationState>
     );
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[operation-page] ';
   }
 
   // TODO Hide lastOperation on to small screen
@@ -393,7 +396,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms});
+    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {
@@ -481,6 +484,24 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotNilOrBlank(queryParams['color'])) {
       this.toolbarColor = queryParams['color'];
     }
+  }
+
+  protected async mapPmfms(event: MapPmfmEvent) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+    let pmfms: IPmfm[] = event.detail.pmfms;
+
+    // If PMFM date/time, set default date, in on field mode
+    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
+      pmfms = pmfms.map((p) => {
+        if (PmfmUtils.isDate(p)) {
+          p = p.clone();
+          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+        }
+        return p;
+      });
+    }
+
+    event.detail.success(pmfms);
   }
 
   /**
@@ -626,7 +647,7 @@ export class OperationPage<S extends OperationState = OperationState>
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
           .pipe(startWith<any, any>(hasIndividualMeasuresControl.value), filter(isNotNil))
-          .subscribe((value) => this._state.set('hasIndividualMeasures', (_) => value))
+          .subscribe((value) => (this.hasIndividualMeasures = value))
       );
       this._measurementSubscription.add(
         this.hasIndividualMeasures$.subscribe((value) => {
@@ -687,7 +708,8 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+
+    await super.setProgram(program);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -714,7 +736,8 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
     this.opeForm.startProgram = program.creationDate;
-    this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
+    this.opeForm.showMetier = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE);
+    this.opeForm.showMetierFilter = this.opeForm.showMetier && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
     this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
     this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
@@ -759,6 +782,33 @@ export class OperationPage<S extends OperationState = OperationState>
     await this.initAvailableTaxonGroups(program.label);
 
     this.markAsReady();
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    switch (this.strategyResolution) {
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'trip'], (_) => _, {
+            acquisitionLevel: equals,
+            trip: (t1, t2) => t1 === t2 || (t1 && t1.equals(t2)),
+          })
+          .pipe(
+            map(({ acquisitionLevel, trip }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                startDate: trip.departureDateTime,
+                endDate: trip.departureDateTime,
+                location: trip.departureLocation,
+              };
+            }),
+            // DEBUG
+            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
+    }
   }
 
   load(
@@ -885,17 +935,15 @@ export class OperationPage<S extends OperationState = OperationState>
     const titlePrefix =
       ((!opts || opts.withPrefix !== false) &&
         this.trip &&
-        (await this.translate
-          .get('TRIP.OPERATION.TITLE_PREFIX', {
-            vessel: (this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name)) || '',
-            departureDateTime: (this.trip && this.trip.departureDateTime && (this.dateFormat.transform(this.trip.departureDateTime) as string)) || '',
-          })
-          .toPromise())) ||
+        (await this.translate.instant('TRIP.OPERATION.TITLE_PREFIX', {
+          vessel: (this.trip && this.trip.vesselSnapshot && (this.trip.vesselSnapshot.exteriorMarking || this.trip.vesselSnapshot.name)) || '',
+          departureDateTime: (this.trip && this.trip.departureDateTime && (this.dateFormat.transform(this.trip.departureDateTime) as string)) || '',
+        }))) ||
       '';
 
     // new ope
     if (!data || isNil(data.id)) {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
+      return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE'));
     }
 
     // Select the date to use for title
@@ -913,7 +961,7 @@ export class OperationPage<S extends OperationState = OperationState>
         : this.dateFormat.transform(titleDateTime, { time: true })) as string);
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
-    let rankOrder = !this.mobile && this.context?.operation?.rankOrder;
+    let rankOrder = !this.mobile && this.tripContext?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
       // Compute the rankOrder
       const now = this.debug && Date.now();
@@ -926,11 +974,11 @@ export class OperationPage<S extends OperationState = OperationState>
       this.opeForm?.form.patchValue({ rankOrder }, { emitEvent: false });
     }
     if (rankOrder) {
-      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', { startDateTime, rankOrder }).toPromise())) as string;
+      return (titlePrefix + (await this.translate.instant('TRIP.OPERATION.EDIT.TITLE', { startDateTime, rankOrder }))) as string;
     }
     // No rankOrder (e.g. if mobile)
     else {
-      return (titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', { startDateTime }).toPromise())) as string;
+      return (titlePrefix + (await this.translate.instant('TRIP.OPERATION.EDIT.TITLE_NO_RANK', { startDateTime }))) as string;
     }
   }
 
@@ -961,7 +1009,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   waitIdle(opts?: WaitForOptions): Promise<void> {
-    return AppFormUtils.waitIdle(this, opts);
+    return AppFormUtils.waitIdle(this, { stop: this.destroySubject, ...opts });
   }
 
   async onLastOperationClick(event: Event, id: number): Promise<any> {
@@ -1051,24 +1099,36 @@ export class OperationPage<S extends OperationState = OperationState>
         this.acquisitionLevel = acquisitionLevel;
       }
 
+      // Do not wait measurements forms when no default gear (because of requiredGear=true)
+      if (this.isNewData && isNil(gearId)) {
+        this.measurementsForm.pmfms = [];
+      }
       jobs.push(this.measurementsForm.setValue((data && data.measurements) || []));
 
       // Set batch tree
       if (this.batchTree) {
-        //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
+        this.batchTree.requiredStrategy = this.requiredStrategy;
+        this.batchTree.strategyId = this.strategy?.id;
         this.batchTree.gearId = gearId;
-        jobs.push(this.batchTree.setValue((data && data.catchBatch) || null));
+        jobs.push(this.batchTree.setValue(data?.catchBatch || null));
       }
 
       // Set sample tree
-      if (this.sampleTree) jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+      if (this.sampleTree) {
+        this.sampleTree.requiredStrategy = this.requiredStrategy;
+        this.sampleTree.strategyId = this.strategy?.id;
+        this.sampleTree.gearId = gearId;
+        //jobs.push(this.sampleTree.setValue((data && data.samples) || []));
+        console.debug('[operation] Before settings samples ...');
+        await this.sampleTree.setValue(data?.samples || []);
+      }
 
       await Promise.all(jobs);
 
-      console.debug('[operation] setValue() [OK]');
+      console.debug('[operation] children setValue() [OK]');
 
-      // If new data, auto fill the table
+      // If new data, autofill the table
       if (isNewData) {
         if (this.autoFillDatesFromTrip && !this.isDuplicatedData) this.opeForm.fillWithTripDates();
       }
@@ -1079,7 +1139,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
-  cancel(event): Promise<void> {
+  cancel(event?: Event): Promise<void> {
     // Avoid to reload/unload if page destroyed
     timer(500)
       .pipe(takeUntil(this.destroySubject))
@@ -1118,7 +1178,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
-  async save(event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
+  async save(event: Event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
     if (this.loading || this.saving) {
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
@@ -1141,6 +1201,7 @@ export class OperationPage<S extends OperationState = OperationState>
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
+      trip: this.trip,
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts,
     });
@@ -1151,18 +1212,20 @@ export class OperationPage<S extends OperationState = OperationState>
     try {
       // Display form error on top
       if (!saved) {
-        // DEBUG
-        console.debug('[operation] Computing form error...');
+        let error = this.error;
+        if (isNilOrBlank(error)) {
+          // DEBUG
+          //console.debug('[operation] Computing form error...');
 
-        let error = '';
-        if (this.opeForm.invalid) {
-          error = this.opeForm.formError;
-        }
-        if (this.measurementsForm.invalid) {
-          error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
-        }
+          if (this.opeForm.invalid) {
+            error = this.opeForm.formError;
+          }
+          if (this.measurementsForm.invalid) {
+            error = (isNotNilOrBlank(error) ? error + ', ' : '') + this.measurementsForm.formError;
+          }
 
-        this.setError(error);
+          this.setError(error);
+        }
         this.scrollToTop();
       } else {
         // Workaround, to make sure the editor is not dirty anymore
@@ -1272,16 +1335,28 @@ export class OperationPage<S extends OperationState = OperationState>
     // Update trip id (will cause last operations to be watched, if need)
     this.tripId = +tripId;
 
-    let trip = this.context.getValue('trip') as Trip;
+    // Check if trip exists in the context
+    let trip = this.tripContext.trip;
 
-    // If not the expected trip: reload
-    if (trip?.id !== tripId) {
+    if (trip?.id === tripId) {
+      if (this.tripContext.strategy) {
+        this.strategy = this.tripContext.strategy;
+      }
+    }
+
+    // Reload if not the expected trip
+    else {
       trip = await this.tripService.load(tripId, { fullLoad: true });
       // Update the context
-      this.context.setValue('trip', trip);
+      this.tripContext.trip = trip;
     }
+
+    // Remember the trip
     this.trip = trip;
-    this.saveOptions.trip = trip;
+
+    // NOT need here, as it force in save() function
+    //this.saveOptions.trip = trip;
+
     return trip;
   }
 
@@ -1407,7 +1482,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
       const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, { acquisitionLevel: AcquisitionLevelCodes.TRIP });
       const pmfm = (tripPmfms || []).find((p) => p.id === PmfmIds.SELF_SAMPLING_PROGRAM);
-      const qualitativeValue = ((pmfm && pmfm.qualitativeValues) || []).find((qv) => qv.id === qvMeasurement.qualitativeValue.id);
+      const qualitativeValue = (pmfm?.qualitativeValues || []).find((qv) => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
       const contextualTaxonGroupLabels = qualitativeValue?.label
@@ -1537,7 +1612,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   /**
-   * S context, for batch validator
+   * Update context, for batch validator
    *
    * @protected
    */
@@ -1549,7 +1624,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Fishing area
     if (this.opeForm.showFishingArea) {
-      const fishingAreas = (this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value) || this.data?.fishingAreas;
+      const fishingAreas = this.opeForm.fishingAreasForm?.value || this.data?.fishingAreas;
       this.context.setValue('fishingAreas', fishingAreas);
       this.context.resetValue('vesselPositions');
     }
@@ -1662,5 +1737,67 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Open extraction
     await this.router.navigate(['extraction', 'data'], { queryParams });
+  }
+
+  // For DEV only
+  async devFillTestValue() {
+    console.debug(this.logPrefix + 'DEV auto fill data');
+    await this.ready();
+    await this.waitIdle({ stop: this.destroySubject });
+
+    const startDateTime = this.trip?.departureDateTime?.clone().add(1, 'hour') || DateUtils.moment().startOf('hour');
+    const fishingStartDateTime = startDateTime.clone().add(1, 'hour');
+    const fishingEndDateTime = fishingStartDateTime.clone().add(2, 'hour');
+    const endDateTime = fishingEndDateTime.clone().add(1, 'hour');
+
+    const physicalGear = this.data?.physicalGear?.asObject();
+    const gearId = physicalGear?.gear?.id;
+    let metiers: ReferentialRef[];
+    if (isNotNil(gearId)) {
+      metiers = (
+        await this.referentialRefService.loadAll(
+          0,
+          1,
+          null,
+          null,
+          <Partial<ReferentialRefFilter>>{
+            ...METIER_DEFAULT_FILTER,
+            searchJoin: 'TaxonGroup',
+            searchJoinLevelIds: this.opeForm.metierTaxonGroupTypeIds,
+            levelId: gearId,
+          },
+          { withTotal: false }
+        )
+      )?.data;
+    }
+    const operation = Operation.fromObject(<Operation>{
+      trip: this.trip.asObject(),
+      physicalGear,
+      metier: metiers?.[0],
+      startDateTime,
+      fishingStartDateTime: this.opeForm.fishingStartDateTimeEnable ? fishingStartDateTime : undefined,
+      fishingEndDateTime: this.opeForm.fishingEndDateTimeEnable ? fishingEndDateTime : undefined,
+      endDateTime: this.opeForm.endDateTimeEnable ? endDateTime : undefined,
+      positions: [
+        <VesselPosition>{ dateTime: startDateTime, latitude: 49.5, longitude: -6.8 },
+        <VesselPosition>{ dateTime: fishingStartDateTime, latitude: 49.505, longitude: -6.85 },
+        <VesselPosition>{ dateTime: fishingEndDateTime, latitude: 49.52, longitude: -6.95 },
+        <VesselPosition>{ dateTime: endDateTime, latitude: 49.525, longitude: -6.98 },
+      ],
+      measurements: [
+        { numericalValue: 1, pmfmId: PmfmIds.TRIP_PROGRESS },
+        { numericalValue: 1, pmfmId: PmfmIds.HAS_INDIVIDUAL_MEASURES },
+        // APASE
+        { numericalValue: 1, pmfmId: PmfmIds.DIURNAL_OPERATION },
+        //{ numericalValue: 1, pmfmId: 188 }, // GPS_USED
+      ],
+      catchBatch: <Batch>{
+        label: AcquisitionLevelCodes.CATCH_BATCH,
+        rankOrder: 1,
+      },
+    });
+
+    this.measurementsForm.value = operation.measurements;
+    this.form.patchValue(operation);
   }
 }

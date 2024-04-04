@@ -17,11 +17,12 @@ import { environment } from '@environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implements OnInit {
-  readonly debug = !environment.production;
-
   @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
   @Input() showError = false;
   @Input() mobile: boolean;
+  @Input() debug = !environment.production;
 
   @ViewChild('saleMeasurementsForm', { static: true }) saleMeasurementsForm: MeasurementsForm;
   @ViewChild('productsTable', { static: true }) productsTable: ProductsTable;
@@ -37,7 +38,11 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
     this.setValue(isNotNil(data) ? data : new ExpectedSale());
   }
 
-  constructor(protected injector: Injector, protected settings: LocalSettingsService, protected cd: ChangeDetectorRef) {
+  constructor(
+    protected injector: Injector,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
+  ) {
     super(() => this.saleMeasurementsForm);
   }
 
@@ -60,7 +65,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
   }
 
   async updateProducts(value: Product[]) {
-    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms)).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm));
+    const pmfms = (await firstNotNilPromise(this.productsTable.pmfms$)).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm));
     let products = (value || []).slice();
     this.totalPriceCalculated = 0;
 

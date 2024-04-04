@@ -1,6 +1,12 @@
 import { isMoment, Moment } from 'moment';
 import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
-import { Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import {
+  Measurement,
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementUtils,
+  MeasurementValuesUtils,
+} from '@app/data/measurement/measurement.model';
 import { Sale } from '../sale/sale.model';
 import {
   DateUtils,
@@ -13,7 +19,7 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
@@ -38,9 +44,7 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 /* -- Helper function -- */
 
-
 /* -- Data -- */
-
 
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
@@ -57,40 +61,34 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
   ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   batchAsTree: false,
   sampleAsTree: false,
-  keepTrip: true // Trip is needed to apply filter on it
-
+  keepTrip: true, // Trip is needed to apply filter on it
 });
 
 export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
 export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/;
 
-
-@EntityClass({typename: 'OperationVO'})
-export class Operation
-  extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
-
+@EntityClass({ typename: 'OperationVO' })
+export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
   static ENTITY_NAME = 'Operation';
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
 
   static rankOrderComparator(sortDirection: SortDirection = 'asc'): (n1: Operation, n2: Operation) => number {
     return !sortDirection || sortDirection !== 'desc' ? Operation.sortByAscRankOrder : Operation.sortByDescRankOrder;
-  };
+  }
 
   static sortByAscRankOrder(n1: Operation, n2: Operation): number {
-    return n1.rankOrder === n2.rankOrder ? 0 :
-      (n1.rankOrder > n2.rankOrder ? 1 : -1);
+    return n1.rankOrder === n2.rankOrder ? 0 : n1.rankOrder > n2.rankOrder ? 1 : -1;
   }
 
   static sortByDescRankOrder(n1: Operation, n2: Operation): number {
-    return n1.rankOrder === n2.rankOrder ? 0 :
-      (n1.rankOrder > n2.rankOrder ? -1 : 1);
+    return n1.rankOrder === n2.rankOrder ? 0 : n1.rankOrder > n2.rankOrder ? -1 : 1;
   }
 
   static sortByEndDateOrStartDate(n1: Operation, n2: Operation): number {
     const d1 = n1.endDateTime || n1.startDateTime;
     const d2 = n2.endDateTime || n2.startDateTime;
-    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
-  };
+    return d1.isSame(d2) ? 0 : d1.isAfter(d2) ? 1 : -1;
+  }
 
   startDateTime: Moment = null;
   endDateTime: Moment = null;
@@ -138,8 +136,7 @@ export class Operation
     // Fill date of start position (if valid)
     if (PositionUtils.isNotNilAndValid(target.startPosition)) {
       target.startPosition.dateTime = target.startDateTime;
-    }
-    else {
+    } else {
       // Invalid position: remove it
       delete target.startPosition;
     }
@@ -149,8 +146,7 @@ export class Operation
       // Make sure to fill fishing start date, using start date if need
       target.fishingStartDateTime = target.fishingStartDateTime || target.startDateTime;
       target.fishingStartPosition.dateTime = target.fishingStartDateTime;
-    }
-    else {
+    } else {
       // Invalid position: remove it
       delete target.fishingStartPosition;
     }
@@ -159,8 +155,7 @@ export class Operation
     if (PositionUtils.isNotNilAndValid(target.fishingEndPosition)) {
       target.fishingEndDateTime = target.fishingEndDateTime || target.fishingStartDateTime || target.startDateTime;
       target.fishingEndPosition.dateTime = target.fishingEndDateTime;
-    }
-    else {
+    } else {
       // Invalid position: remove it
       delete target.fishingEndPosition;
     }
@@ -178,23 +173,19 @@ export class Operation
     }
 
     // Create an array of position, instead of start/end
-    target.positions = [
-      target.startPosition,
-      target.fishingStartPosition,
-      target.fishingEndPosition,
-      target.endPosition]
-      .filter(p => p?.dateTime)
-      .map(p => p && p.asObject(opts)) || undefined;
+    target.positions =
+      [target.startPosition, target.fishingStartPosition, target.fishingEndPosition, target.endPosition]
+        .filter((p) => p?.dateTime)
+        .map((p) => p && p.asObject(opts)) || undefined;
     delete target.startPosition;
     delete target.fishingStartPosition;
     delete target.fishingEndPosition;
     delete target.endPosition;
 
     // Physical gear
-    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts,
-      ...NOT_MINIFY_OPTIONS, /*Avoid minify, to keep gear for operations tables cache*/
-      withChildren: false
-    });
+    target.physicalGear =
+      this.physicalGear &&
+      this.physicalGear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/, withChildren: false });
 
     if (target.physicalGear) {
       if (opts?.minify) delete target.physicalGear.synchronizationStatus;
@@ -206,19 +197,22 @@ export class Operation
     }
 
     // Metier
-    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/}) || undefined;
+    target.metier =
+      (this.metier && this.metier.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ })) ||
+      undefined;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
+    target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
 
     // Samples
     {
       // Serialize samples into a tree (will keep only children arrays, and removed parentId and parent)
       if (!opts || opts.sampleAsTree !== false) {
-        target.samples = this.samples
-          // Select root samples
-          && this.samples.filter(s => isNil(s.parentId) && isNil(s.parent))
-            .map(s => s.asObject({...opts, withChildren: true})) || undefined;
+        target.samples =
+          (this.samples &&
+            // Select root samples
+            this.samples.filter((s) => isNil(s.parentId) && isNil(s.parent)).map((s) => s.asObject({ ...opts, withChildren: true }))) ||
+          undefined;
       } else {
         // Serialize as samples array (this will fill parentId, and remove children and parent properties)
         target.samples = Sample.treeAsObjectArray(this.samples, opts);
@@ -229,10 +223,13 @@ export class Operation
     if (target.catchBatch) {
       // Serialize batches into a tree (will keep only children arrays, and removed parentId and parent)
       if (!opts || opts.batchAsTree !== false) {
-        target.catchBatch = this.catchBatch && this.catchBatch.asObject({
-          ...opts,
-          withChildren: true
-        }) || undefined;
+        target.catchBatch =
+          (this.catchBatch &&
+            this.catchBatch.asObject({
+              ...opts,
+              withChildren: true,
+            })) ||
+          undefined;
       }
       // Serialize as batches array (this will fill parentId, and remove children and parent properties)
       else {
@@ -242,33 +239,34 @@ export class Operation
     }
 
     // Fishing areas
-    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((fa) => fa.asObject(opts))) || undefined;
 
     // Child/Parent operation id
-    target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
-    target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
+    target.parentOperationId = this.parentOperationId || (this.parentOperation && this.parentOperation.id);
+    target.childOperationId = this.childOperationId || (this.childOperation && this.childOperation.id);
 
     if (opts?.minify) {
       delete target.childOperation;
 
       // When store into local storage, keep tripId on parent local operation (if not same trip)
       // This is need at validation time (see OperationValidators.remoteParent) to detect local parent outside the trip
-      if (opts.keepTrip
-        && target.parentOperationId < 0
-        && isNotNil(this.parentOperation?.tripId)
+      if (
+        opts.keepTrip &&
+        target.parentOperationId < 0 &&
+        isNotNil(this.parentOperation?.tripId) &&
         // Integrity check: make sure parentOperation reference same operation as 'target.parentOperationId'
-        && this.parentOperation.id === target.parentOperationId) {
+        this.parentOperation.id === target.parentOperationId
+      ) {
         target.parentOperation = {
           id: this.parentOperation.id,
-          tripId: this.parentOperation.tripId
+          tripId: this.parentOperation.tripId,
         };
-      }
-      else {
+      } else {
         delete target.parentOperation;
       }
     } else {
-      target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
-      target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
+      target.parentOperation = (this.parentOperation && this.parentOperation.asObject(opts)) || undefined;
+      target.childOperation = (this.childOperation && this.childOperation.asObject(opts)) || undefined;
     }
 
     // Clean properties copied from the parent trip (need by filter)
@@ -289,14 +287,15 @@ export class Operation
 
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
-    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+    this.physicalGear =
+      source.physicalGear || source.physicalGearId ? PhysicalGear.fromObject(source.physicalGear || { id: source.physicalGearId }) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrder = source.rankOrder;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
+    this.metier = (source.metier && Metier.fromObject(source.metier, { useChildAttributes: 'TaxonGroup' })) || undefined;
     if (source.startPosition || source.endPosition || source.fishingStartPosition || source.fishingEndPosition) {
       this.startPosition = VesselPosition.fromObject(source.startPosition);
       this.endPosition = VesselPosition.fromObject(source.endPosition);
@@ -306,7 +305,6 @@ export class Operation
     } else {
       const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator()) || undefined;
       if (isNotEmptyArray(sortedPositions)) {
-
         // DEBUG
         //console.debug('[operation] Find sorted positions: ', sortedPositions.map(p => toDateISOString(p.dateTime)).join(', '));
 
@@ -327,8 +325,7 @@ export class Operation
             this.endPosition = sortedPositions[1] || undefined;
           }
         }
-      }
-      else {
+      } else {
         this.startPosition = undefined;
         this.fishingStartPosition = undefined;
         this.fishingEndPosition = undefined;
@@ -337,16 +334,16 @@ export class Operation
       }
     }
     this.measurements = [
-      ...(source.measurements && source.measurements.map(Measurement.fromObject) || []),
-      ...(source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [])
+      ...((source.measurements && source.measurements.map(Measurement.fromObject)) || []),
+      ...((source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject)) || []),
     ];
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     // Warn: keept this order: must start with endDateTime, then fishingEndDateTime, then fishingStartDateTime
-    if (this.endDateTime && this.endDateTime.isSameOrBefore(this.fishingEndDateTime||this.fishingStartDateTime||this.startDateTime)) {
+    if (this.endDateTime && this.endDateTime.isSameOrBefore(this.fishingEndDateTime || this.fishingStartDateTime || this.startDateTime)) {
       this.endDateTime = undefined;
     }
-    if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime||this.startDateTime)) {
+    if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime || this.startDateTime)) {
       this.fishingEndDateTime = undefined;
     }
     if (this.fishingStartDateTime && this.fishingStartDateTime.isSameOrBefore(this.startDateTime)) {
@@ -359,36 +356,39 @@ export class Operation
     if (this.fishingStartPosition) this.fishingStartPosition.dateTime = this.fishingStartDateTime;
 
     // Fishing areas
-    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
+    this.fishingAreas = (source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject)) || undefined;
 
     // Samples
     if (!opts || opts.withSamples !== false) {
-      this.samples = source.samples && source.samples.map(json => Sample.fromObject(json, {withChildren: true})) || undefined;
+      this.samples = (source.samples && source.samples.map((json) => Sample.fromObject(json, { withChildren: true }))) || undefined;
     }
 
     // Batches
     if (!opts || opts.withBatchTree !== false) {
-      this.catchBatch = source.catchBatch && !source.batches ?
-        // Reuse existing catch batch (useful for local entity)
-        Batch.fromObject(source.catchBatch, {withChildren: true}) :
-        // Convert list to tree (useful when fetching from a pod)
-        Batch.fromObjectArrayAsTree(source.batches);
+      this.catchBatch =
+        source.catchBatch && !source.batches
+          ? // Reuse existing catch batch (useful for local entity)
+            Batch.fromObject(source.catchBatch, { withChildren: true })
+          : // Convert list to tree (useful when fetching from a pod)
+            Batch.fromObjectArrayAsTree(source.batches);
     }
 
     //Parent Operation
     this.parentOperationId = source.parentOperationId;
-    this.parentOperation = (source.parentOperation || isNotNil(source.parentOperationId))
-      ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId})
-      : undefined;
+    this.parentOperation =
+      source.parentOperation || isNotNil(source.parentOperationId)
+        ? Operation.fromObject(source.parentOperation || { id: source.parentOperationId })
+        : undefined;
 
     //Child Operation
     this.childOperationId = source.childOperationId;
-    this.childOperation = (source.childOperation || isNotNil(source.childOperationId))
-      ? Operation.fromObject(source.childOperation || {id: source.childOperationId})
-      : undefined;
+    this.childOperation =
+      source.childOperation || isNotNil(source.childOperationId)
+        ? Operation.fromObject(source.childOperation || { id: source.childOperationId })
+        : undefined;
   }
 
-  paste(source: Operation, flags = OperationPasteFlags.ALL ) {
+  paste(source: Operation, flags = OperationPasteFlags.ALL) {
     if (hasFlag(flags, OperationPasteFlags.DATE)) {
       if (hasFlag(flags, OperationPasteFlags.TIME)) {
         this.startDateTime = source.startDateTime;
@@ -405,10 +405,10 @@ export class Operation
       }
     }
     if (hasFlag(flags, OperationPasteFlags.POSITION)) {
-      this.startPosition = VesselPosition.fromObject({...source.startPosition, id: null});
-      this.fishingStartPosition = VesselPosition.fromObject({...source.fishingStartPosition, id: null});
-      this.fishingEndPosition = VesselPosition.fromObject({...source.fishingEndPosition, id: null});
-      this.endPosition = VesselPosition.fromObject({...source.endPosition, id: null});
+      this.startPosition = VesselPosition.fromObject({ ...source.startPosition, id: null });
+      this.fishingStartPosition = VesselPosition.fromObject({ ...source.fishingStartPosition, id: null });
+      this.fishingEndPosition = VesselPosition.fromObject({ ...source.fishingEndPosition, id: null });
+      this.endPosition = VesselPosition.fromObject({ ...source.endPosition, id: null });
     }
     if (hasFlag(flags, OperationPasteFlags.FISHING_AREA)) {
       this.fishingAreas = source.fishingAreas;
@@ -426,20 +426,25 @@ export class Operation
   }
 
   equals(other: Operation): boolean {
-    return (super.equals(other) && isNotNil(this.id))
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
       // Functional test
-      || (
-        // Dates
-        (this.startDateTime === other.startDateTime || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+      // Dates
+      ((this.startDateTime === other.startDateTime ||
+        (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime)) &&
         // RankOrder
-        && ((!this.rankOrder && !other.rankOrder) || (this.rankOrder === other.rankOrder))
+        ((!this.rankOrder && !other.rankOrder) || this.rankOrder === other.rankOrder) &&
         // RankOrder on period
-        && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
-      );
+        ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+    );
   }
 
   get abnormal() {
-    return this.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+    return this.measurements?.some((m) => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+  }
+
+  getStrategyDateTime() {
+    return this.endDateTime || this.fishingEndDateTime || this.fishingEndDateTime || this.startDateTime;
   }
 }
 
@@ -448,17 +453,15 @@ export class OperationUtils {
     return data?.__typename === Operation.TYPENAME;
   }
   static isAbnormal(data: Operation): boolean {
-    return data?.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+    return data?.measurements?.some((m) => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
   static hasParentOperation(data: Operation): boolean {
-    return data && isNotNil(data.parentOperationId) || isNotNil(data.parentOperation?.id);
+    return (data && isNotNil(data.parentOperationId)) || isNotNil(data.parentOperation?.id);
   }
 }
 
-@EntityClass({typename: 'OperationGroupVO'})
-export class OperationGroup extends DataEntity<OperationGroup>
-  implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
-
+@EntityClass({ typename: 'OperationGroupVO' })
+export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
   static fromObject: (source: any) => OperationGroup;
 
   comments: string;
@@ -486,54 +489,72 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 
   static equals(o1: OperationGroup | any, o2: OperationGroup | any): boolean {
-    return o1 && o2 && ((isNotNil(o1.id) && o1.id === o2.id)
-      // Or by functional attributes
-      || (
+    return (
+      o1 &&
+      o2 &&
+      ((isNotNil(o1.id) && o1.id === o2.id) ||
+        // Or by functional attributes
         // Same metier
-        (o1.metier && o1.metier.equals(o2.metier))
-        // Same rankOrderOnPeriod
-        && ((isNil(o1.rankOrderOnPeriod) && isNil(o2.rankOrderOnPeriod)) || (o1.rankOrderOnPeriod === o2.rankOrderOnPeriod))
-      )
+        (o1.metier &&
+          o1.metier.equals(o2.metier) &&
+          // Same rankOrderOnPeriod
+          ((isNil(o1.rankOrderOnPeriod) && isNil(o2.rankOrderOnPeriod)) || o1.rankOrderOnPeriod === o2.rankOrderOnPeriod)))
     );
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
 
-    target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
+    target.metier =
+      (this.metier &&
+        this.metier.asObject({
+          ...opts,
+          ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/,
+        } as ReferentialAsObjectOptions)) ||
+      undefined;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
-    target.gearMeasurements = this.gearMeasurements && this.gearMeasurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
+    target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
+    target.gearMeasurements =
+      (this.gearMeasurements && this.gearMeasurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     delete target.gearMeasurementValues; // all measurements are stored only measurementValues
 
     // Products
-    target.products = this.products && this.products.map(product => {
-      const p = product.asObject(opts);
-      // Affect parent link
-      p.operationId = target.id;
-      return p;
-    }) || undefined;
+    target.products =
+      (this.products &&
+        this.products.map((product) => {
+          const p = product.asObject(opts);
+          // Affect parent link
+          p.operationId = target.id;
+          return p;
+        })) ||
+      undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(sample => {
-      const s = sample.asObject({...opts, withChildren: true});
-      // Affect parent link
-      s.operationId = target.id;
-      return s;
-    }) || undefined;
+    target.samples =
+      (this.samples &&
+        this.samples.map((sample) => {
+          const s = sample.asObject({ ...opts, withChildren: true });
+          // Affect parent link
+          s.operationId = target.id;
+          return s;
+        })) ||
+      undefined;
 
     // Packets
-    target.packets = this.packets && this.packets.map(packet => {
-      const p = packet.asObject(opts);
-      // Affect parent link
-      p.operationId = target.id;
-      return p;
-    }) || undefined;
+    target.packets =
+      (this.packets &&
+        this.packets.map((packet) => {
+          const p = packet.asObject(opts);
+          // Affect parent link
+          p.operationId = target.id;
+          return p;
+        })) ||
+      undefined;
 
     // Fishing areas
-    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
+    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(opts))) || undefined;
 
     return target;
   }
@@ -544,64 +565,65 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.comments = source.comments;
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    this.metier = source.metier && Metier.fromObject(source.metier) || undefined;
+    this.metier = (source.metier && Metier.fromObject(source.metier)) || undefined;
     this.physicalGearId = source.physicalGearId;
 
     // Measurements
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
-    this.gearMeasurements = source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject) || [];
+    this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
+    this.gearMeasurements = (source.gearMeasurements && source.gearMeasurements.map(Measurement.fromObject)) || [];
     this.measurementValues = {
       ...MeasurementUtils.toMeasurementValues(this.measurements),
       ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      ...source.measurementValues // important: keep at last assignment
+      ...source.measurementValues, // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {
       console.warn('Source as no measurement. Should never occur! ', source);
     }
 
     // Products
-    this.products = source.products && source.products.map(Product.fromObject) || [];
+    this.products = (source.products && source.products.map(Product.fromObject)) || [];
     // Affect parent
-    this.products.forEach(product => {
+    this.products.forEach((product) => {
       product.parent = this;
       product.operationId = this.id;
     });
 
     // Samples
-    this.samples = source.samples && source.samples.map(json => Sample.fromObject(json, {withChildren: true})) || [];
+    this.samples = (source.samples && source.samples.map((json) => Sample.fromObject(json, { withChildren: true }))) || [];
     // Affect parent
-    this.samples.forEach(sample => {
+    this.samples.forEach((sample) => {
       sample.operationId = this.id;
     });
 
     // Packets
-    this.packets = source.packets && source.packets.map(Packet.fromObject) || [];
+    this.packets = (source.packets && source.packets.map(Packet.fromObject)) || [];
     // Affect parent
-    this.packets.forEach(packet => {
+    this.packets.forEach((packet) => {
       packet.parent = this;
     });
 
     // Fishing areas
-    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
+    this.fishingAreas = (source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject)) || undefined;
 
     return this;
   }
 
   equals(other: OperationGroup): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (
-        this.metier.equals(other.metier) && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
-      );
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      (this.metier.equals(other.metier) &&
+        ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+    );
   }
 }
 
-@EntityClass({typename: 'TripVO'})
+@EntityClass({ typename: 'TripVO' })
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
-
   static ENTITY_NAME = 'Trip';
 
   static fromObject: (source: any, opts?: any) => Trip;
 
+  samplingStrata: ReferentialRef = null;
   departureDateTime: Moment = null;
   returnDateTime: Moment = null;
   departureLocation: ReferentialRef = null;
@@ -617,6 +639,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   fishingAreas?: FishingArea[] = null;
   landing?: Landing = null;
   observedLocationId?: number = null;
+  scientificCruiseId?: number = null;
 
   constructor() {
     super(Trip.TYPENAME);
@@ -624,22 +647,23 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; gearAsTree?: boolean }): any {
     const target = super.asObject(opts);
+    target.samplingStrata = (this.samplingStrata && this.samplingStrata.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
-    target.departureLocation = this.departureLocation && this.departureLocation.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.returnLocation = this.returnLocation && this.returnLocation.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.sale = this.sale && this.sale.asObject(opts) || undefined;
-    target.expectedSale = this.expectedSale && this.expectedSale.asObject(opts) || undefined;
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
-    target.observers = this.observers && this.observers.map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    target.departureLocation = (this.departureLocation && this.departureLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.returnLocation = (this.returnLocation && this.returnLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.sale = (this.sale && this.sale.asObject(opts)) || undefined;
+    target.expectedSale = (this.expectedSale && this.expectedSale.asObject(opts)) || undefined;
+    target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
+    target.observers = (this.observers && this.observers.map((p) => p && p.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
 
     // Metiers
-    target.metiers = this.metiers && this.metiers.filter(isNotNil).map(p => p && p.asObject({...opts, ...NOT_MINIFY_OPTIONS})) || undefined;
+    target.metiers = (this.metiers && this.metiers.filter(isNotNil).map((p) => p && p.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
     if (isEmptyArray(target.metiers)) delete target.metiers; // Clean is empty, for compat with previous version
 
     // Physical gears
     if (!opts || opts.gearAsTree !== false) {
-      target.gears = this.gears && this.gears.map(g => g.asObject({...opts, withChildren: true})) || undefined;
+      target.gears = (this.gears && this.gears.map((g) => g.asObject({ ...opts, withChildren: true }))) || undefined;
     }
     // Serialize as batches array (this will fill parentId, and remove children and parent properties)
     else {
@@ -647,48 +671,55 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     }
 
     // Operations
-    target.operations = this.operations && this.operations.map(o => o.asObject(opts)) || undefined;
+    target.operations = (this.operations && this.operations.map((o) => o.asObject(opts))) || undefined;
 
     // Operation groups
-    target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(opts)) || undefined;
+    target.operationGroups = (this.operationGroups && this.operationGroups.filter(isNotNil).map((o) => o.asObject(opts))) || undefined;
     // FIXME: remove in the future, to allow sampling landing page to force as empty (=[]) and avoid a refetch after saving, on pod
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
     // Fishing areas
-    target.fishingAreas = this.fishingAreas && this.fishingAreas.map(p => p && p.asObject(opts)) || undefined;
+    target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((p) => p && p.asObject(opts))) || undefined;
 
     // Landing
-    target.landing = this.landing && this.landing.asObject(opts) || undefined;
+    target.landing = (this.landing && this.landing.asObject(opts)) || undefined;
+
+    if (opts?.minify) {
+      //delete target.scientificCruise;
+    }
 
     return target;
   }
 
   fromObject(source: any, opts?: any): Trip {
     super.fromObject(source);
+    console.log('TODO samplingStrata=', source.samplingStrata);
+    this.samplingStrata = (source.samplingStrata && ReferentialRef.fromObject(source.samplingStrata)) || undefined;
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
-    this.sale = source.sale && Sale.fromObject(source.sale) || undefined;
-    this.expectedSale = source.expectedSale && ExpectedSale.fromObject(source.expectedSale) || undefined;
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
-    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
+    this.sale = (source.sale && Sale.fromObject(source.sale)) || undefined;
+    this.expectedSale = (source.expectedSale && ExpectedSale.fromObject(source.expectedSale)) || undefined;
+    this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.metiers = (source.metiers && source.metiers.map(ReferentialRef.fromObject)) || [];
 
     // Physical gears
     // - Convert array to tree (when fetching from pod)
     // - Already converted as tree (when fetching locally)
-    const convertGearsAsTree = source.gears && source.gears.some(g => isNotNil(g.parentId))
-      && source.gears.every(g => isEmptyArray(g.children))
-      && source.gears.every(g => isNil(g.parent))|| false;
-    const gears = convertGearsAsTree
-      ? PhysicalGear.fromObjectArrayAsTree(source.gears)
-      : source.gears?.filter(isNotNil).map(PhysicalGear.fromObject);
+    const convertGearsAsTree =
+      (source.gears &&
+        source.gears.some((g) => isNotNil(g.parentId)) &&
+        source.gears.every((g) => isEmptyArray(g.children)) &&
+        source.gears.every((g) => isNil(g.parent))) ||
+      false;
+    const gears = convertGearsAsTree ? PhysicalGear.fromObjectArrayAsTree(source.gears) : source.gears?.filter(isNotNil).map(PhysicalGear.fromObject);
     // Sort by rankOrder (useful for gears combo, in the operation form)
-    this.gears = gears && gears.sort(PhysicalGear.rankOrderComparator) || undefined;
+    this.gears = (gears && gears.sort(PhysicalGear.rankOrderComparator)) || undefined;
 
     // Set gears tripId (e. Old local DB may miss it)
-    (this.gears || []).forEach(g => g.tripId = this.id);
+    (this.gears || []).forEach((g) => (g.tripId = this.id));
 
     if (source.operations) {
       if (!Array.isArray(source.operations) && Array.isArray(source.operations.data)) {
@@ -696,19 +727,18 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
         source.operations = source.operations.data;
       }
 
-      this.operations = source.operations
-        .map(Operation.fromObject)
-        .map((o: Operation) => {
-          o.tripId = this.id;
-          // Link to trip's gear
-          o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g))
-            // Or keep existing gear, if not exists
-            || o.physicalGear;
-          return o;
-        });
+      this.operations = source.operations.map(Operation.fromObject).map((o: Operation) => {
+        o.tripId = this.id;
+        // Link to trip's gear
+        o.physicalGear =
+          (o.physicalGear && (this.gears || []).find((g) => o.physicalGear.equals(g))) ||
+          // Or keep existing gear, if not exists
+          o.physicalGear;
+        return o;
+      });
     }
 
-    this.operationGroups = source.operationGroups && source.operationGroups.map(OperationGroup.fromObject) || [];
+    this.operationGroups = (source.operationGroups && source.operationGroups.map(OperationGroup.fromObject)) || [];
 
     // Remove fake dates (e.g. if returnDateTime = departureDateTime)
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
@@ -716,38 +746,43 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     }
 
     // Fishing areas
-    this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || [];
+    this.fishingAreas = (source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject)) || [];
 
-    this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
+    this.landing = (source.landing && Landing.fromObject(source.landing)) || undefined;
     this.observedLocationId = source.observedLocationId;
+    this.scientificCruiseId = source.scientificCruiseId;
 
-    this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot) || undefined;
+    this.vesselSnapshot = (source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot)) || undefined;
 
     return this;
   }
 
   equals(other: Trip): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (
-        // Same vessel
-        (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      // Same vessel
+      (this.vesselSnapshot &&
+        other.vesselSnapshot &&
+        this.vesselSnapshot.id === other.vesselSnapshot.id &&
         // Same departure date (or, if not set, same return date)
-        && ((this.departureDateTime === other.departureDateTime)
-          || (!this.departureDateTime && !other.departureDateTime && this.returnDateTime === other.returnDateTime))
-      );
+        (DateUtils.equals(this.departureDateTime, other.departureDateTime) ||
+          (!this.departureDateTime && !other.departureDateTime && DateUtils.equals(this.returnDateTime, other.returnDateTime))))
+    );
+  }
+
+  getStrategyDateTime() {
+    return this.departureDateTime;
   }
 }
 
-
 export class VesselPositionUtils {
-
-  static isNoNilOrEmpty(pos: VesselPosition|undefined): boolean {
+  static isNoNilOrEmpty(pos: VesselPosition | undefined): boolean {
     return pos && isNotNil(pos.latitude) && isNotNil(pos.longitude);
   }
 
   static dateTimeComparator(sortDirection?: SortDirection): (n1: VesselPosition, n2: VesselPosition) => number {
     const side = sortDirection !== 'desc' ? 1 : -1;
-    return (n1, n2) => n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? side : -1 * side);
+    return (n1, n2) => (n1.dateTime.isSame(n2.dateTime) ? 0 : n1.dateTime.isAfter(n2.dateTime) ? side : -1 * side);
   }
 
   static findByDate(positions: VesselPosition[], dateTime: Moment, removeFromArray?: boolean): VesselPosition | undefined {
@@ -756,14 +791,12 @@ export class VesselPositionUtils {
     // Make sure we have a valid moment object
     if (!isMoment(dateTime)) dateTime = fromDateISOString(dateTime);
 
-    const index = positions.findIndex(p => dateTime.isSame(p.dateTime));
+    const index = positions.findIndex((p) => dateTime.isSame(p.dateTime));
     if (index === -1) return undefined;
     if (removeFromArray) {
       return positions.splice(index, 1)[0];
-    }
-    else {
+    } else {
       return positions[index];
     }
   }
-
 }

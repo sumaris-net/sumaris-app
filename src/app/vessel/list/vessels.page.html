@@ -1,22 +1,12 @@
 <app-toolbar [title]="'VESSEL.LIST.TITLE' | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
     <ng-container *ngIf="!table.selection.hasValue(); else hasSelection">
-      <button
-        mat-icon-button
-        *ngIf="canEdit && !mobile"
-        [title]="'COMMON.BTN_ADD' | translate"
-        (click)="table.addRow()"
-      >
+      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="table.addRow()">
         <mat-icon>add</mat-icon>
       </button>
 
       <!-- Refresh -->
-      <button
-        mat-icon-button
-        *ngIf="!mobile"
-        [title]="'COMMON.BTN_REFRESH' | translate"
-        (click)="table.onRefresh.emit()"
-      >
+      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="table.onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
 
@@ -53,11 +43,7 @@
       </button>
     </ng-template>
 
-    <ion-button
-      *ngIf="enableReplacement || enableFileImport"
-      [matMenuTriggerFor]="optionsMenu"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-    >
+    <ion-button *ngIf="enableReplacement || enableFileImport" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -65,25 +51,13 @@
 
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <!-- replace -->
-  <button
-    mat-menu-item
-    class="ion-color-danger"
-    *ngIf="enableReplacement"
-    [disabled]="replacementDisabled"
-    (click)="replace($event)"
-  >
+  <button mat-menu-item class="ion-color-danger" *ngIf="enableReplacement" [disabled]="replacementDisabled" (click)="replace($event)">
     <mat-icon>find_replace</mat-icon>
     <mat-label translate>VESSEL.ACTION.REPLACE_MANY</mat-label>
   </button>
 
   <!-- import from file -->
-  <button
-    mat-menu-item
-    class="ion-color-danger"
-    *ngIf="enableFileImport"
-    [disabled]="!canImportFile"
-    (click)="importFromCsv($event)"
-  >
+  <button mat-menu-item class="ion-color-danger" *ngIf="enableFileImport" [disabled]="!canImportFile" (click)="importFromCsv($event)">
     <mat-icon>description</mat-icon>
     <mat-label translate>VESSEL.ACTION.IMPORT_FROM_FILE</mat-label>
   </button>

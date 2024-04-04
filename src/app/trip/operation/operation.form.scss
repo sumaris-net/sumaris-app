@@ -24,10 +24,11 @@ form {
     // Fix field height, for rows with buttons (e.g. operation type)
     .mat-form-field-infix {
       min-height: 64px !important;
-      input, .mat-form-field-label-wrapper label.ng-star-inserted {
+      input,
+      .mat-form-field-label-wrapper label.ng-star-inserted {
         padding: 5px 0 0 5px;
       }
-      input[type=text] {
+      input[type='text'] {
         height: 27px;
       }
     }
@@ -36,4 +37,15 @@ form {
 
 input.cursor-pointer {
   cursor: pointer !important;
+}
+
+.form-container {
+  .mat-mdc-form-field {
+
+    &.physicalGear,
+    &.metier,
+    &.parentOperation {
+      max-height: 63px;
+    }
+  }
 }

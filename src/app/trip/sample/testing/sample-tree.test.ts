@@ -2,7 +2,17 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChil
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { DateUtils, EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, PlatformService, SharedValidators, waitFor } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  EntitiesStorage,
+  EntityUtils,
+  firstNotNilPromise,
+  isNotNilOrBlank,
+  MatAutocompleteConfigHolder,
+  PlatformService,
+  SharedValidators,
+  waitFor,
+} from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
@@ -18,11 +28,9 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
   selector: 'app-sample-tree-test',
   templateUrl: './sample-tree.test.html',
   styleUrls: ['./sample-tree.test.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SampleTreeTestPage implements OnInit {
-
-
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   filterForm: UntypedFormGroup;
@@ -39,9 +47,7 @@ export class SampleTreeTestPage implements OnInit {
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
 
   get sampleTree(): SampleTreeComponent {
-    return (this.selectedTabIndex === 0)
-      ? this.mobileTree
-      : this.desktopTree;
+    return this.selectedTabIndex === 0 ? this.mobileTree : this.desktopTree;
   }
 
   constructor(
@@ -53,27 +59,27 @@ export class SampleTreeTestPage implements OnInit {
     private entities: EntitiesStorage,
     private cd: ChangeDetectorRef
   ) {
-
     this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      example: [null, Validators.required]
+      example: [null, Validators.required],
     });
   }
 
   ngOnInit() {
-
     // Program
     this.autocomplete.add('program', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: 'Program'
-      }),
-      attributes: ['label', 'name']
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: 'Program',
+        }),
+      attributes: ['label', 'name'],
     });
-    this.filterForm.get('program').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(p => {
+    this.filterForm
+      .get('program')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((p) => {
         const label = p && p.label;
         if (label) {
           this.$programLabel.next(label);
@@ -82,20 +88,20 @@ export class SampleTreeTestPage implements OnInit {
     this.$programLabel
       .pipe(
         filter(isNotNilOrBlank),
-        mergeMap(programLabel => this.referentialRefService.ready()
-          .then(() => this.programRefService.loadByLabel(programLabel)))
+        mergeMap((programLabel) => this.referentialRefService.ready().then(() => this.programRefService.loadByLabel(programLabel)))
       )
-      .subscribe(program => this.setProgram(program));
+      .subscribe((program) => this.setProgram(program));
 
     // Input example
     this.autocomplete.add('example', {
-      items: Object.keys(SAMPLE_TREE_EXAMPLES).map((label, index) => ({id: index+1, label})),
+      items: Object.keys(SAMPLE_TREE_EXAMPLES).map((label, index) => ({ id: index + 1, label })),
       attributes: ['label'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('example').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(example => {
+    this.filterForm
+      .get('example')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((example) => {
         if (example && typeof example.label == 'string') {
           const json = SAMPLE_TREE_EXAMPLES[example.label];
           const samples = json.map(Sample.fromObject);
@@ -103,37 +109,34 @@ export class SampleTreeTestPage implements OnInit {
         }
       });
 
-
-    this.platform.ready()
+    this.platform
+      .ready()
       //.then(() => sleep(1000))
       .then(() => {
-         this.filterForm.patchValue({
-            program: {id: 40, label: 'SIH-OBSBIO' },
-            example: {id: 2, label: 'SIH-OBSBIO'}
-            //program: {id: 60, label: 'PIFIL' },
-            //example: {id: 0, label: 'default'}
-          });
+        this.filterForm.patchValue({
+          program: { id: 40, label: 'SIH-OBSBIO' },
+          example: { id: 2, label: 'SIH-OBSBIO' },
+          //program: {id: 60, label: 'PIFIL' },
+          //example: {id: 0, label: 'default'}
+        });
 
         this.applyExample();
       });
   }
 
-
   // Load data into components
   async updateView(data: Sample[]) {
-
     const program = await firstNotNilPromise(this.$program);
 
-    await waitFor(() => !!this.sampleTree, {timeout: 2000});
+    await waitFor(() => !!this.sampleTree, { timeout: 2000 });
 
     await this.configureTree(this.sampleTree, program);
     this.markAsReady();
 
-    await this.sampleTree.setValue(data.map(s => s.clone()));
+    await this.sampleTree.setValue(data.map((s) => s.clone()));
     this.sampleTree.enable();
 
     this.markAsLoaded();
-
   }
 
   async setProgram(program: Program) {
@@ -155,14 +158,14 @@ export class SampleTreeTestPage implements OnInit {
 
       // Load Pmfm groups
       const parameterLabelGroups = Parameters.getSampleParameterLabelGroups({
-        excludedParameterLabels: ['PRESERVATION']
+        excludedParameterLabels: ['PRESERVATION'],
       });
       const pmfmGroups = await this.pmfmService.loadIdsGroupByParameterLabels(parameterLabelGroups);
 
       // Configure sample table
       const samplesTable = sampleTree.samplesTable;
 
-      samplesTable.tagIdPmfm = <IPmfm>{id: PmfmIds.TAG_ID};
+      samplesTable.tagIdPmfm = <IPmfm>{ id: PmfmIds.TAG_ID };
       samplesTable.showPmfmDetails = true;
       samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
       samplesTable.readonlyPmfmGroups = ['AGE'];
@@ -173,8 +176,7 @@ export class SampleTreeTestPage implements OnInit {
       samplesTable.defaultSampleDate = DateUtils.moment();
       samplesTable.canAddPmfm = true;
       samplesTable.pmfmGroups = pmfmGroups;
-    }
-    else {
+    } else {
       sampleTree.program = program;
     }
 
@@ -193,12 +195,10 @@ export class SampleTreeTestPage implements OnInit {
     // Nothing to do
   }
 
-
   async getExampleTree(key?: string): Promise<Sample[]> {
-
     if (!key) {
       const example = this.filterForm.get('example').value;
-      key = example && example.label || 'default';
+      key = (example && example.label) || 'default';
     }
 
     // Get program
@@ -212,7 +212,7 @@ export class SampleTreeTestPage implements OnInit {
     // - only the parentId, and NOT the parent
     const samples = EntityUtils.listOfTreeToArray((json || []) as Sample[]);
     await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
-    samples.forEach(b => {
+    samples.forEach((b) => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
     });
@@ -231,11 +231,10 @@ export class SampleTreeTestPage implements OnInit {
 
   async dumpExample(key?: string) {
     const samples = await this.getExampleTree(key);
-     this.dumpSamples(samples, 'example');
+    this.dumpSamples(samples, 'example');
   }
 
   async dumpSampleTree(component: SampleTreeComponent, outputName?: string) {
-
     await component.save();
     const samples = component.value;
 
@@ -246,13 +245,10 @@ export class SampleTreeTestPage implements OnInit {
 
       // TODO
 
-
       // Append to result
       this.outputs[outputName] += html;
     }
-
   }
-
 
   dumpSamples(samples: Sample[], outputName?: string, indent?: string): string {
     let html = '';
@@ -261,11 +257,10 @@ export class SampleTreeTestPage implements OnInit {
         showAll: false,
         println: (m) => {
           html += '<br/>' + m;
-        }
+        },
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
-    }
-    else {
+    } else {
       html = !indent ? '&nbsp;No result' : '';
     }
 
@@ -284,8 +279,7 @@ export class SampleTreeTestPage implements OnInit {
     target.disable();
     try {
       await target.setValue(source.value);
-    }
-    finally {
+    } finally {
       source.enable();
       target.enable();
     }
@@ -297,4 +291,3 @@ export class SampleTreeTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
-

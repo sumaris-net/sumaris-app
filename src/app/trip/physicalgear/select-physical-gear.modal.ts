@@ -10,6 +10,7 @@ import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface ISelectPhysicalGearModalOptions {
+  strategyId?: number;
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
@@ -26,18 +27,18 @@ export interface ISelectPhysicalGearModalOptions {
   providers: [
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
-      useExisting: PhysicalGearService
-    }
-  ]
+      useExisting: PhysicalGearService,
+    },
+  ],
 })
 export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModalOptions {
-
   readonly mobile: boolean;
 
-  @Input() allowMultiple: boolean;
-  @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
+  @Input() strategyId: number;
+  @Input() filter: PhysicalGearFilter | null = null;
+  @Input() allowMultiple: boolean;
   @Input() distinctBy: string[];
   @Input() withOffline: boolean;
   @Input() showGearColumn: boolean;
@@ -46,7 +47,7 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
     return this.table.loadingSubject;
   }
 
-  @ViewChild(PhysicalGearTable, {static: true}) table: PhysicalGearTable;
+  @ViewChild(PhysicalGearTable, { static: true }) table: PhysicalGearTable;
 
   constructor(
     private modalCtrl: ModalController,
@@ -58,18 +59,17 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
   }
 
   ngOnInit() {
-
     // Init table
     this.table.dataService = this.dataService;
     this.filter = PhysicalGearFilter.fromObject(this.filter);
     this.filter.program = ReferentialRef.fromObject({
       ...this.filter.program,
-      label: this.programLabel
+      label: this.programLabel,
     });
     this.table.filter = this.filter;
     this.table.dataSource.watchAllOptions = <PhysicalGearServiceWatchOptions>{
       distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
-      withOffline: this.withOffline
+      withOffline: this.withOffline,
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.programLabel;
@@ -78,12 +78,10 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
-
   }
 
   async selectRow(row: TableElement<PhysicalGear>) {
     if (row && this.table) {
-
       // Select the clicked row, then close
       if (!this.allowMultiple) {
         this.table.selection.clear();
@@ -98,11 +96,11 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
     }
   }
 
-  async close(event?: any){
+  async close(event?: any) {
     if (!this.hasSelection()) return; // Skip if nothing selected
 
     const gears = (this.table.selection.selected || [])
-      .map(row => row.currentData)
+      .map((row) => row.currentData)
       .map(PhysicalGear.fromObject)
       .filter(isNotNil);
     return this.modalCtrl.dismiss(gears);

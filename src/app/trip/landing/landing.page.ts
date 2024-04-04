@@ -1,8 +1,9 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
-
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   AppEditorOptions,
   AppErrorWithDetails,
+  DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
   equals,
@@ -17,8 +18,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotNilOrNaN,
-  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -28,11 +27,11 @@ import {
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { LandingService } from './landing.service';
-import { AppRootDataEntityEditor } from '@app/data/form/root-data-editor.class';
+import { AppRootDataEntityEditor, RootDataEditorOptions, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
-import { debounceTime, filter, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, map, tap, throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from './landing.model';
@@ -40,25 +39,31 @@ import { Trip } from '../trip/trip.model';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
-import { merge, Subscription } from 'rxjs';
+import { merge, Observable, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ContextService } from '@app/shared/context.service';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-
-import moment from 'moment';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { Sample } from '@app/trip/sample/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
-export class LandingEditorOptions extends AppEditorOptions {}
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
+
+export class LandingEditorOptions extends RootDataEditorOptions {}
+
+export interface LandingPageState extends RootDataEntityEditorState {
+  strategyLabel: string;
+}
 
 @Component({
   selector: 'app-landing-page',
@@ -67,32 +72,45 @@ export class LandingEditorOptions extends AppEditorOptions {}
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: LandingPage },
     {
       provide: AppEditorOptions,
       useValue: {
-        pathIdAttribute: 'landingId'
-      }
-    }
-  ]
+        pathIdAttribute: 'landingId',
+      },
+    },
+    RxState,
+  ],
 })
-export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService> implements OnInit, AfterViewInit {
+export class LandingPage<ST extends LandingPageState = LandingPageState>
+  extends AppRootDataEntityEditor<Landing, LandingService, number, ST>
+  implements OnInit, AfterViewInit
+{
+  static TABS = {
+    GENERAL: 0,
+    SAMPLES: 1,
+    BATCHES: 2,
+  };
 
   protected parent: Trip | ObservedLocation;
-  protected observedLocationService: ObservedLocationService;
-  protected tripService: TripService;
-  protected pmfmService: PmfmService;
-  protected referentialRefService: ReferentialRefService;
-  protected vesselService: VesselSnapshotService;
-  protected network: NetworkService;
+  protected observedLocationService = inject(ObservedLocationService);
+  protected tripService = inject(TripService);
+  protected pmfmService = inject(PmfmService);
+  protected referentialRefService = inject(ReferentialRefService);
+  protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
+  protected selectedSubTabIndex = 0;
 
   showParent = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
   showEntityMetadata = false;
   showQualityForm = false;
-  context: ContextService;
-  showSamplesTable = false;
   enableReport = false;
+  parentAcquisitionLevel: AcquisitionLevelType;
+
+  showSampleTablesByProgram = false;
+  showSamplesTable = false;
+
+  @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.landingForm.form;
@@ -100,84 +118,66 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
-  @ViewChild('strategyCard', {static: false}) strategyCard: StrategySummaryCardComponent;
+  @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
 
-
-  constructor(
-    injector: Injector,
-    @Optional() options: LandingEditorOptions,
-  ) {
+  constructor(injector: Injector, @Optional() options: LandingEditorOptions) {
     super(injector, Landing, injector.get(LandingService), {
       pathIdAttribute: 'landingId',
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       enableListenChanges: true,
-      ...options
+      acquisitionLevel: AcquisitionLevelCodes.LANDING,
+      settingsId: AcquisitionLevelCodes.LANDING.toLowerCase(),
+      ...options,
     });
-    this.observedLocationService = injector.get(ObservedLocationService);
-    this.tripService = injector.get(TripService);
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.vesselService = injector.get(VesselSnapshotService);
-    this.context = injector.get(ContextService);
-    this.network = injector.get(NetworkService);
-
     this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
     this.showParent = !!this.parentAcquisitionLevel;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.logPrefix = '[landing-page] ';
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
     // Enable samples tab, when has pmfms
-    firstTruePromise(this.samplesTable.hasPmfms$)
-      .then(() => {
-        this.showSamplesTable = true;
-        this.markForCheck();
-      });
+    firstTruePromise(this.samplesTable.hasPmfms$, { stop: this.destroySubject }).then(() => {
+      this.showSamplesTable = true;
+      this.markForCheck();
+    });
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
-      this.landingForm.form.get('dateTime').valueChanges
-        .pipe(
+      this.landingForm.form
+        .get('dateTime')
+        .valueChanges.pipe(
           throttleTime(200),
           filter(isNotNil),
-          tap(dateTime => this.samplesTable.defaultSampleDate = fromDateISOString(dateTime))
+          tap((dateTime) => (this.samplesTable.defaultSampleDate = fromDateISOString(dateTime)))
         )
-        .subscribe());
-
-    this.registerSubscription(
-      this.landingForm.strategyLabel$
-        .pipe(
-          filter(value => this.strategyLabel !== value),
-          tap(strategyLabel => console.debug('[landing-page] Received strategy label: ', strategyLabel)),
-          tap(strategyLabel => this.strategyLabel = strategyLabel)
-        )
-        .subscribe());
-
-    this.registerSubscription(
-      this.landingForm.observedLocationChanges
-        .pipe(filter(_ => this.showParent))
-        .subscribe((parent) => this.onParentChanged(parent))
+        .subscribe()
     );
+
+    // Fill strategy label from form
+    this._state.connect('strategyLabel', this.landingForm.strategyLabel$);
+
+    this._state.hold(this.landingForm.observedLocationChanges.pipe(filter((_) => this.showParent)), (parent) => this.onParentChanged(parent));
 
     // Watch table events, to avoid strategy edition, when has sample rows
-    this.registerSubscription(
-      merge(
-        this.samplesTable.onConfirmEditCreateRow,
-        this.samplesTable.onCancelOrDeleteRow,
-        this.samplesTable.onAfterDeletedRows
-      )
-        .pipe(debounceTime(500))
-        .subscribe(() => this.landingForm.canEditStrategy = this.samplesTable.empty)
+    this._state.hold(
+      merge(this.samplesTable.onConfirmEditCreateRow, this.samplesTable.onCancelOrDeleteRow, this.samplesTable.onAfterDeletedRows).pipe(
+        debounceTime(500)
+      ),
+      () => (this.landingForm.canEditStrategy = this.samplesTable.empty)
     );
+
+    // Manage sub tab group
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
   }
 
   canUserWrite(data: Landing, opts?: any): boolean {
-    return isNil(this.parent?.validationDate)
-      && super.canUserWrite(data, opts);
+    return isNil(this.parent?.validationDate) && super.canUserWrite(data, opts);
   }
 
   async reload(): Promise<void> {
@@ -186,8 +186,28 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     await this.load(this.data && this.data.id, route.params);
   }
 
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
+    if (this.strategyResolution === 'user-select') {
+      return this._state
+        .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
+        .pipe(
+          // DEBUG
+          tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
+          map(({ acquisitionLevel, strategyLabel }) => {
+            return <Partial<StrategyFilter>>{
+              acquisitionLevel,
+              programId: program.id,
+              label: strategyLabel,
+            };
+          })
+        );
+    }
 
-  onPrepareSampleForm({form, pmfms}) {
+    return super.watchStrategyFilter(program);
+  }
+
+  onPrepareSampleForm({ form, pmfms }) {
     console.debug('[landing-page] Initializing sample form (validators...)');
 
     // Add computation and validation
@@ -195,34 +215,35 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
   }
 
-  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string}) {
-
+  setError(err: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     // cast err to solve type error : detail is not a property of AppErrorWithDetails, property detail is on AppErrorWithDetails.error.detail
     err = err as any;
-    if (err
-      && typeof err !== 'string'
-      && err?.code === ServerErrorCodes.DATA_NOT_UNIQUE
-      && err?.details
-      && typeof err.details === 'object'
-      && err.details.hasOwnProperty('duplicatedValues')
+    if (
+      err &&
+      typeof err !== 'string' &&
+      err?.code === ServerErrorCodes.DATA_NOT_UNIQUE &&
+      err?.details &&
+      typeof err.details === 'object' &&
+      isNotNil(err.details['duplicatedValues'])
     ) {
       const details = err.details as any;
-      this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', {duplicatedValues: details.duplicatedValues});
+      this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', { duplicatedValues: details.duplicatedValues });
       super.setError(undefined, opts);
       this.selectedTabIndex = this.getFirstInvalidTabIndex();
-    }
-    else {
+    } else {
       this.samplesTable.setError(undefined);
       super.setError(err, opts);
     }
-
   }
 
-  async updateView(data: Landing | null, opts?: {
-    emitEvent?: boolean;
-    openTabIndex?: number;
-    updateRoute?: boolean;
-  }) {
+  async updateView(
+    data: Landing | null,
+    opts?: {
+      emitEvent?: boolean;
+      openTabIndex?: number;
+      updateRoute?: boolean;
+    }
+  ) {
     await super.updateView(data, opts);
 
     this.landingForm.showParent = this.showParent;
@@ -263,13 +284,12 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       }
     }
 
-
-    if (!this.isNewData && this.landingForm.requiredStrategy) {
+    if (!this.isNewData && this.requiredStrategy) {
       this.landingForm.canEditStrategy = false;
     }
     this.defaultBackHref = this.computeDefaultBackHref();
 
-    if (!opts || opts.emitEvent !== false){
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
@@ -299,7 +319,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.showQualityForm = false;
 
     if (this.isOnFieldMode) {
-      data.dateTime = moment();
+      data.dateTime = DateUtils.moment();
     }
 
     // Fill parent ids
@@ -309,8 +329,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
       data.rankOrder = +queryParams['rankOrder'];
-    }
-    else {
+    } else {
       data.rankOrder = 1;
     }
 
@@ -318,7 +337,6 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     const tableId = this.queryParams['tableId'];
     const searchFilter = tableId && this.settings.getPageSettings<LandingFilter>(tableId, LandingsPageSettingsEnum.FILTER_KEY);
     if (searchFilter) {
-
       // Synchronization status
       if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
         data.synchronizationStatus = 'DIRTY';
@@ -352,7 +370,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       data.measurementValues = data.measurementValues || {};
       data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
       if (EntityUtils.isEmpty(data.strategy, 'id')) {
-        data.strategy = contextualStrategy || await this.strategyRefService.loadByLabel(strategyLabel);
+        data.strategy = contextualStrategy || (await this.strategyRefService.loadByLabel(strategyLabel));
       }
     }
 
@@ -360,19 +378,16 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
-
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-
     this.parent = await this.loadParent(data);
-    const programLabel = this.parent.program?.label;
 
     // Copy not fetched data
     if (this.parent) {
       // Set program using parent's program, if not already set
       data.program = ReferentialUtils.isNotEmpty(data.program) ? data.program : this.parent.program;
-      data.observers = isNotEmptyArray(data.observers) && data.observers || this.parent.observers;
+      data.observers = (isNotEmptyArray(data.observers) && data.observers) || this.parent.observers;
 
       if (this.parent instanceof ObservedLocation) {
         data.location = data.location || this.parent.location;
@@ -381,8 +396,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
         data.observedLocationId = this.showParent ? null : this.parent.id;
         data.tripId = undefined;
         //data.trip = undefined; // Keep it
-      }
-      else if (this.parent instanceof Trip) {
+      } else if (this.parent instanceof Trip) {
         data.vesselSnapshot = this.parent.vesselSnapshot;
         data.location = data.location || this.parent.returnLocation || this.parent.departureLocation;
         data.dateTime = data.dateTime || this.parent.returnDateTime || this.parent.departureDateTime;
@@ -405,11 +419,12 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
+    const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     if (strategyLabel) this.strategyLabel = strategyLabel;
   }
 
-  protected async onParentChanged(parent: Trip|ObservedLocation) {
+  protected async onParentChanged(parent: Trip | ObservedLocation) {
     if (!equals(parent, this.parent)) {
       console.debug('[landing] Parent changed to: ', parent);
       this.parent = parent;
@@ -424,7 +439,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     }
   }
 
-  protected async fillPropertiesFromParent(data: Landing, parent: Trip|ObservedLocation) {
+  protected async fillPropertiesFromParent(data: Landing, parent: Trip | ObservedLocation) {
     // DEBUG
     console.debug('[landing-page] Fill some properties from parent', parent);
 
@@ -438,8 +453,8 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       if (parent instanceof ObservedLocation) {
         data.observedLocation = this.showParent ? parent : undefined;
         data.observedLocationId = this.showParent ? null : this.parent.id;
-        data.location = this.landingForm.showLocation && data.location || parent.location;
-        data.dateTime = this.landingForm.showDateTime && data.dateTime || parent.startDateTime || parent.endDateTime;
+        data.location = (this.landingForm.showLocation && data.location) || parent.location;
+        data.dateTime = (this.landingForm.showDateTime && data.dateTime) || parent.startDateTime || parent.endDateTime;
         // Keep trip, because some data are stored into the trip (e.g. fishingAreas, metier, ...)
         //data.trip = undefined;
         data.tripId = undefined;
@@ -448,7 +463,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
         if (isNotNil(queryParams['vessel'])) {
           const vesselId = +queryParams['vessel'];
           console.debug(`[landing-page] Loading vessel {${vesselId}}...`);
-          data.vesselSnapshot = await this.vesselService.load(vesselId, { fetchPolicy: 'cache-first' });
+          data.vesselSnapshot = await this.vesselSnapshotService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
       } else if (parent instanceof Trip) {
         data.trip = this.showParent ? parent : undefined;
@@ -462,7 +477,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       // Copy date to samples, if not set by user
       if (!this.samplesTable.showSampleDateColumn) {
         console.debug(`[landing-page] Updating samples...`);
-        (data.samples || []).forEach(sample => {
+        (data.samples || []).forEach((sample) => {
           sample.sampleDate = data.dateTime;
         });
       }
@@ -473,7 +488,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       const contextualProgram = this.context.getValue('program');
       const programLabel = data.program?.label || contextualProgram?.label || queryParams['program'];
       if (programLabel && EntityUtils.isEmpty(data?.program, 'id')) {
-        data.program = contextualProgram || await this.programRefService.loadByLabel(programLabel);
+        data.program = contextualProgram || (await this.programRefService.loadByLabel(programLabel));
       }
     }
   }
@@ -500,23 +515,26 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
           throw new Error('Cannot compute the back href, for parent ' + this.parentAcquisitionLevel);
       }
     }
-
   }
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
+    const showStrategy =
+      program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) ||
+      program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) === 'user-select';
     const isNewData = this.isNewData;
+    const requiredStrategy = showStrategy && !isNewData;
+
+    this.requiredStrategy = requiredStrategy;
+    this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     // Customize the UI, using program options
-    const enableStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.showStrategy = enableStrategy;
-    this.landingForm.requiredStrategy = !isNewData && enableStrategy;
-    this.landingForm.canEditStrategy = isNewData && enableStrategy;
+    this.landingForm.showStrategy = showStrategy;
+    this.landingForm.requiredStrategy = requiredStrategy;
+    this.landingForm.canEditStrategy = showStrategy && isNewData;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
@@ -524,24 +542,27 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : (this.i18nContext?.suffix || '');
+    i18nSuffix = i18nSuffix && i18nSuffix !== 'legacy' ? i18nSuffix : this.i18nContext?.suffix || '';
     this.i18nContext.suffix = i18nSuffix;
     this.landingForm.i18nSuffix = i18nSuffix;
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
+    this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_ENABLE);
 
     if (this.samplesTable) {
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
       this.samplesTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
-      this.samplesTable.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
-        program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT));
+      this.samplesTable.weightDisplayedUnit = this.settings.getProperty(
+        TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
+        program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT)
+      );
       this.samplesTable.showLabelColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
 
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()
-      if (!enableStrategy) {
+      if (!requiredStrategy) {
         await this.setTablePmfms(this.samplesTable, program.label);
       }
     }
@@ -552,7 +573,7 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    if (!enableStrategy || isNewData) {
+    if (!requiredStrategy || (isNewData && this.strategyResolution === 'user-select')) {
       this.markAsReady();
     }
 
@@ -563,7 +584,8 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     }
   }
 
-  protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean }) {
+  protected async setStrategy(strategy: Strategy, opts?: { emitReadyEvent?: boolean }) {
+    console.log(this.logPrefix + 'Setting strategy', strategy);
     await super.setStrategy(strategy);
 
     const program = this.program;
@@ -573,7 +595,10 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.landingForm.strategyLabel = strategy.label;
 
     // Propagate strategy's fishing area locations to form
-    const fishingAreaLocations = removeDuplicatesFromArray((strategy.appliedStrategies || []).map(a => a.location), 'id');
+    const fishingAreaLocations = removeDuplicatesFromArray(
+      (strategy.appliedStrategies || []).map((a) => a.location),
+      'id'
+    );
     this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
     this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
@@ -592,64 +617,64 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.markForCheck();
   }
 
-  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>,
-                                programLabel: string,
-                                strategyLabel?: string) {
-    if (!strategyLabel) {
+  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
+    if (!this.landingForm.showStrategy) {
+      console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
       // Set the table program, to delegate pmfms load
+      table.requiredStrategy = this.requiredStrategy;
       table.programLabel = programLabel;
-    }
-    else {
+    } else if (table.acquisitionLevel && strategyLabel) {
+      console.debug(this.logPrefix + 'Loading table pmfms... strategy:' + strategyLabel);
       // Load strategy's pmfms
-      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel,
-        {
-          strategyLabel,
-          acquisitionLevel: table.acquisitionLevel
-        });
-      const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
+      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel, {
+        acquisitionLevel: table.acquisitionLevel,
+        strategyLabel,
+      });
+      const strategyPmfmIds = samplesPmfms.map((pmfm) => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
-      const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
-        const pmfmIds = Object.keys(sample.measurementValues || {})
-          .map(id => +id)
-          .filter(isNotNilOrNaN); // Exclude technical properties (e.g. __typename)
-        const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
-        return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
-      }, []);
+      const additionalPmfmIds = ((!this.isNewData && this.data?.samples) || []).reduce(
+        (res, sample) =>
+          MeasurementValuesUtils.getPmfmIds(sample.measurementValues || {}).reduce(
+            (res, pmfmId) => (!strategyPmfmIds.includes(pmfmId) ? res.concat(pmfmId) : res),
+            res
+          ),
+        []
+      );
 
       // Override samples table pmfm, if need
       if (isNotEmptyArray(additionalPmfmIds)) {
-
         // Load additional pmfms, from ids
-        const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-        const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+        const additionalPmfms = (await Promise.all(additionalPmfmIds.map((id) => this.pmfmService.loadPmfmFull(id)))).map(
+          DenormalizedPmfmStrategy.fromFullPmfm
+        );
 
         // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
         // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-        samplesPmfms = samplesPmfms.concat(additionalFullPmfms);
+        samplesPmfms = samplesPmfms.concat(additionalPmfms);
       }
 
-      // Give it to samples table (but exclude STRATEGY_LABEL)
-      table.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
+      // Give it to samples table (without the STRATEGY_LABEL pmfm)
+      table.pmfms = samplesPmfms.filter((p) => p.id !== PmfmIds.STRATEGY_LABEL);
       // Avoid to load by program, because PMFM are already known
       //table.programLabel = programLabel;
+      table.markAsReady();
     }
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
-    let parent: Trip|ObservedLocation;
+    let parent: Trip | ObservedLocation;
 
     // Load parent observed location
     if (isNotNil(data.observedLocationId)) {
       console.debug(`[landing-page] Loading parent observed location #${data.observedLocationId} ...`);
-      parent = await this.observedLocationService.load(data.observedLocationId, {fetchPolicy: 'cache-first'});
+      parent = await this.observedLocationService.load(data.observedLocationId, { fetchPolicy: 'cache-first' });
     }
     // Load parent trip
     else if (isNotNil(data.tripId)) {
       console.debug('[landing-page] Loading parent trip...');
-      parent = await this.tripService.load(data.tripId, {fetchPolicy: 'cache-first'});
-    }
-    else {
+      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
+    } else {
       console.debug('[landing] No parent (observed location or trip) found in path.');
     }
 
@@ -663,27 +688,28 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
-
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
-      ... (await super.computePageHistory(title)),
-      icon: 'boat'
+      ...(await super.computePageHistory(title)),
+      icon: 'boat',
     };
   }
 
   protected async computeTitle(data: Landing): Promise<string> {
-
-    const program = await firstNotNilPromise(this.program$, {stop: this.destroySubject});
+    const program = await firstNotNilPromise(this.program$, { stop: this.destroySubject });
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
+    i18nSuffix = (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
-    const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      this.translate.instant('LANDING.TITLE_PREFIX', {
-        location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
-        date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
-      }) || '';
+    const titlePrefix =
+      (this.parent &&
+        this.parent instanceof ObservedLocation &&
+        this.translate.instant('LANDING.TITLE_PREFIX', {
+          location: this.parent.location && (this.parent.location.name || this.parent.location.label),
+          date: (this.parent.startDateTime && (this.dateFormat.transform(this.parent.startDateTime) as string)) || '',
+        })) ||
+      '';
 
     // new data
     if (!data || isNil(data.id)) {
@@ -691,12 +717,15 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     }
 
     // Existing data
-    return titlePrefix + this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
-      vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name)
-    });
+    return (
+      titlePrefix +
+      this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+        vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
+      })
+    );
   }
 
-  protected computePageUrl(id: number|'new') {
+  protected computePageUrl(id: number | 'new') {
     const parentUrl = this.getParentPageUrl();
     return `${parentUrl}/landing/${id}`;
   }
@@ -708,9 +737,11 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   }
 
   protected computeUsageMode(landing: Landing): UsageMode {
-    return this.settings.isUsageMode('FIELD')
+    return this.settings.isUsageMode('FIELD') &&
       // Force desktop mode if landing date/time is 1 day later than now
-      && (isNil(landing && landing.dateTime) || landing.dateTime.diff(moment(), 'day') <= 1) ? 'FIELD' : 'DESK';
+      (isNil(landing && landing.dateTime) || landing.dateTime.diff(DateUtils.moment(), 'day') <= 1)
+      ? 'FIELD'
+      : 'DESK';
   }
 
   protected async getValue(): Promise<Landing> {
@@ -721,9 +752,13 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
-    const strategyLabel = this.strategyLabel;
-    if (isNotNilOrBlank(strategyLabel)) {
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+
+    // Store strategy label to measurement
+    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
+      const strategyLabel = this.strategy?.label;
+      if (isNotNilOrBlank(strategyLabel)) {
+        data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+      }
     }
 
     // Save samples table
@@ -739,11 +774,12 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   }
 
   async openObservedLocation(parent: ObservedLocation): Promise<boolean> {
-    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
-      // If on field mode: try to save silently
-      ? await this.save(null, {openTabIndex: -1})
-      // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm();
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode: try to save silently
+          await this.save(null, { openTabIndex: -1 })
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
 
     if (!saved) return; // Skip
 
@@ -751,8 +787,8 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
       replaceUrl: false, // Back should return in the landing
       queryParams: {
         tab: 0,
-        embedded: true
-      }
+        embedded: true,
+      },
     });
   }
 
@@ -769,11 +805,12 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
   protected async setWeightDisplayUnit(unitLabel: WeightUnitSymbol) {
     if (this.samplesTable.weightDisplayedUnit === unitLabel) return; // Skip if same
 
-    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
-      // If on field mode: try to save silently
-      ? await this.save(null, {openTabIndex: -1})
-      // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm();
+    const saved =
+      (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
+        ? // If on field mode: try to save silently
+          await this.save(null, { openTabIndex: -1 })
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
 
     if (!saved) return; // Skip
 
@@ -782,11 +819,10 @@ export class LandingPage extends AppRootDataEntityEditor<Landing, LandingService
     this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT, unitLabel);
 
     // Reload program and strategy
-    await this.reloadProgram({clearCache: false});
-    if (this.landingForm.requiredStrategy) await this.reloadStrategy({clearCache: false});
+    await this.reloadProgram({ clearCache: false });
+    if (this.landingForm.requiredStrategy) await this.reloadStrategy({ clearCache: false });
 
     // Reload data
     setTimeout(() => this.reload(), 250);
   }
-
 }

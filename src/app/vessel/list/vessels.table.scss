@@ -13,7 +13,10 @@ mat-toolbar.has-searchbar {
   --table-toolbar-height: 0px;
   --table-offline-nav: 0px;
   --table-paginator-height: 0px;
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-offline-nav, 0px) - var(--table-paginator-height, 0px) - 0px);
+  height: calc(
+    100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--table-offline-nav, 0px) - var(--table-paginator-height, 0px) -
+      0px
+  );
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
@@ -28,7 +31,7 @@ mat-toolbar.has-searchbar {
 
 .mat-expansion-panel {
   margin-bottom: 5px;
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   .form-container {
     mat-form-field {
@@ -47,17 +50,17 @@ mat-toolbar.has-searchbar {
   }
 }
 
-.mat-table {
-  --mat-cell-vertical-padding: 4px;
+.mat-mdc-table {
+  --mat-cell-horizontal-padding: 4px;
 
-  .mat-header-cell.cdk-visually-hidden,
-  .mat-cell.cdk-visually-hidden {
+  .mat-mdc-header-cell.cdk-visually-hidden,
+  .mat-mdc-cell.cdk-visually-hidden {
     visibility: hidden;
     display: none;
   }
 
-  .mat-header-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-row {
     .mat-column-status {
       min-width: calc(1.2em + 8px);
       padding-inline-start: 4px;
@@ -71,5 +74,4 @@ mat-toolbar.has-searchbar {
       }
     }
   }
-
 }

@@ -5,12 +5,9 @@ import { ReferentialValidatorService } from '@app/referential/services/validator
 import { Method } from '@app/referential/pmfm/method/method.model';
 import { Metier } from '@app/referential/metier/metier.model';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class MetierValidatorService extends ReferentialValidatorService {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
@@ -23,8 +20,7 @@ export class MetierValidatorService extends ReferentialValidatorService {
     return {
       ...config,
       gear: [data?.gear, Validators.compose([Validators.required, SharedValidators.entity])],
-      taxonGroup: [data?.taxonGroup, SharedValidators.entity]
+      taxonGroup: [data?.taxonGroup, SharedValidators.entity],
     };
   }
-
 }

@@ -13,14 +13,13 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-@EntityClass({typename: 'VesselVO'})
+@EntityClass({ typename: 'VesselVO' })
 export class Vessel extends RootDataEntity<Vessel> {
-
   static ENTITY_NAME = 'Vessel';
   static fromObject: (source: any, opts?: any) => Vessel;
 
@@ -33,16 +32,15 @@ export class Vessel extends RootDataEntity<Vessel> {
     super(Vessel.TYPENAME);
   }
 
-// TODO : Check if clone is needed
   clone(): Vessel {
     const target = new Vessel();
     this.copy(target);
-    target.vesselType = this.vesselType && this.vesselType.clone() || undefined;
-    target.program = this.program && this.program.clone() || undefined;
-    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.clone() || undefined;
-    target.vesselRegistrationPeriod = this.vesselRegistrationPeriod && this.vesselRegistrationPeriod.clone() || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
+    target.vesselType = (this.vesselType && this.vesselType.clone()) || undefined;
+    target.program = (this.program && this.program.clone()) || undefined;
+    target.vesselFeatures = (this.vesselFeatures && this.vesselFeatures.clone()) || undefined;
+    target.vesselRegistrationPeriod = (this.vesselRegistrationPeriod && this.vesselRegistrationPeriod.clone()) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.clone()) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.clone()) || undefined;
 
     return target;
   }
@@ -63,23 +61,31 @@ export class Vessel extends RootDataEntity<Vessel> {
 
   asObject(options?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.vesselType = this.vesselType && this.vesselType.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.vesselFeatures = this.vesselFeatures && !this.vesselFeatures.empty && this.vesselFeatures.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.vesselRegistrationPeriod = this.vesselRegistrationPeriod && !this.vesselRegistrationPeriod.empty && this.vesselRegistrationPeriod.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+    target.vesselType = (this.vesselType && this.vesselType.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.vesselFeatures =
+      (this.vesselFeatures && !this.vesselFeatures.empty && this.vesselFeatures.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.vesselRegistrationPeriod =
+      (this.vesselRegistrationPeriod &&
+        !this.vesselRegistrationPeriod.empty &&
+        this.vesselRegistrationPeriod.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) ||
+      undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
     return target;
   }
 
   equals(other: Vessel): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      && (this.vesselFeatures.id === other.vesselFeatures.id || this.vesselFeatures.startDate.isSame(other.vesselFeatures.startDate))
-      && (this.vesselRegistrationPeriod.id === other.vesselRegistrationPeriod.id || this.vesselRegistrationPeriod.startDate.isSame(other.vesselRegistrationPeriod.startDate));
+    return (
+      super.equals(other) &&
+      isNotNil(this.id) &&
+      (this.vesselFeatures.id === other.vesselFeatures.id || this.vesselFeatures.startDate.isSame(other.vesselFeatures.startDate)) &&
+      (this.vesselRegistrationPeriod.id === other.vesselRegistrationPeriod.id ||
+        this.vesselRegistrationPeriod.startDate.isSame(other.vesselRegistrationPeriod.startDate))
+    );
   }
 }
 
-@EntityClass({typename: 'VesselFeaturesVO'})
+@EntityClass({ typename: 'VesselFeaturesVO' })
 export class VesselFeatures extends Entity<VesselFeatures> {
-
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
   name: string;
@@ -115,15 +121,15 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.recorderPerson = null;
   }
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): VesselFeatures {
     const target = new VesselFeatures();
     this.copy(target);
-    target.hullMaterial = this.hullMaterial && this.hullMaterial.clone() || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.clone() || undefined;
+    target.hullMaterial = (this.hullMaterial && this.hullMaterial.clone()) || undefined;
+    target.basePortLocation = (this.basePortLocation && this.basePortLocation.clone()) || undefined;
     target.vesselId = this.vesselId || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.clone() || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.clone() || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.clone()) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.clone()) || undefined;
     return target;
   }
 
@@ -136,20 +142,20 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     const target: any = super.asObject(options);
 
     target.vesselId = this.vesselId;
-    target.hullMaterial = this.hullMaterial && this.hullMaterial.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.hullMaterial = (this.hullMaterial && this.hullMaterial.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.basePortLocation = (this.basePortLocation && this.basePortLocation.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
     target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
     target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
     return target;
   }
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.vesselId  = source.vesselId;
+    this.vesselId = source.vesselId;
     this.exteriorMarking = source.exteriorMarking;
     this.name = source.name;
     this.comments = source.comments || undefined;
@@ -171,9 +177,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   }
 }
 
-@EntityClass({typename: 'VesselRegistrationPeriodVO'})
+@EntityClass({ typename: 'VesselRegistrationPeriodVO' })
 export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
-
   static fromObject: (source: any, opts?: any) => VesselRegistrationPeriod;
 
   vesselId: number = null;
@@ -184,9 +189,13 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
   registrationLocation: ReferentialRef = null;
 
   get empty(): boolean {
-    return isNil(this.id) && isNilOrBlank(this.registrationCode) && isNilOrBlank(this.intRegistrationCode)
-      && ReferentialUtils.isEmpty(this.registrationLocation)
-      && isNil(this.startDate);
+    return (
+      isNil(this.id) &&
+      isNilOrBlank(this.registrationCode) &&
+      isNilOrBlank(this.intRegistrationCode) &&
+      ReferentialUtils.isEmpty(this.registrationLocation) &&
+      isNil(this.startDate)
+    );
   }
 
   constructor() {
@@ -197,7 +206,7 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
   clone(): VesselRegistrationPeriod {
     const target = new VesselRegistrationPeriod();
     this.copy(target);
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.clone() || undefined;
+    target.registrationLocation = (this.registrationLocation && this.registrationLocation.clone()) || undefined;
     return target;
   }
 
@@ -209,7 +218,8 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
 
-    target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
+    target.registrationLocation =
+      (this.registrationLocation && this.registrationLocation.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
     target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
 
@@ -223,6 +233,6 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
     this.vesselId = source.vesselId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.registrationLocation = source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation) || undefined;
+    this.registrationLocation = (source.registrationLocation && ReferentialRef.fromObject(source.registrationLocation)) || undefined;
   }
 }

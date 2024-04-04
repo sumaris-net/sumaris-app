@@ -9,11 +9,11 @@
     #matInput
     [class.cdk-visually-hidden]="!showGear"
     formControlName="gear"
-    [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR' | translateContext : i18nSuffix"
+    [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR' | translateContext: i18nSuffix"
     [config]="autocompleteFields.gear"
     [tabindex]="tabindex"
     [required]="true"
-    [showSearchBar]="gears$ | async | isArrayLength : { greaterThan: 5 }"
+    [showSearchBar]="gears$ | async | isArrayLength: { greaterThan: 5 }"
     (click)="selectInputContent($event)"
     (keydown.tab)="focusNextInput($event)"
     (keydown.enter)="focusNextInput($event)"
@@ -21,7 +21,7 @@
   ></mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field *ngIf="canEditRankOrder && form | formGetControl : 'rankOrder'; let control">
+  <mat-form-field *ngIf="canEditRankOrder && form | formGetControl: 'rankOrder'; let control">
     <input
       matInput
       #matInput
@@ -34,7 +34,7 @@
       (keydown.tab)="focusNextInput($event)"
       (keydown.enter)="focusNextInput($event)"
       (click)="selectInputContent($event)"
-      [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER' | translateContext : i18nSuffix"
+      [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER' | translateContext: i18nSuffix"
       [tabindex]="tabindex + 1"
     />
 
@@ -43,10 +43,10 @@
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
         <span *ngSwitchCase="'min'">
-          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate : control.errors.min }}
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: control.errors.min }}
         </span>
         <span *ngSwitchCase="'msg'">
-          {{ control.errors.msg?.key || control.errors.msg | translate : control.errors.msg?.params }}
+          {{ control.errors.msg?.key || control.errors.msg | translate: control.errors.msg?.params }}
         </span>
       </ng-container>
     </mat-error>
@@ -54,19 +54,14 @@
 
   <ng-content></ng-content>
 
-  <form
-    *rxIf="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'userBlocking'"
-    [formGroup]="measurementValuesForm"
-  >
+  <form *rxIf="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'userBlocking'" [formGroup]="measurementValuesForm">
     <ion-grid class="ion-no-padding">
       <ion-row>
         <!-- Measurements -->
-        <ng-container
-          *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last"
-        >
+        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last">
           <ion-col
             class="ion-padding-end"
-            *ngVar="pmfm | pmfmFieldStyle : maxItemCountForButtons as style"
+            *ngVar="pmfm | pmfmFieldStyle: maxItemCountForButtons as style"
             size="12"
             [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
           >
@@ -79,7 +74,7 @@
               [compact]="compact"
               [tabindex]="tabindex + 2 + i * 2"
               [floatLabel]="floatLabel"
-              [placeholder]="pmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+              [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
               (keydown.tab)="focusNextInput($event)"
               (keydown.enter)="focusNextInput($event)"
               [mobile]="mobile"
@@ -101,7 +96,7 @@
       matInput
       #comments
       #matInput
-      [formControl]="form | formGetControl : 'comments'"
+      [formControl]="form | formGetControl: 'comments'"
       [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS' | translate"
       matTextareaAutosize="true"
       matAutosizeMinRows="4"

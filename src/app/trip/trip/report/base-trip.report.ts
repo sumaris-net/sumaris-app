@@ -45,7 +45,9 @@ export declare interface BaseNumericStats {
   max: number;
   avg: number;
 }
-export declare type SpeciesChart<TType extends keyof ChartTypeRegistry = any> = ChartConfiguration<TType> & ChartJsUtilsThresholdLineOptions<TType> & ChartJsUtilsMedianLineOptions<TType>;
+export declare type SpeciesChart<TType extends keyof ChartTypeRegistry = any> = ChartConfiguration<TType> &
+  ChartJsUtilsThresholdLineOptions<TType> &
+  ChartJsUtilsMedianLineOptions<TType>;
 
 export class BaseTripReportStats extends ExtractionReportStats {
   programLabel: string;
@@ -79,9 +81,9 @@ export class BaseTripReportStats extends ExtractionReportStats {
       programLabel: this.programLabel,
       startDate: toDateISOString(this.startDate),
       endDate: toDateISOString(this.endDate),
-      trips: this.trips.map(item => item.asObject(opts)),
-      operations: this.operations?.map(item => item.asObject(opts)),
-      vesselSnapshots: this.vesselSnapshots?.map(item => item.asObject(opts)),
+      trips: this.trips.map((item) => item.asObject(opts)),
+      operations: this.operations?.map((item) => item.asObject(opts)),
+      vesselSnapshots: this.vesselSnapshots?.map((item) => item.asObject(opts)),
       vesselLength: this.vesselLength,
     };
   }
@@ -91,10 +93,8 @@ export class BaseTripReportStats extends ExtractionReportStats {
 export abstract class BaseTripReport<
   T extends RdbPmfmExtractionData,
   S extends BaseTripReportStats = BaseTripReportStats,
-  HL extends ArrayElementType<T['HL']> = ArrayElementType<T['HL']>
-  >
-  extends AppExtractionReport<T, S> {
-
+  HL extends ArrayElementType<T['HL']> = ArrayElementType<T['HL']>,
+> extends AppExtractionReport<T, S> {
   protected logPrefix = 'base-trip-report ';
 
   defaultOptions: Partial<ChartOptions> = {
@@ -104,22 +104,22 @@ export abstract class BaseTripReport<
       title: {
         display: true,
         font: {
-          size: 26
+          size: 26,
         },
-        color: Color.get('secondary').rgba(1)
+        color: Color.get('secondary').rgba(1),
       },
       legend: {
-        position: 'right' // or 'right'
-      }
-    }
+        position: 'right', // or 'right'
+      },
+    },
   };
 
-  scaleLabelDefaultOption  = {
+  scaleLabelDefaultOption = {
     display: true,
     font: {
       size: 18,
-      weight: 'bold'
-    }
+      weight: 'bold',
+    },
   };
 
   defaultOpacity = 0.8;
@@ -136,11 +136,8 @@ export abstract class BaseTripReport<
   @ViewChild('mapContainer', { read: ViewContainerRef }) protected mapContainer;
   @ViewChild('mapTemplate') protected mapTemplate: TemplateRef<null>;
 
-  protected constructor(injector: Injector,
-              tripReportService: TripReportService<T>,
-              @Optional() statsType?: new() => S
-  ) {
-    super(injector, null, statsType || BaseTripReportStats as any);
+  protected constructor(injector: Injector, tripReportService: TripReportService<T>, @Optional() statsType?: new () => S) {
+    super(injector, null, statsType || (BaseTripReportStats as any));
     this.tripReportService = tripReportService;
     this.tripService = injector.get(TripService);
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
@@ -160,42 +157,46 @@ export abstract class BaseTripReport<
 
       // Load report data
       this.filter = ExtractionUtils.createTripFilter(trip.program.label, [trip.id]);
-    }
-    else {
-      const {label, category, q} = this.route.snapshot.queryParams;
-      this.type = ExtractionType.fromObject({label, category});
+    } else {
+      const { label, category, q } = this.route.snapshot.queryParams;
+      this.type = ExtractionType.fromObject({ label, category });
       const criteria = q && ExtractionUtils.parseCriteriaFromString(q);
       if (isNotEmptyArray(criteria)) {
-        this.filter = ExtractionFilter.fromObject({criteria});
+        this.filter = ExtractionFilter.fromObject({ criteria });
       }
     }
 
-    if (!this.filter || this.filter.isEmpty())  throw { message:  'ERROR.LOAD_DATA_ERROR' };
+    if (!this.filter || this.filter.isEmpty()) throw { message: 'ERROR.LOAD_DATA_ERROR' };
 
     return this.load(this.filter, {
       ...opts,
-      type: this.type
+      type: this.type,
     });
   }
 
-  protected async load(filter: ExtractionFilter, opts?: {
-    type?: ExtractionType;
-    cache?: boolean;
-  }): Promise<T> {
-    if (this.debug) console.debug(`[${this.logPrefix}] load`, arguments);
+  protected async load(
+    filter: ExtractionFilter,
+    opts?: {
+      type?: ExtractionType;
+      cache?: boolean;
+    }
+  ): Promise<T> {
+    if (this.debug) console.debug(`[${this.logPrefix}] load`, filter, opts);
     // Load data
     return this.loadData(filter, opts);
   }
 
-  protected loadData(filter: ExtractionFilter,
-                     opts?: {
-                       type?: ExtractionType;
-                       cache?: boolean;
-                     }): Promise<T> {
+  protected loadData(
+    filter: ExtractionFilter,
+    opts?: {
+      type?: ExtractionType;
+      cache?: boolean;
+    }
+  ): Promise<T> {
     return this.tripReportService.loadAll(filter, {
       ...opts,
       formatLabel: opts.type?.label,
-      fetchPolicy: 'no-cache'
+      fetchPolicy: 'no-cache',
     });
   }
 
@@ -214,14 +215,17 @@ export abstract class BaseTripReport<
     const stats = opts?.stats || new this.statsType();
 
     // Fill trips and operatsions
-    stats.trips = (data.TR || []).map(tr => tr.asTrip());
-    stats.operations = (data.HH || []).map(s => s.asOperation());
-    stats.programLabel = stats.trips.map(t => t.program?.label).find(isNotNil);
+    stats.trips = (data.TR || []).map((tr) => tr.asTrip());
+    stats.operations = (data.HH || []).map((s) => s.asOperation());
+    stats.programLabel = stats.trips.map((t) => t.program?.label).find(isNotNil);
     stats.program = stats.programLabel && (await this.programRefService.loadByLabel(stats.programLabel));
     stats.vesselSnapshots = await this.computeVesselSnapshots(data.TR);
 
     // Compute startDate (from trips or from operations)
-    stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime?.isValid() && t.departureDateTime), undefined as Moment);
+    stats.startDate = stats.trips.reduce(
+      (date, t) => DateUtils.min(date, t.departureDateTime?.isValid() && t.departureDateTime),
+      undefined as Moment
+    );
     if (!stats.startDate || !stats.startDate.isValid()) {
       stats.startDate = stats.operations.reduce((date, o) => DateUtils.min(date, o.startDateTime?.isValid() && o.startDateTime), undefined as Moment);
     }
@@ -249,25 +253,28 @@ export abstract class BaseTripReport<
 
     // For each species (found in SL, because HL is not always filled)
     const speciesNames = Object.keys(slMap);
-    return (await Promise.all(speciesNames.map(async (species) => {
-        const speciesData = {
-          ...data,
-          SL: slMap[species],
-          HL: hlMap[species]
-        };
+    return (
+      await Promise.all(
+        speciesNames.map(async (species) => {
+          const speciesData = {
+            ...data,
+            SL: slMap[species],
+            HL: hlMap[species],
+          };
 
-        const speciesOpts = {getSubCategory: undefined, ...opts, stats};
-        const charts = await this.computeSpeciesCharts(species, speciesData, speciesOpts);
-        if (isNotEmptyArray(charts)) {
-          return { label: species, charts};
-        }
-      })
-    )).filter(isNotNil);
+          const speciesOpts = { getSubCategory: undefined, ...opts, stats };
+          const charts = await this.computeSpeciesCharts(species, speciesData, speciesOpts);
+          if (isNotEmptyArray(charts)) {
+            return { label: species, charts };
+          }
+        })
+      )
+    ).filter(isNotNil);
   }
 
   protected async computeVesselSnapshots(data: RdbPmfmExtractionData['TR']): Promise<VesselSnapshot[]> {
-    const vesselIds = removeDuplicatesFromArray((data || []).map(tr => tr.vesselIdentifier));
-    return await Promise.all(vesselIds.map(id => this.vesselSnapshotService.load(id, {fetchPolicy: 'cache-first'})));
+    const vesselIds = removeDuplicatesFromArray((data || []).map((tr) => tr.vesselIdentifier));
+    return await Promise.all(vesselIds.map((id) => this.vesselSnapshotService.load(id, { fetchPolicy: 'cache-first' })));
   }
 
   protected async computeSpeciesCharts(
@@ -275,10 +282,10 @@ export abstract class BaseTripReport<
     data: T,
     opts: {
       stats: S;
-      getSubCategory: Function<any, string>|undefined;
+      getSubCategory: Function<any, string> | undefined;
       subCategories?: string[];
-    }): Promise<SpeciesChart[]> {
-
+    }
+  ): Promise<SpeciesChart[]> {
     return this.computeSpeciesLengthCharts(species, data.HL as HL[], opts);
   }
 
@@ -287,18 +294,21 @@ export abstract class BaseTripReport<
     data: HL[],
     opts: {
       stats: S;
-      getSubCategory: Function<any, string>|undefined;
+      getSubCategory: Function<any, string> | undefined;
       subCategories?: string[];
-    }): Promise<SpeciesChart[]> {
+    }
+  ): Promise<SpeciesChart[]> {
     if (isEmptyArray(data) || !opts?.stats?.programLabel) return [];
 
     // Load individual batch pmfms
-    const lengthPmfms = (await this.programRefService.loadProgramPmfms(opts.stats.programLabel, {
-      acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL
-    })).filter(PmfmUtils.isLength);
+    const lengthPmfms = (
+      await this.programRefService.loadProgramPmfms(opts.stats.programLabel, {
+        acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
+      })
+    ).filter(PmfmUtils.isLength);
 
     // Get data
-    const taxonGroupId = (data || []).map(hl => hl.taxonGroupId).find(isNotNil);
+    const taxonGroupId = (data || []).map((hl) => hl.taxonGroupId).find(isNotNil);
 
     // Get sub categories
     const subCategories = opts.getSubCategory && this.computeSubCategories(data, opts);
@@ -308,7 +318,9 @@ export abstract class BaseTripReport<
     const discardColors = ChartJsUtilsColor.getDerivativeColor(this.discardColor, Math.max(2, subCategories?.length || 0));
 
     // Search the right length pmfms
-    const lengthPmfm = (lengthPmfms || []).find(p => isNil(taxonGroupId) || isEmptyArray(p.taxonGroupIds) || p.taxonGroupIds.includes(taxonGroupId));
+    const lengthPmfm = (lengthPmfms || []).find(
+      (p) => isNil(taxonGroupId) || isEmptyArray(p.taxonGroupIds) || p.taxonGroupIds.includes(taxonGroupId)
+    );
 
     const threshold = undefined; // TODO load threshold by species
     const charts: SpeciesChart[] = [];
@@ -321,7 +333,7 @@ export abstract class BaseTripReport<
         catchCategories: ['LAN', 'DIS'],
         catchCategoryColors: [landingColors, discardColors],
         subCategories,
-        getSubCategory: opts?.getSubCategory
+        getSubCategory: opts?.getSubCategory,
       });
       if (catchChart) charts.push(catchChart);
     }
@@ -333,7 +345,7 @@ export abstract class BaseTripReport<
         filter: (sl: RdbSpeciesLength) => sl.catchCategory === 'LAN',
         catchCategoryColors: [landingColors],
         subCategories,
-        getSubCategory: opts?.getSubCategory
+        getSubCategory: opts?.getSubCategory,
       });
       if (landingChart) charts.push(landingChart);
     }
@@ -346,7 +358,7 @@ export abstract class BaseTripReport<
         filter: discardFilter,
         catchCategoryColors: [discardColors],
         subCategories,
-        getSubCategory: opts?.getSubCategory
+        getSubCategory: opts?.getSubCategory,
       });
       if (discardChart) charts.push(discardChart);
     }
@@ -367,10 +379,11 @@ export abstract class BaseTripReport<
       getSubCategory?: Function<any, string>;
       getNumberAtLength?: Function<HL, number>;
       threshold?: number;
-    }): SpeciesChart {
-    const pmfmName = lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, {withUnit: true, html: false})
-      || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
-    const unitConversion =  lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
+    }
+  ): SpeciesChart {
+    const pmfmName =
+      (lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, { withUnit: true, html: false })) || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
+    const unitConversion = lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
 
     // Filter data
     if (opts?.filter) data = data.filter(opts.filter);
@@ -388,7 +401,7 @@ export abstract class BaseTripReport<
       type: 'bar',
       data: {
         datasets: [],
-        labels: []
+        labels: [],
       },
       options: {
         ...this.defaultOptions,
@@ -396,17 +409,14 @@ export abstract class BaseTripReport<
           ...this.defaultOptions.plugins,
           title: {
             ...this.defaultOptions.plugins.title,
-            text: [
-              species,
-              [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')
-            ]
+            text: [species, [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')],
           },
-          thresholdLine: (opts?.threshold > 0) && {
+          thresholdLine: opts?.threshold > 0 && {
             color: Color.get('red').rgba(this.defaultOpacity),
             style: 'dashed',
             width: opts.threshold,
             value: opts.threshold,
-            orientation: 'x'
+            orientation: 'x',
           },
           labels: {
             render(args) {
@@ -414,117 +424,117 @@ export abstract class BaseTripReport<
               const fontSize = args.index === 0 ? 18 : 14;
               const lineHeight = args.index === 0 ? 1.2 : 1.5;
 
-              return lines
-                .map(
-                  (line) =>
-                    `<div style="font-size: ${fontSize}px; line-height: ${lineHeight}">${line}</div>`
-                )
-                .join('');
-            }
-          }
+              return lines.map((line) => `<div style="font-size: ${fontSize}px; line-height: ${lineHeight}">${line}</div>`).join('');
+            },
+          },
         },
         scales: {
           x: {
             stacked: true,
             title: {
               ...this.scaleLabelDefaultOption,
-              text: pmfmName
-            }
+              text: pmfmName,
+            },
           },
           y: {
             stacked: true,
             title: {
               ...this.scaleLabelDefaultOption,
-              text: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT')
-            }
-          }
-        }
-      }
+              text: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT'),
+            },
+          },
+        },
+      },
     };
 
     // FInd min/max (and check if can used elevatedNumberAtLength)
     let min = 99999;
     let max = 0;
     let hasElevatedNumberAtLength = true;
-    data.forEach(sl => {
+    data.forEach((sl) => {
       const length = sl.lengthClass * unitConversion;
       min = Math.min(min, length);
       max = Math.max(max, length);
       if (hasElevatedNumberAtLength && isNil(sl.elevatedNumberAtLength)) hasElevatedNumberAtLength = false;
-    }) ;
+    });
 
     // Add labels
     const labelCount = Math.max(1, Math.abs(max - min) + 1);
-    const xAxisLabels = new Array(labelCount)
-      .fill(Math.min(min, max))
-      .map((v, index) => (v + index).toString());
+    const xAxisLabels = new Array(labelCount).fill(Math.min(min, max)).map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
     if (!hasElevatedNumberAtLength) {
       console.warn(`[${this.constructor.name}] Cannot used elevatedNumberAtLength, for species '${species}'`);
     }
-    const getNumberAtLength = opts?.getNumberAtLength
-      || (hasElevatedNumberAtLength &&  ((hl) => hl.elevatedNumberAtLength))
-      || ((hl) => hl.numberAtLength);
+    const getNumberAtLength =
+      opts?.getNumberAtLength || (hasElevatedNumberAtLength && ((hl) => hl.elevatedNumberAtLength)) || ((hl) => hl.numberAtLength);
 
     const createCatchCategorySeries = (data: HL[], seriesIndex = 0, subCategory?: string) => {
       const dataByCatchCategory = collectByProperty(data, 'catchCategory');
 
       // For each LAN, DIS
       const catchCategories = opts?.catchCategories || Object.keys(dataByCatchCategory);
-      catchCategories
-        .forEach((catchCategory, index) => {
-          const data = new Array(xAxisLabels.length).fill(0);
-          (dataByCatchCategory[catchCategory] || []).forEach(hl => {
-            const labelIndex = hl.lengthClass * unitConversion - min;
-            data[labelIndex] += (getNumberAtLength(hl) || 0);
-          });
+      catchCategories.forEach((catchCategory, index) => {
+        const data = new Array(xAxisLabels.length).fill(0);
+        (dataByCatchCategory[catchCategory] || []).forEach((hl) => {
+          const labelIndex = hl.lengthClass * unitConversion - min;
+          data[labelIndex] += getNumberAtLength(hl) || 0;
+        });
 
-          const color = opts.catchCategoryColors[index][seriesIndex];
-          const label = (!opts.filter || isNil(subCategory))
+        const color = opts.catchCategoryColors[index][seriesIndex];
+        const label =
+          !opts.filter || isNil(subCategory)
             ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], subCategory].filter(isNotNil).join(' - ')
             : subCategory;
-          ChartJsUtils.pushDataSet(chart, {
-            label,
-            backgroundColor: color.rgba(this.defaultOpacity),
-            stack: `${seriesIndex}`,
-            data
-          });
+        ChartJsUtils.pushDataSet(chart, {
+          label,
+          backgroundColor: color.rgba(this.defaultOpacity),
+          stack: `${seriesIndex}`,
+          data,
         });
+      });
     };
 
     if (opts.getSubCategory) {
       const dataBySubCategory = collectByFunction<HL>(data, opts.getSubCategory);
-      const subCategories = removeDuplicatesFromArray([...opts?.subCategories, ...Object.keys(dataBySubCategory)]);
+      const subCategories = removeDuplicatesFromArray([...(opts?.subCategories || []), ...Object.keys(dataBySubCategory)]);
       if (isNotEmptyArray(subCategories)) {
         console.warn(`[${this.constructor.name}] No sub categories found for species '${species}'`);
         subCategories.forEach((subCategory, index) => {
           createCatchCategorySeries(dataBySubCategory[subCategory], index, subCategory);
         });
+      } else {
+        createCatchCategorySeries(data);
       }
-      else {
-          createCatchCategorySeries(data);
-      }
-    }
-    else {
+    } else {
       createCatchCategorySeries(data);
     }
 
     return chart;
   }
 
-  protected computeSubCategories<D extends {meta?: {[key: string]: any}}>(data: D[], opts: {
-    subCategories?: string[];
-    firstSubCategory?: string;
-    getSubCategory: Function<any, string>;
-  }): string[] {
+  computePrintHref(data: T, stats: S): URL {
+    const result = super.computePrintHref(data, stats);
+    const lastUrlPathComponent = this.route.snapshot.parent.url[0].path;
+    if (!this.uuid && lastUrlPathComponent !== 'report')
+      return new URL(`${this.baseHref}${result.pathname.slice(1, result.pathname.length)}/${lastUrlPathComponent}`);
+    else return result;
+  }
 
+  protected computeSubCategories<D extends { meta?: { [key: string]: any } }>(
+    data: D[],
+    opts: {
+      subCategories?: string[];
+      firstSubCategory?: string;
+      getSubCategory: Function<any, string>;
+    }
+  ): string[] {
     if (isNotEmptyArray(opts?.subCategories)) return opts.subCategories; // Skip if already computed
 
     // Compute sub category, in meta
     opts.subCategories = [];
     const getSubCategory = opts.getSubCategory;
-    data.forEach(sl => {
+    data.forEach((sl) => {
       sl.meta = sl.meta || {};
       sl.meta.subCategory = sl.meta.subCategory || getSubCategory(sl);
       // Append to list
@@ -544,7 +554,6 @@ export abstract class BaseTripReport<
   }
 
   async updateView() {
-
     console.debug(`[${this.constructor.name}.updateView]`);
     this.cd.detectChanges();
 
@@ -572,17 +581,17 @@ export abstract class BaseTripReport<
     // Back to extraction
     else {
       const queryString = Object.entries(this.route.snapshot.queryParams || {})
-        .map(([key, value]) => `${key}=${value}`).join('&');
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
       return `/extraction/data?${queryString}`;
     }
   }
 
   protected async computeTitle(data: T, stats: S): Promise<string> {
-
     if (stats.vesselSnapshots?.length === 1 && stats.startDate?.isValid()) {
       return this.translate.instant('TRIP.REPORT.TITLE', {
-        departureDate: this.dateFormat.transform(stats.startDate, {time: false}),
-        vessel: stats.vesselSnapshots[0].exteriorMarking
+        departureDate: this.dateFormat.transform(stats.startDate, { time: false }),
+        vessel: stats.vesselSnapshots[0].exteriorMarking,
       });
     }
 
@@ -590,13 +599,11 @@ export abstract class BaseTripReport<
   }
 
   protected collectDistinctStringPropertyValues<D = any, K extends keyof D = any>(data: D[], propertyName: K): string[] {
-    return arrayDistinct(
-      data.map(v => getProperty(v, propertyName)).filter(v => typeof v === 'string') as unknown as string[]);
+    return arrayDistinct(data.map((v) => getProperty(v, propertyName)).filter((v) => typeof v === 'string') as unknown as string[]);
   }
 
   protected collectNumericPropertyValues<D = any, K extends keyof D = any>(data: D[], propertyName: K): number[] {
-    return data.map(v => +getProperty(v, propertyName))
-        .filter(isNotNilOrNaN) as number[];
+    return data.map((v) => +getProperty(v, propertyName)).filter(isNotNilOrNaN) as number[];
   }
 
   protected computeNumericStats<D = any, K extends keyof D = any>(data: D[], propertyName: K): BaseNumericStats {
@@ -605,27 +612,26 @@ export abstract class BaseTripReport<
     return <BaseNumericStats>{
       min: Math.min(...values),
       max: Math.max(...values),
-      avg: values.reduce((a,b) => a+b, 0) / values.length
+      avg: values.reduce((a, b) => a + b, 0) / values.length,
     };
   }
 
   protected collectDistinctQualitativeValue<D = any, K extends keyof D = any>(data: D[], propertyName: K): string[] {
-    return this.collectDistinctStringPropertyValues(data, propertyName)
-      .map(value => value.indexOf(' - ') !== -1 ? value.split(' - ')[1] : value as unknown as string);
+    return this.collectDistinctStringPropertyValues(data, propertyName).map((value) =>
+      value.indexOf(' - ') !== -1 ? value.split(' - ')[1] : (value as unknown as string)
+    );
   }
 
   dataAsObject(source: RdbPmfmExtractionData, opts?: EntityAsObjectOptions): any {
     return {
-      TR: source.TR.map(item => item.asObject(opts)),
-      HH: source.HH.map(item => item.asObject(opts)),
-      SL: source.SL.map(item => item.asObject(opts)),
-      HL: source.HL.map(item => item.asObject(opts)),
+      TR: source.TR.map((item) => item.asObject(opts)),
+      HH: source.HH.map((item) => item.asObject(opts)),
+      SL: source.SL.map((item) => item.asObject(opts)),
+      HL: source.HL.map((item) => item.asObject(opts)),
     };
-  };
-
-  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[]}) {
-    return isNotEmptyArray(species?.charts);
   }
 
+  isNotEmptySpecies(species: { label: string; charts: SpeciesChart[] }) {
+    return isNotEmptyArray(species?.charts);
+  }
 }
-
