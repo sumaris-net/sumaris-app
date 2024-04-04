@@ -4,7 +4,6 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
 import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AppErrorWithDetails,
   AppFormUtils,
@@ -1112,7 +1111,7 @@ export class OperationPage<S extends OperationState = OperationState>
         this.batchTree.requiredStrategy = this.requiredStrategy;
         this.batchTree.strategyId = this.strategy?.id;
         this.batchTree.gearId = gearId;
-        jobs.push(this.batchTree.setValue((data && data.catchBatch) || null));
+        jobs.push(this.batchTree.setValue(data?.catchBatch || null));
       }
 
       // Set sample tree
@@ -1122,7 +1121,7 @@ export class OperationPage<S extends OperationState = OperationState>
         this.sampleTree.gearId = gearId;
         //jobs.push(this.sampleTree.setValue((data && data.samples) || []));
         console.debug('[operation] Before settings samples ...');
-        await this.sampleTree.setValue((data && data.samples) || []);
+        await this.sampleTree.setValue(data?.samples || []);
       }
 
       await Promise.all(jobs);
