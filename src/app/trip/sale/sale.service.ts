@@ -64,9 +64,6 @@ export const SaleFragments = {
       measurements {
         ...MeasurementFragment
       }
-      samples {
-        ...SampleFragment
-      }
       vesselSnapshot {
         ...LightVesselSnapshotFragment
       }
@@ -441,9 +438,9 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Update samples (recursively)
-    if (target.samples && source.samples) {
-      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
-    }
+    // if (target.samples && source.samples) {
+    //   this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+    // }
   }
 
   /**
@@ -452,20 +449,20 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
    * @param sources
    * @param targets
    */
-  copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
-    // Update samples
-    if (sources && targets) {
-      targets.forEach((target) => {
-        const source = sources.find((json) => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
+  // copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+  //   // Update samples
+  //   if (sources && targets) {
+  //     targets.forEach((target) => {
+  //       const source = sources.find((json) => target.equals(json));
+  //       EntityUtils.copyIdAndUpdateDate(source, target);
 
-        // Apply to children
-        if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children);
-        }
-      });
-    }
-  }
+  //       // Apply to children
+  //       if (target.children && target.children.length) {
+  //         this.copyIdAndUpdateDateOnSamples(sources, target.children);
+  //       }
+  //     });
+  //   }
+  // }
 
   /* -- private -- */
 

@@ -1347,50 +1347,43 @@
         }
       },
       "FORM": {
-        "TITLE": "Dossier d'observation en mer",
-        "COMMON": {
-          "COMMENTS": "Commentaires",
-          "TRIP_DEPARTURE_DATE_TIME": "Départ de la marée",
-          "VESSEL_NAME": "Nom du bateau",
-          "DATE_TIME": "Date et heure",
-          "NUM_OP": "N° OP"
-        },
-        "PAGE_TRIP_SHEET": {
+        "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
+        "COMMENTS": "Commentaires",
+        "TRIP_DEPARTURE_DATE_TIME": "Départ de la marée",
+        "VESSEL_NAME": "Nom du bateau",
+        "DATE_TIME": "Date et heure",
+        "NUM_OP": "N° OP",
+        "TRIP": {
           "TITLE": "Fiche sortie en mer",
-          "TIPS": "Rappel : Les informations et données relatives au programme ObsMer sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
-          "SECTION_TITLE": {
-            "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
-            "OBSERVERS": "Observateur(s)",
-            "TRIP_DEPARTURE": "Départ de la marée",
-            "TRIP_RETURN": "Retour de la marée",
-            "SALES": "Ventes"
-          },
-          "LABELS": {
-            "SAMPLING_STATA_LABEL": "Strate observée justifiant l’embarquement",
-            "ATTACHMENT_PROGRAM": "Programme de rattachement",
-            "OBSERVERS_NAMES": "Nom(s), Prénom(s) (société)",
-            "VESSEL_REGISTRATION_CODE": "Immatriculation du navire",
-            "VESSEL_NAME": "Nom du navire",
-            "DEPARTURE_LOCATION": "Lieu de départ & Type de lieu",
-            "DEPARTURE_DATE_TIME": "Date & Heure de départ",
-            "NB_FISHERMEN": "Nombre de personnes à bord",
-            "NB_FISHERMEN_TIPS": "(sans le(s) observateur(s))",
-            "RETURN_LOCATION": "Lieu de retour & Type de lieu",
-            "RETURN_DATE_TIME": "Date & Heure de retour",
-            "SELL_LOCATION": "Lieu de vente & Type de lieu",
-            "SELL_DATE": "Date de vente",
-            "SELL_TYPE": "Type de vente",
-            "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK": "Récupération de la photocopie du journal de bord",
-            "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_TIPS": "(inclure le document dans le dossier)",
-            "RETURN_TO_BOSS": "Restitution au patron",
-            "RETURN_TO_BOSS_TIPS": "(inclure le document dans le dossier)"
-          }
+          "HELP": "Rappel : Les informations et données relatives au programme ObsMer sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
+          "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
+          "OBSERVERS": "Observateur(s)",
+          "TRIP_DEPARTURE": "Départ de la marée",
+          "TRIP_RETURN": "Retour de la marée",
+          "SALES": "Ventes",
+          "SAMPLING_STATA_LABEL": "Strate observée justifiant l’embarquement",
+          "ATTACHMENT_PROGRAM": "Programme de rattachement",
+          "OBSERVERS_NAMES": "Nom(s), Prénom(s) (société)",
+          "VESSEL_REGISTRATION_CODE": "Immatriculation du navire",
+          "VESSEL_NAME": "Nom du navire",
+          "DEPARTURE_LOCATION": "Lieu de départ & Type de lieu",
+          "DEPARTURE_DATE_TIME": "Date & Heure de départ",
+          "NB_FISHERMEN": "Nombre de personnes à bord",
+          "NB_FISHERMEN_HELP": "(sans le(s) observateur(s))",
+          "RETURN_LOCATION": "Lieu de retour & Type de lieu",
+          "RETURN_DATE_TIME": "Date & Heure de retour",
+          "SELL_LOCATION": "Lieu de vente & Type de lieu",
+          "SELL_DATE": "Date de vente",
+          "SELL_TYPE": "Type de vente",
+          "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK": "Récupération de la photocopie du journal de bord",
+          "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_HELP": "(inclure le document dans le dossier)",
+          "RETURN_TO_CAPTAIN": "Restitution au patron",
+          "RETURN_TO_CAPTAIN_HELP": "(inclure le document dans le dossier)"
         },
-        "OP_RECTO": {
+        "OPERATION": {
           "TITLE": "FICHE OPERATIONS DE PECHE (recto)",
-          "SECTION_TITLE": {
-            "TRIP_NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :"
-          },
+          "COMMENTS_TITLE": "FICHE OPERATIONS DE PECHE (verso)",
+          "NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :",
           "TABLE": {
             "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
             "CHILD": "Virage (début de remontée de l’engin)*",
@@ -1399,9 +1392,10 @@
             "PROGRESS": "Déroulement normal ? (O/N)",
             "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) si navire associé** (IMMAT du navire)",
             "CAPTURE": "Capture remontée sur navire observé (O/N)**",
-            "LAT_LONG_LOCATION": "Position GPS Latitude + longitude (DD°MM)"
+            "LAT_LONG_LOCATION": "Position GPS Latitude + longitude (DD°MM)",
+            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées"
           },
-          "CAPTION": {
+          "HELP": {
             "ONE_STAR": "Attention, pour les arts dormants, la date de fin de mise à l'eau est le plus souvent la veille ou l'avant-veille de la marée observée.",
             "TWO_STAR": "Préciser longueur relevée en mètres pour les filets.",
             "ONE": "De la corde de dos pour chalut.",
@@ -1409,15 +1403,22 @@
             "THREE": "Si oui, se référer à la fiche dispositifs sélectifs"
           }
         },
-        "OP_VERSO": {
-          "TITLE": "FICHE OPERATIONS DE PECHE (verso)",
-          "TABLE": {
-            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées"
-          }
+        "PHYSICAL_GEAR": {
+          "TITLE": "FICHE ENGINS (page {{ pageNumber }})"
         },
-        "GEARS_CARD_1": {
-          "TITLE": "FICHE ENGINS (page 1)"
+        "ONBOARD_OBSERVATION": {
+          "TITLE": "Dossier d'observation en mer"
+        },
+        "PMFM": {
+          "ONBOARD_OBSERVATION": {
+            "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
+          }
         }
+      }
+    },
+    "PMFM": {
+      "ONBOARD_OBSERVATION": {
+        "NB_FISHERMEN": "Nombre de personnes à bord"
       }
     }
   },

@@ -58,55 +58,7 @@ html.print-pdf .reveal .slides {
     ion-grid {
       --ion-grid-column-padding: 0;
       flex: 0 0 auto;
-      &.report-header {
-        padding: var(--ion-padding);
-        height: var(--header-height);
-        padding-bottom: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-evenly;
-        width: 100%;
-        ion-row {
-          align-items: center;
-          justify-content: space-between;
-          &.title-items {
-            align-items: flex-start;
-            ion-col {
-              margin: 0 5px;
-              font-size: var(--font-large);
-            }
-          }
-        }
-        .logo {
-          padding: var(--ion-padding);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: var(--logo-max-size);
-          width: var(--logo-max-size);
-          img {
-            max-height: var(--logo-max-size);
-            max-width: var(--logo-max-size);
-          }
-        }
-      }
-      &.report-section {
-        margin: 0 var(--page-left-right-margin);
-      }
-      &.report-footer {
-        margin: 20px var(--page-left-right-margin);
-        margin-top: 0;
-        flex: 1 1 auto;
-        display: flex;
-        justify-content: end;
-        align-items: center;
-        flex-direction: column;
-        ion-row {
-          &.footer-text {
-            margin: 5px 0;
-          }
-        }
-      }
+
       ion-row {
         &.document-title {
           h1,
@@ -155,6 +107,9 @@ html.print-pdf .reveal .slides {
               }
             }
             &.form-value {
+              padding: 5px;
+              display: flex;
+              align-items: center;
               border: solid 1px var(--text-color);
               &.no-border-top {
                 border-top: none;
@@ -162,14 +117,67 @@ html.print-pdf .reveal .slides {
               &.no-border-bottom {
                 border-bottom: none;
               }
-              ion-col {
-                &.horiz-checkbox {
+              &.horiz-checkbox {
+                display: block;
+                ion-col {
                   display: flex;
                   align-items: center;
                   justify-content: center;
                 }
               }
             }
+          }
+        }
+      }
+
+      &.report-header {
+        padding: var(--ion-padding);
+        height: var(--header-height);
+        padding-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        width: 100%;
+        ion-row {
+          align-items: center;
+          justify-content: space-between;
+          &.title-items {
+            align-items: flex-start;
+            ion-col {
+              margin: 0 5px;
+              font-size: var(--font-large);
+            }
+          }
+        }
+        .logo {
+          padding: var(--ion-padding);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: var(--logo-max-size);
+          width: var(--logo-max-size);
+          img {
+            max-height: var(--logo-max-size);
+            max-width: var(--logo-max-size);
+          }
+        }
+      }
+
+      &.report-section {
+        margin: 0 var(--page-left-right-margin);
+      }
+
+      &.report-footer {
+        margin: 20px var(--page-left-right-margin);
+        margin-top: 0;
+        flex: 1 1 auto;
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        flex-direction: column;
+        ion-row {
+          &.footer-text {
+            margin: 5px 0;
           }
         }
       }

@@ -378,6 +378,7 @@ export abstract class AppBaseReport<
     if (this.debug) console.debug(`[${this.logPrefix}] computeI18nContext]`);
     const suffix = isNilOrBlank(this.i18nContextSuffix) ? stats.program?.getProperty(ProgramProperties.I18N_SUFFIX) || '' : this.i18nContextSuffix;
 
+    console.debug('MYTEST I18N_CONTEXT', this.i18nContext, this.i18nContextSuffix);
     return {
       prefix: this.options?.i18nPrefix || '',
       suffix: suffix === 'legacy' ? '' : suffix,
