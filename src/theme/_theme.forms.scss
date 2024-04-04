@@ -1,0 +1,106 @@
+
+.form-container,
+form.form-container {
+  .mat-mdc-form-field {
+    width: 100%;
+    --mat-form-field-filled-with-label-container-padding-top: 16px;
+    --mat-form-field-filled-with-label-container-padding-bottom: 4px;
+    --mat-form-field-filled-no-label-container-padding-top: 16px;
+    --mat-form-field-filled-no-label-container-padding-bottom: 2px;
+    //--mdc-filled-text-field-container-color: rgb(245, 245, 245);
+
+    ion-icon[matPrefix],
+    mat-icon[matPrefix],
+    .mat-mdc-form-field-icon-prefix {
+      --mdc-icon-button-margin-vertical: 8px;
+      --mdc-icon-button-icon-color: rgba(0, 0, 0, 0.57);
+    }
+
+    &.mat-focused {
+      ion-icon[matPrefix],
+      mat-icon[matPrefix],
+      .mat-mdc-form-field-icon-prefix{
+        --mdc-icon-button-icon-color: var(--ion-color-dark);
+      }
+    }
+
+    .datetime-md {
+      padding: 0 !important;
+    }
+
+    .mat-form-field-buttons {
+      width: 100%;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: flex-start;
+      align-items: center;
+
+      .mat-form-field-button {
+        --button-padding-end: 2px;
+        --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
+        flex: 0 1 var(--flex-basis);
+        max-width: calc(min(var(--flex-basis), 150px));
+        text-transform: capitalize; // Avoid uppercase text
+        box-sizing: content-box; // Avoid long text to be cropped
+        margin: 0 !important;
+        padding-inline-end: var(--button-padding-end) !important;
+        padding-bottom: var(--button-padding-end) !important;
+        height: 40px;
+      }
+    }
+
+    .fab-button-small {
+      margin: 0 5px;
+    }
+
+    .mat-form-field-suffix:has(.mat-form-field-suffix-container) {
+      display: inline;
+    }
+    .mat-form-field-suffix-container {
+      @extend .mat-form-field-suffix;
+      display: inline;
+    }
+
+    .mdc-text-field--no-label  {
+      .mat-mdc-form-field-infix {
+        padding-top: var(--mat-form-field-filled-no-label-container-padding-top);
+        padding-bottom: var(--mat-form-field-container-no-label-padding-bottom);
+      }
+    }
+
+    .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
+      top: calc(var(--mat-form-field-container-height)/2);
+    }
+  }
+
+
+  & > ion-grid > ion-col:has(ion-label) {
+    align-content: end;
+  }
+}
+
+// Mobile: change form labels style
+@media screen and (max-width: $screen-sm-max) {
+  form.form-container > ion-grid,
+  ion-grid.form-container {
+    & > ion-row > ion-col > ion-label.ion-float-center,
+    & > ion-row > ion-col > ion-label.ion-float-end {
+      font-weight: bold;
+    }
+  }
+}
+
+/* special case for sampling ratio: override the 'left' style, of placeholder field */
+mat-sampling-ratio-field {
+  .mat-form-field.with-prefix {
+
+    &.mat-form-field-should-float {
+      .mat-form-field-label-wrapper {
+        left: 0;
+      }
+    }
+    .mat-form-field-label-wrapper {
+      left: 19px;
+    }
+  }
+}

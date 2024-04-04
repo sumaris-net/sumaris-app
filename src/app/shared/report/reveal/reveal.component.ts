@@ -24,6 +24,8 @@ import {
   ViewEncapsulation,
   ViewRef,
 } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 import { MarkdownComponent } from 'ngx-markdown';
@@ -41,37 +43,27 @@ export interface IRevealExtendedOptions extends IRevealOptions {
 
 export const REVEAL_COMPONENT = new InjectionToken<any>('REVEAL_COMPONENT');
 
-@Directive({selector: '[sectionOutlet]'})
-export class RevealSectionOutlet  {
-  constructor(public viewContainer: ViewContainerRef, public elementRef: ElementRef) {
-  }
+@Directive({ selector: '[sectionOutlet]' })
+export class RevealSectionOutletDirective {
+  constructor(public viewContainer: ViewContainerRef) {}
 }
 
 @Directive({
-  selector: '[sectionDef]'
+  selector: '[sectionDef]',
 })
-export class RevealSectionDef {
-
-  constructor(
-    public template: TemplateRef<any>,
-    //@Inject(REVEAL_COMPONENT) @Optional() public _reveal?: RevealComponent
-  ) {
-  }
+export class RevealSectionDefDirective {
+  constructor(public template: TemplateRef<any>) {}
 }
 
 @Component({
   selector: 'app-reveal',
   templateUrl: './reveal.component.html',
   styleUrls: ['./reveal.component.scss'],
-  providers: [
-    //{provide: RevealComponent, useExisting: RevealComponent},
-    {provide: REVEAL_COMPONENT, useExisting: RevealComponent}
-  ],
+  providers: [{ provide: REVEAL_COMPONENT, useExisting: RevealComponent }],
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.Default,
 })
-export class RevealComponent implements AfterViewInit, OnDestroy
-{
+export class RevealComponent implements AfterViewInit, OnDestroy {
   private _reveal: IReveal;
   private _embedded = false;
   private _parent: RevealComponent;
@@ -79,7 +71,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   private _subscription = new Subscription();
   private _printing = false;
   private _printIframe: HTMLIFrameElement;
-  private _registeredSections: RevealSectionDef[] = [];
+  private _registeredSections: RevealSectionDefDirective[] = [];
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -109,8 +101,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
   @ViewChild('main') _revealDiv!: ElementRef;
 
-  @ViewChild(RevealSectionOutlet, {static: true}) _sectionOutlet: RevealSectionOutlet;
-  @ContentChildren(RevealSectionDef, {descendants: true}) _sectionDefs: QueryList<RevealSectionDef>;
+  @ViewChild(RevealSectionOutletDirective, { static: true }) _sectionOutlet: RevealSectionOutletDirective;
+  @ContentChildren(RevealSectionDefDirective, { descendants: true }) _sectionDefs: QueryList<RevealSectionDefDirective>;
   @ContentChildren('[markdown]') markdownList: QueryList<MarkdownComponent>;
 
   constructor(
@@ -122,7 +114,6 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     private translate: TranslateService,
     @SkipSelf() @Optional() @Inject(REVEAL_COMPONENT) parent?: RevealComponent
   ) {
-
     this._parent = parent !== this ? parent : undefined;
     this._embedded = !!this._parent;
 
@@ -132,7 +123,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event){
+  onResize(event: UIEvent) {
     this._reveal?.layout();
   }
 
@@ -160,13 +151,12 @@ export class RevealComponent implements AfterViewInit, OnDestroy
       }
 
       if (this.isPrintingPDF() && this.options.autoPrint !== false) {
-        this.waitIdle()
-          .then(() => this.print());
+        this.waitIdle().then(() => this.print());
       }
     }
     // Embedded component
     else {
-      this._sectionDefs.forEach(section => {
+      this._sectionDefs.forEach((section) => {
         this._parent.registerSection(section);
       });
     }
@@ -178,42 +168,35 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     this._subscription.unsubscribe();
   }
 
-  registerSection(section: RevealSectionDef) {
+  registerSection(section: RevealSectionDefDirective) {
     if (!this._embedded) {
-      const exists = this._sectionDefs.some(s => s === section)
-        || this._registeredSections.includes(section);
+      const exists = this._sectionDefs.some((s) => s === section) || this._registeredSections.includes(section);
 
       if (exists) return; // Skip if already registered (e.g. see testing embedded page)
 
       console.debug(`[reveal] registerSection`, section);
       this._registeredSections.push(section);
-    }
-    else {
+    } else {
       this._parent.registerSection(section);
     }
   }
 
   moveToBody(): void {
-
     console.debug(`[reveal] Moving <div class="reveal"> into <body> ...`);
     this.viewRef.detach();
     this.appRef.attachView(this.viewRef);
-    const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>)
-      .rootNodes[0];
+    const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>).rootNodes[0];
     this._document.body.appendChild(domElement);
   }
 
   async initialize() {
-
     const now = Date.now();
     console.debug(`[reveal] Initialize Reveal.js ... {printing: ${this._printing}}`);
 
     await this.renderSections();
 
     // wait markdown rendered
-    await Promise.all(this.markdownList
-      .map(md => lastValueFrom(md.ready)));
-
+    await Promise.all(this.markdownList.map((md) => lastValueFrom(md.ready)));
 
     // Move content to body
     if (this.isPrintingPDF()) {
@@ -239,16 +222,16 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
       embedded: !this._printing, // Required for multi .reveal div
       keyboardCondition: 'focused',
-      plugins: [RevealMarkdown]
+      plugins: [RevealMarkdown],
     });
 
     await this._reveal.initialize();
 
-    console.info(`[reveal] Reveal initialized in ${Date.now()-now}ms`);
+    console.info(`[reveal] Reveal initialized in ${Date.now() - now}ms`);
     this.ready.emit();
     this.markAsLoaded();
 
-    this._reveal.on( 'slidechanged', (event: RevealSlideChangedEvent) => {
+    this._reveal.on('slidechanged', (event: RevealSlideChangedEvent) => {
       this.slideChanged.emit(event);
     });
 
@@ -262,14 +245,12 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     if (this.embedded) return; // Skip
     const viewContainer = this._sectionOutlet.viewContainer;
     let indexSection = 0;
-    this._sectionDefs.forEach((section, index) =>
-      viewContainer.createEmbeddedView(section.template,  {}, indexSection++));
-    this._registeredSections.forEach((section, index) =>
-      viewContainer.createEmbeddedView(section.template,  {}, indexSection++));
+    this._sectionDefs.forEach((section, index) => viewContainer.createEmbeddedView(section.template, {}, indexSection++));
+    this._registeredSections.forEach((section, index) => viewContainer.createEmbeddedView(section.template, {}, indexSection++));
     this.cd.detectChanges();
   }
 
-  configure(options: Partial<IRevealOptions>){
+  configure(options: Partial<IRevealOptions>) {
     this._reveal?.configure(options);
   }
 
@@ -295,13 +276,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     console.debug('[reveal] Print...');
 
     if (this.isPrintingPDF()) {
-
       await this.waitIdle();
       await sleep(1000); // Wait end of render
       window.print();
-    }
-    else {
-
+    } else {
       // Create a iframe with '?print-pdf'
       const printUrl = this.getPrintPdfUrl();
 
@@ -311,9 +289,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy
         // Already exists: use it
         if (this._printIframe) {
           this._printIframe.contentWindow.window.print();
-        }
-        else {
-          this.showToast({message: 'COMMON.PLEASE_WAIT'});
+        } else {
+          this.showToast({ message: 'COMMON.PLEASE_WAIT' });
           this._printIframe = this.createPrintHiddenIframe(printUrl);
 
           // Remember to destroy the iframe, on destroy
@@ -327,11 +304,9 @@ export class RevealComponent implements AfterViewInit, OnDestroy
           // destroy when destroy
           this._subscription.add(removeIframe);
         }
-
-      } catch(err) {
+      } catch (err) {
         console.error('[reveal] Failed to create hidden iframe. Will opening a new window');
-      }
-      finally {
+      } finally {
         this.markAsLoaded();
       }
     }
@@ -353,8 +328,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     // Create a iframe with '?print-pdf'
     const iframe = this._document.createElement('iframe');
     iframe.classList.add('cdk-visually-hidden');
-    iframe.style.width='100%';
-    iframe.style.height='100%';
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
     this._document.body.appendChild(iframe);
     iframe.src = url;
     return iframe;
@@ -363,7 +338,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   private getPrintPdfUrl() {
     const printUrl = this.options.printUrl || new URL(window.location.href);
 
-    if (! printUrl.searchParams.has('print-pdf')) {
+    if (!printUrl.searchParams.has('print-pdf')) {
       printUrl.searchParams.append('print-pdf', '1');
     }
 
@@ -383,7 +358,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   }
 
   private async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
-    if (!this.toastController) throw new Error('Missing toastController in component\'s constructor');
+    if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 }

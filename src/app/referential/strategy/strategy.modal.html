@@ -1,19 +1,15 @@
-<app-modal-toolbar color="secondary" [title]="'PROGRAM.STRATEGY.DUPLICATE_MODAL.TITLE' | translate"></app-modal-toolbar>
+<app-modal-toolbar
+  color="secondary"
+  [title]="'PROGRAM.STRATEGY.DUPLICATE_MODAL.TITLE' | translate"
+  [canValidate]="mobile"
+  (validate)="doSubmit()"
+></app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
   <form [formGroup]="form" class="form-container">
     <ion-row style="height: 50px">
       <ion-text style="height: 100%; width: 100%" color="medium">
-        <div
-          style="
-            height: 100%;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-content: center;
-            align-items: center;
-          "
-        >
+        <div style="height: 100%; width: 100%; display: flex; justify-content: center; align-content: center; align-items: center">
           {{ 'PROGRAM.STRATEGY.DUPLICATE_MODAL.HELP' | translate }}
         </div>
       </ion-text>
@@ -31,9 +27,9 @@
   </form>
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
+<ion-footer *ngIf="!mobile" class="hidden-xs hidden-sm hidden-mobile">
   <ion-toolbar>
-    <ion-row class="ion-no-padding" nowrap>
+    <ion-row class="ion-no-padding">
       <ion-col></ion-col>
 
       <!-- buttons -->
@@ -42,7 +38,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button color="primary" (click)="validDate()">
+        <ion-button color="tertiary" (click)="doSubmit()">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

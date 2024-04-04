@@ -1,12 +1,25 @@
 import { VesselSnapshot } from '../model/vessel-snapshot.model';
 import { Moment } from 'moment';
-import { EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialRef,
+  toDateISOString,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
-@EntityClass({typename: 'VesselFilterVO'})
+@EntityClass({ typename: 'VesselFilterVO' })
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {
-
   static DEFAULT_SEARCH_ATTRIBUTES = ['exteriorMarking', 'name'];
   static fromObject: (source: any, opts?: any) => VesselSnapshotFilter;
 
@@ -18,6 +31,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   program: ReferentialRef;
   date: Moment;
   vesselId: number;
+  includedIds: number[];
+  excludedIds: number[];
   searchText: string;
   searchAttributes: string[];
   statusId: number;
@@ -28,29 +43,43 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   registrationLocation: ReferentialRef;
   basePortLocation: ReferentialRef;
   vesselType: ReferentialRef;
+  vesselTypeId: number;
+  onlyWithRegistration: boolean;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.program = ReferentialRef.fromObject(source.program) ||
-      isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({label: source.programLabel}) || undefined;
+    this.program =
+      ReferentialRef.fromObject(source.program) ||
+      (isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({ label: source.programLabel })) ||
+      undefined;
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
+    this.includedIds = source.includedIds;
+    this.excludedIds = source.excludedIds;
     this.searchText = source.searchText;
     this.searchAttributes = source.searchAttributes;
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
     this.synchronizationStatus = source.synchronizationStatus;
-    this.registrationLocation = ReferentialRef.fromObject(source.registrationLocation) ||
-      isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({id: source.registrationLocationId}) || undefined;
-    this.basePortLocation = ReferentialRef.fromObject(source.basePortLocation) ||
-      isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({id: source.basePortLocationId}) || undefined;
-    this.vesselType = ReferentialRef.fromObject(source.vesselType) ||
-      isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({id: source.vesselTypeId}) || undefined;
-
+    this.onlyWithRegistration = source.onlyWithRegistration;
+    this.registrationLocation =
+      ReferentialRef.fromObject(source.registrationLocation) ||
+      (isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({ id: source.registrationLocationId })) ||
+      undefined;
+    this.basePortLocation =
+      ReferentialRef.fromObject(source.basePortLocation) ||
+      (isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({ id: source.basePortLocationId })) ||
+      undefined;
+    this.vesselTypeId = source.vesselTypeId;
+    this.vesselType =
+      ReferentialRef.fromObject(source.vesselType) ||
+      (isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({ id: source.vesselTypeId })) ||
+      undefined;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.date = toDateISOString(this.date);
     if (opts?.minify) {
       target.programLabel = this.program && this.program.label;
       delete target.program;
@@ -64,19 +93,17 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       target.basePortLocationId = this.basePortLocation?.id;
       delete target.basePortLocation;
 
-      target.vesselTypeId = this.vesselType?.id;
+      target.vesselTypeId = toNumber(this.vesselTypeId, this.vesselType?.id);
       delete target.vesselType;
-    }
-    else {
+
+      target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
+      delete target.statusId;
+    } else {
       target.program = this.program?.asObject(opts);
       target.registrationLocation = this.registrationLocation?.asObject(opts);
       target.basePortLocation = this.basePortLocation?.asObject(opts);
       target.vesselType = this.vesselType?.asObject(opts);
     }
-
-    target.date = toDateISOString(this.date);
-    target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
-    delete target.statusId;
 
     return target;
   }
@@ -89,41 +116,47 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       const programId = this.program.id;
       const programLabel = this.program.label;
       if (isNotNil(programId)) {
-        filterFns.push(t => (t.program && t.program.id === programId));
-      }
-      else if (isNotNilOrBlank(programLabel)) {
-        filterFns.push(t => (t.program && t.program.label === programLabel));
+        filterFns.push((t) => t.program && t.program.id === programId);
+      } else if (isNotNilOrBlank(programLabel)) {
+        filterFns.push((t) => t.program && t.program.label === programLabel);
       }
     }
 
     // Vessel id
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
-      filterFns.push(t => t.id === vesselId);
+      filterFns.push((t) => t.id === vesselId);
+    }
+    // Filter included/excluded ids
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push((t) => isNotNil(t.id) && this.includedIds.includes(t.id));
+    }
+    if (isNotEmptyArray(this.excludedIds)) {
+      filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
     }
 
     // Status
     const statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
     if (statusIds) {
-      filterFns.push(t => statusIds.includes(t.vesselStatusId));
+      filterFns.push((t) => statusIds.includes(t.vesselStatusId));
     }
 
     // registration location
     const registrationLocationId = this.registrationLocation?.id;
     if (isNotNil(registrationLocationId)) {
-      filterFns.push(t => (t.registrationLocation?.id === registrationLocationId));
+      filterFns.push((t) => t.registrationLocation?.id === registrationLocationId);
     }
 
     // base port location
     const basePortLocationId = this.basePortLocation?.id;
     if (isNotNil(basePortLocationId)) {
-      filterFns.push(t => (t.basePortLocation?.id === basePortLocationId));
+      filterFns.push((t) => t.basePortLocation?.id === basePortLocationId);
     }
 
     // Vessel type
     const vesselTypeId = this.vesselType?.id;
     if (isNotNil(vesselTypeId)) {
-      filterFns.push(t => (t.vesselType?.id === vesselTypeId));
+      filterFns.push((t) => t.vesselType?.id === vesselTypeId);
     }
 
     // Search text
@@ -134,8 +167,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     if (this.synchronizationStatus) {
       if (this.synchronizationStatus === 'SYNC') {
         filterFns.push(EntityUtils.isRemote);
-      }
-      else {
+      } else {
         filterFns.push(EntityUtils.isLocal);
       }
     }

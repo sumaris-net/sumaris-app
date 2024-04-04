@@ -8,20 +8,17 @@ import { sleep } from '@sumaris-net/ngx-components';
 
 interface IchthyometerTestingState {
   loading: boolean;
-  values: {value: number; unit: LengthUnitSymbol}[]; // Input values
+  values: { value: number; unit: LengthUnitSymbol }[]; // Input values
 }
 
 @Component({
   selector: 'app-ichthyometer-testing',
   templateUrl: './ichthyometer.testing.html',
-  styleUrls: [
-    './ichthyometer.testing.scss'
-  ],
+  styleUrls: ['./ichthyometer.testing.scss'],
   providers: [RxState],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IchthyometerTestingPage {
-
   readonly loading$ = this._state.select('loading');
   readonly values$ = this._state.select('values');
 
@@ -32,13 +29,11 @@ export class IchthyometerTestingPage {
     private cd: ChangeDetectorRef,
     private _state: RxState<IchthyometerTestingState>
   ) {
-
     this._state.set({
       loading: false,
-      values: []
+      values: [],
     });
-    this._state.connect('values', this.ichthyometerService.watchLength(),
-       (s, value)  => ([...(s.values || []), value]));
+    this._state.connect('values', this.ichthyometerService.watchLength(), (s, value) => [...(s.values || []), value]);
   }
 
   async disconnectAll() {

@@ -3,13 +3,13 @@ import { Operation, Trip } from '@app/trip/trip/trip.model';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Moment } from 'moment';
-import {IReportData} from '@app/data/report/base-report.class';
+import { IReportData } from '@app/data/report/base-report.class';
 
 export interface RdbExtractionData<
   TR extends RdbTrip = RdbTrip,
   HH extends RdbStation = RdbStation,
   SL extends RdbSpeciesList = RdbSpeciesList,
-  HL extends RdbSpeciesLength = RdbSpeciesLength
+  HL extends RdbSpeciesLength = RdbSpeciesLength,
 > extends IReportData {
   TR: TR[];
   HH: HH[];
@@ -32,7 +32,7 @@ export class RdbTrip<S = any> extends Entity<RdbTrip<S>> {
     return super.clone(opts);
   }
 
-  fromObject(source: any){
+  fromObject(source: any) {
     this.tripCode = toNumber(source.tripCode);
     this.project = source.project;
     this.vesselIdentifier = toNumber(source.vesselIdentifier);
@@ -43,8 +43,12 @@ export class RdbTrip<S = any> extends Entity<RdbTrip<S>> {
   asTrip(): Trip {
     const target = new Trip();
     target.id = this.tripCode;
-    target.program = ReferentialRef.fromObject({label: this.project});
-    target.vesselSnapshot = VesselSnapshot.fromObject({id: this.vesselIdentifier, lengthOverAll: this.vesselLength, grossTonnageGt: this.vesselSize});
+    target.program = ReferentialRef.fromObject({ label: this.project });
+    target.vesselSnapshot = VesselSnapshot.fromObject({
+      id: this.vesselIdentifier,
+      lengthOverAll: this.vesselLength,
+      grossTonnageGt: this.vesselSize,
+    });
     return target;
   }
 }
@@ -64,7 +68,7 @@ export class RdbStation<S = any> extends Entity<RdbStation<S>> {
     [key: string]: any;
   };
 
-  fromObject(source: any){
+  fromObject(source: any) {
     this.tripCode = +source.tripCode;
     this.stationNumber = toNumber(source.stationNumber);
     this.date = source.date;
@@ -84,16 +88,26 @@ export class RdbStation<S = any> extends Entity<RdbStation<S>> {
     target.fishingStartDateTime = target.startDateTime;
     target.endDateTime = fromDateISOString(target.fishingStartDateTime.clone().add(this.fishingTime, 'minutes'));
     target.fishingEndDateTime = target.endDateTime;
-    target.startPosition = VesselPosition.fromObject(<VesselPosition>{latitude: this.posStartLat, longitude: this.posStartLon, dateTime: target.fishingStartDateTime, operationId: target.id});
-    target.endPosition = VesselPosition.fromObject(<VesselPosition>{latitude: this.posEndLat, longitude: this.posEndLon, dateTime: target.fishingEndDateTime, operationId: target.id});
+    target.startPosition = VesselPosition.fromObject(<VesselPosition>{
+      latitude: this.posStartLat,
+      longitude: this.posStartLon,
+      dateTime: target.fishingStartDateTime,
+      operationId: target.id,
+    });
+    target.endPosition = VesselPosition.fromObject(<VesselPosition>{
+      latitude: this.posEndLat,
+      longitude: this.posEndLon,
+      dateTime: target.fishingEndDateTime,
+      operationId: target.id,
+    });
     target.positions = [target.startPosition, target.endPosition];
     return target;
   }
 }
 
-export type CatchCategoryType = 'LAN'|'DIS';
+export type CatchCategoryType = 'LAN' | 'DIS';
 
-export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>>{
+export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>> {
   tripCode: number;
   stationNumber: number;
   species: string;
@@ -107,7 +121,7 @@ export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>>{
     [key: string]: any;
   };
 
-  fromObject(source: any){
+  fromObject(source: any) {
     this.tripCode = toNumber(source.tripCode);
     this.stationNumber = toNumber(source.stationNumber);
     this.species = source.species;
@@ -125,7 +139,7 @@ export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>>{
   }
 }
 
-export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
+export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>> {
   species: string;
   catchCategory: CatchCategoryType;
   stationNumber: number;
@@ -137,7 +151,7 @@ export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
     [key: string]: any;
   };
 
-  fromObject(source: any){
+  fromObject(source: any) {
     this.stationNumber = toNumber(source.stationNumber);
     this.species = source.species;
     this.catchCategory = source.catchCategory;
@@ -152,14 +166,14 @@ export type RdbPmfmExtractionData<
   TR extends RdbPmfmTrip = RdbPmfmTrip,
   HH extends RdbPmfmStation = RdbPmfmStation,
   SL extends RdbPmfmSpeciesList = RdbPmfmSpeciesList,
-  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength
+  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength,
 > = RdbExtractionData<TR, HH, SL, HL>;
 
 export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
   departureDateTime: Moment;
   returnDateTime: Moment;
 
-  fromObject(source: any){
+  fromObject(source: any) {
     super.fromObject(source);
     this.departureDateTime = source.departureDateTime;
     this.returnDateTime = source.returnDateTime;
@@ -172,20 +186,16 @@ export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
     return target;
   }
 }
-export class RdbPmfmStation<HH = any> extends RdbStation<HH>{
+export class RdbPmfmStation<HH = any> extends RdbStation<HH> {}
 
-}
+export class RdbPmfmSpeciesList<SL = any> extends RdbSpeciesList<SL> {}
 
-export class RdbPmfmSpeciesList<SL = any> extends RdbSpeciesList<SL>{
-
-}
-
-export class RdbPmfmSpeciesLength<HL = any> extends RdbSpeciesLength<HL>{
+export class RdbPmfmSpeciesLength<HL = any> extends RdbSpeciesLength<HL> {
   elevatedNumberAtLength: number;
   taxonGroupId: number;
   referenceTaxonId: number;
 
-  fromObject(source: any){
+  fromObject(source: any) {
     super.fromObject(source);
     this.elevatedNumberAtLength = toNumber(source.elevatedNumberAtLength);
     this.taxonGroupId = toNumber(source.taxonGroupId);

@@ -1,63 +1,64 @@
 
-.mat-table {
+.mat-mdc-table {
   --packet-count: 6;
   --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
   --mat-column-small-count: calc(var(--packet-count) + 2);
-  --mat-column-actions-width: 82px;
-  --mat-cell-vertical-padding: 4px;
+  --mat-column-actions-width: 98px;
+  --mat-cell-horizontal-padding: 4px;
   --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
   --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
 
   &.mobile {
-    --mat-column-actions-width: 41px;
+    --mat-column-actions-width: 44px;
+    --mat-cell-horizontal-padding: 0px;
   }
 
-  .mat-header-row {
+  .mat-mdc-header-row {
     background-color: var(--mat-header-background-color);
     height: 25px !important;
     text-align: center;
     ion-label {
       color: unset;
     }
-    .mat-header-cell.even {
+    .mat-mdc-header-cell.even {
       background-color: var(--mat-header-background-color-even) !important;
     }
   }
 
-  .mat-footer-row {
+  .mat-mdc-footer-row {
     background-color: var(--mat-footer-background-color);
 
-    .mat-footer-cell.even {
+    .mat-mdc-footer-cell.even {
       background-color: var(--mat-footer-background-color-even) !important;
     }
   }
 
-  .mat-row {
-    &.mat-row-selected {
+  .mat-mdc-row {
+    &.mat-mdc-row-selected {
       background-color: var(--ion-color-secondary100) !important;
     }
     &.even {
       background-color: var(--ion-color-light-tint, whitesmoke);
     }
 
-    .mat-cell.even {
+    .mat-mdc-cell.even {
       background-color: rgba(0,0,0, 0.1) !important;
     }
 
   }
 
-  .mat-header-row,
-  .mat-footer-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-footer-row,
+  .mat-mdc-row {
     height: var(--mat-row-max-height, 48px);
 
-    .mat-header-cell,
-    .mat-footer-cell,
-    .mat-cell {
-      padding-inline-start: var(--mat-cell-vertical-padding, 0) !important;
-      padding-inline-end: var(--mat-cell-vertical-padding, 0) !important;
+    .mat-mdc-header-cell,
+    .mat-mdc-footer-cell,
+    .mat-mdc-cell {
+      padding-inline-start: var(--mat-cell-horizontal-padding, 0) !important;
+      padding-inline-end: var(--mat-cell-horizontal-padding, 0) !important;
     }
 
     .mat-column-taxonGroup {

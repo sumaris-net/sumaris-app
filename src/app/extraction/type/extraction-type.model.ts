@@ -17,7 +17,7 @@ import {
   isNotNilOrBlank,
   Person,
   toNumber,
-  trimEmptyToNull
+  trimEmptyToNull,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -30,20 +30,16 @@ export const ExtractionCategories = {
   LIVE: 'LIVE',
 };
 
-export type ExtractionCacheDurationType = 'short'|'default'|'medium'|'long'|'eternal';
+export type ExtractionCacheDurationType = 'short' | 'default' | 'medium' | 'long' | 'eternal';
 
-@EntityClass({typename: 'ExtractionTypeVO'})
-export class ExtractionType<
-  T extends ExtractionType<T> = ExtractionType<any>,
-  >
-  extends BaseReferential<T> {
-
+@EntityClass({ typename: 'ExtractionTypeVO' })
+export class ExtractionType<T extends ExtractionType<T> = ExtractionType<any>> extends BaseReferential<T> {
   static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.format === o2.format && o1.version === o2.version : o1 === o2;
   }
   static fromLiveLabel(label: string) {
-    return ExtractionType.fromObject({label, category: 'LIVE'});
+    return ExtractionType.fromObject({ label, category: 'LIVE' });
   }
 
   format: string = null;
@@ -74,19 +70,18 @@ export class ExtractionType<
     this.parent = source.parent && ExtractionType.fromObject(source.parent);
     this.parentId = toNumber(source.parentId, source.parent?.id);
     this.processingFrequencyId = source.processingFrequencyId;
-    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
+    this.recorderPerson = (source.recorderPerson && Person.fromObject(source.recorderPerson)) || null;
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
-    const target = super.asObject({...opts, ...NOT_MINIFY_OPTIONS});
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
+    const target = super.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
+    target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(opts)) || undefined;
+    target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(opts)) || undefined;
     if (opts?.minify) {
       target.parentId = toNumber(this.parent?.id, this.parentId);
       delete target.parent;
-    }
-    else {
+    } else {
       target.parent = this.parent && this.parent.asObject(opts);
     }
     return target;
@@ -98,7 +93,6 @@ export class ExtractionType<
 }
 
 export class ExtractionResult {
-
   static fromObject(source: any): ExtractionResult {
     if (!source || source instanceof ExtractionResult) return source;
     const target = new ExtractionResult();
@@ -112,18 +106,17 @@ export class ExtractionResult {
 
   fromObject(source: any): ExtractionResult {
     this.total = source.total;
-    this.columns = source.columns && source.columns.map(ExtractionColumn.fromObject) || null;
-    this.rows = source.rows && source.rows.slice() || null;
+    this.columns = (source.columns && source.columns.map(ExtractionColumn.fromObject)) || null;
+    this.rows = (source.rows && source.rows.slice()) || null;
     return this;
   }
 }
 
-
-@EntityClass({typename: 'ExtractionColumnVO'})
+@EntityClass({ typename: 'ExtractionColumnVO' })
 export class ExtractionColumn {
   static fromObject: (source: any) => ExtractionColumn;
 
-  static isNumeric(source: ExtractionColumn|any) {
+  static isNumeric(source: ExtractionColumn | any) {
     return source && (source.type === 'integer' || source.type === 'double');
   }
 
@@ -159,9 +152,8 @@ export class ExtractionRow extends Array<any> {
   }
 }
 
-@EntityClass({typename: 'ExtractionFilterVO'})
+@EntityClass({ typename: 'ExtractionFilterVO' })
 export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any>> {
-
   static fromObject: (source: any, opts?: any) => ExtractionFilter;
 
   searchText?: string;
@@ -189,11 +181,14 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts) as any;
 
-    target.criteria = this.criteria && this.criteria
-      // Remove empty criterion
-      .filter(criterion => isNotNil(criterion.name) && ExtractionFilterCriterion.isNotEmpty(criterion))
-      // Serialize to object
-      .map(criterion => criterion.asObject && criterion.asObject(opts) || criterion) || undefined;
+    target.criteria =
+      (this.criteria &&
+        this.criteria
+          // Remove empty criterion
+          .filter((criterion) => isNotNil(criterion.name) && ExtractionFilterCriterion.isNotEmpty(criterion))
+          // Serialize to object
+          .map((criterion) => (criterion.asObject && criterion.asObject(opts)) || criterion)) ||
+      undefined;
 
     return target;
   }
@@ -201,43 +196,42 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
 export const CRITERION_OPERATOR_LIST: Readonly<{ symbol: CriterionOperator; name?: string }[]> = Object.freeze([
-  {symbol: '='},
-  {symbol: '!='},
-  {symbol: '>'},
-  {symbol: '>='},
-  {symbol: '<'},
-  {symbol: '<='},
-  {symbol: 'BETWEEN', name: 'EXTRACTION.FILTER.BETWEEN'},
-  {symbol: 'NULL', name: 'EXTRACTION.FILTER.NULL'},
-  {symbol: 'NOT NULL', name: 'EXTRACTION.FILTER.NOT_NULL'}
+  { symbol: '=' },
+  { symbol: '!=' },
+  { symbol: '>' },
+  { symbol: '>=' },
+  { symbol: '<' },
+  { symbol: '<=' },
+  { symbol: 'BETWEEN', name: 'EXTRACTION.FILTER.BETWEEN' },
+  { symbol: 'NULL', name: 'EXTRACTION.FILTER.NULL' },
+  { symbol: 'NOT NULL', name: 'EXTRACTION.FILTER.NOT_NULL' },
 ]);
 
-
-@EntityClass({typename: 'ExtractionFilterCriterionVO'})
+@EntityClass({ typename: 'ExtractionFilterCriterionVO' })
 export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {
-
   static fromObject: (source: any, opts?: any) => ExtractionFilterCriterion;
 
   static isNotEmpty(criterion: ExtractionFilterCriterion): boolean {
-    return criterion && (
-      isNotNilOrBlank(criterion.value)
-      || isNotEmptyArray(criterion.values)
-      || criterion.operator === 'NULL'
-      || criterion.operator === 'NOT NULL');
+    return (
+      criterion &&
+      (isNotNilOrBlank(criterion.value) || isNotEmptyArray(criterion.values) || criterion.operator === 'NULL' || criterion.operator === 'NOT NULL')
+    );
   }
   static isEmpty(criterion: ExtractionFilterCriterion): boolean {
     return !this.isNotEmpty(criterion);
   }
   static equals(c1: ExtractionFilterCriterion, c2: ExtractionFilterCriterion): boolean {
-    return (c1 === c2)
-      || (isNil(c1) && isNil(c2))
-      || (isNotNil(c1)
-        && c1.name === c2?.name
-        && c1.operator === c2?.operator
-        && c1.value === c2?.value
-        && equals(c1.values, c2?.values)
-        && c1.endValue === c2?.endValue
-        && c1.sheetName === c2?.sheetName);
+    return (
+      c1 === c2 ||
+      (isNil(c1) && isNil(c2)) ||
+      (isNotNil(c1) &&
+        c1.name === c2?.name &&
+        c1.operator === c2?.operator &&
+        c1.value === c2?.value &&
+        equals(c1.values, c2?.values) &&
+        c1.endValue === c2?.endValue &&
+        c1.sheetName === c2?.sheetName)
+    );
   }
 
   name: string;
@@ -269,25 +263,20 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
 
     // Pod serialization
     if (opts?.minify) {
-      const isMulti = (typeof target.value === 'string' && target.value.indexOf(',') !== -1)
-        || isNotEmptyArray(target.values);
+      const isMulti = (typeof target.value === 'string' && target.value.indexOf(',') !== -1) || isNotEmptyArray(target.values);
       switch (target.operator) {
         case '=':
         case 'IN':
           if (isMulti) {
             target.operator = 'IN';
-            target.values = (target.values || (target.value as string).split(','))
-              .map(trimEmptyToNull)
-              .filter(isNotNil);
+            target.values = (target.values || (target.value as string).split(',')).map(trimEmptyToNull).filter(isNotNil);
             delete target.value;
           }
           break;
         case '!=':
           if (isMulti) {
             target.operator = 'NOT IN';
-            target.values = (target.values || (target.value as string).split(','))
-              .map(trimEmptyToNull)
-              .filter(isNotNil);
+            target.values = (target.values || (target.value as string).split(',')).map(trimEmptyToNull).filter(isNotNil);
             delete target.value;
           }
           break;
@@ -295,8 +284,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
           if (isNotNilOrBlank(target.endValue)) {
             if (typeof target.value === 'string') {
               target.values = [target.value.trim(), target.endValue.trim()];
-            }
-            else {
+            } else {
               target.values = [target.value, target.endValue];
             }
           }
@@ -313,16 +301,15 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
 }
 
 export class ExtractionTypeUtils {
-  static computeI18nName<T extends ExtractionType = ExtractionType>(
-    translate: TranslateService,
-    type: T | undefined): T | undefined {
+  static computeI18nName<T extends ExtractionType = ExtractionType>(translate: TranslateService, type: T | undefined): T | undefined {
     if (isNil(type)) return undefined;
     if (type.name) return type; // Skip if already has a name
 
     // Get format
-    const format = type.format
-    // Parse label if not fetched
-      || type.label && type.label.split('-')[0].toUpperCase();
+    const format =
+      type.format ||
+      // Parse label if not fetched
+      (type.label && type.label.split('-')[0].toUpperCase());
 
     let key = `EXTRACTION.FORMAT.${format}.TITLE`.toUpperCase();
     let name = translate.instant(key, type);
@@ -349,7 +336,7 @@ export class ExtractionTypeUtils {
       id: type.id,
       label: type.label,
       format: type.format,
-      version: type.version
+      version: type.version,
     };
   }
 
@@ -359,21 +346,19 @@ export class ExtractionTypeUtils {
 }
 
 export class ExtractionTypeCategory {
-
   static fromTypes(types: ExtractionType[]): ExtractionTypeCategory[] {
     const typesByCategory = collectByProperty(types, 'category');
 
     // Add a spatial product category
     if (typesByCategory['PRODUCT']) {
-      const spatialProduct = typesByCategory['PRODUCT'].filter(t => t.isSpatial && t.id >= 0 /*exclude live agg*/);
+      const spatialProduct = typesByCategory['PRODUCT'].filter((t) => t.isSpatial && t.id >= 0 /*exclude live agg*/);
       if (isNotEmptyArray(spatialProduct)) {
-        typesByCategory['PRODUCT'] = typesByCategory['PRODUCT'].filter(t => !t.isSpatial);
+        typesByCategory['PRODUCT'] = typesByCategory['PRODUCT'].filter((t) => !t.isSpatial);
         typesByCategory['SPATIAL_PRODUCT'] = spatialProduct;
       }
     }
 
-    return Object.getOwnPropertyNames(typesByCategory)
-      .map(category => ({label: category, types: typesByCategory[category]}));
+    return Object.getOwnPropertyNames(typesByCategory).map((category) => ({ label: category, types: typesByCategory[category] }));
   }
 
   label: string;

@@ -92,4 +92,3 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     return -1;
   }
 }
-

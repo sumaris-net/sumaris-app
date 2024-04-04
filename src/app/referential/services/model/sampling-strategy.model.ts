@@ -19,9 +19,8 @@ export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOpti
   keepEffort: boolean; // false by default
 }
 
-@EntityClass({typename: 'SamplingStrategyVO'})
+@EntityClass({ typename: 'SamplingStrategyVO' })
 export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrategyAsObjectOptions> {
-
   static fromObject: (source: any, opts?: any) => SamplingStrategy;
 
   static clone(source: any): SamplingStrategy {
@@ -64,33 +63,41 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     const target = super.fromObject(source);
 
     // Copy efforts. /!\ leave undefined is not set, to be able to detect if has been filled. See hasEffortFilled()
-    this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || undefined;
+    this.efforts = (source.efforts && source.efforts.map(StrategyEffort.fromObject)) || undefined;
 
     if (!this.efforts && this.appliedStrategies) {
-      this.efforts = this.appliedStrategies.reduce((res, as) => res.concat(
-          (as.appliedPeriods || []).map(period => {
-            const quarter = period.startDate?.quarter();
-            if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
-            return StrategyEffort.fromObject(<StrategyEffort>{
-              quarter,
-              startDate: period.startDate,
-              endDate: period.endDate,
-              expectedEffort: period.acquisitionNumber
-            });
-          }).filter(isNotNil)
-        ), []);
+      this.efforts = this.appliedStrategies.reduce(
+        (res, as) =>
+          res.concat(
+            (as.appliedPeriods || [])
+              .map((period) => {
+                const quarter = period.startDate?.quarter();
+                if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
+                return StrategyEffort.fromObject(<StrategyEffort>{
+                  quarter,
+                  startDate: period.startDate,
+                  endDate: period.endDate,
+                  expectedEffort: period.acquisitionNumber,
+                });
+              })
+              .filter(isNotNil)
+          ),
+        []
+      );
     }
 
-    this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || undefined;
+    this.effortByQuarter = (source.effortByQuarter && Object.assign({}, source.effortByQuarter)) || undefined;
     if (!this.effortByQuarter && isNotEmptyArray(this.efforts)) {
       this.effortByQuarter = {};
-      this.efforts.forEach(effort => {
-        this.effortByQuarter[effort.quarter] = this.effortByQuarter[effort.quarter] || StrategyEffort.fromObject({
-          quarter: effort.quarter,
-          startDate: effort.startDate,
-          endDate: effort.endDate,
-          expectedEffort: 0
-        });
+      this.efforts.forEach((effort) => {
+        this.effortByQuarter[effort.quarter] =
+          this.effortByQuarter[effort.quarter] ||
+          StrategyEffort.fromObject({
+            quarter: effort.quarter,
+            startDate: effort.startDate,
+            endDate: effort.endDate,
+            expectedEffort: 0,
+          });
         this.effortByQuarter[effort.quarter].expectedEffort += effort.expectedEffort;
         this.effortByQuarter[effort.quarter].startDate = DateUtils.min(this.effortByQuarter[effort.quarter].startDate, effort.startDate);
         this.effortByQuarter[effort.quarter].endDate = DateUtils.max(this.effortByQuarter[effort.quarter].endDate, effort.endDate);
@@ -123,39 +130,34 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
       delete target.weightPmfms;
       delete target.maturityPmfms;
       delete target.fractionPmfms;
-    }
-    else {
+    } else {
       target.year = toDateISOString(this.year);
 
-      target.efforts = this.efforts && this.efforts.map(e => e.asObject()) || undefined;
-
-
+      target.efforts = (this.efforts && this.efforts.map((e) => e.asObject())) || undefined;
 
       target.effortByQuarter = {};
-      target.efforts.filter(e => e.quarter).forEach(e => target.effortByQuarter[e.quarter] = e);
+      target.efforts.filter((e) => e.quarter).forEach((e) => (target.effortByQuarter[e.quarter] = e));
 
-      target.parameterGroups = this.parameterGroups && this.parameterGroups.slice() || undefined;
+      target.parameterGroups = (this.parameterGroups && this.parameterGroups.slice()) || undefined;
 
-      target.lengthPmfms = this.lengthPmfms && this.lengthPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-      target.weightPmfms = this.weightPmfms && this.weightPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-      target.maturityPmfms = this.maturityPmfms && this.maturityPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-      target.fractionPmfms = this.fractionPmfms && this.fractionPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.lengthPmfms = this.lengthPmfms && this.lengthPmfms.map((ps) => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.weightPmfms = this.weightPmfms && this.weightPmfms.map((ps) => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.maturityPmfms = this.maturityPmfms && this.maturityPmfms.map((ps) => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.fractionPmfms = this.fractionPmfms && this.fractionPmfms.map((ps) => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     }
     return target;
   }
 
   get hasRealizedEffort(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasRealizedEffort) !== -1;
+    return (this.efforts || []).findIndex((e) => e.hasRealizedEffort) !== -1;
   }
 
   get hasExpectedEffort(): boolean {
-    return (this.efforts || []).findIndex(e => e.hasExpectedEffort) !== -1;
+    return (this.efforts || []).findIndex((e) => e.hasExpectedEffort) !== -1;
   }
 }
 
-
 export class StrategyEffort {
-
   static fromObject(value: any): StrategyEffort {
     if (!value || value instanceof StrategyEffort) return value;
     const target = new StrategyEffort();
@@ -177,10 +179,9 @@ export class StrategyEffort {
   expectedEffort: number;
   realizedEffort: number;
 
-  constructor() {
-  }
+  constructor() {}
 
-// TODO : Check if clone is needed
+  // TODO : Check if clone is needed
   clone(): StrategyEffort {
     const target = new StrategyEffort();
     target.fromObject(this);
@@ -217,9 +218,10 @@ export class StrategyEffort {
   }
 
   get missingEffort(): number {
-    return isNil(this.expectedEffort) ? undefined :
-      // Avoid negative missing effort (when realized > expected)
-      Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
+    return isNil(this.expectedEffort)
+      ? undefined
+      : // Avoid negative missing effort (when realized > expected)
+        Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
   }
 
   get hasRealizedEffort(): boolean {

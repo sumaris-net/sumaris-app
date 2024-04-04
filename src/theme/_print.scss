@@ -1,11 +1,18 @@
 @media print {
-  @page {
-    margin: .4in;
-    size: A4 landscape;
-  }
+  // @page {
+  //   margin: .4in;
+  //   size: A4 landscape;
+  // }
 
-  @viewport {
-    orientation: landscape;
+  // @viewport {
+  //   orientation: landscape;
+  // }
+
+  @page portrait {
+    size: A4 portrait !important;
+  }
+  @page landscape {
+    size: A4 landscape !important;
   }
 
   /* -- hidden elements -- */
@@ -21,7 +28,6 @@
   .print-break {
     page-break-after: always;
   }
-
 }
 html.print-pdf {
   .reset-css {
@@ -32,8 +38,8 @@ html.print-pdf {
     flex: unset !important;
     margin: unset !important;
     padding: unset !important;
-    position: unset !important;;
-    display: unset !important;;
+    position: unset !important;
+    display: unset !important;
     contain: unset !important;
     justify-content: unset !important;
     visibility: unset !important;
@@ -60,8 +66,7 @@ html.print-pdf {
   .ion-page,
   ion-split-pane,
   .inner-scroll,
-  .scroll-y
-  {
+  .scroll-y {
     @extend .reset-css;
   }
 }

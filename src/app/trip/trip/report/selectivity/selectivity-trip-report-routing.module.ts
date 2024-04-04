@@ -8,14 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: SelectivityTripReport,
-  }
+  },
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    SelectivityTripReportModule,
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forChild(routes), SelectivityTripReportModule],
+  exports: [RouterModule],
 })
-export class SelectivityTripReportRoutingModule { }
+export class SelectivityTripReportRoutingModule {}

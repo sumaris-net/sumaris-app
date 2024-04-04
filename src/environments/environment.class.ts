@@ -12,4 +12,3 @@ export class AppEnvironment extends Environment {
 
   menu?: MenuOptions;
 }
-

@@ -43,7 +43,7 @@ import { AppBaseTable } from '@app/shared/table/base.table';
 export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, AggregatedLandingFilter> implements OnInit, OnDestroy {
   canDelete: boolean;
   isAdmin: boolean;
-  showLabelForPmfmIds: number[];
+  showNameForPmfmIds: number[];
 
   $currentDate = new BehaviorSubject<Moment>(undefined);
   $dates = new BehaviorSubject<Moment[]>(undefined);
@@ -56,7 +56,7 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
   private _acquisitionLevel: string;
   private _nbDays: number;
   private _startDate: Moment;
-  private _timeZone: string;
+  private _timezone: string;
 
   set nbDays(value: number) {
     if (value && value !== this._nbDays) {
@@ -72,9 +72,9 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     }
   }
 
-  set timeZone(value: string) {
-    if (value && value !== this._timeZone) {
-      this._timeZone = value;
+  set timezone(value: string) {
+    if (value && value !== this._timezone) {
+      this._timezone = value;
       this._onRefreshDates.emit();
     }
   }
@@ -102,9 +102,6 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
   set parent(value: ObservedLocation | undefined) {
     this.setParent(value);
   }
-
-  @Input() showToolbar = true;
-  @Input() useSticky = true;
 
   constructor(
     injector: Injector,
@@ -322,6 +319,32 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     return (rows || []).map((row) => row.currentData.vesselSnapshot.id);
   }
 
+  backwardDay(event?: Event) {
+    const dates = this.$dates.value;
+    const currentDate = this.$currentDate.value;
+    if (!dates || !currentDate) return; // Skip
+
+    const currentIndex = dates.findIndex((d) => DateUtils.equals(d, currentDate));
+    if (currentIndex > 0) {
+      this.$currentDate.next(dates[currentIndex - 1]);
+    } else {
+      this.$currentDate.next(dates[dates.length - 1]);
+    }
+  }
+
+  forwardDay(event?: Event) {
+    const dates = this.$dates.value;
+    const currentDate = this.$currentDate.value;
+    if (!dates || !currentDate) return; // Skip
+
+    const currentIndex = dates.findIndex((d) => DateUtils.equals(d, currentDate));
+    if (currentIndex < dates.length - 1) {
+      this.$currentDate.next(dates[currentIndex + 1]);
+    } else {
+      this.$currentDate.next(dates[0]);
+    }
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {
@@ -346,13 +369,13 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
   }
 
   private async refreshDates() {
-    if (!this._timeZone || isNil(this._startDate) || isNil(this._nbDays)) return;
+    if (!this._timezone || isNil(this._startDate) || isNil(this._nbDays)) return;
 
     // DEBUG
-    console.debug(`[aggregated-landings-table] Computing dates... {timezone: '${this._timeZone}'}`);
+    console.debug(`[aggregated-landings-table] Computing dates... {timezone: '${this._timezone}'}`);
 
     // Clear startDate time (at the TZ expected by the DB)
-    const firstDay = DateUtils.moment(this._startDate).tz(this._timeZone).startOf('day');
+    const firstDay = DateUtils.moment(this._startDate).tz(this._timezone).startOf('day');
 
     console.debug(`[aggregated-landings-table] Starting calendar at: '${firstDay.format()}'`);
 
@@ -392,11 +415,10 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
       );
     }
 
-    this.showLabelForPmfmIds = [PmfmIds.REFUSED_SURVEY];
+    this.showNameForPmfmIds = [PmfmIds.REFUSED_SURVEY];
 
     // Apply
     this.loadingPmfms = false;
     this.$pmfms.next(pmfms);
   }
 }
-

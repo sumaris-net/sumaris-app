@@ -19,7 +19,7 @@ androidVersion=$3
 release_description=$4
 
 # Check version format
-if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
+if [[ ! $task =~ ^(pre|rel)$ || ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ || ! $androidVersion =~ ^[0-9]+$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
   echo " > $0 pre|rel <version> <android-version> <release_description>"
@@ -35,12 +35,18 @@ fi
 ### Control that the script is run on `dev` branch
 resumeRelease=0
 branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "develop" ]]
-then
-  if [[ "$branch" = "release/$version" ]]
-  then
+if [[ ! "$branch" = "develop" ]]; then
+  if [[ "$branch" =~ ^features?/.* ]]; then
+
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)[0-9]+$ ]]; then
+      echo ">> Invalid version format - expected x.y.z-alpha*, x.x.x-beta*, x.x.x-rc*."
+      exit 1
+    fi
+
+  elif [[ "$branch" = "release/$version" ]]; then
     echo "Resuming release ..."
     resumeRelease=1
+
   else
     echo ">> This script must be run under \`develop\` or \`release/$version\` branch"
     exit 1
@@ -82,7 +88,15 @@ then
   read -r -p "Is these new versions correct ? [y/N] " response
   response=${response,,}    # tolower
   [[ ! "$response" =~ ^(yes|y)$ ]] && exit 1
-  git flow release start "$version"
+
+  if [[ "$branch" = "develop" ]]
+  then
+    git flow release start "$version"
+  else
+    # Release from a feature branch
+    echo "--- Release from branch $branch"
+    git checkout -B "release/$version"
+  fi
   [[ $? -ne 0 ]] && exit 1
 fi
 
@@ -123,7 +137,7 @@ npm install --no-save --unsafe-perm --force
 echo "-------------------------------------------"
 echo "- Compiling sources..."
 echo "-------------------------------------------"
-npm run build.prod
+npm run build:prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "-------------------------------------------"
@@ -160,10 +174,6 @@ cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-description="$release_description"
-if [[ "_$description" == "_" ]]; then
-    description="Release $version"
-fi
 
 echo "**********************************"
 echo " /!\ You should now :"
@@ -171,47 +181,10 @@ echo " - Open Android Studio and Build the release APK..."
 echo " - Then run: "
 echo ""
 echo "cd $PROJECT_DIR/scripts"
-echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task"
+if [[ "$branch" =~ ^features?/.* ]]; then
+  echo "./release-android-sign.sh && ./release-finish.sh $version $branch && ./release-to-github.sh $task $branch"
+else
+  echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task"
+fi
+
 exit 1
-
-echo "**********************************"
-echo "* Finishing release"
-echo "**********************************"
-
-cd ${PROJECT_DIR}/scripts || exit 1
-./release-finish.sh "$version" ''"$release_description"''
-[[ $? -ne 0 ]] && exit 1
-# Pause (if propagation is need between hosted git server and github)
-sleep 40s
-
-echo "**********************************"
-echo "* Uploading artifacts to Github..."
-echo "**********************************"
-cd $PROJECT_DIR/scripts
-./release-to-github.sh "$task" ''"$description"''
-[[ $? -ne 0 ]] && exit 1
-
-#echo "-------------------------------------------"
-#echo "- Building desktop artifacts..."
-#echo "-------------------------------------------"
-
-#git submodule init
-#git submodule sync
-#git submodule update --remote --merge
-
-#if [[ -d "$PROJECT_DIR/platforms/desktop" ]]; then
-#  cd platforms/desktop
-
-#  # Build desktop assets
-#  ./release.sh $version
-#  if [[ $? -ne 0 ]]; then
-#      exit 1
-#  fi
-#else
-#  echo "WARN: platform/desktop not found -> Skipping desktop build!"
-#fi;
-
-echo "**********************************"
-echo "* Build release succeed !"
-echo "**********************************"
-

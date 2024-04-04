@@ -7,27 +7,25 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 
 @NgModule({
-    imports: [
-        CommonModule,
-        TranslateModule.forChild(),
+  imports: [
+    CommonModule,
+    TranslateModule.forChild(),
 
-        // App modules
-        AppCoreModule,
-        AppReferentialPipesModule
-    ],
+    // App modules
+    AppCoreModule,
+    AppReferentialPipesModule,
+  ],
   declarations: [
-
     // Components
     PmfmFormField,
-    PmfmQvFormField
+    PmfmQvFormField,
   ],
   exports: [
     TranslateModule,
 
     // Components
     PmfmFormField,
-    PmfmQvFormField
+    PmfmQvFormField,
   ],
 })
-export class AppPmfmFormFieldModule {
-}
+export class AppPmfmFormFieldModule {}

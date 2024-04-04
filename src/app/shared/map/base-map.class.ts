@@ -7,7 +7,7 @@ import { ConfigService, firstNotNilPromise, isEmptyArray, LatLongPattern, LocalS
 import { Feature } from 'geojson';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { environment } from '@environments/environment';
-
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import { v4 as uuidv4 } from 'uuid';
 import { MapCenter, MapUtils } from '@app/shared/map/map.utils';
@@ -22,7 +22,6 @@ export interface BaseMapState {
 
 @Directive()
 export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestroy {
-
   protected _logPrefix = `[${this.constructor.name}] : `;
   protected readonly _debug: boolean;
   protected readonly _maxZoom: number;
@@ -44,14 +43,16 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   // -- Map Layers --
   protected readonly osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: MapUtils.MAX_ZOOM,
-    attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
+    attribution: "<a href='https://www.openstreetmap.org'>Open Street Map</a>",
   });
   protected readonly sextantBaseLayer = L.tileLayer(
-    'https://sextant.ifremer.fr/geowebcache/service/wmts'
-      + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}', {
+    'https://sextant.ifremer.fr/geowebcache/service/wmts' +
+      '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    {
       maxZoom: MapUtils.MAX_ZOOM,
-      attribution: '<a href=\'https://sextant.ifremer.fr\'>Sextant</a>'
-  });
+      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>",
+    }
+  );
 
   protected readonly options = <MapOptions>{
     layers: [this.sextantBaseLayer],
@@ -60,12 +61,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected layersControl = <LeafletControlLayersConfig>{
     baseLayers: {
       'Sextant (Ifremer)': this.sextantBaseLayer,
-      'Open Street Map': this.osmBaseLayer
+      'Open Street Map': this.osmBaseLayer,
     },
-    overlays: {
-    }
+    overlays: {},
   };
-
 
   protected layers: L.Layer[];
   protected graticule: MapGraticule;
@@ -90,7 +89,8 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected constructor(
     injector: Injector,
     protected _state: RxState<S>,
-    @Optional() options?: {
+    @Optional()
+    options?: {
       maxZoom: number;
     },
     initialState?: Partial<S>
@@ -111,7 +111,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
       this.sextantBaseLayer.options.maxZoom = this._maxZoom;
     }
 
-    this._state.set(initialState || <S>{loading: true});
+    this._state.set(initialState || <S>{ loading: true });
   }
 
   ngOnInit() {
@@ -119,9 +119,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     this.latLongPattern = this.latLongPattern || this.settings.latLongFormat;
     this.mapId = uuidv4();
 
-    this._state.connect('center', this.configService.config.pipe(
-        map(config => MapUtils.getMapCenter(config))
-      ));
+    this._state.connect('center', this.configService.config.pipe(map((config) => MapUtils.getMapCenter(config))));
   }
 
   ngOnDestroy() {
@@ -141,7 +139,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
     // Create graticule
     if (this.showGraticule) {
-      this.graticule = new MapGraticule({latLngPattern: this.latLongPattern});
+      this.graticule = new MapGraticule({ latLngPattern: this.latLongPattern });
       this.graticule.addTo(map);
     }
 
@@ -164,6 +162,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     });
   }
 
+  containerResize() {
+    setTimeout(() => this.map.invalidateSize(), 0);
+  }
+
   /* -- protected functions -- */
 
   protected abstract load();
@@ -171,9 +173,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected abstract onFeatureClick(feature: Feature);
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
-    layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
-    layer.on('mouseout', (_) => this.zone.run(() => this.$onOutFeature.next(feature)));
-    layer.on('click', (_) => this.zone.run(() => this.onFeatureClick(feature)));
+    /* eslint-disable @rx-angular/no-zone-run-apis */
+    layer.on('mouseover', () => this.zone.run(() => this.$onOverFeature.next(feature)));
+    layer.on('mouseout', () => this.zone.run(() => this.$onOutFeature.next(feature)));
+    layer.on('click', () => this.zone.run(() => this.onFeatureClick(feature)));
   }
 
   protected cleanMapLayers() {
@@ -181,17 +184,10 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     this.layers = [];
   }
 
-  async flyToBounds(opts = {skipDebounce : false}): Promise<void> {
-
+  async flyToBounds(opts = { skipDebounce: false }): Promise<void> {
     if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
-      if (!this.$fitToBounds.observers.length) {
-        this.subscription.add(
-          this.$fitToBounds
-            .pipe(
-              debounceTime(this.flyToBoundsDelay)
-            )
-            .subscribe(b => this.flyToBounds({skipDebounce: true}))
-        );
+      if (!this.$fitToBounds.observed) {
+        this.subscription.add(this.$fitToBounds.pipe(debounceTime(this.flyToBoundsDelay)).subscribe(() => this.flyToBounds({ skipDebounce: true })));
       }
 
       this.$fitToBounds.next();
@@ -223,16 +219,14 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     console.debug('[operations-map] Go to bounds:', bounds);
     if (bounds && bounds.isValid()) {
       if (this.flyToBoundsDuration <= 0) {
-        this.map.fitBounds(bounds, { maxZoom: this._maxZoom } );
+        this.map.fitBounds(bounds, { maxZoom: this._maxZoom });
         return;
-      }
-      else {
+      } else {
         try {
           this.map.flyToBounds(bounds, { maxZoom: this._maxZoom, duration: this.flyToBoundsDuration });
           return;
-        }
-        catch(err) {
-          console.error('Cannot go to bounds: ' +( err && err.message || err ), bounds);
+        } catch (err) {
+          console.error('Cannot go to bounds: ' + ((err && err.message) || err), bounds);
         }
       }
     }
@@ -248,14 +242,14 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     this.subscription.remove(sub);
   }
 
-  protected markAsLoading(opts?: {emitEvent?: boolean}) {
+  protected markAsLoading(opts?: { emitEvent?: boolean }) {
     this._state.set('loading', () => true);
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
 
-  protected markAsLoaded(opts?: {emitEvent?: boolean}) {
+  protected markAsLoaded(opts?: { emitEvent?: boolean }) {
     this._state.set('loading', () => false);
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();

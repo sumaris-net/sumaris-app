@@ -10,9 +10,7 @@ import { SamplingLandingReportModule } from '@app/trip/landing/sampling/report/s
 import { LandingReportModule } from '@app/trip/landing/report/landing.report.module';
 
 @NgModule({
-  declarations: [
-    ObservedLocationReport
-  ],
+  declarations: [ObservedLocationReport],
   imports: [
     AppCoreModule,
     AppReferentialModule,
@@ -23,8 +21,6 @@ import { LandingReportModule } from '@app/trip/landing/report/landing.report.mod
     AuctionControlReportModule,
     SamplingLandingReportModule,
   ],
-  exports: [
-    ObservedLocationReport
-  ],
+  exports: [ObservedLocationReport],
 })
-export class AppObservedLocationReportModule { }
+export class AppObservedLocationReportModule {}

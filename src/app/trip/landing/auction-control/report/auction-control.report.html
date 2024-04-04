@@ -52,7 +52,7 @@
           </li>
           <li>
             <ion-icon name="calendar"></ion-icon>
-            {{ 'LANDING.REPORT.DATE_TIME' | translate }} {{ data.dateTime | dateFormat : { time: true } }}
+            {{ 'LANDING.REPORT.DATE_TIME' | translate }} {{ data.dateTime | dateFormat: { time: true } }}
           </li>
           <li>
             <ion-icon name="people"></ion-icon>
@@ -70,28 +70,24 @@
           </li>
         </ul>
 
-        <div *ngIf="data.samples | isArrayLength : { lessThan: 6 }">
-          <ng-container
-            *ngTemplateOutlet="samplesTable; context: { $implicit: data.samples, pmfms: stats.pmfms }"
-          ></ng-container>
+        <div *ngIf="data.samples | isArrayLength: { lessThan: 6 }">
+          <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: data.samples, pmfms: stats.pmfms }"></ng-container>
         </div>
       </section>
 
-      <ng-container *ngIf="embedded || (data?.samples | isArrayLength : { greaterThan: 5 })">
-        <section *ngFor="let samples of data.samples | splitArrayInChunks : 14; index as index; count as count">
+      <ng-container *ngIf="embedded || (data?.samples | isArrayLength: { greaterThan: 5 })">
+        <section *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
           <h3>
             {{ data.vesselSnapshot?.name }} - {{ stats.taxonGroup?.name }}
-            {{ index | paginationToString : count : true }}
+            {{ index | paginationToString: count : true }}
           </h3>
-          <ng-container
-            *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"
-          ></ng-container>
+          <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
         </section>
       </ng-container>
 
       <!-- images -->
       <ng-container *ngIf="stats?.images | isNotEmptyArray">
-        <section *ngFor="let images of stats.images | splitArrayInChunks : 6; index as index; count as count">
+        <section *ngFor="let images of stats.images | splitArrayInChunks: 6; index as index; count as count">
           <ng-container *ngTemplateOutlet="imagesTable; context: { $implicit: images, count: 3 }"></ng-container>
         </section>
       </ng-container>
@@ -109,18 +105,15 @@
   <table [style.--col-count]="pmfms.length + 2">
     <thead>
       <tr>
-        <th>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext : i18nContext.suffix }}</th>
-        <th
-          *ngFor="let pmfm of pmfms"
-          [innerHTML]="pmfm | pmfmName : { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }"
-        ></th>
+        <th>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</th>
+        <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }"></th>
         <th>{{ 'TRIP.SAMPLE.TABLE.COMMENTS' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let sample of samples; even as even" [class.even]="even">
         <td>{{ sample.label }}</td>
-        <td *ngFor="let pmfm of pmfms" [innerHTML]="sample | measurementValueGet : { pmfm: pmfm, html: true }"></td>
+        <td *ngFor="let pmfm of pmfms" [innerHTML]="sample | measurementValueGet: { pmfm: pmfm, html: true }"></td>
         <td>{{ sample.comments }}</td>
       </tr>
     </tbody>
@@ -130,7 +123,7 @@
 <ng-template #imagesTable let-images let-count="count">
   <table [style.--col-count]="count" class="gallery">
     <tbody>
-      <tr *ngFor="let rowImages of images | splitArrayInChunks : 3">
+      <tr *ngFor="let rowImages of images | splitArrayInChunks: 3">
         <td *ngFor="let image of rowImages">
           <p>{{ image.title }}</p>
           <img [src]="image.url || image.dataUrl" [alt]="image.title" />

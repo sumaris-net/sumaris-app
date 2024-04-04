@@ -9,13 +9,7 @@
 
   <markdown *ngIf="markdownContent" [data]="markdownContent" (ready)="markAsLoaded()" emoji></markdown>
 
-  <markdown
-    *ngIf="markdownUrl"
-    [src]="markdownUrl"
-    (load)="markAsLoaded()"
-    (error)="onLoadError($event)"
-    emoji
-  ></markdown>
+  <markdown *ngIf="markdownUrl" [src]="markdownUrl" (load)="markAsLoaded()" (error)="onLoadError($event)" emoji></markdown>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

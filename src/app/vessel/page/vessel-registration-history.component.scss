@@ -1,4 +1,4 @@
-.mat-table {
+.mat-mdc-table {
   .mat-column-label {
     min-width: 50px;
     max-width: 150px;
@@ -12,8 +12,8 @@
     max-width: 110px;
   }
 
-  mat-header-cell.hidden,
-  mat-cell.hidden {
+  mat-mdc-header-cell.hidden,
+  mat-mdc-cell.hidden {
     visibility: hidden;
     display: none;
   }

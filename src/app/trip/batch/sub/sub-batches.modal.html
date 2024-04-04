@@ -6,14 +6,21 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title [innerHTML]="$title | async"></ion-title>
+    <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
     <ion-buttons slot="end">
       <!-- bluetooth ichthyometer icon -->
       <app-ichthyometer-icon *ngIf="showBluetoothIcon"></app-ichthyometer-icon>
 
-      <ion-spinner *ngIf="loadingSubject | async; else closeButton"></ion-spinner>
+      <!-- options menu -->
+      <ion-button *ngIf="canDebug" [disabled]="disabled || loading" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
 
+      <!-- loading spinner -->
+      <ion-spinner *rxIf="loadingSubject; else closeButton"></ion-spinner>
+
+      <!-- close -->
       <ng-template #closeButton>
         <ion-button *ngIf="enabled" (click)="close($event)" visible-xs visible-sm visible-mobile>
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
@@ -22,6 +29,18 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent>
+    <!-- DEV only -->
+    <button mat-menu-item (click)="devToggleDebug()">
+      <mat-icon *ngIf="debug">check_box</mat-icon>
+      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
 
 <!-- Row actions menu -->
 <mat-menu #rowActionsMenu="matMenu" xPosition="before">
@@ -36,6 +55,11 @@
 </mat-menu>
 
 <ion-content cdkTrapFocus #content>
+  <!-- DEBUG -->
+  <ng-container *ngIf="debug">
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  </ng-container>
+
   <!-- sub batch form -->
   <ion-grid [class.disabled]="disabled">
     <ion-row class="ion-no-padding">
@@ -49,10 +73,8 @@
 
         <app-sub-batch-form
           #form
-          [title]="
-            editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'
-          "
-          [programLabel]="undefined"
+          [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'"
+          [programLabel]="programLabel"
           [pmfms]="undefined"
           [qvPmfm]="undefined"
           floatLabel="always"
@@ -76,15 +98,7 @@
       </ion-col>
 
       <!-- table -->
-      <ion-col
-        size="12"
-        pull=""
-        size-md="8"
-        pull-md="4"
-        size-lg="9"
-        pull-lg="3"
-        class="table-container ion-no-padding compact"
-      >
+      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" class="table-container ion-no-padding compact">
         <table
           mat-table
           [dataSource]="dataSource"
@@ -118,7 +132,7 @@
             </th>
             <td mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
               <ion-text>
-                {{ row.currentData.parentGroup | displayWith : autocompleteFields.parentGroup.displayWith }}
+                {{ row.currentData.parentGroup | displayWith: autocompleteFields.parentGroup.displayWith }}
               </ion-text>
             </td>
           </ng-container>
@@ -130,36 +144,27 @@
             </th>
             <td mat-cell *matCellDef="let row">
               <ion-text>
-                {{
-                  autocompleteFields.taxonName && row.currentData.taxonName
-                    | displayWith : autocompleteFields.taxonName.displayWith
-                }}
+                {{ autocompleteFields.taxonName && row.currentData.taxonName | displayWith: autocompleteFields.taxonName.displayWith }}
               </ion-text>
             </td>
           </ng-container>
 
           <!-- Pmfms columns -->
-          <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
+          <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn">
             <ng-container [matColumnDef]="pmfm | pmfmIdString">
-              <th mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm | isDatePmfm">
+              <th mat-header-cell *matHeaderCellDef [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
                 <ion-label
-                  [innerHTML]="
-                    pmfm
-                      | pmfmName
-                        : { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }
-                  "
+                  [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }"
                 ></ion-label>
               </th>
               <td
                 mat-cell
                 *matCellDef="let row"
                 class="mat-column-pmfm"
-                [class.mat-cell-date-time]="pmfm | isDatePmfm"
-                [class.mat-cell-computed]="pmfm | isComputedPmfm"
+                [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+                [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
               >
-                <ion-text
-                  [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue : { pmfm: pmfm }"
-                ></ion-text>
+                <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
               </td>
             </ng-container>
           </ng-container>
@@ -180,12 +185,7 @@
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
             </th>
             <td mat-cell *matCellDef="let row">
-              <mat-icon
-                color="primary"
-                class="comment"
-                *ngIf="row.currentData.comments"
-                [title]="row.currentData.comments"
-              ></mat-icon>
+              <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
             </td>
           </ng-container>
 
@@ -193,12 +193,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>
               <!-- select column modal -->
-              <button
-                mat-icon-button
-                [title]="'COMMON.DISPLAYED_COLUMNS' | translate"
-                (click)="openSelectColumnsModal($event)"
-                tabindex="-1"
-              >
+              <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)" tabindex="-1">
                 <mat-icon>more_vert</mat-icon>
               </button>
             </th>
@@ -210,10 +205,9 @@
           <tr
             mat-row
             *matRowDef="let row; columns: displayedColumns"
-            class="mat-row-small"
-            [class.mat-row-dirty]="isNewRow(row)"
-            [class.mat-row-animated]="animationSelection.isSelected(row)"
-            [class.mat-row-selected]="selection.isSelected(row)"
+            [class.mat-mdc-row-dirty]="isNewRow(row)"
+            [class.mat-mdc-row-animated]="animationSelection.isSelected(row)"
+            [class.mat-mdc-row-selected]="selection.isSelected(row)"
             [matMenuTriggerFor]="rowActionsMenu"
             [matMenuTriggerRestoreFocus]="false"
             (click)="selectRow($event, row)"
@@ -242,3 +236,87 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loading }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          program: {{ programLabel }}
+          <br />
+          strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId }}
+          <br />
+          gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
+          <br />
+          <br />
+          acquisitionLevel: {{ acquisitionLevel }}
+          <br />
+          pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          showTaxonNameColumn: {{ showTaxonNameColumn }}
+          <br />
+          showIndividualCount: {{ showIndividualCount }}
+          <br />
+          i18nSuffix: {{ i18nSuffix }}
+          <br />
+          usageMode: {{ usageMode }}
+        </ion-col>
+        <ion-col>
+          <br />
+          _dataService.loading: {{ _dataService.loading$ | async }}
+          <br />
+          <br />
+          <br />
+          _dataService.program: {{ _dataService.programLabel }}
+          <br />
+          _dataService.strategy{{ _dataService.requiredStrategy ? ' (required) ' : '' }}: {{ _dataService.strategyId }}
+          <br />
+          _dataService.gear{{ _dataService.requiredGear ? ' (required) ' : '' }}: {{ _dataService.gearId }}
+          <br />
+          <br />
+          _dataService.acquisitionLevel: {{ _dataService.acquisitionLevel }}
+          <br />
+          _dataService.pmfms: {{ (_dataService.pmfms$ | async)?.length }}
+        </ion-col>
+
+        <ion-col *ngIf="form">
+          form.ready: {{ form.readySubject | async }}
+          <br />
+          form.loading: {{ form.loadingSubject | async }}
+          <br />
+          form.dirty: {{ form.dirty }}
+          <br />
+          form.valid: {{ form.valid }}
+          <br />
+          form.program: {{ form.programLabel }}
+          <br />
+          form.strategy{{ form.requiredStrategy ? ' (required) ' : '' }}: {{ form.strategyId || form.strategyLabel }}
+          <br />
+          form.gear{{ form.requiredGear ? ' (required) ' : '' }}: {{ form.gearId }}
+          <br />
+          <br />
+          form.acquisitionLevel: {{ form.acquisitionLevel$ | async }}
+          <br />
+          form.pmfms: {{ (form.pmfms$ | async)?.length }}
+          <br />
+          form.showTaxonName: {{ form.showTaxonName }}
+          <br />
+          form.showIndividualCount: {{ form.showIndividualCount }}
+          <br />
+          form.parent: {{ form.form | formGetValue: 'parentGroup' | propertyGet: 'taxonGroup.label' }}
+          <br />
+          form.errors: {{ form.invalid ? (getFormErrors(form.form) | json) : '' }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

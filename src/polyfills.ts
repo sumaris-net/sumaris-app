@@ -47,18 +47,7 @@ import './zone-flags';
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */
-import 'zone.js/dist/zone'; // Included with Angular CLI.
-
-// Workaround - patch Zone to mute startup error message, when Promise unpatched
-// Disable check on Promise
-if ((window as any).__Zone_disable_ZoneAwarePromise === true) {
-  window['Zone'].assertZonePatched = () => {};
-}
-
-/***************************************************************************************************
- * APPLICATION IMPORTS
- */
-
+import 'zone.js'; // Included with Angular CLI.
 // Import Hammer JS (need to manage 'tap' events)
 import 'hammerjs';
 
@@ -68,5 +57,16 @@ import 'moment-timezone';
 
 // Import swiper
 // Register Swiper lib - see
-import {register} from 'swiper/element/bundle';
+import { register } from 'swiper/element/bundle';
+
+// Workaround - patch Zone to mute startup error message, when Promise unpatched
+// Disable check on Promise
+/* eslint-disable */
+if ((window as any).__Zone_disable_ZoneAwarePromise === true) {
+  window['Zone'].assertZonePatched = () => {};
+}
+
+/***************************************************************************************************
+ * APPLICATION IMPORTS
+ */
 register();

@@ -8,12 +8,7 @@
 >
   <ion-buttons slot="end">
     <!-- Options menu -->
-    <button
-      mat-icon-button
-      *ngIf="!loading"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-      [matMenuTriggerFor]="optionsMenu"
-    >
+    <button mat-icon-button *ngIf="!loading" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
   </ion-buttons>
@@ -58,13 +53,7 @@
       [sizeMd]="form.showHasSubBatchesButton || !form.showTaxonName ? 6 : 12"
       [class.ion-padding-top]="form.showHasSubBatchesButton"
     >
-      <ion-button
-        color="tertiary"
-        fill="solid"
-        expand="block"
-        shape="round"
-        (click)="onShowSubBatchesButtonClick($event)"
-      >
+      <ion-button color="tertiary" fill="solid" expand="block" shape="round" (click)="onShowSubBatchesButtonClick($event)">
         <ion-label>
           <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
           <span *ngIf="data?.observedIndividualCount; let count">&nbsp;({{ count }})</span>
@@ -110,13 +99,7 @@
 <ng-template #bulkButtons>
   <!-- open individual modal -->
   <ion-col *ngIf="form.hasSubBatches && allowSubBatches">
-    <ion-button
-      color="tertiary"
-      fill="outline"
-      expand="block"
-      shape="round"
-      (click)="onShowSubBatchesButtonClick($event)"
-    >
+    <ion-button color="tertiary" fill="outline" expand="block" shape="round" (click)="onShowSubBatchesButtonClick($event)">
       <mat-icon slot="start">assessment</mat-icon>
       <ion-label>
         <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>

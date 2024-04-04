@@ -3,7 +3,7 @@ ion-card.qv.even {
   background-color: var(--ion-color-light-shade) !important;
 }
 mat-card.qv.odd,
-ion-card.qv.odd{
+ion-card.qv.odd {
   background-color: var(--ion-color-light, whitesmoke) !important;
 }
 ion-col > ion-buttons {
@@ -14,7 +14,8 @@ ion-row.ion-row-buttons {
   height: 36px;
 }
 
-mat-card, ion-card {
+mat-card,
+ion-card {
   h1 {
     margin: 0;
     app-icon {

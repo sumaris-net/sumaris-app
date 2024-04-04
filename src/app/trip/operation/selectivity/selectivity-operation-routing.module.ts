@@ -9,7 +9,7 @@ const routes: Routes = [
     path: ':selectivityOperationId',
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
-      pathIdParam: 'selectivityOperationId'
+      pathIdParam: 'selectivityOperationId',
     },
     children: [
       {
@@ -18,21 +18,15 @@ const routes: Routes = [
         component: SelectivityOperationPage,
         canDeactivate: [ComponentDirtyGuard],
         data: {
-          pathIdParam: 'selectivityOperationId'
+          pathIdParam: 'selectivityOperationId',
         },
-      }
+      },
     ],
-  }
+  },
 ];
 
-
 @NgModule({
-  imports: [
-    AppSelectivityOperationModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppSelectivityOperationModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
 export class AppSelectivityOperationRoutingModule {}

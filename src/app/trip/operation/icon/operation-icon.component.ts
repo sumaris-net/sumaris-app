@@ -14,10 +14,9 @@ export declare type OperationIonIcon = 'navigate';
   selector: 'app-operation-icon',
   templateUrl: 'operation-icon.component.html',
   styleUrls: ['./operation-icon.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationIconComponent {
-
   icon: OperationIonIcon = null;
   matSvgIcon: OperationMatSvgIcons = null;
   color: AppColors = null;
@@ -63,8 +62,8 @@ export class OperationIconComponent {
 
   constructor(
     private translate: TranslateService,
-    private cd: ChangeDetectorRef) {
-  }
+    private cd: ChangeDetectorRef
+  ) {}
 
   protected setValue(value: Operation) {
     if (!value) {
@@ -75,7 +74,7 @@ export class OperationIconComponent {
     // DEBUG
     //console.debug('[operation-icon] Computing icon for operation #' + value.id);
 
-    this.reset({emitEvent: false});
+    this.reset({ emitEvent: false });
     this._value = value;
 
     // Is child
@@ -88,7 +87,7 @@ export class OperationIconComponent {
       this.matSvgIcon = 'down-arrow';
       this.icon = undefined;
       this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
-      this.badgeColor = this.badgeIcon && 'accent' || undefined;
+      this.badgeColor = (this.badgeIcon && 'accent') || undefined;
     }
     // Other
     else {
@@ -123,24 +122,20 @@ export class OperationIconComponent {
           this.badgeSize = 'medium';
           this.title = value.qualificationComments;
         }
-      }
-      else {
+      } else {
         this.badgeIcon = 'checkmark';
         this.badgeColor = 'tertiary';
       }
-    }
-    else if (isNil(value.qualityFlagId) || value.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
-        this.badgeIcon = 'checkmark-circle';
-        this.badgeColor = 'tertiary';
-    }
-    else {
+    } else if (isNil(value.qualityFlagId) || value.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
+      this.badgeIcon = 'checkmark-circle';
+      this.badgeColor = 'tertiary';
+    } else {
       if (value.qualityFlagId === QualityFlagIds.BAD) {
         this.badgeIcon = 'alert-circle';
         this.badgeColor = 'danger';
         this.badgeFill = 'clear';
         this.badgeSize = 'medium';
-      }
-      else {
+      } else {
         this.badgeIcon = 'flag';
         this.badgeColor = qualityFlagToColor(value.qualityFlagId);
       }
@@ -152,14 +147,14 @@ export class OperationIconComponent {
       this.badgeColor = 'tertiary';
       this.badgeFill = 'clear';
       this.badgeSize = 'small';
-      this.title = this.translate.instant('TRIP.OPERATION.WARNING.ABNORMAL_PROGRESS', {comments: value.comments});
+      this.title = this.translate.instant('TRIP.OPERATION.WARNING.ABNORMAL_PROGRESS', { comments: value.comments });
     }
 
     this.color = this.color || 'primary';
     this.cd.markForCheck();
   }
 
-  private reset(opts?: {emitEvent: boolean}) {
+  private reset(opts?: { emitEvent: boolean }) {
     this.icon = null;
     this.matSvgIcon = null;
     this.color = null;

@@ -26,11 +26,9 @@ export declare type AppTableMode = 'select' | 'edit'; // TODO more
   selector: 'app-referential-ref-table',
   templateUrl: './referential-ref.table.html',
   styleUrls: ['./referential-ref.table.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter>
-  extends AppTable<T, F> implements OnInit {
-
+export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> implements OnInit {
   private _mode: AppTableMode = 'edit';
 
   readonly statusList = StatusList;
@@ -50,7 +48,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   @Input() set entityName(entityName: string) {
     this.setFilter({
       ...this.filter,
-      entityName
+      entityName,
     });
   }
 
@@ -69,18 +67,13 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     injector: Injector,
     formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'name',
-          'description',
-          'status',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS));
+      RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'comments']).concat(RESERVED_END_COLUMNS)
+    );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = false;
@@ -89,7 +82,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     this.filterForm = formBuilder.group({
       searchText: [null],
       level: [null],
-      statusId: [null]
+      statusId: [null],
     });
 
     // Update filter when changes
@@ -111,15 +104,17 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
             baseFilter.levelId = null;
           }
 
-          this.setFilter({
+          this.setFilter(
+            {
               ...baseFilter, // Keep previous filter
-              ...json},
-            {emitEvent: this.mobile || !this.showToolbar});
+              ...json,
+            },
+            { emitEvent: this.mobile || !this.showToolbar }
+          );
         })
     );
 
     this.debug = !environment.production;
-
   }
 
   async ngOnInit() {
@@ -129,7 +124,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     this.registerAutocompleteField('level', {
       items: this.$levels,
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Load levels
@@ -150,7 +145,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     // Filter with input levelIds, if any
     const filter = this.filter;
     if (levels && isNotEmptyArray(filter?.levelIds)) {
-      levels = levels.filter(l => filter.levelIds.includes(l.id));
+      levels = levels.filter((l) => filter.levelIds.includes(l.id));
     }
 
     // Sort by label
@@ -162,9 +157,8 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
       const typeName = levels[0].entityName;
       const i18nLevelName = 'REFERENTIAL.ENTITY.' + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
-      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
-    }
-    else {
+      this.i18nLevelName = levelName !== i18nLevelName ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
+    } else {
       this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
 
@@ -193,4 +187,3 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     this.markForCheck();
   }
 }
-

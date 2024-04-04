@@ -10,7 +10,7 @@ const routes: Routes = [
     path: ':samplingId',
     data: {
       profile: 'USER',
-      pathIdParam: 'samplingId'
+      pathIdParam: 'samplingId',
     },
     children: [
       {
@@ -18,25 +18,18 @@ const routes: Routes = [
         pathMatch: 'full',
         runGuardsAndResolvers: 'pathParamsChange',
         component: SamplingLandingPage,
-        canDeactivate: [ComponentDirtyGuard]
+        canDeactivate: [ComponentDirtyGuard],
       },
       {
         path: 'report',
-        loadChildren: () => import('./report/sampling-landing-report-routing.module').then(m =>m.SamplingReportRoutingModule)
-      }
-    ]
-  }
+        loadChildren: () => import('./report/sampling-landing-report-routing.module').then((m) => m.SamplingReportRoutingModule),
+      },
+    ],
+  },
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AppSamplingLandingModule
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes), AppSamplingLandingModule],
+  exports: [RouterModule],
 })
-export class AppSamplingLandingRoutingModule {
-}
+export class AppSamplingLandingRoutingModule {}

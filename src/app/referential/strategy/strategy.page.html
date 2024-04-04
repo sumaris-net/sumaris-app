@@ -1,10 +1,4 @@
-<app-toolbar
-  color="primary"
-  [hasValidate]="!loading"
-  (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref"
-  [canGoBack]="true"
->
+<app-toolbar color="primary" [hasValidate]="!loading" (onValidate)="save($event)" [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-title [innerHTML]="$title | async"></ion-title>
 
   <button
@@ -38,7 +32,12 @@
     dynamicHeight
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}">
+    <mat-tab
+      [label]="'PROGRAM.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [subMenuTitle]="isNewData ? ('PROGRAM.STRATEGY.NEW.TITLE' | translate) : data?.label || ''"
+      [parentPath]="defaultBackHref"
+    >
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
@@ -64,7 +63,7 @@
     </mat-tab>
 
     <!-- TAB: PMFM -->
-    <mat-tab label="{{ 'PROGRAM.STRATEGY.TAB_PMFM' | translate }}">
+    <mat-tab [label]="'PROGRAM.STRATEGY.TAB_PMFM' | translate" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>view_list</mat-icon>
         <ion-label translate>PROGRAM.STRATEGY.TAB_PMFM</ion-label>
@@ -84,7 +83,7 @@
     </mat-tab>
 
     <!-- TAB: access rights -->
-    <mat-tab label="{{ 'PROGRAM.TAB_PRIVILEGES' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.TAB_PRIVILEGES' | translate" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
@@ -101,7 +100,7 @@
     </mat-tab>
 
     <!-- TAB: transcribing -->
-    <mat-tab label="{{ 'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
@@ -132,13 +131,7 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<ion-modal
-  #importModal
-  [isOpen]="showImportModal"
-  class="modal-large"
-  enter-animation="modal-slide-in"
-  leave-animation="modal-slide-out"
->
+<ion-modal #importModal [isOpen]="showImportModal" class="modal-large" enter-animation="modal-slide-in" leave-animation="modal-slide-out">
   <ng-template>
     <app-modal-toolbar color="secondary">
       <ion-title>{{ 'PROGRAM.STRATEGY.TAB_TRANSCRIBING' | translate }}</ion-title>

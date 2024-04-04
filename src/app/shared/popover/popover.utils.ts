@@ -3,11 +3,12 @@ import { PopoverController, PopoverOptions } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 
 export class Popovers {
-
-  static async showText(popoverController: PopoverController,
-                        event: Event,
-                        opts: TextPopoverOptions,
-                        popoverOpts?: PopoverOptions): Promise<OverlayEventDetail> {
+  static async showText(
+    popoverController: PopoverController,
+    event: Event,
+    opts: TextPopoverOptions,
+    popoverOpts?: PopoverOptions
+  ): Promise<OverlayEventDetail> {
     const popover = await popoverController.create({
       component: TextPopover,
       componentProps: opts,
@@ -16,7 +17,7 @@ export class Popovers {
       event,
       translucent: true,
       cssClass: 'popover-large',
-      ...popoverOpts
+      ...popoverOpts,
     });
 
     await popover.present();

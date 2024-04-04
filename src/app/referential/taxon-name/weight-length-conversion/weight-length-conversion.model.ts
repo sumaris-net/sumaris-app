@@ -1,12 +1,20 @@
-import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import {
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  IEntity,
+  isNotNil,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-export abstract class BaseWeightLengthConversion<T extends Entity<T>>
-  extends Entity<T>
-  implements IEntity<T> {
-
+export abstract class BaseWeightLengthConversion<T extends Entity<T>> extends Entity<T> implements IEntity<T> {
   year: number = null;
   startMonth: number = null;
   endMonth: number = null;
@@ -45,18 +53,14 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T>>
     target.creationDate = toDateISOString(this.creationDate);
     if (opts?.minify) {
       // Convert statusId object into integer
-      target.statusId = (typeof this.statusId === 'object') ? (this.statusId as any)['id'] : this.statusId;
+      target.statusId = typeof this.statusId === 'object' ? (this.statusId as any)['id'] : this.statusId;
     }
     return target;
   }
-
 }
 
-
-@EntityClass({typename: 'WeightLengthConversionVO'})
-export class WeightLengthConversionRef
-  extends BaseWeightLengthConversion<WeightLengthConversionRef> {
-
+@EntityClass({ typename: 'WeightLengthConversionVO' })
+export class WeightLengthConversionRef extends BaseWeightLengthConversion<WeightLengthConversionRef> {
   static fromObject: (source: any, opts?: any) => WeightLengthConversionRef;
   static isNotNilOrBlank(source: WeightLengthConversionRef): boolean {
     return source && isNotNil(source.conversionCoefficientA) && isNotNil(source.conversionCoefficientB);
@@ -90,10 +94,8 @@ export class WeightLengthConversionRef
   }
 }
 
-@EntityClass({typename: 'WeightLengthConversionVO'})
-export class WeightLengthConversion
-  extends BaseWeightLengthConversion<WeightLengthConversion> {
-
+@EntityClass({ typename: 'WeightLengthConversionVO' })
+export class WeightLengthConversion extends BaseWeightLengthConversion<WeightLengthConversion> {
   static fromObject: (source: any, opts?: any) => WeightLengthConversion;
 
   location: ReferentialRef = null;
@@ -117,25 +119,25 @@ export class WeightLengthConversion
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
 
-    target.location = this.location && this.location.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.sex = this.sex && this.sex.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.lengthParameter = this.lengthParameter && this.lengthParameter.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.lengthUnit = this.lengthUnit && this.lengthUnit.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.location = (this.location && this.location.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.sex = (this.sex && this.sex.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.lengthParameter = (this.lengthParameter && this.lengthParameter.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.lengthUnit = (this.lengthUnit && this.lengthUnit.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     return target;
   }
 
   equals(other: WeightLengthConversion): boolean {
-
-    return (super.equals(other) && isNotNil(this.id)) ||
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
       // Function unique key
-      ((this.referenceTaxonId === other.referenceTaxonId)
-        && (this.year === other.year)
-        && (this.startMonth === other.startMonth)
-        && (this.endMonth === other.endMonth)
-        && ReferentialUtils.equals(this.location, other.location)
-        && ReferentialUtils.equals(this.sex, other.sex)
-        && ReferentialUtils.equals(this.lengthParameter, other.lengthParameter)
-        && ReferentialUtils.equals(this.lengthUnit, other.lengthUnit)
-      );
+      (this.referenceTaxonId === other.referenceTaxonId &&
+        this.year === other.year &&
+        this.startMonth === other.startMonth &&
+        this.endMonth === other.endMonth &&
+        ReferentialUtils.equals(this.location, other.location) &&
+        ReferentialUtils.equals(this.sex, other.sex) &&
+        ReferentialUtils.equals(this.lengthParameter, other.lengthParameter) &&
+        ReferentialUtils.equals(this.lengthUnit, other.lengthUnit))
+    );
   }
 }

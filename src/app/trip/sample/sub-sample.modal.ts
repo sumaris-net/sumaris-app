@@ -1,5 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Alerts, AppFormUtils, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  AppFormUtils,
+  isNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  toBoolean,
+  TranslateContextService,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
@@ -12,7 +21,6 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { SubSampleForm } from '@app/trip/sample/sub-sample.form';
 
 export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityModalOptions<Sample> {
-
   //Data
   availableParents: Sample[];
 
@@ -32,10 +40,9 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
 @Component({
   selector: 'app-sub-sample-modal',
   templateUrl: 'sub-sample.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions {
-
   private _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
@@ -80,7 +87,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     return this.form.valid;
   }
 
-
   constructor(
     protected injector: Injector,
     protected modalCtrl: ModalController,
@@ -108,19 +114,14 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
     if (this.disabled) {
       this.form.disable();
-    }
-    else {
+    } else {
       // Change rankOrder validator, to optional
       this.form.form.get('rankOrder').setValidators(null);
     }
 
     // Update title each time value changes
     if (!this.isNew) {
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(debounceTime(250))
-          .subscribe(json => this.computeTitle(json))
-      );
+      this._subscription.add(this.form.valueChanges.pipe(debounceTime(250)).subscribe((json) => this.computeTitle(json)));
     }
 
     this.setValue(this.data);
@@ -131,13 +132,11 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   }
 
   async setValue(data: Sample) {
-
     console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
     this.form.error = null;
 
     try {
-
       // Set form value
       this.data = data || new Sample();
       const promiseOrVoid = this.form.setValue(this.data);
@@ -151,9 +150,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
       // Compute the title
       await this.computeTitle();
-
-    }
-    finally {
+    } finally {
       if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
@@ -166,7 +163,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
       // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+      if (isNil(saveBeforeLeave) || (event && event.defaultPrevented)) {
         return;
       }
 
@@ -222,7 +219,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   }
 
   protected getDataToSave(): Sample {
-
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sub-sample-modal] ');
       this.form.error = 'COMMON.FORM.HAS_ERROR';
@@ -239,14 +235,12 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     try {
       // Get form value
       return this.form.value;
-    }
-    finally {
+    } finally {
       this.form.form.disable();
     }
   }
 
   protected reset(data?: Sample) {
-
     this.data = data || new Sample();
     this.form.error = null;
 
@@ -257,8 +251,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
       // Compute the title
       this.computeTitle();
-    }
-    finally {
+    } finally {
       this.form.markAsPristine();
       this.form.markAsUntouched();
       this.markForCheck();
@@ -266,7 +259,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   }
 
   protected async computeTitle(data?: Sample) {
-
     // Make sure form is ready, before accessing to autocomplete config
     await this.form.ready();
 
@@ -278,16 +270,15 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     // Compute prefix, from parent
     const parentStr = data.parent && this.form?.autocompleteFields.parent.displayWith(data.parent);
     const prefix = isNotNilOrBlank(parentStr)
-      ? this.translateContext.instant(`TRIP.SUB_SAMPLE.TITLE_PREFIX`, this.i18nFullSuffix,{ prefix: parentStr })
+      ? this.translateContext.instant(`TRIP.SUB_SAMPLE.TITLE_PREFIX`, this.i18nFullSuffix, { prefix: parentStr })
       : '';
 
     if (this.isNew || !data) {
-      this.$title.next(prefix + this.translateContext.instant( `TRIP.SUB_SAMPLE.NEW.TITLE`, this.i18nFullSuffix));
-    }
-    else {
+      this.$title.next(prefix + this.translateContext.instant(`TRIP.SUB_SAMPLE.NEW.TITLE`, this.i18nFullSuffix));
+    } else {
       // Label can be optional (e.g. in auction control)
-      const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + this.translateContext.instant(`TRIP.SUB_SAMPLE.EDIT.TITLE`, this.i18nFullSuffix, {label}));
+      const label = (this.showLabel && data.label) || '#' + data.rankOrder;
+      this.$title.next(prefix + this.translateContext.instant(`TRIP.SUB_SAMPLE.EDIT.TITLE`, this.i18nFullSuffix, { label }));
     }
   }
 

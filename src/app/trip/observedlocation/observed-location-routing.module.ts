@@ -5,6 +5,7 @@ import { ObservedLocationsPage } from './table/observed-locations.page';
 import { ObservedLocationPage } from './observed-location.page';
 import { LandedTripPage } from '../landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
+import { AppSalePageModule } from '@app/trip/sale/sale-routing.module';
 
 const routes: Routes = [
   // table
@@ -61,6 +62,10 @@ const routes: Routes = [
         loadChildren: () => import('../landing/sampling/sampling-landing-routing.module').then((m) => m.AppSamplingLandingRoutingModule),
       },
       {
+        path: 'sale',
+        loadChildren: () => import('../sale/sale-routing.module').then((m) => m.AppSalePageModule),
+      },
+      {
         path: 'trip/:tripId',
         data: {
           profile: 'USER',
@@ -108,15 +113,8 @@ const routes: Routes = [
   },
 ];
 
-
 @NgModule({
-  imports: [
-    AppObservedLocationModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppObservedLocationModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppObservedLocationRoutingModule {
-}
+export class AppObservedLocationRoutingModule {}

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -17,7 +17,6 @@ import {
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -31,22 +30,27 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
+import { RxStateRegister } from '@app/shared/state/state.decorator';
+import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
   filterKey: 'filter',
   compactRowsKey: 'compactRows',
 };
 
+export interface BaseTableState {}
+
 export interface BaseTableConfig<
   T extends Entity<T, ID>,
   ID = number,
+  ST extends BaseTableState = BaseTableState,
   WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-  SO = any>
-  extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
-
+  SO = any,
+> extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
   restoreCompactMode?: boolean;
   restoreColumnWidths?: boolean;
   i18nColumnPrefix?: string;
+  initialState?: Partial<ST>;
 }
 
 @Directive()
@@ -56,7 +60,8 @@ export abstract class AppBaseTable<
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>
+    ST extends BaseTableState = BaseTableState,
+    O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
   extends AppTable<T, F, ID>
   implements OnInit, AfterViewInit
@@ -70,10 +75,12 @@ export abstract class AppBaseTable<
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
 
+  @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
+
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
-  @Input() showPaginator: boolean;
+  @Input() showPaginator = true;
   @Input() showFooter = true;
   @Input() showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -147,7 +154,6 @@ export abstract class AppBaseTable<
 
   ngOnInit() {
     super.ngOnInit();
-    this.showPaginator = toBoolean(this.showPaginator, !!this.paginator);
 
     // Propagate dirty state of the in-memory service
     if (this.memoryDataService) {
@@ -190,6 +196,11 @@ export abstract class AppBaseTable<
     super.ngAfterViewInit();
 
     this.initTableContainer(this.tableContainerRef?.nativeElement);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._state?.ngOnDestroy();
   }
 
   initTableContainer(element: any) {
@@ -238,7 +249,7 @@ export abstract class AppBaseTable<
     filter = this.asFilter(filter);
 
     // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria();
+    const criteriaCount = this.countNotEmptyCriteria(filter as F);
     if (criteriaCount !== this.filterCriteriaCount) {
       this.filterCriteriaCount = criteriaCount;
       this.markForCheck();
@@ -518,7 +529,7 @@ export abstract class AppBaseTable<
             if (isNilOrBlank(this.settingsId)) return;
             console.debug(this.logPrefix + 'Restoring filter from settings...');
             return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
-          case 'queryParams':
+          case 'queryParams': {
             const { q } = this.route.snapshot.queryParams;
             if (q) {
               console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
@@ -529,6 +540,7 @@ export abstract class AppBaseTable<
               }
             }
             break;
+          }
         }
         return null;
       })
@@ -558,6 +570,9 @@ export abstract class AppBaseTable<
   }
 
   async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
+    // Avoid to autofocus
+    event?.preventDefault();
+
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
     const { data } = await Popovers.showText(this.popoverController, event, {
       editing: this.inlineEdition && this.enabled,
@@ -577,7 +592,7 @@ export abstract class AppBaseTable<
       } else {
         row.currentData.comments = data;
       }
-      this.markAsDirty({emitEvent: false});
+      this.markAsDirty({ emitEvent: false });
       this.markForCheck();
     }
   }
@@ -604,6 +619,10 @@ export abstract class AppBaseTable<
     const target = new this.filterType();
     if (source) target.fromObject(source);
     return target;
+  }
+
+  protected countNotEmptyCriteria(filter: F) {
+    return filter?.countNotEmptyCriteria() || 0;
   }
 
   protected asEntity(source: Partial<T>): T {

@@ -1,20 +1,7 @@
 <mat-toolbar *ngIf="showToolbar">
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate : errorDetails"></ion-label>
-  </ion-item>
-
-  <span class="toolbar-spacer"></span>
-
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button
-      mat-icon-button
-      *rxIf="canEdit$"
-      class="hidden-xs hidden-sm"
-      [title]="'COMMON.BTN_ADD' | translate"
-      (click)="addRow()"
-    >
+    <button mat-icon-button *rxIf="canEdit$" class="hidden-xs hidden-sm" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -48,6 +35,11 @@
 
   <!-- if row selection -->
   <ng-template #hasSelection>
+    <!-- delete -->
+    <button mat-icon-button *rxIf="canDelete$" [disabled]="disabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+
     <!-- duplicate -->
     <button
       mat-icon-button
@@ -55,43 +47,30 @@
       *rxIf="canEdit$"
       [disabled]="disabled"
       [title]="'COMMON.BTN_DUPLICATE' | translate"
-      (click)="openStrategyDuplicateYearSelectionModal($event, selection.selected)"
+      (click)="duplicate($event, selection.selected)"
     >
-      <mat-icon>library_add</mat-icon>
-    </button>
-
-    <button
-      mat-icon-button
-      color="light"
-      *rxIf="canDelete$"
-      [disabled]="disabled"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="deleteSelection($event)"
-    >
-      <mat-icon>delete</mat-icon>
+      <mat-icon>copy_content</mat-icon>
     </button>
   </ng-template>
+
+  <span class="toolbar-spacer"></span>
+
+  <ion-item *ngIf="error && !mobile" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error | translate: errorDetails"></ion-label>
+  </ion-item>
 </mat-toolbar>
 
 <!-- search -->
 <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.filter-panel-floating]="filterPanelFloating">
-  <form
-    class="form-container ion-padding-top"
-    [formGroup]="filterForm"
-    (ngSubmit)="applyFilterAndClosePanel($event, true)"
-  >
+  <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event, true)">
     <ion-grid>
       <ion-row>
         <ion-col>
           <!-- search text -->
           <mat-form-field>
             <ion-icon matPrefix name="search"></ion-icon>
-            <input
-              matInput
-              formControlName="searchText"
-              autocomplete="off"
-              [placeholder]="i18nColumnPrefix + 'LABEL' | translate"
-            />
+            <input matInput formControlName="searchText" autocomplete="off" [placeholder]="i18nColumnPrefix + 'LABEL' | translate" />
             <button
               mat-icon-button
               matSuffix
@@ -161,10 +140,7 @@
           <mat-form-field floatLabel="always">
             <mat-label>{{ 'PROGRAM.STRATEGY.TABLE.SAMPLING.PARAMETERS_DOTS' | translate }}</mat-label>
             <input matInput hidden />
-            <mat-checkbox
-              *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last"
-              [formControlName]="parameterGroupLabel"
-            >
+            <mat-checkbox *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last" [formControlName]="parameterGroupLabel">
               {{ i18nColumnPrefix + parameterGroupLabel | translate }}
               <span *ngIf="!last">&nbsp;</span>
             </mat-checkbox>
@@ -175,11 +151,7 @@
       <ion-row>
         <!-- Start date -->
         <ion-col size="3">
-          <mat-date-short-field
-            formControlName="startDate"
-            [placeholder]="i18nColumnPrefix + 'START_YEAR' | translate"
-            [clearable]="true"
-          >
+          <mat-date-short-field formControlName="startDate" [placeholder]="i18nColumnPrefix + 'START_YEAR' | translate" [clearable]="true">
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
           </mat-date-short-field>
         </ion-col>
@@ -211,10 +183,7 @@
   <mat-action-row>
     <!-- Counter  -->
     <ion-label [hidden]="(loadingSubject | async) || filterForm.dirty" [color]="empty && 'danger'" class="ion-padding">
-      {{
-        (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT')
-          | translate : { count: (totalRowCount | numberFormat) }
-      }}
+      {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: { count: (totalRowCount | numberFormat) } }}
     </ion-label>
 
     <div class="toolbar-spacer"></div>
@@ -253,7 +222,7 @@
 </mat-expansion-panel>
 
 <!-- error -->
-<ion-item *ngIf="showError && error" visible-xs visible-sm visible-mobile lines="none">
+<ion-item *ngIf="showError && error && mobile" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
 </ion-item>
@@ -283,11 +252,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -326,12 +291,7 @@
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-nowrap" [title]="departments.innerText">
-          <span
-            #departments
-            [innerHTML]="
-              row.currentData.departments | arrayPluck : { property: 'department' } | departmentToString : ', <br>'
-            "
-          ></span>
+          <span #departments [innerHTML]="row.currentData.departments | arrayPluck: { property: 'department' } | departmentToString: ', <br>'"></span>
         </ion-text>
       </td>
     </ng-container>
@@ -347,8 +307,8 @@
             #locationsSpan
             [innerHTML]="
               row.currentData.appliedStrategies
-                | arrayPluck : { property: 'location' }
-                | referentialToString : { properties: autocompleteFields.location.attributes, separator: ', <br>' }
+                | arrayPluck: { property: 'location' }
+                | referentialToString: { properties: autocompleteFields.location.attributes, separator: ', <br>' }
             "
           ></span>
         </ion-text>
@@ -366,8 +326,8 @@
             #taxonNameSpan
             [innerHTML]="
               row.currentData.taxonNames
-                | arrayPluck : { property: 'taxonName' }
-                | referentialToString : { properties: autocompleteFields.taxonName.attributes, separator: ', <br>' }
+                | arrayPluck: { property: 'taxonName' }
+                | referentialToString: { properties: autocompleteFields.taxonName.attributes, separator: ', <br>' }
             "
           ></span>
         </ion-text>
@@ -378,12 +338,7 @@
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon
-          color="primary"
-          class="comment"
-          *ngIf="row.currentData.comments"
-          [title]="row.currentData.comments"
-        ></mat-icon>
+        <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
       </td>
     </ng-container>
 
@@ -409,7 +364,7 @@
           <span>{{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}</span>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text *ngIf="row.currentData.effortByQuarter | mapGet : quarter; let effort">
+          <ion-text *ngIf="row.currentData.effortByQuarter | mapGet: quarter; let effort">
             <!-- OBSBIO-49 et OBSBIO-83 - use warning color if more than expected effort -->
             <ion-text
               [color]="effort.realized ? (effort.realizedMore ? 'tertiary' : 'success') : 'dark'"
@@ -438,11 +393,7 @@
     <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
         <!-- display columns -->
-        <button
-          mat-icon-button
-          [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate"
-          (click)="openSelectColumnsModal($event)"
-        >
+        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
           <mat-icon>more_vert</mat-icon>
         </button>
       </th>
@@ -455,8 +406,8 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      class="mat-row-disabled"
-      [class.mat-row-selected]="highlightedRowId === row.id"
+      class="mat-mdc-row-disabled"
+      [class.mat-mdc-row-selected]="highlightedRowId === row.id"
       (click)="clickRow($event, row)"
     ></tr>
   </table>

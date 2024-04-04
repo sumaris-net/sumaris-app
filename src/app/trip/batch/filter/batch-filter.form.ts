@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnInit,
+  Output,
+  QueryList,
+  ViewChildren,
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, firstArrayValue } from '@sumaris-net/ngx-components';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -7,14 +19,12 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MatTabNav } from '@angular/material/tabs';
 
-
 @Component({
   selector: 'app-batch-filter-form',
   templateUrl: './batch-filter.form.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, AfterViewInit {
-
   protected _pmfms: IPmfm[];
 
   @Input() debounceTime = 0;
@@ -31,15 +41,18 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   @ViewChildren('navBar') navBars: QueryList<MatTabNav>;
 
-  constructor(injector: Injector,
-              protected formBuilder: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef
+  constructor(
+    injector: Injector,
+    protected formBuilder: UntypedFormBuilder,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector, formBuilder.group({
-      measurementValues: formBuilder.group({})
-    }));
+    super(
+      injector,
+      formBuilder.group({
+        measurementValues: formBuilder.group({}),
+      })
+    );
   }
-
 
   ngOnInit() {
     this.enable();
@@ -52,9 +65,9 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
         .pipe(
           //map(BatchFilter.fromObject),
           // DEBUG
-          tap(value => console.debug('[batch-filter] Filter change to:', value))
+          tap((value) => console.debug('[batch-filter] Filter change to:', value))
         )
-        .subscribe(value => this.valueChanges.emit(value))
+        .subscribe((value) => this.valueChanges.emit(value))
     );
   }
 
@@ -74,13 +87,12 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
   }
 
   setPmfms(pmfms?: IPmfm[]) {
-
     const measurementValuesForm = this.form.get('measurementValues') as UntypedFormGroup;
 
     // Remove previous controls
     const existingControlKeys = Object.keys(measurementValuesForm.controls);
 
-    (pmfms || []).forEach(pmfm => {
+    (pmfms || []).forEach((pmfm) => {
       const key = pmfm.id.toString();
       let control = measurementValuesForm.get(key);
       if (!control) {
@@ -91,22 +103,20 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
           const value = firstArrayValue(pmfm.qualitativeValues);
           this.applyPmfmValue(pmfm, value);
         }
-      }
-      else {
+      } else {
         existingControlKeys.splice(existingControlKeys.indexOf(key), 1);
       }
     });
 
     // Remove unused
-    existingControlKeys.forEach(key => measurementValuesForm.removeControl(key));
+    existingControlKeys.forEach((key) => measurementValuesForm.removeControl(key));
 
     this._pmfms = pmfms;
     this.cd.detectChanges();
-
   }
 
   realignInkBar() {
-    this.navBars.forEach(tab => tab._alignInkBarToSelectedTab());
+    this.navBars.forEach((tab) => tab._alignInkBarToSelectedTab());
   }
 
   protected markForCheck() {

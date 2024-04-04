@@ -12,32 +12,34 @@ import {
   Output,
   QueryList,
   ViewChild,
-  ViewChildren
+  ViewChildren,
 } from '@angular/core';
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
-
+import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormControl, Validators } from '@angular/forms';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 import {
+  AppFloatLabelType,
   AppFormUtils,
   focusInput,
   InputElement,
   IReferentialRef,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  selectInputRange,
   SharedValidators,
   sort,
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber, selectInputRange, isNotNilOrBlank
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
@@ -53,15 +55,14 @@ export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => PmfmQvFormField),
-      multi: true
-    }
+      multi: true,
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
-
-  private _onChangeCallback = (_: any) => { };
-  private _onTouchedCallback = () => { };
+  private _onChangeCallback = (_: any) => {};
+  private _onTouchedCallback = () => {};
   private _implicitValue: IReferentialRef | any;
   private destroySubject = new EventEmitter(true);
   private _qualitativeValues: IReferentialRef[];
@@ -91,7 +92,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() placeholder: string;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() required: boolean;
   @Input() readonly = false;
@@ -119,8 +120,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('focus') focused = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('click') clicked = new EventEmitter<Event>();
 
   @ViewChild('matInput') matInput: ElementRef;
@@ -138,20 +142,24 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
-    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as UntypedFormControl;
-    if (!this.formControl) throw new Error('Missing mandatory attribute \'formControl\' or \'formControlName\' in <app-pmfm-qv-field>.');
+    this.formControl =
+      this.formControl || (this.formControlName && this.formGroupDir && (this.formGroupDir.form.get(this.formControlName) as UntypedFormControl));
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
-    if (!this.pmfm) throw new Error('Missing mandatory attribute \'pmfm\' in <mat-qv-field>.');
+    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     let qualitativeValues: IReferentialRef[] = this.pmfm.qualitativeValues || [];
     if (!qualitativeValues.length && PmfmUtils.isFullPmfm(this.pmfm)) {
       // Get qualitative values from parameter
       qualitativeValues = this.pmfm.parameter?.qualitativeValues || [];
       if (!qualitativeValues.length) {
-        console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
+        console.warn(
+          `Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`,
+          this.pmfm
+        );
       }
     }
     // Exclude disabled values
-    this._qualitativeValues = qualitativeValues.filter(qv => qv.statusId !== StatusIds.DISABLE);
+    this._qualitativeValues = qualitativeValues.filter((qv) => qv.statusId !== StatusIds.DISABLE);
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
@@ -159,17 +167,16 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
     const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
-    this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
-    this.sortAttribute =  isNotNil(this.sortAttribute)
-      ? this.sortAttribute
-      : (this.style === 'button' ? 'name' : attributes[0]);
+    this.searchAttributes = (isNotEmptyArray(this.searchAttributes) && this.searchAttributes) || attributes;
+    this.sortAttribute = isNotNil(this.sortAttribute) ? this.sortAttribute : this.style === 'button' ? 'name' : attributes[0];
 
     // Sort values (but keep original order if LANDING/DISCARD or mobile)
-    this._sortedQualitativeValues = (this.mobile || this.pmfm.id === PmfmIds.DISCARD_OR_LANDING)
-      ? this._qualitativeValues
-      : sort(this._qualitativeValues, this.sortAttribute, {numeric: true, sensitivity: 'base'});
+    this._sortedQualitativeValues =
+      this.mobile || this.pmfm.id === PmfmIds.DISCARD_OR_LANDING
+        ? this._qualitativeValues
+        : sort(this._qualitativeValues, this.sortAttribute, { numeric: true, sensitivity: 'base' });
 
-    this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
+    this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, { withUnit: !this.compact });
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
@@ -179,44 +186,36 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this._items$ = of([]);
       } else {
         this._items$ = merge(
-          this.onShowDropdown
-            .pipe(
-              filter(event => !event.defaultPrevented),
-              map((_) => this._sortedQualitativeValues)
+          this.onShowDropdown.pipe(
+            filter((event) => !event.defaultPrevented),
+            map((_) => this._sortedQualitativeValues)
+          ),
+          this.formControl.valueChanges.pipe(
+            filter(ReferentialUtils.isEmpty),
+            map((value) =>
+              suggestFromArray(this._sortedQualitativeValues, value, {
+                searchAttributes: this.searchAttributes,
+              })
             ),
-          this.formControl.valueChanges
-            .pipe(
-              filter(ReferentialUtils.isEmpty),
-              map(value => suggestFromArray(this._sortedQualitativeValues, value, {
-                searchAttributes: this.searchAttributes
-              })),
-              map(res => res && res.data),
-              tap(items => this.updateImplicitValue(items))
-            )
-        )
-        .pipe(
-          takeUntil(this.destroySubject)
-        );
+            map((res) => res && res.data),
+            tap((items) => this.updateImplicitValue(items))
+          )
+        ).pipe(takeUntil(this.destroySubject));
       }
     }
 
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
-
       this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
       this.buttonsColCount = toNumber(this.buttonsColCount, Math.min(this.maxVisibleButtons, 4));
       if (this._qualitativeValues.length <= this.maxVisibleButtons) {
         this.maxVisibleButtons = 999; // Hide the expand button
       }
 
-      this.formControl.statusChanges
-        .pipe(
-          takeUntil(this.destroySubject)
-        )
-        .subscribe(() => {
-          this.updateSelectedIndex(this.value, {emitEvent: false /*done after*/});
-          this.markForCheck();
-        });
+      this.formControl.statusChanges.pipe(takeUntil(this.destroySubject)).subscribe(() => {
+        this.updateSelectedIndex(this.value, { emitEvent: false /*done after*/ });
+        this.markForCheck();
+      });
     }
   }
 
@@ -230,7 +229,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   writeValue(value: any, event?: Event) {
     if (value !== this.formControl.value) {
-      this.formControl.patchValue(value, {emitEvent: false});
+      this.formControl.patchValue(value, { emitEvent: false });
       this._onChangeCallback(value);
     }
 
@@ -249,9 +248,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this._onTouchedCallback = fn;
   }
 
-  setDisabledState(isDisabled: boolean): void {
-
-  }
+  setDisabledState(isDisabled: boolean): void {}
 
   _onClick(event: MouseEvent) {
     this.clicked.emit(event);
@@ -318,7 +315,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return true;
   }
 
-
   filterMatSelectFocusEvent(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
     // DEBUG
@@ -332,11 +328,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // DEBUG
     // console.debug(this.logPrefix + " Received <mat-select> blur event", event);
 
-
-    if (event.relatedTarget instanceof HTMLElement && (
+    if (
+      event.relatedTarget instanceof HTMLElement &&
       // Ignore event from mat-option
-      (event.relatedTarget.tagName === 'MAT-OPTION')
-      || (event.relatedTarget.tagName === 'INPUT') && event.relatedTarget.classList.contains('searchbar-input'))) {
+      (event.relatedTarget.tagName === 'MAT-OPTION' ||
+        (event.relatedTarget.tagName === 'INPUT' && event.relatedTarget.classList.contains('searchbar-input')))
+    ) {
       event.preventDefault();
       if (event.stopPropagation) event.stopPropagation();
       event.returnValue = false;
@@ -385,8 +382,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
   }
 
-  protected updateSelectedIndex(value: any, opts = {emitEvent: true}) {
-    const index = isNotNil(value?.id) ? this._sortedQualitativeValues.findIndex(qv => qv.id === value.id) : -1;
+  protected updateSelectedIndex(value: any, opts = { emitEvent: true }) {
+    const index = isNotNil(value?.id) ? this._sortedQualitativeValues.findIndex((qv) => qv.id === value.id) : -1;
     if (this.selectedIndex !== index) {
       this.selectedIndex = index;
       if (this.selectedIndex > this.maxVisibleButtons) {
@@ -407,6 +404,4 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
 }

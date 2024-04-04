@@ -2,31 +2,23 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { DataEntity, DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 @Pipe({
-  name: 'dataEntityIsInvalid'
+  name: 'dataEntityIsInvalid',
 })
 export class DataEntityIsInvalidPipe implements PipeTransform {
+  constructor() {}
 
-  constructor(
-  ) {
-  }
-
-  transform(entity: DataEntity<any, any>|undefined): boolean {
+  transform(entity: DataEntity<any, any> | undefined): boolean {
     return DataEntityUtils.isInvalid(entity);
   }
-
 }
 
 @Pipe({
-  name: 'dataEntityError'
+  name: 'dataEntityError',
 })
 export class DataEntityErrorPipe implements PipeTransform {
+  constructor() {}
 
-  constructor(
-  ) {
-  }
-
-  transform(entity: DataEntity<any, any>|undefined): string {
+  transform(entity: DataEntity<any, any> | undefined): string {
     return DataEntityUtils.isInvalid(entity) ? entity.qualificationComments : undefined;
   }
-
 }

@@ -7,17 +7,8 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { AppSharedProgressionModule } from '@app/shared/progression/progression.module';
 
 @NgModule({
-  imports: [
-    TranslateModule.forChild(),
-    AppSharedModule,
-    AppIconModule,
-    JobModule,
-    AppSharedProgressionModule
-  ],
+  imports: [TranslateModule.forChild(), AppSharedModule, AppIconModule, JobModule, AppSharedProgressionModule],
   declarations: [JobListComponent],
-  exports: [
-    TranslateModule,
-    JobListComponent
-  ]
+  exports: [TranslateModule, JobListComponent],
 })
 export class AppJobAdminModule {}

@@ -8,14 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: SamplingLandingReport,
-  }
+  },
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    SamplingLandingReportModule,
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forChild(routes), SamplingLandingReportModule],
+  exports: [RouterModule],
 })
-export class SamplingReportRoutingModule { }
+export class SamplingReportRoutingModule {}

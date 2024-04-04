@@ -1,0 +1,135 @@
+<app-modal-toolbar
+  [modalName]="modalName"
+  [title]="title | translate"
+  color="accent"
+  [canValidate]="!loading && valid"
+  (cancel)="cancel()"
+  (validate)="validate($event)"
+></app-modal-toolbar>
+
+<ion-content class="ion-padding">
+  <!-- error -->
+  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <form class="form-container" [formGroup]="form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          <!-- Program -->
+          <mat-autocomplete-field
+            [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
+            formControlName="program"
+            [config]="autocompleteFields.program"
+            [required]="true"
+            [clearable]="true"
+            [tabindex]="1"
+          >
+            <ion-icon matPrefix name="contract"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-padding-start">
+        <ion-col>
+          <!-- Vessel -->
+          <mat-chips-field
+            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            formControlName="vesselSnapshot"
+            [placeholder]="'TRIP.TABLE.VESSEL' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [clearable]="true"
+            chipColor="accent"
+            [tabindex]="3"
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
+          </mat-chips-field>
+          <!-- Vessel
+          <mat-autocomplete-field
+            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            formControlName="vesselSnapshot"
+            [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="true"
+            [tabindex]="3"
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
+          </mat-autocomplete-field>-->
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <!-- enable history ? -->
+          <mat-form-field>
+            <!-- fake input -->
+            <input matInput hidden />
+
+            <!-- checkbox, when compact -->
+            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">
+              <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
+            </mat-checkbox>
+
+            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-padding-start">
+        <ion-col>
+          <!-- Period duration -->
+          <mat-form-field>
+            <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            <mat-select
+              formControlName="periodDuration"
+              [placeholder]="'TRIP.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
+              [tabindex]="6"
+              required
+            >
+              <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
+                {{ item.label | translate }}
+              </mat-option>
+            </mat-select>
+
+            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <ion-toolbar>
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col>
+        <ng-content></ng-content>
+      </ion-col>
+
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button
+          [fill]="valid ? 'solid' : 'clear'"
+          [disabled]="disabled"
+          (click)="validate($event)"
+          (keyup.enter)="validate($event)"
+          [tabindex]="7"
+          color="tertiary"
+        >
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden />
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

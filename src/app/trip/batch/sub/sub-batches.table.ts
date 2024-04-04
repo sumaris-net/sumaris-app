@@ -10,6 +10,8 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -47,26 +49,23 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { RxState } from '@rx-angular/state';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
-
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<Batch>>('SubBatchesTableOptions');
 
-export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
+export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   parentId?: number;
   operationId?: number;
   landingId?: number;
 
   asFilterFn<E extends Batch>(): FilterFn<E> {
-    return (data) =>
-      (isNil(this.operationId) || data.operationId === this.operationId)
-      && (isNil(this.parentId) || data.parentId === this.parentId)
+    return (data) => (isNil(this.operationId) || data.operationId === this.operationId) && (isNil(this.parentId) || data.parentId === this.parentId);
 
-      // TODO enable this:
-      // && (isNil(this.landingId) || data.landingId === this.landingId))
-      ;
+    // TODO enable this:
+    // && (isNil(this.landingId) || data.landingId === this.landingId))
   }
 }
 
@@ -86,6 +85,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
         reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS,
       }),
     },
+    RxState,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -105,17 +105,14 @@ export class SubBatchesTable
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   protected enableWeightConversion = false;
-
-  weightPmfm: IPmfm;
+  protected weightPmfm: IPmfm;
 
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
-  @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
-  @Input() compactFields = true;
 
   @Input() set qvPmfm(value: IPmfm) {
     if (this._qvPmfm !== value) {
@@ -237,10 +234,12 @@ export class SubBatchesTable
         i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm(form),
+        initialState: {
+          //requiredStrategy: true
+        },
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.tabindex = 1;
     this.inlineEdition = !this.mobile;
 
     // Default value
@@ -632,7 +631,7 @@ export class SubBatchesTable
   protected async openRow(id: number, row: TableElement<SubBatch>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    if (this.onOpenRow.observers.length) {
+    if (this.onOpenRow.observed) {
       this.onOpenRow.emit(row);
       return true;
     }
@@ -885,12 +884,12 @@ export class SubBatchesTable
         markForCheck: () => this.markForCheck(),
       });
       if (subscription) {
-        this._rowValidatorSubscription = subscription;
-        this.registerSubscription(this._rowValidatorSubscription);
-        this._rowValidatorSubscription.add(() => {
+        subscription.add(() => {
           this.unregisterSubscription(subscription);
           this._rowValidatorSubscription = null;
         });
+        this.registerSubscription(subscription);
+        this._rowValidatorSubscription = subscription;
       }
     }
   }

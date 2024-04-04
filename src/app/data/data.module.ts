@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { AppReferentialModule } from '../referential/referential.module';
-import { CoreModule } from '@sumaris-net/ngx-components';
+import { CoreModule, MessageModule } from '@sumaris-net/ngx-components';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { IsMeasurementFormValuesPipe, IsMeasurementModelValuesPipe, MeasurementValueGetPipe } from '@app/data/measurement/measurements.pipe';
 import { AppImageAttachmentModule } from '@app/data/image/image-attachment.module';
@@ -8,6 +8,7 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
 import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
+import { AppDataEditorDebugButtonComponent } from '@app/data/form/data-editor-debug-button/data-editor-debug-button.component';
 
 @NgModule({
   imports: [
@@ -18,7 +19,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppDataEntityPipesModule
+    AppDataEntityPipesModule,
+    MessageModule,
   ],
   declarations: [
     // Pipes
@@ -27,8 +29,8 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
-
+    StrategySummaryCardComponent,
+    AppDataEditorDebugButtonComponent,
   ],
   exports: [
     // Sub modules
@@ -42,11 +44,9 @@ import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
     MeasurementValueGetPipe,
 
     // Components
-    StrategySummaryCardComponent
+    StrategySummaryCardComponent,
+    AppDataEditorDebugButtonComponent,
   ],
-  providers: [
-    DevicePositionService,
-  ],
+  providers: [DevicePositionService],
 })
-export class AppDataModule {
-}
+export class AppDataModule {}

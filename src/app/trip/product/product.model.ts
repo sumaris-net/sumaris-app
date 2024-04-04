@@ -27,9 +27,8 @@ export interface IWithProductsEntity<T, ID = number> extends IEntity<T, ID> {
 }
 
 export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
-
   static fromParent(parent: IWithProductsEntity<any, any>): ProductFilter {
-    return ProductFilter.fromObject({parent});
+    return ProductFilter.fromObject({ parent });
   }
 
   static fromObject(source: Partial<ProductFilter>): ProductFilter {
@@ -47,29 +46,28 @@ export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
   }
 
   buildFilter(): FilterFn<Product>[] {
-    return [
-      (p) => (!this.parent) || (p.parent && this.parent && this.parent.equals(p.parent))
-    ];
+    return [(p) => !this.parent || (p.parent && this.parent && this.parent.equals(p.parent))];
   }
-
 }
 
-@EntityClass({typename: 'ProductVO'})
+@EntityClass({ typename: 'ProductVO' })
 export class Product extends DataEntity<Product> implements IEntityWithMeasurement<Product> {
-
   static fromObject: (source: any, opts?: any) => Product;
 
   public static equals(p1: Product | any, p2: Product | any): boolean {
-    return p1 && p2 && ((isNotNil(p1.id) && p1.id === p2.id)
-      // Or by functional attributes
-      || (p1.rankOrder === p2.rankOrder
-        // same operation
-        && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
-        // same taxon group
-        && ReferentialUtils.equals(p1.taxonGroup, p2.taxonGroup)
-        // same batch
-        && ((isNil(p1.batchId) && isNil(p1.batchId)) || p1.batchId === p2.batchId)
-      ));
+    return (
+      p1 &&
+      p2 &&
+      ((isNotNil(p1.id) && p1.id === p2.id) ||
+        // Or by functional attributes
+        (p1.rankOrder === p2.rankOrder &&
+          // same operation
+          ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId) &&
+          // same taxon group
+          ReferentialUtils.equals(p1.taxonGroup, p2.taxonGroup) &&
+          // same batch
+          ((isNil(p1.batchId) && isNil(p1.batchId)) || p1.batchId === p2.batchId)))
+    );
   }
 
   label: string;
@@ -82,7 +80,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   weightCalculated: boolean;
   saleType: ReferentialRef;
 
-  measurementValues: MeasurementModelValues|MeasurementFormValues;
+  measurementValues: MeasurementModelValues | MeasurementFormValues;
 
   operationId: number;
   saleId: number;
@@ -116,20 +114,21 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.expectedSaleId = null;
     this.landingId = null;
     this.batchId = null;
-
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
-    target.saleType = this.saleType && ReferentialRef.fromObject(this.saleType).asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.taxonGroup =
+      (this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true } as ReferentialAsObjectOptions)) ||
+      undefined;
+    target.saleType = (this.saleType && ReferentialRef.fromObject(this.saleType).asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
 
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     if (!opts || opts.minify !== true) {
-      target.saleProducts = this.saleProducts && this.saleProducts.map(s => s.asObject(opts)) || [];
-      target.samples = this.samples && this.samples.map(s => s.asObject({...opts, withChildren: false})) || [];
+      target.saleProducts = (this.saleProducts && this.saleProducts.map((s) => s.asObject(opts))) || [];
+      target.samples = (this.samples && this.samples.map((s) => s.asObject({ ...opts, withChildren: false }))) || [];
     } else {
       delete target.saleProducts;
       delete target.samples;
@@ -146,10 +145,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.rankOrder = +source.rankOrder;
     this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
     this.subgroupCount = isNotNilOrBlank(source.subgroupCount) ? parseFloat(source.subgroupCount) : null;
-    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = (source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup)) || undefined;
     this.weight = source.weight || undefined;
     this.weightCalculated = source.weightCalculated || false;
-    this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType) || undefined;
+    this.saleType = (source.saleType && ReferentialRef.fromObject(source.saleType)) || undefined;
 
     this.parent = source.parent;
     this.operationId = source.operationId;
@@ -159,10 +158,10 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.batchId = source.batchId;
 
     // Get all measurements values (by copy)
-    this.measurementValues = source.measurementValues && {...source.measurementValues};
+    this.measurementValues = source.measurementValues && { ...source.measurementValues };
 
-    this.saleProducts = source.saleProducts && source.saleProducts.map(saleProduct => Product.fromObject(saleProduct)) || [];
-    this.samples = source.samples && source.samples.map(json => Sample.fromObject(json)) || [];
+    this.saleProducts = (source.saleProducts && source.saleProducts.map((saleProduct) => Product.fromObject(saleProduct))) || [];
+    this.samples = (source.samples && source.samples.map((json) => Sample.fromObject(json))) || [];
 
     return this;
   }
@@ -173,21 +172,27 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
    * @param other
    */
   equals(other: Product): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (
-        this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
-        && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)
-        && equalsOrNil(this.subgroupCount, other.subgroupCount) && ReferentialUtils.equals(this.saleType, other.saleType)
-      );
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      (this.taxonGroup.equals(other.taxonGroup) &&
+        this.rankOrder === other.rankOrder &&
+        equalsOrNil(this.individualCount, other.individualCount) &&
+        equalsOrNil(this.weight, other.weight) &&
+        equalsOrNil(this.subgroupCount, other.subgroupCount) &&
+        ReferentialUtils.equals(this.saleType, other.saleType))
+    );
   }
 }
 
 export class ProductUtils {
-
   static isSampleOfProduct(product: Product, sample: Sample): boolean {
-    return product && sample
-      && ((product.operationId === sample.operationId) || (product.parent && product.parent.id === sample.operationId))
-      && product.taxonGroup && sample.taxonGroup
-      && ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup);
+    return (
+      product &&
+      sample &&
+      (product.operationId === sample.operationId || (product.parent && product.parent.id === sample.operationId)) &&
+      product.taxonGroup &&
+      sample.taxonGroup &&
+      ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup)
+    );
   }
 }

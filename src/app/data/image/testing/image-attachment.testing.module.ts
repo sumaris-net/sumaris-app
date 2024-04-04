@@ -5,21 +5,9 @@ import { ImageAttachmentTestPage } from '@app/data/image/testing/image-attachmen
 import { CoreModule } from '@sumaris-net/ngx-components';
 import { AppImageAttachmentModule } from '@app/data/image/image-attachment.module';
 
-
 @NgModule({
-  imports: [
-    CommonModule,
-    CoreModule,
-    TranslateModule.forChild(),
-    AppImageAttachmentModule
-  ],
-  declarations: [
-    ImageAttachmentTestPage
-  ],
-  exports: [
-    ImageAttachmentTestPage,
-    TranslateModule
-  ]
+  imports: [CommonModule, CoreModule, TranslateModule.forChild(), AppImageAttachmentModule],
+  declarations: [ImageAttachmentTestPage],
+  exports: [ImageAttachmentTestPage, TranslateModule],
 })
-export class AppImageAttachmentTestingModule {
-}
+export class AppImageAttachmentTestingModule {}

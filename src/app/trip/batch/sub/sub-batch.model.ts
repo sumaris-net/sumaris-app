@@ -1,4 +1,4 @@
-import { Batch, BatchAsObjectOptions, BatchFromObjectOptions} from '../common/batch.model';
+import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '../common/batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { EntityClass, ReferentialUtils } from '@sumaris-net/ngx-components';
@@ -7,16 +7,15 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
-@EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: 'clone'})
+@EntityClass({ typename: 'SubBatchVO', fromObjectReuseStrategy: 'clone' })
 export class SubBatch extends Batch<SubBatch> {
-
   static fromObject: (source: any, opts?: BatchFromObjectOptions) => SubBatch;
 
   // The parent group (can be != parent)
   parentGroup: BatchGroup;
 
   static fromBatch(source: Batch, parentGroup: BatchGroup): SubBatch {
-    if (!source || !parentGroup) throw new Error('Missing argument \'source\' or \'parentGroup\'');
+    if (!source || !parentGroup) throw new Error("Missing argument 'source' or 'parentGroup'");
     const target = new SubBatch();
     Object.assign(target, source);
     // Find the group
@@ -44,7 +43,6 @@ export class SubBatch extends Batch<SubBatch> {
 }
 
 export class SubBatchUtils {
-
   static fromBatchGroups(
     groups: BatchGroup[],
     opts?: {
@@ -55,32 +53,43 @@ export class SubBatchUtils {
 
     // If using QV pmfm
     if (opts.groupQvPmfm) {
-      return groups.reduce((res, group) => res.concat((group.children || []).reduce((res, qvBatch) => {
-          const children = BatchUtils.getChildrenByLevel(qvBatch, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL);
-          const qvModelValue = PmfmValueUtils.toModelValue(qvBatch.measurementValues[opts.groupQvPmfm.id], opts.groupQvPmfm);
-          return res.concat(children
-            .map(child => {
-              const target = SubBatch.fromBatch(child, group);
+      return groups.reduce(
+        (res, group) =>
+          res.concat(
+            (group.children || []).reduce((res, qvBatch) => {
+              const children = BatchUtils.getChildrenByLevel(qvBatch, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL);
+              const qvModelValue = PmfmValueUtils.toModelValue(qvBatch.measurementValues[opts.groupQvPmfm.id], opts.groupQvPmfm);
+              return res.concat(
+                children.map((child) => {
+                  const target = SubBatch.fromBatch(child, group);
 
-              target.measurementValues = { ...target.measurementValues };
-              // Copy the QV value, from the parent
-              // /!\ Should used expected value type (form or model)
-              if (MeasurementValuesUtils.isMeasurementFormValues(target.measurementValues)) {
-                target.measurementValues[opts.groupQvPmfm.id] = PmfmValueUtils.fromModelValue(qvModelValue, opts.groupQvPmfm);
-              }
-              else {
-                target.measurementValues[opts.groupQvPmfm.id] = qvModelValue;
-              }
+                  target.measurementValues = { ...target.measurementValues };
+                  // Copy the QV value, from the parent
+                  // /!\ Should used expected value type (form or model)
+                  if (MeasurementValuesUtils.isMeasurementFormValues(target.measurementValues)) {
+                    target.measurementValues[opts.groupQvPmfm.id] = PmfmValueUtils.fromModelValue(qvModelValue, opts.groupQvPmfm);
+                  } else {
+                    target.measurementValues[opts.groupQvPmfm.id] = qvModelValue;
+                  }
 
-              return target;
-            }));
-        }, [])), []);
+                  return target;
+                })
+              );
+            }, [])
+          ),
+        []
+      );
     }
 
     // No QV pmfm
     else {
-      return groups.reduce((res, group) => res.concat(BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
-          .map(child => SubBatch.fromBatch(child, group))), []);
+      return groups.reduce(
+        (res, group) =>
+          res.concat(
+            BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL).map((child) => SubBatch.fromBatch(child, group))
+          ),
+        []
+      );
     }
   }
 
@@ -93,8 +102,8 @@ export class SubBatchUtils {
   static linkSubBatchesToGroup(groups: BatchGroup[], subBatches: SubBatch[]) {
     if (!groups || !subBatches) return;
 
-    subBatches.forEach(s => {
-      s.parentGroup = s.parentGroup && groups.find(p => Batch.equals(p, s.parentGroup)) || null;
+    subBatches.forEach((s) => {
+      s.parentGroup = (s.parentGroup && groups.find((p) => Batch.equals(p, s.parentGroup))) || null;
       if (!s.parentGroup) console.warn('linkSubBatchesToGroup() - Could not found parent group, for sub-batch:', s);
     });
   }
@@ -106,21 +115,25 @@ export class SubBatchUtils {
    * @param subBatches
    * @param opts
    */
-  static linkSubBatchesToParent(batchGroups: BatchGroup[], subBatches: SubBatch[], opts?: {
-    qvPmfm?: IPmfm;
-  }) {
+  static linkSubBatchesToParent(
+    batchGroups: BatchGroup[],
+    subBatches: SubBatch[],
+    opts?: {
+      qvPmfm?: IPmfm;
+    }
+  ) {
     opts = opts || {};
 
     if (opts.qvPmfm) {
       const qvPmfmId = opts.qvPmfm.id;
-      (batchGroups || []).forEach(batchGroup => {
+      (batchGroups || []).forEach((batchGroup) => {
         // Get group's sub batches
-        const groupSubBatches = (subBatches || []).filter(sb => sb.parentGroup && Batch.equals(batchGroup, sb.parentGroup));
+        const groupSubBatches = (subBatches || []).filter((sb) => sb.parentGroup && Batch.equals(batchGroup, sb.parentGroup));
 
         // Get group's children (that should hold a QV pmfm's value)
-        (batchGroup.children || []).forEach(parent => {
+        (batchGroup.children || []).forEach((parent) => {
           // Find sub batches for this QV pmfm's value
-          const children = groupSubBatches.filter(sb => PmfmValueUtils.equals(sb.measurementValues[qvPmfmId], parent.measurementValues[qvPmfmId]));
+          const children = groupSubBatches.filter((sb) => PmfmValueUtils.equals(sb.measurementValues[qvPmfmId], parent.measurementValues[qvPmfmId]));
 
           // If has sampling batch, use it as parent
           if (parent.children && parent.children.length === 1 && BatchUtils.isSamplingBatch(parent.children[0])) {
@@ -129,18 +142,16 @@ export class SubBatchUtils {
 
           // Link to parent
           parent.children = children;
-          children.forEach(c => {
+          children.forEach((c) => {
             c.parentId = parent.id;
             c.parent = undefined; // Not need for model serialization
           });
         });
       });
-    }
-
-    else {
-      (batchGroups || []).forEach(parent => {
+    } else {
+      (batchGroups || []).forEach((parent) => {
         // Find subbatches, from parentGroup
-        const children = subBatches.filter(sb => sb.parentGroup && Batch.equals(parent, sb.parentGroup));
+        const children = subBatches.filter((sb) => sb.parentGroup && Batch.equals(parent, sb.parentGroup));
 
         // If has sampling batch, use it as parent
         if (parent.children && parent.children.length === 1 && BatchUtils.isSamplingBatch(parent.children[0])) {
@@ -148,7 +159,7 @@ export class SubBatchUtils {
         }
 
         parent.children = children;
-        children.forEach(c => {
+        children.forEach((c) => {
           c.parentId = parent.id;
           c.parent = undefined;
         });
@@ -157,5 +168,4 @@ export class SubBatchUtils {
 
     return batchGroups;
   }
-
 }

@@ -14,7 +14,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden mat-tab-group-root"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -82,12 +82,7 @@
                   <ion-row>
                     <ion-col>
                       <!-- Gear -->
-                      <app-form-field
-                        [definition]="fieldDefinitions.gear"
-                        formControlName="gear"
-                        required="true"
-                        tabindex="10"
-                      ></app-form-field>
+                      <app-form-field [definition]="fieldDefinitions.gear" formControlName="gear" required="true" tabindex="10"></app-form-field>
                     </ion-col>
                     <ion-col>
                       <app-form-field

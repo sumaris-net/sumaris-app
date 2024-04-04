@@ -1,11 +1,11 @@
 
-.mat-table {
+.mat-mdc-table {
   --mat-column-saleType: 210px;
   --mat-column-small-count: 4;
-  --mat-column-actions-width: 82px;
+  --mat-column-actions-width: 98px;
   --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
 
-  --mat-cell-vertical-padding: 4px;
+  --mat-cell-horizontal-padding: 4px;
   --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
   --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
@@ -13,49 +13,50 @@
 
 
   &.mobile {
-    --mat-column-actions-width: 41px;
+    --mat-column-actions-width: 44px;
+    --mat-cell-horizontal-padding: 0px;
   }
 
-  .mat-header-row {
+  .mat-mdc-header-row {
     ion-label {
       color: unset;
     }
-    .mat-header-cell.even {
+    .mat-mdc-header-cell.even {
       background-color: var(--mat-header-background-color-even) !important;
     }
   }
 
-  .mat-footer-row {
+  .mat-mdc-footer-row {
     background-color: var(--mat-footer-background-color);
 
-    .mat-footer-cell.even {
+    .mat-mdc-footer-cell.even {
       background-color: var(--mat-footer-background-color-even) !important;
     }
   }
 
-  .mat-row {
-    &.mat-row-selected {
+  .mat-mdc-row {
+    &.mat-mdc-row-selected {
       background-color: var(--ion-color-secondary100) !important;
     }
     &.even {
       background-color: var(--ion-color-light-tint, whitesmoke);
     }
 
-    .mat-cell.even {
+    .mat-mdc-cell.even {
       background-color: rgba(0,0,0, 0.1) !important;
     }
   }
 
-  .mat-header-row,
-  .mat-footer-row,
-  .mat-row {
+  .mat-mdc-header-row,
+  .mat-mdc-footer-row,
+  .mat-mdc-row {
     height: var(--mat-row-max-height, 48px);
 
-    .mat-header-cell,
-    .mat-footer-cell,
-    .mat-cell {
-      padding-inline-start: var(--mat-cell-vertical-padding, 0) !important;
-      padding-inline-end: var(--mat-cell-vertical-padding, 0) !important;
+    .mat-mdc-header-cell,
+    .mat-mdc-footer-cell,
+    .mat-mdc-cell {
+      padding-inline-start: var(--mat-cell-horizontal-padding, 0) !important;
+      padding-inline-end: var(--mat-cell-horizontal-padding, 0) !important;
     }
 
     .mat-column-saleType {

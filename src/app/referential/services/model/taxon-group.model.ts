@@ -1,21 +1,18 @@
 import { Entity, EntityClass, IReferentialRef, ReferentialAsObjectOptions } from '@sumaris-net/ngx-components';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
-
 export const TaxonGroupTypeIds = {
   FAO: 2,
   METIER_DCF_5: 3,
-  METIER_NATIONAL: 4
+  METIER_NATIONAL: 4,
 };
 
 export const TaxonGroupLabels = {
-  FISH: 'MZZ'
+  FISH: 'MZZ',
 };
 
-@EntityClass({typename: 'TaxonGroupVO'})
-export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions>
-  implements IReferentialRef<TaxonGroupRef> {
-
+@EntityClass({ typename: 'TaxonGroupVO' })
+export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions> implements IReferentialRef<TaxonGroupRef> {
   static ENTITY_NAME = 'TaxonGroup';
   static fromObject: (source: any, opts?: any) => TaxonGroupRef;
 
@@ -36,7 +33,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     if (options && options.minify) {
       return {
         id: this.id,
-        __typename: options.keepTypename && this.__typename || undefined
+        __typename: (options.keepTypename && this.__typename) || undefined,
       };
     }
     const target: any = super.asObject(options);
@@ -52,8 +49,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     this.name = source.name;
     this.statusId = source.statusId;
     this.entityName = source.entityName || TaxonGroupRef.ENTITY_NAME;
-    this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject) || [];
+    this.taxonNames = (source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject)) || [];
     this.priority = source.priority;
   }
 }
-

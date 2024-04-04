@@ -10,7 +10,7 @@
       "options": {
         "parser": "angular",
         "htmlWhitespaceSensitivity": "ignore",
-        "printWidth": 120
+        "printWidth": 150
       }
     }
   ]

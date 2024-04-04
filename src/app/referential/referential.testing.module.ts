@@ -8,21 +8,21 @@ import { PmfmStrategiesTableTestPage } from './strategy/sampling/testing/pmfm-st
 import { AppProgramModule } from '@app/referential/program/program.module';
 
 export const REFERENTIAL_TESTING_PAGES: TestingPage[] = [
-  {label: 'Referential module', divider: true},
-  {label: 'Pmfm Strategies Table', page: '/testing/referential/pmfmStrategiesTable'}
+  { label: 'Referential module', divider: true },
+  { label: 'Pmfm Strategies Table', page: '/testing/referential/pmfmStrategiesTable' },
 ];
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'pmfmStrategiesTable'
+    redirectTo: 'pmfmStrategiesTable',
   },
   {
     path: 'pmfmStrategiesTable',
     pathMatch: 'full',
-    component: PmfmStrategiesTableTestPage
-  }
+    component: PmfmStrategiesTableTestPage,
+  },
 ];
 
 @NgModule({
@@ -33,15 +33,9 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     AppReferentialModule,
-    AppProgramModule
+    AppProgramModule,
   ],
-  declarations: [
-    PmfmStrategiesTableTestPage
-  ],
-  exports: [
-    PmfmStrategiesTableTestPage
-  ]
+  declarations: [PmfmStrategiesTableTestPage],
+  exports: [PmfmStrategiesTableTestPage],
 })
-export class ReferentialTestingModule {
-
-}
+export class ReferentialTestingModule {}

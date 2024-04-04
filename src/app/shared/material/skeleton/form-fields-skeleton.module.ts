@@ -5,18 +5,8 @@ import { IonicModule } from '@ionic/angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    IonicModule,
-    MatFormFieldModule
-  ],
-  declarations: [
-    MatFormFieldsSkeleton
-  ],
-  exports: [
-    MatFormFieldsSkeleton
-  ]
+  imports: [CommonModule, IonicModule, MatFormFieldModule],
+  declarations: [MatFormFieldsSkeleton],
+  exports: [MatFormFieldsSkeleton],
 })
-export class MatFormFieldsSkeletonModule {
-
-}
+export class MatFormFieldsSkeletonModule {}

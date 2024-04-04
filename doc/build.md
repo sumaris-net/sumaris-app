@@ -8,14 +8,14 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node v16 (e.g. v16.17.0)
+2. Install Node v18 (e.g. v18.19.0)
 ```bash
-nvm install 16.17.0
+nvm install 18.19.0
 ```
 
 3. Install global dependency: 
 ```bash
-npm install -g @ionic/cli @angular/cli 
+npm install -g @ionic/cli@7 @angular/cli@17
 ```
 
 4. Get sources (clone the repo) : `git clone ...`
@@ -33,11 +33,6 @@ sudo apt-get install chromium-browser docker.io
 ```bash
 cd sumaris-app
 npm install --force
-```
-OR, alternatively: 
-```bash
-cd sumaris-app/scripts
-./env-global.sh
 ```
 
 2. Check environment configuration:
@@ -66,9 +61,9 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
    - Edit the file `src/environment/environment-prod.ts`
 
-2. Create the release:
+2. Build:
     ```bash
-    npm run build --prod --release
+    npm run build:prod
     ```
 
 ## Android build 

@@ -30,24 +30,14 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form
-                #referentialForm
-                [form]="form"
-                [showError]="false"
-                [debug]="debug"
-                (onSubmit)="save($event)"
-              >
+              <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="save($event)">
                 <!-- Other fields -->
                 <form [formGroup]="form" class="form-container">
                   <ion-grid class="ion-no-padding">
                     <!-- Parameter + Unit -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field
-                          [definition]="fieldDefinitions.parameter"
-                          formControlName="parameter"
-                          required
-                        ></app-form-field>
+                        <app-form-field [definition]="fieldDefinitions.parameter" formControlName="parameter" required></app-form-field>
                       </ion-col>
                       <ion-col size="auto" class="ion-align-self-center">
                         <button
@@ -71,11 +61,7 @@
                         </button>
                       </ion-col>
                       <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative; let notQualitative">
-                        <app-form-field
-                          [definition]="fieldDefinitions.unit"
-                          formControlName="unit"
-                          [required]="notQualitative"
-                        ></app-form-field>
+                        <app-form-field [definition]="fieldDefinitions.unit" formControlName="unit" [required]="notQualitative"></app-form-field>
                       </ion-col>
                     </ion-row>
 
@@ -83,25 +69,13 @@
                     <div *ngIf="($parameter | async)?.isNumeric" @fadeInOutAnimation>
                       <ion-row>
                         <ion-col>
-                          <app-form-field
-                            [definition]="fieldDefinitions.minValue"
-                            formControlName="minValue"
-                            tabindex="21"
-                          ></app-form-field>
+                          <app-form-field [definition]="fieldDefinitions.minValue" formControlName="minValue" tabindex="21"></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field
-                            [definition]="fieldDefinitions.maxValue"
-                            formControlName="maxValue"
-                            tabindex="22"
-                          ></app-form-field>
+                          <app-form-field [definition]="fieldDefinitions.maxValue" formControlName="maxValue" tabindex="22"></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field
-                            [definition]="fieldDefinitions.defaultValue"
-                            formControlName="defaultValue"
-                            tabindex="23"
-                          ></app-form-field>
+                          <app-form-field [definition]="fieldDefinitions.defaultValue" formControlName="defaultValue" tabindex="23"></app-form-field>
                         </ion-col>
                       </ion-row>
                       <ion-row>
@@ -120,11 +94,7 @@
                           ></app-form-field>
                         </ion-col>
                         <ion-col>
-                          <app-form-field
-                            [definition]="fieldDefinitions.precision"
-                            formControlName="precision"
-                            tabindex="26"
-                          ></app-form-field>
+                          <app-form-field [definition]="fieldDefinitions.precision" formControlName="precision" tabindex="26"></app-form-field>
                         </ion-col>
                       </ion-row>
                     </div>
@@ -132,29 +102,17 @@
                     <!-- Matrix, Fraction -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field
-                          [definition]="fieldDefinitions.matrix"
-                          formControlName="matrix"
-                          tabindex="27"
-                        ></app-form-field>
+                        <app-form-field [definition]="fieldDefinitions.matrix" formControlName="matrix" tabindex="27"></app-form-field>
                       </ion-col>
                       <ion-col>
-                        <app-form-field
-                          [definition]="fieldDefinitions.fraction"
-                          formControlName="fraction"
-                          tabindex="28"
-                        ></app-form-field>
+                        <app-form-field [definition]="fieldDefinitions.fraction" formControlName="fraction" tabindex="28"></app-form-field>
                       </ion-col>
                     </ion-row>
 
                     <!-- Matrix, Fraction -->
                     <ion-row>
                       <ion-col>
-                        <app-form-field
-                          [definition]="fieldDefinitions.method"
-                          formControlName="method"
-                          tabindex="29"
-                        ></app-form-field>
+                        <app-form-field [definition]="fieldDefinitions.method" formControlName="method" tabindex="29"></app-form-field>
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -172,10 +130,7 @@
     </mat-tab>
 
     <!-- TAB: Qualitative value -->
-    <mat-tab
-      label="{{ 'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE' | translate }}"
-      [disabled]="($parameter | async)?.isQualitative !== true"
-    >
+    <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_QUALITATIVE_VALUE' | translate }}" [disabled]="($parameter | async)?.isQualitative !== true">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="list"></ion-icon>
@@ -203,11 +158,7 @@
       >
         <ion-item lines="none" matToolbarEnd>
           <ion-label>{{ 'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES' | translate }}</ion-label>
-          <ion-toggle
-            #btnUseDefaultQualitativeValues
-            (click)="toggleUseDefaultQualitativeValues($event)"
-            color="primary"
-          ></ion-toggle>
+          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
         </ion-item>
       </app-simple-referential-table>
     </mat-tab>

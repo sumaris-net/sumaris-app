@@ -1,8 +1,7 @@
 import { BaseReferential, EntityAsObjectOptions, EntityClass, toBoolean } from '@sumaris-net/ngx-components';
 
-@EntityClass({typename: 'MethodVO'})
+@EntityClass({ typename: 'MethodVO' })
 export class Method extends BaseReferential<Method> {
-
   static ENTITY_NAME = 'Method';
   static fromObject: (source: any, opts?: any) => Method;
 

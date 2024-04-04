@@ -11,9 +11,9 @@
   }
 }
 
-.mat-table {
-  .mat-header-row,
-  .mat-row {
+.mat-mdc-table {
+  .mat-mdc-header-row,
+  .mat-mdc-row {
     .mat-column-select {
       width: 50px;
     }
@@ -41,6 +41,13 @@
       min-width: 120px;
       max-width: 250px;
     }
-  }
 
+    .visible-hover {
+      visibility: hidden;
+    }
+
+    &:hover .visible-hover {
+      visibility: unset;
+    }
+  }
 }

@@ -9,10 +9,9 @@ import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
   selector: 'app-vessel-registration-history-table',
   templateUrl: './vessel-registration-history.component.html',
   styleUrls: ['./vessel-registration-history.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationFilter> implements OnInit {
-
   referentialToString = referentialToString;
   isAdmin: boolean;
 
@@ -23,20 +22,14 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     dataService: VesselRegistrationService,
     protected cd: ChangeDetectorRef
   ) {
-
-    super(injector,
+    super(
+      injector,
       // columns
-      ['id',
-        'startDate',
-        'endDate',
-        'registrationCode',
-        'intRegistrationCode',
-        'registrationLocation']
-      ,
+      ['id', 'startDate', 'endDate', 'registrationCode', 'intRegistrationCode', 'registrationLocation'],
       new EntitiesTableDataSource<VesselRegistrationPeriod>(VesselRegistrationPeriod, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        saveOnlyDirtyRows: true
+        saveOnlyDirtyRows: true,
       }),
       null
     );
@@ -46,7 +39,6 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-
   }
 
   ngOnInit() {

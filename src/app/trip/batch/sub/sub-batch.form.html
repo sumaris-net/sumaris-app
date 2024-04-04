@@ -36,13 +36,7 @@
         ></mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">
-        <button
-          mat-icon-button
-          tabindex="-1"
-          [title]="'COMMON.BTN_ADD' | translate"
-          (click)="doNewParentClick($event)"
-          type="button"
-        >
+        <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD' | translate" (click)="doNewParentClick($event)" type="button">
           <mat-icon>add</mat-icon>
         </button>
       </ion-col>
@@ -54,7 +48,7 @@
     #inputField
     *ngIf="!loading && qvPmfm as pmfm"
     [pmfm]="pmfm"
-    [control]="form | formGetControl : ['measurementValues', pmfm.id]"
+    [control]="form | formGetControl: ['measurementValues', pmfm.id]"
     [style]="mobile && 'button'"
     [required]="true"
     [floatLabel]="floatLabel"
@@ -106,7 +100,7 @@
     <ng-template #taxonNameMobile>
       <mat-form-field
         floatLabel="always"
-        *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"
+        *ngIf="taxonNames$ | async as taxonNames; else loadingTaxonNames"
         [class.computed]="taxonNames.length === 1"
       >
         <input
@@ -121,8 +115,8 @@
 
         <div
           class="mat-form-field-buttons"
-          *ngIf="taxonNames | isArrayLength : { greaterThan: 1 }; else defaultTaxonName"
-          [style.--buttons-col-count]="(taxonNames | isArrayLength : { greaterThan: 2 }) ? 3 : taxonNames.length"
+          *ngIf="taxonNames | isArrayLength: { greaterThan: 1 }; else defaultTaxonName"
+          [style.--buttons-col-count]="(taxonNames | isArrayLength: { greaterThan: 2 }) ? 3 : taxonNames.length"
         >
           <ion-button
             class="mat-form-field-button"
@@ -141,12 +135,7 @@
         </ng-template>
 
         <!-- Options menu -->
-        <button
-          mat-icon-button
-          matSuffix
-          [title]="'COMMON.BTN_OPTIONS' | translate"
-          [matMenuTriggerFor]="taxonNameMenu"
-        >
+        <button mat-icon-button matSuffix [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="taxonNameMenu">
           <mat-icon>more_vert</mat-icon>
         </button>
 
@@ -175,11 +164,11 @@
     <app-pmfm-field
       *rxFor="let pmfm of pmfms; strategy: 'userBlocking'; index as i; last as last"
       #inputField
-      [control]="form | formGetControl : ['measurementValues', pmfm.id]"
+      [control]="form | formGetControl: ['measurementValues', pmfm.id]"
       [pmfm]="pmfm"
-      [placeholder]="pmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
       [floatLabel]="floatLabel"
-      [style]="pmfm | pmfmFieldStyle : maxItemCountForButtons"
+      [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
       [maxVisibleButtons]="maxVisibleButtons"
       [tabindex]="tabindex + 20 + i * 2"
       (keydown.tab)="focusNextInputOrSubmit($event, last)"
@@ -208,10 +197,7 @@
     />
     <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="form.controls.individualCount.hasError('min')">
-      {{
-        (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')
-          | translate : form.controls.individualCount.errors['min']
-      }}
+      {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: form.controls.individualCount.errors['min'] }}
     </mat-error>
     <mat-error *ngIf="form.controls.individualCount.hasError('integer')">
       {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
@@ -229,8 +215,8 @@
       matInput
       type="number"
       readonly
-      [placeholder]="weightPmfm | pmfmName : { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
-      [formControl]="form | formGetControl : 'weight.value'"
+      [placeholder]="weightPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+      [formControl]="form | formGetControl: 'weight.value'"
     />
 
     <!-- Compute indicator -->

@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   AccountService,
   AppForm,
@@ -34,11 +36,12 @@ export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
   selector: 'app-extraction-criteria-form',
   templateUrl: './extraction-criteria.form.html',
   styleUrls: ['./extraction-criteria.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType<any>>
-  extends AppForm<ExtractionFilterCriterion[]> implements OnInit, OnDestroy {
-
+  extends AppForm<ExtractionFilterCriterion[]>
+  implements OnInit, OnDestroy
+{
   private _sheetName: string;
   private _type: E;
 
@@ -70,9 +73,8 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   set columns(value: ExtractionColumn[]) {
     if (isNotEmptyArray(value)) {
       this.$columns.next(value);
-    }
-    else {
-      const columns = DEFAULT_EXTRACTION_COLUMNS.map(col => {
+    } else {
+      const columns = DEFAULT_EXTRACTION_COLUMNS.map((col) => {
         col.name = this.translate.instant(col.name);
         return ExtractionColumn.fromObject(col);
       });
@@ -81,19 +83,22 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   get sheetCriteriaForm(): AppFormArray<ExtractionFilterCriterion, UntypedFormGroup> {
-    return this._sheetName && (this.form.get(this._sheetName) as AppFormArray<ExtractionFilterCriterion, UntypedFormGroup>) || undefined;
+    return (this._sheetName && (this.form.get(this._sheetName) as AppFormArray<ExtractionFilterCriterion, UntypedFormGroup>)) || undefined;
   }
 
   get criteriaCount(): number {
     return Object.values(this.form.controls)
-      .map(sheetForm => (sheetForm as UntypedFormArray))
-      .map(sheetForm => sheetForm.controls
-        .map(criterionForm => (criterionForm as UntypedFormGroup).value)
-        .filter(criterion => ExtractionFilterCriterion.isNotEmpty(criterion) && criterion.hidden !== true)
-        .length
+      .map((sheetForm) => sheetForm as UntypedFormArray)
+      .map(
+        (sheetForm) =>
+          sheetForm.controls
+            .map((criterionForm) => (criterionForm as UntypedFormGroup).value)
+            .filter((criterion) => ExtractionFilterCriterion.isNotEmpty(criterion) && criterion.hidden !== true).length
       )
       .reduce((count, length) => count + length, 0);
   }
+
+  @ViewChild('tabPanel') tabPanel: HTMLFormElement;
 
   constructor(
     injector: Injector,
@@ -107,9 +112,11 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     protected validatorService: ExtractionCriteriaValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // Empty form, that will be filled by setType() and setSheetName()
-      formBuilder.group({}));
+      formBuilder.group({})
+    );
   }
 
   ngOnInit() {
@@ -119,9 +126,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       this.$columns
         .pipe(
           filter(isNotNil),
-          map(columns => columns.map(c => this.toFieldDefinition(c)))
+          map((columns) => columns.map((c) => this.toFieldDefinition(c)))
         )
-        .subscribe(definitions => this.$columnValueDefinitions.next(definitions))
+        .subscribe((definitions) => this.$columnValueDefinitions.next(definitions))
     );
   }
 
@@ -133,7 +140,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   setType(type: E) {
-
     if (!type || type === this.type) return; // skip
 
     this._type = type;
@@ -144,7 +150,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this.markForCheck();
   }
 
-  setSheetName(sheetName: string, opts?: {emitEvent?: boolean; onlySelf?: boolean}) {
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // Skip if same, or loading
     if (isNil(sheetName) || this._sheetName === sheetName) return;
 
@@ -163,7 +169,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this.markForCheck();
   }
 
-  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean }): boolean {
+  addFilterCriterion(criterion?: ExtractionFilterCriterion | any, opts?: { appendValue?: boolean; emitEvent?: boolean }): boolean {
     opts = opts || {};
     opts.appendValue = toBoolean(opts.appendValue, false);
     console.debug('[extraction-form] Adding filter criterion');
@@ -171,16 +177,15 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     let hasChanged = false;
     let index = -1;
 
-    const sheetName = criterion && criterion.sheetName || this.sheetName;
+    const sheetName = (criterion && criterion.sheetName) || this.sheetName;
     let arrayControl = this.form.get(sheetName) as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.validatorService.getCriterionFormArray([], sheetName);
       this.form.addControl(sheetName, arrayControl);
     } else {
-
       // Search by name on existing criteria
       if (criterion && isNotNil(criterion.name)) {
-        index = (arrayControl.value || []).findIndex(c => (c.name === criterion.name));
+        index = (arrayControl.value || []).findIndex((c) => c.name === criterion.name);
       }
 
       // If last criterion has no value: use it
@@ -196,8 +201,11 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       if (criterion && criterion.name) {
         const criterionForm = arrayControl.at(index) as UntypedFormGroup;
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
-        opts.appendValue = opts.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
-          && (existingCriterion.operator === '=' || existingCriterion.operator === '!=');
+        opts.appendValue =
+          opts.appendValue &&
+          isNotNil(criterion.value) &&
+          isNotNil(existingCriterion.value) &&
+          (existingCriterion.operator === '=' || existingCriterion.operator === '!=');
 
         // Append value to existing value
         if (opts.appendValue) {
@@ -223,7 +231,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
     // Mark filter form as dirty (if need)
     if (hasChanged && criterion && criterion.value) {
-      this.form.markAsDirty({onlySelf: true});
+      this.form.markAsDirty({ onlySelf: true });
     }
 
     if (hasChanged && criterion?.name && this._sheetName === criterion?.sheetName && index >= 0) {
@@ -240,9 +248,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   hasFilterCriteria(sheetName?: string): boolean {
     sheetName = sheetName || this.sheetName;
     const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as UntypedFormArray);
-    return sheetCriteriaForm && sheetCriteriaForm.controls
-      .map(c => c.value)
-      .some(c => ExtractionFilterCriterion.isNotEmpty(c) && c.hidden !== true);
+    return (
+      sheetCriteriaForm && sheetCriteriaForm.controls.map((c) => c.value).some((c) => ExtractionFilterCriterion.isNotEmpty(c) && c.hidden !== true)
+    );
   }
 
   removeFilterCriterion($event: MouseEvent, index: number) {
@@ -250,9 +258,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (!arrayControl) return; // skip
 
     // Count visible criteria
-    const visibleCriteriaCount = arrayControl.value
-      .filter(criterion => criterion.hidden !== true)
-      .length;
+    const visibleCriteriaCount = arrayControl.value.filter((criterion) => criterion.hidden !== true).length;
 
     // Do not remove if last criterion
     if (visibleCriteriaCount === 1) {
@@ -274,7 +280,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (!arrayControl) return;
 
     const oldValue = arrayControl.at(index).value;
-    const needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
+    const needClear = isNotNil(oldValue.name) || isNotNil(oldValue.value);
     if (!needClear) return false;
 
     this.validatorService.setCriterionValue(arrayControl.at(index), null);
@@ -287,16 +293,18 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return false;
   }
 
-  reset(data?: any, opts?: {emitEvent?: boolean}) {
+  reset(data?: any, opts?: { emitEvent?: boolean }) {
     // Remove all criterion
-    Object.getOwnPropertyNames(this.form.controls).forEach(sheetName => this.form.removeControl(sheetName));
+    Object.getOwnPropertyNames(this.form.controls).forEach((sheetName) => this.form.removeControl(sheetName));
 
     // Add the default (empty), for each sheet
-    (this._type && this._type.sheetNames || []).forEach(sheetName => this.addFilterCriterion({
-      name: null,
-      operator: DEFAULT_CRITERION_OPERATOR,
-      sheetName
-    }));
+    ((this._type && this._type.sheetNames) || []).forEach((sheetName) =>
+      this.addFilterCriterion({
+        name: null,
+        operator: DEFAULT_CRITERION_OPERATOR,
+        sheetName,
+      })
+    );
 
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
@@ -311,32 +319,30 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return definition$;
   }
 
-
   updateDefinitionAt(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
     const arrayControl = this.sheetCriteriaForm;
     if (!arrayControl) return;
 
-
     // Make sure to wait $columnValueDefinitions has been loaded
     if (!this.$columnValueDefinitions.value) {
-      return this.$columnValueDefinitions
-        .pipe(
-          filter(isNotNil),
-          switchMap(_ => this.updateDefinitionAt(index, columnName, resetValue))
-        );
+      return this.$columnValueDefinitions.pipe(
+        filter(isNotNil),
+        switchMap((_) => this.updateDefinitionAt(index, columnName, resetValue))
+      );
     }
 
     const criterionForm = arrayControl.at(index) as UntypedFormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
-    const operator = criterionForm && criterionForm.controls.operator.value || '=';
-    let definition = (operator === 'NULL' || operator === 'NOT NULL')
-      ? undefined
-      : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
+    const operator = (criterionForm && criterionForm.controls.operator.value) || '=';
+    let definition =
+      operator === 'NULL' || operator === 'NOT NULL'
+        ? undefined
+        : (columnName && (this.$columnValueDefinitions.value || []).find((d) => d.key === columnName)) || null;
 
     // Workaround: use a default string definition, when column cannot be found
     if (definition == null) {
       console.warn('[extraction-form] Cannot find column definition for ' + columnName);
-      definition = <FormFieldDefinition>{key: columnName, type: 'string'};
+      definition = <FormFieldDefinition>{ key: columnName, type: 'string' };
     }
 
     // Reset the criterion value, is ask by caller
@@ -346,31 +352,28 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       }, 250);
     }
 
-
     let subject = this.$columnValueDefinitionsByIndex[index];
     const items = definition.autocomplete?.items;
     let $items = subject?.value?.autocomplete?.items;
     if (items) {
       if ($items instanceof BehaviorSubject) {
         $items.next(items);
-      }
-      else {
+      } else {
         $items = new BehaviorSubject<string[]>(items as string[]);
       }
       definition = {
         ...definition,
         autocomplete: {
           ...definition.autocomplete,
-          items: $items
-        }
+          items: $items,
+        },
       };
     }
 
     if (!subject) {
       subject = new BehaviorSubject(definition);
       this.$columnValueDefinitionsByIndex[index] = subject;
-    }
-    else {
+    } else {
       subject.next(definition);
       this.markForCheck();
     }
@@ -379,8 +382,8 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   async waitIdle(opts?: WaitForOptions): Promise<any> {
     await Promise.all([
-      waitFor(() => !!this.type, {stop: this.destroySubject, ...opts}),
-      firstNotNilPromise(this.$columnValueDefinitions, {stop: this.destroySubject, ...opts})
+      waitFor(() => !!this.type, { stop: this.destroySubject, ...opts }),
+      firstNotNilPromise(this.$columnValueDefinitions, { stop: this.destroySubject, ...opts }),
     ]);
   }
 
@@ -395,53 +398,46 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
         autocomplete: {
           items: column.values,
           attributes: [undefined],
-          columnNames: [column.name/*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
+          columnNames: [column.name /*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
           mobile: false,
           displayWith: (value) =>
             // DEBUG
             //console.debug('TODO display with', value);
-             isNil(value) ? '' : value
-
-        }
+            isNil(value) ? '' : value,
+        },
       };
-    }
-    else {
+    } else {
       let type = column.type as FormFieldType;
       // Always use 'string' for number, to be able to set list
       if (type === 'integer' || type === 'double') {
         type = 'string';
       }
-      return  {
+      return {
         key: column.columnName,
         label: column.name,
-        type
+        type,
       };
     }
   }
 
-
-
-
-  async setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void>{
-
+  async setValue(data: ExtractionFilterCriterion[], opts?: { emitEvent?: boolean; onlySelf?: boolean }): Promise<void> {
     await this.ready();
     await this.waitIdle();
 
     // Create a map (using sheetname as key)
-    const json = (data || [])
-      .reduce((res, criterion) => {
-        criterion.sheetName = criterion.sheetName || this.sheetName;
-        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR;
-        criterion.value = criterion.value || (criterion.values?.join(','));
-        res[criterion.sheetName] = res[criterion.sheetName] || [];
-        res[criterion.sheetName].push(criterion);
+    const json = (data || []).reduce((res, criterion) => {
+      criterion.sheetName = criterion.sheetName || this.sheetName;
+      criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR;
+      criterion.value = criterion.value || criterion.values?.join(',');
+      res[criterion.sheetName] = res[criterion.sheetName] || [];
+      res[criterion.sheetName].push(criterion);
       return res;
     }, {});
 
     const sheetNames = arrayDistinct(Object.keys(json));
 
     // Create a sub form for each sheet
-    sheetNames.forEach(sheet => {
+    sheetNames.forEach((sheet) => {
       const formArray = this.form.get(sheet);
       if (!formArray) {
         this.form.addControl(sheet, this.validatorService.getCriterionFormArray(undefined, sheet));
@@ -457,7 +453,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   getValue(): ExtractionFilterCriterion[] {
     const disabled = this.form.disabled;
-    if (disabled) this.form.enable({emitEvent: false});
+    if (disabled) this.form.enable({ emitEvent: false });
 
     try {
       const json = this.form.value;
@@ -468,27 +464,23 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       return Object.getOwnPropertyNames(json)
         .reduce((res, sheetName) => res.concat(json[sheetName]), [])
         .map(ExtractionFilterCriterion.fromObject);
-    }
-    finally {
+    } finally {
       // Restore disable state
-      if (disabled) this.form.disable({emitEvent: false});
+      if (disabled) this.form.disable({ emitEvent: false });
     }
   }
 
   /* -- protected method -- */
 
   protected resetColumnDefinitions() {
-
-    Object.values(this.$columnValueDefinitionsByIndex).forEach(subject => {
+    Object.values(this.$columnValueDefinitionsByIndex).forEach((subject) => {
       subject.next(null);
       subject.unsubscribe();
     });
     this.$columnValueDefinitionsByIndex = {};
   }
 
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

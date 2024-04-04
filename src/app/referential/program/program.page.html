@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading"
   (onValidate)="save($event)"
@@ -12,14 +12,14 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="tabGroupAnimationDuration"
     [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}">
+    <mat-tab label="{{ 'PROGRAM.TAB_GENERAL' | translate }}" appSubMenuTab [subMenuTitle]="data?.label || ''" [parentPath]="defaultBackHref">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
@@ -37,33 +37,16 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form
-                #referentialForm
-                [form]="form"
-                [showError]="false"
-                [debug]="debug"
-                (onSubmit)="save($event)"
-              >
-                <app-form-field
-                  [definition]="fieldDefinitions.taxonGroupType"
-                  [formControl]="form.controls.taxonGroupType"
-                ></app-form-field>
+              <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="save($event)">
+                <app-form-field [definition]="fieldDefinitions.taxonGroupType" [formControl]="form.controls.taxonGroupType"></app-form-field>
 
-                <app-form-field
-                  [definition]="fieldDefinitions.gearClassification"
-                  [formControl]="form.controls.gearClassification"
-                ></app-form-field>
+                <app-form-field [definition]="fieldDefinitions.gearClassification" [formControl]="form.controls.gearClassification"></app-form-field>
 
                 <mat-form-field floatLabel="always">
-                  <input
-                    matInput
-                    class="cdk-visually-hidden"
-                    type="text"
-                    [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION' | translate"
-                  />
+                  <input matInput class="cdk-visually-hidden" type="text" [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION' | translate" />
                   <app-list-form
                     #locationClassificationList
-                    [formArray]="form | formGetArray : 'locationClassifications'"
+                    [formArray]="form | formGetArray: 'locationClassifications'"
                     [displayWith]="referentialToString"
                     [equals]="referentialEquals"
                     [options]="{ allowEmptyArray: false, allowMultipleSelection: false }"
@@ -83,7 +66,7 @@
     </mat-tab>
 
     <!-- TAB: locations  -->
-    <mat-tab label="{{ 'PROGRAM.TAB_LOCATIONS' | translate }}">
+    <mat-tab [label]="'PROGRAM.TAB_LOCATIONS' | translate" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>room</mat-icon>
         <ion-label
@@ -106,7 +89,7 @@
           <app-list-form
             #locationList
             [displayWith]="referentialToString"
-            [formArray]="form | formGetArray : 'locations'"
+            [formArray]="form | formGetArray: 'locations'"
             [equals]="referentialEquals"
             [options]="{ allowEmptyArray: true, allowMultipleSelection: false }"
             (onNewItem)="addLocation()"
@@ -116,30 +99,29 @@
     </mat-tab>
 
     <!-- TAB: strategies -->
-    <mat-tab label="{{ 'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate }}" [disabled]="isNewData">
-      <ng-template mat-tab-label *ngVar="strategiesTable as table">
+    <mat-tab #strategiesTab [label]="'PROGRAM.TAB_STRATEGIES' | translateContext: i18nTabStrategiesSuffix" [disabled]="isNewData" appSubMenuTab>
+      <ng-template mat-tab-label>
         <mat-icon>date_range</mat-icon>
-        <ion-label
-          [matBadge]="(table && table.totalRowCount) || 0"
-          [matBadgeHidden]="!table || table.invalid || !table.totalRowCount"
-          matBadgeColor="primary"
-          matBadgeOverlap="false"
-          matBadgeSize="small"
-        >
-          {{ 'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate }}
-        </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && table?.invalid"></ion-icon>
+        <ng-container *rxIf="strategiesTable$; let table; suspense: suspense">
+          <ion-label
+            [matBadge]="table.totalRowCount"
+            [matBadgeHidden]="table.invalid || !table.totalRowCount"
+            matBadgeColor="primary"
+            matBadgeOverlap="false"
+            matBadgeSize="small"
+          >
+            {{ strategiesTab.textLabel }}
+          </ion-label>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && table?.invalid"></ion-icon>
+        </ng-container>
+        <ng-template #suspense>
+          <ion-label><ion-skeleton-text style="min-width: 110px"></ion-skeleton-text></ion-label>
+        </ng-template>
       </ng-template>
 
       <div class="ion-no-padding">
         <!-- error -->
-        <ion-item
-          *ngIf="strategiesTable?.error; let strategiesTableError"
-          visible-xs
-          visible-sm
-          visible-mobile
-          lines="none"
-        >
+        <ion-item *ngIf="(strategiesTable$ | push)?.error; let strategiesTableError" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="strategiesTableError | translate"></ion-label>
         </ion-item>
@@ -154,6 +136,7 @@
             [canDelete]="enabled"
             (onOpenRow)="onOpenStrategy($event)"
             (onNewRow)="onNewStrategy($event)"
+            (ngInit)="strategiesTable = samplingStrategiesTable"
           ></app-sampling-strategies-table>
 
           <!-- legacy strategy table -->
@@ -162,18 +145,20 @@
             *ngSwitchDefault
             [program]="data"
             [canEdit]="enabled"
+            [canDuplicate]="enabled"
             [canDelete]="enabled"
             [canDownload]="loaded"
             [canUpload]="enabled"
             (onOpenRow)="onOpenStrategy($event)"
             (onNewRow)="onNewStrategy($event)"
+            (ngInit)="strategiesTable = legacyStrategiesTable"
           ></app-strategy-table>
         </ng-container>
       </div>
     </mat-tab>
 
     <!-- TAB: properties -->
-    <mat-tab label="{{ 'PROGRAM.TAB_PROPERTIES' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.TAB_PROPERTIES' | translate" [disabled]="isNewData" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
         <ion-label
@@ -191,16 +176,12 @@
       </ng-template>
 
       <div class="ion-padding">
-        <app-properties-form
-          #propertiesForm
-          [definitions]="propertyDefinitions"
-          [options]="{ allowEmptyArray: true }"
-        ></app-properties-form>
+        <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{ allowEmptyArray: true }"></app-properties-form>
       </div>
     </mat-tab>
 
     <!-- TAB: privilege -->
-    <mat-tab label="{{ 'PROGRAM.TAB_PRIVILEGES' | translate }}" [disabled]="isNewData">
+    <mat-tab [label]="'PROGRAM.TAB_PRIVILEGES' | translate" [disabled]="isNewData" appSubMenuTab>
       <ng-template mat-tab-label *ngVar="personsTable as table">
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
@@ -218,11 +199,7 @@
       </ng-template>
 
       <div style="height: var(--mat-tab-body-content-height)">
-        <app-person-privileges-table
-          #personsTable
-          [title]="'PROGRAM.PRIVILEGES.TITLE' | translate"
-          [canEdit]="enabled"
-        ></app-person-privileges-table>
+        <app-person-privileges-table #personsTable [title]="'PROGRAM.PRIVILEGES.TITLE' | translate" [canEdit]="enabled"></app-person-privileges-table>
       </div>
     </mat-tab>
   </mat-tab-group>

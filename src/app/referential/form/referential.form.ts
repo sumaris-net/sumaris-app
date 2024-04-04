@@ -11,12 +11,11 @@ import { FormGroupDirective } from '@angular/forms';
   providers: [
     {
       provide: ValidatorService,
-      useExisting: ReferentialValidatorService
-    }
-  ]
+      useExisting: ReferentialValidatorService,
+    },
+  ],
 })
 export class ReferentialForm<T extends BaseReferential<any> = Referential> extends AppForm<T> implements OnInit {
-
   statusById: { [id: number]: IStatus };
   protected cd: ChangeDetectorRef;
   private _statusList = StatusList;
@@ -43,7 +42,7 @@ export class ReferentialForm<T extends BaseReferential<any> = Referential> exten
     @Optional() protected validatorService: ValidatorService,
     @Optional() protected formGroupDir: FormGroupDirective
   ) {
-    super(injector,formGroupDir?.form || validatorService?.getRowValidator());
+    super(injector, formGroupDir?.form || validatorService?.getRowValidator());
     this.cd = injector.get(ChangeDetectorRef);
   }
 

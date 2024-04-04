@@ -7,7 +7,6 @@ import { Packet, PacketUtils } from '../packet/packet.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 export class SaleProduct extends Product {
-
   // static TYPENAME = 'SaleProductVO'; // fixme: This VO don't exists, keep its TYPENAME ?
 
   static fromObject(source: any): SaleProduct {
@@ -64,31 +63,40 @@ const averagePackagingPriceProperty = 'averagePackagingPrice';
 const totalPriceProperty = 'totalPrice';
 
 export class SaleProductUtils {
-
   static isSaleProductEmpty(saleProduct: SaleProduct): boolean {
     return !saleProduct || isNil(saleProduct.saleType);
   }
 
   static isSaleProductEquals(saleProduct1: SaleProduct, saleProduct2: SaleProduct): boolean {
-    return (saleProduct1 === saleProduct2) || (isNil(saleProduct1) && isNil(saleProduct2)) || (
-      saleProduct1 && saleProduct2 && ReferentialUtils.equals(saleProduct1.saleType, saleProduct2.saleType)
-      && saleProduct1.rankOrder === saleProduct2.rankOrder
+    return (
+      saleProduct1 === saleProduct2 ||
+      (isNil(saleProduct1) && isNil(saleProduct2)) ||
+      (saleProduct1 &&
+        saleProduct2 &&
+        ReferentialUtils.equals(saleProduct1.saleType, saleProduct2.saleType) &&
+        saleProduct1.rankOrder === saleProduct2.rankOrder)
     );
   }
 
   static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: DenormalizedPmfmStrategy[]): boolean {
-    return product && saleProduct
-      && product.taxonGroup && saleProduct.taxonGroup && product.taxonGroup.equals(saleProduct.taxonGroup)
-      && product.rankOrder === saleProduct.rankOrder
-      && product.measurementValues && saleProduct.measurementValues
-      && MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) === MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING)
-      && MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) === MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
-      ;
+    return (
+      product &&
+      saleProduct &&
+      product.taxonGroup &&
+      saleProduct.taxonGroup &&
+      product.taxonGroup.equals(saleProduct.taxonGroup) &&
+      product.rankOrder === saleProduct.rankOrder &&
+      product.measurementValues &&
+      saleProduct.measurementValues &&
+      MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) ===
+        MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING) &&
+      MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) ===
+        MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
+    );
   }
 
   static isSaleOfPacket(packet: Packet, saleProduct: Product): boolean {
-    return packet && saleProduct
-      && packet.id === saleProduct.batchId;
+    return packet && saleProduct && packet.id === saleProduct.batchId;
   }
 
   static productToSaleProduct(product: Product, pmfms: DenormalizedPmfmStrategy[]): SaleProduct {
@@ -121,35 +129,35 @@ export class SaleProductUtils {
   static productsToAggregatedSaleProduct(products: Product[], pmfms: DenormalizedPmfmStrategy[]): SaleProduct[] {
     const target: SaleProduct[] = [];
 
-    (products || []).forEach(product => {
+    (products || []).forEach((product) => {
       const saleProduct = this.productToSaleProduct(product, pmfms);
 
       // Valid saleProduct
-      if (ReferentialUtils.isEmpty(saleProduct.taxonGroup))
-        throw new Error('this saleProduct has no taxonGroup');
+      if (ReferentialUtils.isEmpty(saleProduct.taxonGroup)) throw new Error('this saleProduct has no taxonGroup');
 
       // aggregate weight price to packaging price
       saleProduct.averagePackagingPrice = saleProduct.averageWeightPrice;
       saleProduct.averagePackagingPriceCalculated = isNil(saleProduct.averagePackagingPrice);
       saleProduct.averageWeightPrice = undefined;
 
-      const aggregatedSaleProduct = target.find(a => a.rankOrder === saleProduct.rankOrder);
+      const aggregatedSaleProduct = target.find((a) => a.rankOrder === saleProduct.rankOrder);
       if (aggregatedSaleProduct) {
-
         // Some assertions
         if (aggregatedSaleProduct.subgroupCount !== saleProduct.subgroupCount)
-          throw new Error(`Invalid packet sale: different packet count found: ${aggregatedSaleProduct.subgroupCount} != ${saleProduct.subgroupCount}`);
+          throw new Error(
+            `Invalid packet sale: different packet count found: ${aggregatedSaleProduct.subgroupCount} != ${saleProduct.subgroupCount}`
+          );
         if (isNil(saleProduct.saleType) || !saleProduct.saleType.equals(aggregatedSaleProduct.saleType))
           throw new Error(`Invalid packet sale: different sale type found:
-              ${aggregatedSaleProduct.saleType && aggregatedSaleProduct.saleType.name || null} != ${saleProduct.saleType && saleProduct.saleType.name || null}`);
+              ${(aggregatedSaleProduct.saleType && aggregatedSaleProduct.saleType.name) || null} != ${
+                (saleProduct.saleType && saleProduct.saleType.name) || null
+              }`);
 
         // Sum values
-        if (aggregatedSaleProduct.weight && saleProduct.weight)
-          aggregatedSaleProduct.weight += saleProduct.weight;
+        if (aggregatedSaleProduct.weight && saleProduct.weight) aggregatedSaleProduct.weight += saleProduct.weight;
         if (aggregatedSaleProduct.averagePackagingPrice && saleProduct.averagePackagingPrice)
           aggregatedSaleProduct.averagePackagingPrice += saleProduct.averagePackagingPrice;
-        if (aggregatedSaleProduct.totalPrice && saleProduct.totalPrice)
-          aggregatedSaleProduct.totalPrice += saleProduct.totalPrice;
+        if (aggregatedSaleProduct.totalPrice && saleProduct.totalPrice) aggregatedSaleProduct.totalPrice += saleProduct.totalPrice;
 
         // Keep id
         if (saleProduct.id) {
@@ -157,11 +165,9 @@ export class SaleProductUtils {
             throw new Error(`The taxonGroup id:${saleProduct.taxonGroup.id} already present in this aggregated sale product`);
           aggregatedSaleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
         }
-
       } else {
         // Keep id
-        if (saleProduct.id)
-          saleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
+        if (saleProduct.id) saleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
         // just add to aggregation
         target.push(saleProduct);
       }
@@ -170,27 +176,42 @@ export class SaleProductUtils {
     return target;
   }
 
-
-  static saleProductToProduct(product: Product, saleProduct: SaleProduct, pmfms: DenormalizedPmfmStrategy[], options?: { keepId?: boolean }): Product {
+  static saleProductToProduct(
+    product: Product,
+    saleProduct: SaleProduct,
+    pmfms: DenormalizedPmfmStrategy[],
+    options?: { keepId?: boolean }
+  ): Product {
     // merge product with sale product to initialize target product
-    const target = {...product, ...saleProduct};
+    const target = { ...product, ...saleProduct };
     delete target.saleProducts;
 
     // Don't copy id by default
-    if (!options || !options.keepId)
-      delete target.id;
+    if (!options || !options.keepId) delete target.id;
 
     target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
 
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
     // add measurements for each non-calculated values
-    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
-      isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined);
-    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
-      isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined);
-    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
-      isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated ? saleProduct.totalPrice : undefined);
+    MeasurementValuesUtils.setFormValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.AVERAGE_WEIGHT_PRICE,
+      isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined
+    );
+    MeasurementValuesUtils.setFormValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.AVERAGE_PACKAGING_PRICE,
+      isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined
+    );
+    MeasurementValuesUtils.setFormValue(
+      target.measurementValues,
+      pmfms,
+      PmfmIds.TOTAL_PRICE,
+      isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated ? saleProduct.totalPrice : undefined
+    );
 
     return Product.fromObject(target);
   }
@@ -198,13 +219,13 @@ export class SaleProductUtils {
   static aggregatedSaleProductsToProducts(packet: Packet, saleProducts: SaleProduct[], pmfms: DenormalizedPmfmStrategy[]): Product[] {
     const target: Product[] = [];
 
-    (saleProducts || []).forEach(saleProduct => {
+    (saleProducts || []).forEach((saleProduct) => {
       // dispatch each sale product with packet composition
-      packet.composition.forEach(composition => {
+      packet.composition.forEach((composition) => {
         const existingProductId = saleProduct.productIdByTaxonGroup && saleProduct.productIdByTaxonGroup[composition.taxonGroup.id];
         let product: Product;
         if (existingProductId) {
-          product = packet.saleProducts.find(p => p.id === existingProductId);
+          product = packet.saleProducts.find((p) => p.id === existingProductId);
         }
         if (!product) {
           product = new Product();
@@ -221,71 +242,77 @@ export class SaleProductUtils {
         if (isNilOrNaN(averageWeight)) {
           averageWeight = compositionAverageRatio * packet.weight;
         }
-        product.weight = round(averageWeight * saleProduct.subgroupCount / packet.number);
+        product.weight = round((averageWeight * saleProduct.subgroupCount) / packet.number);
         product.weightCalculated = true;
 
         // sale rank order
         MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
 
         // average packaging converted to average weight price
-        MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
+        MeasurementValuesUtils.setFormValue(
+          product.measurementValues,
+          pmfms,
+          PmfmIds.AVERAGE_WEIGHT_PRICE,
           isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated
             ? round(compositionAverageRatio * saleProduct.averagePackagingPrice)
-            : undefined);
+            : undefined
+        );
 
         // total price
-        MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
+        MeasurementValuesUtils.setFormValue(
+          product.measurementValues,
+          pmfms,
+          PmfmIds.TOTAL_PRICE,
           isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated
             ? round(compositionAverageRatio * saleProduct.totalPrice)
-            : undefined);
+            : undefined
+        );
 
         // add to target
         target.push(product);
       });
-
     });
 
     return target;
   }
 
   static updateSaleProducts(product: Product, pmfms: DenormalizedPmfmStrategy[]): Product[] {
-
     // convert to SaleProduct
-    const saleProducts = isNotEmptyArray(product.saleProducts) ? product.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, pmfms)) : [];
+    const saleProducts = isNotEmptyArray(product.saleProducts)
+      ? product.saleProducts.map((p) => SaleProductUtils.productToSaleProduct(p, pmfms))
+      : [];
 
     // compute prices
-    saleProducts.forEach(saleProduct =>
+    saleProducts.forEach((saleProduct) =>
       SaleProductUtils.computeSaleProduct(
         product,
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => object[valueName] = round(value),
-        (object, valueName) => object[valueName] = undefined,
+        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName) => (object[valueName] = undefined),
         true,
         'individualCount'
       )
     );
 
     // convert back to Product
-    return saleProducts.map(saleProduct => SaleProductUtils.saleProductToProduct(product, saleProduct, pmfms, {keepId: true}));
-
+    return saleProducts.map((saleProduct) => SaleProductUtils.saleProductToProduct(product, saleProduct, pmfms, { keepId: true }));
   }
 
   static updateAggregatedSaleProducts(packet: Packet, pmfms: DenormalizedPmfmStrategy[]): Product[] {
-
     // convert to SaleProduct
     const saleProducts = isNotEmptyArray(packet.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(packet.saleProducts, pmfms) : [];
 
     // compute prices
-    saleProducts.forEach(saleProduct =>
+    saleProducts.forEach((saleProduct) =>
       SaleProductUtils.computeSaleProduct(
         packet,
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => object[valueName] = round(value),
-        (object, valueName) => object[valueName] = undefined,
+        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName) => (object[valueName] = undefined),
         false,
         'subgroupCount',
         'number'
@@ -294,7 +321,6 @@ export class SaleProductUtils {
 
     // convert back to Product
     return SaleProductUtils.aggregatedSaleProductsToProducts(packet, saleProducts, pmfms);
-
   }
 
   static computeSaleProduct(
@@ -308,12 +334,10 @@ export class SaleProductUtils {
     countProperty: string,
     parentCountProperty?: string
   ) {
-
     const parentCount = parent[parentCountProperty || countProperty];
     const parentWeight = parent[weightProperty];
 
     if (isNotNil(parentCount)) {
-
       // with saleProduct count (should be < whole parent count)
       const count = getValueFn(saleProduct, countProperty);
       const ratio = count / parentCount;
@@ -322,13 +346,11 @@ export class SaleProductUtils {
         if (hasValueFn(saleProduct, averagePackagingPriceProperty)) {
           // compute total price
           setValueFn(saleProduct, totalPriceProperty, getValueFn(saleProduct, averagePackagingPriceProperty) * count);
-
         } else if (hasValueFn(saleProduct, totalPriceProperty)) {
           // compute average packaging price
           const total = getValueFn(saleProduct, totalPriceProperty);
           const averagePackagingPrice = total / count;
           setValueFn(saleProduct, averagePackagingPriceProperty, averagePackagingPrice);
-
         } else if (useRatioAndWeight && isNotNil(parentWeight) && hasValueFn(saleProduct, averageWeightPriceProperty)) {
           // compute average packaging price and total price
           useAverageWeightPrice = true;
@@ -339,8 +361,7 @@ export class SaleProductUtils {
         } else {
           resetValueFn(saleProduct, averagePackagingPriceProperty);
           resetValueFn(saleProduct, totalPriceProperty);
-          if (useRatioAndWeight)
-            resetValueFn(saleProduct, averageWeightPriceProperty);
+          if (useRatioAndWeight) resetValueFn(saleProduct, averageWeightPriceProperty);
         }
 
         if (useRatioAndWeight) {
@@ -362,12 +383,9 @@ export class SaleProductUtils {
             resetValueFn(saleProduct, averageWeightPriceProperty);
           }
         } else {
-
           // compute weigh (always calculated)
-          setValueFn(saleProduct, weightProperty, count * parentWeight / parentCount);
-
+          setValueFn(saleProduct, weightProperty, (count * parentWeight) / parentCount);
         }
-
       } else {
         // reset all
         resetValueFn(saleProduct, averagePackagingPriceProperty);
@@ -378,19 +396,16 @@ export class SaleProductUtils {
           resetValueFn(saleProduct, averageWeightPriceProperty);
         }
       }
-
-    } else
+    }
     // Only by weight
-    if (useRatioAndWeight && isNotNil(parentWeight)) {
+    else if (useRatioAndWeight && isNotNil(parentWeight)) {
       // with weight only
       if (hasValueFn(saleProduct, weightProperty)) {
         // calculate ratio
-        setValueFn(saleProduct, ratioProperty, getValueFn(saleProduct, weightProperty) / parentWeight * 100);
-
+        setValueFn(saleProduct, ratioProperty, (getValueFn(saleProduct, weightProperty) / parentWeight) * 100);
       } else if (hasValueFn(saleProduct, ratioProperty)) {
         // calculate weight
-        setValueFn(saleProduct, weightProperty, getValueFn(saleProduct, ratioProperty) * parentWeight / 100);
-
+        setValueFn(saleProduct, weightProperty, (getValueFn(saleProduct, ratioProperty) * parentWeight) / 100);
       } else {
         // reset all
         resetValueFn(saleProduct, ratioProperty);
@@ -401,24 +416,18 @@ export class SaleProductUtils {
 
       const weight = getValueFn(saleProduct, weightProperty);
       if (isNotNil(weight)) {
-
         if (hasValueFn(saleProduct, averageWeightPriceProperty)) {
           // compute total price
           setValueFn(saleProduct, totalPriceProperty, getValueFn(saleProduct, averageWeightPriceProperty) * weight);
-
         } else if (hasValueFn(saleProduct, totalPriceProperty)) {
           // compute average weight price
           setValueFn(saleProduct, averageWeightPriceProperty, getValueFn(saleProduct, totalPriceProperty) / weight);
-
         } else {
           // reset
           resetValueFn(saleProduct, averageWeightPriceProperty);
           resetValueFn(saleProduct, totalPriceProperty);
         }
-
       }
-
     }
   }
-
 }

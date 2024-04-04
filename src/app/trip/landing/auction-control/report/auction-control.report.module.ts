@@ -6,21 +6,9 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 
-
-
 @NgModule({
-  declarations: [
-    AuctionControlReport,
-  ],
-  imports: [
-    AppCoreModule,
-    AppDataModule,
-    TranslateModule.forChild(),
-    AppSharedReportModule,
-    AppReferentialModule,
-  ],
-  exports: [
-    AuctionControlReport,
-  ]
+  declarations: [AuctionControlReport],
+  imports: [AppCoreModule, AppDataModule, TranslateModule.forChild(), AppSharedReportModule, AppReferentialModule],
+  exports: [AuctionControlReport],
 })
 export class AuctionControlReportModule {}

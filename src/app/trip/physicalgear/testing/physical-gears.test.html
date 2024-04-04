@@ -97,31 +97,17 @@
           </ion-button>
 
           <!-- show tree -->
-          <ion-button
-            *ngIf="!outputs.mobile"
-            (click)="dumpTable(mobileTable, 'mobile')"
-            matTooltip="Output data to log"
-            fill="outline"
-          >
+          <ion-button *ngIf="!outputs.mobile" (click)="dumpTable(mobileTable, 'mobile')" matTooltip="Output data to log" fill="outline">
             <ion-icon name="eye" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- hide tree -->
-          <ion-button
-            (click)="outputs.mobile = undefined"
-            *ngIf="outputs.mobile"
-            matTooltip="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="outputs.mobile = undefined" *ngIf="outputs.mobile" matTooltip="Output data to log" fill="outline">
             <ion-icon name="eye-off" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button
-            (click)="copyTableValue(mobileTable, mobileTable)"
-            matTooltip="Reload from himself data"
-            fill="outline"
-          >
+          <ion-button (click)="copyTableValue(mobileTable, mobileTable)" matTooltip="Reload from himself data" fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-item>
@@ -161,31 +147,17 @@
           </ion-button>
 
           <!-- show tree -->
-          <ion-button
-            (click)="dumpTable(desktopTable, 'desktop')"
-            *ngIf="!outputs.desktop"
-            title="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="dumpTable(desktopTable, 'desktop')" *ngIf="!outputs.desktop" title="Output data to log" fill="outline">
             <ion-icon name="eye" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- hide tree -->
-          <ion-button
-            (click)="outputs.desktop = undefined"
-            *ngIf="outputs.desktop"
-            title="Output data to log"
-            fill="outline"
-          >
+          <ion-button (click)="outputs.desktop = undefined" *ngIf="outputs.desktop" title="Output data to log" fill="outline">
             <ion-icon name="eye-off" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button
-            (click)="copyTableValue(desktopTable, desktopTable)"
-            title="Reload from himself data"
-            fill="outline"
-          >
+          <ion-button (click)="copyTableValue(desktopTable, desktopTable)" title="Reload from himself data" fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-item>

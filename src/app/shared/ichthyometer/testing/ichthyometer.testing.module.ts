@@ -8,16 +8,14 @@ import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.mod
 import { AppSharedModule } from '@app/shared/shared.module';
 import { AppBluetoothModule } from '@app/shared/bluetooth/bluetooth.module';
 
-export const ICHTHYOMETER_TESTING_PAGES: TestingPage[] = [
-  {label: 'Ichthyometer', page: '/testing/shared/ichthyometer'}
-];
+export const ICHTHYOMETER_TESTING_PAGES: TestingPage[] = [{ label: 'Ichthyometer', page: '/testing/shared/ichthyometer' }];
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: IchthyometerTestingPage
-  }
+    component: IchthyometerTestingPage,
+  },
 ];
 
 @NgModule({
@@ -28,15 +26,9 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     AppIchthyometerModule,
-    AppBluetoothModule
+    AppBluetoothModule,
   ],
-  declarations: [
-    IchthyometerTestingPage
-  ],
-  exports: [
-    IchthyometerTestingPage
-  ]
+  declarations: [IchthyometerTestingPage],
+  exports: [IchthyometerTestingPage],
 })
-export class AppIchthyometerTestingModule {
-
-}
+export class AppIchthyometerTestingModule {}

@@ -13,7 +13,6 @@ import { AppTripModule } from '@app/trip/trip/trip.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { AppCoreModule } from '@app/core/core.module';
 
-
 @NgModule({
   imports: [
     AppCoreModule,
@@ -28,18 +27,15 @@ import { AppCoreModule } from '@app/core/core.module';
     AppSaleModule,
     AppOperationGroupModule,
     AppProductModule,
-    AppPacketModule
+    AppPacketModule,
   ],
-  declarations: [
-    LandedTripPage
-  ],
+  declarations: [LandedTripPage],
   exports: [
     // Components
-    LandedTripPage
-  ]
+    LandedTripPage,
+  ],
 })
 export class AppLandedTripModule {
-
   constructor() {
     console.debug('[landing-trip] Creating module...');
   }

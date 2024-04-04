@@ -50,7 +50,7 @@ export abstract class BaseRootDataService<
     S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
     CO extends IProgressionOptions = IProgressionOptions,
     TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
-    VO extends IRootDataValidateOptions = IRootDataValidateOptions
+    VO extends IRootDataValidateOptions = IRootDataValidateOptions,
   >
   extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
   implements IDataEntityQualityService<T, ID>

@@ -37,6 +37,20 @@
           showComment: {{ showComment }}
           <br />
         </ion-col>
+        <ion-col>
+          form.ready: {{ form.readySubject | async }}
+          <br />
+          form.loading: {{ form.loading }} (subject: {{ form.loadingSubject | async }})
+          <br />
+          form.enabled: {{ form.enabled }}
+          <br />
+          form.dirty: {{ form.dirty }}
+          <br />
+          form.valid: {{ form.valid }}
+          <br />
+          <br />
+          form.pmfms: {{ (form.pmfms$ | async)?.length }}
+        </ion-col>
       </ion-row>
     </ion-grid>
   </app-debug>
@@ -63,7 +77,7 @@
   >
     <ion-row beforeComment [class.cdk-visually-hidden]="!showPictures">
       <ion-col size="12">
-        <ion-label color="medium">{{ 'TRIP.SAMPLE.EDIT.IMAGES' | translateContext : i18nSuffix }}</ion-label>
+        <ion-label color="medium">{{ 'TRIP.SAMPLE.EDIT.IMAGES' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
       <ion-col size="12">
         <app-image-attachment-gallery
@@ -90,7 +104,7 @@
             (click)="onIndividualMonitoringClick($event)"
           >
             <mat-icon slot="start">center_focus_strong</mat-icon>
-            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING' | translateContext : i18nSuffix }}</ion-label>
+            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING' | translateContext: i18nSuffix }}</ion-label>
           </ion-button>
         </ion-col>
         <ion-col *ngIf="showIndividualReleaseButton">
@@ -103,7 +117,7 @@
             (click)="onIndividualReleaseClick($event)"
           >
             <mat-icon slot="start">room</mat-icon>
-            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE' | translateContext : i18nSuffix }}</ion-label>
+            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE' | translateContext: i18nSuffix }}</ion-label>
           </ion-button>
         </ion-col>
         <ion-col>

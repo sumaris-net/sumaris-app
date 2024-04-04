@@ -51,11 +51,7 @@
         <!-- Sampling ratio type -->
         <ion-col>
           <mat-form-field>
-            <mat-select
-              (valueChange)="samplingRatioFormat = $event"
-              [value]="samplingRatioFormat"
-              placeholder="Sampling ratio"
-            >
+            <mat-select (valueChange)="samplingRatioFormat = $event" [value]="samplingRatioFormat" placeholder="Sampling ratio">
               <mat-option *ngFor="let item of samplingRatioFormats" [value]="item.key">
                 {{ item.value | translate }}
               </mat-option>
@@ -98,22 +94,14 @@
 
         <!-- showEstimatedWeight -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="showEstimatedWeight = !showEstimatedWeight"
-            [disabled]="!showEstimatedWeight"
-            [checked]="showEstimatedWeight"
-          >
+          <mat-checkbox (change)="showEstimatedWeight = !showEstimatedWeight" [disabled]="!showWeight" [checked]="showEstimatedWeight">
             <mat-label>showEstimatedWeight ?</mat-label>
           </mat-checkbox>
         </ion-col>
 
         <!-- showExhaustiveInventory -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="showExhaustiveInventory = !showExhaustiveInventory"
-            [disabled]="!showExhaustiveInventory"
-            [checked]="showExhaustiveInventory"
-          >
+          <mat-checkbox (change)="showExhaustiveInventory = !showExhaustiveInventory" [checked]="showExhaustiveInventory">
             <mat-label>showExhaustiveInventory ?</mat-label>
           </mat-checkbox>
         </ion-col>
@@ -155,11 +143,7 @@
 
         <!-- samplingBatchEnabled -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="samplingBatchEnabled = !samplingBatchEnabled"
-            [disabled]="!showSamplingBatch"
-            [checked]="samplingBatchEnabled"
-          >
+          <mat-checkbox (change)="samplingBatchEnabled = !samplingBatchEnabled" [disabled]="!showSamplingBatch" [checked]="samplingBatchEnabled">
             <mat-label>samplingBatchEnabled ?</mat-label>
           </mat-checkbox>
         </ion-col>
@@ -173,11 +157,7 @@
 
         <!-- requiredSampleWeight -->
         <ion-col class="ion-padding">
-          <mat-checkbox
-            (change)="requiredSampleWeight = !requiredSampleWeight"
-            [disabled]="!showSampleWeight"
-            [checked]="requiredSampleWeight"
-          >
+          <mat-checkbox (change)="requiredSampleWeight = !requiredSampleWeight" [disabled]="!showSampleWeight" [checked]="requiredSampleWeight">
             <mat-label>requiredSampleWeight ?</mat-label>
           </mat-checkbox>
         </ion-col>
@@ -186,6 +166,7 @@
         <ion-col class="ion-padding">
           <mat-checkbox
             (change)="showSampleIndividualCount = !showSampleIndividualCount"
+            [disabled]="!showSamplingBatch"
             [checked]="showSampleIndividualCount"
           >
             <mat-label>showSampleIndividualCount ?</mat-label>

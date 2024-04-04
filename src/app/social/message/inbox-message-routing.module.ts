@@ -28,14 +28,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    AppCoreModule,
-    AppInboxMessageModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [AppCoreModule, AppInboxMessageModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppInboxMessageRoutingModule {
-}
+export class AppInboxMessageRoutingModule {}

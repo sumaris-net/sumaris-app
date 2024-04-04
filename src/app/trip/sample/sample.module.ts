@@ -17,7 +17,7 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { SamplesModal } from '@app/trip/sample/samples.modal';
 import { ImageGalleryModule } from '@sumaris-net/ngx-components';
 import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmfm.module';
-import {AppEntityQualityModule} from '@app/data/quality/entity-quality.module';
+import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 
 @NgModule({
   imports: [
@@ -34,7 +34,6 @@ import {AppEntityQualityModule} from '@app/data/quality/entity-quality.module';
     AppPmfmSelectModalModule,
     ImageGalleryModule,
     AppEntityQualityModule,
-
   ],
   declarations: [
     SamplesTable,
@@ -46,7 +45,7 @@ import {AppEntityQualityModule} from '@app/data/quality/entity-quality.module';
     SubSampleModal,
     IndividualMonitoringTable,
     IndividualReleasesTable,
-    SampleTreeComponent
+    SampleTreeComponent,
   ],
   exports: [
     // Components
@@ -54,11 +53,10 @@ import {AppEntityQualityModule} from '@app/data/quality/entity-quality.module';
     SamplesModal,
     SampleForm,
     SubSamplesTable,
-    SampleTreeComponent
-  ]
+    SampleTreeComponent,
+  ],
 })
 export class AppSampleModule {
-
   constructor() {
     console.debug('[sample] Creating module...');
   }

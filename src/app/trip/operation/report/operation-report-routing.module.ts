@@ -8,16 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: OperationReport,
-  }
+  },
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    OperationReportModule,
-  ],
-  exports: [
-    RouterModule,
-  ]
+  imports: [RouterModule.forChild(routes), OperationReportModule],
+  exports: [RouterModule],
 })
 export class OperationReportRoutingModule {}

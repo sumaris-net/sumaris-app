@@ -10,6 +10,7 @@ import {
   ReferentialUtils,
   splitByProperty,
   toNumber,
+  TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -246,20 +247,21 @@ export class BatchUtils {
    * - ou pour corriger des problèmes dans les données (e.g. introduit par un bug, comme cela est arrivé sur la BDD SUMARiS historique)
    *
    * @param source
-   * @param sortingBatchIndividualRankOrder
+   * @param opts
    */
-  static computeRankOrder(source: Batch, sortingBatchIndividualRankOrder = 1) {
+  static computeRankOrder(source: Batch, opts = { sortingBatchIndividualRankOrder: 1 }) {
     if (!source?.label || !source.children) return; // skip
 
     source.children
-      // Sort by id, then rankOrder. New batch at the end
-      .sort(Batch.idOrRankOrderComparator('asc'))
+      .slice()
+      // Sort by rankOrder (or by id if same rankOrder). New batch at the end
+      .sort(Batch.rankOrderOrIdComparator('asc'))
 
       // For each child
       .forEach((b: Batch, index) => {
         // Individual measure batch
         if (this.isIndividualBatch(b)) {
-          b.rankOrder = sortingBatchIndividualRankOrder++;
+          b.rankOrder = opts.sortingBatchIndividualRankOrder++;
           b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
         }
         // Sampling batch
@@ -270,11 +272,11 @@ export class BatchUtils {
         // Sorting batch
         else {
           b.rankOrder = index + 1;
-          // Do NOT compute label on SORTING BATCH, because it need sorting QV values
+          // Do NOT compute label on SORTING BATCH, because it is need to retrieve QV values
           //b.label = ...
         }
 
-        this.computeRankOrder(b, sortingBatchIndividualRankOrder); // Loop
+        this.computeRankOrder(b, opts); // Loop
       });
   }
 
@@ -334,11 +336,11 @@ export class BatchUtils {
           ? // Recursive call
             BatchUtils.sumObservedIndividualCount(b.children)
           : // Or get value from individual batches
-          b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
-          ? toNumber(b.individualCount, 1)
-          : // Default value, if not an individual batches
-            // Use '0' because we want only observed batches count
-            0
+            b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+            ? toNumber(b.individualCount, 1)
+            : // Default value, if not an individual batches
+              // Use '0' because we want only observed batches count
+              0
       )
       .reduce((sum, individualCount) => sum + individualCount, 0);
   }
@@ -689,10 +691,7 @@ export class BatchUtils {
    * @param filter
    */
   static findByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
-    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
-    if (!filterFn) throw new Error('Missing or empty filter argument');
-
-    return this.filterRecursively(batch, filterFn);
+    return TreeItemEntityUtils.findByFilter(batch, BatchFilter.fromObject(filter));
   }
 
   /**
@@ -702,46 +701,10 @@ export class BatchUtils {
    * @param filter
    */
   static deleteByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
-    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
-    if (!filterFn) throw new Error('Missing or empty filter argument');
-
-    return this.deleteRecursively(batch, filterFn);
+    return TreeItemEntityUtils.deleteByFilter(batch, BatchFilter.fromObject(filter));
   }
 
   /* -- internal functions -- */
-
-  /**
-   * Internal function
-   *
-   * @param batch
-   * @param filterFn
-   * @private
-   */
-  private static filterRecursively(batch: Batch, filterFn: (b: Batch) => boolean): Batch[] {
-    return (batch.children || []).reduce(
-      (res, child) => res.concat(this.filterRecursively(child, filterFn)),
-      // Init result
-      filterFn(batch) ? [batch] : []
-    );
-  }
-
-  /**
-   * Internal function
-   *
-   * @param batch
-   * @param filterFn
-   * @private
-   */
-  private static deleteRecursively(batch: Batch, filterFn: (b: Batch) => boolean, result: Batch[] = []): Batch[] {
-    if (isEmptyArray(batch.children)) return result; // Skip
-
-    // Delete children
-    const deletedBatches = batch.children.filter(filterFn);
-    batch.children = batch.children.filter((c) => !deletedBatches.includes(c));
-
-    // Recursive call, in still existing children
-    return batch.children.reduce((res, c) => res.concat(this.deleteRecursively(c, filterFn)), deletedBatches);
-  }
 
   /**
    * Reset controlDate and quality fLag and comment

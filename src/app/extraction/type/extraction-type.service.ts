@@ -21,7 +21,6 @@ import {
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ExtractionType, ExtractionTypeUtils } from './extraction-type.model';
-import { DataCommonFragments } from '@app/trip/trip/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -29,6 +28,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program } from '@app/referential/services/model/program.model';
 import { TranslateService } from '@ngx-translate/core';
 import { intersectArrays } from '@app/shared/functions';
+import { DataCommonFragments } from '@app/trip/common/data.fragments';
 
 export const ExtractionTypeFragments = {
   lightType: gql`
@@ -69,33 +69,33 @@ export const ExtractionTypeFragments = {
 };
 
 const Queries: BaseEntityGraphqlQueries = {
-
-  loadAll: gql`query ExtractionTypes($filter: ExtractionTypeFilterVOInput) {
+  loadAll: gql`
+    query ExtractionTypes($filter: ExtractionTypeFilterVOInput) {
       data: extractionTypes(filter: $filter) {
         ...ExtractionTypeFragment
       }
     }
-    ${ExtractionTypeFragments.type}`,
-
+    ${ExtractionTypeFragments.type}
+  `,
 };
 
-const fixWorkaroundDataFn = ({data, total}) => {
+const fixWorkaroundDataFn = ({ data, total }) => {
   // Workaround because saveAggregation() doest not add NEW extraction type correctly
-  data = (data || []).filter(e => {
+  data = (data || []).filter((e) => {
     if (isNil(e?.label)) {
       console.warn('[extraction-service] FIXME: Invalid extraction type (no format)... bad cache insertion in saveAggregation() ?');
       return false;
     }
     return true;
   });
-  return {data, total};
+  return { data, total };
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class ExtractionTypeService
   extends BaseEntityService<ExtractionType, ExtractionTypeFilter>
-  implements IEntitiesService<ExtractionType, ExtractionTypeFilter> {
-
+  implements IEntitiesService<ExtractionType, ExtractionTypeFilter>
+{
   constructor(
     protected graphql: GraphqlService,
     protected platformService: PlatformService,
@@ -104,27 +104,39 @@ export class ExtractionTypeService
     protected translate: TranslateService
   ) {
     super(graphql, platformService, ExtractionType, ExtractionTypeFilter, {
-      queries: Queries
+      queries: Queries,
     });
   }
 
-
-  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-          filter?: ExtractionTypeFilter,
-          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<ExtractionType>> {
-    return super.loadAll(offset, size, sortBy, sortDirection, filter, {
-      ...opts,
-      withTotal: false // Always false (loadAllWithTotal query not defined yet)
-    })
+  loadAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: ExtractionTypeFilter,
+    opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }
+  ): Promise<LoadResult<ExtractionType>> {
+    return super
+      .loadAll(offset, size, sortBy, sortDirection, filter, {
+        ...opts,
+        withTotal: false, // Always false (loadAllWithTotal query not defined yet)
+      })
       .then(fixWorkaroundDataFn);
   }
 
-  async existsByLabel(label: string, opts?: {fetchPolicy?: FetchPolicy}): Promise<boolean> {
+  async existsByLabel(label: string, opts?: { fetchPolicy?: FetchPolicy }): Promise<boolean> {
     if (isNilOrBlank(label)) return false;
 
-    const { data } = await this.loadAll(0,1,null, null, <ExtractionTypeFilter>{
-      label
-    }, opts);
+    const { data } = await this.loadAll(
+      0,
+      1,
+      null,
+      null,
+      <ExtractionTypeFilter>{
+        label,
+      },
+      opts
+    );
     return ReferentialUtils.isNotEmpty(data && data[0]);
   }
 
@@ -139,35 +151,34 @@ export class ExtractionTypeService
     filter?: ExtractionTypeFilter,
     options?: { fetchPolicy?: WatchQueryFetchPolicy }
   ): Observable<LoadResult<ExtractionType>> {
-
-    return super.watchAll(offset, size, sortBy, sortDirection, filter, options)
-      .pipe(map(fixWorkaroundDataFn));
+    return super.watchAll(offset, size, sortBy, sortDirection, filter, options).pipe(map(fixWorkaroundDataFn));
   }
 
-  insertIntoCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
+  insertIntoCache(cache: ApolloCache<{ data: any }>, entity: ExtractionType) {
     if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to insert into the cache.');
 
     console.info('[extraction-type-service] Inserting into cache:', entity);
     this.insertIntoMutableCachedQueries(cache, {
-       queries: this.getLoadQueries(),
-       data: entity
-     });
+      queries: this.getLoadQueries(),
+      data: entity,
+    });
   }
 
-  updateCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
+  updateCache(cache: ApolloCache<{ data: any }>, entity: ExtractionType) {
     if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to update the cache.');
 
     console.info('[extraction-type-service] Updating cache:', entity);
 
     // Remove, then insert, from extraction types
-    const exists = this.removeFromMutableCachedQueriesByIds(cache, {
-      queries: this.getLoadQueries(),
-      ids: entity.id
-    }) > 0;
+    const exists =
+      this.removeFromMutableCachedQueriesByIds(cache, {
+        queries: this.getLoadQueries(),
+        ids: entity.id,
+      }) > 0;
     if (exists) {
       this.insertIntoMutableCachedQueries(cache, {
         queries: this.getLoadQueries(),
-        data: entity
+        data: entity,
       });
     }
   }
@@ -176,12 +187,15 @@ export class ExtractionTypeService
    *
    * @protected
    */
-  watchAllByProgramLabels(programLabels: string[], filter?: Partial<ExtractionTypeFilter>, opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
-    return of(programLabels)
-      .pipe(
-        mergeMap(labels => this.programRefService.loadAllByLabels(labels)),
-        switchMap(programs => this.watchAllByPrograms(programs, filter, opts))
-      );
+  watchAllByProgramLabels(
+    programLabels: string[],
+    filter?: Partial<ExtractionTypeFilter>,
+    opts?: { fetchPolicy?: WatchQueryFetchPolicy }
+  ): Observable<ExtractionType[]> {
+    return of(programLabels).pipe(
+      mergeMap((labels) => this.programRefService.loadAllByLabels(labels)),
+      switchMap((programs) => this.watchAllByPrograms(programs, filter, opts))
+    );
   }
 
   /**
@@ -189,46 +203,56 @@ export class ExtractionTypeService
    *
    * @protected
    */
-  protected watchAllByPrograms(programs?: Program[], typeFilter?: Partial<ExtractionTypeFilter>, opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
+  protected watchAllByPrograms(
+    programs?: Program[],
+    typeFilter?: Partial<ExtractionTypeFilter>,
+    opts?: { fetchPolicy?: WatchQueryFetchPolicy }
+  ): Observable<ExtractionType[]> {
+    return of(programs).pipe(
+      filter(isNotEmptyArray),
+      // Get extraction formats of selected programs (apply an intersection)
+      map((values) => {
+        const formatArrays = values.map((program) => {
+          const programFormats = program.getPropertyAsStrings(ProgramProperties.EXTRACTION_FORMATS);
+          if (isNotEmptyArray(programFormats)) return programFormats;
+          // Not configured in program options: return all formats
+          return (ProgramProperties.EXTRACTION_FORMATS.values as Property[])
+            .map((item) => item.key?.toUpperCase()) // Extract the format (from option's key)
+            .filter((format) => format !== 'NA'); // Skip the 'NA' format
+        });
+        if (formatArrays.length === 1) return formatArrays[0];
+        return intersectArrays(formatArrays);
+      }),
 
-    // @ts-ignore
-    return of(programs)
-      .pipe(
-        filter(isNotEmptyArray),
-        // Get extraction formats of selected programs (apply an intersection)
-        map(values => {
-          const formatArrays = values.map(program => {
-            const programFormats = program.getPropertyAsStrings(ProgramProperties.EXTRACTION_FORMATS);
-            if (isNotEmptyArray(programFormats)) return programFormats;
-            // Not configured in program options: return all formats
-            return (ProgramProperties.EXTRACTION_FORMATS.values as Property[])
-              .map(item => item.key?.toUpperCase()) // Extract the format (from option's key)
-              .filter(format => format !== 'NA'); // Skip the 'NA' format
-          });
-          if (formatArrays.length === 1) return formatArrays[0];
-          return intersectArrays(formatArrays);
-        }),
+      // DEBUG
+      tap((formats) => console.debug(`[extraction-type-service] Watching types, filtered by formats [${formats.join(', ')}] ...`)),
 
-        // DEBUG
-        tap(formats => console.debug(`[extraction-type-service] Watching types, filtered by formats [${formats.join(', ')}] ...`)),
-
-        // Load extraction types, from program's formats
-        switchMap(formats => this.watchAll(0, 100, null, null, <ExtractionTypeFilter>{
+      // Load extraction types, from program's formats
+      switchMap((formats) =>
+        this.watchAll(
+          0,
+          100,
+          null,
+          null,
+          <ExtractionTypeFilter>{
             statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
             isSpatial: false,
             category: 'LIVE',
             ...typeFilter,
-            formats
-          }, opts)
-        ),
-
-        // Translate types, and sort
-        map(({data}) =>
-          // Compute i18n name
-           data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-            // Then sort by name
-            .sort(propertyComparator('name'))
+            formats,
+          },
+          opts
         )
-      );
+      ),
+
+      // Translate types, and sort
+      map(({ data }) =>
+        // Compute i18n name
+        data
+          .map((t) => ExtractionTypeUtils.computeI18nName(this.translate, t))
+          // Then sort by name
+          .sort(propertyComparator('name'))
+      )
+    );
   }
 }

@@ -9,16 +9,13 @@ const routes: Routes = [
     pathMatch: 'full',
     component: TaxonGroupPage,
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppTaxonGroupModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppTaxonGroupModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppTaxonGroupRoutingModule { }
+export class AppTaxonGroupRoutingModule {}

@@ -1,4 +1,4 @@
-<ng-container *ngIf="debug && false">
+<ng-container *ngIf="debug">
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
 </ng-container>
 
@@ -15,27 +15,51 @@
         [debug]="debug && false"
       ></app-batch-model-tree>
 
-      <ion-footer *ngIf="!mobile">
-        <ion-toolbar>
-          <ion-buttons slot="end">
-            <button
-              mat-icon-button
-              color="accent"
-              (click)="toggleTreePanelFloating()"
-              [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
-            >
-              <mat-icon>
-                <span>{{ floating ? '&#xbb;' : '&#xab;' }}</span>
-              </mat-icon>
-            </button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-footer>
+      <ion-item lines="none" *ngIf="mobile; else desktop">
+        <!-- panel buttons -->
+        <ng-container *ngTemplateOutlet="panelBottomButtons; context: { showControlButton: false }"></ng-container>
+      </ion-item>
+
+      <ng-template #desktop>
+        <ion-footer>
+          <ion-toolbar class="ion-padding-start">
+            <!-- panel buttons -->
+            <ng-container *ngTemplateOutlet="panelBottomButtons; context: { showControlButton: true }"></ng-container>
+          </ion-toolbar>
+        </ion-footer>
+      </ng-template>
+
+      <ng-template #panelBottomButtons let-showControlButton="showControlButton">
+        <!-- Control -->
+        <ion-button
+          [disabled]="disabled"
+          *ngIf="showControlButton && control.observed"
+          (click)="control.emit($event)"
+          [color]="dirty ? 'tertiary' : 'dark'"
+          [fill]="dirty ? 'solid' : 'clear'"
+          expand="block"
+          [innerHTML]="controlButtonText | translate"
+        ></ion-button>
+
+        <ion-buttons slot="end">
+          <!-- toggle tree panel floating -->
+          <button
+            mat-icon-button
+            color="accent"
+            (click)="toggleTreePanelFloating()"
+            [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
+          >
+            <mat-icon>
+              <span>{{ floating ? '&#xbb;' : '&#xab;' }}</span>
+            </mat-icon>
+          </button>
+        </ion-buttons>
+      </ng-template>
     </mat-sidenav>
 
     <mat-sidenav-content>
       <!-- Top toolbar -->
-      <mat-toolbar>
+      <mat-toolbar color="secondary">
         <!-- Toggle tree panel -->
         <ng-container *ngIf="floating">
           <button
@@ -44,7 +68,7 @@
             (click)="toggleTreePanel()"
             [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') | translate"
             matBadge="!"
-            [matBadgeHidden]="model.valid && model.childrenValid"
+            [matBadgeHidden]="model?.valid && model.childrenValid"
             matBadgeOverlap="true"
             matBadgeColor="accent"
             matBadgeSize="small"
@@ -62,11 +86,7 @@
         <ng-template #helpMessage>
           <ion-item color="transparent" class="help" lines="none" (click)="toggleTreePanel()" tappable>
             <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-            <ion-label
-              color="primary"
-              class="text-italic"
-              [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP' | translate"
-            ></ion-label>
+            <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP' | translate"></ion-label>
           </ion-item>
         </ng-template>
 
@@ -111,7 +131,7 @@
     <ion-header>
       <ion-toolbar color="secondary">
         <ion-buttons slot="start">
-          <ion-button (click)="modal.dismiss()">
+          <ion-button (click)="modal.dismiss()" *ngIf="!mobile">
             <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
           </ion-button>
 
@@ -121,7 +141,12 @@
         </ion-buttons>
 
         <ion-buttons slot="end">
-          <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
+          <!-- Navigation buttons -->
+          <ng-container *ngIf="mobile; else navigationButtons">
+            <ion-button (click)="modal.dismiss()">
+              <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+            </ion-button>
+          </ng-container>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -131,7 +156,9 @@
     </ion-content>
 
     <!-- Fab buttons -->
-    <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+    <ng-container *ngIf="mobile">
+      <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+    </ng-container>
   </ng-template>
 </ion-modal>
 
@@ -139,19 +166,15 @@
 <mat-menu #childrenMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-node="node" let-selected="selected">
     <!-- if hidden, show parent children -->
-    <ng-container *ngIf="node.hidden && node?.parent; let parent">
+    <ng-container *ngIf="node?.hidden && node.parent; let parent">
       <ng-container *ngFor="let item of parent.children">
-        <ng-container
-          *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"
-        ></ng-container>
+        <ng-container *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"></ng-container>
       </ng-container>
     </ng-container>
     <ng-container *ngFor="let item of node?.children">
       <ng-container *ngIf="item.hidden">
         <ng-container *ngFor="let subitem of item.children">
-          <ng-container
-            *ngTemplateOutlet="menuItemButton; context: { $implicit: subitem, selected: selected }"
-          ></ng-container>
+          <ng-container *ngTemplateOutlet="menuItemButton; context: { $implicit: subitem, selected: selected }"></ng-container>
         </ng-container>
       </ng-container>
       <ng-container *ngTemplateOutlet="menuItemButton; context: { $implicit: item, selected: selected }"></ng-container>
@@ -159,12 +182,7 @@
 
     <!-- display one menu item -->
     <ng-template #menuItemButton let-item let-selected="selected">
-      <button
-        mat-menu-item
-        *ngIf="!item.hidden"
-        [class.activated]="item === selected"
-        (click)="startEditBatch(null, item)"
-      >
+      <button mat-menu-item *ngIf="!item.hidden" [class.activated]="item === selected" (click)="startEditBatch(null, item)">
         <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
         <span
           matBadge="!"
@@ -189,7 +207,7 @@
 
   <ng-container *ngIf="parent && !parent.hidden">
     <!-- Allow to select a parent's brother -->
-    <ng-container *ngIf="parent.parent?.children | isArrayLength : { greaterThan: 1 }; else noParentBrother">
+    <ng-container *ngIf="parent.parent?.children | isArrayLength: { greaterThan: 1 }; else noParentBrother">
       <button
         mat-button
         class="breadcrumb"
@@ -265,25 +283,22 @@
     <ion-icon slot="icon-only" name="chevron-back-circle-outline"></ion-icon>
   </button>
   <button mat-icon-button (click)="forward($event)" [title]="'COMMON.BTN_FORWARD' | translate">
-    <ion-icon
-      *ngIf="highlightForwardButton; else normalIcon"
-      slot="icon-only"
-      name="chevron-forward-circle"
-      color="tertiary"
-    ></ion-icon>
+    <ion-icon *ngIf="highlightForwardButton; else normalIcon" slot="icon-only" name="chevron-forward-circle" color="tertiary"></ion-icon>
     <ng-template #normalIcon>
       <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
     </ng-template>
   </button>
 </ng-template>
+
 <ng-template #batchTreePanel>
   <app-batch-tree
     #batchTree
     (ngInit)="addChildForm(batchTree)"
-    [class.cdk-visually-hidden]="(editingBatch$ | push : rxStrategy) == null"
+    [class.cdk-visually-hidden]="(editingBatch$ | push: rxStrategy) == null"
     [queryTabIndexParamName]="queryTabIndexParamName"
-    [allowSpeciesSampling]="allowSamplingBatches$ | push : rxStrategy"
-    [allowSubBatches]="allowSubBatches$ | push : rxStrategy"
+    [allowSpeciesSampling]="allowSamplingBatches$ | push: rxStrategy"
+    [allowSubBatches]="allowSubBatches$ | push: rxStrategy"
+    [allowQvPmfmGroup]="false"
     [defaultHasSubBatches]="defaultHasSubBatches"
     [availableTaxonGroups]="availableTaxonGroups"
     [showAutoFillButton]="showAutoFillButton"
@@ -297,31 +312,30 @@
     [rxStrategy]="rxStrategy"
     [requiredGear]="requiredGear$ | async"
     [gearId]="gearId$ | async"
-    [debug]="debug && false"
+    [debug]="debug"
   ></app-batch-tree>
 </ng-template>
 
 <!-- Fab buttons -->
 <ng-template #fabButtons>
-  <!-- Fab button -->
+  <!-- bottom left -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <!-- Backward button -->
+    <ion-fab-button color="light" (click)="backward($event)" @fadeInOutAnimation>
+      <ion-icon name="chevron-back"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- bottom right -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <!-- Add button -->
-    <ion-fab-button
-      color="tertiary"
-      *ngIf="enabled && editingBatch?.isLeaf"
-      (click)="addRow($event)"
-      @fadeInOutAnimation
-    >
+    <ion-fab-button color="tertiary" *ngIf="enabled && editingBatch?.isLeaf" (click)="addRow($event)" @fadeInAnimation>
       <ion-icon name="fish"></ion-icon>
       <ion-icon name="add" class="icon-secondary" style="left: 29px; top: 4px; font-size: 23px"></ion-icon>
     </ion-fab-button>
 
     <!-- Forward button -->
-    <ion-fab-button
-      [color]="highlightForwardButton ? 'tertiary' : 'light'"
-      (click)="forward($event)"
-      @fadeInOutAnimation
-    >
+    <ion-fab-button [color]="highlightForwardButton ? 'tertiary' : 'light'" (click)="forward($event)" @fadeInOutAnimation>
       <ion-icon name="chevron-forward"></ion-icon>
     </ion-fab-button>
   </ion-fab>
@@ -333,22 +347,34 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          loading: {{ loading }}
-          <br />
           ready: {{ readySubject | async }}
           <br />
-          dirty: {{ dirty }}
+          loading: {{ loading }} (subject: {{ loadingSubject | async }})
           <br />
-          value: {{ !!data }}
+          dirty: {{ dirty }} - value: {{ !!data }}
           <br />
-          valid: {{ valid }}
+          valid: {{ valid }} - invalid: {{ invalid }}
           <br />
-          invalid: {{ invalid }}
+          disabled: {{ disabled }} - enabled: {{ enabled }}
           <br />
-          disabled: {{ disabled }}
+          program: {{ programLabel$ | async }}
           <br />
-          enabled: {{ enabled }}
+          strategy{{ requiredStrategy ? ' (required)' : '' }}: {{ strategyId }}
           <br />
+          gear{{ requiredGear ? ' (required)' : '' }}: {{ gearId }}
+          <br />
+          <br />
+          <ng-container *rxLet="editingBatch$; let editingBatch">
+            editingBatch.currentData: {{ editingBatch?.currentData.label }} {{ editingBatch?.currentData?.rankOrder }}
+            <br />
+            editingBatch.originalData: {{ editingBatch?.originalData?.label }} {{ editingBatch?.originalData?.rankOrder }}
+            <br />
+            editingBatch.path: {{ editingBatch?.path }}
+          </ng-container>
+          <br />
+          lastEditingBatch.path: {{ _lastEditingBatchPath }}
+          <br />
+          lastEditingBatch.path: {{ (_lastEditingBatchPath && model.get(_lastEditingBatchPath)?.originalData.label) || '' }}
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{ form.dirty }}
@@ -357,33 +383,27 @@
           <br />
           form.invalid: {{ form.invalid }}
           <br />
-          form.enabled: {{ form.enabled }}
+          form.disabled: {{ form.disabled }}
           <br />
-          form.value:
-          <br />
-          <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
         </ion-col>
         <ion-col>
-          batchTree.loading: {{ batchTree?.loading }}
-          <br />
           batchTree.ready: {{ batchTree?.readySubject | async }}
           <br />
-          batchTree.dirty: {{ batchTree?.dirty }}
+          batchTree.loading: {{ batchTree?.loading }}
           <br />
-          batchTree.value: {{ !!batchTree?.data }}
+          batchTree.dirty: {{ batchTree?.dirty }}
           <br />
           batchTree.valid: {{ batchTree?.valid }}
           <br />
           batchTree.enabled: {{ batchTree?.enabled }}
           <br />
+          <br />
+          batchTree.value: {{ batchTree?.value?.label || '' }}
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col size="12">
-          <ion-text
-            color="danger"
-            [innerHTML]="form$ | push : 'userBlocking' | translateFormError : errorTranslatorOptions"
-          ></ion-text>
+          <ion-text color="danger" [innerHTML]="form$ | push: 'userBlocking' | translateFormError: _errorTranslatorOptions"></ion-text>
         </ion-col>
       </ion-row>
     </ion-grid>

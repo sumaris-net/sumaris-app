@@ -1,10 +1,11 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   AppErrorWithDetails,
   AppFormUtils,
   AppTabEditor,
   AppTable,
   Entity,
+  firstNotNilPromise,
   IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
@@ -16,6 +17,7 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable, of } from 'rxjs';
@@ -45,14 +47,17 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { CatchBatchForm } from '@app/trip/batch/catch/catch.form';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { RxState } from '@rx-angular/state';
-import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
   program: Program;
+  requiredStrategy: boolean;
+  strategyId: number;
+  requiredGear: boolean;
   gearId: number;
   physicalGear: PhysicalGear;
   usageMode: UsageMode;
@@ -63,6 +68,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   allowSubBatches: boolean;
   availableTaxonGroups: TaxonGroupRef[];
   showAutoFillButton: boolean;
+  showToolbar?: boolean;
   mobile: boolean;
   modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
@@ -93,13 +99,15 @@ export interface IBatchTreeComponent extends IAppTabEditor {
  */
 export interface IBatchTreeStatus {
   valid: boolean;
-  rowCount: number|undefined;
+  rowCount: number | undefined;
 }
 
 export interface BatchTreeState {
   programLabel: string;
   program: Program;
   physicalGear: PhysicalGear;
+  requiredStrategy: boolean;
+  strategyId: number;
   requiredGear: boolean;
   gearId: number;
 
@@ -110,6 +118,7 @@ export interface BatchTreeState {
   showSubBatchesTable: boolean;
   allowSubBatches: boolean;
   programAllowMeasure: boolean;
+  data: Batch;
 }
 
 @Component({
@@ -125,35 +134,44 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   protected _logPrefix = '[batch-tree] ';
   protected _debugData: any;
 
-  data: Batch;
-  readonly programLabel$ = this._state.select('programLabel');
-  readonly program$ = this._state.select('program');
+  @RxStateRegister() protected readonly _state: RxState<BatchTreeState> = inject(RxState, { self: true });
+
+  @RxStateProperty() protected showSubBatchesTable: boolean;
+  @RxStateProperty() protected programAllowMeasure: boolean;
+  @RxStateProperty() protected data: Batch;
+
+  @RxStateSelect() readonly programLabel$: Observable<string>;
+  @RxStateSelect() readonly program$: Observable<Program>;
   readonly showSamplingBatchColumns$ = this._state.select(
     ['allowSpeciesSampling', 'programAllowMeasure'],
     ({ allowSpeciesSampling, programAllowMeasure }) => allowSpeciesSampling && programAllowMeasure
   );
-  readonly showCatchForm$ = this._state.select('showCatchForm');
-  readonly showBatchTables$ = this._state.select('showBatchTables');
-  readonly allowSubBatches$ = this._state.select('allowSubBatches');
-  readonly requiredGear$ = this._state.select('requiredGear');
-  readonly gearId$ = this._state.select('gearId');
-
-  protected set showSubBatchesTable(value: boolean) {
-    this._state.set('showSubBatchesTable', (_) => value);
-  }
-  protected get showSubBatchesTable() {
-    return this._state.get('showSubBatchesTable');
-  }
+  @RxStateSelect() readonly showCatchForm$: Observable<boolean>;
+  @RxStateSelect() readonly showBatchTables$: Observable<boolean>;
+  @RxStateSelect() readonly showSubBatchesTable$: Observable<boolean>;
+  @RxStateSelect() readonly programAllowMeasure$: Observable<boolean>;
+  @RxStateSelect() readonly allowSubBatches$: Observable<boolean>;
+  @RxStateSelect() readonly requiredStrategy$: Observable<boolean>;
+  @RxStateSelect() readonly strategyId$: Observable<number>;
+  @RxStateSelect() readonly requiredGear$: Observable<boolean>;
+  @RxStateSelect() readonly gearId$: Observable<number>;
 
   @Input() rootAcquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
   @Input() mobile: boolean;
+  @Input() showToolbar: boolean;
   @Input() useSticky = false;
   @Input() usageMode: UsageMode;
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
   @Input() showAutoFillButton = true;
-  @Input() debug = false;
+  @Input() allowQvPmfmGroup = true;
+  @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
+  @Input() @RxStateProperty() showCatchForm: boolean;
+  @Input() @RxStateProperty() showBatchTables: boolean;
+  @Input() @RxStateProperty() allowSpeciesSampling: boolean;
+  @Input() @RxStateProperty() allowSubBatches: boolean;
+  @Input() debug: boolean;
 
   @Input() set physicalGear(value: PhysicalGear) {
     this._state.set({
@@ -163,29 +181,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
   get physicalGear(): PhysicalGear {
     return this._state.get('physicalGear');
-  }
-
-  @Input() set samplingRatioFormat(value: SamplingRatioFormat) {
-    this._state.set('samplingRatioFormat', (_) => value);
-  }
-  get samplingRatioFormat(): SamplingRatioFormat {
-    return this._state.get('samplingRatioFormat');
-  }
-
-  @Input() set showCatchForm(value: boolean) {
-    this._state.set('showCatchForm', (_) => value);
-  }
-
-  get showCatchForm(): boolean {
-    return this._state.get('showCatchForm');
-  }
-
-  @Input() set showBatchTables(value: boolean) {
-    this._state.set('showBatchTables', (_) => value);
-  }
-
-  get showBatchTables(): boolean {
-    return this._state.get('showBatchTables');
   }
 
   @Input() set disabled(value: boolean) {
@@ -204,30 +199,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.form?.touched;
   }
 
-  get programAllowMeasure(): boolean {
-    return this._state.get('programAllowMeasure') || false;
-  }
-
-  set programAllowMeasure(value: boolean) {
-    this._state.set('programAllowMeasure', (_) => value);
-  }
-
-  @Input() set allowSpeciesSampling(value: boolean) {
-    this._state.set('allowSpeciesSampling', (_) => value);
-  }
-
-  get allowSpeciesSampling(): boolean {
-    return this._state.get('allowSpeciesSampling');
-  }
-
-  @Input() set allowSubBatches(value: boolean) {
-    this._state.set('allowSubBatches', (_) => value);
-  }
-
-  get allowSubBatches(): boolean {
-    return this._state.get('allowSubBatches');
-  }
-
   get isNewData(): boolean {
     return isNil(this.data?.id);
   }
@@ -241,38 +212,19 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.getValue();
   }
 
-  @Input()
-  set programLabel(value: string) {
-    this._state.set('programLabel', (_) => value);
-  }
-
-  get programLabel(): string {
-    return this._state.get('programLabel');
-  }
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() requiredStrategy: boolean;
+  @Input() @RxStateProperty() strategyId: number;
+  @Input() @RxStateProperty() requiredGear: boolean;
+  @Input() @RxStateProperty() gearId: number;
 
   @Input()
   set program(value: Program) {
     this._listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
     this._state.set('program', (_) => value);
   }
-
   get program(): Program {
     return this._state.get('program');
-  }
-
-  @Input() set requiredGear(value: boolean) {
-    this._state.set('requiredGear', (_) => value);
-  }
-  get requiredGear(): boolean {
-    return this._state.get('requiredGear');
-  }
-
-  @Input()
-  set gearId(value: number) {
-    this._state.set('gearId', (_) => value);
-  }
-  get gearId(): number {
-    return this._state.get('gearId');
   }
 
   @Input() set availableTaxonGroups(value: TaxonGroupRef[]) {
@@ -318,27 +270,21 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   get statusChanges(): Observable<FormControlStatus> {
     const delegates: Observable<any>[] = [
       // Listen on forms
-      ...(this.forms || []).filter(c => c.form).map((c) => c.form.statusChanges
-        .pipe(
-          startWith(c.form.invalid ? 'INVALID': 'VALID')
-        ),
-      ),
+      ...(this.forms || []).filter((c) => c.form).map((c) => c.form.statusChanges.pipe(startWith(c.form.invalid ? 'INVALID' : 'VALID'))),
       // Listen on tables
       ...(this.tables || []).map((t) =>
-        t.onStartEditingRow
-          .pipe(
-            //map(_ => t.editedRow),
-            switchMap(row => row.validator ? row.validator.statusChanges
-                .pipe(
-                  startWith(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID': 'VALID')
-                )
-              :
-              of(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID')),
-
-            // DEBUG
-            // tap(status => console.debug(this._logPrefix + 'table row status=', status)),
-            // finalize(() => console.debug(this._logPrefix + 'table row stop')),
+        t.onStartEditingRow.pipe(
+          //map(_ => t.editedRow),
+          switchMap((row) =>
+            row.validator
+              ? row.validator.statusChanges.pipe(startWith(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID'))
+              : of(qualityFlagInvalid(row.currentData?.qualityFlagId) ? 'INVALID' : 'VALID')
           )
+
+          // DEBUG
+          // tap(status => console.debug(this._logPrefix + 'table row status=', status)),
+          // finalize(() => console.debug(this._logPrefix + 'table row stop')),
+        )
       ),
     ];
     // Warn if empty
@@ -356,7 +302,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         if (this.valid) return <FormControlStatus>'VALID';
         return this.pending ? <FormControlStatus>'PENDING' : <FormControlStatus>'INVALID';
       }),
-      distinctUntilChanged(),
+      distinctUntilChanged()
 
       // DEBUG
       //tap((status) => this.debug && console.debug(this._logPrefix + 'Status changed: ' + status))
@@ -376,7 +322,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected programRefService: ProgramRefService,
     protected settings: LocalSettingsService,
     protected context: ContextService<BatchContext>,
-    protected _state: RxState<BatchTreeState>,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, navController, alertCtrl, translate, {
@@ -389,20 +334,19 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       prefix: '',
       suffix: '',
     };
-
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
+    const useSubBatchesService = this.mobile || !this.allowQvPmfmGroup;
     // Set defaults
-    this.tabCount = this.mobile ? 1 : 2;
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
+    this.tabCount = useSubBatchesService ? 1 : 2;
     this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
     this.allowSpeciesSampling = toBoolean(this.allowSpeciesSampling, true);
     this.allowSubBatches = toBoolean(this.allowSubBatches, true);
 
-    this._subBatchesService = this.mobile
+    this._subBatchesService = useSubBatchesService
       ? new InMemoryEntitiesService(SubBatch, SubBatchFilter, {
           equals: Batch.equals,
           sortByReplacement: { id: 'rankOrder' },
@@ -431,15 +375,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       )
     );
 
-    this._state.connect(
-      'showSubBatchesTable',
-      this._state.select(
-        ['allowSubBatches', 'programAllowMeasure'],
-        ({ allowSubBatches, programAllowMeasure }) => allowSubBatches && programAllowMeasure
-      )
-    );
-
-    this._state.hold(this._state.select('showSubBatchesTable'), (showSubBatchesTable) => {
+    this._state.hold(this.showSubBatchesTable$, (showSubBatchesTable) => {
       // If disabled
       if (!showSubBatchesTable) {
         // Reset existing sub batches
@@ -478,7 +414,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           this.subBatchesTable.readySubject,
           this.batchGroupsTable.dataSource.rowsSubject.pipe(map(isNotEmptyArray)),
           this.allowSubBatches$,
-        ]).pipe(map(([hasPmfms, ready, howBatchGroupRows, allowSubBatches]) => (hasPmfms && ready && howBatchGroupRows && allowSubBatches) || false))
+          this.programAllowMeasure$,
+        ]).pipe(
+          filter(([_, ready]) => ready),
+          map(
+            ([hasPmfms, ready, howBatchGroupRows, allowSubBatches, programAllowMeasure]) =>
+              (hasPmfms && ready && howBatchGroupRows && allowSubBatches && programAllowMeasure) || false
+          )
+        )
       );
 
       // Update available parent on individual batch table, when batch group changes
@@ -489,6 +432,17 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           map((_) => this.batchGroupsTable.dataSource.getData())
         ),
         (parents) => (this.subBatchesTable.availableParents = parents)
+      );
+    } else {
+      this._state.connect(
+        'showSubBatchesTable',
+        combineLatest([
+          this.batchGroupsTable.dataSource.rowsSubject.pipe(map(isNotEmptyArray)),
+          this.allowSubBatches$,
+          this.programAllowMeasure$,
+        ]).pipe(
+          map(([howBatchGroupRows, allowSubBatches, programAllowMeasure]) => (howBatchGroupRows && allowSubBatches && programAllowMeasure) || false)
+        )
       );
     }
   }
@@ -600,10 +554,15 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       console.warn(`[batch-tree] Invalid root batch label. Expected: ${this.rootAcquisitionLevel} - Actual: ${source.label}`);
     }
 
-    // DEBUG
-    //console.debug(this._logPrefix + 'setValue()', source);
-    this.markAsLoading({emitEvent: false});
-    this.markAsNotReady({emitEvent: false});
+    const waitOpts = { stop: this.destroySubject, stopError: false };
+    await this.ready(waitOpts);
+
+    let strategyId = this.strategyId;
+    if (this.requiredStrategy && isNil(strategyId)) {
+      strategyId = await firstNotNilPromise(this.strategyId$, waitOpts);
+    }
+
+    this.markAsLoading({ emitEvent: false });
 
     try {
       this.data = source;
@@ -619,6 +578,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           childrenLabelPrefix = `${samplingSource.label}.`;
         }
 
+        this.catchBatchForm.requiredStrategy = this.requiredStrategy;
+        this.catchBatchForm.strategyId = strategyId;
         this.catchBatchForm.gearId = this.gearId;
         this.catchBatchForm.markAsReady();
         await this.catchBatchForm.setValue(target);
@@ -630,11 +591,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(samplingSource || source);
 
         // Apply to table
+        this.batchGroupsTable.requiredStrategy = this.requiredStrategy;
+        this.batchGroupsTable.strategyId = strategyId;
         this.batchGroupsTable.gearId = this.gearId;
         this.batchGroupsTable.labelPrefix = childrenLabelPrefix;
         this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
-        await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)
+        await this.batchGroupsTable.ready(waitOpts); // Wait loaded (need to be sure the QV pmfm is set)
 
         const groupQvPmfm = this.batchGroupsTable.qvPmfm;
         const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
@@ -642,6 +605,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         });
 
         if (this.subBatchesTable) {
+          this.subBatchesTable.requiredStrategy = this.requiredStrategy;
+          this.subBatchesTable.strategyId = strategyId;
           this.subBatchesTable.qvPmfm = groupQvPmfm;
           this.subBatchesTable.value = subBatches;
           const ready = this.subBatchesTable.setAvailableParents(batchGroups, {
@@ -668,8 +633,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected method -- */
 
-
-
   protected get form(): UntypedFormGroup {
     return this.catchBatchForm.form;
   }
@@ -687,7 +650,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   async setProgram(program: Program, opts = { emitEvent: true }) {
     if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.markAsLoading({emitEvent: false});
+    this.markAsLoading({ emitEvent: false });
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -695,8 +658,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     const programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
     this.programAllowMeasure = programAllowMeasure;
-    this.allowSpeciesSampling = this.allowSpeciesSampling && programAllowMeasure;
-    this.allowSubBatches = this.allowSubBatches && programAllowMeasure;
+    this.allowSpeciesSampling = programAllowMeasure && this.allowSpeciesSampling;
+    this.allowSubBatches = programAllowMeasure && this.allowSubBatches;
     this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
     const samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT) as SamplingRatioFormat;
     this.samplingRatioFormat = samplingRatioFormat;
@@ -772,13 +735,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Emit to children
       if (!opts || opts.onlySelf !== true) {
-        this.children.filter(c => c.loading)
-          .forEach(c => c.markAsLoading(opts));
+        this.children.filter((c) => c.loading).forEach((c) => c.markAsLoading(opts));
       }
 
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
-
   }
 
   markAsNotReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -796,6 +757,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
+  }
+
+  markChildrenAsNotReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    // Emit to children
+    this.children
+      ?.map((c) => (c as any)['readySubject'])
+      .filter((readySubject) => readySubject && readySubject.value !== false)
+      .forEach((readySubject) => readySubject.next(false));
   }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {
@@ -865,8 +834,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return -1;
   }
 
-  waitIdle(): Promise<any> {
-    return AppFormUtils.waitIdle(this);
+  waitIdle(opts?: WaitForOptions): Promise<any> {
+    return AppFormUtils.waitIdle(this, { stop: this.destroySubject, ...opts });
   }
 
   setFilter(dataFilter: BatchFilter) {

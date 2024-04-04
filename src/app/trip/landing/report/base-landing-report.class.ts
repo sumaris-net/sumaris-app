@@ -1,4 +1,4 @@
-import {Directive, Injector, OnDestroy, Optional} from '@angular/core';
+import { Directive, Injector, OnDestroy, Optional } from '@angular/core';
 import {
   EntityAsObjectOptions,
   EntityServiceLoadOptions,
@@ -6,32 +6,28 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrNaN, ReferentialRef,
+  isNotNilOrNaN,
+  ReferentialRef,
 } from '@sumaris-net/ngx-components';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {AcquisitionLevelCodes, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {environment} from '@environments/environment';
-import {
-  AppDataEntityReport,
-  DataEntityReportOptions,
-  DataReportStats,
-} from '@app/data/report/data-entity-report.class';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {IComputeStatsOpts, IReportI18nContext} from '@app/data/report/base-report.class';
-import {Landing} from '@app/trip/landing/landing.model';
-import {ObservedLocationService} from '@app/trip/observedlocation/observed-location.service';
-import {LandingService} from '@app/trip/landing/landing.service';
-import {ObservedLocation} from '@app/trip/observedlocation/observed-location.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from '@app/trip/trip.config';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {Trip} from '@app/trip/trip/trip.model';
-import {FishingArea} from '@app/data/fishing-area/fishing-area.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { environment } from '@environments/environment';
+import { AppDataEntityReport, DataEntityReportOptions, DataReportStats } from '@app/data/report/data-entity-report.class';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
+import { Landing } from '@app/trip/landing/landing.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { Trip } from '@app/trip/trip/trip.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export class LandingStats extends DataReportStats {
-
   sampleCount: number;
   images?: ImageAttachment[];
   pmfms: IPmfm[];
@@ -43,22 +39,22 @@ export class LandingStats extends DataReportStats {
   metiers: ReferentialRef[];
   fishingAreas: FishingArea[];
 
-  fromObject(source: any){
+  fromObject(source: any) {
     super.fromObject(source);
     this.sampleCount = source.sampleCount;
-    this.images = source.images.map(item => ImageAttachment.fromObject(item));
-    this.pmfms = source.pmfms.map(item => DenormalizedPmfmStrategy.fromObject(item));
+    this.images = source.images.map((item) => ImageAttachment.fromObject(item));
+    this.pmfms = source.pmfms.map((item) => DenormalizedPmfmStrategy.fromObject(item));
     this.weightDisplayedUnit = source.weightDisplayedUnit;
     this.taxonGroup = TaxonGroupRef.fromObject(source.taxonGroup);
     this.taxonName = TaxonNameRef.fromObject(source.taxonName);
     this.strategyLabel = source.strategyLabel;
-  };
+  }
 
   asObject(opts?: EntityAsObjectOptions): any {
-    return  {
+    return {
       sampleCount: this.sampleCount,
-      images: this.images.map(item => item.asObject()),
-      pmfms: this.pmfms.map(item => item.asObject()),
+      images: this.images.map((item) => item.asObject()),
+      pmfms: this.pmfms.map((item) => item.asObject()),
       program: this.program.asObject(),
       weightDisplayedUnit: this.weightDisplayedUnit,
       taxonGroup: this.taxonGroup?.asObject(),
@@ -66,13 +62,10 @@ export class LandingStats extends DataReportStats {
       strategyLabel: this.strategyLabel,
     };
   }
-
 }
 
 @Directive()
-export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
-  extends AppDataEntityReport<Landing, number, S> implements OnDestroy {
-
+export abstract class BaseLandingReport<S extends LandingStats = LandingStats> extends AppDataEntityReport<Landing, number, S> implements OnDestroy {
   protected logPrefix = 'base-landing-report';
 
   protected readonly observedLocationService: ObservedLocationService;
@@ -81,15 +74,15 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
 
   constructor(
     protected injector: Injector,
-    protected statsType: new() => S,
-    @Optional() options?: DataEntityReportOptions,
+    protected statsType: new () => S,
+    @Optional() options?: DataEntityReportOptions
   ) {
     super(injector, Landing, statsType, options);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
 
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
-      throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
+      throw new Error("Unable to load from route: missing 'route' or 'options.pathIdAttribute'.");
     }
   }
 
@@ -102,7 +95,7 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
     // this.addFakeSamplesForDev(data);
 
     // Remove technical label (starting with #)
-    (data.samples || []).forEach(sample => {
+    (data.samples || []).forEach((sample) => {
       // Remove invalid sample label
       if (sample.label?.startsWith('#')) sample.label = null;
     });
@@ -133,31 +126,34 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
     stats.program = await this.programRefService.loadByLabel(parent.program.label);
 
     // Compute agg data
-    stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
-    stats.taxonName = (data.samples || []).find(s => isNotNil(s.taxonName?.referenceTaxonId))?.taxonName;
-    stats.metiers = ((data.trip as Trip)?.metiers || []);
-    stats.fishingAreas = ((data.trip as Trip)?.fishingAreas || []);
+    stats.taxonGroup = (data.samples || []).find((s) => !!s.taxonGroup?.name)?.taxonGroup;
+    stats.taxonName = (data.samples || []).find((s) => isNotNil(s.taxonName?.referenceTaxonId))?.taxonName;
+    stats.metiers = (data.trip as Trip)?.metiers || [];
+    stats.fishingAreas = (data.trip as Trip)?.fishingAreas || [];
 
-    stats.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT, stats.program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT));
+    stats.weightDisplayedUnit = this.settings.getProperty(
+      TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
+      stats.program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT)
+    );
 
-    const pmfms = stats.pmfms || await this.programRefService.loadProgramPmfms(stats.program.label, {
-      acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-      taxonGroupId: stats.taxonGroup?.id,
-      referenceTaxonId: stats.taxonName?.referenceTaxonId
-    });
-    stats.pmfms = (stats.weightDisplayedUnit)
-      ? PmfmUtils.setWeightUnitConversions(pmfms, stats.weightDisplayedUnit)
-      : pmfms;
+    const pmfms =
+      stats.pmfms ||
+      (await this.programRefService.loadProgramPmfms(stats.program.label, {
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+        taxonGroupId: stats.taxonGroup?.id,
+        referenceTaxonId: stats.taxonName?.referenceTaxonId,
+      }));
+    stats.pmfms = stats.weightDisplayedUnit ? PmfmUtils.setWeightUnitConversions(pmfms, stats.weightDisplayedUnit) : pmfms;
 
     // Compute sample count
     stats.sampleCount = data.samples?.length || 0;
 
     // Compute images, with title
     stats.images = (data.samples || [])
-      .filter(s => isNotEmptyArray(s.images))
-      .flatMap(s => {
+      .filter((s) => isNotEmptyArray(s.images))
+      .flatMap((s) => {
         // Add title to image
-        s.images.forEach(image => {
+        s.images.forEach((image) => {
           image.title = image.title || s.label || `#${s.rankOrder}`;
         });
         return s.images;
@@ -181,5 +177,4 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats>
     }
     data.samples = samples;
   }
-
 }

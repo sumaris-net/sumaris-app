@@ -9,16 +9,13 @@ const routes: Routes = [
     pathMatch: 'full',
     component: MetierPage,
     data: {
-      profile: 'ADMIN'
-    }
-  }
+      profile: 'ADMIN',
+    },
+  },
 ];
 
 @NgModule({
-  imports: [
-    AppMetierModule,
-    RouterModule.forChild(routes)
-  ],
-  exports: [RouterModule]
+  imports: [AppMetierModule, RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
-export class AppMetierRoutingModule { }
+export class AppMetierRoutingModule {}

@@ -1,7 +1,6 @@
 import { LocationUtils } from '@app/referential/location/location.utils';
 
 describe('LocationUtils', () => {
-
   it('Get atlantic rectangle label, by lat/lon', () => {
     expect(LocationUtils.getRectangleLabelByLatLong(47.6, -5.05)).toBe('24E4');
     expect(LocationUtils.getRectangleLabelByLatLong(48, -5.01)).toBe('25E4');

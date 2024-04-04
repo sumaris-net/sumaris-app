@@ -23,6 +23,7 @@ import {
 import { Color, ColorScale, ColorScaleOptions, isNil } from '@sumaris-net/ngx-components';
 import chartTrendline from 'chartjs-plugin-trendline';
 import { BoxAndWiskers, BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
+import { TechChartConfiguration } from '@app/extraction/map/extraction-map.page';
 
 declare type ThresholdLineStyle = 'solid' | 'dashed' | string;
 interface ThresholdLineOptions {
@@ -43,7 +44,6 @@ export interface ChartJsUtilsThresholdLineOptions<TType extends keyof ChartTypeR
 export const ChartJsPluginThresholdLine: Plugin<any> = {
   id: 'thresholdline',
   afterDraw(chart: Chart & ChartJsUtilsThresholdLineOptions<any>) {
-
     function computeStop(scale: Scale<any>, value: number) {
       if (!scale || isNil(value)) throw new Error(`Missing required argument 'scale' or 'value'`);
       const lengthType = scale['id']?.[0] === 'y' ? 'height' : 'width';
@@ -89,12 +89,14 @@ export const ChartJsPluginThresholdLine: Plugin<any> = {
     let stopVal: number;
     try {
       stopVal = computeStop(scale, param.value);
-    }
-    catch (e) {
+    } catch (e) {
       console.error('Error while trying to compute the stopVal: ' + e?.message, e);
       return;
     }
-    let xStart = 0; let xStop = 0; let yStart = 0; let yStop = 0;
+    let xStart = 0;
+    let xStop = 0;
+    let yStart = 0;
+    let yStop = 0;
     if (param.orientation === 'y') {
       yStart = yStop = chart.chartArea.bottom - stopVal;
       xStart = chart.chartArea.left;
@@ -126,7 +128,6 @@ export const ChartJsPluginThresholdLine: Plugin<any> = {
   },
 };
 
-
 interface MedianLineOptions {
   color?: string;
   style?: 'solid' | 'dashed';
@@ -143,13 +144,12 @@ export interface ChartJsUtilsMedianLineOptions<TType extends keyof ChartTypeRegi
 export const ChartJsPluginMedianLine: Plugin<any> = {
   id: 'medianline',
   afterDraw(chart: Chart<any> & ChartJsUtilsMedianLineOptions<any>) {
-
     function getStartStopFromOrientation(
       area: ChartArea,
       scales: { x: Scale<any>; y: Scale<any> },
       orientation: 'x' | 'y' | 'b'
     ): { start: { x: number; y: number }; stop: { x: number; y: number } } {
-      const res = {start: {x: 0, y: 0}, stop: {x: 0, y: 0}};
+      const res = { start: { x: 0, y: 0 }, stop: { x: 0, y: 0 } };
       let median = 0;
       switch (orientation) {
         case 'x':
@@ -190,10 +190,10 @@ export const ChartJsPluginMedianLine: Plugin<any> = {
 
     // Get the first x and y scale on the chart
     const scales: { x: Scale<any>; y: Scale<any> } = ((scales: { [key: string]: Scale }) => {
-      const {x, y} = scales;
-      return {x, y};
+      const { x, y } = scales;
+      return { x, y };
     })(chart['scales']);
-    if (Object.entries(scales).find(s => s === undefined)) {
+    if (Object.entries(scales).find((s) => s === undefined)) {
       console.warn(`[ChartJsPluginMedianLine.getStartStopFromOrientation] least one scale (x,y) is undefined`, scales);
     }
 
@@ -211,7 +211,6 @@ export const ChartJsPluginMedianLine: Plugin<any> = {
 };
 
 export class ChartJsUtils {
-
   private static _commonsRegistered = false;
   private static _pluginsRegistered = false;
 
@@ -222,7 +221,18 @@ export class ChartJsUtils {
 
   static registerCommons() {
     if (this._commonsRegistered) return; // Skip
-    Chart.register(LineController, LineElement, PointElement, BarElement, BarController, DoughnutController, Title, LinearScale, LogarithmicScale, CategoryScale);
+    Chart.register(
+      LineController,
+      LineElement,
+      PointElement,
+      BarElement,
+      BarController,
+      DoughnutController,
+      Title,
+      LinearScale,
+      LogarithmicScale,
+      CategoryScale
+    );
     this._commonsRegistered = true;
   }
 
@@ -237,16 +247,16 @@ export class ChartJsUtils {
   }
 
   static computeChartPoints(values: number[][], radius: number = 6): Point[] {
-    return values.map(s => ({x: s[0], y: s[1], r: radius}));
+    return values.map((s) => ({ x: s[0], y: s[1], r: radius }));
   }
 
   static computeColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string; color: Color }[] {
     const count = labels.length;
     const colorScale = ColorScale.custom(count, { min: 1, max: labels.length, ...options });
     return labels.map((label, index) => ({
-        label,
-        color: colorScale.getLegendAtIndex(index).color,
-      }));
+      label,
+      color: colorScale.getLegendAtIndex(index).color,
+    }));
   }
 
   static getMinMaxOfSetsOfDataSets(setOfDataset: number[][]): { min; max } {
@@ -255,36 +265,32 @@ export class ChartJsUtils {
   }
 
   static pushLabels(chart: ChartConfiguration, labels: string[]) {
-    chart.data = chart.data || {datasets: []};
+    chart.data = chart.data || { datasets: [] };
     if (isNil(chart.data.labels)) {
       chart.data.labels = labels;
-    }
-    else {
+    } else {
       chart.data.labels.push(...labels);
     }
   }
   static setLabels(chart: ChartConfiguration, labels: string[]) {
-    chart.data = chart.data || {datasets: undefined};
+    chart.data = chart.data || { datasets: undefined };
     chart.data.labels = labels;
   }
 
   static pushDataSet(chart: ChartConfiguration, dataset: ChartDataset) {
-    chart.data = chart.data || {datasets: []};
+    chart.data = chart.data || { datasets: [] };
     if (isNil(chart.data.datasets)) chart.data.datasets = [dataset];
     else chart.data.datasets.push(dataset);
   }
 
-  static setSingleDataSet(chart: ChartConfiguration, dataset: ChartDataset) {
-    chart.data = chart.data || {datasets: undefined};
+  static setSingleDataSet(chart: ChartConfiguration | TechChartConfiguration, dataset: ChartDataset) {
+    chart.data = chart.data || { datasets: undefined };
     chart.data.datasets = [dataset];
   }
 }
 
 export class ChartJsUtilsColor {
-
   static getDerivativeColor(color: Color, count: number): Color[] {
-    return ColorScale.custom(count, { mainColor: color.rgb })
-      .legend.items
-      .map(legendItem => legendItem.color);
+    return ColorScale.custom(count, { mainColor: color.rgb }).legend.items.map((legendItem) => legendItem.color);
   }
 }

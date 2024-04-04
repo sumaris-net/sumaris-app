@@ -12,27 +12,20 @@ const routes: Routes = [
   },
   {
     path: 'landing',
-    loadChildren: () => import('./landing-routing.module').then(m => m.AppLandingRoutingModule)
+    loadChildren: () => import('./landing-routing.module').then((m) => m.AppLandingRoutingModule),
   },
   {
     path: 'control',
-    loadChildren: () => import('./auction-control/auction-control-routing.module').then(m => m.AppAuctionControlRoutingModule)
+    loadChildren: () => import('./auction-control/auction-control-routing.module').then((m) => m.AppAuctionControlRoutingModule),
   },
   {
     path: 'sampling',
-    loadChildren: () => import('./sampling/sampling-landing-routing.module').then(m => m.AppSamplingLandingRoutingModule)
-  }
+    loadChildren: () => import('./sampling/sampling-landing-routing.module').then((m) => m.AppSamplingLandingRoutingModule),
+  },
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AppLandingModule,
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes), AppLandingModule],
+  exports: [RouterModule],
 })
-export class AppLandingsRoutingModule {
-}
+export class AppLandingsRoutingModule {}

@@ -7,6 +7,7 @@ import {
   EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
+  isNilOrNaN,
   isNotEmptyArray,
   isNotNil,
   ObjectMap,
@@ -63,10 +64,9 @@ interface SamplingStrategiesTableState {
   templateUrl: 'sampling-strategies.table.html',
   styleUrls: ['sampling-strategies.table.scss'],
   providers: [RxState],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> implements OnInit {
-
   private _program: Program;
 
   readonly canEdit$ = this._state.select('canEdit');
@@ -88,13 +88,13 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() showToolbar = true;
 
   @Input() set canEdit(value: boolean) {
-    this._state.set('canEdit', _ => value);
+    this._state.set('canEdit', (_) => value);
   }
   get canEdit(): boolean {
     return this._state.get('canEdit');
   }
   @Input() set canDelete(value: boolean) {
-     this._state.set('canDelete', _ => value);
+    this._state.set('canDelete', (_) => value);
   }
   get canDelete(): boolean {
     return this._state.get('canDelete');
@@ -107,16 +107,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @Input() cellTemplate: TemplateRef<any>;
 
   @Input() set program(program: Program) {
-   this.setProgram(program);
+    this.setProgram(program);
   }
 
   get program(): Program {
     return this._program;
   }
 
-  @Output() onNewDataFromRow = new Subject<{row: TableElement<SamplingStrategy>; event: Event}>();
+  @Output() onNewDataFromRow = new Subject<{ row: TableElement<SamplingStrategy>; event: Event }>();
 
-  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,
@@ -130,30 +130,31 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected _state: RxState<SamplingStrategiesTableState>,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector,
+    super(
+      injector,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'analyticReference',
-          'recorderDepartments',
-          'locations',
-          'taxonNames',
-          'comments',
-          'parameterGroups',
-          'effortQ1',
-          'effortQ2',
-          'effortQ3',
-          'effortQ4'])
-        .concat(RESERVED_END_COLUMNS),
+      RESERVED_START_COLUMNS.concat([
+        'label',
+        'analyticReference',
+        'recorderDepartments',
+        'locations',
+        'taxonNames',
+        'comments',
+        'parameterGroups',
+        'effortQ1',
+        'effortQ2',
+        'effortQ3',
+        'effortQ4',
+      ]).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource(SamplingStrategy, samplingStrategyService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
         readOnly: true,
         watchAllOptions: {
-          withTotal: true
-        }
-      }));
+          withTotal: true,
+        },
+      })
+    );
 
     this.parameterGroupLabels = ['LENGTH', 'WEIGHT', 'SEX', 'MATURITY', 'AGE'];
 
@@ -167,18 +168,18 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       //recorderPerson: [null, SharedValidators.entity],
-      effortByQuarter : formBuilder.group({
+      effortByQuarter: formBuilder.group({
         1: [null],
         2: [null],
         3: [null],
-        4: [null]
+        4: [null],
       }),
-      parameterGroups : formBuilder.group(
+      parameterGroups: formBuilder.group(
         this.parameterGroupLabels.reduce((controlConfig, label) => {
           controlConfig[label] = [null];
           return controlConfig;
         }, {})
-      )
+      ),
     });
 
     this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.'; // Can be overwritten by a program property - see setProgram()
@@ -193,7 +194,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     this._state.set({
       canEdit: false,
-      canDelete: false
+      canDelete: false,
     });
 
     // FOR DEV ONLY ----
@@ -210,20 +211,21 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.selection.changed.subscribe(() => this.resetError());
 
     // Watch 'canEdit' and 'canDelete' to update 'readonly'
-    this._state.hold(this._state.select(['canEdit', 'canDelete'], res => res).pipe(debounceTime(250)),
-      ({canEdit, canDelete}) => {
-        this.readOnly = !canEdit && !canDelete;
-        this.markForCheck();
-      });
+    this._state.hold(this._state.select(['canEdit', 'canDelete'], (res) => res).pipe(debounceTime(250)), ({ canEdit, canDelete }) => {
+      this.readOnly = !canEdit && !canDelete;
+      this.markForCheck();
+    });
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.strategyService.suggestAnalyticReferences(value, {
-        ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }),
+      suggestFn: (value, filter) =>
+        this.strategyService.suggestAnalyticReferences(value, {
+          ...filter,
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        }),
       columnSizes: [4, 6],
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
@@ -231,9 +233,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       service: this.referentialRefService,
       filter: {
         entityName: 'Department',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
@@ -243,14 +245,14 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         await this.referentialRefService.ready();
         return this.referentialRefService.suggest(value, {
           ...filter,
-          levelIds: LocationLevelGroups.FISHING_AREA
+          levelIds: LocationLevelGroups.FISHING_AREA,
         });
       },
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     this.registerAutocompleteField<TaxonNameRef, TaxonNameRefFilter>('taxonName', {
@@ -259,9 +261,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       attributes: ['name'],
       filter: {
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Combo: recorder person (filter)
@@ -269,11 +271,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       showAllOnFocus: false,
       service: this.personService,
       filter: {
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       attributes: ['lastName', 'firstName', 'department.name'],
       displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
 
     // Update filter when changes
@@ -287,13 +289,14 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
             this.filterCriteriaCount = filter.countNotEmptyCriteria() - 1 /* remove the levelId (always exists) */;
             this.markForCheck();
             // Update the filter, without reloading the content
-            this.setFilter(filter, {emitEvent: false});
+            this.setFilter(filter, { emitEvent: false });
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
+          tap((json) => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
         )
-        .subscribe());
+        .subscribe()
+    );
   }
 
   highlightRow(row: TableElement<SamplingStrategy>) {
@@ -301,7 +304,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.markForCheck();
   }
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
+  clickRow(event: MouseEvent | undefined, row: TableElement<SamplingStrategy>): boolean {
     this.highlightedRowId = row?.id;
     return super.clickRow(event, row);
   }
@@ -310,18 +313,19 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const rowsToDelete = this.selection.selected;
 
     const strategyLabelsWithData = (rowsToDelete || [])
-      .map(row => row.currentData as SamplingStrategy)
+      .map((row) => row.currentData as SamplingStrategy)
       .map(SamplingStrategy.fromObject)
-      .filter(strategy => strategy.hasRealizedEffort)
-      .map(s => s.label);
+      .filter((strategy) => strategy.hasRealizedEffort)
+      .map((s) => s.label);
 
     // send error if one strategy has landing
     if (isNotEmptyArray(strategyLabelsWithData)) {
-      this.errorDetails = {label: strategyLabelsWithData.join(', ')};
-      this.setError(strategyLabelsWithData.length === 1
-        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
-        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
-      const message = this.translate.instant(strategyLabelsWithData.length === 1 ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA' : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA', this.errorDetails);
+      this.errorDetails = { label: strategyLabelsWithData.join(', ') };
+      this.setError(strategyLabelsWithData.length === 1 ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA' : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
+      const message = this.translate.instant(
+        strategyLabelsWithData.length === 1 ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA' : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA',
+        this.errorDetails
+      );
       await Alerts.showError(message, this.alertCtrl, this.translate);
       return 0;
     }
@@ -352,11 +356,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   resetFilter(json?: any) {
     json = {
       ...json,
-      levelId: json?.levelId || this._program?.id
+      levelId: json?.levelId || this._program?.id,
     };
     const filter = this.asFilter(json);
     AppFormUtils.copyEntity2Form(json, this.filterForm);
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, { emitEvent: true });
   }
 
   resetFilterAndClose() {
@@ -364,9 +368,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.resetFilter();
   }
 
-  onNewData(event: Event, row: TableElement<SamplingStrategy>) {
-
-  }
+  onNewData(event: Event, row: TableElement<SamplingStrategy>) {}
 
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;
@@ -374,7 +376,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   /* -- protected methods -- */
-
 
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id) && this._program !== program) {
@@ -386,7 +387,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
       // Add a i18n suffix (e.g. in Biological sampling program)
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
+      this.i18nColumnPrefix += (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
       // Restore filter from settings, or load all
       this.restoreFilterOrLoad(program.id);
@@ -411,7 +412,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     this.resetFilter({
       ...json,
-      levelId: programId
+      levelId: programId,
     });
   }
 
@@ -436,12 +437,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return filter;
   }
 
-
   protected asFilterParameterIds(source?: any): number[] {
-
     const checkedParameterGroupLabels = Object.keys(source.parameterGroups || {})
       // Filter on checked item
-      .filter(label => source.parameterGroups[label] === true);
+      .filter((label) => source.parameterGroups[label] === true);
 
     const parameterIds = checkedParameterGroupLabels.reduce((res, groupLabel) => res.concat(this.parameterIdsByGroupLabel[groupLabel]), []);
 
@@ -451,25 +450,25 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   protected asFilterPeriods(source: any): any[] {
-    const selectedQuarters: number[] = source.effortByQuarter && this.quarters.filter(quarter => source.effortByQuarter[quarter] === true);
+    const selectedQuarters: number[] = source.effortByQuarter && this.quarters.filter((quarter) => source.effortByQuarter[quarter] === true);
     if (isEmptyArray(selectedQuarters)) return undefined; // Skip if no quarters selected
 
     // Start year (<N - 10> by default)
     // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
     //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
-    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || (moment().year() - 10);
+    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || moment().year() - 10;
     // End year (N + 1 by default)
-    const endYear = fromDateISOString(source.endDate)?.clone().local(true).year() || (moment().year() + 1);
+    const endYear = fromDateISOString(source.endDate)?.clone().local(true).year() || moment().year() + 1;
 
     if (startYear > endYear) return undefined; // Invalid years
 
     const periods = [];
     for (let year = startYear; year <= endYear; year++) {
-      selectedQuarters.forEach(quarter => {
+      selectedQuarters.forEach((quarter) => {
         const startMonth = (quarter - 1) * 3;
         const startDate = DateUtils.moment().local(true).year(year).month(startMonth).startOf('month');
         const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-        periods.push({startDate, endDate});
+        periods.push({ startDate, endDate });
       });
     }
     return isNotEmptyArray(periods) ? periods : undefined;
@@ -483,79 +482,73 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   protected async loadParameterIdsByGroupLabel(): Promise<ObjectMap<number[]>> {
     const result: ObjectMap<number[]> = {};
-    await Promise.all(this.parameterGroupLabels.map(groupLabel => {
-      const parameterLabels = ParameterLabelGroups[groupLabel];
-      return this.parameterService.loadAllByLabels(parameterLabels, {toEntity: false, fetchPolicy: 'cache-first'})
-        .then(parameters => result[groupLabel] = parameters.map(p => p.id));
-    }));
+    await Promise.all(
+      this.parameterGroupLabels.map((groupLabel) => {
+        const parameterLabels = ParameterLabelGroups[groupLabel];
+        return this.parameterService
+          .loadAllByLabels(parameterLabels, { toEntity: false, fetchPolicy: 'cache-first' })
+          .then((parameters) => (result[groupLabel] = parameters.map((p) => p.id)));
+      })
+    );
     return result;
   }
 
   // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
   // We keep initial strategy and remove year related data like efforts.
   // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
-  async openStrategyDuplicateYearSelectionModal(event: Event, rows: TableElement<SamplingStrategy>[]) {
+  async duplicate(event: Event, rows?: TableElement<SamplingStrategy>[]) {
+    rows = rows || this.selection?.selected;
+    if (!rows.length) return; // No row: skip
+
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });
 
     // Open the modal
     await modal.present();
-    const { data } = await modal.onDidDismiss();
+    const { data: year } = await modal.onDidDismiss();
 
-    if (!data) return;
+    if (isNilOrNaN(year) || year < 1970) return;
 
-    const strategies = rows
-      .map(row => row.currentData)
-      .map(SamplingStrategy.fromObject);
-    const year = fromDateISOString(data)
-      // We need the local year, not the UTC year
-      .local(true)
-      .format('YYYY').toString();
+    const strategies = rows.map((row) => row.currentData).map(SamplingStrategy.fromObject);
 
-
-    await this.duplicateStrategies(strategies, +year);
+    await this.duplicateStrategies(strategies, year);
     this.selection.clear();
   }
 
   async duplicateStrategies(sources: SamplingStrategy[], year: number) {
-
     try {
       this.markAsLoading();
 
       // Do save
       // This should refresh the table (because of the watchAll updated throught the cache update)
       await this.samplingStrategyService.duplicateAllToYear(sources, year);
-    }
-    catch (err) {
-      this.setError(err && err.message || err, {emitEvent: false});
-    }
-    finally {
+    } catch (err) {
+      this.setError((err && err.message) || err, { emitEvent: false });
+    } finally {
       this.markAsLoaded();
     }
   }
 
   protected openLandingsByQuarter(event: UIEvent, strategy: SamplingStrategy, quarter: number) {
     const effort: StrategyEffort = strategy?.effortByQuarter?.[quarter];
-    if (!this.canOpenRealizedLandings || !effort?.realizedEffort) return;  // Skip if nothing to show (no realized effort)
+    if (!this.canOpenRealizedLandings || !effort?.realizedEffort) return; // Skip if nothing to show (no realized effort)
 
     // Prevent row click action
     event.preventDefault();
 
     const filter = LandingFilter.fromObject(<Partial<LandingFilter>>{
-      program: {id: this.program.id, label: this.program.label},
+      program: { id: this.program.id, label: this.program.label },
       startDate: effort.startDate?.clone().startOf('day'),
       endDate: effort.endDate?.clone().endOf('day'),
-      strategy: {id: strategy.id, label: strategy.label}
+      strategy: { id: strategy.id, label: strategy.label },
     });
-    const filterString= JSON.stringify(filter.asObject());
+    const filterString = JSON.stringify(filter.asObject());
     console.info(`[sampling-strategies-table] Opening landings for quarter ${quarter} and strategy '${strategy.label}'`, effort);
     return this.navController.navigateForward(`/observations/landings`, {
       queryParams: {
-        q: filterString
-      }
+        q: filterString,
+      },
     });
-
   }
 }
-

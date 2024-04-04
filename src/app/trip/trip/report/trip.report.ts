@@ -6,21 +6,13 @@ import { BaseTripReport } from '@app/trip/trip/report/base-trip.report';
 @Component({
   selector: 'app-trip-report',
   templateUrl: './trip.report.html',
-  styleUrls: [
-    './trip.report.scss',
-    '../../../data/report/base-report.scss',
-  ],
-  providers: [
-    {provide: TripReportService, useClass: TripReportService}
-  ],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./trip.report.scss', '../../../data/report/base-report.scss'],
+  providers: [{ provide: TripReportService, useClass: TripReportService }],
+  encapsulation: ViewEncapsulation.None,
 })
 export class TripReport extends BaseTripReport<RdbPmfmExtractionData> {
-
-  constructor(injector: Injector,
-              tripReportService: TripReportService<RdbPmfmExtractionData>) {
+  constructor(injector: Injector, tripReportService: TripReportService<RdbPmfmExtractionData>) {
     super(injector, tripReportService);
     this.logPrefix = 'trip-report ';
   }
-
 }

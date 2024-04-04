@@ -31,15 +31,8 @@ const routes: Routes = [
   },
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AppLandingModule,
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes), AppLandingModule],
+  exports: [RouterModule],
 })
-export class AppLandingRoutingModule {
-}
+export class AppLandingRoutingModule {}

@@ -2,23 +2,19 @@ import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/mo
 import { isNotNil } from '@sumaris-net/ngx-components';
 import { MeasurementValuesTypes } from '@app/data/measurement/measurement.model';
 
-function getSortingMeasValues(opts: {
-  gearPosition?: 'B'|'T';
-  weight?: number;
-  discardOrLanding?: 'LAN'|'DIS';
-  sizeCategory?: number;
-}) {
-
+function getSortingMeasValues(opts: { gearPosition?: 'B' | 'T'; weight?: number; discardOrLanding?: 'LAN' | 'DIS'; sizeCategory?: number }) {
   const res = {};
 
   if (isNotNil(opts.gearPosition)) {
-    res[PmfmIds.BATCH_GEAR_POSITION] = '' + (opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD); // Bâbord, Tribord
+    res[PmfmIds.BATCH_GEAR_POSITION] =
+      '' + (opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD); // Bâbord, Tribord
   }
   if (isNotNil(opts.sizeCategory)) {
     res[PmfmIds.TRAWL_SIZE_CAT] = '' + opts.sizeCategory;
   }
   if (isNotNil(opts.discardOrLanding)) {
-    res[PmfmIds.DISCARD_OR_LANDING] = '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
+    res[PmfmIds.DISCARD_OR_LANDING] =
+      '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
   }
   if (isNotNil(opts.weight)) {
     res[PmfmIds.BATCH_MEASURED_WEIGHT] = '' + opts.weight;
@@ -28,19 +24,16 @@ function getSortingMeasValues(opts: {
   return res;
 }
 
-function getIndivMeasValues(opts?: {
-  length?: number;
-  discardOrLanding?: 'LAN'|'DIS';
-  weight?: number;
-}) {
+function getIndivMeasValues(opts?: { length?: number; discardOrLanding?: 'LAN' | 'DIS'; weight?: number }) {
   opts = {
     discardOrLanding: 'LAN',
-    ...opts
+    ...opts,
   };
   const res = {};
 
   if (isNotNil(opts.discardOrLanding)) {
-    res[PmfmIds.DISCARD_OR_LANDING] = '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
+    res[PmfmIds.DISCARD_OR_LANDING] =
+      '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
   }
 
   if (isNotNil(opts.length)) {
@@ -58,11 +51,13 @@ function getIndivMeasValues(opts?: {
 export const BATCH_TREE_EXAMPLES = ['default', 'selectivity', 'empty'];
 
 export function getExampleTree(key: string, programLabel?: string): any {
-  const samplingRatioText = (programLabel === 'APASE') ? '1/2' : '50%';
+  const samplingRatioText = programLabel === 'APASE' ? '1/2' : '50%';
   switch (key) {
     case 'default':
       return {
-        label: 'CATCH_BATCH', rankOrder: 1, children: [
+        label: 'CATCH_BATCH',
+        rankOrder: 1,
+        children: [
           {
             label: 'SORTING_BATCH#1',
             rankOrder: 1,
@@ -70,7 +65,8 @@ export function getExampleTree(key: string, programLabel?: string): any {
             measurementValues: undefined,
             children: [
               {
-                label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
+                label: 'SORTING_BATCH#1.LAN',
+                rankOrder: 1,
                 measurementValues: getSortingMeasValues({ discardOrLanding: 'LAN', weight: 100 }),
                 children: [
                   {
@@ -84,21 +80,22 @@ export function getExampleTree(key: string, programLabel?: string): any {
                         rankOrder: 1,
                         taxonName: { id: 1033, label: 'MON', name: 'Lophius piscatorius' },
                         measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 11, weight: 0.026051 }),
-                        individualCount: 1
+                        individualCount: 1,
                       },
                       {
                         label: 'SORTING_BATCH_INDIVIDUAL#3',
                         rankOrder: 3,
                         taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
                         measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 33, weight: 0.512244 }),
-                        individualCount: 1
-                      }
-                    ]
-                  }
-                ]
+                        individualCount: 1,
+                      },
+                    ],
+                  },
+                ],
               },
               {
-                label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
+                label: 'SORTING_BATCH#1.DIS',
+                rankOrder: 2,
                 measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS' }),
                 children: [
                   {
@@ -111,25 +108,28 @@ export function getExampleTree(key: string, programLabel?: string): any {
                         label: 'SORTING_BATCH_INDIVIDUAL#2',
                         rankOrder: 2,
                         taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
-                        measurementValues: getIndivMeasValues({ discardOrLanding: 'DIS', length: 22, weight: 0.162100 }),
-                        individualCount: 1
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                        measurementValues: getIndivMeasValues({ discardOrLanding: 'DIS', length: 22, weight: 0.1621 }),
+                        individualCount: 1,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
 
     case 'selectivity':
       return {
-        label: 'CATCH_BATCH', rankOrder: 1, comments:'Selectivity', children: [
+        label: 'CATCH_BATCH',
+        rankOrder: 1,
+        comments: 'Selectivity',
+        children: [
           {
             label: 'SORTING_BATCH#B',
             rankOrder: 1,
-            measurementValues: getSortingMeasValues({ gearPosition: 'B'}),
+            measurementValues: getSortingMeasValues({ gearPosition: 'B' }),
             children: [
               {
                 label: 'SORTING_BATCH#B.LAN',
@@ -153,20 +153,20 @@ export function getExampleTree(key: string, programLabel?: string): any {
                             rankOrder: 1,
                             taxonName: { id: 1033, label: 'MON', name: 'Lophius piscatorius' },
                             measurementValues: getIndivMeasValues({ length: 11, weight: 0.026051 }),
-                            individualCount: 1
+                            individualCount: 1,
                           },
                           {
                             label: 'SORTING_BATCH_INDIVIDUAL#3',
                             rankOrder: 3,
                             taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
                             measurementValues: getIndivMeasValues({ length: 33, weight: 0.512244 }),
-                            individualCount: 1
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
+                            individualCount: 1,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
               },
               {
                 label: 'SORTING_BATCH#B.DIS',
@@ -177,7 +177,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                     label: 'SORTING_BATCH#B.DIS.VRAC',
                     rankOrder: 1,
                     measurementValues: {
-                      [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
+                      [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK,
                     },
                     children: [
                       {
@@ -186,7 +186,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                         samplingRatio: 0.25,
                         samplingRatioText: '1/4',
                         measurementValues: {
-                          [PmfmIds.BATCH_MEASURED_WEIGHT]: 3
+                          [PmfmIds.BATCH_MEASURED_WEIGHT]: 3,
                         },
                         children: [
                           {
@@ -205,23 +205,22 @@ export function getExampleTree(key: string, programLabel?: string): any {
                                     label: 'SORTING_BATCH_INDIVIDUAL#2',
                                     rankOrder: 2,
                                     taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
-                                    measurementValues: getIndivMeasValues({ length: 22, weight: 0.162100 }),
-                                    individualCount: 1
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-
-          }
-        ]
+                                    measurementValues: getIndivMeasValues({ length: 22, weight: 0.1621 }),
+                                    individualCount: 1,
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
 
     case 'empty':

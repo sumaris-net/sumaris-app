@@ -198,4 +198,3 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     this.cd.markForCheck();
   }
 }
-

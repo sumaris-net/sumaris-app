@@ -1,6 +1,5 @@
-
 mat-form-field.name {
-  width: calc(100% - 80px) !important;;
+  width: calc(100% - 80px) !important;
 }
 
 mat-form-field.operator {
@@ -15,7 +14,7 @@ app-form-field.value {
 .has-two-fields {
   mat-form-field.value,
   app-form-field.value {
-    width: calc(50% - 40px) !important;;
+    width: calc(50% - 40px) !important;
   }
 }
 
@@ -26,5 +25,4 @@ app-form-field.value {
   &.odd {
     background-color: var(--ion-color-light, grey);
   }
-
 }

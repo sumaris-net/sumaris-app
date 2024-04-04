@@ -2,6 +2,11 @@
 .batch-tree {
   --app-tree-indent: 16px;
   --padding-start: 0;
+  --ion-item-min-height: 34px;
+
+  &.mobile {
+    --ion-item-min-height: 49px;
+  }
 
   ul {
     padding-inline-start: var(--app-tree-indent);
@@ -17,6 +22,20 @@
     list-style-type: none;
 
     ion-item {
+      --min-height: var(--ion-item-min-height);
+      font-size: 14px;
+
+      *[slot="start"] {
+        margin-inline-end: 4px; // Reduce space after expand button
+      }
+
+      &.tappable {
+        cursor: pointer;
+      }
+      &.disabled {
+        --color: var(--ion-color-step-400, #999999);
+      }
+
       .visible-hover {
         display: none;
         visibility: hidden;
@@ -33,6 +52,7 @@
 
   .mat-tree-node {
     display: block;
+    min-height: var(--ion-item-min-height);
   }
 
 
@@ -47,7 +67,7 @@ ion-item {
   --padding-start: 0 !important;
   --ion-item-background: var(--ion-color-transparent);
 
-  &:hover {
+  &.tappable:hover {
     --ion-item-background: rgba(var(--ion-color-light-rgb), 0.6);
   }
   ion-button {
@@ -90,12 +110,6 @@ ion-item {
       font-weight: bold;
     }
   }
-}
-
-
-.cdk-visually-hidden{
-  visibility: hidden !important;
-  display: none !important;
 }
 
 

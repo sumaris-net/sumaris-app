@@ -1,4 +1,4 @@
-import { FormBuilder, FormGroup, UntypedFormGroup} from '@angular/forms';
+import { FormBuilder, FormGroup, UntypedFormGroup } from '@angular/forms';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues } from './measurement.model';
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -6,7 +6,7 @@ import { Injector } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TranslateService } from '@ngx-translate/core';
-import {AppFormArray, isNotNil, WaitForOptions, waitForTrue} from '@sumaris-net/ngx-components';
+import { AppFormArray, isNotNil, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 
 export interface MeasurementsTableValidatorOptions extends MeasurementsValidatorOptions {
   pmfms: IPmfm[]; // Required pmfms
@@ -17,9 +17,8 @@ export class MeasurementsTableValidatorService<
   T extends IEntityWithMeasurement<T, ID>,
   S extends BaseValidatorService<T, ID, O> = BaseValidatorService<T, any, any>,
   ID = number,
-  O = any>
-  extends BaseValidatorService<T, ID, O> {
-
+  O = any,
+> extends BaseValidatorService<T, ID, O> {
   private readySubject = new BehaviorSubject(false);
 
   protected readonly measurementsValidatorService: MeasurementsValidatorService;
@@ -55,16 +54,17 @@ export class MeasurementsTableValidatorService<
   }
 
   getRowValidator(data?: T, opts?: O): UntypedFormGroup {
-
     const form = this._delegate.getRowValidator(data, {
-      ...(this._delegateOptions ||{}),
-      ...opts
+      ...(this._delegateOptions || {}),
+      ...opts,
     });
 
     // Add measurement Values
     // Can be disable (e.g. in Batch Group table) if pmfms = null
     if (isNotNil(this._measurementsOptions?.pmfms)) {
-      form.setControl('measurementValues', this.getMeasurementValuesFormGroup(data?.measurementValues, this._measurementsOptions), {emitEvent: false});
+      form.setControl('measurementValues', this.getMeasurementValuesFormGroup(data?.measurementValues, this._measurementsOptions), {
+        emitEvent: false,
+      });
     }
 
     return form;
@@ -72,8 +72,8 @@ export class MeasurementsTableValidatorService<
 
   updateFormGroup(form: FormGroup, opts?: O) {
     this._delegate.updateFormGroup(form, {
-      ...(this._delegateOptions ||{}),
-      ...opts
+      ...(this._delegateOptions || {}),
+      ...opts,
     });
 
     // TODO: update using measurement values ?
@@ -91,8 +91,10 @@ export class MeasurementsTableValidatorService<
 
   /* -- protected -- */
 
-  protected getMeasurementValuesFormGroup(data: MeasurementFormValues|MeasurementModelValues|undefined,
-                                          opts: MeasurementsTableValidatorOptions): {[key: string]: any} {
+  protected getMeasurementValuesFormGroup(
+    data: MeasurementFormValues | MeasurementModelValues | undefined,
+    opts: MeasurementsTableValidatorOptions
+  ): { [key: string]: any } {
     // Create a cached config
     let controlsConfig = this._measurementsConfigCache;
 
@@ -112,22 +114,17 @@ export class MeasurementsTableValidatorService<
 
       // Re-create new instance for each array control
       Object.entries(controlsConfig)
-          .filter(([key, cachedControl]) => cachedControl instanceof AppFormArray)
-          .forEach(([pmfmId, cachedControl]) => {
-            const control = new AppFormArray(cachedControl.createControl,
-                cachedControl.equals,
-                cachedControl.isEmpty,
-                cachedControl.options
-            );
-            const value = data ? data[pmfmId] : null;
-            if (Array.isArray(value)) {
-              control.setValue(value, {emitEvent: false});
-            }
-            else {
-              control.setValue([null], {emitEvent: false});
-            }
-            form.setControl(pmfmId, control, {emitEvent: false});
-          });
+        .filter(([key, cachedControl]) => cachedControl instanceof AppFormArray)
+        .forEach(([pmfmId, cachedControl]) => {
+          const control = new AppFormArray(cachedControl.createControl, cachedControl.equals, cachedControl.isEmpty, cachedControl.options);
+          const value = data ? data[pmfmId] : null;
+          if (Array.isArray(value)) {
+            control.setValue(value, { emitEvent: false });
+          } else {
+            control.setValue([null], { emitEvent: false });
+          }
+          form.setControl(pmfmId, control, { emitEvent: false });
+        });
 
       return form;
     }

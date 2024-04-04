@@ -14,7 +14,7 @@
       <ion-col>
         <mat-autocomplete-field
           formControlName="program"
-          [placeholder]="'LANDING.EDIT.PROGRAM' | translateContext : i18nSuffix"
+          [placeholder]="'LANDING.EDIT.PROGRAM' | translateContext: i18nSuffix"
           [config]="autocompleteFields.program"
           [tabindex]="tabindex + 1"
           required
@@ -29,13 +29,13 @@
       <ion-row>
         <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
           <ion-label class="ion-float-end hidden-xs hidden-sm">
-            {{ 'LANDING.EDIT.STRATEGY' | translateContext : i18nSuffix }}
+            {{ 'LANDING.EDIT.STRATEGY' | translateContext: i18nSuffix }}
           </ion-label>
         </ion-col>
         <ion-col>
           <mat-autocomplete-field
             [formControl]="control"
-            [placeholder]="'LANDING.EDIT.STRATEGY_PLACEHOLDER' | translateContext : i18nSuffix"
+            [placeholder]="'LANDING.EDIT.STRATEGY_PLACEHOLDER' | translateContext: i18nSuffix"
             [config]="autocompleteFields.strategy"
             [readonly]="!canEditStrategy"
             [tabindex]="tabindex + 2"
@@ -57,7 +57,7 @@
     <ion-row *rxIf="observedLocationControl$; let control">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end hidden-xs hidden-sm">
-          {{ 'LANDING.EDIT.OBSERVED_LOCATION' | translateContext : i18nSuffix }}
+          {{ 'LANDING.EDIT.OBSERVED_LOCATION' | translateContext: i18nSuffix }}
         </ion-label>
       </ion-col>
       <ion-col>
@@ -94,7 +94,7 @@
           </button>
           <ng-template #otherButtons>
             <button
-              *ngIf="control.errors | mapGet : 'msg' as msg"
+              *ngIf="control.errors | mapGet: 'msg' as msg"
               matSuffix
               mat-icon-button
               type="button"
@@ -122,7 +122,7 @@
             <span *ngSwitchCase="'remoteParent'" translate>LANDING.ERROR.LOCAL_OBSERVED_LOCATION</span>
             <span *ngSwitchCase="'existsParent'" translate>LANDING.ERROR.MISSING_OBSERVED_LOCATION</span>
             <span *ngSwitchCase="'msg'">
-              {{ control.errors.msg?.key || control.errors.msg | translate : control.errors.msg?.params }}
+              {{ control.errors.msg?.key || control.errors.msg | translate: control.errors.msg?.params }}
             </span>
           </mat-error>
         </mat-form-field>
@@ -164,13 +164,13 @@
     <!-- LOCATION + date/time-->
     <ion-row *ngIf="!loading && (showLocation || showDateTime)">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end">{{ 'LANDING.EDIT.LANDING' | translateContext : i18nSuffix }}</ion-label>
+        <ion-label class="ion-float-end">{{ 'LANDING.EDIT.LANDING' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation" size="12" size-md="">
         <mat-autocomplete-field
           formControlName="location"
-          [placeholder]="'LANDING.EDIT.LOCATION' | translateContext : i18nSuffix"
+          [placeholder]="'LANDING.EDIT.LOCATION' | translateContext: i18nSuffix"
           [config]="autocompleteFields.location"
           [tabindex]="tabindex + 4"
           required
@@ -180,7 +180,7 @@
       </ion-col>
       <ion-col *ngIf="showDateTime" size="12" size-md="" [offsetLg]="showLocation ? 3 : undefined">
         <mat-date-time-field
-          [placeholder]="'LANDING.EDIT.DATE' | translateContext : i18nSuffix"
+          [placeholder]="'LANDING.EDIT.DATE' | translateContext: i18nSuffix"
           formControlName="dateTime"
           [tabindex]="tabindex + 5"
           [required]="true"
@@ -200,11 +200,8 @@
         </ion-col>
         <ion-col>
           <mat-autocomplete-field
-            [formControl]="metiersHelper.at(i)"
-            [placeholder]="
-              (first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER'
-                | translate : { rank: i + 1 }
-            "
+            [formControl]="metierForm | formGetControl"
+            [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate: { rank: i + 1 }"
             [autofocus]="metierFocusIndex === i"
             [config]="autocompleteFields.metier"
             [tabindex]="tabindex + 20 + i * 3"
@@ -231,7 +228,7 @@
             [tabindex]="tabindex + 20 + i * 3 + 2"
             [disabled]="disabled"
             [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="metiersHelper.removeAt(i)"
+            (click)="metiersForm.removeAt(i)"
           >
             <mat-icon>close</mat-icon>
           </button>
@@ -239,63 +236,65 @@
       </ion-row>
 
       <!-- Fishing areas -->
-      <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-          <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
-        </ion-col>
-        <ion-col [formGroup]="fishingAreaForm">
-          <mat-autocomplete-field
-            #fishingAreaField
-            formControlName="location"
-            [placeholder]="('OBSERVED_LOCATION.EDIT.FISHING_AREA_PLACEHOLDER' | translate) + (i + 1)"
-            [autofocus]="fishingAreaFocusIndex === i"
-            [config]="autocompleteFields.fishingAreaLocation"
-            [tabindex]="tabindex + 30 + i * 3"
-            [panelWidth]="!mobile && '500px'"
-            [required]="i === 0"
-          >
-            <ion-icon matPrefix name="locate"></ion-icon>
+      <ng-container *ngIf="showFishingArea">
+        <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
+          <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+            <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
+          </ion-col>
+          <ion-col [formGroup]="fishingAreaForm | formGetGroup">
+            <mat-autocomplete-field
+              #fishingAreaField
+              formControlName="location"
+              [placeholder]="('OBSERVED_LOCATION.EDIT.FISHING_AREA_PLACEHOLDER' | translate) + (i + 1)"
+              [autofocus]="fishingAreaFocusIndex === i"
+              [config]="autocompleteFields.fishingAreaLocation"
+              [tabindex]="tabindex + 30 + i * 3"
+              [panelWidth]="!mobile && '500px'"
+              [required]="i === 0"
+            >
+              <mat-icon matPrefix>room</mat-icon>
 
-            <!-- filter button -->
+              <!-- filter button -->
+              <button
+                matAfter
+                type="button"
+                mat-icon-button
+                *ngIf="filteredFishingAreaLocations | isNotEmptyArray"
+                tabindex="-1"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_FILTER' | translate"
+                (click)="toggleFilter('fishingArea', fishingAreaField)"
+                [color]="autocompleteFilters.fishingArea ? 'primary' : undefined"
+              >
+                <mat-icon>filter_list_alt</mat-icon>
+              </button>
+            </mat-autocomplete-field>
+          </ion-col>
+          <ion-col size="auto" class="ion-align-self-center">
             <button
-              matAfter
               type="button"
               mat-icon-button
-              *ngIf="filteredFishingAreaLocations | isNotEmptyArray"
-              tabindex="-1"
+              *ngIf="last"
+              [tabindex]="tabindex + 30 + i * 3 + 1"
               [disabled]="disabled"
-              [title]="'COMMON.BTN_FILTER' | translate"
-              (click)="toggleFilter('fishingArea', fishingAreaField)"
-              [color]="autocompleteFilters.fishingArea ? 'primary' : undefined"
+              [title]="'COMMON.BTN_ADD' | translate"
+              (click)="addFishingArea()"
             >
-              <mat-icon>filter_list_alt</mat-icon>
+              <mat-icon>add</mat-icon>
             </button>
-          </mat-autocomplete-field>
-        </ion-col>
-        <ion-col size="auto" class="ion-align-self-center">
-          <button
-            type="button"
-            mat-icon-button
-            *ngIf="last"
-            [tabindex]="tabindex + 30 + i * 3 + 1"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_ADD' | translate"
-            (click)="this.addFishingArea()"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-          <button
-            type="button"
-            mat-icon-button
-            [tabindex]="tabindex + 30 + i * 3 + 2"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="fishingAreasHelper.removeAt(i)"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
-        </ion-col>
-      </ion-row>
+            <button
+              type="button"
+              mat-icon-button
+              [tabindex]="tabindex + 30 + i * 3 + 2"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_DELETE' | translate"
+              (click)="fishingAreasForm.removeAt(i)"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </ion-col>
+        </ion-row>
+      </ng-container>
 
       <!-- Observers -->
       <ng-container *ngIf="showObservers">
@@ -305,7 +304,7 @@
           </ion-col>
           <ion-col>
             <mat-autocomplete-field
-              [formControl]="observersHelper.at(i)"
+              [formControl]="observerForm | formGetControl"
               [placeholder]="('OBSERVED_LOCATION.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
               [autofocus]="observerFocusIndex === i"
               [config]="autocompleteFields.person"
@@ -334,7 +333,7 @@
               [tabindex]="tabindex + 10 + i * 3 + 2"
               [disabled]="disabled"
               [title]="'COMMON.BTN_DELETE' | translate"
-              (click)="observersHelper.removeAt(i)"
+              (click)="observersForm.removeAt(i)"
             >
               <mat-icon>close</mat-icon>
             </button>
@@ -347,18 +346,16 @@
     <ng-container *ngIf="showMeasurements">
       <!-- If pmfms NOT loaded, display skeleton -->
       <ion-row
-        *ngIf="pmfms$ | async | arrayFilter : notHiddenPmfm; let pmfms; else: measurementsSkeleton"
+        *ngIf="pmfms$ | async | arrayFilter: notHiddenPmfm; let pmfms; else: measurementsSkeleton"
         [class.cdk-visually-hidden]="pmfms | isEmptyArray"
       >
         <!-- measurement label (only on the first Pmfm) -->
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end">
             <!-- "other features" label -->
-            <span *ngIf="pmfms | isArrayLength : { greaterThan: 1 }; else firstPmfmLabel" translate>
-              LANDING.EDIT.OTHER_FEATURES
-            </span>
+            <span *ngIf="pmfms | isArrayLength: { greaterThan: 1 }; else firstPmfmLabel" translate>LANDING.EDIT.OTHER_FEATURES</span>
             <ng-template #firstPmfmLabel>
-              <span [innerHTML]="pmfms[0] | pmfmName : { withUnit: false, withDetails: false }"></span>
+              <span [innerHTML]="pmfms[0] | pmfmName: { withUnit: false, withDetails: false }"></span>
             </ng-template>
           </ion-label>
         </ion-col>
@@ -430,14 +427,7 @@
 <!-- Parent = options menu -->
 <mat-menu #parentFieldMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-    <button
-      mat-menu-item
-      type="button"
-      *ngIf="enabled"
-      tabindex="-1"
-      [disabled]="disabledParent"
-      (click)="openSelectObservedLocationModal($event)"
-    >
+    <button mat-menu-item type="button" *ngIf="enabled" tabindex="-1" [disabled]="disabledParent" (click)="openSelectObservedLocationModal($event)">
       <ion-label>
         <mat-icon>list</mat-icon>
         <span translate>LANDING.EDIT.BTN_SELECT_OBSERVED_LOCATION</span>

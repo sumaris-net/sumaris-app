@@ -5,24 +5,17 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AppImageAttachmentsModal } from '@app/data/image/image-attachment.modal';
 
 @NgModule({
-  imports: [
-    CoreModule,
-    ImageGalleryModule,
-    TranslateModule.forChild()
-  ],
+  imports: [CoreModule, ImageGalleryModule, TranslateModule.forChild()],
   declarations: [
     // Components
     AppImageAttachmentGallery,
-    AppImageAttachmentsModal
-
+    AppImageAttachmentsModal,
   ],
   exports: [
     TranslateModule,
     // Components
     AppImageAttachmentGallery,
-    AppImageAttachmentsModal
-  ]
+    AppImageAttachmentsModal,
+  ],
 })
-export class AppImageAttachmentModule {
-
-}
+export class AppImageAttachmentModule {}

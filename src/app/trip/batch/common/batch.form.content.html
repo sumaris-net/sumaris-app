@@ -12,7 +12,7 @@
 
   <ion-grid class="ion-no-padding">
     <!-- Taxon group and/or taxon name and/or exhaustive inventory -->
-    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName || delegate.showExhaustiveInventory">
+    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName">
       <!-- Taxon group -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonGroup">
         <mat-autocomplete-field
@@ -43,28 +43,6 @@
         </mat-autocomplete-field>
       </ion-col>
 
-      <!-- is Exhaustive inventory ?-->
-      <ion-col size="12" size-md="6" *ngIf="delegate.showExhaustiveInventory">
-        <mat-form-field floatLabel="never">
-          <!-- fake input -->
-          <input matInput hidden />
-
-          <ion-label>&nbsp;</ion-label>
-
-          <!-- checkbox, when compact -->
-          <mat-checkbox
-            matPrefix
-            [formControl]="delegate.form | formGetControl : 'exhaustiveInventory'"
-            labelPosition="after"
-            [tabindex]="delegate.tabindex + 2"
-          >
-            <ion-text>
-              {{ 'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY' | translateContext : delegate.i18nSuffix }}
-            </ion-text>
-          </mat-checkbox>
-        </mat-form-field>
-      </ion-col>
-
       <ng-content select="[afterSpecies]"></ng-content>
     </ion-row>
 
@@ -72,13 +50,13 @@
     <ion-row class="ion-no-padding" [formGroup]="delegate.measurementValuesForm">
       <ng-container
         *ngFor="
-          let pmfm of delegate.pmfms$ | push : delegate.rxStrategy | arrayFilter : delegate.isVisibleNotWeightPmfm;
+          let pmfm of delegate.pmfms$ | push: delegate.rxStrategy | arrayFilter: delegate.isVisibleNotWeightPmfm;
           trackBy: delegate.trackPmfmFn;
           index as i
         "
       >
         <ion-col
-          *ngVar="pmfm | pmfmFieldStyle : delegate.maxItemCountForButtons as style"
+          *ngVar="pmfm | pmfmFieldStyle: delegate.maxItemCountForButtons as style"
           class="ion-no-padding"
           size="12"
           [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
@@ -103,18 +81,18 @@
       <ion-col
         class="ion-no-padding"
         *ngVar="{
-          weightValue: weightForm | formGetControl : 'value',
-          weightMethodId: weightForm | formGetControl : 'methodId',
-          weightComputed: weightForm | formGetControl : 'computed',
-          weightEstimated: weightForm | formGetControl : 'estimated'
+          weightValue: weightForm | formGetControl: 'value',
+          weightMethodId: weightForm | formGetControl: 'methodId',
+          weightComputed: weightForm | formGetControl: 'computed',
+          weightEstimated: weightForm | formGetControl: 'estimated'
         } as controls"
       >
         <app-pmfm-field
           [pmfm]="delegate.defaultWeightPmfm"
           [placeholder]="
             delegate.weightPmfmsByMethod
-              | mapGet : controls.weightMethodId.value || delegate.defaultWeightPmfm.methodId
-              | pmfmName : { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
+              | mapGet: controls.weightMethodId.value || delegate.defaultWeightPmfm.methodId
+              | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
           "
           [control]="controls.weightValue"
           [class.computed]="controls.weightComputed.value"
@@ -155,14 +133,9 @@
             [required]="delegate.requiredIndividualCount"
           />
 
-          <mat-error *ngIf="delegate.form.controls.individualCount.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <mat-error *ngIf="delegate.form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="delegate.form.controls.individualCount.hasError('min')">
-            {{
-              (delegate.compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')
-                | translate : delegate.form.controls.individualCount.errors['min']
-            }}
+            {{ (delegate.compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: delegate.form.controls.individualCount.errors['min'] }}
           </mat-error>
           <mat-error *ngIf="delegate.form.controls.individualCount.hasError('integer')">
             {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
@@ -180,23 +153,18 @@
     >
       <ng-container
         *ngVar="{
-          samplingRatio: samplingForm | formGetControl : 'samplingRatio',
-          samplingRatioText: samplingForm | formGetControl : 'samplingRatioText',
-          samplingRatioComputed: samplingForm | formGetControl : 'samplingRatioComputed',
-          weightValue: samplingForm | formGetControl : 'weight.value',
-          weightComputed: samplingForm | formGetControl : 'weight.computed',
-          weightEstimated: samplingForm | formGetControl : 'weight.estimated',
-          childrenWeightValue: samplingForm | formGetControl : 'childrenWeight.value',
-          childrenWeightMethodId: samplingForm | formGetControl : 'childrenWeight.methodId'
+          samplingRatio: samplingForm | formGetControl: 'samplingRatio',
+          samplingRatioText: samplingForm | formGetControl: 'samplingRatioText',
+          samplingRatioComputed: samplingForm | formGetControl: 'samplingRatioComputed',
+          weightValue: samplingForm | formGetControl: 'weight.value',
+          weightComputed: samplingForm | formGetControl: 'weight.computed',
+          weightEstimated: samplingForm | formGetControl: 'weight.estimated',
+          childrenWeightValue: samplingForm | formGetControl: 'childrenWeight.value',
+          childrenWeightMethodId: samplingForm | formGetControl: 'childrenWeight.methodId'
         } as controls"
       >
         <!-- SUM of children weight-->
-        <ion-col
-          *ngIf="delegate.showChildrenWeight && (controls.childrenWeightValue?.value | isNotNil)"
-          offset="4"
-          size="8"
-          class="ion-no-padding"
-        >
+        <ion-col *ngIf="delegate.showChildrenWeight && (controls.childrenWeightValue?.value | isNotNil)" offset="4" size="8" class="ion-no-padding">
           <mat-form-field class="computed">
             <input
               matInput
@@ -207,8 +175,8 @@
               (click)="selectInputContent($event)"
               [placeholder]="
                 delegate.weightPmfmsByMethod
-                  | mapGet : controls.childrenWeightMethodId.value
-                  | pmfmName : { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
+                  | mapGet: controls.childrenWeightMethodId.value
+                  | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
               "
               [tabindex]="-1"
             />
@@ -224,18 +192,13 @@
             >
               <mat-icon>arrow_downward</mat-icon>
             </button>
-            <mat-error
-              *ngIf="controls.childrenWeightValue.errors | mapKeys | arrayFirst; let errorKey"
-              [ngSwitch]="errorKey"
-            >
+            <mat-error *ngIf="controls.childrenWeightValue.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
               <span *ngSwitchCase="'min'">
-                {{ 'ERROR.FIELD_MIN' | translate : controls.childrenWeightValue.errors.min }}
+                {{ 'ERROR.FIELD_MIN' | translate: controls.childrenWeightValue.errors.min }}
               </span>
               <span *ngSwitchCase="'maxDecimals'">
-                {{
-                  'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' | translate : controls.childrenWeightValue.errors.maxDecimals
-                }}
+                {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' | translate: controls.childrenWeightValue.errors.maxDecimals }}
               </span>
               <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
             </mat-error>
@@ -281,7 +244,7 @@
 
         <!-- Sampling individual count -->
         <ion-col size="4" class="ion-no-padding" *ngIf="delegate.showSampleIndividualCount">
-          <mat-form-field *ngVar="delegate.samplingBatchForm | formGetControl : 'individualCount'; let control">
+          <mat-form-field *ngVar="delegate.samplingBatchForm | formGetControl: 'individualCount'; let control">
             <input
               matInput
               autocomplete="off"
@@ -296,13 +259,35 @@
             />
             <mat-error *ngIf="control.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-              <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate : control.errors.min }}</span>
+              <span *ngSwitchCase="'min'">{{ 'ERROR.FIELD_MIN' | translate: control.errors.min }}</span>
               <span *ngSwitchCase="'integer'">{{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}</span>
               <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
             </mat-error>
           </mat-form-field>
         </ion-col>
       </ng-container>
+    </ion-row>
+
+    <ion-row *ngIf="delegate.showExhaustiveInventory">
+      <!-- is Exhaustive inventory ?-->
+      <ion-col size="12">
+        <mat-form-field>
+          <!-- fake input -->
+          <input matInput hidden />
+
+          <!-- checkbox, when compact -->
+          <mat-checkbox
+            matPrefix
+            [formControl]="delegate.form | formGetControl: 'exhaustiveInventory'"
+            labelPosition="after"
+            [tabindex]="delegate.tabindex + 2"
+          >
+            <ion-text>
+              {{ 'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY' | translateContext: delegate.i18nSuffix }}
+            </ion-text>
+          </mat-checkbox>
+        </mat-form-field>
+      </ion-col>
     </ion-row>
   </ion-grid>
 
@@ -312,17 +297,16 @@
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col>
-            loading: {{ delegate.loadingSubject | async }}
-            <br />
             ready: {{ delegate.readySubject | async }}
+            <br />
+            loading: {{ delegate.loadingSubject | async }}
             <br />
             enabled: {{ delegate.enabled }}
             <br />
-            disabled: {{ delegate.disabled }}
+            dirty: {{ delegate.dirty }}
             <br />
             valid: {{ delegate.valid }}
             <br />
-            dirty: {{ delegate.dirty }}
             <br />
             touched: {{ delegate.touched }}
             <br />
@@ -343,21 +327,20 @@
           <ion-col *ngIf="delegate.showSamplingBatch && delegate.samplingBatchForm as childForm">
             <ng-container
               *ngVar="{
-                samplingRatio: childForm | formGetControl : 'samplingRatio',
-                samplingRatioText: childForm | formGetControl : 'samplingRatioText',
-                samplingRatioComputed: childForm | formGetControl : 'samplingRatioComputed',
-                weightValue: childForm | formGetControl : 'weight.value',
-                weightComputed: childForm | formGetControl : 'weight.computed',
-                childrenWeightValue: childForm | formGetControl : 'childrenWeight.value',
-                childrenWeightComputed: childForm | formGetControl : 'childrenWeight.computed',
-                childrenWeightMethodId: childForm | formGetControl : 'childrenWeight.methodId',
-                samplingIndividualCount: childForm | formGetControl : 'individualCount'
+                samplingRatio: childForm | formGetControl: 'samplingRatio',
+                samplingRatioText: childForm | formGetControl: 'samplingRatioText',
+                samplingRatioComputed: childForm | formGetControl: 'samplingRatioComputed',
+                weightValue: childForm | formGetControl: 'weight.value',
+                weightComputed: childForm | formGetControl: 'weight.computed',
+                childrenWeightValue: childForm | formGetControl: 'childrenWeight.value',
+                childrenWeightComputed: childForm | formGetControl: 'childrenWeight.computed',
+                childrenWeightMethodId: childForm | formGetControl: 'childrenWeight.methodId',
+                samplingIndividualCount: childForm | formGetControl: 'individualCount'
               } as controls"
             >
-              samplingRatio: {{ controls.samplingRatio.value | numberFormat : { fixedDecimals: 6 } }}
+              samplingRatio: {{ controls.samplingRatio.value | numberFormat: { fixedDecimals: 6 } }}
               <br />
-              samplingRatioText: {{ controls.samplingRatioText.value }} (type:
-              {{ delegate.samplingRatioFormat || 'null'
+              samplingRatioText: {{ controls.samplingRatioText.value }} (type: {{ delegate.samplingRatioFormat || 'null'
               }}{{ controls.samplingRatioComputed.value ? ', computed' : '' }})
               <br />
               sampling.weight: {{ controls.weightValue.value }} {{ controls.weightComputed.value ? '(computed)' : '' }}
@@ -368,17 +351,10 @@
               sampling.individualCount: {{ controls.samplingIndividualCount?.value }}
               <br />
               <br />
-              defaultWeightPmfm: {{ delegate.defaultWeightPmfm?.label }} (maxDecimals:
-              {{ delegate.defaultWeightPmfm?.maximumNumberDecimals }})
+              defaultWeightPmfm: {{ delegate.defaultWeightPmfm?.label }} (maxDecimals: {{ delegate.defaultWeightPmfm?.maximumNumberDecimals }})
               <br />
-              <span
-                *ngIf="
-                  delegate.weightPmfmsByMethod | mapGet : controls.childrenWeightMethodId?.value;
-                  let childrenWeightPmfm
-                "
-              >
-                Children weight pmfm : {{ childrenWeightPmfm.label }} (maxDecimals:
-                {{ childrenWeightPmfm.maximumNumberDecimals }})
+              <span *ngIf="delegate.weightPmfmsByMethod | mapGet: controls.childrenWeightMethodId?.value; let childrenWeightPmfm">
+                Children weight pmfm : {{ childrenWeightPmfm.label }} (maxDecimals: {{ childrenWeightPmfm.maximumNumberDecimals }})
               </span>
             </ng-container>
           </ion-col>
@@ -386,10 +362,7 @@
 
         <ion-row *rxIf="delegate.form.invalid">
           <ion-col size="12">
-            <ion-text
-              color="danger"
-              [innerHTML]="delegate.form | translateFormError : delegate.errorTranslatorOptions"
-            ></ion-text>
+            <ion-text color="danger" [innerHTML]="delegate.form | translateFormError: delegate.errorTranslatorOptions"></ion-text>
           </ion-col>
         </ion-row>
       </ion-grid>

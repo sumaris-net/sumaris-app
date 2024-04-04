@@ -21,11 +21,14 @@ import { PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategyForm } from './sampling-strategy.form';
 import { BehaviorSubject } from 'rxjs';
 import { Program } from '../../services/model/program.model';
-import { ProgramService } from '../../services/program.service';
 import { AcquisitionLevelCodes, PmfmIds } from '../../services/model/model.enum';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
 import moment from 'moment';
+import { RouteUtils } from '@app/shared/routes.utils';
+import { PROGRAMS_PAGE_PATH } from '@app/referential/program/programs.page';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { PROGRAM_TABS } from '@app/referential/program/program.page';
 
 @Component({
   selector: 'app-sampling-strategy-page',
@@ -46,7 +49,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected samplingStrategyService: SamplingStrategyService,
-    protected programService: ProgramService,
+    protected programRefService: ProgramRefService,
     protected pmfmService: PmfmService,
     protected platform: PlatformService
   ) {
@@ -56,12 +59,13 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       enableListenChanges: true,
     });
     // default values
-    this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    //this.defaultBackHref = RouteUtils.getParentPath(this.route.snapshot.parent, { tab: '' + PROGRAM_TABS.STRATEGIES }) || PROGRAMS_PAGE_PATH;
 
     // Update back href, when program changed
     this.registerSubscription(this.$program.subscribe((program) => this.setProgram(program)));
@@ -87,7 +91,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
     // Load program, form the route path
     if (options && isNotNil(options.programId)) {
-      const program = await this.programService.load(options.programId);
+      const program = await this.programRefService.load(options.programId);
       this.$program.next(program);
 
       data.programId = program && program.id;
@@ -109,7 +113,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
     // Load program, form the entity's program
     if (data && isNotNil(data.programId)) {
-      const program = await this.programService.load(data.programId);
+      const program = await this.programRefService.load(data.programId);
       this.$program.next(program);
     }
 
@@ -134,7 +138,14 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id)) {
-      this.defaultBackHref = `/referential/programs/${program.id}/strategies`;
+      const backHref = RouteUtils.getParentPath(this.route?.snapshot.parent, { tab: '' + PROGRAM_TABS.STRATEGIES }) || PROGRAMS_PAGE_PATH;
+      //console.log('TODO backHref=' + backHref);
+      const defaultProgramPath = [PROGRAMS_PAGE_PATH, program.id].join('/');
+      if (backHref.startsWith(defaultProgramPath)) {
+        this.defaultBackHref = `${defaultProgramPath}?tab=${PROGRAM_TABS.STRATEGIES}`;
+      } else {
+        this.defaultBackHref = `/referential/programs/${program.id}/strategies`;
+      }
       this.markForCheck();
     }
   }
@@ -323,4 +334,3 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     }
   }
 }
-

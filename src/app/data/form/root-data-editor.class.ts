@@ -1,40 +1,47 @@
-import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
 import { Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
-  AppEditorOptions,
   EntityServiceLoadOptions,
   HistoryPageReference,
   isNil,
   isNotNil,
+  NetworkService,
   ReferentialRef,
   ReferentialUtils,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { startWith } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { UntypedFormControl } from '@angular/forms';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
-import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
+import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
+
+export interface RootDataEntityEditorState extends AppDataEditorState {}
+
+export abstract class RootDataEditorOptions extends AppDataEditorOptions {}
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataEntityEditor<
     T extends RootDataEntity<T, ID>,
     S extends BaseRootDataService<T, any, ID> = BaseRootDataService<T, any, any>,
-    ID = number
+    ID = number,
+    ST extends RootDataEntityEditorState = RootDataEntityEditorState,
   >
-  extends AppDataEntityEditor<T, S, ID>
+  extends AppDataEntityEditor<T, S, ID, ST>
   implements OnInit, OnDestroy
 {
   protected programChangesSubscription: Subscription;
+  protected readonly network = inject(NetworkService);
 
   get programControl(): UntypedFormControl {
     return this.form.controls.program as UntypedFormControl;
   }
 
-  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppEditorOptions) {
+  protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: RootDataEditorOptions) {
     super(injector, dataType, dataService, options);
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -66,6 +73,10 @@ export abstract class AppRootDataEntityEditor<
   }
 
   /* -- protected methods -- */
+
+  protected computeUsageMode(data: T): UsageMode {
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';
+  }
 
   /**
    * Listen program changes (only if new data)

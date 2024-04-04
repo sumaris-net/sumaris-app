@@ -1,17 +1,11 @@
-<app-toolbar
-  [title]="$title | async"
-  color="primary"
-  [hasValidate]="!loading"
-  (onValidate)="save($event)"
-  [canGoBack]="false"
->
+<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)" [canGoBack]="false">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="tabGroupAnimationDuration"
@@ -60,11 +54,9 @@
                         [formControl]="form.controls.description"
                       ></textarea>
                       <mat-hint align="end">{{ description.value.length }} / 255</mat-hint>
-                      <mat-error *ngIf="form.controls.description.hasError('required')" translate>
-                        ERROR.FIELD_REQUIRED
-                      </mat-error>
+                      <mat-error *ngIf="form.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                       <mat-error *ngIf="form.controls.description.hasError('maxLength')">
-                        {{ 'ERROR.FIELD_MAX_LENGTH' | translate : { maxLength: 255 } }}
+                        {{ 'ERROR.FIELD_MAX_LENGTH' | translate: { maxLength: 255 } }}
                       </mat-error>
                     </mat-form-field>
                   </ion-col>
@@ -83,12 +75,7 @@
                   <ion-grid>
                     <ion-row>
                       <ion-col>
-                        <img
-                          *ngIf="config?.smallLogo"
-                          src="{{ config?.smallLogo }}"
-                          [title]="'CONFIGURATION.OPTIONS.LOGO' | translate"
-                          width="110"
-                        />
+                        <img *ngIf="config?.smallLogo" src="{{ config?.smallLogo }}" [title]="'CONFIGURATION.OPTIONS.LOGO' | translate" width="110" />
                       </ion-col>
                       <ion-col>
                         <img
@@ -144,11 +131,7 @@
       </ng-template>
 
       <div class="ion-padding">
-        <app-properties-form
-          #propertiesForm
-          [definitions]="propertyDefinitions"
-          [options]="{ allowEmptyArray: true }"
-        ></app-properties-form>
+        <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{ allowEmptyArray: true }"></app-properties-form>
       </div>
     </mat-tab>
 
@@ -170,12 +153,27 @@
         </ion-label>
       </ng-template>
 
-      <app-user-events-table
-        #userEventsTable
-        [recipient]="'SYSTEM'"
-        [withContent]="true"
-        [debug]="debug"
-      ></app-user-events-table>
+      <app-user-events-table #userEventsTable [recipient]="'SYSTEM'" [withContent]="true" [debug]="debug"></app-user-events-table>
+    </mat-tab>
+
+    <!-- TAB: jobs -->
+    <mat-tab label="{{ 'CONFIGURATION.TAB_JOBS' | translate }}">
+      <ng-template mat-tab-label>
+        <mat-icon>schedule</mat-icon>
+        <ion-label
+          *rxLet="jobList.jobsCount$ as count"
+          [matBadge]="count"
+          [matBadgeHidden]="!count"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate
+        >
+          CONFIGURATION.TAB_JOBS
+        </ion-label>
+      </ng-template>
+
+      <app-job-list #jobList issuer="SYSTEM"></app-job-list>
     </mat-tab>
 
     <!-- TAB: cache -->
@@ -199,13 +197,7 @@
 
       <div>
         <mat-toolbar class="ion-no-padding">
-          <button
-            mat-icon-button
-            color="light"
-            *ngIf="network.online"
-            [title]="'COMMON.BTN_REFRESH' | translate"
-            (click)="loadCacheStat()"
-          >
+          <button mat-icon-button color="light" *ngIf="network.online" [title]="'COMMON.BTN_REFRESH' | translate" (click)="loadCacheStat()">
             <mat-icon>refresh</mat-icon>
           </button>
 
@@ -214,12 +206,7 @@
             <h3 translate>CONFIGURATION.CACHE_TITLE</h3>
           </ion-text>
 
-          <button
-            mat-icon-button
-            *ngIf="enabled"
-            [matMenuTriggerFor]="optionsMenu"
-            [title]="'COMMON.BTN_OPTIONS' | translate"
-          >
+          <button mat-icon-button *ngIf="enabled" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
             <mat-icon>more_vert</mat-icon>
           </button>
         </mat-toolbar>
@@ -234,27 +221,27 @@
         <div class="">
           <ion-grid class="ion-no-padding cache">
             <!-- header -->
-            <ion-row class="mat-header-row">
-              <ion-col size="12" size-lg="6" class="mat-header-cell">
+            <ion-row class="mat-mdc-header-row">
+              <ion-col size="12" size-lg="6" class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
               </ion-col>
-              <ion-col class="mat-header-cell">
+              <ion-col class="mat-mdc-header-cell">
                 <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
               </ion-col>
               <ion-col size="1"></ion-col>
             </ion-row>
 
             <!-- total -->
-            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-row odd">
+            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-mdc-row odd">
               <ion-col size="12" size-lg="6">
                 <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
               </ion-col>
@@ -274,7 +261,7 @@
             </ion-row>
 
             <!-- details -->
-            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-row" [class.odd]="odd">
+            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-mdc-row" [class.odd]="odd">
               <ion-col size="12" size-lg="6">
                 <ion-label class="ion-text-wrap">{{ stat.name }}</ion-label>
               </ion-col>
@@ -291,12 +278,7 @@
                 <ion-label>{{ stat.diskSize | fileSize }}</ion-label>
               </ion-col>
               <ion-col size="1">
-                <ion-button
-                  [title]="'COMMON.BTN_CLEAR' | translate"
-                  fill="clear"
-                  color="medium"
-                  (click)="clearCache($event, stat.name)"
-                >
+                <ion-button [title]="'COMMON.BTN_CLEAR' | translate" fill="clear" color="medium" (click)="clearCache($event, stat.name)">
                   <ion-icon slot="icon-only" name="trash"></ion-icon>
                 </ion-button>
               </ion-col>
@@ -304,26 +286,6 @@
           </ion-grid>
         </div>
       </div>
-    </mat-tab>
-
-    <!-- TAB: jobs -->
-    <mat-tab label="{{ 'CONFIGURATION.TAB_JOBS' | translate }}">
-      <ng-template mat-tab-label>
-        <mat-icon>schedule</mat-icon>
-        <ion-label
-          *rxLet="jobList.jobsCount$ as count"
-          [matBadge]="count"
-          [matBadgeHidden]="!count"
-          matBadgeColor="primary"
-          matBadgeOverlap="false"
-          matBadgeSize="small"
-          translate
-        >
-          CONFIGURATION.TAB_JOBS
-        </ion-label>
-      </ng-template>
-
-      <app-job-list #jobList></app-job-list>
     </mat-tab>
   </mat-tab-group>
 </ion-content>

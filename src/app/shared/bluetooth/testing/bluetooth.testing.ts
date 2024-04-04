@@ -15,21 +15,16 @@ interface BluetoothTestingState {
 @Component({
   selector: 'app-bluetooth-testing',
   templateUrl: './bluetooth.testing.html',
-  styleUrls: [
-    './bluetooth.testing.scss'
-  ],
+  styleUrls: ['./bluetooth.testing.scss'],
   providers: [RxState],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BluetoothTestingPage {
-
   constructor(
     protected platform: Platform,
     protected bluetoothService: BluetoothService,
     private cd: ChangeDetectorRef
-  ) {
-
-  }
+  ) {}
 
   async disconnectAll() {
     await this.bluetoothService.disconnectAll();

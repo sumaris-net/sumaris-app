@@ -13,10 +13,11 @@ import {
   IUserEvent,
   IUserEventFilter,
   toDateISOString,
-  IUserEventAction, isNotNilOrBlank
+  IUserEventAction,
+  isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import {StoreObject} from '@apollo/client/core';
+import { StoreObject } from '@apollo/client/core';
 
 export declare type UserEventType = 'FEED' | 'DEBUG_DATA' | 'INBOX_MESSAGE' | 'JOB';
 
@@ -24,7 +25,7 @@ export const UserEventTypeEnum = Object.freeze({
   FEED: <UserEventType>'FEED',
   DEBUG_DATA: <UserEventType>'DEBUG_DATA',
   INBOX_MESSAGE: <UserEventType>'INBOX_MESSAGE',
-  JOB: <UserEventType>'JOB'
+  JOB: <UserEventType>'JOB',
   // TODO: add all types of event
 });
 
@@ -68,11 +69,9 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     // Serialize content
     if (typeof this.content === 'object') {
       target.content = JSON.stringify(this.content);
-    }
-    else if (typeof this.content === 'string') {
+    } else if (typeof this.content === 'string') {
       target.content = this.content;
-    }
-    else {
+    } else {
       target.content = null;
     }
     target.hasContent = this.hasContent || isNotNilOrBlank(target.content);
@@ -115,24 +114,19 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
   addAction(action: IUserEventAction) {
     if (!action) throw new Error(`Argument 'action' is required`);
     if (!action.name) throw new Error(`Argument 'action.name' is required`);
-    if (!action.executeAction || typeof action.executeAction !== 'function') throw new Error(`Argument 'action.executeAction' is required, and should be a function`);
+    if (!action.executeAction || typeof action.executeAction !== 'function')
+      throw new Error(`Argument 'action.executeAction' is required, and should be a function`);
     this.actions = this.actions || [];
     this.actions.push(action);
   }
 
   addDefaultAction(action: Partial<IUserEventAction>) {
-    this.addAction({executeAction: null, ...action,
-      default: true,
-      name: action.name || 'default',
-      title: action.title || action.name
-    });
+    this.addAction({ executeAction: null, ...action, default: true, name: action.name || 'default', title: action.title || action.name });
   }
 }
 
 @EntityClass({ typename: 'UserEventFilterVO' })
-export class UserEventFilter
-  extends EntityFilter<UserEventFilter, UserEvent>
-  implements IUserEventFilter<UserEvent> {
+export class UserEventFilter extends EntityFilter<UserEventFilter, UserEvent> implements IUserEventFilter<UserEvent> {
   static fromObject: (source: any, opts?: any) => UserEventFilter;
 
   types: string[] = [];
@@ -181,7 +175,7 @@ export class UserEventFilter
     const filterFns = super.buildFilter();
 
     if (isNotEmptyArray(this.types)) {
-     filterFns.push((t) => this.types.includes(t.type));
+      filterFns.push((t) => this.types.includes(t.type));
     }
     if (isNotEmptyArray(this.levels)) {
       filterFns.push((t) => this.levels.includes(t.level));
@@ -203,10 +197,10 @@ export class UserEventFilter
       filterFns.push((t) => isNil(t.readDate));
     }
     if (isNotNil(this.jobId)) {
-      filterFns.push(t => t.jobId === this.jobId);
+      filterFns.push((t) => t.jobId === this.jobId);
     }
     if (isNotNil(this.source)) {
-      filterFns.push(t => t.source === this.source);
+      filterFns.push((t) => t.source === this.source);
     }
 
     return filterFns;

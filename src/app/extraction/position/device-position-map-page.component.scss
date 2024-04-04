@@ -1,10 +1,9 @@
-
 .filter-panel {
   margin-bottom: 5px;
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   &.filter-panel-floating {
-    z-index: 10000
+    z-index: 10000;
   }
 
   .form-container {
@@ -33,11 +32,10 @@
     width: 100%;
     padding: 0;
   }
-
 }
 
 .table-panel {
-  --expansion-panel-padding: 0!important;
+  --expansion-panel-padding: 0 !important;
 
   &.table-panel-floating {
     z-index: 10000;
@@ -47,23 +45,23 @@
     right: 0;
   }
 
-  .mat-table {
+  .mat-mdc-table {
     max-height: calc(30vh) !important;
     overflow-y: auto !important;
     padding-top: 0;
 
-    .mat-header-row {
+    .mat-mdc-header-row {
       position: sticky;
       top: 0;
       background-color: white;
       z-index: 100;
     }
-    .mat-row {
+    .mat-mdc-row {
       align-items: center;
       border-bottom-width: 1px;
       border-bottom-style: solid;
       border-bottom-color: rgba(0, 0, 0, 0.12);
-      &.mat-row-selected {
+      &.mat-mdc-row-selected {
         background-color: var(--ion-color-secondary100) !important;
         color: var(--ion-color-secondary100-contrast);
       }

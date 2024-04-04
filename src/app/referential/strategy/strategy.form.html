@@ -36,7 +36,7 @@
         <app-list-form
           #acquisitionLevelList
           [displayWith]="getReferentialName"
-          [formArray]="filterForm | formGetArray : 'acquisitionLevels'"
+          [formArray]="filterForm | formGetArray: 'acquisitionLevels'"
           [equals]="referentialEquals"
           [options]="{ allowEmptyArray: true, allowMultipleSelection: false }"
           (selectionChanges)="updateFilterAcquisitionLevel($event && $event[0])"
@@ -60,7 +60,7 @@
 
         <app-list-form
           #locationList
-          [formArray]="filterForm | formGetArray : 'locations'"
+          [formArray]="filterForm | formGetArray: 'locations'"
           [displayWith]="referentialToString"
           [equals]="referentialEquals"
           [options]="{ allowEmptyArray: true, allowMultipleSelection: true }"

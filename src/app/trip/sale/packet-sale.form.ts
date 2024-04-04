@@ -8,15 +8,15 @@ import { Subscription } from 'rxjs';
 import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-packet-sale-form',
   templateUrl: './packet-sale.form.html',
   styleUrls: ['./packet-sale.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy {
-
   private _saleSubscription: Subscription;
   private _data: Packet;
 
@@ -36,7 +36,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     fillRankOrder(json.saleProducts);
 
     // Convert aggregated products sales to products
-    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._data, json.saleProducts, this.packetSalePmfms);
+    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._data, json.saleProducts, this.pmfms);
 
     return json;
   }
@@ -44,7 +44,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   @Input() mobile: boolean;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
-  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
+  @Input() pmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -53,7 +53,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
+    super(injector, validatorService.getFormGroup(undefined, { withSaleProducts: true }));
   }
 
   ngOnInit() {
@@ -68,12 +68,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       service: this.referentialRefService,
       attributes: ['name'],
       filter: {
-        entityName: 'SaleType'
+        entityName: 'SaleType',
       },
       showAllOnFocus: true,
-      mobile: this.mobile
+      mobile: this.mobile,
     });
-
   }
 
   ngOnDestroy() {
@@ -82,15 +81,13 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   setValue(data: Packet, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
     if (!data) return;
     this._data = data;
 
     // Initialize product sales by converting products to aggregated sale products
     const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts)
-      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms)
-        .map(p => p.asObject())
-      : [{ }];
+      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.pmfms).map((p) => p.asObject())
+      : [{}];
     this.salesHelper.resize(Math.max(1, aggregatedSaleProducts.length));
 
     data.saleProducts = aggregatedSaleProducts;
@@ -99,7 +96,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     super.setValue(data, opts);
 
     // update saleFromArray validators
-    this.validatorService.updateFormGroup(this.form, {withSaleProducts: true});
+    this.validatorService.updateFormGroup(this.form, { withSaleProducts: true });
 
     this.computeAllPrices();
 
@@ -107,13 +104,12 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   private initSubscription() {
-
     // clear and re-create
     this._saleSubscription?.unsubscribe();
     this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
+    for (const saleForm of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
       this._saleSubscription.add(
         saleForm.valueChanges.subscribe(() => {
           const dirty = saleForm.dirty;
@@ -121,21 +117,19 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
           // Restore previous state - fix OBSDEB bug
           if (!dirty) saleForm.markAsPristine();
-        }));
+        })
+      );
     }
-
   }
 
   private computeAllPrices() {
-    for (const sale of this.saleFormArray.controls as UntypedFormGroup[] || []) {
+    for (const sale of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
       this.computePrices(sale.controls);
     }
   }
 
   computePrices(controls: { [key: string]: AbstractControl }) {
-
-    if (this.computing)
-      return;
+    if (this.computing) return;
 
     try {
       this.computing = true;
@@ -151,11 +145,9 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
         'subgroupCount',
         'number'
       );
-
     } finally {
       this.computing = false;
     }
-
   }
 
   private initSalesHelper() {
@@ -165,7 +157,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       SaleProductUtils.isSaleProductEquals,
       SaleProductUtils.isSaleProductEmpty,
       {
-        allowEmptyArray: true
+        allowEmptyArray: true,
       }
     );
     if (this.salesHelper.size() === 0) {
@@ -173,7 +165,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       this.salesHelper.resize(1);
     }
     this.markForCheck();
-
   }
 
   addSale(event?: Event) {
@@ -189,15 +180,14 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.salesHelper.removeAt(index);
     this.initSubscription();
 
-    this.editSale(index - 1, {focus: false});
+    this.editSale(index - 1, { focus: false });
   }
 
-  editSale(index: number, opts = {focus: true}) {
+  editSale(index: number, opts = { focus: true }) {
     const maxIndex = this.salesHelper.size() - 1;
     if (index < 0) {
       index = 0;
-    }
-    else if (index > maxIndex) {
+    } else if (index > maxIndex) {
       index = maxIndex;
     }
     if (this.salesEditedIndex === index) return; // Skip if same
@@ -217,5 +207,4 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 }

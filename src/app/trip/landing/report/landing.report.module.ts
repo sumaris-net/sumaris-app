@@ -7,18 +7,8 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
-  declarations: [
-    LandingReport,
-  ],
-  imports: [
-    AppCoreModule,
-    AppReferentialModule,
-    AppDataModule,
-    TranslateModule.forChild(),
-    AppSharedReportModule,
-  ],
-  exports: [
-    LandingReport,
-  ],
+  declarations: [LandingReport],
+  imports: [AppCoreModule, AppReferentialModule, AppDataModule, TranslateModule.forChild(), AppSharedReportModule],
+  exports: [LandingReport],
 })
-export class LandingReportModule { }
+export class LandingReportModule {}

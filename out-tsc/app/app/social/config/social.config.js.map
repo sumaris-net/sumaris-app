@@ -1,0 +1,1 @@
+{"version":3,"file":"social.config.js","sourceRoot":"","sources":["../../../../../src/app/social/config/social.config.ts"],"names":[],"mappings":"AAEA,MAAM,CAAC,MAAM,yBAAyB,GAAG,MAAM,CAAC,MAAM,CAAC;IACrD,yBAAyB,EAAwB;QAC7C,GAAG,EAAE,0CAA0C;QAC/C,KAAK,EAAE,wDAAwD;QAC/D,IAAI,EAAE,SAAS;QACf,YAAY,EAAE,KAAK;KACpB;CACJ,CAAC,CAAC"}

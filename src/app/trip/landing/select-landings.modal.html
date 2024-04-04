@@ -11,13 +11,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button
-        *ngIf="(loadingSubject | async) === false && hasSelection()"
-        (click)="close($event)"
-        visible-xs
-        visible-sm
-        visible-mobile
-      >
+      <ion-button *ngIf="(loadingSubject | async) === false && hasSelection()" (click)="close($event)" visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -35,6 +29,9 @@
     #table
     [showObserversColumn]="false"
     [showDateTimeColumn]="true"
+    [programLabel]="programLabel"
+    [requiredStrategy]="requiredStrategy"
+    [strategyId]="strategyId"
     [disabled]="true"
     [canDelete]="false"
     (onOpenRow)="selectRow($event)"
@@ -56,12 +53,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button
-          [fill]="(hasSelection() && 'solid') || 'clear'"
-          [disabled]="!hasSelection()"
-          (click)="close($event)"
-          color="primary"
-        >
+        <ion-button [fill]="(hasSelection() && 'solid') || 'clear'" [disabled]="!hasSelection()" (click)="close($event)" color="primary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

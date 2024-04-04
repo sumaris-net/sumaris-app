@@ -16,20 +16,18 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialPipesModule
+    AppReferentialPipesModule,
   ],
   declarations: [
-
     // Components
     WeightLengthConversionTable,
-    TaxonNamePage
+    TaxonNamePage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    TaxonNamePage
+    TaxonNamePage,
   ],
 })
-export class AppTaxonNameModule {
-}
+export class AppTaxonNameModule {}

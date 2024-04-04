@@ -16,16 +16,14 @@ import { ContextService } from '@app/shared/context.service';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { NavController } from '@ionic/angular';
 
-
 // app-strategies-page
 @Component({
   selector: 'app-strategies-page',
   templateUrl: 'strategies.page.html',
   styleUrls: ['strategies.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StrategiesPage implements OnInit {
-
   data: Program;
   strategyEditor: StrategyEditor;
 
@@ -66,7 +64,7 @@ export class StrategiesPage implements OnInit {
     protected accountService: AccountService,
     protected platformService: PlatformService,
     @Inject(ContextService) protected context: ContextService,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     this.mobile = platformService.mobile;
 
@@ -77,11 +75,8 @@ export class StrategiesPage implements OnInit {
   }
 
   ngOnInit() {
-
     // Make to remove old contextual values
     this.resetContext();
-
-
   }
 
   async load(id?: number, opts?: EntityServiceLoadOptions) {
@@ -101,30 +96,28 @@ export class StrategiesPage implements OnInit {
 
       this.$title.next(program.label);
       this.cd.markForCheck();
-
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.error = (err && err.message) || err;
     }
   }
 
   onOpenRow<T extends Strategy<any>>(row: TableElement<T>) {
     return this.navController.navigateForward(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, row.currentData.id], {
-      queryParams: {}
+      queryParams: {},
     });
   }
 
   async onNewRow(event?: any) {
     if (this.loading) return; // Skip
 
-    this.markAsLoading({emitEvent: false});
+    this.markAsLoading({ emitEvent: false });
 
     try {
       await this.navController.navigateForward(['referential', 'programs', this.data.id, 'strategies', this.strategyEditor, 'new'], {
-        queryParams: {}
+        queryParams: {},
       });
-    }
-    finally {
+    } finally {
       this.markAsLoaded();
     }
   }
@@ -137,21 +130,22 @@ export class StrategiesPage implements OnInit {
 
     // Redirect to editor
     switch (acquisitionLevel) {
-      case AcquisitionLevelCodes.LANDING:
+      case AcquisitionLevelCodes.LANDING: {
         const editor = this.data.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
         return this.navController.navigateForward(`/observations/landings/${editor}/new`, {
           queryParams: {
             parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
             program: this.data?.label,
-            strategyLabel: strategy.label
-          }
+            strategyLabel: strategy.label,
+          },
         });
+      }
       case AcquisitionLevelCodes.OBSERVED_LOCATION:
       default:
         return this.navController.navigateForward('/observations/new', {
           queryParams: {
-            program: this.data?.label
-          }
+            program: this.data?.label,
+          },
         });
     }
   }

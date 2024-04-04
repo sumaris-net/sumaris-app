@@ -1,16 +1,13 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {ExtractionFilterCriterion, ExtractionType} from '../type/extraction-type.model';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { AppFormArray, arrayDistinct, isNilOrBlank, isNotEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/common/extraction.utils';
 
 @Injectable()
 export class ExtractionCriteriaValidatorService implements ValidatorService {
-
-  constructor(
-    protected formBuilder: UntypedFormBuilder) {
-  }
+  constructor(protected formBuilder: UntypedFormBuilder) {}
 
   getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
@@ -19,12 +16,10 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
   getFormGroup(data?: ExtractionFilterCriterion[]): UntypedFormGroup {
     const config = {};
 
-    const sheetNames = data && arrayDistinct(data
-      .map(criterion => criterion.sheetName)
-      .filter(isNotNil));
+    const sheetNames = data && arrayDistinct(data.map((criterion) => criterion.sheetName).filter(isNotNil));
     if (isNotEmptyArray(sheetNames)) {
-      sheetNames.forEach(sheetName => {
-        const criteria = data.filter(criterion => criterion.sheetName === sheetName);
+      sheetNames.forEach((sheetName) => {
+        const criteria = data.filter((criterion) => criterion.sheetName === sheetName);
         config[sheetName] = this.getCriterionFormArray(criteria, sheetName);
       });
     }
@@ -34,7 +29,7 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
 
   getCriterionFormArray(data?: ExtractionFilterCriterion[], sheetName?: string) {
     const formArray = new AppFormArray(
-      criterion => this.getCriterionFormGroup(criterion, sheetName),
+      (criterion) => this.getCriterionFormGroup(criterion, sheetName),
       ExtractionFilterCriterion.equals,
       ExtractionFilterCriterion.isEmpty
     );
@@ -51,12 +46,12 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
       value = data.values.join(',');
     }
     return this.formBuilder.group({
-      name: [data && data.name || null],
-      operator: [data && data.operator || DEFAULT_CRITERION_OPERATOR, Validators.required],
+      name: [(data && data.name) || null],
+      operator: [(data && data.operator) || DEFAULT_CRITERION_OPERATOR, Validators.required],
       value: [value],
-      endValue: [data && data.endValue || null],
-      sheetName: [data && data.sheetName || sheetName],
-      hidden: [toBoolean(data?.hidden, false)]
+      endValue: [(data && data.endValue) || null],
+      sheetName: [(data && data.sheetName) || sheetName],
+      hidden: [toBoolean(data?.hidden, false)],
     });
   }
 
@@ -67,12 +62,12 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
       value = data.values.join(',');
     }
     control.setValue({
-      name: data && data.name || null,
-      operator: data && data.operator || DEFAULT_CRITERION_OPERATOR,
+      name: (data && data.name) || null,
+      operator: (data && data.operator) || DEFAULT_CRITERION_OPERATOR,
       value,
-      endValue: data && data.endValue || null,
-      sheetName: data && data.sheetName || sheetName || null,
-      hidden: toBoolean(data?.hidden, false)
+      endValue: (data && data.endValue) || null,
+      sheetName: (data && data.sheetName) || sheetName || null,
+      hidden: toBoolean(data?.hidden, false),
     });
   }
 }

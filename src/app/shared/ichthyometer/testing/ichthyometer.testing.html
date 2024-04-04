@@ -28,7 +28,7 @@
     </ion-row>
 
     <ng-container *ngFor="let ichthyometer of ichthyometerService.ichthyometers$ | async; odd as odd; even as even">
-      <ion-row class="mat-row" [class.odd]="odd" [class.even]="even">
+      <ion-row class="mat-mdc-row" [class.odd]="odd" [class.even]="even">
         <ion-col>
           <ion-text>{{ ichthyometer.name }}</ion-text>
           <br />
@@ -44,9 +44,7 @@
           </ion-text>
         </ion-col>
         <ion-col>
-          <ion-button *rxIf="ichthyometer.enabled$; else disabled" (click)="disconnect(ichthyometer)">
-            Disconnect
-          </ion-button>
+          <ion-button *rxIf="ichthyometer.enabled$; else disabled" (click)="disconnect(ichthyometer)">Disconnect</ion-button>
           <ng-template #disabled>
             <ion-text color="medium">Disabled</ion-text>
           </ng-template>

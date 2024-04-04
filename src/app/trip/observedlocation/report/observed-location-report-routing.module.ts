@@ -8,18 +8,11 @@ const routes: Routes = [
     path: '',
     pathMatch: 'full',
     component: ObservedLocationReport,
-  }
+  },
 ];
 
-
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    AppObservedLocationReportModule
-  ],
-  exports: [
-    RouterModule
-  ]
+  imports: [RouterModule.forChild(routes), AppObservedLocationReportModule],
+  exports: [RouterModule],
 })
-export class AppObservedLocationReportRoutingModule {
-}
+export class AppObservedLocationReportRoutingModule {}

@@ -12,14 +12,15 @@ export interface VesselRegistrationValidatorOptions extends VesselValidatorOptio
   required?: boolean;
 }
 
-
-@Injectable({providedIn: 'root'})
-export class VesselRegistrationValidatorService<O extends VesselRegistrationValidatorOptions = VesselRegistrationValidatorOptions> implements ValidatorService {
-
-  constructor(private formBuilder: UntypedFormBuilder,
-              protected dateAdapter: DateAdapter<Moment>,
-              protected translate: TranslateService) {
-  }
+@Injectable({ providedIn: 'root' })
+export class VesselRegistrationValidatorService<O extends VesselRegistrationValidatorOptions = VesselRegistrationValidatorOptions>
+  implements ValidatorService
+{
+  constructor(
+    private formBuilder: UntypedFormBuilder,
+    protected dateAdapter: DateAdapter<Moment>,
+    protected translate: TranslateService
+  ) {}
 
   getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
@@ -33,7 +34,10 @@ export class VesselRegistrationValidatorService<O extends VesselRegistrationVali
       endDate: [data?.endDate || null],
       registrationCode: [data?.registrationCode || null, opts && opts.required ? Validators.required : null],
       intRegistrationCode: [data?.intRegistrationCode || null],
-      registrationLocation: [data?.registrationLocation || null, opts && opts.required ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity]
+      registrationLocation: [
+        data?.registrationLocation || null,
+        opts && opts.required ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity,
+      ],
     });
   }
 
@@ -44,15 +48,12 @@ export class VesselRegistrationValidatorService<O extends VesselRegistrationVali
       const maxDate = fromDateISOString(opts.maxDate);
       const maxDateStr = this.dateAdapter.format(maxDate, this.translate.instant('COMMON.DATE_TIME_PATTERN'));
 
-      startDateControl.setValidators(opts.required
-        ? Validators.compose([
-          SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day'),
-          Validators.required
-        ])
-        : SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day')
+      startDateControl.setValidators(
+        opts.required
+          ? Validators.compose([SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day'), Validators.required])
+          : SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day')
       );
     } else if (opts && opts.required) {
-
       startDateControl.setValidators(Validators.required);
     } else {
       startDateControl.clearValidators();

@@ -14,26 +14,22 @@ export interface ISelectPmfmModalOptions {
   selector: 'app-select-pmfm-modal',
   styleUrls: ['./select-pmfm.modal.scss'],
   templateUrl: './select-pmfm.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> implements OnInit, ISelectPmfmModalOptions {
-
   constructor(
-      injector: Injector,
-      dataService: PmfmService,
-      protected cd: ChangeDetectorRef,
+    injector: Injector,
+    dataService: PmfmService,
+    protected cd: ChangeDetectorRef
   ) {
-    super(injector, Pmfm, PmfmFilter,
-      dataService,
-      {
-        watchAllOptions: {
-          withDetails: true // Force to use PmfmFragment
-        }
-      });
+    super(injector, Pmfm, PmfmFilter, dataService, {
+      watchAllOptions: {
+        withDetails: true, // Force to use PmfmFragment
+      },
+    });
   }
 
   protected async computeTitle(): Promise<string> {
     return 'REFERENTIAL.ENTITY.PMFM';
   }
-
 }

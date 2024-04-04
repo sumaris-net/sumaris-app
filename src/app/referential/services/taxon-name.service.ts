@@ -14,7 +14,7 @@ import {
   isNotNil,
   MINIFY_ENTITY_FOR_POD,
   PlatformService,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import { Observable, of } from 'rxjs';
@@ -24,60 +24,69 @@ import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.fil
 import { mergeMap } from 'rxjs/operators';
 
 export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any } = {
-  loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
-    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightTaxonNameFragment
+  loadAll: gql`
+    query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput) {
+      data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...LightTaxonNameFragment
+      }
     }
-  }
-  ${ReferentialFragments.lightTaxonName}`,
+    ${ReferentialFragments.lightTaxonName}
+  `,
 
-  loadAllWithTotal: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
-    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...LightTaxonNameFragment
+  loadAllWithTotal: gql`
+    query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput) {
+      data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+        ...LightTaxonNameFragment
+      }
+      total: taxonNameCount(filter: $filter)
     }
-    total: taxonNameCount(filter: $filter)
-  }
-  ${ReferentialFragments.lightTaxonName}`,
+    ${ReferentialFragments.lightTaxonName}
+  `,
 
-  countAll: gql`query TaxonNameCount($filter: TaxonNameFilterVOInput){
-    total: taxonNameCount(filter: $filter)
-  }`,
-
-  load:  gql`query taxonName($label: String, $id: Int){
-    data: taxonName(label: $label, id: $id){
-      ...FullTaxonNameFragment
+  countAll: gql`
+    query TaxonNameCount($filter: TaxonNameFilterVOInput) {
+      total: taxonNameCount(filter: $filter)
     }
-  }
-  ${ReferentialFragments.fullTaxonName}`,
+  `,
 
-  referenceTaxonExists: gql`query referenceTaxonExists($id: Int){
-    data: referenceTaxonExists(id: $id)
-  }`
+  load: gql`
+    query taxonName($label: String, $id: Int) {
+      data: taxonName(label: $label, id: $id) {
+        ...FullTaxonNameFragment
+      }
+    }
+    ${ReferentialFragments.fullTaxonName}
+  `,
+
+  referenceTaxonExists: gql`
+    query referenceTaxonExists($id: Int) {
+      data: referenceTaxonExists(id: $id)
+    }
+  `,
 };
 
 const TaxonNameMutations: BaseEntityGraphqlMutations = {
-  save: gql`mutation saveTaxonName($data: TaxonNameVOInput!) {
-    data: saveTaxonName(taxonName: $data){
-    ...FullTaxonNameFragment
+  save: gql`
+    mutation saveTaxonName($data: TaxonNameVOInput!) {
+      data: saveTaxonName(taxonName: $data) {
+        ...FullTaxonNameFragment
+      }
     }
-  }
-  ${ReferentialFragments.fullTaxonName}`
+    ${ReferentialFragments.fullTaxonName}
+  `,
 };
 
-@Injectable({providedIn: 'root'})
-export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter>
-  implements IEntityService<TaxonName> {
-
+@Injectable({ providedIn: 'root' })
+export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter> implements IEntityService<TaxonName> {
   constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
     protected accountService: AccountService,
     protected referentialService: ReferentialService
   ) {
-    super(graphql, platform,
-    TaxonName, TaxonNameFilter, {
+    super(graphql, platform, TaxonName, TaxonNameFilter, {
       queries: TaxonNameQueries,
-      mutations: TaxonNameMutations
+      mutations: TaxonNameMutations,
     });
   }
 
@@ -89,12 +98,12 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
   async referenceTaxonExists(referenceTaxonId: number): Promise<boolean> {
     if (isNil(referenceTaxonId)) return false;
 
-    const {data} = await this.graphql.query<{ data: boolean }>({
+    const { data } = await this.graphql.query<{ data: boolean }>({
       query: TaxonNameQueries.referenceTaxonExists,
-      variables : {
-        id: referenceTaxonId
+      variables: {
+        id: referenceTaxonId,
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
     });
 
     return data;
@@ -104,7 +113,6 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
    * Delete parameter entities
    */
   async delete(entity: TaxonName, options?: any): Promise<any> {
-
     entity.entityName = TaxonName.ENTITY_NAME;
     await this.referentialService.deleteAll([entity]);
   }
@@ -114,8 +122,9 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
   }
 
   listenChanges(id: number, options?: any): Observable<TaxonName | undefined> {
-    return this.referentialService.listenChanges(id, {entityName: TaxonName.ENTITY_NAME, ...options})
-      .pipe(mergeMap(data => this.load(id, {...options, fetchPolicy: 'network-only'})));
+    return this.referentialService
+      .listenChanges(id, { entityName: TaxonName.ENTITY_NAME, ...options })
+      .pipe(mergeMap((data) => this.load(id, { ...options, fetchPolicy: 'network-only' })));
   }
 
   copyIdAndUpdateDate(source: TaxonName, target: TaxonName) {
@@ -127,12 +136,10 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
   /* -- protected methods -- */
 
   protected asObject(entity: TaxonName, opts?: EntityAsObjectOptions): any {
-    return super.asObject(entity, {...MINIFY_ENTITY_FOR_POD, ...opts});
+    return super.asObject(entity, { ...MINIFY_ENTITY_FOR_POD, ...opts });
   }
 
   protected fillDefaultProperties(entity: TaxonName) {
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;
   }
-
-
 }

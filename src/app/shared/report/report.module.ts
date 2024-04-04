@@ -9,15 +9,13 @@ import { RevealModule } from '@app/shared/report/reveal/reveal.module';
     NgChartsModule,
 
     // Sub modules
-    RevealModule
+    RevealModule,
   ],
   exports: [
     NgChartsModule,
 
     // Sub modules
     RevealModule,
-  ]
+  ],
 })
-export class AppSharedReportModule {
-
-}
+export class AppSharedReportModule {}

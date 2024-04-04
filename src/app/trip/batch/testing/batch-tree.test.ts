@@ -16,7 +16,7 @@ import {
   SharedValidators,
   StatusIds,
   toNumber,
-  waitFor
+  waitFor,
 } from '@sumaris-net/ngx-components';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -30,17 +30,13 @@ import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
 import { TripService } from '@app/trip/trip/trip.service';
 
-
 @Component({
   selector: 'app-batch-tree-test',
   templateUrl: './batch-tree.test.html',
   styleUrls: ['./batch-tree.test.scss'],
-  providers: [
-    { provide: ContextService, useClass: TripContextService}
-  ]
+  providers: [{ provide: ContextService, useClass: TripContextService }],
 })
 export class BatchTreeTestPage implements OnInit {
-
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
@@ -56,11 +52,8 @@ export class BatchTreeTestPage implements OnInit {
   @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeComponent;
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
 
-
   get batchTree(): BatchTreeComponent {
-    return (this.selectedTabIndex === 0)
-      ? this.mobileBatchTree
-      : this.desktopBatchTree;
+    return this.selectedTabIndex === 0 ? this.mobileBatchTree : this.desktopBatchTree;
   }
 
   constructor(
@@ -71,29 +64,29 @@ export class BatchTreeTestPage implements OnInit {
     private tripService: TripService,
     private context: ContextService<BatchContext>
   ) {
-
     this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
-      autofill: [false, Validators.required]
+      autofill: [false, Validators.required],
     });
   }
 
   ngOnInit() {
-
     // Program
     this.autocomplete.add('program', {
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        entityName: 'Program'
-      }),
-      attributes: ['label', 'name']
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          entityName: 'Program',
+        }),
+      attributes: ['label', 'name'],
     });
-    this.filterForm.get('program').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(p => {
+    this.filterForm
+      .get('program')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((p) => {
         const label = p && p.label;
         if (label) {
           this.$programLabel.next(label);
@@ -103,10 +96,9 @@ export class BatchTreeTestPage implements OnInit {
     this.$programLabel
       .pipe(
         filter(isNotNilOrBlank),
-        mergeMap(programLabel => this.referentialRefService.ready()
-          .then(() => this.programRefService.loadByLabel(programLabel)))
+        mergeMap((programLabel) => this.referentialRefService.ready().then(() => this.programRefService.loadByLabel(programLabel)))
       )
-      .subscribe(program => this.setProgram(program));
+      .subscribe((program) => this.setProgram(program));
 
     // Gears (from program)
     this.autocomplete.add('gear', {
@@ -117,10 +109,9 @@ export class BatchTreeTestPage implements OnInit {
         })
       ),
       attributes: ['label', 'name'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('gear').valueChanges
-      .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
+    this.filterForm.get('gear').valueChanges.subscribe((g) => this.$gearId.next(toNumber(g && g.id, null)));
 
     // Fishing areas
     this.autocomplete.add('fishingArea', {
@@ -128,32 +119,32 @@ export class BatchTreeTestPage implements OnInit {
       filter: {
         entityName: 'Location',
         levelIds: LocationLevels.getStatisticalRectangleLevelIds(),
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name']
+      attributes: ['label', 'name'],
     });
-    this.filterForm.get('fishingArea').valueChanges
-      .subscribe(location => {
-        if (location) {
-          this.context.setValue('fishingAreas', [FishingArea.fromObject({
-            location
-          })]);
-        }
-        else {
-          this.context.resetValue('fishingAreas');
-        }
-      });
-
+    this.filterForm.get('fishingArea').valueChanges.subscribe((location) => {
+      if (location) {
+        this.context.setValue('fishingAreas', [
+          FishingArea.fromObject({
+            location,
+          }),
+        ]);
+      } else {
+        this.context.resetValue('fishingAreas');
+      }
+    });
 
     // Input example
     this.autocomplete.add('example', {
-      items: BATCH_TREE_EXAMPLES.map((label, index) => ({id: index+1, label})),
+      items: BATCH_TREE_EXAMPLES.map((label, index) => ({ id: index + 1, label })),
       attributes: ['label'],
-      showAllOnFocus: true
+      showAllOnFocus: true,
     });
-    this.filterForm.get('example').valueChanges
-      //.pipe(debounceTime(450))
-      .subscribe(example => {
+    this.filterForm
+      .get('example')
+      .valueChanges //.pipe(debounceTime(450))
+      .subscribe((example) => {
         if (example && typeof example.label == 'string') {
           const json = getExampleTree(example.label);
           if (this.outputs.example) {
@@ -162,23 +153,21 @@ export class BatchTreeTestPage implements OnInit {
         }
       });
 
-
     this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
-      program: {id: 10, label: 'ADAP-MER' },
-      gear: {id: 6, label: 'OTB'},
+      program: { id: 10, label: 'ADAP-MER' },
+      gear: { id: 6, label: 'OTB' },
       //program: {id: 70, label: 'APASE' },
       //gear: {id: 7, label: 'OTT'},
-      fishingArea: {id: 110, label: '65F1'},
+      fishingArea: { id: 110, label: '65F1' },
       //example: {id: 1, label: 'default'}
-      example: {id: 3, label: 'empty'}
+      example: { id: 3, label: 'empty' },
     });
 
     this.applyExample();
   }
 
   setProgram(program: Program) {
-
     // DEBUG
     console.debug('[batch-tree-test] Applying program:', program);
 
@@ -187,13 +176,12 @@ export class BatchTreeTestPage implements OnInit {
 
   // Load data into components
   async updateView(data: Batch) {
-
     // Load program's taxon groups
 
     const program = await firstNotNilPromise(this.$program);
-    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program .label);
+    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program.label);
 
-    await waitFor(() => !!this.batchTree, {timeout: 2000});
+    await waitFor(() => !!this.batchTree, { timeout: 2000 });
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
@@ -223,12 +211,10 @@ export class BatchTreeTestPage implements OnInit {
     // Nothing to do
   }
 
-
   async getExampleTree(key?: string): Promise<Batch> {
-
     if (!key) {
       const example = this.filterForm.get('example').value;
-      key = example && example.label || 'default';
+      key = (example && example.label) || 'default';
     }
 
     // Get program
@@ -242,7 +228,7 @@ export class BatchTreeTestPage implements OnInit {
     // - only the parentId, and NOT the parent
     const batches = EntityUtils.treeToArray(json) || [];
     await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues(Batch.TYPENAME, count));
-    batches.forEach(b => {
+    batches.forEach((b) => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;
     });
@@ -275,11 +261,10 @@ export class BatchTreeTestPage implements OnInit {
 
   async dumpExample(key?: string) {
     const catchBatch = await this.getExampleTree(key);
-     this.dumpCatchBatch(catchBatch, 'example');
+    this.dumpCatchBatch(catchBatch, 'example');
   }
 
   async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string, finalize?: boolean) {
-
     const catchBatch = await this.getValue(batchTree, finalize);
 
     // Dump
@@ -290,15 +275,14 @@ export class BatchTreeTestPage implements OnInit {
       const subBatches = catchBatch.children;
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
-      }
-      else {
+      } else {
         let html = '<ul>';
-        subBatches.forEach(b => {
+        subBatches.forEach((b) => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
               html += '<li>' + m + '</li>';
-            }
+            },
           });
         });
         html += '</ul>';
@@ -307,9 +291,7 @@ export class BatchTreeTestPage implements OnInit {
       // Append to result
       this.outputs[outputName] += html;
     }
-
   }
-
 
   dumpCatchBatch(catchBatch: Batch, outputName?: string) {
     let html = '';
@@ -318,13 +300,12 @@ export class BatchTreeTestPage implements OnInit {
         showAll: false,
         println: (m) => {
           html += '<br/>' + m;
-        }
+        },
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 
       this.outputs[outputName] = html;
-    }
-    else {
+    } else {
       this.outputs[outputName] = '&nbsp;No result';
     }
 
@@ -340,8 +321,7 @@ export class BatchTreeTestPage implements OnInit {
       const value = await this.getValue(source, true);
 
       await target.setValue(value);
-    }
-    finally {
+    } finally {
       source.enable();
       target.enable();
     }
@@ -354,7 +334,6 @@ export class BatchTreeTestPage implements OnInit {
   /* -- protected methods -- */
 
   async getValue(batchTree: BatchTreeComponent, finalize?: boolean): Promise<Batch> {
-
     await batchTree.save();
     const catchBatch = batchTree.value;
 
@@ -373,4 +352,3 @@ export class BatchTreeTestPage implements OnInit {
     return JSON.stringify(value);
   }
 }
-

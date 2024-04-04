@@ -1,12 +1,7 @@
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button
-      mat-icon-button
-      *ngIf="canEdit && !mobile && enabled"
-      [title]="'COMMON.BTN_ADD' | translate"
-      (click)="addRow()"
-    >
+    <button mat-icon-button *ngIf="canEdit && !mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -37,14 +32,19 @@
 
   <!-- if row selection -->
   <ng-template #hasSelection>
+    <button mat-icon-button *ngIf="canDelete && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+
+    <!-- duplicate (if desktop) -->
     <button
       mat-icon-button
-      color="light"
-      *ngIf="canDelete && enabled"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="deleteSelection($event)"
+      *ngIf="canDuplicate && enabled"
+      [disabled]="disabled || invalid || (loadingSubject | async) || (savingSubject | async)"
+      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
+      (click)="duplicate()"
     >
-      <mat-icon>delete</mat-icon>
+      <mat-icon>content_copy</mat-icon>
     </button>
 
     <!-- Download button -->
@@ -67,12 +67,7 @@
   <ng-content select="[matToolbarEnd]"></ng-content>
 
   <!-- options button -->
-  <button
-    mat-icon-button
-    [title]="'COMMON.BTN_OPTIONS' | translate"
-    *ngIf="canEdit"
-    [matMenuTriggerFor]="toolbarOptionsMenu"
-  >
+  <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" *ngIf="canEdit" [matMenuTriggerFor]="toolbarOptionsMenu">
     <mat-icon>more_vert</mat-icon>
   </button>
 
@@ -93,15 +88,7 @@
 </ion-item>
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    matSort
-    matSortActive="id"
-    matSortDirection="asc"
-    matSortDisableClear
-    [trackBy]="trackByFn"
-  >
+  <table mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
@@ -111,11 +98,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-checkbox
-          (click)="$event.stopPropagation()"
-          (change)="$event ? selection.toggle(row) : null"
-          [checked]="selection.isSelected(row)"
-        ></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -141,9 +124,7 @@
             [appAutofocus]="row.id === -1 && row.editing"
             [readonly]="!row.editing"
           />
-          <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </td>
     </ng-container>
@@ -155,15 +136,8 @@
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls['name']"
-            [placeholder]="'REFERENTIAL.NAME' | translate"
-            [readonly]="!row.editing"
-          />
-          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'REFERENTIAL.NAME' | translate" [readonly]="!row.editing" />
+          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </td>
     </ng-container>
@@ -181,9 +155,7 @@
             [placeholder]="'REFERENTIAL.DESCRIPTION' | translate"
             [readonly]="!row.editing"
           />
-          <mat-error *ngIf="row.validator.controls.description.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <mat-error *ngIf="row.validator.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </td>
     </ng-container>
@@ -212,9 +184,7 @@
               {{ item.label | translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>
-            ERROR.FIELD_REQUIRED
-          </mat-error>
+          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </td>
     </ng-container>
@@ -224,12 +194,7 @@
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <span translate>REFERENTIAL.COMMENTS</span>
       </th>
-      <td
-        mat-cell
-        *matCellDef="let row"
-        [class.cdk-visually-hidden]="mobile"
-        [class.mat-form-field-disabled]="!row.editing"
-      >
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
           <input
             matInput
@@ -295,9 +260,9 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.validator.dirty"
-      [class.mat-row-disabled]="!row.editing"
+      [class.mat-mdc-row-error]="row.validator.invalid"
+      [class.mat-mdc-row-dirty]="row.validator.dirty"
+      [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
     ></tr>
   </table>

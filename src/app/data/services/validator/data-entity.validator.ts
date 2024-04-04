@@ -13,44 +13,39 @@ export interface DataEntityValidatorOptions {
   debug?: boolean;
 }
 
-export abstract class DataEntityValidatorService<
-  T extends DataEntity<T>,
-  O extends DataEntityValidatorOptions = DataEntityValidatorOptions
-  >
+export abstract class DataEntityValidatorService<T extends DataEntity<T>, O extends DataEntityValidatorOptions = DataEntityValidatorOptions>
   extends BaseValidatorService<T, number, O>
-  implements ValidatorService {
-
+  implements ValidatorService
+{
   protected constructor(
     protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService,
     protected settings: LocalSettingsService
-    ) {
+  ) {
     super(formBuilder, translate);
   }
 
   getFormGroup(data?: T, opts?: O): UntypedFormGroup {
-
     opts = this.fillDefaultOptions(opts);
 
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
+    return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 
-  getFormGroupConfig(data?: T, opts?: O): {
+  getFormGroupConfig(
+    data?: T,
+    opts?: O
+  ): {
     [key: string]: any;
   } {
-
     return {
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      recorderDepartment: [data?.recorderDepartment || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [data && data.controlDate || null],
-      qualificationDate: [data && data.qualificationDate || null],
-      qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)]
+      controlDate: [data?.controlDate || null],
+      qualificationDate: [data?.qualificationDate || null],
+      qualificationComments: [data?.qualificationComments || null],
+      qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
     };
   }
 
@@ -66,9 +61,9 @@ export abstract class DataEntityValidatorService<
   /* -- protected methods -- */
 
   protected fillDefaultOptions(opts?: O): O {
-    opts = opts || {} as O;
+    opts = opts || ({} as O);
 
-    opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
+    opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : this.settings?.isOnFieldMode() || false;
 
     return opts;
   }
