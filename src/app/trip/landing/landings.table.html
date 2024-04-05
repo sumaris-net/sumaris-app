@@ -211,6 +211,7 @@
           *ngIf="row.editing; else readOnly"
           [pmfm]="pmfm"
           [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+          [compact]="pmfm?.type === 'boolean'"
           floatLabel="never"
         ></app-pmfm-field>
         <ng-template #readOnly>
@@ -221,7 +222,8 @@
                   : {
                       pmfm: pmfm,
                       html: true,
-                      propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes
+                      propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes,
+                      showYesOrNo: true
                     }
             "
           ></ion-text>

@@ -65,7 +65,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     if (value !== this._detailEditor) {
       this._detailEditor = value;
       // TODO: should be set with another setter, configure from a ProgramProperties option
-      this.inlineEdition = value === 'trip';
+      this.inlineEdition = value === 'trip' || value === 'sale';
     }
   }
 
