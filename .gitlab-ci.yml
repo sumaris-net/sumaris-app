@@ -40,8 +40,8 @@ variables:
   DOCKER_BUILDKIT: 1
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
   ENV_FILE: variables.env
-  IONIC_CLI_VERSION: 7.1.1
-  ANGULAR_CLI_VERSION: 14.2.13
+  IONIC_CLI_VERSION: 7.2.0
+  ANGULAR_CLI_VERSION: 17.2.4
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------

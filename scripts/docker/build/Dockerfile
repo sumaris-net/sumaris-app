@@ -1,8 +1,8 @@
 # PREPARE STAGE
 ARG IMAGE_REGISTRY
 ARG DOCKER_IMAGE="node:18-slim"
-ARG IONIC_CLI_VERSION="7.1.1"
-ARG ANGULAR_CLI_VERSION="14.2.13"
+ARG IONIC_CLI_VERSION="7.2.0"
+ARG ANGULAR_CLI_VERSION="17.2.4"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
 ENV DEBIAN_FRONTEND: noninteractive
 ARG CACHE_DIR=/tmp/.build-cache
@@ -29,7 +29,8 @@ COPY --from=prepare $CACHE_DIR/scripts/ scripts/
 RUN npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
 
 # Install project dependencies
-RUN npm install --unsafe-perm --force --silent
+#RUN npm install --unsafe-perm --force --silent
+RUN npm install --force
 
 RUN ls -artl
 
