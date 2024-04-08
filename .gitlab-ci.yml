@@ -18,7 +18,7 @@ stages:
 workflow:
   rules:
     - changes:
-        - docker/**/Dockerfile
+        - scripts/docker/**/Dockerfile
         - src/**/*
         - android/**/*
         - .gitlab-ci.yml
@@ -136,7 +136,7 @@ build:env:
     - if: '$CI_COMMIT_BRANCH == "develop"'
       changes:
         - .gitlab-ci.yml
-        - docker/build/Dockerfile
+        - scripts/docker/build/Dockerfile
         - scripts/**/*
         - package.json
         - package-lock.json
