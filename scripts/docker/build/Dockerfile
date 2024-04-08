@@ -30,8 +30,8 @@ COPY --from=prepare $CACHE_DIR/scripts/ scripts/
 RUN npm install -g npm@${NPM_VERSION} @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
 
 # Install project dependencies
+RUN export NODE_OPTIONS=--max_old_space_size=6144
 #RUN npm install --unsafe-perm --force --silent
-RUN export NODE_OPTIONS=--max_old_space_size=4096
 RUN npm install --force
 
 RUN ls -artl
