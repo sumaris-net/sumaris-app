@@ -9,6 +9,7 @@ import {
   isEmptyArray,
   isNil,
   isNotNilOrBlank,
+  LoadResult,
   LocalSettingsService,
   PlatformService,
   toBoolean,
@@ -30,6 +31,8 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { RxState } from '@rx-angular/state';
+import { RxStateSelect } from '@app/shared/state/state.decorator';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -95,6 +98,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
 
+  @RxStateSelect() protected taxonNames$: Observable<TaxonNameRef[]>;
+
   get selectedRow(): TableElement<SubBatch> {
     return this.selection.selected[0] || this.editedRow;
   }
@@ -145,15 +150,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected audio: AudioProvider,
     protected platform: PlatformService,
     protected context: ContextService,
+    validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
-    super(injector, null /*no validator = not editable*/, options);
-    this.inlineEdition = false; // Disable row edition (no validator)
+    super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
+    this.inlineEdition = !this.mobile; // Disable row edition (no validator)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'desc';
-    this.selection = new SelectionModel<TableElement<SubBatch>>(false);
+    this.selection = new SelectionModel<TableElement<SubBatch>>(!this.mobile);
 
     // default values
     this.showCommentsColumn = false;
@@ -368,11 +374,15 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   selectRow(event: MouseEvent | null, row: TableElement<SubBatch>) {
-    if (event?.defaultPrevented || !row) return;
-    if (event) event.preventDefault();
+    if (this.mobile) {
+      if (event?.defaultPrevented || !row) return;
+      if (event) event.preventDefault();
 
-    this.selection.clear();
-    this.selection.select(row);
+      this.selection.clear();
+      this.selection.select(row);
+    } else {
+      super.clickRow(event, row);
+    }
   }
 
   /* -- protected methods -- */
@@ -386,6 +396,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       titlePrefix = '';
     }
     this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+  }
+
+  protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
+    const parentGroup = this.parentGroup;
+    if (isNil(parentGroup)) return { data: [] };
+    if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
+    return this.programRefService.suggestTaxonNames(value, {
+      programLabel: this.programLabel,
+      searchAttribute: options && options.searchAttribute,
+      taxonGroupId: (parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id) || undefined,
+    });
   }
 
   protected async onParentChanges(parent?: BatchGroup) {

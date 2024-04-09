@@ -96,7 +96,6 @@
             </ion-col>
             <!-- Meta  -->
             <ion-col class="ion-no-padding" size="12" size-xl="3">
-              metaData display here
               <app-entity-metadata [value]="data"></app-entity-metadata>
             </ion-col>
           </ion-row>
@@ -123,6 +122,7 @@
         [requiredGear]="false"
         [useSticky]="mobile"
         [i18nPmfmPrefix]="'SALE.BATCH.PMFM.'"
+        [allowQvPmfmGroup]="false"
         [mobile]="mobile"
         [debug]="debug"
       ></app-batch-tree>

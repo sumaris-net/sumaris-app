@@ -203,7 +203,7 @@
                     [autofocus]="focusColumn === col.key"
                     [readonly]="computed"
                     [tabindex]="computed && -1"
-                    [compact]="compactFields"
+                    [compact]="compactFields || col.pmfm?.type === 'boolean'"
                   ></app-pmfm-field>
                 }
                 @case ('samplingRatio') {
