@@ -11,7 +11,7 @@ export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'empty-form';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -563,8 +563,8 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
       },
       {
-        key: <TripReportType>'empty-form',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_EMPTY',
+        key: <TripReportType>'blank-form',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
       },
     ],
     autocomplete: {

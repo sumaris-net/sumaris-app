@@ -49,8 +49,9 @@ export class FormTripReportStats extends BaseReportStats {
   encapsulation: ViewEncapsulation.None,
 })
 export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripReportStats> {
+  public static readonly isBlankFormParam = 'isBlankForm';
+
   protected logPrefix = 'trip-form-report';
-  protected readonly isBlankFormParam = 'blank-form';
   protected isBlankForm: boolean;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBalankPage = 9;
@@ -69,9 +70,9 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.strategyRefService = injector.get(StrategyRefService);
-
-    this.isBlankForm = new URLSearchParams(window.location.search).has(this.isBlankFormParam);
     this.latLongPattern = this.settings.latLongFormat;
+
+    this.isBlankForm = this.route.snapshot.data[FormTripReport.isBlankFormParam];
   }
 
   protected async loadData(id: number, opts?: any): Promise<Trip> {
@@ -83,9 +84,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       data = Trip.fromObject({
         id: id,
         program: Program.fromObject({ label: realData.program.label }),
-        operations: new Array(this.nbOfOpOnBalankPage)
-          .fill(null)
-          .map((_, index) => Operation.fromObject({ rankOrder: index + 1 })),
+        operations: new Array(this.nbOfOpOnBalankPage).fill(null).map((_, index) => Operation.fromObject({ rankOrder: index + 1 })),
       });
     } else {
       data = await this.tripService.load(id, { ...opts, withOperation: true });
@@ -141,10 +140,10 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
     stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
     stats.strataEnabled = stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
-    stats.saleTypes = (await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'SaleType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })).data.map((i) => i.label);
+    stats.saleTypes = (
+      await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'SaleType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })
+    ).data.map((i) => i.label);
 
-    // const mytest = (await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'Location' }));
-    console.debug('MYTEST TOTO', data, stats, this.i18nContext, this.i18nContextSuffix);
     return stats;
   }
 
